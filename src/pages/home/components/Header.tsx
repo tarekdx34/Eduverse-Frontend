@@ -2,13 +2,17 @@ import { Button } from '../../../components/ui/button';
 import { Menu, GraduationCap, Globe, Sun, Moon } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { useNavigate } from 'react-router-dom';
 
 export function Header() {
   const { language, setLanguage, t } = useLanguage();
   const { theme, toggleTheme } = useTheme();
-
+  const navigate = useNavigate();
   const toggleLanguage = () => {
     setLanguage(language === 'en' ? 'ar' : 'en');
+  };
+  const handlelogin = () => {
+    navigate('/login');
   };
 
   return (
@@ -21,32 +25,6 @@ export function Header() {
             </div>
             <span className="font-semibold">{t('Eduverse', 'إيدوفيرس')}</span>
           </div>
-          <nav className="hidden md:flex items-center space-x-6">
-            <a
-              href="#about"
-              className="text-muted-foreground hover:text-foreground transition-colors"
-            >
-              {t('About', 'حول')}
-            </a>
-            <a
-              href="#features"
-              className="text-muted-foreground hover:text-foreground transition-colors"
-            >
-              {t('AI Features', 'الميزات الذكية')}
-            </a>
-            <a
-              href="#roles"
-              className="text-muted-foreground hover:text-foreground transition-colors"
-            >
-              {t('User Roles', 'الأدوار')}
-            </a>
-            <a
-              href="#gamification"
-              className="text-muted-foreground hover:text-foreground transition-colors"
-            >
-              {t('Gamification', 'التحفيز')}
-            </a>
-          </nav>
         </div>
         <div className="flex items-center space-x-4">
           <Button
@@ -68,7 +46,7 @@ export function Header() {
             <Globe className="h-4 w-4" />
             <span className="ml-1 text-xs">{language === 'en' ? 'AR' : 'EN'}</span>
           </Button>
-          <Button variant="ghost" className="hidden md:inline-flex">
+          <Button variant="ghost" className="hidden md:inline-flex" onClick={handlelogin}>
             {t('Sign In', 'تسجيل الدخول')}
           </Button>
           <Button>{t('Get Started', 'ابدأ الآن')}</Button>

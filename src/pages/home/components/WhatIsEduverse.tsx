@@ -140,7 +140,7 @@ export function WhatIsEduverse() {
           </div>
 
           {/* Right - Text Content */}
-          <div className="slide-in-element opacity-0 translate-x-[50px] transition-all duration-700 delay-200">
+          <div className="slide-in-element opacity-0 translate-x-[50px]   transition-all duration-700 delay-200">
             <h2 className="text-3xl md:text-4xl lg:text-5xl mb-6">
               {t('What is', 'ما هو')}{' '}
               <span className="bg-gradient-to-r from-chart-1 to-chart-2 bg-clip-text text-transparent">
