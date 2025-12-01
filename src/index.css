@@ -4,6 +4,7 @@
   box-sizing: border-box;
 }
 
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;500;600;700;800;900&display=swap');
 @import 'tailwindcss';
 
 html,
@@ -11,4 +12,10 @@ body,
 #root {
   height: 100%;
   width: 100%;
+}
+
+/* Cairo font for Arabic text */
+body[dir="rtl"],
+[dir="rtl"] {
+  font-family: 'Cairo', sans-serif;
 }

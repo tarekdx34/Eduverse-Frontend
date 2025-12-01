@@ -9,6 +9,7 @@ export default {
         slate: {
           950: '#030712',
         },
+        primary: '#136dec',
       },
     },
   },

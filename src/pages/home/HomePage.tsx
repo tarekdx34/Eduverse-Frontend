@@ -20,7 +20,7 @@ export default function HomePage() {
             <HeroSection />
             <WhatIsEduverse />
             <AIFeaturesSection />
-            <BenefitsSection />
+
             <UserRolesSection />
             <GamificationSection />
             <CTASection />

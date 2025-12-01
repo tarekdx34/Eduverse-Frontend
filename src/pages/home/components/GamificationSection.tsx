@@ -1,307 +1,188 @@
-import { TrendingUp, TrendingDown } from 'lucide-react';
-import { useState } from 'react';
-import { Button } from '../../../components/ui/button';
 import { useLanguage } from '../contexts/LanguageContext';
 
 export function GamificationSection() {
-  const [activeTab, setActiveTab] = useState<'follow' | 'global'>('follow');
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
 
-  const dailyQuests = [
+  const leaderboard = [
     {
-      title: { en: 'Daily Quest: Quiz Master', ar: 'مهمة يومية: سيد الاختبارات' },
-      description: {
-        en: 'Complete 3 quizzes today to earn 100 XP',
-        ar: 'أكمل 3 اختبارات اليوم لكسب 100 نقطة خبرة',
-      },
-      xp: 100,
-      progress: 2,
-      total: 3,
+      rank: 1,
+      name: 'Tarek Mohamed',
+      xp: '12,450 XP',
+      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDFaZxxzkIFF_Bg73OV5kyL3bwbKFCZci0VtW95SV20HZAgUAXVPPaYRXfyHxXdUsEQiMQKbMv_C8hN2Un2VoFvSgp0npdJddXP1UHpEUwzL74a6MtbdE-ouCw4Zm1o5hCVr3gj-urdAVZRD8Mg_dr2eovnrfgahY2-jMdjLUp1SojmIJiBiMgwPFZ4tdkHwUGlRu1I8OB_kuJ-va5y9OAib5IVrWVSkZLLEaZq0NZliRHJLNaEr2qwmE251sB8hZsm3Zsh1z2o1tM',
+      premium: true,
     },
     {
-      title: { en: 'Weekly Quest: Assignment Ace', ar: 'مهمة أسبوعية: بطل الواجبات' },
-      description: {
-        en: 'Submit all assignments this week to earn 250 XP',
-        ar: 'قدم جميع الواجبات هذا الأسبوع لكسب 250 نقطة خبرة',
-      },
-      xp: 250,
-      progress: 4,
-      total: 5,
+      rank: 2,
+      name: 'Amir Mohamed',
+      xp: '11,980 XP',
+      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAWpL1MaMbDUQkr4mOIO83dTcsB-Vd2YMBKzBWY9ONAjhamRH4TwcWsR8qU26kjqkD3ebJFEFAI-Xre_0dw9zkvZGozM_IrMAAWaCBDRbBZmseLW_mvJ8p4stYUYU_FKt5SaP7ubr8CuG3vSyeMFVbddLzsOE_YsohhxBsZhkWMgq_KN3CCMpxrxJVP27CvT1cBp-n7s6qHq0A0w3PndbkbNxjPpYUt_GDqdG_hZ-Ufhs-HWCl1QEnIx284Bp9v7GqffpbNLoMNfs4',
+      premium: false,
+    },
+    {
+      rank: 3,
+      name: 'Awab',
+      xp: '11,230 XP',
+      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAaxwE-P3xrcD24bynl-K13gpChyOeTGGM1RaeYhdtKmAgGeHyaf31cQabY8A8zNtruGK2wYiVlbgrlOwd3BRXfE7FuY_nmisIPh8D2EdsYUkpt-xfmMbWZb-B_iqIWII3H2_ZkGIkcql4BDftsLW_jAStg1NZcX4scoQXuSdbXv7vKq-_mAKD_javxTPeE_M-_Jwqjq6ykmlw9KGJ93DJQo-IXI5L-QLD9XHQgM5dtksArSyflQjT6uX03GsK1MHoSU1uVuB5vNB4',
+      premium: false,
     },
   ];
 
-  const leaderboardData = [
-    { rank: 1, name: 'Alistair', nameAr: 'أحمد محمد', level: 15, xp: 5000, change: 1 },
-    { rank: 2, name: 'Isolde', nameAr: 'سارة علي', level: 14, xp: 4800, change: -1 },
-    { rank: 3, name: 'Gareth', nameAr: 'محمد خالد', level: 13, xp: 4500, change: 2 },
-    { rank: 4, name: 'Rowan', nameAr: 'فاطمة حسن', level: 12, xp: 4300, change: -2 },
-    { rank: 5, name: 'Finnian', nameAr: 'عمر يوسف', level: 11, xp: 4000, change: 1 },
-  ];
-
-  const badges = [
+  const achievements = [
     {
-      title: { en: 'Quiz Whiz', ar: 'عبقري الاختبارات' },
-      description: { en: 'Complete 50 quizzes', ar: 'أكمل 50 اختبار' },
-      icon: '🎯',
-      unlocked: true,
-      rarity: 'legendary',
+      name: t('Stellar Starter', 'بداية نجمية'),
+      icon: 'rocket_launch',
+      background: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBOL_LJ5xAsBPDc0bfLlxpDneOgWb0KOAKwmDZ1g3jZAcrSPZ8iNU0JH0sIMozVJG6JP5EMwgYUgcaDU1Hn6cIenI1yfMOmlilJwP_86Sg4ceGUcja47VjLneeE0WRDc8Rhcn04DMwgKDTYQQkqVQNLDEaYM-w_pO5_tq29-_NUA53uM2WgRvX6_Kytjv-6yKInDVuasDA6JYjH_ff9Je4foYjcw-5Ycu6SrIr-ynIfKnzBK7tNz7jJiDanlwmNmggYPk2AwxzXQJY',
+      locked: false,
     },
     {
-      title: { en: 'Assignment Ace', ar: 'بطل الواجبات' },
-      description: { en: 'Submit 100 assignments', ar: 'قدم 100 واجب' },
-      icon: '📝',
-      unlocked: true,
-      rarity: 'epic',
+      name: t('Quantum Thinker', 'مفكر الكم'),
+      icon: 'psychology',
+      background: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAEn4SbHxMckHHtsXSJXaBOeDuBIyMOpxzm3kY00-rn4r33XzlDUS1nICY0qADqMWuK35cDYJ6sLAAVHRNh9UwUjbz04EWMtireVzNeKAf-wqu8YjaMy8hgKMltSLBexTAp-Aze6WbuxGHNTvIpzuTodLvqekrfk58qhd7Jxb3uhLW1pxjPHiP9TnB0NtjTc_j8e1rhLQnhPV-YhqlzXmLnzOQ2CH4Yx5AIuABHphT1hY-4SwQUIM0WPiBIuXAwbEgIDWZGjyETGWk',
+      locked: false,
     },
     {
-      title: { en: 'Lab Legend', ar: 'أسطورة المختبر' },
-      description: { en: 'Attend all lab sessions', ar: 'احضر جميع جلسات المختبر' },
-      icon: '🔬',
-      unlocked: true,
-      rarity: 'rare',
-    },
-    {
-      title: { en: 'Exam Expert', ar: 'خبير الامتحانات' },
-      description: { en: 'Score 90+ on 10 exams', ar: 'احصل على 90+ في 10 امتحانات' },
-      icon: '📊',
-      unlocked: true,
-      rarity: 'epic',
-    },
-    {
-      title: { en: 'Participation Pro', ar: 'محترف المشاركة' },
-      description: { en: 'Participate in 50 discussions', ar: 'شارك في 50 نقاش' },
-      icon: '💬',
-      unlocked: false,
-      rarity: 'rare',
-    },
-    {
-      title: { en: 'Perfect Attendance', ar: 'الحضور المثالي' },
-      description: { en: 'Never miss a class', ar: 'لا تفوت أي حصة' },
-      icon: '✓',
-      unlocked: false,
-      rarity: 'legendary',
+      name: t('Collaboration Champ', 'بطل التعاون'),
+      icon: 'groups',
+      background: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDo2vvwaf5BTKP8vTfcvlgeyT55br10n6IV1OZyA7l4UW6CXhh0bla_9K65y1CsMVIIGqq8WwUQdSrQe8q4hyTKpNWLmFXFcRJwQMV8hONNTxKI3eR_WngIC_p1d9lkGDra0zCw2Ai2hF0rZ2nD1E-NSGh013atqwog_ESHeTkUercWZBbhl37fza5g7ciLvXK-imMqSzEkL3shgRl2SK90ZN9dd1omB0mOKAVHBDUvlLOQYzjQSSKKY7vejCZMjshZ1G4w2J1NF00',
+      locked: false,
     },
   ];
-
-  const getRarityColor = (rarity: string) => {
-    switch (rarity) {
-      case 'legendary':
-        return 'from-yellow-600 to-orange-600';
-      case 'epic':
-        return 'from-purple-600 to-pink-600';
-      case 'rare':
-        return 'from-blue-600 to-cyan-600';
-      default:
-        return 'from-gray-600 to-gray-700';
-    }
-  };
 
   return (
-    <section id="gamification" className="py-20 lg:py-32 bg-background">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl lg:text-5xl mb-4">
-            {t('Gamification', 'التحفيز')}{' '}
-            <span className="bg-gradient-to-r from-chart-1 to-chart-2 bg-clip-text text-transparent">
-              {t('System', 'النظام')}
-            </span>
+    <section className="relative flex min-h-screen w-full flex-col items-center justify-center p-4 sm:p-6 md:p-8">
+      <div className="w-full max-w-5xl">
+        {/* Section Header & Body Text */}
+        <div className="text-center mb-12">
+          <h2 className="text-foreground text-3xl md:text-4xl font-bold leading-tight tracking-tight">
+            {t('Make Learning an Adventure', 'اجعل التعلم مغامرة')}
           </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-muted-foreground text-lg font-normal leading-normal max-w-3xl mx-auto mt-4">
             {t(
-              'Earn XP, unlock badges, and climb the leaderboard',
-              'اكسب نقاط الخبرة، وافتح الشارات، وتسلق لوحة المتصدرين'
+              'Our gamification system transforms education into an engaging experience, motivating you to excel through friendly competition and rewarding achievements.',
+              'نظام المكافآت لدينا يحول التعليم إلى تجربة جذابة، مما يحفزك على التميز من خلال المنافسة الودية والإنجازات المجزية.'
             )}
           </p>
         </div>
 
-        {/* Daily & Weekly Quests */}
-        <div className="mb-16">
-          <h3 className="text-2xl mb-6">
-            {t('Daily & Weekly Quests', 'المهام اليومية والأسبوعية')}
-          </h3>
-          <div className="grid lg:grid-cols-2 gap-6">
-            {dailyQuests.map((quest, index) => (
-              <div
-                key={index}
-                className="bg-card border border-border rounded-2xl p-6 hover:border-chart-1 transition-all"
-              >
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h4 className="mb-2">{quest.title[language]}</h4>
-                    <p className="text-sm text-muted-foreground">{quest.description[language]}</p>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-2xl bg-gradient-to-r from-chart-1 to-chart-2 bg-clip-text text-transparent">
-                      {quest.xp} XP
-                    </div>
-                  </div>
-                </div>
-
-                {/* Progress Bar */}
-                <div className="mb-4">
-                  <div className="flex justify-between text-sm text-muted-foreground mb-2">
-                    <span>{t('Progress', 'التقدم')}</span>
-                    <span>
-                      {quest.progress}/{quest.total}
+        {/* Main Grid Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column: Leaderboard Card */}
+          <div className="lg:col-span-1">
+            <div className="flex flex-col items-stretch justify-start rounded-xl shadow-sm border border-border bg-card h-full p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <span className="material-symbols-outlined text-primary text-2xl">trophy</span>
+                <p className="text-foreground text-lg font-bold leading-tight">
+                  {t('Leaderboard', 'لوحة الصدارة')}
+                </p>
+              </div>
+              <p className="text-muted-foreground text-base font-normal leading-normal mb-6">
+                {t('See who\'s leading the charge this week.', 'اعرف من يتصدر هذا الأسبوع.')}
+              </p>
+              <div className="flex flex-col gap-4 grow">
+                {leaderboard.map((student) => (
+                  <div key={student.rank} className="flex items-center gap-4">
+                    <span className="text-muted-foreground font-bold text-lg w-4">
+                      {student.rank}
                     </span>
-                  </div>
-                  <div className="h-2 bg-muted rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-chart-1 to-chart-2 transition-all duration-500"
-                      style={{ width: `${(quest.progress / quest.total) * 100}%` }}
-                    ></div>
-                  </div>
-                </div>
-
-                <Button className="w-full" disabled={quest.progress < quest.total}>
-                  {t('Claim XP', 'اجمع النقاط')}
-                </Button>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Leaderboard */}
-        <div className="mb-16">
-          <h3 className="text-2xl mb-6">{t('Leaderboard', 'لوحة المتصدرين')}</h3>
-
-          {/* Tabs */}
-          <div className="flex gap-2 mb-6">
-            <button
-              onClick={() => setActiveTab('follow')}
-              className={`flex-1 py-3 px-6 rounded-lg transition-all ${
-                activeTab === 'follow'
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
-              }`}
-            >
-              {t('Follow Adventurers', 'متابعة المغامرين')}
-            </button>
-            <button
-              onClick={() => setActiveTab('global')}
-              className={`flex-1 py-3 px-6 rounded-lg transition-all ${
-                activeTab === 'global'
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
-              }`}
-            >
-              {t('Global Heroes', 'الأبطال العالميون')}
-            </button>
-          </div>
-
-          {/* Leaderboard Table */}
-          <div className="bg-card border border-border rounded-2xl overflow-hidden">
-            <table className="w-full">
-              <thead className="bg-muted/50 border-b border-border">
-                <tr>
-                  <th className="text-left py-4 px-6">{t('Rank', 'المرتبة')}</th>
-                  <th className="text-left py-4 px-6">{t('Hero', 'البطل')}</th>
-                  <th className="text-left py-4 px-6">{t('Level', 'المستوى')}</th>
-                  <th className="text-left py-4 px-6">XP</th>
-                  <th className="text-left py-4 px-6">{t('Change', 'التغيير')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {leaderboardData.map((player, index) => (
-                  <tr
-                    key={index}
-                    className="border-b border-border last:border-b-0 hover:bg-muted/30 transition-colors"
-                  >
-                    <td className="py-4 px-6">
-                      <div
-                        className={`inline-flex items-center justify-center w-8 h-8 rounded-full ${
-                          player.rank === 1
-                            ? 'bg-gradient-to-br from-yellow-400 to-yellow-600 text-white'
-                            : player.rank === 2
-                              ? 'bg-gradient-to-br from-gray-300 to-gray-500 text-white'
-                              : player.rank === 3
-                                ? 'bg-gradient-to-br from-orange-400 to-orange-600 text-white'
-                                : 'bg-muted'
+                    <img
+                      className="w-10 h-10 rounded-full object-cover"
+                      src={student.image}
+                      alt={student.name}
+                    />
+                    <div className="flex-1">
+                      <p className="text-foreground font-medium">{student.name}</p>
+                      <p
+                        className={`text-sm ${
+                          student.premium
+                            ? 'text-primary font-bold'
+                            : 'text-muted-foreground'
                         }`}
                       >
-                        {player.rank}
-                      </div>
-                    </td>
-                    <td className="py-4 px-6">{language === 'en' ? player.name : player.nameAr}</td>
-                    <td className="py-4 px-6">{player.level}</td>
-                    <td className="py-4 px-6">{player.xp.toLocaleString()}</td>
-                    <td className="py-4 px-6">
-                      <div
-                        className={`flex items-center gap-1 ${
-                          player.change > 0
-                            ? 'text-green-500'
-                            : player.change < 0
-                              ? 'text-red-500'
-                              : 'text-muted-foreground'
-                        }`}
-                      >
-                        {player.change > 0 ? (
-                          <>
-                            <TrendingUp className="h-4 w-4" />
-                            <span>+{player.change}</span>
-                          </>
-                        ) : player.change < 0 ? (
-                          <>
-                            <TrendingDown className="h-4 w-4" />
-                            <span>{player.change}</span>
-                          </>
-                        ) : (
-                          <span>-</span>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
+                        {student.xp}
+                      </p>
+                    </div>
+                    {student.premium && (
+                      <span className="material-symbols-outlined text-amber-400">
+                        workspace_premium
+                      </span>
+                    )}
+                  </div>
                 ))}
-              </tbody>
-            </table>
+              </div>
+              <button className="flex mt-6 min-w-[84px] w-full max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 px-4 bg-primary/10 dark:bg-primary/20 text-primary text-sm font-medium leading-normal hover:bg-primary/20 transition-colors">
+                <span className="truncate">
+                  {t('View Full Leaderboard', 'عرض لوحة الصدارة الكاملة')}
+                </span>
+              </button>
+            </div>
           </div>
-        </div>
 
-        {/* Achievements & Badges */}
-        <div>
-          <h3 className="text-2xl mb-6">{t('Achievements & Badges', 'الإنجازات والشارات')}</h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-            {badges.map((badge, index) => (
-              <div key={index} className="group relative">
-                <div
-                  className={`relative aspect-square rounded-2xl bg-gradient-to-br ${getRarityColor(badge.rarity)} p-1 ${
-                    !badge.unlocked && 'opacity-40 grayscale'
-                  }`}
-                >
-                  <div className="w-full h-full bg-card rounded-xl flex flex-col items-center justify-center p-4 relative overflow-hidden">
-                    {/* Glow Effect */}
-                    {badge.unlocked && (
-                      <div
-                        className={`absolute inset-0 bg-gradient-to-br ${getRarityColor(badge.rarity)} opacity-20 blur-xl`}
-                      ></div>
-                    )}
-
-                    {/* Icon */}
-                    <div className="text-5xl mb-2 relative z-10">{badge.icon}</div>
-
-                    {/* Lock Overlay */}
-                    {!badge.unlocked && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-sm">
-                        <div className="text-4xl">🔒</div>
-                      </div>
-                    )}
+          {/* Right Column: Achievements & Progress */}
+          <div className="lg:col-span-2 flex flex-col gap-8">
+            {/* Achievement Badges Card */}
+            <div className="p-6 rounded-xl shadow-sm border border-border bg-card">
+              <h3 className="text-foreground text-lg font-bold leading-tight mb-4">
+                {t('Unlock Your Achievements', 'افتح إنجازاتك')}
+              </h3>
+              <div className="grid grid-cols-[repeat(auto-fit,minmax(120px,1fr))] gap-4">
+                {achievements.map((achievement, index) => (
+                  <div
+                    key={index}
+                    className="flex flex-col gap-3 items-center justify-center aspect-square rounded-full bg-cover bg-center hover:scale-105 transition-transform cursor-pointer"
+                    style={{
+                      backgroundImage: `linear-gradient(0deg, rgba(20, 20, 20, 0.4) 0%, rgba(20, 20, 20, 0.4) 100%), url('${achievement.background}')`,
+                    }}
+                  >
+                    <span className="material-symbols-outlined text-white text-3xl">
+                      {achievement.icon}
+                    </span>
+                    <p className="text-white text-base font-bold leading-tight w-[80%] text-center line-clamp-2">
+                      {achievement.name}
+                    </p>
                   </div>
-                </div>
-
-                {/* Badge Info */}
-                <div className="mt-3 text-center">
-                  <div className="text-sm mb-1">{badge.title[language]}</div>
-
-                  {/* Tooltip on Hover */}
-                  <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute left-1/2 -translate-x-1/2 mt-2 bg-popover border border-border rounded-lg p-3 text-xs whitespace-nowrap z-10 pointer-events-none shadow-lg">
-                    {badge.description[language]}
-                  </div>
+                ))}
+                {/* Locked Achievement */}
+                <div className="flex flex-col gap-3 items-center justify-center aspect-square rounded-full bg-muted border-2 border-dashed border-border hover:scale-105 transition-transform cursor-pointer">
+                  <span className="material-symbols-outlined text-muted-foreground text-3xl">
+                    lock
+                  </span>
+                  <p className="text-muted-foreground text-base font-bold leading-tight w-[80%] text-center line-clamp-2">
+                    {t('More to Unlock', 'المزيد قادم')}
+                  </p>
                 </div>
               </div>
-            ))}
+            </div>
+
+            {/* Progress Visualization Card */}
+            <div className="p-6 rounded-xl shadow-sm border border-border bg-card">
+              <div className="flex flex-col gap-5">
+                <div className="flex gap-6 justify-between items-center">
+                  <p className="text-foreground text-base font-medium leading-normal">
+                    {t('Weekly XP Goal', 'هدف XP الأسبوعي')}
+                  </p>
+                  <p className="text-primary text-sm font-bold leading-normal">750 / 1000 XP</p>
+                </div>
+                <div className="rounded-full bg-muted">
+                  <div
+                    className="h-2 rounded-full bg-primary transition-all duration-500"
+                    style={{ width: '75%' }}
+                  ></div>
+                </div>
+                <div className="flex justify-between items-center">
+                  <p className="text-muted-foreground text-sm font-normal leading-normal">
+                    {t('Great progress! Just 250 XP to the next level.', 'تقدم رائع! يتبقى 250 XP للمستوى التالي.')}
+                  </p>
+                  <span className="flex items-center gap-1 text-green-500 text-sm font-medium">
+                    <span className="material-symbols-outlined text-base">trending_up</span>
+                    {t('Level Up!', 'مستوى جديد!')}
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </section>
   );
 }
+
