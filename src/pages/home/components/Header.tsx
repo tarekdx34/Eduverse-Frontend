@@ -13,8 +13,9 @@ export function Header() {
   const handlelogin = () => {
     navigate('/login');
   };
+
   const handleLogo = () => {
-    navigate('');
+    navigate('/');
   };
 
   return (

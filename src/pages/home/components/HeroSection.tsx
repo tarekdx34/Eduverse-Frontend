@@ -126,7 +126,7 @@ export function HeroSection() {
             <div className="space-y-6">
               <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight">
                 <span className="bg-gradient-to-r from-primary via-chart-1 to-chart-2 bg-clip-text text-transparent">
-                  {t('EduVerse', 'ايدوفيرسا')}
+                  {t('Eduverse', 'ايدوفيرسا')}
                 </span>
               </h1>
 

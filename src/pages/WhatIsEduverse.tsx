@@ -85,11 +85,11 @@ export default function WhatIsEduverse() {
                   </div>
                 </div>
                 <div
-                  className={`flex flex-col items-start gap-6 ${
+                  className={`flex flex-col items-center gap-6 ${
                     isArabic ? 'md:col-span-1 md:order-1' : ''
                   }`}
                 >
-                  <h2 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100 @[480px]:text-4xl @[480px]:font-black @[480px]:leading-tight @[480px]:tracking-[-0.033em] max-w-md">
+                  <h2 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100 @[480px]:text-4xl @[480px]:font-black @[480px]:leading-tight @[480px]:tracking-[-0.033em] max-w-md text-center">
                     {currentContent.title}
                   </h2>
                   <p className="text-base font-normal leading-relaxed text-slate-700 dark:text-slate-300 max-w-md">
