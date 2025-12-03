@@ -123,7 +123,7 @@ export function HeroSection() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
           {/* LEFT SIDE - Content */}
           <div className="flex flex-col justify-center space-y-8 order-1 lg:order-1">
-            <div className="space-y-4">
+            <div className="space-y-6">
               <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight">
                 <span className="bg-gradient-to-r from-primary via-chart-1 to-chart-2 bg-clip-text text-transparent">
                   {t('EduVerse', 'ايدوفيرسا')}
@@ -170,15 +170,6 @@ export function HeroSection() {
               className="relative w-full h-full"
               style={{ perspective: '1000px' }}
             >
-              {/* Central AI Brain Hub */}
-              <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-gradient-to-br from-primary via-chart-1 to-chart-2 rounded-3xl shadow-2xl flex items-center justify-center z-10">
-                <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center">
-                  <Brain className="h-8 w-8 text-primary" />
-                </div>
-              </div>
-
-              {/* Floating AI/Educational Components */}
-
               {/* AI Attendance Card */}
               <div className="floating-card absolute top-16 left-20 w-40 h-24 bg-card border rounded-2xl shadow-lg p-4 transform-gpu">
                 <div className="text-xs text-muted-foreground mb-2">AI Attendance</div>

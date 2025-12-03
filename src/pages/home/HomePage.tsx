@@ -9,20 +9,21 @@ import { CTASection } from './components/CTASection';
 import { Footer } from './components/Footer';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { PricingSection } from './components/PricingSection';
 
 export default function HomePage() {
   return (
     <ThemeProvider>
       <LanguageProvider>
-        <div className="min-h-screen">
+        <div className="min-h-screen" style={{ fontFamily: "'Montserrat', sans-serif" }}>
           <Header />
           <main>
             <HeroSection />
             <WhatIsEduverse />
             <AIFeaturesSection />
-
             <UserRolesSection />
             <GamificationSection />
+            <PricingSection />
             <CTASection />
           </main>
           <Footer />
