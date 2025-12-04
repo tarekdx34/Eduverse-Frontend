@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import HomePage from './pages/home/HomePage';
 import LoginPage from './pages/auth/LoginPage';
 import ProfilePage from './pages/profile/ProfilePage';
+import StudentDashboardPage from './pages/dashboard/StudentDashboardPage';
 import { AuthService } from './services/api/authService';
 import './App.css';
 
@@ -21,6 +22,12 @@ function App() {
         <Route
           path="/profile"
           element={isAuthenticated ? <ProfilePage /> : <Navigate to="/login" />}
+        />
+
+        {/* Student Dashboard - Protected */}
+        <Route
+          path="/dashboard"
+          element={isAuthenticated ? <StudentDashboardPage /> : <Navigate to="/login" />}
         />
 
         {/* Catch-all redirect */}

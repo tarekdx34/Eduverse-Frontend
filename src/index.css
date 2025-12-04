@@ -1,21 +1,37 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;500;600;700;800;900&display=swap');
 @import 'tailwindcss';
 
-html,
-body,
-#root {
-  height: 100%;
-  width: 100%;
+@layer base {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+    width: 100%;
+  }
+
+  /* Cairo font for Arabic text */
+  body[dir="rtl"],
+  [dir="rtl"] {
+    font-family: 'Cairo', sans-serif;
+  }
 }
 
-/* Cairo font for Arabic text */
-body[dir="rtl"],
-[dir="rtl"] {
-  font-family: 'Cairo', sans-serif;
+/* Force Montserrat everywhere */
+* {
+  font-family: 'Montserrat', ui-sans-serif, system-ui, sans-serif !important;
+}
+
+html, body, #root {
+  font-family: 'Montserrat', ui-sans-serif, system-ui, sans-serif !important;
+}
+
+/* Keep Cairo for Arabic */
+[dir="rtl"],
+body[dir="rtl"] {
+  font-family: 'Cairo', sans-serif !important;
 }
