@@ -24,6 +24,7 @@ interface ClassTabProps {
     inProgress: number;
     totalCredits: number;
   };
+  onViewCourse?: (courseId: string) => void;
 }
 
 const defaultCourses: Course[] = [
@@ -138,7 +139,13 @@ const StatCard = ({ label, value, icon: Icon, color }: any) => (
   </div>
 );
 
-const CourseCard = ({ course }: { course: Course }) => (
+const CourseCard = ({
+  course,
+  onViewCourse,
+}: {
+  course: Course;
+  onViewCourse?: (courseId: string) => void;
+}) => (
   <div className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
     {/* Color bar */}
     <div className="h-2" style={{ backgroundColor: course.progressColor }} />
@@ -161,7 +168,10 @@ const CourseCard = ({ course }: { course: Course }) => (
           src={course.instructorImage}
           alt={course.instructor}
           className="w-10 h-10 rounded-full object-cover"
-          onError={(e) => (e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2240%22 height=%2240%22%3E%3Crect fill=%22%23e5e7eb%22 width=%2240%22 height=%2240%22/%3E%3C/svg%3E')}
+          onError={(e) =>
+            (e.currentTarget.src =
+              'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2240%22 height=%2240%22%3E%3Crect fill=%22%23e5e7eb%22 width=%2240%22 height=%2240%22/%3E%3C/svg%3E')
+          }
         />
         <div>
           <p className="text-sm font-medium text-gray-900">{course.instructor}</p>
@@ -206,7 +216,10 @@ const CourseCard = ({ course }: { course: Course }) => (
 
       {/* Buttons */}
       <div className="flex gap-2">
-        <button className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+        <button
+          onClick={() => onViewCourse?.(course.id)}
+          className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+        >
           View Course
         </button>
         <button className="flex-1 border border-gray-200 hover:bg-gray-50 text-gray-700 font-medium py-2 px-4 rounded-lg transition-colors">
@@ -217,7 +230,11 @@ const CourseCard = ({ course }: { course: Course }) => (
   </div>
 );
 
-export default function ClassTab({ courses = defaultCourses, stats = defaultStats }: ClassTabProps) {
+export default function ClassTab({
+  courses = defaultCourses,
+  stats = defaultStats,
+  onViewCourse,
+}: ClassTabProps) {
   return (
     <div className="space-y-6">
       {/* Stats Overview */}
@@ -258,7 +275,7 @@ export default function ClassTab({ courses = defaultCourses, stats = defaultStat
         {/* Course Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {courses.map((course) => (
-            <CourseCard key={course.id} course={course} />
+            <CourseCard key={course.id} course={course} onViewCourse={onViewCourse} />
           ))}
         </div>
       </div>
