@@ -2,7 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import HomePage from './pages/home/HomePage';
 import LoginPage from './pages/auth/LoginPage';
 import ProfilePage from './pages/profile/ProfilePage';
-import StudentDashboardPage from './pages/dashboard/StudentDashboardPage';
+import StudentDashboard from './pages/student-dashboard/StudentDashboard';
 import { AuthService } from './services/api/authService';
 import './App.css';
 
@@ -24,11 +24,23 @@ function App() {
           element={isAuthenticated ? <ProfilePage /> : <Navigate to="/login" />}
         />
 
-        {/* Student Dashboard - Protected */}
+        {/* Student Dashboard - Protected with nested routes */}
         <Route
-          path="/dashboard"
-          element={isAuthenticated ? <StudentDashboardPage /> : <Navigate to="/login" />}
+          path="/studentdashboard"
+          element={isAuthenticated ? <StudentDashboard /> : <Navigate to="/login" />}
         />
+        <Route
+          path="/studentdashboard/:tab"
+          element={isAuthenticated ? <StudentDashboard /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/studentdashboard/:tab/:id"
+          element={isAuthenticated ? <StudentDashboard /> : <Navigate to="/login" />}
+        />
+
+        {/* Legacy /dashboard route - redirect to /studentdashboard */}
+        <Route path="/dashboard" element={<Navigate to="/studentdashboard" replace />} />
+        <Route path="/dashboard/*" element={<Navigate to="/studentdashboard" replace />} />
 
         {/* Catch-all redirect */}
         <Route path="*" element={<Navigate to="/" />} />

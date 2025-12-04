@@ -10,3 +10,5 @@ export { default as GradesTranscript } from './GradesTranscript';
 export { default as Assignments } from './Assignments';
 export { default as AcademicCalendar } from './AcademicCalendar';
 export { AIFeatures } from './AIFeatures';
+export { MessagingChat } from './MessagingChat';
+
