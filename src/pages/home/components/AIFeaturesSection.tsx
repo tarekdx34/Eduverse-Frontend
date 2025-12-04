@@ -77,7 +77,7 @@ export function AIFeaturesSection() {
   }, []);
 
   return (
-    <section id="features" className="bg-background py-20 lg:py-32" ref={sectionRef} style={{ fontFamily: "'Montserrat', sans-serif" }}>
+    <section id="features" className="bg-background py-20 lg:py-32" ref={sectionRef}>
       <div className="container mx-auto px-4">
         <div className="text-center mb-24">
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
@@ -143,13 +143,6 @@ export function AIFeaturesSection() {
       </div>
 
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap');
-
-        section#features,
-        section#features * {
-          font-family: 'Montserrat', sans-serif !important;
-        }
-
         @keyframes fade-in-up {
           from {
             opacity: 0;

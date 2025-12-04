@@ -4,19 +4,32 @@ import { Mail, Lock, Eye, EyeOff, LogIn } from 'lucide-react';
 import { Input } from '../../components/ui/input';
 import { Button } from '../../components/ui/button';
 import { useLanguage } from '../home/contexts/LanguageContext';
+import { AuthService } from '../../services/api/authService';
+import backgroundImage from '../../assets/images/pexels-mart-production-8471990.jpg';
 
 const login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { language } = useLanguage();
   const isArabic = language === 'ar';
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle login logic here
-    console.log('Login attempt:', { email, password });
+    setError('');
+    setLoading(true);
+
+    try {
+      const response = await AuthService.login({ email, password });
+      navigate('/dashboard');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Login failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleOutlookSignIn = () => {
@@ -28,45 +41,19 @@ const login = () => {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gradient-to-b from-[hsl(200,80%,90%)] via-[hsl(200,70%,92%)] to-[hsl(200,60%,95%)]">
-      {/* Cloud background effect */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-white/80 to-transparent" />
-        <div className="absolute bottom-10 left-[10%] w-64 h-20 bg-white/60 rounded-full blur-2xl" />
-        <div className="absolute bottom-20 right-[15%] w-80 h-24 bg-white/50 rounded-full blur-3xl" />
-        <div className="absolute bottom-5 left-[40%] w-96 h-28 bg-white/70 rounded-full blur-2xl" />
-        <div className="absolute top-20 right-[20%] w-48 h-16 bg-white/30 rounded-full blur-xl" />
-
-        {/* Decorative arc lines */}
-        <svg
-          className="absolute inset-0 w-full h-full opacity-20"
-          viewBox="0 0 1000 800"
-          preserveAspectRatio="none"
-        >
-          <path
-            d="M-100,400 Q500,100 1100,400"
-            stroke="hsl(200,40%,70%)"
-            strokeWidth="1"
-            fill="none"
-          />
-          <path
-            d="M-50,500 Q500,200 1050,500"
-            stroke="hsl(200,40%,75%)"
-            strokeWidth="1"
-            fill="none"
-          />
-        </svg>
-      </div>
-
+    <div
+      className="min-h-screen relative overflow-hidden bg-cover bg-center"
+      style={{
+        backgroundImage: `url(${backgroundImage})`,
+        fontFamily: "'Montserrat', sans-serif",
+      }}
+    >
       {/* Login Card */}
-      <div className="relative z-10 min-h-screen flex items-center justify-center px-4">
+      <div className="relative z-10 min-h-screen flex items-center justify-center px-4 bg-black/20">
         <div className="w-full max-w-md">
           <div className="bg-gradient-to-b from-[hsl(200,60%,95%)]/80 to-card/95 backdrop-blur-sm rounded-3xl p-8 shadow-[var(--shadow-card)] border border-white/50">
             {/* Icon */}
-            <div
-              className="flex justify-center mb-6"
-              style={{ fontFamily: "'Montserrat', sans-serif" }}
-            >
+            <div className="flex justify-center mb-6">
               <button
                 className="flex items-center space-x-2 flex-shrink-0 cursor-pointer"
                 onClick={handleLogo}
@@ -87,6 +74,11 @@ const login = () => {
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                  {error}
+                </div>
+              )}
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <Input
@@ -127,8 +119,12 @@ const login = () => {
                 </button>
               </div>
 
-              <Button type="submit" className="w-full h-12 rounded-xl text-base font-medium">
-                Get Started
+              <Button
+                type="submit"
+                className="w-full h-12 rounded-xl text-base font-medium"
+                disabled={loading}
+              >
+                {loading ? 'Signing in...' : 'Get Started'}
               </Button>
             </form>
 
