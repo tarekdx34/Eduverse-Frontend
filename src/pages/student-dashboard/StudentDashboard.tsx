@@ -9,6 +9,8 @@ import {
   CheckSquare,
   Sparkles,
   MessageCircle,
+  BarChart3,
+  ListChecks,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -18,18 +20,22 @@ import {
   DailySchedule,
   PaymentHistory,
   ClassTab,
-  WeeklySchedule,
+  ClassSchedule,
   GradesTranscript,
   Assignments,
   AcademicCalendar,
   AIFeatures,
   MessagingChat,
+  AttendanceOverview,
+  SmartTodoReminder,
 } from './components';
 import CourseViewPage from './pages/CourseView';
 import { GPA_DATA, SCHEDULE_DATA } from './constants';
 
 // Route component for each tab view
 function DashboardContent({ activeTab, viewingCourseId, setViewingCourseId }: any) {
+  console.log('DashboardContent rendered with activeTab:', activeTab); // Debug
+  
   return (
     <>
       {/* Dashboard Tab */}
@@ -100,6 +106,20 @@ function DashboardContent({ activeTab, viewingCourseId, setViewingCourseId }: an
 
       {/* Chat Tab */}
       {!viewingCourseId && activeTab === 'chat' && <MessagingChat />}
+
+      {/* Attendance Tab */}
+      {!viewingCourseId && activeTab === 'attendance' && (
+        <div>
+          <AttendanceOverview />
+        </div>
+      )}
+
+      {/* Todo Reminder Tab */}
+      {!viewingCourseId && activeTab === 'todo' && (
+        <div>
+          <SmartTodoReminder />
+        </div>
+      )}
     </>
   );
 }
@@ -112,6 +132,7 @@ export default function StudentDashboard() {
   
   // Determine active tab and course ID from location
   const pathSegments = location.pathname.split('/').filter(Boolean);
+  // pathSegments will be like: ['studentdashboard', 'attendance'] or ['studentdashboard', 'myclass', '123']
   const activeTab = pathSegments[1] || 'dashboard';
   const courseIdFromUrl = pathSegments[2] || null;
 
@@ -130,6 +151,9 @@ export default function StudentDashboard() {
     { id: 'schedule', label: 'Schedule', icon: Calendar },
     { id: 'assignments', label: 'Assignments', icon: CheckSquare },
     { id: 'grades', label: 'Grades', icon: FileText },
+    { id: 'attendance', label: 'Attendance', icon: BarChart3 },
+    { id: 'todo', label: 'Todo List', icon: ListChecks },
+    { id: 'ai', label: 'AI Features', icon: Sparkles },
     { id: 'payments', label: 'Payments', icon: CreditCard },
     { id: 'chat', label: 'Chat', icon: MessageCircle },
   ];
@@ -244,11 +268,13 @@ export default function StudentDashboard() {
               )}
 
               {activeTab === 'myclass' && <ClassTab onViewCourse={handleViewCourse} />}
-              {activeTab === 'schedule' && <WeeklySchedule />}
+              {activeTab === 'schedule' && <ClassSchedule />}
               {activeTab === 'assignments' && <Assignments />}
               {activeTab === 'calendar' && <AcademicCalendar />}
               {activeTab === 'ai' && <AIFeatures />}
               {activeTab === 'grades' && <GradesTranscript />}
+              {activeTab === 'attendance' && <AttendanceOverview />}
+              {activeTab === 'todo' && <SmartTodoReminder />}
               {activeTab === 'payments' && <PaymentHistory />}
               {activeTab === 'chat' && <MessagingChat />}
             </>

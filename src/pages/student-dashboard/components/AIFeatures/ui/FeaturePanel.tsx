@@ -25,7 +25,7 @@ export function FeaturePanel({ feature, children }: FeaturePanelProps) {
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm sticky top-6 overflow-hidden">
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
       <div className={`${feature.bgLight} border-b-2 ${feature.borderColor} p-6`}>
         <div className="flex items-center gap-3 mb-3">
           <div className={`${feature.color} w-12 h-12 rounded-xl flex items-center justify-center shadow-md`}>
@@ -50,7 +50,7 @@ export function FeaturePanel({ feature, children }: FeaturePanelProps) {
           </div>
         </div>
       </div>
-      <div className="p-6 max-h-[calc(100vh-300px)] overflow-y-auto">
+      <div className="p-6 min-h-screen overflow-y-auto">
         {children}
       </div>
     </div>
