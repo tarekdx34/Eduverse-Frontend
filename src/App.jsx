@@ -4,7 +4,6 @@ import LoginPage from './pages/auth/LoginPage';
 import ProfilePage from './pages/profile/ProfilePage';
 import StudentDashboard from './pages/student-dashboard/StudentDashboard';
 import { AuthService } from './services/api/authService';
-import './App.css';
 
 function App() {
   const isAuthenticated = AuthService.isAuthenticated();

@@ -1,0 +1,59 @@
+DOCUMENT FORMATTING INSTRUCTIONS FOR WORD CONVERSION
+=====================================================
+
+File: EduVerse_Frontend_Documentation.md
+
+When converting to Word format (.docx), apply the following formatting:
+
+FONT & SIZE:
+- Font Family: Times New Roman
+- Body Text: 12pt
+- Headings: 14-16pt
+- Line Spacing: 1.5 throughout document
+- Margins: 1 inch on all sides
+
+HEADING HIERARCHY:
+- Heading 1 (16pt, Bold): Main sections (1-13)
+  Example: "1. Personal Information"
+  
+- Heading 2 (14pt, Bold): Subsections
+  Example: "3.1 Authentication & Authorization"
+  
+- Heading 3 (12pt, Bold): Sub-subsections
+  Example: "Feature Name:"
+
+TEXT FORMATTING:
+- Body text: 12pt, Times New Roman, justified alignment
+- Code blocks: Use monospace font (Courier New), slightly smaller (10-11pt)
+- Tables: Standard Word table format, 12pt Times New Roman
+- Lists: Bullet points with consistent formatting
+
+SPECIAL ELEMENTS:
+- Diagrams: Embed as images or create using Word shapes
+- Tables: Use Word's table tools for professional appearance
+- Code examples: Use code formatting with borders
+- Emphasis: Use bold or italics sparingly for key terms
+
+PAGE BREAKS:
+- Insert page break after each major section (after section 13)
+- Start table of contents on new page
+- Start content sections on new pages
+
+DOCUMENT STRUCTURE:
+1. Title Page with metadata
+2. Table of Contents
+3. Main Content (Sections 1-13)
+4. Appendix (if needed)
+5. Metadata table at end
+
+TO CONVERT FROM MARKDOWN TO WORD:
+1. Copy the markdown content
+2. Use online converter: https://pandoc.org/ or similar tool
+3. Open .docx file in Microsoft Word or compatible software
+4. Apply formatting according to instructions above
+5. Ensure all styles match guidelines
+6. Save final document with naming convention: "DevelopmentTeam_Frontend_Documentation.docx"
+
+FILE NAMING:
+Original: DevelopmentTeam_Frontend_Documentation.docx
+Alternative: Frontend_Team_Documentation.docx

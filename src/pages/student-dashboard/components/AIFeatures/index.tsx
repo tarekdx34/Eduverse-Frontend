@@ -10,35 +10,35 @@ export function AIFeatures() {
 
   const stats = useMemo(() => {
     const totalUsage = aiFeatures.reduce((sum, feature) => sum + feature.usageCount, 0);
-    const mostUsedFeature = aiFeatures.reduce((prev, current) => 
+    const mostUsedFeature = aiFeatures.reduce((prev, current) =>
       prev.usageCount > current.usageCount ? prev : current
     );
     return { totalUsage, mostUsedFeature };
   }, []);
 
-  const selectedFeatureData = aiFeatures.find(f => f.id === selectedFeature) || null;
+  const selectedFeatureData = aiFeatures.find((f) => f.id === selectedFeature) || null;
 
   return (
     <div className="p-6">
       <HeroSection />
-      <StatsCards 
+      <StatsCards
         totalFeatures={aiFeatures.length}
         totalUsage={stats.totalUsage}
         mostUsedFeature={stats.mostUsedFeature}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <FeatureList 
+        <div className="lg:col-span-1">
+          <FeatureList
             features={aiFeatures}
             selectedFeature={selectedFeature}
             onSelectFeature={setSelectedFeature}
           />
         </div>
 
-        <div>
+        <div className="lg:col-span-2">
           <FeaturePanel feature={selectedFeatureData}>
-            <FeatureContent 
+            <FeatureContent
               selectedFeature={selectedFeature}
               quizDifficulty={quizDifficulty}
               onQuizDifficultyChange={setQuizDifficulty}
