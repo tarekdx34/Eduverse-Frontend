@@ -35,7 +35,7 @@ import { GPA_DATA, SCHEDULE_DATA } from './constants';
 // Route component for each tab view
 function DashboardContent({ activeTab, viewingCourseId, setViewingCourseId }: any) {
   console.log('DashboardContent rendered with activeTab:', activeTab); // Debug
-  
+
   return (
     <>
       {/* Dashboard Tab */}
@@ -82,7 +82,9 @@ function DashboardContent({ activeTab, viewingCourseId, setViewingCourseId }: an
         <CourseViewPage courseId={viewingCourseId} onBack={() => setViewingCourseId(null)} />
       ) : (
         <>
-          {activeTab === 'myclass' && <ClassTab onViewCourse={(courseId) => setViewingCourseId(courseId)} />}
+          {activeTab === 'myclass' && (
+            <ClassTab onViewCourse={(courseId) => setViewingCourseId(courseId)} />
+          )}
         </>
       )}
 
@@ -129,7 +131,7 @@ export default function StudentDashboard() {
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [viewingCourseId, setViewingCourseId] = useState<string | null>(null);
-  
+
   // Determine active tab and course ID from location
   const pathSegments = location.pathname.split('/').filter(Boolean);
   // pathSegments will be like: ['studentdashboard', 'attendance'] or ['studentdashboard', 'myclass', '123']
@@ -195,36 +197,39 @@ export default function StudentDashboard() {
       </div>
 
       {/* Main Content - Takes remaining space */}
-      <div className={`flex flex-col transition-all duration-300 ${sidebarOpen ? 'ml-64 flex-1' : 'ml-0 w-full'}`}>
+      <div
+        className={`flex flex-col transition-all duration-300 ${sidebarOpen ? 'ml-64 flex-1' : 'ml-0 w-full'}`}
+      >
         {/* Header */}
-        <div className="flex items-center gap-4 bg-white border-b border-gray-200">
-          {!sidebarOpen && (
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="p-4 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <svg
-                className="w-6 h-6 text-gray-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+        <div className="bg-white border-b border-gray-200 flex items-center justify-between display-absolute">
+          <div className="flex items-center">
+            {!sidebarOpen && (
+              <button
+                onClick={() => setSidebarOpen(true)}
+                className="p-4 hover:bg-gray-100 rounded-lg transition-colors"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
-              </svg>
-            </button>
-          )}
-          <div className="flex-1">
-            <Header userName="Tarek Mohamed" />
+                <svg
+                  className="w-6 h-6 text-gray-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
+                </svg>
+              </button>
+            )}
           </div>
+          <div className="flex-1"></div>
+          <Header userName="Tarek Mohamed" />
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-6 pt-18">
           {viewingCourseId ? (
             <CourseViewPage courseId={viewingCourseId} onBack={handleBackFromCourse} />
           ) : (

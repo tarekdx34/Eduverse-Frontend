@@ -164,6 +164,15 @@ const login = () => {
               <span className="text-foreground font-medium">Outlook</span>
             </button>
 
+            {/* Development Button */}
+            <button
+              onClick={() => navigate('/studentdashboard')}
+              className="w-full h-10 mt-4 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 transition-colors flex items-center justify-center gap-2 text-amber-700 text-sm font-medium"
+            >
+              <span>🚀</span>
+              <span>Dev: Student Dashboard</span>
+            </button>
+
             {/* Sign up link */}
             <p className="text-center mt-6 text-sm text-muted-foreground">
               Don't have an account?{' '}

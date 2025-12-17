@@ -17,6 +17,7 @@ import {
   Eye
 } from 'lucide-react';
 import { useState } from 'react';
+import AssignmentDetails from './AssignmentDetails';
 
 const assignments = [
   {
@@ -195,10 +196,15 @@ const getUrgencyLabel = (daysUntil: number) => {
 export default function Assignments() {
   const [filterStatus, setFilterStatus] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedAssignmentId, setSelectedAssignmentId] = useState<number | null>(null);
 
   const pendingAssignments = assignments.filter(a => a.status === 'pending' || a.status === 'in-progress');
   const completedAssignments = assignments.filter(a => a.status === 'submitted' || a.status === 'graded');
   
+  if (selectedAssignmentId !== null) {
+    return <AssignmentDetails assignmentId={selectedAssignmentId} onBack={() => setSelectedAssignmentId(null)} />;
+  }
+
   const avgScore = Math.round(
     completedAssignments
       .filter(a => a.submittedPoints)
@@ -423,7 +429,9 @@ export default function Assignments() {
                     </div>
 
                     <div className="flex gap-2">
-                      <button className="flex-1 px-3 py-2 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-lg hover:shadow-lg transition-all flex items-center justify-center gap-1.5 text-sm font-medium">
+                      <button 
+                        onClick={() => setSelectedAssignmentId(assignment.id)}
+                        className="flex-1 px-3 py-2 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-lg hover:shadow-lg transition-all flex items-center justify-center gap-1.5 text-sm font-medium">
                         <span>Continue</span>
                         <ChevronRight className="w-3 h-3" />
                       </button>

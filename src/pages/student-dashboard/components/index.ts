@@ -8,6 +8,7 @@ export { default as ClassTab } from './ClassTab';
 export { default as WeeklySchedule } from './WeeklySchedule';
 export { default as GradesTranscript } from './GradesTranscript';
 export { default as Assignments } from './Assignments';
+export { default as AssignmentDetails } from './AssignmentDetails';
 export { default as AcademicCalendar } from './AcademicCalendar';
 export { default as ClassSchedule } from './ClassSchedule';
 export { AIFeatures } from './AIFeatures';
