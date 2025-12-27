@@ -65,9 +65,29 @@ Or configure it in your Copilot settings manually.
 ### Available Figma Tools
 
 The Figma MCP server provides tools to:
+
 - Get file information from Figma
 - Access design components
 - Retrieve design tokens
 - Export assets
 
 **⚠️ Security Note**: Never commit your `.env` file or share your Figma API key publicly. If exposed, revoke it immediately from Figma settings and generate a new one.
+
+## Instructor Dashboard (Demo Data)
+
+A rich instructor dashboard is available with expanded demo datasets (~300 students across sections and numerous quizzes).
+
+- Route: `/instructordashboard` (tabs: overview, sections, roster, waitlist, grades, assignments, reports, attendance, messages, profile)
+- Data source: `src/pages/instructor-dashboard/constants.ts`
+- Sections: three subjects with 100 enrolled students each (total ≈ 300)
+- Assignments: multiple quizzes and homework items per section
+
+### Quick Start
+
+```bash
+npm install
+npm run dev
+# open http://localhost:5173/instructordashboard (or the port shown)
+```
+
+To adjust cohort sizes or quiz counts, edit `SECTIONS`, `ROSTERS`, and `ASSIGNMENTS` in `constants.ts`.

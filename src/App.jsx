@@ -3,6 +3,7 @@ import HomePage from './pages/home/HomePage';
 import LoginPage from './pages/auth/LoginPage';
 import ProfilePage from './pages/profile/ProfilePage';
 import StudentDashboard from './pages/student-dashboard/StudentDashboard';
+import InstructorDashboard from './pages/instructor-dashboard/InstructorDashboard';
 import { AuthService } from './services/api/authService';
 
 function App() {
@@ -36,6 +37,11 @@ function App() {
           path="/studentdashboard/:tab/:id"
           element={isAuthenticated ? <StudentDashboard /> : <Navigate to="/login" />}
         />
+
+        {/* Instructor Dashboard - Development (no auth protection) */}
+        <Route path="/instructordashboard" element={<InstructorDashboard />} />
+        <Route path="/instructordashboard/:tab" element={<InstructorDashboard />} />
+        <Route path="/instructordashboard/:tab/:id" element={<InstructorDashboard />} />
 
         {/* Legacy /dashboard route - redirect to /studentdashboard */}
         <Route path="/dashboard" element={<Navigate to="/studentdashboard" replace />} />
