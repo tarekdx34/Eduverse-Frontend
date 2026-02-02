@@ -1,6 +1,7 @@
 import { Download, Filter, Search } from 'lucide-react';
 import { useState } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface GradeRecord {
   code: string;
@@ -195,14 +196,25 @@ const defaultSemesters: SemesterData[] = [
   },
 ];
 
-const getGradeColor = (grade: string) => {
+const getGradeColor = (grade: string, isDark: boolean) => {
+  if (isDark) {
+    if (grade.startsWith('A')) return { bg: 'bg-green-900/50', text: 'text-green-400', border: 'border-green-700' };
+    if (grade.startsWith('B')) return { bg: 'bg-blue-900/50', text: 'text-blue-400', border: 'border-blue-700' };
+    if (grade.startsWith('C')) return { bg: 'bg-yellow-900/50', text: 'text-yellow-400', border: 'border-yellow-700' };
+    return { bg: 'bg-red-900/50', text: 'text-red-400', border: 'border-red-700' };
+  }
   if (grade.startsWith('A')) return { bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200' };
   if (grade.startsWith('B')) return { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' };
   if (grade.startsWith('C')) return { bg: 'bg-yellow-50', text: 'text-yellow-700', border: 'border-yellow-200' };
   return { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200' };
 };
 
-const getStatusColor = (status: string) => {
+const getStatusColor = (status: string, isDark: boolean) => {
+  if (isDark) {
+    return status === 'Completed'
+      ? 'bg-green-900/50 text-green-400'
+      : 'bg-yellow-900/50 text-yellow-400';
+  }
   return status === 'Completed'
     ? 'bg-green-50 text-green-700'
     : 'bg-yellow-50 text-yellow-700';
@@ -213,17 +225,19 @@ const StatCard = ({
   value,
   subtext,
   color,
+  isDark,
 }: {
   label: string;
   value: string | number;
   subtext: string;
   color: string;
+  isDark: boolean;
 }) => (
-  <div className="bg-white border border-gray-200 rounded-lg p-6 flex justify-between items-start gap-4">
+  <div className={`border rounded-lg p-6 flex justify-between items-start gap-4 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
     <div className="flex-1">
-      <p className="text-sm text-gray-600 mb-2">{label}</p>
-      <p className="text-3xl font-semibold text-gray-900 mb-3">{value}</p>
-      <p className="text-sm text-gray-500">{subtext}</p>
+      <p className={`text-sm mb-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{label}</p>
+      <p className={`text-3xl font-semibold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>{value}</p>
+      <p className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>{subtext}</p>
     </div>
     <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${color}`}>
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -233,42 +247,42 @@ const StatCard = ({
   </div>
 );
 
-const GradeTable = ({ semester, courses }: { semester: SemesterData }) => {
+const GradeTable = ({ semester, courses, isDark }: { semester: SemesterData; courses: GradeRecord[]; isDark: boolean }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredCourses] = useState(courses);
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+    <div className={`border rounded-lg overflow-hidden ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
       {/* Header */}
-      <div className="border-b border-gray-200 p-6">
+      <div className={`border-b p-6 ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
         <div className="flex justify-between items-start mb-6">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">{semester.semester}</h3>
-            <p className="text-sm text-gray-600 mt-1">
+            <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{semester.semester}</h3>
+            <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
               GPA: {semester.gpa} | Credits: {semester.credits}
             </p>
           </div>
-          <button className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+          <button className={`flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors ${isDark ? 'border-gray-600 hover:bg-gray-700 text-gray-300' : 'border-gray-200 hover:bg-gray-50'}`}>
             <Download size={16} />
-            <span className="text-sm font-medium text-gray-700">Export</span>
+            <span className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Export</span>
           </button>
         </div>
 
         {/* Search and Filter */}
         <div className="flex gap-3">
           <div className="flex-1 relative">
-            <Search size={16} className="absolute left-3 top-3 text-gray-400" />
+            <Search size={16} className={`absolute left-3 top-3 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
             <input
               type="text"
               placeholder="Search courses"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className={`w-full pl-10 pr-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'border-gray-200'}`}
             />
           </div>
-          <button className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+          <button className={`flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors ${isDark ? 'border-gray-600 hover:bg-gray-700 text-gray-300' : 'border-gray-200 hover:bg-gray-50'}`}>
             <Filter size={16} />
-            <span className="text-sm font-medium text-gray-700">Filter</span>
+            <span className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Filter</span>
           </button>
           <button className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
             <Download size={16} />
@@ -281,33 +295,33 @@ const GradeTable = ({ semester, courses }: { semester: SemesterData }) => {
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className="bg-gray-50 border-b border-gray-200">
-              <th className="px-6 py-4 text-left text-sm font-bold text-gray-600">Course Code</th>
-              <th className="px-6 py-4 text-left text-sm font-bold text-gray-600">Course Name</th>
-              <th className="px-6 py-4 text-center text-sm font-bold text-gray-600">Credits</th>
-              <th className="px-6 py-4 text-center text-sm font-bold text-gray-600">Percentage</th>
-              <th className="px-6 py-4 text-center text-sm font-bold text-gray-600">Grade</th>
-              <th className="px-6 py-4 text-center text-sm font-bold text-gray-600">Points</th>
-              <th className="px-6 py-4 text-center text-sm font-bold text-gray-600">Status</th>
+            <tr className={`border-b ${isDark ? 'bg-gray-700/50 border-gray-700' : 'bg-gray-50 border-gray-200'}`}>
+              <th className={`px-6 py-4 text-left text-sm font-bold ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Course Code</th>
+              <th className={`px-6 py-4 text-left text-sm font-bold ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Course Name</th>
+              <th className={`px-6 py-4 text-center text-sm font-bold ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Credits</th>
+              <th className={`px-6 py-4 text-center text-sm font-bold ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Percentage</th>
+              <th className={`px-6 py-4 text-center text-sm font-bold ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Grade</th>
+              <th className={`px-6 py-4 text-center text-sm font-bold ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Points</th>
+              <th className={`px-6 py-4 text-center text-sm font-bold ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Status</th>
             </tr>
           </thead>
           <tbody>
             {filteredCourses.map((course) => {
-              const gradeColor = getGradeColor(course.grade);
+              const gradeColor = getGradeColor(course.grade, isDark);
               return (
-                <tr key={course.code} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-5 text-sm font-medium text-gray-900">{course.code}</td>
-                  <td className="px-6 py-5 text-sm text-gray-900">{course.name}</td>
-                  <td className="px-6 py-5 text-sm text-gray-600 text-center">{course.credits}</td>
-                  <td className="px-6 py-5 text-sm text-gray-900 text-center">{course.percentage}%</td>
+                <tr key={course.code} className={`border-b transition-colors ${isDark ? 'border-gray-700 hover:bg-gray-700/50' : 'border-gray-100 hover:bg-gray-50'}`}>
+                  <td className={`px-6 py-5 text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{course.code}</td>
+                  <td className={`px-6 py-5 text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>{course.name}</td>
+                  <td className={`px-6 py-5 text-sm text-center ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{course.credits}</td>
+                  <td className={`px-6 py-5 text-sm text-center ${isDark ? 'text-white' : 'text-gray-900'}`}>{course.percentage}%</td>
                   <td className="px-6 py-5 text-center">
                     <div className={`inline-block px-3 py-1 rounded ${gradeColor.bg} ${gradeColor.text} text-sm font-medium border ${gradeColor.border}`}>
                       {course.grade}
                     </div>
                   </td>
-                  <td className="px-6 py-5 text-sm font-medium text-gray-900 text-center">{course.points}</td>
+                  <td className={`px-6 py-5 text-sm font-medium text-center ${isDark ? 'text-white' : 'text-gray-900'}`}>{course.points}</td>
                   <td className="px-6 py-5 text-center">
-                    <span className={`inline-block px-3 py-1 rounded text-sm font-medium ${getStatusColor(course.status)}`}>
+                    <span className={`inline-block px-3 py-1 rounded text-sm font-medium ${getStatusColor(course.status, isDark)}`}>
                       {course.status}
                     </span>
                   </td>
@@ -317,16 +331,16 @@ const GradeTable = ({ semester, courses }: { semester: SemesterData }) => {
           </tbody>
           {/* Footer Summary */}
           <tfoot>
-            <tr className="bg-gray-50 border-t border-gray-200">
-              <td colSpan={2} className="px-6 py-4 text-sm font-medium text-gray-900">
+            <tr className={`border-t ${isDark ? 'bg-gray-700/50 border-gray-700' : 'bg-gray-50 border-gray-200'}`}>
+              <td colSpan={2} className={`px-6 py-4 text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
                 Total
               </td>
-              <td className="px-6 py-4 text-center text-sm font-medium text-gray-900">
+              <td className={`px-6 py-4 text-center text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
                 {filteredCourses.reduce((sum, c) => sum + c.credits, 0)} Credits
               </td>
               <td />
               <td />
-              <td className="px-6 py-4 text-center text-sm font-medium text-gray-900">
+              <td className={`px-6 py-4 text-center text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
                 GPA: {semester.gpa}
               </td>
               <td />
@@ -346,13 +360,14 @@ export default function GradesTranscript({
   semesters = defaultSemesters,
 }: GradesTranscriptProps) {
   const { t, isRTL } = useLanguage();
+  const { isDark } = useTheme();
 
   return (
     <div className="space-y-6" dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">{t('gradesAndTranscript')}</h1>
-        <p className="text-gray-600">{t('academicRecord')}</p>
+        <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('gradesAndTranscript')}</h1>
+        <p className={isDark ? 'text-gray-400' : 'text-gray-600'}>{t('academicRecord')}</p>
       </div>
 
       {/* Stats Cards */}
@@ -362,31 +377,35 @@ export default function GradesTranscript({
           value={cumulativeGPA}
           subtext={`${t('outOf')} 4.00`}
           color="bg-indigo-100"
+          isDark={isDark}
         />
         <StatCard
           label={t('semesterGPA')}
           value={currentSemesterGPA}
           subtext={isRTL ? '+0.12 من الفصل السابق' : '+0.12 from last semester'}
           color="bg-green-100"
+          isDark={isDark}
         />
         <StatCard
           label={t('creditHours')}
           value={totalCredits}
           subtext={isRTL ? 'من 144 مطلوبة' : 'Out of 144 required'}
           color="bg-purple-100"
+          isDark={isDark}
         />
         <StatCard
           label={t('rank')}
           value={classRank}
           subtext={isRTL ? 'من 450 طالب' : 'Out of 450 students'}
           color="bg-orange-100"
+          isDark={isDark}
         />
       </div>
 
       {/* Grade Tables by Semester */}
       <div className="space-y-6">
         {semesters.map((semester) => (
-          <GradeTable key={semester.semester} semester={semester} courses={semester.courses} />
+          <GradeTable key={semester.semester} semester={semester} courses={semester.courses} isDark={isDark} />
         ))}
       </div>
     </div>

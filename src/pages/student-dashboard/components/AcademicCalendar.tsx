@@ -1,5 +1,6 @@
 import { ChevronLeft, ChevronRight, Calendar, Clock, MapPin, Filter, Plus } from 'lucide-react';
 import { useState } from 'react';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface CalendarEvent {
   id: string;
@@ -117,32 +118,34 @@ const StatCard = ({
   value,
   subtext,
   color,
+  isDark,
 }: {
   label: string;
   value: number;
   subtext: string;
   color: string;
+  isDark: boolean;
 }) => (
-  <div className="bg-white border border-gray-200 rounded-lg p-6">
+  <div className={`border rounded-lg p-6 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
     <div className="flex justify-between items-start gap-4">
       <div>
-        <p className="text-sm text-gray-600 mb-2">{label}</p>
-        <p className="text-4xl font-bold text-gray-900 mb-3">{value}</p>
-        <p className="text-sm text-gray-500">{subtext}</p>
+        <p className={`text-sm mb-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{label}</p>
+        <p className={`text-4xl font-bold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>{value}</p>
+        <p className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>{subtext}</p>
       </div>
       <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${color}`}>
-        <Calendar size={24} className="text-gray-600" />
+        <Calendar size={24} className={isDark ? 'text-gray-300' : 'text-gray-600'} />
       </div>
     </div>
   </div>
 );
 
-const UpcomingEventCard = ({ event }: { event: UpcomingEvent }) => (
-  <div className="border-l-4 border-l-blue-500 bg-white rounded-lg p-4 mb-4">
+const UpcomingEventCard = ({ event, isDark }: { event: UpcomingEvent; isDark: boolean }) => (
+  <div className={`border-l-4 border-l-blue-500 rounded-lg p-4 mb-4 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
     <div className="flex justify-between items-start gap-4 mb-3">
       <div>
-        <h4 className="font-semibold text-gray-900 mb-1">{event.title}</h4>
-        <p className="text-sm text-gray-600">{event.description}</p>
+        <h4 className={`font-semibold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{event.title}</h4>
+        <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{event.description}</p>
       </div>
       <span className={`text-xs font-semibold px-3 py-1 rounded whitespace-nowrap ${getEventBadgeColor(event.type)}`}>
         {event.type}
@@ -150,16 +153,16 @@ const UpcomingEventCard = ({ event }: { event: UpcomingEvent }) => (
     </div>
 
     <div className="space-y-2">
-      <div className="flex items-center gap-3 text-sm text-gray-600">
+      <div className={`flex items-center gap-3 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
         <Calendar size={12} />
         <span>{event.date}</span>
       </div>
-      <div className="flex items-center gap-3 text-sm text-gray-600">
+      <div className={`flex items-center gap-3 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
         <Clock size={12} />
         <span>{event.time}</span>
       </div>
       {event.location && (
-        <div className="flex items-center gap-3 text-sm text-gray-600">
+        <div className={`flex items-center gap-3 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
           <MapPin size={12} />
           <span>{event.location}</span>
         </div>
@@ -168,7 +171,7 @@ const UpcomingEventCard = ({ event }: { event: UpcomingEvent }) => (
   </div>
 );
 
-const CalendarGrid = ({ events, month, year }: { events: CalendarEvent[]; month: number; year: number }) => {
+const CalendarGrid = ({ events, month, year, isDark }: { events: CalendarEvent[]; month: number; year: number; isDark: boolean }) => {
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const firstDay = new Date(year, month, 1).getDay();
 
@@ -201,15 +204,15 @@ const CalendarGrid = ({ events, month, year }: { events: CalendarEvent[]; month:
   );
 
   return (
-    <div className="bg-white rounded-lg p-6 border border-gray-200">
+    <div className={`rounded-lg p-6 border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
       {/* Header */}
-      <div className="flex justify-between items-center mb-6 pb-6 border-b border-gray-200">
-        <h2 className="text-xl font-bold text-gray-900">{monthNames[month]} {year}</h2>
+      <div className={`flex justify-between items-center mb-6 pb-6 border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+        <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{monthNames[month]} {year}</h2>
         <div className="flex gap-2">
-          <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+          <button className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-100'}`}>
             <ChevronLeft size={20} />
           </button>
-          <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+          <button className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-100'}`}>
             <ChevronRight size={20} />
           </button>
         </div>
@@ -218,7 +221,7 @@ const CalendarGrid = ({ events, month, year }: { events: CalendarEvent[]; month:
       {/* Day headers */}
       <div className="grid grid-cols-7 gap-2 mb-4">
         {days.map((day) => (
-          <div key={day} className="text-center font-semibold text-gray-700 text-sm py-3">
+          <div key={day} className={`text-center font-semibold text-sm py-3 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
             {day}
           </div>
         ))}
@@ -229,15 +232,15 @@ const CalendarGrid = ({ events, month, year }: { events: CalendarEvent[]; month:
         {calendarDays.map((day, idx) => (
           <div
             key={idx}
-            className="border border-gray-200 rounded-lg p-3 min-h-24 bg-gray-50 relative"
+            className={`border rounded-lg p-3 min-h-24 relative ${isDark ? 'bg-gray-700/50 border-gray-600' : 'bg-gray-50 border-gray-200'}`}
           >
             {day && (
               <>
-                <p className="font-semibold text-gray-900 mb-2">{day}</p>
+                <p className={`font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>{day}</p>
                 {dayEvents[day]?.map((event) => (
                   <div
                     key={event.id}
-                    className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded mb-1 truncate"
+                    className={`text-xs px-2 py-1 rounded mb-1 truncate ${isDark ? 'bg-blue-900/50 text-blue-400' : 'bg-blue-100 text-blue-700'}`}
                     title={event.title}
                   >
                     {event.title || `${event.type.charAt(0).toUpperCase()}${event.type.slice(1)}`}
@@ -250,9 +253,9 @@ const CalendarGrid = ({ events, month, year }: { events: CalendarEvent[]; month:
       </div>
 
       {/* Legend */}
-      <div className="mt-6 pt-6 border-t border-gray-200">
-        <p className="text-sm font-semibold text-gray-900 mb-3">Legend:</p>
-        <div className="grid grid-cols-3 gap-4 text-sm">
+      <div className={`mt-6 pt-6 border-t ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+        <p className={`text-sm font-semibold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>Legend:</p>
+        <div className={`grid grid-cols-3 gap-4 text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 bg-red-100 rounded"></div>
             <span className="text-gray-600">Exam</span>
@@ -271,7 +274,7 @@ const CalendarGrid = ({ events, month, year }: { events: CalendarEvent[]; month:
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 bg-purple-100 rounded"></div>
-            <span className="text-gray-600">Deadline</span>
+            <span>Deadline</span>
           </div>
         </div>
       </div>
@@ -287,23 +290,24 @@ export default function AcademicCalendar({
   stats = defaultStats,
 }: AcademicCalendarProps) {
   const [filterCategory, setFilterCategory] = useState('All Categories');
+  const { isDark } = useTheme();
 
   return (
     <div className="space-y-6">
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-        <StatCard label="Total Events" value={stats.totalEvents} subtext="This month" color="bg-blue-100" />
-        <StatCard label="Exams" value={stats.exams} subtext="Scheduled" color="bg-red-100" />
-        <StatCard label="Assignments" value={stats.assignments} subtext="Due dates" color="bg-yellow-100" />
-        <StatCard label="Events" value={stats.events} subtext="Campus activities" color="bg-green-100" />
-        <StatCard label="Deadlines" value={stats.deadlines} subtext="Important dates" color="bg-purple-100" />
+        <StatCard label="Total Events" value={stats.totalEvents} subtext="This month" color={isDark ? 'bg-blue-900/50' : 'bg-blue-100'} isDark={isDark} />
+        <StatCard label="Exams" value={stats.exams} subtext="Scheduled" color={isDark ? 'bg-red-900/50' : 'bg-red-100'} isDark={isDark} />
+        <StatCard label="Assignments" value={stats.assignments} subtext="Due dates" color={isDark ? 'bg-yellow-900/50' : 'bg-yellow-100'} isDark={isDark} />
+        <StatCard label="Events" value={stats.events} subtext="Campus activities" color={isDark ? 'bg-green-900/50' : 'bg-green-100'} isDark={isDark} />
+        <StatCard label="Deadlines" value={stats.deadlines} subtext="Important dates" color={isDark ? 'bg-purple-900/50' : 'bg-purple-100'} isDark={isDark} />
       </div>
 
       {/* Main content */}
       <div className="grid grid-cols-3 gap-6">
         {/* Calendar */}
         <div className="col-span-2">
-          <CalendarGrid events={events} month={month} year={year} />
+          <CalendarGrid events={events} month={month} year={year} isDark={isDark} />
         </div>
 
         {/* Sidebar with upcoming events */}
@@ -311,11 +315,11 @@ export default function AcademicCalendar({
           {/* Header */}
           <div className="flex justify-between items-start">
             <div>
-              <h3 className="text-lg font-bold text-gray-900">Upcoming Events</h3>
-              <p className="text-sm text-gray-600">Next scheduled events</p>
+              <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Upcoming Events</h3>
+              <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Next scheduled events</p>
             </div>
-            <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-              <Plus size={20} className="text-gray-600" />
+            <button className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}>
+              <Plus size={20} className={isDark ? 'text-gray-400' : 'text-gray-600'} />
             </button>
           </div>
 
@@ -323,7 +327,7 @@ export default function AcademicCalendar({
           <select
             value={filterCategory}
             onChange={(e) => setFilterCategory(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className={`w-full px-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-200'}`}
           >
             <option>All Categories</option>
             <option>Exams</option>
@@ -336,7 +340,7 @@ export default function AcademicCalendar({
           {/* Upcoming events list */}
           <div className="space-y-3 max-h-96 overflow-y-auto">
             {upcomingEvents.map((event) => (
-              <UpcomingEventCard key={event.id} event={event} />
+              <UpcomingEventCard key={event.id} event={event} isDark={isDark} />
             ))}
           </div>
         </div>

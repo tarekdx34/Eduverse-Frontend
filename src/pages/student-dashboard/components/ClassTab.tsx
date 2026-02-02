@@ -1,4 +1,5 @@
 import { MoreVertical, Clock, Users, BookOpen } from 'lucide-react';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface Course {
   id: string;
@@ -127,26 +128,28 @@ const defaultStats = {
   totalCredits: 20,
 };
 
-const StatCard = ({ label, value, icon: Icon, color }: any) => (
-  <div className="bg-white border border-gray-200 rounded-lg p-6">
+const StatCard = ({ label, value, icon: Icon, color, isDark }: any) => (
+  <div className={`rounded-lg p-6 border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
     <div className="flex items-start gap-3 mb-4">
       <div className={`p-2 rounded-lg ${color}`}>
         <Icon className="w-5 h-5" />
       </div>
     </div>
-    <div className="text-sm text-gray-600 mb-2">{label}</div>
-    <div className="text-3xl font-bold text-gray-900">{value}</div>
+    <div className={`text-sm mb-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{label}</div>
+    <div className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{value}</div>
   </div>
 );
 
 const CourseCard = ({
   course,
   onViewCourse,
+  isDark,
 }: {
   course: Course;
   onViewCourse?: (courseId: string) => void;
+  isDark: boolean;
 }) => (
-  <div className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
+  <div className={`rounded-lg overflow-hidden hover:shadow-lg transition-shadow border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
     {/* Color bar */}
     <div className="h-2" style={{ backgroundColor: course.progressColor }} />
 
@@ -154,16 +157,16 @@ const CourseCard = ({
     <div className="p-6">
       <div className="flex justify-between items-start mb-4">
         <div className="flex-1">
-          <h3 className="font-semibold text-gray-900 mb-1">{course.title}</h3>
-          <p className="text-sm text-gray-600">{course.courseCode}</p>
+          <h3 className={`font-semibold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{course.title}</h3>
+          <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{course.courseCode}</p>
         </div>
-        <button className="text-gray-400 hover:text-gray-600 transition-colors">
+        <button className={`transition-colors ${isDark ? 'text-gray-500 hover:text-gray-300' : 'text-gray-400 hover:text-gray-600'}`}>
           <MoreVertical size={20} />
         </button>
       </div>
 
       {/* Instructor */}
-      <div className="flex items-center gap-3 mb-4 pb-4 border-b border-gray-100">
+      <div className={`flex items-center gap-3 mb-4 pb-4 border-b ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
         <img
           src={course.instructorImage}
           alt={course.instructor}
@@ -174,13 +177,13 @@ const CourseCard = ({
           }
         />
         <div>
-          <p className="text-sm font-medium text-gray-900">{course.instructor}</p>
-          <p className="text-xs text-gray-600">Instructor</p>
+          <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{course.instructor}</p>
+          <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Instructor</p>
         </div>
       </div>
 
       {/* Schedule info */}
-      <div className="space-y-2 mb-4 text-sm text-gray-600">
+      <div className={`space-y-2 mb-4 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
         <div className="flex items-center gap-2">
           <Clock size={16} />
           <span>{course.schedule}</span>
@@ -192,21 +195,21 @@ const CourseCard = ({
       </div>
 
       {/* Stats */}
-      <div className="flex justify-between items-center mb-4 pt-4 border-t border-gray-100 text-sm">
-        <div className="flex items-center gap-1 text-gray-600">
+      <div className={`flex justify-between items-center mb-4 pt-4 border-t text-sm ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
+        <div className={`flex items-center gap-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
           <Users size={16} />
           <span>{course.students} Students</span>
         </div>
-        <span className="text-gray-600">{course.credits} Credits</span>
+        <span className={isDark ? 'text-gray-400' : 'text-gray-600'}>{course.credits} Credits</span>
       </div>
 
       {/* Progress */}
       <div className="mb-4">
         <div className="flex justify-between items-center mb-2">
-          <span className="text-sm text-gray-600">Course Progress</span>
-          <span className="text-sm font-semibold text-gray-900">{course.progress}%</span>
+          <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Course Progress</span>
+          <span className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{course.progress}%</span>
         </div>
-        <div className="w-full bg-gray-200 rounded-full h-2">
+        <div className={`w-full rounded-full h-2 ${isDark ? 'bg-gray-700' : 'bg-gray-200'}`}>
           <div
             className="h-2 rounded-full transition-all"
             style={{ width: `${course.progress}%`, backgroundColor: course.progressColor }}
@@ -222,7 +225,11 @@ const CourseCard = ({
         >
           View Course
         </button>
-        <button className="flex-1 border border-gray-200 hover:bg-gray-50 text-gray-700 font-medium py-2 px-4 rounded-lg transition-colors">
+        <button className={`flex-1 border font-medium py-2 px-4 rounded-lg transition-colors ${
+          isDark 
+            ? 'border-gray-600 hover:bg-gray-700 text-gray-300' 
+            : 'border-gray-200 hover:bg-gray-50 text-gray-700'
+        }`}>
           Materials
         </button>
       </div>
@@ -235,6 +242,8 @@ export default function ClassTab({
   stats = defaultStats,
   onViewCourse,
 }: ClassTabProps) {
+  const { isDark } = useTheme();
+
   return (
     <div className="space-y-6">
       {/* Stats Overview */}
@@ -244,38 +253,42 @@ export default function ClassTab({
           value={stats.totalCourses}
           icon={() => <BookOpen className="w-5 h-5" />}
           color="bg-indigo-100"
+          isDark={isDark}
         />
         <StatCard
           label="Completed"
           value={stats.completed}
           icon={() => <div className="w-5 h-5">✓</div>}
           color="bg-green-100"
+          isDark={isDark}
         />
         <StatCard
           label="In Progress"
           value={stats.inProgress}
           icon={() => <Clock className="w-5 h-5" />}
           color="bg-orange-100"
+          isDark={isDark}
         />
         <StatCard
           label="Total Credits"
           value={stats.totalCredits}
           icon={() => <Users className="w-5 h-5" />}
           color="bg-purple-100"
+          isDark={isDark}
         />
       </div>
 
       {/* Enrolled Courses Section */}
       <div>
         <div className="mb-4">
-          <h2 className="text-xl font-semibold text-gray-900 mb-1">Enrolled Courses</h2>
-          <p className="text-sm text-gray-600">All courses you are currently enrolled in</p>
+          <h2 className={`text-xl font-semibold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>Enrolled Courses</h2>
+          <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>All courses you are currently enrolled in</p>
         </div>
 
         {/* Course Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {courses.map((course) => (
-            <CourseCard key={course.id} course={course} onViewCourse={onViewCourse} />
+            <CourseCard key={course.id} course={course} onViewCourse={onViewCourse} isDark={isDark} />
           ))}
         </div>
       </div>

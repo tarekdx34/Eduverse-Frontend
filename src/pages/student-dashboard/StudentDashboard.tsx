@@ -47,6 +47,7 @@ import {
 import CourseViewPage from './pages/CourseView';
 import { GPA_DATA, SCHEDULE_DATA } from './constants';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
+import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 
 // Route component for each tab view
 function DashboardContent({ activeTab, viewingCourseId, setViewingCourseId }: any) {
@@ -202,10 +203,11 @@ function StudentDashboardContent() {
   };
 
   const { isRTL } = useLanguage();
+  const { isDark } = useTheme();
 
   return (
     <div
-      className={`flex bg-gray-50 min-h-screen ${isRTL ? 'flex-row-reverse' : ''}`}
+      className={`flex min-h-screen ${isRTL ? 'flex-row-reverse' : ''} ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}
       style={{ fontFamily: "'Montserrat', sans-serif" }}
       dir={isRTL ? 'rtl' : 'ltr'}
     >
@@ -227,15 +229,15 @@ function StudentDashboardContent() {
         className={`flex flex-col transition-all duration-300 ${sidebarOpen ? (isRTL ? 'mr-64' : 'ml-64') + ' flex-1' : (isRTL ? 'mr-0' : 'ml-0') + ' w-full'}`}
       >
         {/* Header */}
-        <div className="bg-white border-b border-gray-200 flex items-center justify-between display-absolute">
+        <div className={`border-b flex items-center justify-between display-absolute ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
           <div className="flex items-center">
             {!sidebarOpen && (
               <button
                 onClick={() => setSidebarOpen(true)}
-                className="p-4 hover:bg-gray-100 rounded-lg transition-colors"
+                className={`p-4 rounded-lg transition-colors ${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
               >
                 <svg
-                  className="w-6 h-6 text-gray-600"
+                  className={`w-6 h-6 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -255,7 +257,7 @@ function StudentDashboardContent() {
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 overflow-y-auto p-6 pt-18">
+        <div className={`flex-1 overflow-y-auto p-6 pt-18 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
           {viewingCourseId ? (
             <CourseViewPage courseId={viewingCourseId} onBack={handleBackFromCourse} />
           ) : (
@@ -323,11 +325,13 @@ function StudentDashboardContent() {
   );
 }
 
-// Wrap with LanguageProvider
+// Wrap with LanguageProvider and ThemeProvider
 export default function StudentDashboard() {
   return (
-    <LanguageProvider>
-      <StudentDashboardContent />
-    </LanguageProvider>
+    <ThemeProvider>
+      <LanguageProvider>
+        <StudentDashboardContent />
+      </LanguageProvider>
+    </ThemeProvider>
   );
 }
