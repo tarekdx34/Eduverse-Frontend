@@ -15,4 +15,12 @@ export { AIFeatures } from './AIFeatures';
 export { MessagingChat } from './MessagingChat';
 export { AttendanceOverview } from './AttendanceOverview';
 export { SmartTodoReminder } from './SmartTodoReminder';
+export { CourseRegistration } from './CourseRegistration';
+export { Gamification } from './Gamification';
+export { NotificationCenter } from './NotificationCenter';
+export { CourseCommunity } from './CourseCommunity';
+export { LabInstructions } from './LabInstructions';
+export { ProgressAnalytics } from './ProgressAnalytics';
+export { GlobalSearch } from './GlobalSearch';
+export { SettingsPreferences } from './SettingsPreferences';
 

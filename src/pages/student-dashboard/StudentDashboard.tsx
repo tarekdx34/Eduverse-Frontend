@@ -11,6 +11,13 @@ import {
   MessageCircle,
   BarChart3,
   ListChecks,
+  GraduationCap,
+  Trophy,
+  Bell,
+  Users,
+  Beaker,
+  PieChart,
+  Settings,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -28,9 +35,18 @@ import {
   MessagingChat,
   AttendanceOverview,
   SmartTodoReminder,
+  CourseRegistration,
+  Gamification,
+  NotificationCenter,
+  CourseCommunity,
+  LabInstructions,
+  ProgressAnalytics,
+  GlobalSearch,
+  SettingsPreferences,
 } from './components';
 import CourseViewPage from './pages/CourseView';
 import { GPA_DATA, SCHEDULE_DATA } from './constants';
+import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 
 // Route component for each tab view
 function DashboardContent({ activeTab, viewingCourseId, setViewingCourseId }: any) {
@@ -126,7 +142,7 @@ function DashboardContent({ activeTab, viewingCourseId, setViewingCourseId }: an
   );
 }
 
-export default function StudentDashboard() {
+function StudentDashboardContent() {
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -150,14 +166,21 @@ export default function StudentDashboard() {
   const tabs = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutGrid },
     { id: 'myclass', label: 'My Class', icon: BookOpen },
+    { id: 'registration', label: 'Registration', icon: GraduationCap },
+    { id: 'community', label: 'Community', icon: Users },
     { id: 'schedule', label: 'Schedule', icon: Calendar },
     { id: 'assignments', label: 'Assignments', icon: CheckSquare },
+    { id: 'labs', label: 'Lab Sessions', icon: Beaker },
     { id: 'grades', label: 'Grades', icon: FileText },
     { id: 'attendance', label: 'Attendance', icon: BarChart3 },
+    { id: 'analytics', label: 'Analytics', icon: PieChart },
     { id: 'todo', label: 'Todo List', icon: ListChecks },
     { id: 'ai', label: 'AI Features', icon: Sparkles },
+    { id: 'gamification', label: 'Achievements', icon: Trophy },
+    { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'payments', label: 'Payments', icon: CreditCard },
     { id: 'chat', label: 'Chat', icon: MessageCircle },
+    { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
   // Handle tab navigation - clear course view when navigating to other tabs
@@ -178,14 +201,17 @@ export default function StudentDashboard() {
     setViewingCourseId(null);
   };
 
+  const { isRTL } = useLanguage();
+
   return (
     <div
-      className="flex bg-gray-50 min-h-screen"
+      className={`flex bg-gray-50 min-h-screen ${isRTL ? 'flex-row-reverse' : ''}`}
       style={{ fontFamily: "'Montserrat', sans-serif" }}
+      dir={isRTL ? 'rtl' : 'ltr'}
     >
       {/* Sidebar - Collapsible Drawer */}
       <div
-        className={`fixed left-0 top-0 z-50 h-screen transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
+        className={`fixed ${isRTL ? 'right-0' : 'left-0'} top-0 z-50 h-screen transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : (isRTL ? 'translate-x-full' : '-translate-x-full')}`}
       >
         <Sidebar
           tabs={tabs}
@@ -198,7 +224,7 @@ export default function StudentDashboard() {
 
       {/* Main Content - Takes remaining space */}
       <div
-        className={`flex flex-col transition-all duration-300 ${sidebarOpen ? 'ml-64 flex-1' : 'ml-0 w-full'}`}
+        className={`flex flex-col transition-all duration-300 ${sidebarOpen ? (isRTL ? 'mr-64' : 'ml-64') + ' flex-1' : (isRTL ? 'mr-0' : 'ml-0') + ' w-full'}`}
       >
         {/* Header */}
         <div className="bg-white border-b border-gray-200 flex items-center justify-between display-absolute">
@@ -273,19 +299,35 @@ export default function StudentDashboard() {
               )}
 
               {activeTab === 'myclass' && <ClassTab onViewCourse={handleViewCourse} />}
+              {activeTab === 'registration' && <CourseRegistration />}
+              {activeTab === 'community' && <CourseCommunity />}
               {activeTab === 'schedule' && <ClassSchedule />}
               {activeTab === 'assignments' && <Assignments />}
+              {activeTab === 'labs' && <LabInstructions />}
               {activeTab === 'calendar' && <AcademicCalendar />}
               {activeTab === 'ai' && <AIFeatures />}
               {activeTab === 'grades' && <GradesTranscript />}
               {activeTab === 'attendance' && <AttendanceOverview />}
+              {activeTab === 'analytics' && <ProgressAnalytics />}
               {activeTab === 'todo' && <SmartTodoReminder />}
+              {activeTab === 'gamification' && <Gamification />}
+              {activeTab === 'notifications' && <NotificationCenter />}
               {activeTab === 'payments' && <PaymentHistory />}
               {activeTab === 'chat' && <MessagingChat />}
+              {activeTab === 'settings' && <SettingsPreferences />}
             </>
           )}
         </div>
       </div>
     </div>
+  );
+}
+
+// Wrap with LanguageProvider
+export default function StudentDashboard() {
+  return (
+    <LanguageProvider>
+      <StudentDashboardContent />
+    </LanguageProvider>
   );
 }

@@ -1,7 +1,9 @@
 import { ChevronLeft, ChevronRight, Calendar, Clock, MapPin, User } from 'lucide-react';
 import { useState } from 'react';
+import { useLanguage } from '../contexts/LanguageContext';
 
-const weekDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+const weekDaysEn = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+const weekDaysAr = ['الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت', 'الأحد'];
 const timeSlots = [
   '08:00 AM', '09:00 AM', '10:00 AM', '11:00 AM', 
   '12:00 PM', '01:00 PM', '02:00 PM', '03:00 PM', 
@@ -267,14 +269,27 @@ const upcomingClasses = [
 ];
 
 export default function ClassSchedule() {
+  const { t, isRTL, language } = useLanguage();
   const [currentWeek, setCurrentWeek] = useState('Week of Dec 4 - Dec 10, 2025');
+  const weekDays = language === 'ar' ? weekDaysAr : weekDaysEn;
 
   const getClassesForDay = (day: string) => {
-    return classes.filter(c => c.day === day);
+    // Map Arabic days back to English for data lookup
+    const dayMap: Record<string, string> = {
+      'الاثنين': 'Monday',
+      'الثلاثاء': 'Tuesday',
+      'الأربعاء': 'Wednesday',
+      'الخميس': 'Thursday',
+      'الجمعة': 'Friday',
+      'السبت': 'Saturday',
+      'الأحد': 'Sunday',
+    };
+    const lookupDay = dayMap[day] || day;
+    return classes.filter(c => c.day === lookupDay);
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8" dir={isRTL ? 'rtl' : 'ltr'}>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Calendar View */}
         <div className="lg:col-span-2">
@@ -282,8 +297,8 @@ export default function ClassSchedule() {
           <div className="bg-white rounded-lg p-6 border border-gray-200 mb-6 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-semibold text-gray-900 mb-1">Weekly Schedule</h2>
-                <p className="text-gray-600 text-sm">{currentWeek}</p>
+                <h2 className="text-lg font-semibold text-gray-900 mb-1">{t('weeklySchedule')}</h2>
+                <p className="text-gray-600 text-sm">{isRTL ? 'أسبوع 4 - 10 ديسمبر 2025' : currentWeek}</p>
               </div>
               <div className="flex items-center gap-2">
                 <button className="p-2 border-2 border-gray-200 rounded-lg hover:bg-gray-50 transition-all">
@@ -301,11 +316,11 @@ export default function ClassSchedule() {
             {/* Week Days Header */}
             <div className="grid grid-cols-8 border-b border-gray-200">
               <div className="p-4 border-r border-gray-200 bg-gradient-to-b from-gray-50 to-white">
-                <span className="text-sm font-semibold text-gray-600">Time</span>
+                <span className="text-sm font-semibold text-gray-600">{t('time')}</span>
               </div>
               {weekDays.map((day) => (
                 <div key={day} className="p-4 border-r border-gray-200 last:border-r-0 bg-gradient-to-b from-gray-50 to-white text-center">
-                  <span className="text-sm font-semibold text-gray-900">{day.substring(0, 3)}</span>
+                  <span className="text-sm font-semibold text-gray-900">{language === 'ar' ? day : day.substring(0, 3)}</span>
                 </div>
               ))}
             </div>
@@ -348,8 +363,8 @@ export default function ClassSchedule() {
         <div>
           <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
             <div className="mb-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-1">Upcoming Classes</h3>
-              <p className="text-gray-600 text-sm">Your next scheduled classes</p>
+              <h3 className="text-lg font-semibold text-gray-900 mb-1">{isRTL ? 'المحاضرات القادمة' : 'Upcoming Classes'}</h3>
+              <p className="text-gray-600 text-sm">{isRTL ? 'محاضراتك المجدولة القادمة' : 'Your next scheduled classes'}</p>
             </div>
 
             <div className="space-y-5">
@@ -381,7 +396,7 @@ export default function ClassSchedule() {
                       {/* Progress */}
                       <div className="mt-3 pt-3 border-t border-gray-100">
                         <div className="flex items-center justify-between mb-2">
-                          <span className="text-xs text-gray-600 font-medium">Course Progress</span>
+                          <span className="text-xs text-gray-600 font-medium">{t('progress')}</span>
                           <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">
                             {classItem.progress}%
                           </span>

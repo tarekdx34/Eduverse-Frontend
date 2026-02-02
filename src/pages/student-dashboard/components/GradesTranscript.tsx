@@ -1,5 +1,6 @@
 import { Download, Filter, Search } from 'lucide-react';
 import { useState } from 'react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface GradeRecord {
   code: string;
@@ -344,32 +345,40 @@ export default function GradesTranscript({
   classRank = 15,
   semesters = defaultSemesters,
 }: GradesTranscriptProps) {
+  const { t, isRTL } = useLanguage();
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" dir={isRTL ? 'rtl' : 'ltr'}>
+      {/* Header */}
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900">{t('gradesAndTranscript')}</h1>
+        <p className="text-gray-600">{t('academicRecord')}</p>
+      </div>
+
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
-          label="Cumulative GPA"
+          label={t('cumulativeGPA')}
           value={cumulativeGPA}
-          subtext="Out of 4.00"
+          subtext={`${t('outOf')} 4.00`}
           color="bg-indigo-100"
         />
         <StatCard
-          label="Current Semester GPA"
+          label={t('semesterGPA')}
           value={currentSemesterGPA}
-          subtext="+0.12 from last semester"
+          subtext={isRTL ? '+0.12 من الفصل السابق' : '+0.12 from last semester'}
           color="bg-green-100"
         />
         <StatCard
-          label="Total Credits Earned"
+          label={t('creditHours')}
           value={totalCredits}
-          subtext="Out of 144 required"
+          subtext={isRTL ? 'من 144 مطلوبة' : 'Out of 144 required'}
           color="bg-purple-100"
         />
         <StatCard
-          label="Class Rank"
+          label={t('rank')}
           value={classRank}
-          subtext="Out of 450 students"
+          subtext={isRTL ? 'من 450 طالب' : 'Out of 450 students'}
           color="bg-orange-100"
         />
       </div>

@@ -1,4 +1,5 @@
 import { Calendar, Clock, CheckCircle, XCircle, AlertCircle, TrendingUp, Users, BarChart3 } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const attendanceData = [
   {
@@ -91,6 +92,7 @@ const recentAttendance = [
 ];
 
 export function AttendanceOverview() {
+  const { t, isRTL } = useLanguage();
   const totalClasses = attendanceData.reduce((sum, course) => sum + course.totalClasses, 0);
   const totalAttended = attendanceData.reduce((sum, course) => sum + course.attended, 0);
   const totalAbsent = attendanceData.reduce((sum, course) => sum + course.absent, 0);
@@ -123,16 +125,25 @@ export function AttendanceOverview() {
     }
   };
 
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'present': return t('present');
+      case 'absent': return t('absent');
+      case 'late': return t('late');
+      default: return status;
+    }
+  };
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-8" dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
         <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
           <BarChart3 size={20} className="text-white" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Attendance Overview</h1>
-          <p className="text-gray-600">Track your attendance across all courses</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('attendanceOverview')}</h1>
+          <p className="text-gray-600">{isRTL ? 'تتبع حضورك في جميع المقررات' : 'Track your attendance across all courses'}</p>
         </div>
       </div>
 
@@ -140,9 +151,9 @@ export function AttendanceOverview() {
       <div className="bg-white border border-gray-200 rounded-lg p-8 shadow-sm">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">Overall Attendance Rate</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">{t('overallAttendance')}</h2>
             <p className="text-sm text-gray-600">
-              {totalAttended} attended out of {totalClasses} total classes
+              {totalAttended} {t('attended')} {t('outOf')} {totalClasses} {t('totalClasses')}
             </p>
           </div>
           <div className="text-center">
@@ -150,15 +161,15 @@ export function AttendanceOverview() {
             <div className="flex flex-col gap-2 text-sm text-gray-600">
               <span className="flex items-center justify-center gap-1">
                 <CheckCircle className="w-4 h-4 text-green-600" />
-                {totalAttended} Present
+                {totalAttended} {t('present')}
               </span>
               <span className="flex items-center justify-center gap-1">
                 <XCircle className="w-4 h-4 text-red-600" />
-                {totalAbsent} Absent
+                {totalAbsent} {t('absent')}
               </span>
               <span className="flex items-center justify-center gap-1">
                 <AlertCircle className="w-4 h-4 text-orange-600" />
-                {totalLate} Late
+                {totalLate} {t('late')}
               </span>
             </div>
           </div>
@@ -169,8 +180,8 @@ export function AttendanceOverview() {
         {/* Course Attendance Details */}
         <div className="lg:col-span-2">
           <div className="mb-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">Course Attendance</h2>
-            <p className="text-sm text-gray-600">Detailed attendance breakdown by course</p>
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">{t('lectureAttendance')}</h2>
+            <p className="text-sm text-gray-600">{isRTL ? 'تفاصيل الحضور حسب المقرر' : 'Detailed attendance breakdown by course'}</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -198,19 +209,19 @@ export function AttendanceOverview() {
                   {/* Stats Grid */}
                   <div className="grid grid-cols-4 gap-2 mb-4 pb-4 border-b border-gray-100">
                     <div className="text-center">
-                      <p className="text-xs text-gray-600 mb-1">Total</p>
+                      <p className="text-xs text-gray-600 mb-1">{t('totalClasses')}</p>
                       <p className="text-base font-bold text-gray-900">{course.totalClasses}</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-xs text-green-700 mb-1">Present</p>
+                      <p className="text-xs text-green-700 mb-1">{t('present')}</p>
                       <p className="text-base font-bold text-green-900">{course.attended}</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-xs text-red-700 mb-1">Absent</p>
+                      <p className="text-xs text-red-700 mb-1">{t('absent')}</p>
                       <p className="text-base font-bold text-red-900">{course.absent}</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-xs text-orange-700 mb-1">Late</p>
+                      <p className="text-xs text-orange-700 mb-1">{t('late')}</p>
                       <p className="text-base font-bold text-orange-900">{course.late}</p>
                     </div>
                   </div>
@@ -239,8 +250,8 @@ export function AttendanceOverview() {
         {/* Recent Attendance Activity */}
         <div>
           <div className="mb-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">Recent Activity</h2>
-            <p className="text-sm text-gray-600">Last 6 attendance records</p>
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">{t('recentActivity')}</h2>
+            <p className="text-sm text-gray-600">{isRTL ? 'آخر 6 سجلات حضور' : 'Last 6 attendance records'}</p>
           </div>
 
           <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6">
@@ -261,7 +272,7 @@ export function AttendanceOverview() {
                               : 'bg-red-100 text-red-700'
                           }`}
                         >
-                          {record.status}
+                          {getStatusText(record.status)}
                         </span>
                       </div>
                       <div className="flex items-center gap-3 text-xs text-gray-600">

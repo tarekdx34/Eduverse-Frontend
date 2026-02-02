@@ -1,4 +1,5 @@
 import { ChevronDown, Menu } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface Tab {
   id: string;
@@ -19,53 +20,32 @@ interface SidebarProps {
   onToggle?: () => void;
 }
 
-const SIDEBAR_SECTIONS: SidebarSection[] = [
-  {
-    title: 'Academic',
-    items: [
-      'My Class',
-      'Class Schedule',
-      'Grades & Transcript',
-      'Assignments',
-      'Academic Calendar',
-      'AI Features',
-      'Gamification',
-      'Chat',
-    ],
-  },
-  {
-    title: 'Documents',
-    items: ['Official Transcript', 'Certificates'],
-  },
-  {
-    title: 'Financial',
-    items: ['Tuition & Fees', 'Payment History', 'Financial Aid'],
-  },
-  {
-    title: 'Student Life',
-    items: ['Organizations', 'Campus Events', 'Housing & Dormitory'],
-  },
-];
-
-const handleItemClick = (item: string, callback?: (tab: string) => void) => {
-  switch (item) {
-    case 'My Class':
-      callback?.('myclass');
-      break;
-    case 'Class Schedule':
-      callback?.('schedule');
-      break;
-    case 'Payment History':
-      callback?.('payments');
-      break;
-    default:
-      break;
-  }
+// Map tab IDs to translation keys
+const tabTranslationKeys: Record<string, string> = {
+  dashboard: 'dashboard',
+  myclass: 'myClass',
+  registration: 'registration',
+  community: 'community',
+  schedule: 'schedule',
+  assignments: 'assignments',
+  labs: 'labSessions',
+  grades: 'grades',
+  attendance: 'attendance',
+  analytics: 'analytics',
+  todo: 'todoList',
+  ai: 'aiFeatures',
+  gamification: 'achievements',
+  notifications: 'notifications',
+  payments: 'payments',
+  chat: 'chat',
+  settings: 'settings',
 };
 
 export default function Sidebar({ onTabChange, tabs, activeTab, isOpen, onToggle }: SidebarProps) {
+  const { t, isRTL } = useLanguage();
+
   return (
-    <div className="w-64 bg-white border-r border-gray-200 h-screen overflow-hidden">
+    <div className={`w-64 bg-white ${isRTL ? 'border-l' : 'border-r'} border-gray-200 h-screen overflow-hidden`}>
       {/* Logo */}
       <div className="p-4 border-b border-gray-200">
         <div className="flex items-center justify-between">
@@ -77,13 +57,16 @@ export default function Sidebar({ onTabChange, tabs, activeTab, isOpen, onToggle
       </div>
 
       {/* Navigation */}
-      <div className="p-4">
+      <div className="p-4 overflow-y-auto h-[calc(100vh-73px)]">
         {/* Vertical Tabs Section */}
         {tabs && tabs.length > 0 && (
           <div className="mb-6">
             <div className="space-y-2">
               {tabs.map((tab) => {
                 const IconComponent = tab.icon;
+                const translationKey = tabTranslationKeys[tab.id] || tab.id;
+                const translatedLabel = t(translationKey);
+                
                 return (
                   <button
                     key={tab.id}
@@ -95,12 +78,11 @@ export default function Sidebar({ onTabChange, tabs, activeTab, isOpen, onToggle
                     }`}
                   >
                     <IconComponent size={18} />
-                    <span>{tab.label}</span>
+                    <span>{translatedLabel}</span>
                   </button>
                 );
               })}
             </div>
-            {tabs.length > 0 && <div className="border-b border-gray-200 my-4" />}
           </div>
         )}
       </div>
