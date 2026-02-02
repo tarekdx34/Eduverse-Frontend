@@ -28,6 +28,7 @@ import {
   CheckCircle,
   Info
 } from 'lucide-react';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface SettingsState {
   theme: 'light' | 'dark' | 'system';
@@ -179,6 +180,7 @@ const translations = {
 };
 
 export function SettingsPreferences() {
+  const { isDark, toggleTheme } = useTheme();
   const [settings, setSettings] = useState<SettingsState>({
     theme: 'light',
     language: 'en',
@@ -268,7 +270,7 @@ export function SettingsPreferences() {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Sidebar Navigation */}
         <div className="lg:col-span-1">
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden sticky top-4">
+          <div className={`rounded-xl border overflow-hidden sticky top-4 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
             <div className="p-2">
               {sections.map((section) => (
                 <button
@@ -277,12 +279,14 @@ export function SettingsPreferences() {
                   className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all ${
                     activeSection === section.id
                       ? 'bg-indigo-50 text-indigo-700 border-2 border-indigo-200'
-                      : 'hover:bg-gray-50 text-gray-700 border-2 border-transparent'
+                      : isDark 
+                        ? 'hover:bg-gray-700 text-gray-300 border-2 border-transparent' 
+                        : 'hover:bg-gray-50 text-gray-700 border-2 border-transparent'
                   }`}
                 >
                   <section.icon className="w-5 h-5" />
                   <span className="text-sm font-medium">{section.label}</span>
-                  <ChevronRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''} ${activeSection === section.id ? 'text-indigo-500' : 'text-gray-400'} ${isRTL ? 'mr-auto' : 'ml-auto'}`} />
+                  <ChevronRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''} ${activeSection === section.id ? 'text-indigo-500' : isDark ? 'text-gray-500' : 'text-gray-400'} ${isRTL ? 'mr-auto' : 'ml-auto'}`} />
                 </button>
               ))}
             </div>
@@ -293,9 +297,9 @@ export function SettingsPreferences() {
         <div className="lg:col-span-3 space-y-6">
           {/* Appearance Section */}
           {activeSection === 'appearance' && (
-            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-              <div className="bg-gradient-to-r from-gray-50 to-white p-4 border-b border-gray-200">
-                <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+            <div className={`rounded-xl border overflow-hidden ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+              <div className={`p-4 border-b ${isDark ? 'bg-gray-700/50 border-gray-700' : 'bg-gradient-to-r from-gray-50 to-white border-gray-200'}`}>
+                <h3 className={`font-semibold flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
                   <Palette className="w-5 h-5 text-indigo-500" />
                   {t.appearance}
                 </h3>
@@ -303,7 +307,7 @@ export function SettingsPreferences() {
               <div className="p-6 space-y-6">
                 {/* Theme Selection */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">{t.theme}</label>
+                  <label className={`block text-sm font-medium mb-3 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t.theme}</label>
                   <div className="grid grid-cols-3 gap-3">
                     {[
                       { id: 'light', icon: Sun, label: t.light },
@@ -312,22 +316,28 @@ export function SettingsPreferences() {
                     ].map((theme) => (
                       <button
                         key={theme.id}
-                        onClick={() => updateSettings('theme', theme.id)}
+                        onClick={() => {
+                          updateSettings('theme', theme.id);
+                          if (theme.id === 'dark' && !isDark) toggleTheme();
+                          if (theme.id === 'light' && isDark) toggleTheme();
+                        }}
                         className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
                           settings.theme === theme.id
                             ? 'border-indigo-500 bg-indigo-50'
-                            : 'border-gray-200 hover:border-gray-300'
+                            : isDark 
+                              ? 'border-gray-600 hover:border-gray-500' 
+                              : 'border-gray-200 hover:border-gray-300'
                         }`}
                       >
                         <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                          settings.theme === theme.id ? 'bg-indigo-100' : 'bg-gray-100'
+                          settings.theme === theme.id ? 'bg-indigo-100' : isDark ? 'bg-gray-700' : 'bg-gray-100'
                         }`}>
                           <theme.icon className={`w-6 h-6 ${
-                            settings.theme === theme.id ? 'text-indigo-600' : 'text-gray-500'
+                            settings.theme === theme.id ? 'text-indigo-600' : isDark ? 'text-gray-400' : 'text-gray-500'
                           }`} />
                         </div>
                         <span className={`text-sm font-medium ${
-                          settings.theme === theme.id ? 'text-indigo-700' : 'text-gray-700'
+                          settings.theme === theme.id ? 'text-indigo-700' : isDark ? 'text-gray-300' : 'text-gray-700'
                         }`}>
                           {theme.label}
                         </span>
@@ -341,18 +351,20 @@ export function SettingsPreferences() {
 
                 {/* Language Selection */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">{t.language}</label>
+                  <label className={`block text-sm font-medium mb-3 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t.language}</label>
                   <div className="grid grid-cols-2 gap-3">
                     <button
                       onClick={() => updateSettings('language', 'en')}
                       className={`flex items-center justify-center gap-3 p-4 rounded-xl border-2 transition-all ${
                         settings.language === 'en'
                           ? 'border-indigo-500 bg-indigo-50'
-                          : 'border-gray-200 hover:border-gray-300'
+                          : isDark 
+                            ? 'border-gray-600 hover:border-gray-500' 
+                            : 'border-gray-200 hover:border-gray-300'
                       }`}
                     >
-                      <Globe className={`w-5 h-5 ${settings.language === 'en' ? 'text-indigo-600' : 'text-gray-500'}`} />
-                      <span className={`text-sm font-medium ${settings.language === 'en' ? 'text-indigo-700' : 'text-gray-700'}`}>
+                      <Globe className={`w-5 h-5 ${settings.language === 'en' ? 'text-indigo-600' : isDark ? 'text-gray-400' : 'text-gray-500'}`} />
+                      <span className={`text-sm font-medium ${settings.language === 'en' ? 'text-indigo-700' : isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                         {t.english}
                       </span>
                       {settings.language === 'en' && <Check className="w-4 h-4 text-indigo-600" />}
@@ -362,11 +374,13 @@ export function SettingsPreferences() {
                       className={`flex items-center justify-center gap-3 p-4 rounded-xl border-2 transition-all ${
                         settings.language === 'ar'
                           ? 'border-indigo-500 bg-indigo-50'
-                          : 'border-gray-200 hover:border-gray-300'
+                          : isDark 
+                            ? 'border-gray-600 hover:border-gray-500' 
+                            : 'border-gray-200 hover:border-gray-300'
                       }`}
                     >
-                      <Globe className={`w-5 h-5 ${settings.language === 'ar' ? 'text-indigo-600' : 'text-gray-500'}`} />
-                      <span className={`text-sm font-medium ${settings.language === 'ar' ? 'text-indigo-700' : 'text-gray-700'}`}>
+                      <Globe className={`w-5 h-5 ${settings.language === 'ar' ? 'text-indigo-600' : isDark ? 'text-gray-400' : 'text-gray-500'}`} />
+                      <span className={`text-sm font-medium ${settings.language === 'ar' ? 'text-indigo-700' : isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                         {t.arabic}
                       </span>
                       {settings.language === 'ar' && <Check className="w-4 h-4 text-indigo-600" />}
@@ -379,9 +393,9 @@ export function SettingsPreferences() {
 
           {/* Notifications Section */}
           {activeSection === 'notifications' && (
-            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-              <div className="bg-gradient-to-r from-gray-50 to-white p-4 border-b border-gray-200">
-                <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+            <div className={`rounded-xl border overflow-hidden ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+              <div className={`p-4 border-b ${isDark ? 'bg-gray-700/50 border-gray-700' : 'bg-gradient-to-r from-gray-50 to-white border-gray-200'}`}>
+                <h3 className={`font-semibold flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
                   <Bell className="w-5 h-5 text-indigo-500" />
                   {t.notifications}
                 </h3>
@@ -396,10 +410,10 @@ export function SettingsPreferences() {
                   { key: 'announcements', label: t.announcementNotif, icon: Info },
                   { key: 'messages', label: t.messageNotif, icon: Bell },
                 ].map((item) => (
-                  <div key={item.key} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                  <div key={item.key} className={`flex items-center justify-between p-4 rounded-xl ${isDark ? 'bg-gray-700' : 'bg-gray-50'}`}>
                     <div className="flex items-center gap-3">
-                      <item.icon className="w-5 h-5 text-gray-600" />
-                      <span className="text-sm font-medium text-gray-700">{item.label}</span>
+                      <item.icon className={`w-5 h-5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`} />
+                      <span className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{item.label}</span>
                     </div>
                     <button
                       onClick={() => updateSettings(`notifications.${item.key}`, !settings.notifications[item.key as keyof typeof settings.notifications])}
@@ -421,26 +435,26 @@ export function SettingsPreferences() {
 
           {/* Security Section (2FA) */}
           {activeSection === 'security' && (
-            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-              <div className="bg-gradient-to-r from-gray-50 to-white p-4 border-b border-gray-200">
-                <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+            <div className={`rounded-xl border overflow-hidden ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+              <div className={`p-4 border-b ${isDark ? 'bg-gray-700/50 border-gray-700' : 'bg-gradient-to-r from-gray-50 to-white border-gray-200'}`}>
+                <h3 className={`font-semibold flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
                   <Shield className="w-5 h-5 text-indigo-500" />
                   {t.security}
                 </h3>
               </div>
               <div className="p-6">
                 {/* Two-Factor Authentication */}
-                <div className={`p-6 rounded-xl border-2 ${settings.twoFactor.enabled ? 'border-green-200 bg-green-50' : 'border-gray-200 bg-gray-50'}`}>
+                <div className={`p-6 rounded-xl border-2 ${settings.twoFactor.enabled ? 'border-green-200 bg-green-50' : isDark ? 'border-gray-600 bg-gray-700' : 'border-gray-200 bg-gray-50'}`}>
                   <div className="flex items-start justify-between">
                     <div className="flex items-start gap-4">
                       <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                        settings.twoFactor.enabled ? 'bg-green-100' : 'bg-gray-200'
+                        settings.twoFactor.enabled ? 'bg-green-100' : isDark ? 'bg-gray-600' : 'bg-gray-200'
                       }`}>
-                        <Shield className={`w-6 h-6 ${settings.twoFactor.enabled ? 'text-green-600' : 'text-gray-500'}`} />
+                        <Shield className={`w-6 h-6 ${settings.twoFactor.enabled ? 'text-green-600' : isDark ? 'text-gray-400' : 'text-gray-500'}`} />
                       </div>
                       <div>
-                        <h4 className="font-semibold text-gray-900">{t.twoFactor}</h4>
-                        <p className="text-sm text-gray-600 mt-1">{t.twoFactorDesc}</p>
+                        <h4 className={`font-semibold ${isDark && !settings.twoFactor.enabled ? 'text-white' : 'text-gray-900'}`}>{t.twoFactor}</h4>
+                        <p className={`text-sm mt-1 ${isDark && !settings.twoFactor.enabled ? 'text-gray-400' : 'text-gray-600'}`}>{t.twoFactorDesc}</p>
                         {settings.twoFactor.enabled && (
                           <div className="flex items-center gap-2 mt-2">
                             <CheckCircle className="w-4 h-4 text-green-500" />
@@ -475,14 +489,16 @@ export function SettingsPreferences() {
                           className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
                             settings.twoFactor.method === method.id
                               ? 'border-indigo-500 bg-indigo-50'
-                              : 'border-gray-200 hover:border-gray-300 bg-white'
+                              : isDark 
+                                ? 'border-gray-600 hover:border-gray-500 bg-gray-800' 
+                                : 'border-gray-200 hover:border-gray-300 bg-white'
                           }`}
                         >
                           <method.icon className={`w-6 h-6 ${
-                            settings.twoFactor.method === method.id ? 'text-indigo-600' : 'text-gray-500'
+                            settings.twoFactor.method === method.id ? 'text-indigo-600' : isDark ? 'text-gray-400' : 'text-gray-500'
                           }`} />
                           <span className={`text-xs font-medium text-center ${
-                            settings.twoFactor.method === method.id ? 'text-indigo-700' : 'text-gray-600'
+                            settings.twoFactor.method === method.id ? 'text-indigo-700' : isDark ? 'text-gray-300' : 'text-gray-600'
                           }`}>
                             {method.label}
                           </span>
@@ -497,9 +513,9 @@ export function SettingsPreferences() {
 
           {/* Privacy Section */}
           {activeSection === 'privacy' && (
-            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-              <div className="bg-gradient-to-r from-gray-50 to-white p-4 border-b border-gray-200">
-                <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+            <div className={`rounded-xl border overflow-hidden ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+              <div className={`p-4 border-b ${isDark ? 'bg-gray-700/50 border-gray-700' : 'bg-gradient-to-r from-gray-50 to-white border-gray-200'}`}>
+                <h3 className={`font-semibold flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
                   <Eye className="w-5 h-5 text-indigo-500" />
                   {t.privacy}
                 </h3>
@@ -510,8 +526,8 @@ export function SettingsPreferences() {
                   { key: 'showActivity', label: t.showActivity },
                   { key: 'showProgress', label: t.showProgress },
                 ].map((item) => (
-                  <div key={item.key} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
-                    <span className="text-sm font-medium text-gray-700">{item.label}</span>
+                  <div key={item.key} className={`flex items-center justify-between p-4 rounded-xl ${isDark ? 'bg-gray-700' : 'bg-gray-50'}`}>
+                    <span className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{item.label}</span>
                     <button
                       onClick={() => updateSettings(`privacy.${item.key}`, !settings.privacy[item.key as keyof typeof settings.privacy])}
                       className={`w-12 h-6 rounded-full transition-colors ${
@@ -532,9 +548,9 @@ export function SettingsPreferences() {
 
           {/* Accessibility Section */}
           {activeSection === 'accessibility' && (
-            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-              <div className="bg-gradient-to-r from-gray-50 to-white p-4 border-b border-gray-200">
-                <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+            <div className={`rounded-xl border overflow-hidden ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+              <div className={`p-4 border-b ${isDark ? 'bg-gray-700/50 border-gray-700' : 'bg-gradient-to-r from-gray-50 to-white border-gray-200'}`}>
+                <h3 className={`font-semibold flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
                   <Monitor className="w-5 h-5 text-indigo-500" />
                   {t.accessibility}
                 </h3>
@@ -542,7 +558,7 @@ export function SettingsPreferences() {
               <div className="p-6 space-y-6">
                 {/* Font Size */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">{t.fontSize}</label>
+                  <label className={`block text-sm font-medium mb-3 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t.fontSize}</label>
                   <div className="grid grid-cols-3 gap-3">
                     {[
                       { id: 'small', label: t.small, size: 'text-sm' },
@@ -555,11 +571,13 @@ export function SettingsPreferences() {
                         className={`p-4 rounded-xl border-2 transition-all ${
                           settings.accessibility.fontSize === option.id
                             ? 'border-indigo-500 bg-indigo-50'
-                            : 'border-gray-200 hover:border-gray-300'
+                            : isDark 
+                              ? 'border-gray-600 hover:border-gray-500' 
+                              : 'border-gray-200 hover:border-gray-300'
                         }`}
                       >
                         <span className={`${option.size} font-medium ${
-                          settings.accessibility.fontSize === option.id ? 'text-indigo-700' : 'text-gray-700'
+                          settings.accessibility.fontSize === option.id ? 'text-indigo-700' : isDark ? 'text-gray-300' : 'text-gray-700'
                         }`}>
                           {option.label}
                         </span>
@@ -573,8 +591,8 @@ export function SettingsPreferences() {
                   { key: 'highContrast', label: t.highContrast },
                   { key: 'reduceMotion', label: t.reduceMotion },
                 ].map((item) => (
-                  <div key={item.key} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
-                    <span className="text-sm font-medium text-gray-700">{item.label}</span>
+                  <div key={item.key} className={`flex items-center justify-between p-4 rounded-xl ${isDark ? 'bg-gray-700' : 'bg-gray-50'}`}>
+                    <span className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{item.label}</span>
                     <button
                       onClick={() => updateSettings(`accessibility.${item.key}`, !settings.accessibility[item.key as keyof typeof settings.accessibility])}
                       className={`w-12 h-6 rounded-full transition-colors ${
@@ -596,33 +614,33 @@ export function SettingsPreferences() {
           {/* Offline Access Section */}
           {activeSection === 'offline' && (
             <div className="space-y-6">
-              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                <div className="bg-gradient-to-r from-gray-50 to-white p-4 border-b border-gray-200">
-                  <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+              <div className={`rounded-xl border overflow-hidden ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+                <div className={`p-4 border-b ${isDark ? 'bg-gray-700/50 border-gray-700' : 'bg-gradient-to-r from-gray-50 to-white border-gray-200'}`}>
+                  <h3 className={`font-semibold flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
                     <Download className="w-5 h-5 text-indigo-500" />
                     {t.offline}
                   </h3>
                 </div>
                 <div className="p-6 space-y-6">
                   {/* Storage Usage */}
-                  <div className="p-4 bg-gray-50 rounded-xl">
+                  <div className={`p-4 rounded-xl ${isDark ? 'bg-gray-700' : 'bg-gray-50'}`}>
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <HardDrive className="w-5 h-5 text-gray-600" />
-                        <span className="text-sm font-medium text-gray-700">{t.storage}</span>
+                        <HardDrive className={`w-5 h-5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`} />
+                        <span className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t.storage}</span>
                       </div>
-                      <span className="text-sm text-gray-600">
+                      <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
                         {settings.offline.storageUsed} MB / {settings.offline.storageLimit} MB
                       </span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-3">
+                    <div className={`w-full rounded-full h-3 ${isDark ? 'bg-gray-600' : 'bg-gray-200'}`}>
                       <div 
                         className="bg-indigo-500 h-3 rounded-full transition-all"
                         style={{ width: `${(settings.offline.storageUsed / settings.offline.storageLimit) * 100}%` }}
                       />
                     </div>
                     <div className="flex justify-between mt-3">
-                      <span className="text-xs text-gray-500">
+                      <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
                         {t.storageUsed}: {settings.offline.storageUsed} MB
                       </span>
                       <button className="text-xs text-red-600 hover:text-red-700 flex items-center gap-1">
@@ -637,10 +655,10 @@ export function SettingsPreferences() {
                     { key: 'autoDownload', label: t.autoDownload, icon: Download },
                     { key: 'downloadOnWifi', label: t.wifiOnly, icon: settings.offline.downloadOnWifi ? Wifi : WifiOff },
                   ].map((item) => (
-                    <div key={item.key} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                    <div key={item.key} className={`flex items-center justify-between p-4 rounded-xl ${isDark ? 'bg-gray-700' : 'bg-gray-50'}`}>
                       <div className="flex items-center gap-3">
-                        <item.icon className="w-5 h-5 text-gray-600" />
-                        <span className="text-sm font-medium text-gray-700">{item.label}</span>
+                        <item.icon className={`w-5 h-5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`} />
+                        <span className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{item.label}</span>
                       </div>
                       <button
                         onClick={() => updateSettings(`offline.${item.key}`, !settings.offline[item.key as keyof typeof settings.offline])}
@@ -660,28 +678,32 @@ export function SettingsPreferences() {
               </div>
 
               {/* Downloaded Items */}
-              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                <div className="bg-gradient-to-r from-gray-50 to-white p-4 border-b border-gray-200">
-                  <h3 className="font-semibold text-gray-900">{t.downloadedItems}</h3>
+              <div className={`rounded-xl border overflow-hidden ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+                <div className={`p-4 border-b ${isDark ? 'bg-gray-700/50 border-gray-700' : 'bg-gradient-to-r from-gray-50 to-white border-gray-200'}`}>
+                  <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t.downloadedItems}</h3>
                 </div>
                 <div className="p-4 space-y-3">
                   {downloadedItems.map((item) => (
-                    <div key={item.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-xl hover:bg-gray-50 transition-all">
+                    <div key={item.id} className={`flex items-center justify-between p-3 border rounded-xl transition-all ${
+                      isDark 
+                        ? 'border-gray-700 hover:bg-gray-700' 
+                        : 'border-gray-200 hover:bg-gray-50'
+                    }`}>
                       <div className="flex items-center gap-3">
                         <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                          item.downloaded ? 'bg-green-100' : 'bg-gray-100'
+                          item.downloaded ? 'bg-green-100' : isDark ? 'bg-gray-700' : 'bg-gray-100'
                         }`}>
                           {item.type === 'course' ? (
-                            <HardDrive className={`w-5 h-5 ${item.downloaded ? 'text-green-600' : 'text-gray-500'}`} />
+                            <HardDrive className={`w-5 h-5 ${item.downloaded ? 'text-green-600' : isDark ? 'text-gray-400' : 'text-gray-500'}`} />
                           ) : item.type === 'video' ? (
-                            <Monitor className={`w-5 h-5 ${item.downloaded ? 'text-green-600' : 'text-gray-500'}`} />
+                            <Monitor className={`w-5 h-5 ${item.downloaded ? 'text-green-600' : isDark ? 'text-gray-400' : 'text-gray-500'}`} />
                           ) : (
-                            <Download className={`w-5 h-5 ${item.downloaded ? 'text-green-600' : 'text-gray-500'}`} />
+                            <Download className={`w-5 h-5 ${item.downloaded ? 'text-green-600' : isDark ? 'text-gray-400' : 'text-gray-500'}`} />
                           )}
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-gray-900">{item.name}</p>
-                          <p className="text-xs text-gray-500">{item.size} • {item.courseCode}</p>
+                          <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{item.name}</p>
+                          <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>{item.size} • {item.courseCode}</p>
                         </div>
                       </div>
                       <button
@@ -703,7 +725,11 @@ export function SettingsPreferences() {
 
           {/* Save Button */}
           <div className="flex justify-end gap-3">
-            <button className="px-6 py-3 border-2 border-gray-200 rounded-xl text-gray-700 font-medium hover:bg-gray-50 transition-all">
+            <button className={`px-6 py-3 border-2 rounded-xl font-medium transition-all ${
+              isDark 
+                ? 'border-gray-600 text-gray-300 hover:bg-gray-700' 
+                : 'border-gray-200 text-gray-700 hover:bg-gray-50'
+            }`}>
               {t.cancel}
             </button>
             <button className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-all">

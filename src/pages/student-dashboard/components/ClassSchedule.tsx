@@ -1,6 +1,7 @@
 import { ChevronLeft, ChevronRight, Calendar, Clock, MapPin, User } from 'lucide-react';
 import { useState } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useTheme } from '../contexts/ThemeContext';
 
 const weekDaysEn = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 const weekDaysAr = ['الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت', 'الأحد'];
@@ -270,6 +271,7 @@ const upcomingClasses = [
 
 export default function ClassSchedule() {
   const { t, isRTL, language } = useLanguage();
+  const { isDark } = useTheme();
   const [currentWeek, setCurrentWeek] = useState('Week of Dec 4 - Dec 10, 2025');
   const weekDays = language === 'ar' ? weekDaysAr : weekDaysEn;
 
@@ -294,33 +296,33 @@ export default function ClassSchedule() {
         {/* Calendar View */}
         <div className="lg:col-span-2">
           {/* Header */}
-          <div className="bg-white rounded-lg p-6 border border-gray-200 mb-6 shadow-sm">
+          <div className={`rounded-lg p-6 border mb-6 shadow-sm ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-semibold text-gray-900 mb-1">{t('weeklySchedule')}</h2>
-                <p className="text-gray-600 text-sm">{isRTL ? 'أسبوع 4 - 10 ديسمبر 2025' : currentWeek}</p>
+                <h2 className={`text-lg font-semibold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('weeklySchedule')}</h2>
+                <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{isRTL ? 'أسبوع 4 - 10 ديسمبر 2025' : currentWeek}</p>
               </div>
               <div className="flex items-center gap-2">
-                <button className="p-2 border-2 border-gray-200 rounded-lg hover:bg-gray-50 transition-all">
-                  <ChevronLeft className="w-5 h-5 text-gray-600" />
+                <button className={`p-2 border-2 rounded-lg transition-all ${isDark ? 'border-gray-600 hover:bg-gray-700' : 'border-gray-200 hover:bg-gray-50'}`}>
+                  <ChevronLeft className={`w-5 h-5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`} />
                 </button>
-                <button className="p-2 border-2 border-gray-200 rounded-lg hover:bg-gray-50 transition-all">
-                  <ChevronRight className="w-5 h-5 text-gray-600" />
+                <button className={`p-2 border-2 rounded-lg transition-all ${isDark ? 'border-gray-600 hover:bg-gray-700' : 'border-gray-200 hover:bg-gray-50'}`}>
+                  <ChevronRight className={`w-5 h-5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`} />
                 </button>
               </div>
             </div>
           </div>
 
           {/* Calendar Grid */}
-          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
+          <div className={`rounded-lg border overflow-hidden shadow-sm ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
             {/* Week Days Header */}
-            <div className="grid grid-cols-8 border-b border-gray-200">
-              <div className="p-4 border-r border-gray-200 bg-gradient-to-b from-gray-50 to-white">
-                <span className="text-sm font-semibold text-gray-600">{t('time')}</span>
+            <div className={`grid grid-cols-8 border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+              <div className={`p-4 border-r ${isDark ? 'border-gray-700 bg-gray-700/50' : 'border-gray-200 bg-gradient-to-b from-gray-50 to-white'}`}>
+                <span className={`text-sm font-semibold ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('time')}</span>
               </div>
               {weekDays.map((day) => (
-                <div key={day} className="p-4 border-r border-gray-200 last:border-r-0 bg-gradient-to-b from-gray-50 to-white text-center">
-                  <span className="text-sm font-semibold text-gray-900">{language === 'ar' ? day : day.substring(0, 3)}</span>
+                <div key={day} className={`p-4 border-r last:border-r-0 text-center ${isDark ? 'border-gray-700 bg-gray-700/50' : 'border-gray-200 bg-gradient-to-b from-gray-50 to-white'}`}>
+                  <span className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{language === 'ar' ? day : day.substring(0, 3)}</span>
                 </div>
               ))}
             </div>
@@ -328,26 +330,26 @@ export default function ClassSchedule() {
             {/* Time Slots */}
             <div className="overflow-y-auto max-h-[600px]">
               {timeSlots.map((time, timeIndex) => (
-                <div key={time} className="grid grid-cols-8 border-b border-gray-100 last:border-b-0 hover:bg-gray-50/50 transition-colors">
-                  <div className="p-3 border-r border-gray-200 bg-gray-50/50">
-                    <span className="text-xs font-medium text-gray-600">{time}</span>
+                <div key={time} className={`grid grid-cols-8 border-b last:border-b-0 transition-colors ${isDark ? 'border-gray-700 hover:bg-gray-700/30' : 'border-gray-100 hover:bg-gray-50/50'}`}>
+                  <div className={`p-3 border-r ${isDark ? 'border-gray-700 bg-gray-700/30' : 'border-gray-200 bg-gray-50/50'}`}>
+                    <span className={`text-xs font-medium ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{time}</span>
                   </div>
                   {weekDays.map((day) => {
                     const dayClasses = getClassesForDay(day).filter(c => c.startTime === time);
                     return (
-                      <div key={`${day}-${time}`} className="p-2 border-r border-gray-100 last:border-r-0 min-h-[80px] relative">
+                      <div key={`${day}-${time}`} className={`p-2 border-r last:border-r-0 min-h-[80px] relative ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
                         {dayClasses.map((classItem) => (
                           <div
                             key={classItem.id}
-                            className={`${classItem.bgLight} border-l-4 ${classItem.borderColor} rounded-lg p-2.5 mb-1 hover:shadow-md transition-all cursor-pointer group`}
+                            className={`${isDark ? 'bg-gray-700' : classItem.bgLight} border-l-4 ${classItem.borderColor} rounded-lg p-2.5 mb-1 hover:shadow-md transition-all cursor-pointer group`}
                           >
                             <p className={`text-xs font-bold ${classItem.textColor} mb-1 group-hover:opacity-80`}>
                               {classItem.code}
                             </p>
-                            <p className="text-xs font-semibold text-gray-900 mb-0.5 line-clamp-1">
+                            <p className={`text-xs font-semibold mb-0.5 line-clamp-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>
                               {classItem.name}
                             </p>
-                            <p className="text-xs text-gray-600">{classItem.room}</p>
+                            <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{classItem.room}</p>
                           </div>
                         ))}
                       </div>
@@ -361,47 +363,47 @@ export default function ClassSchedule() {
 
         {/* Upcoming Classes List */}
         <div>
-          <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
+          <div className={`rounded-lg p-6 border shadow-sm ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
             <div className="mb-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-1">{isRTL ? 'المحاضرات القادمة' : 'Upcoming Classes'}</h3>
-              <p className="text-gray-600 text-sm">{isRTL ? 'محاضراتك المجدولة القادمة' : 'Your next scheduled classes'}</p>
+              <h3 className={`text-lg font-semibold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{isRTL ? 'المحاضرات القادمة' : 'Upcoming Classes'}</h3>
+              <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{isRTL ? 'محاضراتك المجدولة القادمة' : 'Your next scheduled classes'}</p>
             </div>
 
             <div className="space-y-5">
               {upcomingClasses.map((classItem) => (
-                <div key={classItem.id} className="border-b border-gray-100 pb-5 last:border-b-0 last:pb-0">
+                <div key={classItem.id} className={`border-b pb-5 last:border-b-0 last:pb-0 ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
                   <div className="flex items-start gap-3 mb-3">
                     <div className={`w-1.5 h-20 ${classItem.color} rounded-full flex-shrink-0`}></div>
                     <div className="flex-1 min-w-0">
-                      <h4 className="text-gray-900 font-semibold mb-1 text-sm">{classItem.name}</h4>
-                      <p className="text-gray-600 text-xs font-medium mb-3">{classItem.code}</p>
+                      <h4 className={`font-semibold mb-1 text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>{classItem.name}</h4>
+                      <p className={`text-xs font-medium mb-3 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{classItem.code}</p>
                       <div className="space-y-2">
-                        <div className="flex items-center gap-2 text-xs text-gray-600">
+                        <div className={`flex items-center gap-2 text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
                           <Clock className="w-3.5 h-3.5 text-indigo-600 flex-shrink-0" />
                           <span>{classItem.time}</span>
                         </div>
-                        <div className="flex items-center gap-2 text-xs text-gray-600">
+                        <div className={`flex items-center gap-2 text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
                           <Calendar className="w-3.5 h-3.5 text-indigo-600 flex-shrink-0" />
                           <span>{classItem.date}</span>
                         </div>
-                        <div className="flex items-center gap-2 text-xs text-gray-600">
+                        <div className={`flex items-center gap-2 text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
                           <MapPin className="w-3.5 h-3.5 text-indigo-600 flex-shrink-0" />
                           <span>{classItem.room}</span>
                         </div>
-                        <div className="flex items-center gap-2 text-xs text-gray-600">
+                        <div className={`flex items-center gap-2 text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
                           <User className="w-3.5 h-3.5 text-indigo-600 flex-shrink-0" />
                           <span>{classItem.instructor}</span>
                         </div>
                       </div>
                       {/* Progress */}
-                      <div className="mt-3 pt-3 border-t border-gray-100">
+                      <div className={`mt-3 pt-3 border-t ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
                         <div className="flex items-center justify-between mb-2">
-                          <span className="text-xs text-gray-600 font-medium">{t('progress')}</span>
-                          <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">
+                          <span className={`text-xs font-medium ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('progress')}</span>
+                          <span className={`text-xs font-bold px-2 py-0.5 rounded ${isDark ? 'text-indigo-400 bg-indigo-900/50' : 'text-indigo-600 bg-indigo-50'}`}>
                             {classItem.progress}%
                           </span>
                         </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                        <div className={`w-full rounded-full h-2 overflow-hidden ${isDark ? 'bg-gray-700' : 'bg-gray-200'}`}>
                           <div 
                             className={`${classItem.color} h-2 rounded-full transition-all duration-500`}
                             style={{ width: `${classItem.progress}%` }}
