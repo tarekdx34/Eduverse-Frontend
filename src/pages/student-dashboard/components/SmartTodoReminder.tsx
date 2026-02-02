@@ -1,5 +1,6 @@
 import { CheckCircle, Circle, Calendar, Clock, Tag, Plus, Trash2, Star, AlertCircle } from 'lucide-react';
 import { useState } from 'react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface Todo {
   id: number;
@@ -187,9 +188,19 @@ export function SmartTodoReminder() {
   const completedCount = todos.filter(t => t.isCompleted).length;
   const highPriorityCount = todos.filter(t => !t.isCompleted && t.priority === 'high').length;
   const dueTodayCount = todos.filter(t => !t.isCompleted && getDaysUntilDue(t.dueDate) === 0).length;
+  const { t, isRTL } = useLanguage();
+
+  const getPriorityText = (priority: string) => {
+    switch (priority) {
+      case 'high': return t('high');
+      case 'medium': return t('medium');
+      case 'low': return t('low');
+      default: return priority;
+    }
+  };
 
   return (
-    <div className="p-6">
+    <div className="p-6" dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Header Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
@@ -197,7 +208,7 @@ export function SmartTodoReminder() {
             <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
               <Circle className="w-5 h-5 text-indigo-600" />
             </div>
-            <span className="text-gray-600 text-sm font-medium">Pending Tasks</span>
+            <span className="text-gray-600 text-sm font-medium">{t('pending')}</span>
           </div>
           <p className="text-gray-900 text-3xl font-bold">{pendingCount}</p>
         </div>
@@ -207,7 +218,7 @@ export function SmartTodoReminder() {
             <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
               <CheckCircle className="w-5 h-5 text-green-600" />
             </div>
-            <span className="text-gray-600 text-sm font-medium">Completed</span>
+            <span className="text-gray-600 text-sm font-medium">{t('completed')}</span>
           </div>
           <p className="text-gray-900 text-3xl font-bold">{completedCount}</p>
         </div>
@@ -217,7 +228,7 @@ export function SmartTodoReminder() {
             <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
               <AlertCircle className="w-5 h-5 text-red-600" />
             </div>
-            <span className="text-gray-600 text-sm font-medium">High Priority</span>
+            <span className="text-gray-600 text-sm font-medium">{t('high')} {t('priority')}</span>
           </div>
           <p className="text-gray-900 text-3xl font-bold">{highPriorityCount}</p>
         </div>
@@ -227,7 +238,7 @@ export function SmartTodoReminder() {
             <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
               <Calendar className="w-5 h-5 text-orange-600" />
             </div>
-            <span className="text-gray-600 text-sm font-medium">Due Today</span>
+            <span className="text-gray-600 text-sm font-medium">{isRTL ? 'مستحق اليوم' : 'Due Today'}</span>
           </div>
           <p className="text-gray-900 text-3xl font-bold">{dueTodayCount}</p>
         </div>
@@ -235,12 +246,12 @@ export function SmartTodoReminder() {
 
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-gray-900 font-semibold text-xl mb-1">Smart To-Do List</h2>
-          <p className="text-gray-500 text-sm">Stay organized with AI-powered task management</p>
+          <h2 className="text-gray-900 font-semibold text-xl mb-1">{t('smartTodo')}</h2>
+          <p className="text-gray-500 text-sm">{isRTL ? 'ابق منظماً مع إدارة المهام الذكية' : 'Stay organized with AI-powered task management'}</p>
         </div>
         <button className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium">
           <Plus className="w-5 h-5" />
-          Add New Task
+          {t('addTask')}
         </button>
       </div>
 
@@ -248,7 +259,7 @@ export function SmartTodoReminder() {
       <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
         <div className="flex items-center gap-4 flex-wrap">
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600 font-medium">Status:</span>
+            <span className="text-sm text-gray-600 font-medium">{t('status')}:</span>
             <div className="flex gap-2">
               {(['all', 'pending', 'completed'] as const).map((f) => (
                 <button
@@ -260,13 +271,13 @@ export function SmartTodoReminder() {
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
-                  {f}
+                  {f === 'all' ? t('all') : f === 'pending' ? t('pending') : t('completed')}
                 </button>
               ))}
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600 font-medium">Priority:</span>
+            <span className="text-sm text-gray-600 font-medium">{t('priority')}:</span>
             <div className="flex gap-2">
               {(['all', 'high', 'medium', 'low'] as const).map((p) => (
                 <button
@@ -278,7 +289,7 @@ export function SmartTodoReminder() {
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
-                  {p}
+                  {p === 'all' ? t('all') : getPriorityText(p)}
                 </button>
               ))}
             </div>

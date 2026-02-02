@@ -164,14 +164,23 @@ const login = () => {
               <span className="text-foreground font-medium">Outlook</span>
             </button>
 
-            {/* Development Button */}
-            <button
-              onClick={() => navigate('/studentdashboard')}
-              className="w-full h-10 mt-4 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 transition-colors flex items-center justify-center gap-2 text-amber-700 text-sm font-medium"
-            >
-              <span>🚀</span>
-              <span>Dev: Student Dashboard</span>
-            </button>
+            {/* Development Buttons */}
+            <div className="grid grid-cols-2 gap-3 mt-4">
+              <button
+                onClick={() => navigate('/studentdashboard')}
+                className="h-10 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 transition-colors flex items-center justify-center gap-2 text-amber-700 text-xs font-medium"
+              >
+                <span>🚀</span>
+                <span>Student</span>
+              </button>
+              <button
+                onClick={() => navigate('/instructordashboard')}
+                className="h-10 rounded-xl border border-blue-300 bg-blue-50 hover:bg-blue-100 transition-colors flex items-center justify-center gap-2 text-blue-700 text-xs font-medium"
+              >
+                <span>👨‍🏫</span>
+                <span>Instructor</span>
+              </button>
+            </div>
 
             {/* Sign up link */}
             <p className="text-center mt-6 text-sm text-muted-foreground">

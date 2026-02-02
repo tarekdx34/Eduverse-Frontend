@@ -1,0 +1,579 @@
+import { useState } from 'react';
+import {
+  BarChart3,
+  TrendingUp,
+  TrendingDown,
+  Target,
+  Award,
+  BookOpen,
+  Clock,
+  AlertTriangle,
+  CheckCircle,
+  ChevronRight,
+  Calendar,
+  Brain,
+  Zap,
+  PieChart,
+  Activity
+} from 'lucide-react';
+
+interface CourseProgress {
+  id: string;
+  code: string;
+  name: string;
+  progress: number;
+  grade: string;
+  gradePoints: number;
+  status: 'on-track' | 'needs-attention' | 'excellent';
+  completedTasks: number;
+  totalTasks: number;
+  studyHours: number;
+  weakTopics: string[];
+  strongTopics: string[];
+}
+
+interface WeeklyActivity {
+  day: string;
+  studyHours: number;
+  tasksCompleted: number;
+  quizzesTaken: number;
+}
+
+const courseProgress: CourseProgress[] = [
+  {
+    id: '1',
+    code: 'CS220',
+    name: 'Database Management Systems',
+    progress: 78,
+    grade: 'A-',
+    gradePoints: 3.7,
+    status: 'on-track',
+    completedTasks: 14,
+    totalTasks: 18,
+    studyHours: 24,
+    weakTopics: ['Normalization', 'Query Optimization'],
+    strongTopics: ['SQL Joins', 'ER Diagrams', 'Indexing']
+  },
+  {
+    id: '2',
+    code: 'CS201',
+    name: 'Data Structures & Algorithms',
+    progress: 65,
+    grade: 'B+',
+    gradePoints: 3.3,
+    status: 'needs-attention',
+    completedTasks: 11,
+    totalTasks: 17,
+    studyHours: 18,
+    weakTopics: ['Dynamic Programming', 'Graph Algorithms', 'AVL Trees'],
+    strongTopics: ['Arrays', 'Linked Lists', 'Sorting']
+  },
+  {
+    id: '3',
+    code: 'CS305',
+    name: 'Software Engineering Principles',
+    progress: 92,
+    grade: 'A',
+    gradePoints: 4.0,
+    status: 'excellent',
+    completedTasks: 12,
+    totalTasks: 13,
+    studyHours: 20,
+    weakTopics: [],
+    strongTopics: ['Requirements Analysis', 'UML', 'Agile', 'Testing']
+  },
+  {
+    id: '4',
+    code: 'CS350',
+    name: 'Mobile Application Development',
+    progress: 72,
+    grade: 'B+',
+    gradePoints: 3.3,
+    status: 'on-track',
+    completedTasks: 9,
+    totalTasks: 12,
+    studyHours: 22,
+    weakTopics: ['State Management', 'Navigation'],
+    strongTopics: ['React Native Basics', 'UI Components', 'Styling']
+  },
+  {
+    id: '5',
+    code: 'CS150',
+    name: 'Web Development Fundamentals',
+    progress: 88,
+    grade: 'A',
+    gradePoints: 4.0,
+    status: 'excellent',
+    completedTasks: 15,
+    totalTasks: 17,
+    studyHours: 26,
+    weakTopics: ['Backend APIs'],
+    strongTopics: ['HTML/CSS', 'JavaScript', 'React', 'Responsive Design']
+  }
+];
+
+const weeklyActivity: WeeklyActivity[] = [
+  { day: 'Mon', studyHours: 4.5, tasksCompleted: 3, quizzesTaken: 1 },
+  { day: 'Tue', studyHours: 3.0, tasksCompleted: 2, quizzesTaken: 0 },
+  { day: 'Wed', studyHours: 5.5, tasksCompleted: 4, quizzesTaken: 2 },
+  { day: 'Thu', studyHours: 2.5, tasksCompleted: 1, quizzesTaken: 1 },
+  { day: 'Fri', studyHours: 4.0, tasksCompleted: 3, quizzesTaken: 1 },
+  { day: 'Sat', studyHours: 6.0, tasksCompleted: 5, quizzesTaken: 2 },
+  { day: 'Sun', studyHours: 3.5, tasksCompleted: 2, quizzesTaken: 0 }
+];
+
+export function ProgressAnalytics() {
+  const [selectedCourse, setSelectedCourse] = useState<CourseProgress | null>(null);
+  const [timeRange, setTimeRange] = useState<'week' | 'month' | 'semester'>('week');
+
+  const totalStudyHours = weeklyActivity.reduce((sum, day) => sum + day.studyHours, 0);
+  const totalTasksCompleted = weeklyActivity.reduce((sum, day) => sum + day.tasksCompleted, 0);
+  const totalQuizzes = weeklyActivity.reduce((sum, day) => sum + day.quizzesTaken, 0);
+  const avgGPA = courseProgress.reduce((sum, c) => sum + c.gradePoints, 0) / courseProgress.length;
+  const maxHours = Math.max(...weeklyActivity.map(d => d.studyHours));
+
+  const coursesNeedingAttention = courseProgress.filter(c => c.status === 'needs-attention');
+  const excellentCourses = courseProgress.filter(c => c.status === 'excellent');
+
+  const allWeakTopics = courseProgress.flatMap(c => c.weakTopics.map(t => ({ topic: t, course: c.code })));
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'excellent':
+        return 'text-green-600 bg-green-100 border-green-200';
+      case 'on-track':
+        return 'text-blue-600 bg-blue-100 border-blue-200';
+      case 'needs-attention':
+        return 'text-amber-600 bg-amber-100 border-amber-200';
+      default:
+        return 'text-gray-600 bg-gray-100 border-gray-200';
+    }
+  };
+
+  const getProgressColor = (progress: number) => {
+    if (progress >= 85) return 'bg-green-500';
+    if (progress >= 70) return 'bg-blue-500';
+    if (progress >= 50) return 'bg-amber-500';
+    return 'bg-red-500';
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 rounded-2xl p-8 text-white shadow-xl">
+        <div className="flex items-center gap-3 mb-3">
+          <BarChart3 className="w-8 h-8" />
+          <span className="text-sm bg-white/20 px-3 py-1 rounded-full">Analytics Dashboard</span>
+        </div>
+        <h1 className="text-3xl font-bold mb-2">Progress & Analytics</h1>
+        <p className="text-indigo-100 text-lg">Track your performance, identify weak areas, and optimize your study plan</p>
+        
+        <div className="grid grid-cols-4 gap-4 mt-6">
+          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+            <div className="flex items-center gap-2 mb-1">
+              <Target className="w-4 h-4 text-green-300" />
+              <span className="text-sm text-indigo-200">Current GPA</span>
+            </div>
+            <p className="text-3xl font-bold">{avgGPA.toFixed(2)}</p>
+          </div>
+          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+            <div className="flex items-center gap-2 mb-1">
+              <Clock className="w-4 h-4 text-blue-300" />
+              <span className="text-sm text-indigo-200">Study Hours</span>
+            </div>
+            <p className="text-3xl font-bold">{totalStudyHours}h</p>
+            <p className="text-xs text-indigo-300">This week</p>
+          </div>
+          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+            <div className="flex items-center gap-2 mb-1">
+              <CheckCircle className="w-4 h-4 text-emerald-300" />
+              <span className="text-sm text-indigo-200">Tasks Done</span>
+            </div>
+            <p className="text-3xl font-bold">{totalTasksCompleted}</p>
+            <p className="text-xs text-indigo-300">This week</p>
+          </div>
+          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+            <div className="flex items-center gap-2 mb-1">
+              <Brain className="w-4 h-4 text-purple-300" />
+              <span className="text-sm text-indigo-200">Quizzes</span>
+            </div>
+            <p className="text-3xl font-bold">{totalQuizzes}</p>
+            <p className="text-xs text-indigo-300">This week</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Time Range Filter */}
+      <div className="flex gap-2">
+        {(['week', 'month', 'semester'] as const).map((range) => (
+          <button
+            key={range}
+            onClick={() => setTimeRange(range)}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all capitalize ${
+              timeRange === range
+                ? 'bg-indigo-100 text-indigo-700 border-2 border-indigo-300'
+                : 'bg-gray-100 text-gray-600 border-2 border-transparent hover:bg-gray-200'
+            }`}
+          >
+            This {range}
+          </button>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Study Activity Chart */}
+        <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <div className="bg-gradient-to-r from-gray-50 to-white p-4 border-b border-gray-200">
+            <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+              <Activity className="w-5 h-5 text-indigo-500" />
+              Weekly Study Activity
+            </h3>
+          </div>
+          <div className="p-6">
+            <div className="flex items-end justify-between gap-2 h-48">
+              {weeklyActivity.map((day, idx) => (
+                <div key={idx} className="flex-1 flex flex-col items-center gap-2">
+                  <div className="w-full flex flex-col items-center gap-1">
+                    <span className="text-xs text-gray-600">{day.studyHours}h</span>
+                    <div 
+                      className="w-full bg-gradient-to-t from-indigo-500 to-purple-500 rounded-t-lg transition-all hover:from-indigo-600 hover:to-purple-600"
+                      style={{ height: `${(day.studyHours / maxHours) * 140}px` }}
+                    />
+                  </div>
+                  <span className="text-sm font-medium text-gray-700">{day.day}</span>
+                </div>
+              ))}
+            </div>
+            <div className="mt-6 grid grid-cols-3 gap-4 pt-4 border-t border-gray-200">
+              <div className="text-center">
+                <p className="text-2xl font-bold text-indigo-600">{totalStudyHours}h</p>
+                <p className="text-sm text-gray-600">Total Hours</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-green-600">{totalTasksCompleted}</p>
+                <p className="text-sm text-gray-600">Tasks Completed</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-purple-600">{totalQuizzes}</p>
+                <p className="text-sm text-gray-600">Quizzes Taken</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Weak Topics Alert */}
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <div className="bg-gradient-to-r from-amber-50 to-orange-50 p-4 border-b border-amber-200">
+            <h3 className="font-semibold text-amber-900 flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-amber-500" />
+              Topics to Review
+            </h3>
+          </div>
+          <div className="p-4 space-y-3 max-h-[300px] overflow-y-auto">
+            {allWeakTopics.length > 0 ? (
+              allWeakTopics.map((item, idx) => (
+                <div key={idx} className="flex items-center justify-between p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                  <div>
+                    <p className="text-sm font-medium text-amber-900">{item.topic}</p>
+                    <p className="text-xs text-amber-700">{item.course}</p>
+                  </div>
+                  <button className="px-3 py-1 text-xs font-medium text-amber-700 bg-amber-100 rounded-lg hover:bg-amber-200 transition-all">
+                    Study
+                  </button>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-8">
+                <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-3" />
+                <p className="text-gray-600">No weak topics identified!</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Course Progress */}
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="bg-gradient-to-r from-gray-50 to-white p-4 border-b border-gray-200">
+          <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+            <BookOpen className="w-5 h-5 text-indigo-500" />
+            Course Progress Overview
+          </h3>
+        </div>
+        <div className="p-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {courseProgress.map((course) => (
+              <div
+                key={course.id}
+                className="border-2 border-gray-200 rounded-xl p-4 hover:border-indigo-300 hover:shadow-lg transition-all cursor-pointer"
+                onClick={() => setSelectedCourse(course)}
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-sm font-bold text-indigo-600">{course.code}</span>
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(course.status)}`}>
+                        {course.status === 'needs-attention' ? 'Needs Work' : course.status === 'excellent' ? 'Excellent' : 'On Track'}
+                      </span>
+                    </div>
+                    <p className="text-sm font-medium text-gray-900">{course.name}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xl font-bold text-gray-900">{course.grade}</p>
+                    <p className="text-xs text-gray-500">{course.gradePoints.toFixed(1)} GPA</p>
+                  </div>
+                </div>
+
+                {/* Progress Bar */}
+                <div className="mb-3">
+                  <div className="flex justify-between text-xs text-gray-600 mb-1">
+                    <span>Progress</span>
+                    <span>{course.progress}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div 
+                      className={`h-2 rounded-full transition-all ${getProgressColor(course.progress)}`}
+                      style={{ width: `${course.progress}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* Stats */}
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="flex items-center gap-1 text-gray-600">
+                    <CheckCircle className="w-3 h-3" />
+                    <span>{course.completedTasks}/{course.totalTasks} tasks</span>
+                  </div>
+                  <div className="flex items-center gap-1 text-gray-600">
+                    <Clock className="w-3 h-3" />
+                    <span>{course.studyHours}h studied</span>
+                  </div>
+                </div>
+
+                {/* Weak Topics Preview */}
+                {course.weakTopics.length > 0 && (
+                  <div className="mt-3 pt-3 border-t border-gray-200">
+                    <p className="text-xs text-amber-600 flex items-center gap-1">
+                      <AlertTriangle className="w-3 h-3" />
+                      {course.weakTopics.length} topic(s) need review
+                    </p>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Performance Insights */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Courses Needing Attention */}
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <div className="bg-gradient-to-r from-red-50 to-orange-50 p-4 border-b border-red-200">
+            <h3 className="font-semibold text-red-900 flex items-center gap-2">
+              <TrendingDown className="w-5 h-5 text-red-500" />
+              Needs Improvement
+            </h3>
+          </div>
+          <div className="p-4">
+            {coursesNeedingAttention.length > 0 ? (
+              <div className="space-y-3">
+                {coursesNeedingAttention.map((course) => (
+                  <div key={course.id} className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <div>
+                        <p className="font-medium text-red-900">{course.code} - {course.name}</p>
+                        <p className="text-sm text-red-700">Current Grade: {course.grade}</p>
+                      </div>
+                      <span className="text-lg font-bold text-red-600">{course.progress}%</span>
+                    </div>
+                    <div className="flex flex-wrap gap-1">
+                      {course.weakTopics.map((topic, idx) => (
+                        <span key={idx} className="px-2 py-0.5 bg-red-100 text-red-700 rounded text-xs">
+                          {topic}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-3" />
+                <p className="text-gray-600">All courses are on track!</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Excellent Performance */}
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 border-b border-green-200">
+            <h3 className="font-semibold text-green-900 flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-green-500" />
+              Excellent Performance
+            </h3>
+          </div>
+          <div className="p-4">
+            {excellentCourses.length > 0 ? (
+              <div className="space-y-3">
+                {excellentCourses.map((course) => (
+                  <div key={course.id} className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <div>
+                        <p className="font-medium text-green-900">{course.code} - {course.name}</p>
+                        <p className="text-sm text-green-700">Current Grade: {course.grade}</p>
+                      </div>
+                      <span className="text-lg font-bold text-green-600">{course.progress}%</span>
+                    </div>
+                    <div className="flex flex-wrap gap-1">
+                      {course.strongTopics.slice(0, 3).map((topic, idx) => (
+                        <span key={idx} className="px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs">
+                          {topic}
+                        </span>
+                      ))}
+                      {course.strongTopics.length > 3 && (
+                        <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs">
+                          +{course.strongTopics.length - 3} more
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <Target className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                <p className="text-gray-600">Keep working to achieve excellence!</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Study Recommendations */}
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="bg-gradient-to-r from-gray-50 to-white p-4 border-b border-gray-200">
+          <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+            <Zap className="w-5 h-5 text-amber-500" />
+            AI-Powered Study Recommendations
+          </h3>
+        </div>
+        <div className="p-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-xl">
+              <div className="flex items-center gap-2 mb-2">
+                <Clock className="w-5 h-5 text-blue-600" />
+                <h4 className="font-medium text-blue-900">Optimal Study Time</h4>
+              </div>
+              <p className="text-sm text-blue-700 mb-2">
+                Based on your activity, you're most productive between <strong>2 PM - 6 PM</strong>
+              </p>
+              <p className="text-xs text-blue-600">Schedule difficult topics during this time</p>
+            </div>
+            <div className="p-4 bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-200 rounded-xl">
+              <div className="flex items-center gap-2 mb-2">
+                <Brain className="w-5 h-5 text-purple-600" />
+                <h4 className="font-medium text-purple-900">Focus Priority</h4>
+              </div>
+              <p className="text-sm text-purple-700 mb-2">
+                Prioritize <strong>Data Structures & Algorithms</strong> this week
+              </p>
+              <p className="text-xs text-purple-600">2 assignments due + weak topics identified</p>
+            </div>
+            <div className="p-4 bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-xl">
+              <div className="flex items-center gap-2 mb-2">
+                <Award className="w-5 h-5 text-green-600" />
+                <h4 className="font-medium text-green-900">Keep It Up!</h4>
+              </div>
+              <p className="text-sm text-green-700 mb-2">
+                You're on a <strong>5-day streak</strong> of meeting study goals
+              </p>
+              <p className="text-xs text-green-600">Maintain consistency for best results</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Course Detail Modal */}
+      {selectedCourse && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto shadow-2xl">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-start justify-between">
+                <div>
+                  <span className="text-sm font-bold text-indigo-600">{selectedCourse.code}</span>
+                  <h2 className="text-xl font-bold text-gray-900">{selectedCourse.name}</h2>
+                </div>
+                <button
+                  onClick={() => setSelectedCourse(null)}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-all"
+                >
+                  <ChevronRight className="w-5 h-5 text-gray-400" />
+                </button>
+              </div>
+            </div>
+            <div className="p-6 space-y-6">
+              {/* Grade & Progress */}
+              <div className="grid grid-cols-3 gap-4">
+                <div className="text-center p-4 bg-gray-50 rounded-xl">
+                  <p className="text-3xl font-bold text-gray-900">{selectedCourse.grade}</p>
+                  <p className="text-sm text-gray-600">Current Grade</p>
+                </div>
+                <div className="text-center p-4 bg-gray-50 rounded-xl">
+                  <p className="text-3xl font-bold text-indigo-600">{selectedCourse.progress}%</p>
+                  <p className="text-sm text-gray-600">Progress</p>
+                </div>
+                <div className="text-center p-4 bg-gray-50 rounded-xl">
+                  <p className="text-3xl font-bold text-purple-600">{selectedCourse.studyHours}h</p>
+                  <p className="text-sm text-gray-600">Study Hours</p>
+                </div>
+              </div>
+
+              {/* Strong Topics */}
+              <div>
+                <h4 className="font-medium text-gray-900 mb-2 flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-500" />
+                  Strong Topics
+                </h4>
+                <div className="flex flex-wrap gap-2">
+                  {selectedCourse.strongTopics.map((topic, idx) => (
+                    <span key={idx} className="px-3 py-1 bg-green-100 text-green-700 rounded-lg text-sm">
+                      {topic}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Weak Topics */}
+              {selectedCourse.weakTopics.length > 0 && (
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-2 flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 text-amber-500" />
+                    Topics to Review
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedCourse.weakTopics.map((topic, idx) => (
+                      <span key={idx} className="px-3 py-1 bg-amber-100 text-amber-700 rounded-lg text-sm">
+                        {topic}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <button
+                onClick={() => setSelectedCourse(null)}
+                className="w-full px-4 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all font-medium"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default ProgressAnalytics;

@@ -5,6 +5,7 @@ import {
   Mic,
   Lightbulb,
   Image as ImageIcon,
+  Layers,
 } from 'lucide-react';
 import { AIFeature } from './types';
 
@@ -101,6 +102,22 @@ export const aiFeatures: AIFeature[] = [
     usageCount: 89,
     lastUsed: '1 hour ago',
     features: ['AI Matching', 'Progress Tracking', 'Resource Library']
+  },
+  {
+    id: 'flashcards',
+    title: 'Smart Flashcards',
+    subtitle: 'AI-Powered Memory Cards',
+    description: 'Create intelligent flashcards from your study materials with spaced repetition for effective memorization',
+    icon: Layers,
+    color: 'bg-cyan-600',
+    bgLight: 'bg-cyan-50',
+    bgHover: 'hover:bg-cyan-100',
+    textColor: 'text-cyan-700',
+    borderColor: 'border-cyan-500',
+    usageCount: 34,
+    lastUsed: '3 hours ago',
+    features: ['Auto-Generation', 'Spaced Repetition', 'Progress Tracking'],
+    badge: 'New'
   },
   {
     id: 'image-to-text',

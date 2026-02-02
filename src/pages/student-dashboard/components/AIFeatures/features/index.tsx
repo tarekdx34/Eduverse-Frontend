@@ -6,6 +6,7 @@ import { ChatbotContent } from './ChatbotContent';
 import { VoiceContent } from './VoiceContent';
 import { RecommendationContent } from './RecommendationContent';
 import { ImageToTextContent } from './ImageToTextContent';
+import { FlashcardsContent } from './FlashcardsContent';
 
 interface FeatureContentProps {
   selectedFeature: FeatureId;
@@ -33,6 +34,8 @@ export function FeatureContent({
       return <RecommendationContent />;
     case 'image-to-text':
       return <ImageToTextContent />;
+    case 'flashcards':
+      return <FlashcardsContent />;
     default:
       return null;
   }
