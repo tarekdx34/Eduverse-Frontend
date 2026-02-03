@@ -1,24 +1,18 @@
-import { ChevronDown, Menu } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
 
 interface Tab {
   id: string;
   label: string;
-  icon: React.ComponentType<{ size: number }>;
-}
-
-interface SidebarSection {
-  title: string;
-  items: string[];
+  icon: React.ComponentType<{ size?: number; className?: string }>;
 }
 
 interface SidebarProps {
   onTabChange?: (tab: string) => void;
   tabs?: Tab[];
   activeTab?: string;
-  isOpen?: boolean;
-  onToggle?: () => void;
+  onLogout?: () => void;
 }
 
 // Map tab IDs to translation keys
@@ -42,56 +36,62 @@ const tabTranslationKeys: Record<string, string> = {
   settings: 'settings',
 };
 
-export default function Sidebar({ onTabChange, tabs, activeTab, isOpen, onToggle }: SidebarProps) {
+export default function Sidebar({ onTabChange, tabs, activeTab, onLogout }: SidebarProps) {
   const { t, isRTL } = useLanguage();
   const { isDark } = useTheme();
 
   return (
-    <div className={`w-64 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} ${isRTL ? 'border-l' : 'border-r'} h-screen overflow-hidden`}>
-      {/* Logo */}
-      <div className={`p-4 border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
-        <div className="flex items-center justify-between">
-          <span className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Eduverse</span>
-          <button onClick={onToggle} className={`p-1 rounded transition-colors ${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}>
-            <Menu size={20} className={isDark ? 'text-gray-300' : 'text-gray-600'} />
-          </button>
-        </div>
+    <aside className={`w-56 h-screen flex flex-col ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} ${isRTL ? 'border-l' : 'border-r'}`}>
+      {/* Header */}
+      <div className="flex items-center gap-2 p-4 border-b border-inherit">
+        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex-shrink-0" />
+        <h2 className={`text-sm font-semibold truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          {t('studentDashboard')}
+        </h2>
       </div>
-
-      {/* Navigation */}
-      <div className="p-4 overflow-y-auto h-[calc(100vh-73px)]">
-        {/* Vertical Tabs Section */}
-        {tabs && tabs.length > 0 && (
-          <div className="mb-6">
-            <div className="space-y-2">
-              {tabs.map((tab) => {
-                const IconComponent = tab.icon;
-                const translationKey = tabTranslationKeys[tab.id] || tab.id;
-                const translatedLabel = t(translationKey);
-                
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => onTabChange?.(tab.id)}
-                    className={`w-full flex items-center gap-3 p-3 rounded-lg text-sm font-medium transition-colors ${
-                      activeTab === tab.id
-                        ? isDark 
-                          ? 'bg-purple-900/50 text-purple-400' 
-                          : 'bg-purple-100 text-purple-600'
-                        : isDark 
-                          ? 'text-gray-300 hover:bg-gray-700' 
-                          : 'text-gray-600 hover:bg-gray-50'
-                    }`}
-                  >
-                    <IconComponent size={18} />
-                    <span>{translatedLabel}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
+      
+      {/* Navigation - Scrollable */}
+      <nav className="flex-1 overflow-y-auto p-3 space-y-0.5">
+        {tabs && tabs.map((tab) => {
+          const IconComponent = tab.icon;
+          const translationKey = tabTranslationKeys[tab.id] || tab.id;
+          const translatedLabel = t(translationKey);
+          
+          return (
+            <button
+              key={tab.id}
+              onClick={() => onTabChange?.(tab.id)}
+              className={`w-full flex items-center gap-2 px-2.5 py-2 rounded-lg transition-colors text-xs ${
+                activeTab === tab.id
+                  ? isDark 
+                    ? 'bg-indigo-900/50 text-indigo-300 border border-indigo-700'
+                    : 'bg-indigo-50 text-indigo-700 border border-indigo-100'
+                  : isDark
+                    ? 'hover:bg-gray-700 text-gray-300'
+                    : 'hover:bg-gray-50 text-gray-800'
+              }`}
+            >
+              <IconComponent className="w-4 h-4 flex-shrink-0" />
+              <span className="font-medium truncate">{translatedLabel}</span>
+            </button>
+          );
+        })}
+      </nav>
+      
+      {/* Logout Button */}
+      <div className="p-3 border-t border-inherit">
+        <button
+          onClick={onLogout}
+          className={`w-full flex items-center gap-2 px-2.5 py-2 rounded-lg transition-colors text-xs ${
+            isDark
+              ? 'hover:bg-red-900/50 text-red-400'
+              : 'hover:bg-red-50 text-red-600'
+          }`}
+        >
+          <LogOut className="w-4 h-4 flex-shrink-0" />
+          <span className="font-medium">{t('logout')}</span>
+        </button>
       </div>
-    </div>
+    </aside>
   );
 }

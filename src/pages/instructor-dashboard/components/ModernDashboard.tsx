@@ -21,6 +21,8 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
+import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 type DashboardProps = {
   stats: any;
@@ -39,6 +41,9 @@ export function ModernDashboard({
   pendingTasks,
   onNavigate,
 }: DashboardProps) {
+  const { isDark } = useTheme();
+  const { t, isRTL } = useLanguage();
+  
   // Get courses data from constants (we'll use sections for now)
   const courses = [
     {
@@ -104,50 +109,50 @@ export function ModernDashboard({
       {/* Top Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Active Courses */}
-        <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+        <div className={`rounded-xl p-6 border shadow-sm ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
           <div className="flex items-center gap-3 mb-3">
-            <div className="p-2 bg-blue-50 rounded-lg">
+            <div className={`p-2 rounded-lg ${isDark ? 'bg-blue-900/50' : 'bg-blue-50'}`}>
               <BookOpen className="text-blue-600" size={20} />
             </div>
           </div>
-          <div className="text-3xl font-bold text-gray-900 mb-1">{activeCourses}</div>
-          <div className="text-sm text-gray-600 mb-2">Active Courses</div>
+          <div className={`text-3xl font-bold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{activeCourses}</div>
+          <div className={`text-sm mb-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('activeCourses')}</div>
           <div className="text-xs text-green-600 font-medium">+1 new course</div>
         </div>
 
         {/* Pending Grading Tasks */}
-        <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+        <div className={`rounded-xl p-6 border shadow-sm ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
           <div className="flex items-center gap-3 mb-3">
-            <div className="p-2 bg-orange-50 rounded-lg">
+            <div className={`p-2 rounded-lg ${isDark ? 'bg-orange-900/50' : 'bg-orange-50'}`}>
               <FileText className="text-orange-600" size={20} />
             </div>
           </div>
-          <div className="text-3xl font-bold text-gray-900 mb-1">{pendingGradingTasks}</div>
-          <div className="text-sm text-gray-600 mb-2">Pending Grading Tasks</div>
+          <div className={`text-3xl font-bold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{pendingGradingTasks}</div>
+          <div className={`text-sm mb-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('pendingGrading')}</div>
           <div className="text-xs text-orange-600 font-medium">+4 this week</div>
         </div>
 
         {/* Total Students */}
-        <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+        <div className={`rounded-xl p-6 border shadow-sm ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
           <div className="flex items-center gap-3 mb-3">
-            <div className="p-2 bg-green-50 rounded-lg">
+            <div className={`p-2 rounded-lg ${isDark ? 'bg-green-900/50' : 'bg-green-50'}`}>
               <Users className="text-green-600" size={20} />
             </div>
           </div>
-          <div className="text-3xl font-bold text-gray-900 mb-1">{totalStudents}</div>
-          <div className="text-sm text-gray-600 mb-2">Total Students</div>
+          <div className={`text-3xl font-bold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{totalStudents}</div>
+          <div className={`text-sm mb-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('totalStudents')}</div>
           <div className="text-xs text-green-600 font-medium">+16 new enrollments</div>
         </div>
       </div>
 
       {/* Courses Overview */}
-      <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-        <h2 className="text-xl font-bold text-gray-900 mb-6">Courses Overview</h2>
+      <div className={`rounded-xl p-6 border shadow-sm ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+        <h2 className={`text-xl font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('myCourses')}</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {courses.map((course) => (
             <div
               key={course.id}
-              className="rounded-xl overflow-hidden border border-gray-200 hover:shadow-lg transition-all cursor-pointer"
+              className={`rounded-xl overflow-hidden border hover:shadow-lg transition-all cursor-pointer ${isDark ? 'border-gray-700' : 'border-gray-200'}`}
             >
               {/* Course Image/Background */}
               <div
@@ -158,21 +163,21 @@ export function ModernDashboard({
               </div>
 
               {/* Course Info */}
-              <div className="p-4 bg-white">
-                <h3 className="font-semibold text-gray-900 mb-3">{course.name}</h3>
-                <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
+              <div className={`p-4 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+                <h3 className={`font-semibold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>{course.name}</h3>
+                <div className={`flex items-center gap-2 text-sm mb-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
                   <Users size={14} />
-                  <span>{course.students} students</span>
+                  <span>{course.students} {t('students')}</span>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-gray-600 mb-4">
+                <div className={`flex items-center gap-2 text-sm mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
                   <FileText size={14} />
-                  <span>{course.assignments} assignments this week</span>
+                  <span>{course.assignments} {t('assignments')}</span>
                 </div>
                 <button
                   onClick={() => onNavigate('courses')}
                   className="w-full flex items-center justify-center gap-2 text-sm text-indigo-600 hover:text-indigo-700 font-medium"
                 >
-                  Open Course
+                  {t('viewCourse')}
                   <ArrowRight size={14} />
                 </button>
               </div>

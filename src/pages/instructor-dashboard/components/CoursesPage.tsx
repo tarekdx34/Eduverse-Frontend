@@ -12,6 +12,8 @@ import {
 } from 'lucide-react';
 import { CustomDropdown } from './CustomDropdown';
 import { CourseDetail } from './CourseDetail';
+import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 type Course = {
   id: number;
@@ -77,6 +79,8 @@ export function CoursesPage({
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
   const [activeMenu, setActiveMenu] = useState<number | null>(null);
   const [selectedCourseId, setSelectedCourseId] = useState<number | null>(null);
+  const { isDark } = useTheme();
+  const { t, isRTL } = useLanguage();
 
   // If viewing course detail, show that instead
   if (selectedCourseId !== null) {
@@ -119,10 +123,10 @@ export function CoursesPage({
       {/* Main Content */}
       <div className="flex-1 space-y-6">
         {/* Header */}
-        <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-6 border border-indigo-100">
-          <h2 className="text-2xl font-bold text-gray-900 mb-1">My Courses</h2>
-          <p className="text-sm text-gray-600">
-            Manage and access all your active and archived teaching courses.
+        <div className={`rounded-xl p-6 border ${isDark ? 'bg-gradient-to-r from-indigo-900/50 to-purple-900/50 border-indigo-800' : 'bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-100'}`}>
+          <h2 className={`text-2xl font-bold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('myCourses')}</h2>
+          <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+            {t('courseManagement')}
           </p>
         </div>
 

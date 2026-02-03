@@ -44,8 +44,11 @@ import {
   AIToolsPage,
   CommunicationPage,
   SettingsPage,
+  Header,
 } from './components';
 import { AIAttendanceContainer } from './components/ai-features/attendance';
+import { ThemeProvider, useTheme } from './contexts/ThemeContext';
+import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import {
   INSTRUCTOR_INFO,
   SECTIONS,
@@ -88,30 +91,32 @@ type TabKey =
   | 'communication'
   | 'settings';
 
-const TABS: { key: TabKey; label: string; icon: any }[] = [
-  { key: 'dashboard', label: 'Dashboard', icon: LayoutGrid },
-  { key: 'courses', label: 'Courses', icon: BookOpen },
-  { key: 'roster', label: 'Roster', icon: Users },
-  { key: 'waitlist', label: 'Waitlist', icon: UserCheck },
-  { key: 'grades', label: 'Grades', icon: FileText },
-  { key: 'assignments', label: 'Assignments', icon: CheckSquare },
-  { key: 'labs', label: 'Labs', icon: Beaker },
-  { key: 'quizzes', label: 'Quizzes', icon: ClipboardList },
-  { key: 'schedule', label: 'Schedule', icon: CalendarDays },
-  { key: 'analytics', label: 'Analytics', icon: BarChart3 },
-  { key: 'ai-tools', label: 'AI Tools', icon: Brain },
-  { key: 'attendance', label: 'Attendance', icon: Calendar },
-  { key: 'communication', label: 'Communication', icon: MessageCircle },
-  { key: 'settings', label: 'Settings', icon: Settings },
+const TABS: { key: TabKey; label: string; labelAr: string; icon: any }[] = [
+  { key: 'dashboard', label: 'Dashboard', labelAr: 'لوحة التحكم', icon: LayoutGrid },
+  { key: 'courses', label: 'Courses', labelAr: 'المقررات', icon: BookOpen },
+  { key: 'roster', label: 'Roster', labelAr: 'قائمة الطلاب', icon: Users },
+  { key: 'waitlist', label: 'Waitlist', labelAr: 'قائمة الانتظار', icon: UserCheck },
+  { key: 'grades', label: 'Grades', labelAr: 'الدرجات', icon: FileText },
+  { key: 'assignments', label: 'Assignments', labelAr: 'الواجبات', icon: CheckSquare },
+  { key: 'labs', label: 'Labs', labelAr: 'المعامل', icon: Beaker },
+  { key: 'quizzes', label: 'Quizzes', labelAr: 'الاختبارات', icon: ClipboardList },
+  { key: 'schedule', label: 'Schedule', labelAr: 'الجدول', icon: CalendarDays },
+  { key: 'analytics', label: 'Analytics', labelAr: 'التحليلات', icon: BarChart3 },
+  { key: 'ai-tools', label: 'AI Tools', labelAr: 'أدوات الذكاء', icon: Brain },
+  { key: 'attendance', label: 'Attendance', labelAr: 'الحضور', icon: Calendar },
+  { key: 'communication', label: 'Communication', labelAr: 'التواصل', icon: MessageCircle },
+  { key: 'settings', label: 'Settings', labelAr: 'الإعدادات', icon: Settings },
 ];
 
-function InstructorDashboard() {
+function InstructorDashboardContent() {
   const navigate = useNavigate();
   const location = useLocation();
   const params = useParams();
   const [activeTab, setActiveTab] = useState<TabKey>('dashboard');
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
   const [attendanceMode, setAttendanceMode] = useState<'manual' | 'ai'>('manual');
+  const { isDark } = useTheme();
+  const { language, isRTL, t } = useLanguage();
 
   // State for roster management
   const [rosterOverrides, setRosterOverrides] = useState<
@@ -440,10 +445,19 @@ function InstructorDashboard() {
     console.log('View course:', id);
   };
 
+  // Translate tabs based on language
+  const translatedTabs = TABS.map(tab => ({
+    ...tab,
+    label: language === 'ar' ? tab.labelAr : tab.label
+  }));
+
   return (
-    <div className="min-h-screen bg-gray-50" style={{ fontFamily: "'Montserrat', sans-serif" }}>
+    <div className={`min-h-screen ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`} style={{ fontFamily: "'Montserrat', sans-serif" }} dir={isRTL ? 'rtl' : 'ltr'}>
+      {/* Header */}
+      <Header userName="Prof. Sarah Martinez" />
+      
       <div className="flex">
-        <Sidebar tabs={TABS} activeTab={activeTab} onChangeTab={handleTabChange} />
+        <Sidebar tabs={translatedTabs} activeTab={activeTab} onChangeTab={handleTabChange} />
 
         <main className="flex-1 p-6">
           {/* Dashboard Overview */}
@@ -797,6 +811,17 @@ function InstructorDashboard() {
         variant="danger"
       />
     </div>
+  );
+}
+
+// Main component wrapped with providers
+function InstructorDashboard() {
+  return (
+    <ThemeProvider>
+      <LanguageProvider>
+        <InstructorDashboardContent />
+      </LanguageProvider>
+    </ThemeProvider>
   );
 }
 
