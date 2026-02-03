@@ -10,10 +10,83 @@ import {
   AlertTriangle,
   TrendingDown,
   Users,
+  Mic,
+  Image,
+  MessageSquare,
 } from 'lucide-react';
+import {
+  VoiceRecorder,
+  ImageTextExtractor,
+  AIQuestionEditor,
+  AIChatbot,
+  Question,
+} from '../../../components/shared';
 
 export function AIToolsPage() {
   const [selectedDifficulty, setSelectedDifficulty] = useState('medium');
+  const [activeAITool, setActiveAITool] = useState<string | null>(null);
+  const [showChatbot, setShowChatbot] = useState(false);
+  const [generatedQuestions, setGeneratedQuestions] = useState<Question[]>([
+    {
+      id: '1',
+      type: 'multiple-choice',
+      question: 'What is the derivative of x²?',
+      options: ['x', '2x', 'x²', '2x²'],
+      correctAnswer: 1,
+      points: 2,
+      difficulty: 'easy',
+      explanation: 'The power rule states that d/dx(xⁿ) = nxⁿ⁻¹',
+    },
+    {
+      id: '2',
+      type: 'true-false',
+      question: 'The integral of a constant is always zero.',
+      correctAnswer: 'false',
+      points: 1,
+      difficulty: 'easy',
+      explanation: 'The integral of a constant c is cx + C',
+    },
+    {
+      id: '3',
+      type: 'short-answer',
+      question: 'Explain the chain rule in your own words.',
+      points: 5,
+      difficulty: 'hard',
+    },
+  ]);
+
+  const handleVoiceTranscription = (text: string) => {
+    console.log('Transcribed text:', text);
+    // Use the transcribed text for content creation
+  };
+
+  const handleImageTextExtracted = (text: string) => {
+    console.log('Extracted text:', text);
+    // Use the extracted text for quiz generation or content
+  };
+
+  const handleQuestionsChange = (questions: Question[]) => {
+    setGeneratedQuestions(questions);
+  };
+
+  const generateMoreQuestions = async (difficulty: string, count: number): Promise<Question[]> => {
+    // Simulate AI generation
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    
+    const newQuestions: Question[] = [];
+    for (let i = 0; i < count; i++) {
+      newQuestions.push({
+        id: `gen-${Date.now()}-${i}`,
+        type: 'multiple-choice',
+        question: `Generated question ${i + 1} (${difficulty} difficulty)`,
+        options: ['Option A', 'Option B', 'Option C', 'Option D'],
+        correctAnswer: Math.floor(Math.random() * 4),
+        points: difficulty === 'easy' ? 1 : difficulty === 'medium' ? 2 : 3,
+        difficulty: difficulty as 'easy' | 'medium' | 'hard',
+      });
+    }
+    return newQuestions;
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -274,6 +347,48 @@ export function AIToolsPage() {
             </div>
           </div>
         </div>
+
+        {/* Voice to Text Tool */}
+        <div className="mt-6">
+          <h3 className="text-xl font-semibold text-gray-900 mb-4">Voice to Text</h3>
+          <VoiceRecorder
+            onTranscription={handleVoiceTranscription}
+            showTranscription={true}
+            autoTranscribe={true}
+          />
+        </div>
+
+        {/* Image to Text Tool */}
+        <div className="mt-6">
+          <h3 className="text-xl font-semibold text-gray-900 mb-4">Image to Text (OCR)</h3>
+          <ImageTextExtractor onTextExtracted={handleImageTextExtracted} />
+        </div>
+
+        {/* AI Question Editor */}
+        <div className="mt-6">
+          <h3 className="text-xl font-semibold text-gray-900 mb-4">AI Question Editor</h3>
+          <AIQuestionEditor
+            questions={generatedQuestions}
+            onQuestionsChange={handleQuestionsChange}
+            onGenerateMore={generateMoreQuestions}
+          />
+        </div>
+
+        {/* Floating AI Chatbot Button */}
+        <button
+          onClick={() => setShowChatbot(true)}
+          className="fixed bottom-6 right-6 p-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-105 z-40"
+        >
+          <MessageSquare size={24} />
+        </button>
+
+        {/* AI Chatbot */}
+        <AIChatbot
+          isOpen={showChatbot}
+          onClose={() => setShowChatbot(false)}
+          userRole="instructor"
+          userName="Professor"
+        />
       </div>
     </div>
   );

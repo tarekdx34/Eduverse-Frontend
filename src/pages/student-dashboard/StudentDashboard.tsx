@@ -218,15 +218,14 @@ function StudentDashboardContent() {
         <Sidebar
           tabs={tabs}
           activeTab={activeTab}
-          isOpen={sidebarOpen}
-          onToggle={() => setSidebarOpen(!sidebarOpen)}
           onTabChange={handleTabChange}
+          onLogout={() => navigate('/login')}
         />
       </div>
 
       {/* Main Content - Takes remaining space */}
       <div
-        className={`flex flex-col transition-all duration-300 ${sidebarOpen ? (isRTL ? 'mr-64' : 'ml-64') + ' flex-1' : (isRTL ? 'mr-0' : 'ml-0') + ' w-full'}`}
+        className={`flex flex-col transition-all duration-300 ${sidebarOpen ? (isRTL ? 'mr-56' : 'ml-56') + ' flex-1' : (isRTL ? 'mr-0' : 'ml-0') + ' w-full'}`}
       >
         {/* Header */}
         <div className={`border-b flex items-center justify-between display-absolute ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>

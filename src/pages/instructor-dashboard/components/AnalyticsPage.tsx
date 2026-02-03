@@ -8,6 +8,7 @@ import {
   MessageSquare,
   BookOpen,
   Target,
+  Download,
 } from 'lucide-react';
 import { CustomDropdown } from './CustomDropdown';
 import {
@@ -22,6 +23,9 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
+import { ExportReports } from '../../../components/shared';
+import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const performanceData = [
   { week: 'Week 1', grade: 78 },
@@ -55,17 +59,42 @@ const courseComparisonData = [
 ];
 
 export function AnalyticsPage() {
+  const [showExportModal, setShowExportModal] = useState(false);
+  const { isDark } = useTheme();
+  const { t, isRTL } = useLanguage();
+
+  // Sample export data
+  const exportData = {
+    title: 'Course Analytics Report',
+    filename: 'course-analytics-report',
+    headers: ['Student', 'Course', 'Grade', 'Attendance', 'Engagement', 'Status'],
+    rows: [
+      ['John Smith', 'Calculus I', '85', '92%', '88%', 'On Track'],
+      ['Jane Doe', 'Calculus I', '78', '88%', '75%', 'Needs Attention'],
+      ['Mike Johnson', 'Physics I', '92', '95%', '90%', 'Excellent'],
+      ['Sarah Williams', 'CS 101', '72', '75%', '65%', 'At Risk'],
+      ['Tom Brown', 'Logic Design', '88', '90%', '85%', 'On Track'],
+    ],
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className={`min-h-screen p-6 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Analytics</h1>
-            <p className="text-gray-600 mt-1">
-              Track course performance, student progress, engagement, and AI insights.
+            <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('analytics')}</h1>
+            <p className={`mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+              {t('courseAnalytics')}
             </p>
           </div>
+          <button
+            onClick={() => setShowExportModal(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+          >
+            <Download size={18} />
+            {t('exportReport')}
+          </button>
         </div>
 
         {/* Filters */}
@@ -341,6 +370,27 @@ export function AnalyticsPage() {
             </button>
           </div>
         </div>
+
+        {/* Export Modal */}
+        {showExportModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="relative">
+              <button
+                onClick={() => setShowExportModal(false)}
+                className="absolute -top-2 -right-2 p-2 bg-white rounded-full shadow-lg hover:bg-gray-100 z-10"
+              >
+                <span className="sr-only">Close</span>
+                ×
+              </button>
+              <ExportReports
+                data={exportData}
+                showPreview={true}
+                allowedFormats={['csv', 'excel', 'pdf']}
+                className="w-full max-w-2xl"
+              />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

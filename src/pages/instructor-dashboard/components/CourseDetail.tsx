@@ -14,7 +14,18 @@ import {
   Upload,
   CheckCircle,
   Bell,
+  Settings,
 } from 'lucide-react';
+import {
+  FileUploadDropzone,
+  CourseRegistrationPeriod,
+  CourseFeatureToggle,
+  AutoGradingSystem,
+  TACollaboration,
+  RegistrationPeriod,
+  Submission,
+  TAUser,
+} from '../../../components/shared';
 
 type Course = {
   id: number;
@@ -69,10 +80,73 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
     { id: 'lectures', label: 'Lectures', icon: Video },
     { id: 'materials', label: 'Materials', icon: FileText },
     { id: 'assignments', label: 'Assignments', icon: FileText },
+    { id: 'grading', label: 'Grading', icon: CheckCircle },
     { id: 'students', label: 'Students', icon: Users },
+    { id: 'registration', label: 'Registration', icon: Calendar },
+    { id: 'settings', label: 'Settings', icon: Settings },
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },
     { id: 'announcements', label: 'Announcements', icon: MessageSquare },
     { id: 'ai-tools', label: 'AI Tools', icon: Sparkles },
+  ];
+
+  // Sample data for new components
+  const sampleRegistrationPeriods: RegistrationPeriod[] = [
+    {
+      id: '1',
+      courseId: String(course.id),
+      courseName: course.courseName,
+      startDate: new Date('2025-05-01T08:00:00'),
+      endDate: new Date('2025-05-15T23:59:00'),
+      capacity: course.capacity,
+      enrolled: course.enrolled,
+      waitlistEnabled: true,
+      waitlistCapacity: 10,
+      isActive: true,
+    },
+  ];
+
+  const sampleSubmissions: Submission[] = [
+    {
+      id: '1',
+      studentId: 'stu-1',
+      studentName: 'John Smith',
+      studentEmail: 'john.smith@edu.com',
+      submittedAt: new Date('2025-05-10T14:30:00'),
+      answers: [
+        {
+          questionId: 'q1',
+          questionText: 'What is the derivative of x²?',
+          answer: '2x',
+          correctAnswer: '2x',
+          autoScore: 2,
+          maxScore: 2,
+        },
+        {
+          questionId: 'q2',
+          questionText: 'Explain the chain rule.',
+          answer: 'The chain rule is used for composite functions...',
+          maxScore: 5,
+          needsReview: true,
+        },
+      ],
+      totalScore: 2,
+      maxTotalScore: 7,
+      status: 'auto-graded',
+    },
+  ];
+
+  const sampleTAs: TAUser[] = [
+    {
+      id: 'ta-1',
+      name: 'Alex Johnson',
+      email: 'alex.johnson@edu.com',
+      assignedCourses: [String(course.id)],
+      permissions: [
+        { id: 'grade-assignments', name: 'Grade Assignments', description: 'Grade assignments', category: 'grading' },
+        { id: 'upload-materials', name: 'Upload Materials', description: 'Upload materials', category: 'content' },
+      ],
+      status: 'active',
+    },
   ];
 
   return (
@@ -280,31 +354,38 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
 
         {/* Materials Tab */}
         {activeTab === 'materials' && (
-          <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="font-semibold text-gray-900">Course Materials</h3>
-              <button className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm">
-                <Upload size={16} />
-                Upload Material
-              </button>
+          <div className="space-y-6">
+            <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+              <h3 className="font-semibold text-gray-900 mb-4">Upload New Materials</h3>
+              <FileUploadDropzone
+                onFilesUploaded={(files) => console.log('Uploaded:', files)}
+                acceptedTypes={['application/pdf', 'image/*', 'video/*', '.doc', '.docx', '.ppt', '.pptx']}
+                maxFiles={10}
+                maxSizeInMB={50}
+                showPreview={true}
+              />
             </div>
-            <div className="space-y-3">
-              {['Syllabus.pdf', 'Lecture Notes - Week 1.pdf', 'Assignment Guidelines.pdf'].map(
-                (file, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <FileText size={20} className="text-gray-600" />
-                      <span className="text-sm text-gray-900">{file}</span>
+
+            <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+              <h3 className="font-semibold text-gray-900 mb-4">Existing Materials</h3>
+              <div className="space-y-3">
+                {['Syllabus.pdf', 'Lecture Notes - Week 1.pdf', 'Assignment Guidelines.pdf', 'Lab Manual.pdf', 'Formula Sheet.pdf'].map(
+                  (file, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <FileText size={20} className="text-gray-600" />
+                        <span className="text-sm text-gray-900">{file}</span>
+                      </div>
+                      <button className="p-2 hover:bg-gray-200 rounded-lg transition-colors">
+                        <Download size={16} className="text-gray-600" />
+                      </button>
                     </div>
-                    <button className="p-2 hover:bg-gray-200 rounded-lg transition-colors">
-                      <Download size={16} className="text-gray-600" />
-                    </button>
-                  </div>
-                )
-              )}
+                  )
+                )}
+              </div>
             </div>
           </div>
         )}
@@ -511,6 +592,47 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
               ))}
             </div>
           </div>
+        )}
+
+        {/* Grading Tab */}
+        {activeTab === 'grading' && (
+          <AutoGradingSystem
+            submissions={sampleSubmissions}
+            onGradeUpdate={(id, updates) => console.log('Grade updated:', id, updates)}
+            onBulkAutoGrade={async () => {
+              await new Promise(resolve => setTimeout(resolve, 2000));
+              console.log('Bulk auto-grade completed');
+            }}
+          />
+        )}
+
+        {/* Registration Tab */}
+        {activeTab === 'registration' && (
+          <div className="space-y-6">
+            <CourseRegistrationPeriod
+              registrationPeriods={sampleRegistrationPeriods}
+              onUpdatePeriod={(id, updates) => console.log('Period updated:', id, updates)}
+              onCreatePeriod={(courseId, data) => console.log('Period created:', courseId, data)}
+              courses={[{ id: String(course.id), name: course.courseName }]}
+            />
+            
+            <TACollaboration
+              tas={sampleTAs}
+              courses={[{ id: String(course.id), name: course.courseName }]}
+              onAddTA={(email, courses, permissions) => console.log('TA added:', email)}
+              onUpdateTA={(id, updates) => console.log('TA updated:', id, updates)}
+              onRemoveTA={(id) => console.log('TA removed:', id)}
+            />
+          </div>
+        )}
+
+        {/* Settings Tab */}
+        {activeTab === 'settings' && (
+          <CourseFeatureToggle
+            courseId={String(course.id)}
+            courseName={course.courseName}
+            onFeaturesChange={(features) => console.log('Features changed:', features)}
+          />
         )}
 
         {/* AI Tools Tab */}

@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
-import { Plus, Edit, Trash2, Bell, Sparkles, MessageSquare, FileText, Search } from 'lucide-react';
+import { Plus, Edit, Trash2, Bell, Sparkles, MessageSquare, FileText, Search, Clock } from 'lucide-react';
 import { CustomDropdown } from './CustomDropdown';
+import { MessagingChat, ScheduledAnnouncement, GlobalSearch } from '../../../components/shared';
 
 export function CommunicationPage() {
   const [activeTab, setActiveTab] = useState<'announcements' | 'chats' | 'messages'>(
     'announcements'
   );
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [showGlobalSearch, setShowGlobalSearch] = useState(false);
 
   const announcements = [
     {
@@ -15,6 +18,7 @@ export function CommunicationPage() {
       date: 'May 14, 2025',
       content:
         'Assignment 3 deadline has been moved to May 16 to give students more time to complete the problems.',
+      scheduled: false,
     },
     {
       title: 'Extra Office Hours Added',
@@ -23,6 +27,7 @@ export function CommunicationPage() {
       date: 'May 13, 2025',
       content:
         'Extra office hours added this Thursday from 3-5 PM in Room 204 to help with midterm preparation.',
+      scheduled: false,
     },
     {
       title: 'Lab Session Reminder',
@@ -31,6 +36,8 @@ export function CommunicationPage() {
       date: 'May 12, 2025',
       content:
         'Reminder: Lab session this Friday will cover pointer concepts. Please review Chapter 5 beforehand.',
+      scheduled: true,
+      scheduledTime: 'Scheduled for May 11, 2025 at 8:00 AM',
     },
     {
       title: 'Guest Lecture Announcement',
@@ -39,8 +46,26 @@ export function CommunicationPage() {
       date: 'May 10, 2025',
       content:
         'Dr. James Wilson will give a guest lecture on FPGA design next Tuesday. Attendance is mandatory.',
+      scheduled: false,
     },
   ];
+
+  const handleScheduleAnnouncement = (data: any) => {
+    console.log('Scheduled announcement:', data);
+    setShowScheduleModal(false);
+  };
+
+  // Keyboard shortcut for global search
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setShowGlobalSearch(true);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -115,7 +140,9 @@ export function CommunicationPage() {
                   />
                 </div>
               </div>
-              <button className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+              <button 
+                onClick={() => setShowScheduleModal(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
                 <Plus size={18} />
                 Create Announcement
               </button>
@@ -139,8 +166,17 @@ export function CommunicationPage() {
                         >
                           {announcement.course}
                         </span>
+                        {announcement.scheduled && (
+                          <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium flex items-center gap-1">
+                            <Clock size={12} />
+                            Scheduled
+                          </span>
+                        )}
                       </div>
                       <p className="text-sm text-gray-600">{announcement.date}</p>
+                      {announcement.scheduledTime && (
+                        <p className="text-xs text-blue-600 mt-1">{announcement.scheduledTime}</p>
+                      )}
                     </div>
                   </div>
                   <p className="text-gray-700 mb-4">{announcement.content}</p>
@@ -166,22 +202,21 @@ export function CommunicationPage() {
 
         {/* Course Chats Tab */}
         {activeTab === 'chats' && (
-          <div className="bg-white rounded-xl p-8 border border-gray-200 shadow-sm text-center">
-            <MessageSquare className="mx-auto text-gray-400 mb-4" size={48} />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Course Chats</h3>
-            <p className="text-gray-600">
-              View and participate in course-specific group chats with students.
-            </p>
-          </div>
+          <MessagingChat
+            height="500px"
+            showVideoCall={true}
+            showVoiceCall={true}
+          />
         )}
 
         {/* Direct Messages Tab */}
         {activeTab === 'messages' && (
-          <div className="bg-white rounded-xl p-8 border border-gray-200 shadow-sm text-center">
-            <MessageSquare className="mx-auto text-gray-400 mb-4" size={48} />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Direct Messages</h3>
-            <p className="text-gray-600">Send private messages to individual students or groups.</p>
-          </div>
+          <MessagingChat
+            height="500px"
+            currentUserName="Professor Martinez"
+            showVideoCall={false}
+            showVoiceCall={true}
+          />
         )}
 
         {/* AI Communication Assistant */}
@@ -197,7 +232,9 @@ export function CommunicationPage() {
             time.
           </p>
           <div className="flex gap-3">
-            <button className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm">
+            <button 
+              onClick={() => setShowScheduleModal(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm">
               <FileText size={16} />
               Generate Announcement
             </button>
@@ -211,6 +248,30 @@ export function CommunicationPage() {
             </button>
           </div>
         </div>
+
+        {/* Global Search Modal */}
+        <GlobalSearch
+          isOpen={showGlobalSearch}
+          onClose={() => setShowGlobalSearch(false)}
+          userRole="instructor"
+        />
+
+        {/* Schedule Announcement Modal */}
+        {showScheduleModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <ScheduledAnnouncement
+              onSchedule={handleScheduleAnnouncement}
+              onCancel={() => setShowScheduleModal(false)}
+              courses={[
+                { id: '1', name: 'Calculus I' },
+                { id: '2', name: 'Physics I' },
+                { id: '3', name: 'Computer Science 101' },
+                { id: '4', name: 'Logic Design' },
+              ]}
+              className="w-full max-w-lg"
+            />
+          </div>
+        )}
       </div>
     </div>
   );
