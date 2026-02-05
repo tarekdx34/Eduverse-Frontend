@@ -171,13 +171,29 @@ const badges: Badge[] = [
 ];
 
 export function Gamification() {
-  const [activeTab, setActiveTab] = useState<'overview' | 'achievements' | 'leaderboard'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'achievements' | 'leaderboard' | 'rewards'>('overview');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [showRewardModal, setShowRewardModal] = useState<{ name: string; cost: number; icon: string } | null>(null);
 
   const currentPoints = 4200;
   const currentLevel = 10;
   const pointsToNextLevel = 5000;
   const streak = 5;
+
+  const rewards = [
+    { name: 'Profile Badge', cost: 500, icon: '🎖️', description: 'Show off your achievements with a special profile badge' },
+    { name: 'Custom Theme', cost: 1000, icon: '🎨', description: 'Unlock custom color themes for your dashboard' },
+    { name: 'Priority Support', cost: 2000, icon: '⚡', description: 'Get faster response times from support team' },
+    { name: 'Certificate Frame', cost: 3000, icon: '🖼️', description: 'Add a decorative frame to your certificates' },
+    { name: 'Avatar Pack', cost: 750, icon: '👤', description: 'Unlock exclusive avatar options' },
+    { name: 'Study Music', cost: 400, icon: '🎵', description: 'Access premium study playlists' },
+  ];
+
+  const handleRedeemReward = (reward: { name: string; cost: number; icon: string }) => {
+    if (currentPoints >= reward.cost) {
+      setShowRewardModal(reward);
+    }
+  };
 
   const getRarityColor = (rarity: string) => {
     switch (rarity) {
@@ -279,7 +295,8 @@ export function Gamification() {
         {[
           { id: 'overview', label: isRTL ? 'نظرة عامة' : 'Overview', icon: <Sparkles className="w-4 h-4" /> },
           { id: 'achievements', label: t('achievements'), icon: <Trophy className="w-4 h-4" /> },
-          { id: 'leaderboard', label: t('leaderboard'), icon: <Medal className="w-4 h-4" /> }
+          { id: 'leaderboard', label: t('leaderboard'), icon: <Medal className="w-4 h-4" /> },
+          { id: 'rewards', label: isRTL ? 'المكافآت' : 'Rewards', icon: <Gift className="w-4 h-4" /> }
         ].map((tab) => (
           <button
             key={tab.id}
@@ -384,22 +401,30 @@ export function Gamification() {
                 <Gift className="w-5 h-5 text-pink-500" />
                 Rewards Shop
               </h3>
-              <button className="text-sm text-indigo-600 font-medium flex items-center gap-1">
+              <button 
+                onClick={() => setActiveTab('rewards')}
+                className="text-sm text-indigo-600 font-medium flex items-center gap-1 hover:text-indigo-700"
+              >
                 View All <ChevronRight className="w-4 h-4" />
               </button>
             </div>
             <div className="p-4">
               <div className="grid grid-cols-4 gap-4">
-                {[
-                  { name: 'Profile Badge', cost: 500, icon: '🎖️' },
-                  { name: 'Custom Theme', cost: 1000, icon: '🎨' },
-                  { name: 'Priority Support', cost: 2000, icon: '⚡' },
-                  { name: 'Certificate Frame', cost: 3000, icon: '🖼️' },
-                ].map((reward, idx) => (
-                  <div key={idx} className="p-4 border border-gray-200 rounded-xl text-center hover:border-amber-300 hover:bg-amber-50 transition-all cursor-pointer">
+                {rewards.slice(0, 4).map((reward, idx) => (
+                  <div 
+                    key={idx} 
+                    onClick={() => handleRedeemReward(reward)}
+                    className={`p-4 border border-gray-200 rounded-xl text-center transition-all cursor-pointer ${
+                      currentPoints >= reward.cost 
+                        ? 'hover:border-amber-300 hover:bg-amber-50' 
+                        : 'opacity-50 cursor-not-allowed'
+                    }`}
+                  >
                     <div className="text-4xl mb-2">{reward.icon}</div>
                     <p className="text-sm font-medium text-gray-900 mb-1">{reward.name}</p>
-                    <p className="text-sm font-bold text-amber-600">{reward.cost} pts</p>
+                    <p className={`text-sm font-bold ${currentPoints >= reward.cost ? 'text-amber-600' : 'text-gray-400'}`}>
+                      {reward.cost} pts
+                    </p>
                   </div>
                 ))}
               </div>
@@ -553,6 +578,95 @@ export function Gamification() {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Rewards Tab */}
+      {activeTab === 'rewards' && (
+        <div className="space-y-6">
+          {/* Available Points Banner */}
+          <div className="bg-gradient-to-r from-pink-500 to-rose-500 rounded-xl p-6 text-white">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold mb-1">Your Points Balance</h3>
+                <p className="text-pink-100 text-sm">Redeem your hard-earned points for exciting rewards!</p>
+              </div>
+              <div className="text-right">
+                <p className="text-4xl font-bold">{currentPoints.toLocaleString()}</p>
+                <p className="text-pink-200 text-sm">available points</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Rewards Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {rewards.map((reward, idx) => (
+              <div
+                key={idx}
+                className={`bg-white rounded-xl border-2 p-6 transition-all ${
+                  currentPoints >= reward.cost
+                    ? 'border-gray-200 hover:border-amber-300 hover:shadow-lg cursor-pointer'
+                    : 'border-gray-100 opacity-60'
+                }`}
+                onClick={() => currentPoints >= reward.cost && handleRedeemReward(reward)}
+              >
+                <div className="text-5xl mb-4 text-center">{reward.icon}</div>
+                <h4 className="text-lg font-semibold text-gray-900 text-center mb-2">{reward.name}</h4>
+                <p className="text-sm text-gray-600 text-center mb-4">{reward.description}</p>
+                <div className="flex items-center justify-between">
+                  <span className={`text-lg font-bold ${currentPoints >= reward.cost ? 'text-amber-600' : 'text-gray-400'}`}>
+                    {reward.cost} pts
+                  </span>
+                  <button
+                    disabled={currentPoints < reward.cost}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                      currentPoints >= reward.cost
+                        ? 'bg-amber-500 text-white hover:bg-amber-600'
+                        : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                    }`}
+                  >
+                    {currentPoints >= reward.cost ? 'Redeem' : 'Not enough'}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Reward Confirmation Modal */}
+      {showRewardModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl">
+            <div className="text-center">
+              <div className="text-6xl mb-4">{showRewardModal.icon}</div>
+              <h2 className="text-xl font-bold text-gray-900 mb-2">Redeem {showRewardModal.name}?</h2>
+              <p className="text-gray-600 mb-4">
+                This will cost <span className="font-bold text-amber-600">{showRewardModal.cost} points</span>
+              </p>
+              <p className="text-sm text-gray-500 mb-6">
+                You'll have {(currentPoints - showRewardModal.cost).toLocaleString()} points remaining
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowRewardModal(null)}
+                  className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 transition-all font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    // Here you would typically call an API to process the redemption
+                    alert(`Successfully redeemed ${showRewardModal.name}! 🎉`);
+                    setShowRewardModal(null);
+                  }}
+                  className="flex-1 px-4 py-3 bg-amber-500 text-white rounded-xl font-medium hover:bg-amber-600 transition-all"
+                >
+                  Confirm
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

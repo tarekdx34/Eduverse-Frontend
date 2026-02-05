@@ -294,10 +294,22 @@ export function AnalyticsPage() {
               ))}
             </div>
             <div className="mt-4 pt-4 border-t border-gray-200 flex gap-2">
-              <button className="flex-1 text-sm text-gray-700 hover:bg-gray-50 py-2 rounded-lg transition-colors">
+              <button 
+                onClick={() => {
+                  // Show all at-risk students
+                  alert('View All - Navigating to full at-risk students list');
+                }}
+                className="flex-1 text-sm text-gray-700 hover:bg-gray-50 py-2 rounded-lg transition-colors"
+              >
                 View All
               </button>
-              <button className="flex-1 text-sm text-indigo-600 bg-indigo-50 hover:bg-indigo-100 py-2 rounded-lg transition-colors">
+              <button 
+                onClick={() => {
+                  // Message at-risk students
+                  alert('Opening message composer for at-risk students');
+                }}
+                className="flex-1 text-sm text-indigo-600 bg-indigo-50 hover:bg-indigo-100 py-2 rounded-lg transition-colors"
+              >
                 Message
               </button>
             </div>
@@ -360,11 +372,23 @@ export function AnalyticsPage() {
             </div>
           </div>
           <div className="flex gap-3">
-            <button className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm">
+            <button 
+              onClick={() => {
+                // Generate AI teaching plan
+                alert('Generating personalized teaching plan with AI...');
+              }}
+              className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm"
+            >
               <Sparkles size={16} />
               Generate Teaching Plan
             </button>
-            <button className="flex items-center gap-2 px-4 py-2 bg-white border border-purple-200 text-purple-700 rounded-lg hover:bg-purple-50 transition-colors text-sm">
+            <button 
+              onClick={() => {
+                // Send feedback to students
+                alert('Opening feedback composer for students...');
+              }}
+              className="flex items-center gap-2 px-4 py-2 bg-white border border-purple-200 text-purple-700 rounded-lg hover:bg-purple-50 transition-colors text-sm"
+            >
               <MessageSquare size={16} />
               Send Feedback to Students
             </button>

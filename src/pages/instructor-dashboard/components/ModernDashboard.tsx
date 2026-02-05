@@ -242,11 +242,17 @@ export function ModernDashboard({
                   progress. Let AI help you focus on what matters most—teaching.
                 </p>
                 <div className="flex gap-3">
-                  <button className="px-4 py-2 bg-white text-purple-600 rounded-lg text-sm font-medium hover:bg-purple-50 transition-colors flex items-center gap-2">
+                  <button 
+                    onClick={() => onNavigate('ai-tools')}
+                    className="px-4 py-2 bg-white text-purple-600 rounded-lg text-sm font-medium hover:bg-purple-50 transition-colors flex items-center gap-2"
+                  >
                     <FileText size={16} />
                     Generate Quiz
                   </button>
-                  <button className="px-4 py-2 bg-purple-500/30 backdrop-blur-sm text-white rounded-lg text-sm font-medium hover:bg-purple-500/40 transition-colors flex items-center gap-2">
+                  <button 
+                    onClick={() => onNavigate('ai-tools')}
+                    className="px-4 py-2 bg-purple-500/30 backdrop-blur-sm text-white rounded-lg text-sm font-medium hover:bg-purple-500/40 transition-colors flex items-center gap-2"
+                  >
                     <GraduationCap size={16} />
                     Explain Topic
                   </button>
@@ -373,7 +379,7 @@ export function ModernDashboard({
                 <span className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>Grade Assignments</span>
               </button>
               <button
-                onClick={() => onNavigate('messages')}
+                onClick={() => onNavigate('communication')}
                 className={`w-full flex items-center gap-3 p-4 rounded-lg transition-colors text-left ${isDark ? 'bg-purple-900/30 hover:bg-purple-900/50' : 'bg-purple-50 hover:bg-purple-100'}`}
               >
                 <div className={`p-2 rounded-lg ${isDark ? 'bg-purple-900/50' : 'bg-purple-100'}`}>
@@ -386,7 +392,15 @@ export function ModernDashboard({
 
           {/* Upcoming Teaching Events */}
           <div className={`rounded-xl p-6 border shadow-sm ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-            <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Upcoming Teaching Events</h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Upcoming Teaching Events</h3>
+              <button
+                onClick={() => onNavigate('schedule')}
+                className={`text-sm ${isDark ? 'text-indigo-400 hover:text-indigo-300' : 'text-indigo-600 hover:text-indigo-700'} font-medium`}
+              >
+                View Schedule
+              </button>
+            </div>
             <div className="space-y-4">
               {[
                 {
@@ -416,6 +430,7 @@ export function ModernDashboard({
               ].map((event, index) => (
                 <div
                   key={index}
+                  onClick={() => onNavigate('schedule')}
                   className={`flex items-start gap-3 p-3 rounded-lg transition-colors cursor-pointer ${isDark ? 'bg-gray-700/50 hover:bg-gray-700' : 'bg-gray-50 hover:bg-gray-100'}`}
                 >
                   <div className={`p-2 rounded-lg ${isDark ? event.colorDark : event.colorLight}`}>

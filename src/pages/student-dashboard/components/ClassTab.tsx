@@ -1,4 +1,5 @@
-import { MoreVertical, Clock, Users, BookOpen } from 'lucide-react';
+import { useState } from 'react';
+import { MoreVertical, Clock, Users, BookOpen, ExternalLink, Bell, Download } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 
 interface Course {
@@ -148,25 +149,61 @@ const CourseCard = ({
   course: Course;
   onViewCourse?: (courseId: string) => void;
   isDark: boolean;
-}) => (
-  <div className={`rounded-lg overflow-hidden hover:shadow-lg transition-shadow border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-    {/* Color bar */}
-    <div className="h-2" style={{ backgroundColor: course.progressColor }} />
+}) => {
+  const [showMenu, setShowMenu] = useState(false);
 
-    {/* Course header */}
-    <div className="p-6">
-      <div className="flex justify-between items-start mb-4">
-        <div className="flex-1">
-          <h3 className={`font-semibold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{course.title}</h3>
-          <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{course.courseCode}</p>
+  return (
+    <div className={`rounded-lg overflow-hidden hover:shadow-lg transition-shadow border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+      {/* Color bar */}
+      <div className="h-2" style={{ backgroundColor: course.progressColor }} />
+
+      {/* Course header */}
+      <div className="p-6">
+        <div className="flex justify-between items-start mb-4">
+          <div className="flex-1">
+            <h3 className={`font-semibold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{course.title}</h3>
+            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{course.courseCode}</p>
+          </div>
+          <div className="relative">
+            <button 
+              onClick={() => setShowMenu(!showMenu)}
+              className={`transition-colors p-1 rounded ${isDark ? 'text-gray-500 hover:text-gray-300 hover:bg-gray-700' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
+            >
+              <MoreVertical size={20} />
+            </button>
+            {showMenu && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
+                <div className={`absolute right-0 top-8 z-20 w-48 rounded-lg shadow-lg border py-1 ${isDark ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-200'}`}>
+                  <button
+                    onClick={() => { onViewCourse?.(course.id); setShowMenu(false); }}
+                    className={`w-full flex items-center gap-2 px-4 py-2 text-sm ${isDark ? 'text-gray-300 hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-50'}`}
+                  >
+                    <ExternalLink size={16} />
+                    Open Course
+                  </button>
+                  <button
+                    onClick={() => { alert('Download materials for ' + course.title); setShowMenu(false); }}
+                    className={`w-full flex items-center gap-2 px-4 py-2 text-sm ${isDark ? 'text-gray-300 hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-50'}`}
+                  >
+                    <Download size={16} />
+                    Download Materials
+                  </button>
+                  <button
+                    onClick={() => { alert('Notifications enabled for ' + course.title); setShowMenu(false); }}
+                    className={`w-full flex items-center gap-2 px-4 py-2 text-sm ${isDark ? 'text-gray-300 hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-50'}`}
+                  >
+                    <Bell size={16} />
+                    Enable Notifications
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
         </div>
-        <button className={`transition-colors ${isDark ? 'text-gray-500 hover:text-gray-300' : 'text-gray-400 hover:text-gray-600'}`}>
-          <MoreVertical size={20} />
-        </button>
-      </div>
 
-      {/* Instructor */}
-      <div className={`flex items-center gap-3 mb-4 pb-4 border-b ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
+        {/* Instructor */}
+        <div className={`flex items-center gap-3 mb-4 pb-4 border-b ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
         <img
           src={course.instructorImage}
           alt={course.instructor}
@@ -225,7 +262,9 @@ const CourseCard = ({
         >
           View Course
         </button>
-        <button className={`flex-1 border font-medium py-2 px-4 rounded-lg transition-colors ${
+        <button 
+          onClick={() => onViewCourse?.(course.id)}
+          className={`flex-1 border font-medium py-2 px-4 rounded-lg transition-colors ${
           isDark 
             ? 'border-gray-600 hover:bg-gray-700 text-gray-300' 
             : 'border-gray-200 hover:bg-gray-50 text-gray-700'
@@ -235,7 +274,8 @@ const CourseCard = ({
       </div>
     </div>
   </div>
-);
+  );
+};
 
 export default function ClassTab({
   courses = defaultCourses,

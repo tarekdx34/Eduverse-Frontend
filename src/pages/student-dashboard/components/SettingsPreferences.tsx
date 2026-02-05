@@ -218,9 +218,19 @@ export function SettingsPreferences() {
   const [activeSection, setActiveSection] = useState<string>('appearance');
   const [show2FAModal, setShow2FAModal] = useState(false);
   const [downloadedItems, setDownloadedItems] = useState(offlineItems);
+  const [initialSettings, setInitialSettings] = useState(settings);
 
   const t = translations[settings.language];
   const isRTL = settings.language === 'ar';
+
+  const handleSaveSettings = () => {
+    setInitialSettings(settings);
+    alert('Settings saved successfully!');
+  };
+
+  const handleCancelSettings = () => {
+    setSettings(initialSettings);
+  };
 
   const updateSettings = (path: string, value: any) => {
     setSettings(prev => {
@@ -643,7 +653,14 @@ export function SettingsPreferences() {
                       <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
                         {t.storageUsed}: {settings.offline.storageUsed} MB
                       </span>
-                      <button className="text-xs text-red-600 hover:text-red-700 flex items-center gap-1">
+                      <button 
+                        onClick={() => {
+                          updateSettings('offline.storageUsed', 0);
+                          setDownloadedItems(prev => prev.map(item => ({ ...item, downloaded: false })));
+                          alert('Cache cleared successfully!');
+                        }}
+                        className="text-xs text-red-600 hover:text-red-700 flex items-center gap-1"
+                      >
                         <Trash2 className="w-3 h-3" />
                         {t.clearCache}
                       </button>
@@ -725,14 +742,19 @@ export function SettingsPreferences() {
 
           {/* Save Button */}
           <div className="flex justify-end gap-3">
-            <button className={`px-6 py-3 border-2 rounded-xl font-medium transition-all ${
+            <button 
+              onClick={handleCancelSettings}
+              className={`px-6 py-3 border-2 rounded-xl font-medium transition-all ${
               isDark 
                 ? 'border-gray-600 text-gray-300 hover:bg-gray-700' 
                 : 'border-gray-200 text-gray-700 hover:bg-gray-50'
             }`}>
               {t.cancel}
             </button>
-            <button className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-all">
+            <button 
+              onClick={handleSaveSettings}
+              className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-all"
+            >
               {t.saveChanges}
             </button>
           </div>

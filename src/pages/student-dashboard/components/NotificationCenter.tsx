@@ -473,7 +473,14 @@ export function NotificationCenter() {
                   </div>
                 </div>
 
-                <button className="w-full px-4 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all font-medium">
+                <button 
+                  onClick={() => {
+                    // Save notification settings
+                    alert('Notification settings saved successfully!');
+                    setShowSettings(false);
+                  }}
+                  className="w-full px-4 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all font-medium"
+                >
                   Save Settings
                 </button>
               </div>
