@@ -261,8 +261,8 @@ export function ModernDashboard({
           </div>
 
           {/* Course Performance Snapshot */}
-          <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-            <h3 className="text-lg font-semibold text-gray-900 mb-6">
+          <div className={`rounded-xl p-6 border shadow-sm ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+            <h3 className={`text-lg font-semibold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>
               Course Performance Snapshot
             </h3>
             <ResponsiveContainer width="100%" height={280}>
@@ -273,25 +273,25 @@ export function ModernDashboard({
                     <stop offset="100%" stopColor="#8b5cf6" stopOpacity={1} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#374151' : '#f0f0f0'} vertical={false} />
                 <XAxis
                   dataKey="course"
-                  tick={{ fill: '#6b7280', fontSize: 12 }}
-                  axisLine={{ stroke: '#e5e7eb' }}
+                  tick={{ fill: isDark ? '#9ca3af' : '#6b7280', fontSize: 12 }}
+                  axisLine={{ stroke: isDark ? '#374151' : '#e5e7eb' }}
                 />
                 <YAxis
                   domain={[0, 100]}
-                  tick={{ fill: '#6b7280', fontSize: 12 }}
-                  axisLine={{ stroke: '#e5e7eb' }}
+                  tick={{ fill: isDark ? '#9ca3af' : '#6b7280', fontSize: 12 }}
+                  axisLine={{ stroke: isDark ? '#374151' : '#e5e7eb' }}
                 />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: 'white',
-                    border: '1px solid #e5e7eb',
+                    backgroundColor: isDark ? '#1f2937' : 'white',
+                    border: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`,
                     borderRadius: '8px',
                     boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
                   }}
-                  cursor={{ fill: 'rgba(167, 139, 250, 0.1)' }}
+                  cursor={{ fill: isDark ? 'rgba(167, 139, 250, 0.2)' : 'rgba(167, 139, 250, 0.1)' }}
                 />
                 <Bar
                   dataKey="value"
@@ -305,11 +305,11 @@ export function ModernDashboard({
           </div>
 
           {/* Student Engagement */}
-          <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+          <div className={`rounded-xl p-6 border shadow-sm ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-gray-900">Student Engagement</h3>
+              <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Student Engagement</h3>
               <div className="flex items-center gap-2">
-                <span className="text-2xl font-bold text-gray-900">72%</span>
+                <span className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>72%</span>
                 <TrendingUp className="text-green-600" size={20} />
                 <span className="text-sm text-green-600 font-medium">+2%</span>
               </div>
@@ -322,21 +322,21 @@ export function ModernDashboard({
                     <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#374151' : '#f0f0f0'} />
                 <XAxis
                   dataKey="week"
-                  tick={{ fill: '#6b7280', fontSize: 12 }}
-                  axisLine={{ stroke: '#e5e7eb' }}
+                  tick={{ fill: isDark ? '#9ca3af' : '#6b7280', fontSize: 12 }}
+                  axisLine={{ stroke: isDark ? '#374151' : '#e5e7eb' }}
                 />
                 <YAxis
                   domain={[0, 100]}
-                  tick={{ fill: '#6b7280', fontSize: 12 }}
-                  axisLine={{ stroke: '#e5e7eb' }}
+                  tick={{ fill: isDark ? '#9ca3af' : '#6b7280', fontSize: 12 }}
+                  axisLine={{ stroke: isDark ? '#374151' : '#e5e7eb' }}
                 />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: 'white',
-                    border: '1px solid #e5e7eb',
+                    backgroundColor: isDark ? '#1f2937' : 'white',
+                    border: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`,
                     borderRadius: '8px',
                     boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
                   }}
@@ -360,33 +360,33 @@ export function ModernDashboard({
         {/* Right Column - 1/3 */}
         <div className="space-y-6">
           {/* Quick Access */}
-          <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Access</h3>
+          <div className={`rounded-xl p-6 border shadow-sm ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+            <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Quick Access</h3>
             <div className="space-y-3">
               <button
                 onClick={() => onNavigate('grades')}
-                className="w-full flex items-center gap-3 p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors text-left"
+                className={`w-full flex items-center gap-3 p-4 rounded-lg transition-colors text-left ${isDark ? 'bg-blue-900/30 hover:bg-blue-900/50' : 'bg-blue-50 hover:bg-blue-100'}`}
               >
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <FileText className="text-blue-600" size={18} />
+                <div className={`p-2 rounded-lg ${isDark ? 'bg-blue-900/50' : 'bg-blue-100'}`}>
+                  <FileText className="text-blue-600 dark:text-blue-400" size={18} />
                 </div>
-                <span className="font-medium text-gray-900">Grade Assignments</span>
+                <span className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>Grade Assignments</span>
               </button>
               <button
                 onClick={() => onNavigate('messages')}
-                className="w-full flex items-center gap-3 p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors text-left"
+                className={`w-full flex items-center gap-3 p-4 rounded-lg transition-colors text-left ${isDark ? 'bg-purple-900/30 hover:bg-purple-900/50' : 'bg-purple-50 hover:bg-purple-100'}`}
               >
-                <div className="p-2 bg-purple-100 rounded-lg">
-                  <Bell className="text-purple-600" size={18} />
+                <div className={`p-2 rounded-lg ${isDark ? 'bg-purple-900/50' : 'bg-purple-100'}`}>
+                  <Bell className="text-purple-600 dark:text-purple-400" size={18} />
                 </div>
-                <span className="font-medium text-gray-900">Post Announcement</span>
+                <span className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>Post Announcement</span>
               </button>
             </div>
           </div>
 
           {/* Upcoming Teaching Events */}
-          <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Upcoming Teaching Events</h3>
+          <div className={`rounded-xl p-6 border shadow-sm ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+            <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Upcoming Teaching Events</h3>
             <div className="space-y-4">
               {[
                 {
@@ -394,35 +394,38 @@ export function ModernDashboard({
                   time: '10:10 AM',
                   date: 'May 12',
                   icon: Calendar,
-                  color: 'bg-blue-50 text-blue-600',
+                  colorLight: 'bg-blue-50 text-blue-600',
+                  colorDark: 'bg-blue-900/50 text-blue-400',
                 },
                 {
                   title: 'Physics Lab',
                   time: '2:00 PM',
                   date: 'May 13',
                   icon: Calendar,
-                  color: 'bg-purple-50 text-purple-600',
+                  colorLight: 'bg-purple-50 text-purple-600',
+                  colorDark: 'bg-purple-900/50 text-purple-400',
                 },
                 {
                   title: 'Office Hours',
                   time: '3:00 PM',
                   date: 'May 14',
                   icon: Calendar,
-                  color: 'bg-green-50 text-green-600',
+                  colorLight: 'bg-green-50 text-green-600',
+                  colorDark: 'bg-green-900/50 text-green-400',
                 },
               ].map((event, index) => (
                 <div
                   key={index}
-                  className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+                  className={`flex items-start gap-3 p-3 rounded-lg transition-colors cursor-pointer ${isDark ? 'bg-gray-700/50 hover:bg-gray-700' : 'bg-gray-50 hover:bg-gray-100'}`}
                 >
-                  <div className={`p-2 rounded-lg ${event.color}`}>
+                  <div className={`p-2 rounded-lg ${isDark ? event.colorDark : event.colorLight}`}>
                     <event.icon size={16} />
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-medium text-gray-900 text-sm">{event.title}</h4>
-                    <p className="text-xs text-gray-600 mt-1">{event.time}</p>
+                    <h4 className={`font-medium text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>{event.title}</h4>
+                    <p className={`text-xs mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{event.time}</p>
                   </div>
-                  <span className="text-xs text-gray-500 bg-white px-2 py-1 rounded border border-gray-200">
+                  <span className={`text-xs px-2 py-1 rounded border ${isDark ? 'text-gray-400 bg-gray-700 border-gray-600' : 'text-gray-500 bg-white border-gray-200'}`}>
                     {event.date}
                   </span>
                 </div>

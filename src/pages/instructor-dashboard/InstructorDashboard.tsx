@@ -691,12 +691,12 @@ function InstructorDashboardContent() {
 
               {/* Content Area */}
               {attendanceMode === 'ai' ? (
-                <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+                <div className={`rounded-xl border shadow-sm p-6 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
                   <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-lg font-semibold text-gray-900">AI Attendance</h3>
+                    <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>AI Attendance</h3>
                     <button
                       onClick={() => setAttendanceMode('manual')}
-                      className="text-sm text-gray-600 hover:text-gray-900"
+                      className={`text-sm ${isDark ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}
                     >
                       ← Back to Manual Attendance
                     </button>
@@ -706,8 +706,8 @@ function InstructorDashboardContent() {
                   />
                 </div>
               ) : (
-                <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Manual Attendance</h3>
+                <div className={`rounded-xl border shadow-sm p-6 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+                  <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Manual Attendance</h3>
                   <AttendanceTable
                     sessions={activeSectionId ? attendanceData[activeSectionId] || [] : []}
                     onCreate={handleCreateAttendance}
