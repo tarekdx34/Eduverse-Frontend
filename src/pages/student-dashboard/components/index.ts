@@ -11,6 +11,7 @@ export { default as Assignments } from './Assignments';
 export { default as AssignmentDetails } from './AssignmentDetails';
 export { default as AcademicCalendar } from './AcademicCalendar';
 export { default as ClassSchedule } from './ClassSchedule';
+export { default as DashboardOverview } from './DashboardOverview';
 export { AIFeatures } from './AIFeatures';
 export { MessagingChat } from './MessagingChat';
 export { AttendanceOverview } from './AttendanceOverview';

@@ -43,6 +43,7 @@ import {
   ProgressAnalytics,
   GlobalSearch,
   SettingsPreferences,
+  DashboardOverview,
 } from './components';
 import CourseViewPage from './pages/CourseView';
 import { GPA_DATA, SCHEDULE_DATA } from './constants';
@@ -262,41 +263,10 @@ function StudentDashboardContent() {
           ) : (
             <>
               {activeTab === 'dashboard' && (
-                <>
-                  {/* Stats Cards */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                    <StatsCard
-                      label="Credits Completed"
-                      value="120"
-                      maxValue="144"
-                      comparison="+24 Credits"
-                      isPositive={true}
-                    />
-                    <StatsCard
-                      label="Grade Point Average"
-                      value="3.75"
-                      maxValue="4.00"
-                      comparison="-0.25 Points"
-                      isPositive={false}
-                    />
-                    <StatsCard
-                      label="Active Class"
-                      value="15"
-                      maxValue="18"
-                      comparison="Active Course This Semester"
-                      isPositive={true}
-                    />
-                  </div>
-
-                  {/* Charts and Schedule */}
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <GpaChart data={GPA_DATA} />
-                    <DailySchedule schedules={SCHEDULE_DATA} />
-                  </div>
-
-                  {/* Payment History */}
-                  <PaymentHistory />
-                </>
+                <DashboardOverview
+                  onNavigate={handleTabChange}
+                  onViewCourse={handleViewCourse}
+                />
               )}
 
               {activeTab === 'myclass' && <ClassTab onViewCourse={handleViewCourse} />}

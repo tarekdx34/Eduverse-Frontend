@@ -2,7 +2,7 @@
 // Use these components across all dashboards for consistency
 
 // Layout Components
-export { Sidebar, Header, DashboardLayout } from './layout';
+export { Sidebar, Header, DashboardLayout, PageTransition, StaggeredList, FadeIn } from './layout';
 
 // Card Components
 export { 
