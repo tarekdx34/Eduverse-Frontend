@@ -1,7 +1,11 @@
-import { Server, Activity, HardDrive, Wifi, Clock, AlertTriangle, CheckCircle, TrendingUp } from 'lucide-react';
+import { Server, Activity, HardDrive, Wifi, Clock, AlertTriangle, CheckCircle, TrendingUp, Shield, Database } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
-import { StatsCard } from './StatsCard';
+
+// Import shared UI components
+import { StatsCard } from '../../../components/shared/ui/cards/StatsCard';
+import { WelcomeHeader } from '../../../components/shared/ui/layout/WelcomeHeader';
+import { FadeIn } from '../../../components/shared/ui/layout/PageTransition';
 
 interface DashboardOverviewProps {
   stats: any[];
@@ -32,35 +36,74 @@ export function DashboardOverview({ stats, serverStatus, recentActivity, onNavig
     }
   };
 
+  const healthyServers = serverStatus?.filter(s => s.status === 'healthy').length || 0;
+  const totalServers = serverStatus?.length || 0;
+
   return (
     <div className="space-y-6">
       {/* Welcome Header */}
-      <div>
-        <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-          IT Infrastructure Dashboard
-        </h1>
-        <p className={`mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-          Monitor servers, APIs, and system performance in real-time
-        </p>
-      </div>
+      <FadeIn direction="down" delay={0}>
+        <WelcomeHeader
+          greeting="Welcome"
+          userName="IT Admin"
+          subtitle="All systems operational -"
+          highlightText={`${healthyServers}/${totalServers} servers healthy`}
+          role="it-admin"
+          actions={
+            <button
+              onClick={() => onNavigate('monitoring')}
+              className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl transition-colors"
+            >
+              <Activity className="w-4 h-4" />
+              System Monitor
+            </button>
+          }
+        />
+      </FadeIn>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((stat, index) => (
+        <FadeIn delay={100}>
           <StatsCard
-            key={index}
-            label={stat.label}
-            value={stat.value}
-            comparison={stat.comparison}
-            isPositive={stat.isPositive}
-            icon={
-              index === 0 ? <Activity className={isDark ? 'text-cyan-400' : 'text-cyan-600'} /> :
-              index === 1 ? <Wifi className={isDark ? 'text-blue-400' : 'text-blue-600'} /> :
-              index === 2 ? <Server className={isDark ? 'text-green-400' : 'text-green-600'} /> :
-              <HardDrive className={isDark ? 'text-purple-400' : 'text-purple-600'} />
-            }
+            title="System Uptime"
+            value={99.9}
+            valueSuffix="%"
+            subtitle="this month"
+            icon={<Activity className="w-5 h-5" />}
+            trend={{ value: 0.1, label: 'improvement', isPositive: true }}
+            color="cyan"
           />
-        ))}
+        </FadeIn>
+        <FadeIn delay={150}>
+          <StatsCard
+            title="API Requests"
+            value="2.4M"
+            subtitle="today"
+            icon={<Wifi className="w-5 h-5" />}
+            trend={{ value: 12, label: 'vs yesterday', isPositive: true }}
+            color="indigo"
+          />
+        </FadeIn>
+        <FadeIn delay={200}>
+          <StatsCard
+            title="Active Servers"
+            value={healthyServers}
+            subtitle={`of ${totalServers} total`}
+            icon={<Server className="w-5 h-5" />}
+            color="green"
+          />
+        </FadeIn>
+        <FadeIn delay={250}>
+          <StatsCard
+            title="Storage Used"
+            value={68}
+            valueSuffix="%"
+            subtitle="of 10TB"
+            icon={<Database className="w-5 h-5" />}
+            progress={{ current: 68, max: 100 }}
+            color="purple"
+          />
+        </FadeIn>
       </div>
 
       {/* Server Status & Recent Activity */}

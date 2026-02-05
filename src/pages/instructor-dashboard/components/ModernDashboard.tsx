@@ -9,6 +9,8 @@ import {
   GraduationCap,
   Bell,
   TrendingUp,
+  ClipboardCheck,
+  Clock,
 } from 'lucide-react';
 import {
   BarChart,
@@ -23,6 +25,11 @@ import {
 } from 'recharts';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+
+// Import shared UI components
+import { StatsCard } from '../../../components/shared/ui/cards/StatsCard';
+import { WelcomeHeader } from '../../../components/shared/ui/layout/WelcomeHeader';
+import { FadeIn } from '../../../components/shared/ui/layout/PageTransition';
 
 type DashboardProps = {
   stats: any;
@@ -106,43 +113,69 @@ export function ModernDashboard({
 
   return (
     <div className="space-y-6">
+      {/* Welcome Header */}
+      <FadeIn direction="down" delay={0}>
+        <WelcomeHeader
+          greeting="Good morning"
+          userName="Prof. Sarah"
+          subtitle="You have"
+          highlightText={`${pendingGradingTasks} assignments to grade and ${upcomingClasses.length} classes today`}
+          role="instructor"
+          actions={
+            <button
+              onClick={() => onNavigate('ai-tools')}
+              className="flex items-center gap-2 px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-xl transition-colors"
+            >
+              <Sparkles className="w-4 h-4" />
+              AI Grading Assistant
+            </button>
+          }
+        />
+      </FadeIn>
+
       {/* Top Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Active Courses */}
-        <div className={`rounded-xl p-6 border shadow-sm ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-          <div className="flex items-center gap-3 mb-3">
-            <div className={`p-2 rounded-lg ${isDark ? 'bg-blue-900/50' : 'bg-blue-50'}`}>
-              <BookOpen className="text-blue-600" size={20} />
-            </div>
-          </div>
-          <div className={`text-3xl font-bold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{activeCourses}</div>
-          <div className={`text-sm mb-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('activeCourses')}</div>
-          <div className="text-xs text-green-600 font-medium">+1 new course</div>
-        </div>
-
-        {/* Pending Grading Tasks */}
-        <div className={`rounded-xl p-6 border shadow-sm ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-          <div className="flex items-center gap-3 mb-3">
-            <div className={`p-2 rounded-lg ${isDark ? 'bg-orange-900/50' : 'bg-orange-50'}`}>
-              <FileText className="text-orange-600" size={20} />
-            </div>
-          </div>
-          <div className={`text-3xl font-bold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{pendingGradingTasks}</div>
-          <div className={`text-sm mb-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('pendingGrading')}</div>
-          <div className="text-xs text-orange-600 font-medium">+4 this week</div>
-        </div>
-
-        {/* Total Students */}
-        <div className={`rounded-xl p-6 border shadow-sm ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-          <div className="flex items-center gap-3 mb-3">
-            <div className={`p-2 rounded-lg ${isDark ? 'bg-green-900/50' : 'bg-green-50'}`}>
-              <Users className="text-green-600" size={20} />
-            </div>
-          </div>
-          <div className={`text-3xl font-bold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{totalStudents}</div>
-          <div className={`text-sm mb-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('totalStudents')}</div>
-          <div className="text-xs text-green-600 font-medium">+16 new enrollments</div>
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <FadeIn delay={100}>
+          <StatsCard
+            title={t('activeCourses')}
+            value={activeCourses}
+            subtitle="this semester"
+            icon={<BookOpen className="w-5 h-5" />}
+            trend={{ value: 1, label: 'new course', isPositive: true }}
+            color="indigo"
+          />
+        </FadeIn>
+        <FadeIn delay={150}>
+          <StatsCard
+            title={t('pendingGrading')}
+            value={pendingGradingTasks}
+            subtitle="assignments"
+            icon={<ClipboardCheck className="w-5 h-5" />}
+            trend={{ value: 4, label: 'this week', isPositive: false }}
+            color="amber"
+          />
+        </FadeIn>
+        <FadeIn delay={200}>
+          <StatsCard
+            title={t('totalStudents')}
+            value={totalStudents}
+            subtitle="enrolled"
+            icon={<Users className="w-5 h-5" />}
+            trend={{ value: 16, label: 'new enrollments', isPositive: true }}
+            color="green"
+          />
+        </FadeIn>
+        <FadeIn delay={250}>
+          <StatsCard
+            title="Avg. Attendance"
+            value={92}
+            valueSuffix="%"
+            subtitle="this month"
+            icon={<Clock className="w-5 h-5" />}
+            trend={{ value: 3, label: 'increase', isPositive: true }}
+            color="cyan"
+          />
+        </FadeIn>
       </div>
 
       {/* Courses Overview */}

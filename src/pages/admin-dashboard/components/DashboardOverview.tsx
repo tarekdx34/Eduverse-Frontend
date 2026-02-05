@@ -10,6 +10,7 @@ import {
   Clock,
   Sparkles,
   ArrowRight,
+  LayoutGrid,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -27,6 +28,11 @@ import {
 } from 'recharts';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+
+// Import shared UI components
+import { StatsCard } from '../../../components/shared/ui/cards/StatsCard';
+import { WelcomeHeader } from '../../../components/shared/ui/layout/WelcomeHeader';
+import { FadeIn } from '../../../components/shared/ui/layout/PageTransition';
 
 interface DashboardOverviewProps {
   stats: any;
@@ -54,53 +60,68 @@ export function DashboardOverview({ stats, analytics, recentActivity, onNavigate
 
   return (
     <div className="space-y-6">
+      {/* Welcome Header */}
+      <FadeIn direction="down" delay={0}>
+        <WelcomeHeader
+          greeting="Welcome"
+          userName="Admin"
+          subtitle="System is running smoothly with"
+          highlightText={`${stats.activeUsers?.toLocaleString()} active users today`}
+          role="admin"
+          actions={
+            <button
+              onClick={() => onNavigate('analytics')}
+              className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl transition-colors"
+            >
+              <LayoutGrid className="w-4 h-4" />
+              View Analytics
+            </button>
+          }
+        />
+      </FadeIn>
+
       {/* Top Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className={`rounded-xl p-6 border shadow-sm ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-          <div className="flex items-center gap-3 mb-3">
-            <div className={`p-2 rounded-lg ${isDark ? 'bg-blue-900/50' : 'bg-blue-50'}`}>
-              <Users className="text-blue-600" size={20} />
-            </div>
-          </div>
-          <div className={`text-3xl font-bold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{stats.totalUsers?.toLocaleString()}</div>
-          <div className={`text-sm mb-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('totalUsers')}</div>
-          <div className="text-xs text-green-600 font-medium">+{stats.activeUsers?.toLocaleString()} active</div>
-        </div>
-
-        <div className={`rounded-xl p-6 border shadow-sm ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-          <div className="flex items-center gap-3 mb-3">
-            <div className={`p-2 rounded-lg ${isDark ? 'bg-green-900/50' : 'bg-green-50'}`}>
-              <BookOpen className="text-green-600" size={20} />
-            </div>
-          </div>
-          <div className={`text-3xl font-bold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{stats.totalCourses}</div>
-          <div className={`text-sm mb-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('totalCourses')}</div>
-          <div className="text-xs text-green-600 font-medium">{stats.activeCourses} active courses</div>
-        </div>
-
-        <div className={`rounded-xl p-6 border shadow-sm ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-          <div className="flex items-center gap-3 mb-3">
-            <div className={`p-2 rounded-lg ${isDark ? 'bg-purple-900/50' : 'bg-purple-50'}`}>
-              <Building2 className="text-purple-600" size={20} />
-            </div>
-          </div>
-          <div className={`text-3xl font-bold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{stats.totalDepartments}</div>
-          <div className={`text-sm mb-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('totalDepartments')}</div>
-          <div className="text-xs text-blue-600 font-medium">Across 4 faculties</div>
-        </div>
-
-        <div className={`rounded-xl p-6 border shadow-sm ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-          <div className="flex items-center gap-3 mb-3">
-            <div className={`p-2 rounded-lg ${isDark ? 'bg-orange-900/50' : 'bg-orange-50'}`}>
-              <Activity className="text-orange-600" size={20} />
-            </div>
-          </div>
-          <div className={`text-3xl font-bold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{stats.systemUptime}</div>
-          <div className={`text-sm mb-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('systemUptime')}</div>
-          <div className="text-xs text-green-600 font-medium flex items-center gap-1">
-            <CheckCircle2 size={12} /> All systems operational
-          </div>
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <FadeIn delay={100}>
+          <StatsCard
+            title={t('totalUsers')}
+            value={stats.totalUsers || 5420}
+            subtitle="registered"
+            icon={<Users className="w-5 h-5" />}
+            trend={{ value: stats.activeUsers || 4200, label: 'active', isPositive: true }}
+            color="indigo"
+          />
+        </FadeIn>
+        <FadeIn delay={150}>
+          <StatsCard
+            title={t('totalCourses')}
+            value={stats.totalCourses || 125}
+            subtitle="available"
+            icon={<BookOpen className="w-5 h-5" />}
+            trend={{ value: stats.activeCourses || 98, label: 'active', isPositive: true }}
+            color="green"
+          />
+        </FadeIn>
+        <FadeIn delay={200}>
+          <StatsCard
+            title={t('departments')}
+            value={stats.totalDepartments || 12}
+            subtitle="total"
+            icon={<Building2 className="w-5 h-5" />}
+            color="purple"
+          />
+        </FadeIn>
+        <FadeIn delay={250}>
+          <StatsCard
+            title="System Uptime"
+            value={99.9}
+            valueSuffix="%"
+            subtitle="this month"
+            icon={<Activity className="w-5 h-5" />}
+            trend={{ value: 0.1, label: 'improvement', isPositive: true }}
+            color="cyan"
+          />
+        </FadeIn>
       </div>
 
       {/* System Health Banner */}
