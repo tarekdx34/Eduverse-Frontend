@@ -180,6 +180,20 @@ const login = () => {
                 <span>👨‍🏫</span>
                 <span>Instructor</span>
               </button>
+              <button
+                onClick={() => navigate('/admindashboard')}
+                className="h-10 rounded-xl border border-purple-300 bg-purple-50 hover:bg-purple-100 transition-colors flex items-center justify-center gap-2 text-purple-700 text-xs font-medium"
+              >
+                <span>🛡️</span>
+                <span>Admin</span>
+              </button>
+              <button
+                onClick={() => navigate('/itadmindashboard')}
+                className="h-10 rounded-xl border border-cyan-300 bg-cyan-50 hover:bg-cyan-100 transition-colors flex items-center justify-center gap-2 text-cyan-700 text-xs font-medium"
+              >
+                <span>⚙️</span>
+                <span>IT Admin</span>
+              </button>
             </div>
 
             {/* Sign up link */}

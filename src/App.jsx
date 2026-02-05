@@ -5,6 +5,7 @@ import ProfilePage from './pages/profile/ProfilePage';
 import StudentDashboard from './pages/student-dashboard/StudentDashboard';
 import InstructorDashboard from './pages/instructor-dashboard/InstructorDashboard';
 import AdminDashboard from './pages/admin-dashboard/AdminDashboard';
+import ITAdminDashboard from './pages/it-admin-dashboard/ITAdminDashboard';
 import { AuthService } from './services/api/authService';
 
 function App() {
@@ -48,6 +49,11 @@ function App() {
         <Route path="/admindashboard" element={<AdminDashboard />} />
         <Route path="/admindashboard/:tab" element={<AdminDashboard />} />
         <Route path="/admindashboard/:tab/:id" element={<AdminDashboard />} />
+
+        {/* IT Admin Dashboard - Development (no auth protection) */}
+        <Route path="/itadmindashboard" element={<ITAdminDashboard />} />
+        <Route path="/itadmindashboard/:tab" element={<ITAdminDashboard />} />
+        <Route path="/itadmindashboard/:tab/:id" element={<ITAdminDashboard />} />
 
         {/* Legacy /dashboard route - redirect to /studentdashboard */}
         <Route path="/dashboard" element={<Navigate to="/studentdashboard" replace />} />
