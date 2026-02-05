@@ -26,6 +26,13 @@ const roleBorders = {
   'it-admin': 'border-red-200 dark:border-red-800',
 };
 
+const roleHighlightColors = {
+  student: 'text-indigo-600 dark:text-indigo-400',
+  instructor: 'text-cyan-600 dark:text-cyan-400',
+  admin: 'text-emerald-600 dark:text-emerald-400',
+  'it-admin': 'text-red-600 dark:text-red-400',
+};
+
 export function WelcomeHeader({
   greeting,
   userName,
@@ -63,7 +70,7 @@ export function WelcomeHeader({
               <p className="text-gray-600 dark:text-gray-300 mt-1">
                 {subtitle}
                 {highlightText && (
-                  <span className="font-semibold text-indigo-600 dark:text-indigo-400 ml-1">
+                  <span className={cn('font-semibold ml-1', roleHighlightColors[role])}>
                     {highlightText}
                   </span>
                 )}
