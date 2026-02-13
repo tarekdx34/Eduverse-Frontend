@@ -1,5 +1,4 @@
 {
-  "//": "Ensure client-side routing (React Router + BrowserRouter) works on direct URL access and refresh in Vercel.",
   "rewrites": [
     {
       "source": "/(.*)",
