@@ -1,0 +1,9 @@
+export { Sidebar } from './Sidebar';
+export { Header } from './Header';
+export { StatsCard } from './StatsCard';
+export { ModernDashboard } from './ModernDashboard';
+export { CoursesPage } from './CoursesPage';
+export { LabsPage } from './LabsPage';
+export { GradingPage } from './GradingPage';
+export { StudentPerformancePage } from './StudentPerformancePage';
+export { CommunicationPage } from './CommunicationPage';
