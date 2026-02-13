@@ -6,13 +6,16 @@ import StudentDashboard from './pages/student-dashboard/StudentDashboard';
 import InstructorDashboard from './pages/instructor-dashboard/InstructorDashboard';
 import AdminDashboard from './pages/admin-dashboard/AdminDashboard';
 import ITAdminDashboard from './pages/it-admin-dashboard/ITAdminDashboard';
+import TADashboard from './pages/ta-dashboard/TADashboard';
 import { AuthService } from './services/api/authService';
+import { QuickNavigateModal } from './components/QuickNavigateModal';
 
 function App() {
   const isAuthenticated = AuthService.isAuthenticated();
 
   return (
     <Router>
+      <QuickNavigateModal />
       <Routes>
         {/* Home Page - Public */}
         <Route path="/" element={<HomePage />} />
@@ -54,6 +57,11 @@ function App() {
         <Route path="/itadmindashboard" element={<ITAdminDashboard />} />
         <Route path="/itadmindashboard/:tab" element={<ITAdminDashboard />} />
         <Route path="/itadmindashboard/:tab/:id" element={<ITAdminDashboard />} />
+
+        {/* TA Dashboard - Development (no auth protection) */}
+        <Route path="/tadashboard" element={<TADashboard />} />
+        <Route path="/tadashboard/:tab" element={<TADashboard />} />
+        <Route path="/tadashboard/:tab/:id" element={<TADashboard />} />
 
         {/* Legacy /dashboard route - redirect to /studentdashboard */}
         <Route path="/dashboard" element={<Navigate to="/studentdashboard" replace />} />
