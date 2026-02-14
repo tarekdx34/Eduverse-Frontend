@@ -7,3 +7,7 @@ export { LabsPage } from './LabsPage';
 export { GradingPage } from './GradingPage';
 export { StudentPerformancePage } from './StudentPerformancePage';
 export { CommunicationPage } from './CommunicationPage';
+export { CreateLabModal } from './CreateLabModal';
+export { LabDetailView } from './LabDetailView';
+export { GradingModal } from './GradingModal';
+export { NewMessageModal } from './NewMessageModal';
