@@ -304,13 +304,29 @@
   border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-/* Custom scrollbar for sidebar - hidden */
+/* Custom scrollbar for sidebar */
 .sidebar-scroll {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(124, 58, 237, 0.2) transparent;
+}
+.sidebar-scroll:hover {
+  scrollbar-color: rgba(124, 58, 237, 0.35) transparent;
 }
 .sidebar-scroll::-webkit-scrollbar {
-  display: none;
+  width: 5px;
+}
+.sidebar-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  background: rgba(124, 58, 237, 0.2);
+  border-radius: 9999px;
+}
+.sidebar-scroll:hover::-webkit-scrollbar-thumb {
+  background: rgba(124, 58, 237, 0.35);
+}
+.sidebar-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(124, 58, 237, 0.5);
 }
 
 .sidebar-item-active {
