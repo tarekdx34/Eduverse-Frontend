@@ -1,5 +1,5 @@
-import { ChevronRight } from 'lucide-react';
 import { AIFeature, FeatureId } from '../types';
+import { useTheme } from '../../../contexts/ThemeContext';
 
 interface FeatureListProps {
   features: AIFeature[];
@@ -8,68 +8,81 @@ interface FeatureListProps {
 }
 
 export function FeatureList({ features, selectedFeature, onSelectFeature }: FeatureListProps) {
+  const { isDark } = useTheme();
+
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-      <div className="bg-gradient-to-r from-gray-50 to-white p-6 border-b border-gray-200">
-        <h2 className="text-gray-900 mb-1">Explore AI Features</h2>
-        <p className="text-gray-600 text-sm">Click any tool to start using it instantly</p>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>Explore AI Features</h3>
+        <button className="text-[#7C3AED] text-sm font-bold hover:underline">View All</button>
       </div>
 
-      <div className="p-6">
-        <div className="grid grid-cols-1 gap-4">
-          {features.map((feature) => {
-            const Icon = feature.icon;
-            const isSelected = selectedFeature === feature.id;
-            return (
-              <div
-                key={feature.id}
-                onClick={() => onSelectFeature(feature.id as FeatureId)}
-                className={`border-2 rounded-xl p-5 cursor-pointer transition-all ${
+      <div className="space-y-4">
+        {features.map((feature) => {
+          const Icon = feature.icon;
+          const isSelected = selectedFeature === feature.id;
+
+          return (
+            <div
+              key={feature.id}
+              onClick={() => onSelectFeature(feature.id as FeatureId)}
+              className={`p-4 rounded-2xl cursor-pointer group transition-all ${
+                isSelected
+                  ? isDark
+                    ? 'bg-[#7C3AED]/10 border-2 border-[#7C3AED] relative overflow-hidden'
+                    : 'bg-[#7C3AED]/5 border-2 border-[#7C3AED] relative overflow-hidden'
+                  : 'glass hover:border-[#7C3AED]/50'
+              }`}
+            >
+              {isSelected && (
+                <div className="absolute top-0 right-0 w-24 h-24 bg-[#7C3AED]/10 rounded-full blur-3xl -mr-12 -mt-12"></div>
+              )}
+              <div className="flex gap-4 relative z-10">
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-all ${
                   isSelected
-                    ? `${feature.borderColor} ${feature.bgLight} shadow-lg scale-[1.02]`
-                    : 'border-gray-200 hover:border-gray-300 hover:shadow-md'
-                }`}
-              >
-                <div className="flex items-start gap-4">
-                  <div className={`${feature.color} w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md ${isSelected ? 'scale-110' : ''} transition-transform`}>
-                    <Icon className="w-7 h-7 text-white" />
+                    ? `${feature.color} text-white shadow-lg shadow-${feature.color}/20`
+                    : `${feature.bgLight} ${feature.textColor}`
+                } ${!isSelected && isDark ? 'border border-white/10' : !isSelected ? `border ${feature.borderColor}/20` : ''}`}
+                  style={!isSelected && isDark ? {
+                    boxShadow: `0 0 0 transparent`,
+                  } : undefined}
+                >
+                  <Icon className="w-5 h-5" />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <h4 className={`font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{feature.title}</h4>
+                    {feature.badge && (
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                        feature.badge === 'Most Used' ? 'bg-[#7C3AED]/20 text-[#7C3AED]' :
+                        feature.badge === 'Popular' ? 'bg-blue-500/10 text-blue-500' :
+                        'bg-purple-500/10 text-purple-500'
+                      }`}>
+                        {feature.badge === 'Most Used' ? 'Active' : feature.badge}
+                      </span>
+                    )}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="text-gray-900">{feature.title}</h3>
-                          {feature.badge && (
-                            <span className={`text-xs px-2 py-1 rounded-full ${
-                              feature.badge === 'Most Used' ? 'bg-indigo-100 text-indigo-700' :
-                              feature.badge === 'New' ? 'bg-green-100 text-green-700' :
-                              'bg-blue-100 text-blue-700'
-                            }`}>
-                              {feature.badge}
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-xs text-gray-500 mb-2">{feature.subtitle}</p>
-                      </div>
-                    </div>
-                    <p className="text-sm text-gray-600 mb-3 line-clamp-2">{feature.description}</p>
-                    
-                    <div className="flex items-center justify-between">
-                      <div className="flex flex-wrap gap-2">
-                        {feature.features.map((item, idx) => (
-                          <span key={idx} className="px-3 py-1 bg-white border border-gray-200 text-gray-700 rounded-lg text-xs">
-                            {item}
-                          </span>
-                        ))}
-                      </div>
-                      <ChevronRight className={`w-5 h-5 ${isSelected ? feature.textColor : 'text-gray-400'} flex-shrink-0 ml-2`} />
-                    </div>
+                  <p className={`text-xs mt-1 line-clamp-2 ${
+                    isSelected
+                      ? isDark ? 'text-slate-300' : 'text-slate-600'
+                      : isDark ? 'text-slate-400' : 'text-slate-500'
+                  }`}>{feature.description}</p>
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {feature.features.slice(0, 2).map((item, idx) => (
+                      <span key={idx} className={`px-2 py-1 rounded-md text-[10px] ${
+                        isSelected
+                          ? isDark ? 'bg-white/10 text-[#7C3AED] font-semibold' : 'bg-white/50 text-[#7C3AED] font-semibold'
+                          : isDark ? 'bg-white/5 text-slate-500' : 'bg-slate-100 text-slate-500'
+                      }`}>
+                        {item}
+                      </span>
+                    ))}
                   </div>
                 </div>
               </div>
-            );
-          })}
-        </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

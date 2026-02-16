@@ -1,29 +1,32 @@
 import { MessageSquare, Sparkles, Send } from 'lucide-react';
+import { useTheme } from '../../../contexts/ThemeContext';
 
 export function ChatbotContent() {
+  const { isDark } = useTheme();
+
   return (
     <div className="space-y-4">
-      <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-xl p-6 border border-indigo-200">
-        <h4 className="text-indigo-900 mb-2 flex items-center gap-2">
+      <div className={`${isDark ? 'bg-[#7C3AED]/10 border-[#7C3AED]/20' : 'bg-gradient-to-br from-[#7C3AED]/10 to-purple-100 border-[#7C3AED]/20'} rounded-xl p-6 border`}>
+        <h4 className={`${isDark ? 'text-white' : 'text-[#4C1D95]'} mb-2 flex items-center gap-2`}>
           <MessageSquare className="w-4 h-4" />
           Your Personal Study Assistant
         </h4>
-        <p className="text-sm text-indigo-700">
+        <p className={`text-sm ${isDark ? 'text-[#7C3AED]' : 'text-[#7C3AED]'}`}>
           Ask anything about your courses, get study tips, or request explanations
         </p>
       </div>
 
-      <div className="border-2 border-gray-200 rounded-xl p-6 h-96 overflow-y-auto bg-gradient-to-b from-white to-gray-50">
+      <div className={`${isDark ? 'bg-card-dark border-white/5' : 'border-2 border-slate-100 bg-gradient-to-b from-white to-background-light'} rounded-xl p-6 h-96 overflow-y-auto`}>
         <div className="space-y-6">
           <div className="flex gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md">
+            <div className="w-10 h-10 bg-gradient-to-br from-[#7C3AED] to-[#7C3AED] rounded-xl flex items-center justify-center flex-shrink-0 shadow-md">
               <Sparkles className="w-5 h-5 text-white" />
             </div>
-            <div className="bg-white rounded-2xl rounded-tl-sm p-4 shadow-sm border border-gray-100 max-w-sm">
-              <p className="text-sm text-gray-900 mb-2">
+            <div className={`${isDark ? 'bg-white/5 border-white/5' : 'bg-white border border-slate-100'} rounded-2xl rounded-tl-sm p-4 shadow-sm max-w-sm`}>
+              <p className={`text-sm ${isDark ? 'text-white' : 'text-slate-800'} mb-2`}>
                 👋 Hello! I'm your AI Study Companion. I can help you with:
               </p>
-              <ul className="text-xs text-gray-600 space-y-1 ml-4">
+              <ul className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-600'} space-y-1 ml-4`}>
                 <li>• Explaining complex concepts</li>
                 <li>• Solving practice problems</li>
                 <li>• Study strategies & tips</li>
@@ -33,22 +36,22 @@ export function ChatbotContent() {
           </div>
 
           <div className="flex gap-3 justify-end">
-            <div className="bg-indigo-600 text-white rounded-2xl rounded-tr-sm p-4 shadow-md max-w-sm">
+            <div className="bg-[#7C3AED] text-white rounded-2xl rounded-tr-sm p-4 shadow-md max-w-sm">
               <p className="text-sm">
                 Can you explain the difference between stacks and queues?
               </p>
             </div>
-            <div className="w-10 h-10 bg-gray-300 rounded-xl flex items-center justify-center flex-shrink-0">
+            <div className="w-10 h-10 bg-slate-300 rounded-xl flex items-center justify-center flex-shrink-0">
               <span className="text-sm">You</span>
             </div>
           </div>
 
           <div className="flex gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md">
+            <div className="w-10 h-10 bg-gradient-to-br from-[#7C3AED] to-[#7C3AED] rounded-xl flex items-center justify-center flex-shrink-0 shadow-md">
               <Sparkles className="w-5 h-5 text-white" />
             </div>
-            <div className="bg-white rounded-2xl rounded-tl-sm p-4 shadow-sm border border-gray-100 max-w-sm">
-              <p className="text-sm text-gray-900">
+            <div className={`${isDark ? 'bg-white/5 border-white/5' : 'bg-white border border-slate-100'} rounded-2xl rounded-tl-sm p-4 shadow-sm max-w-sm`}>
+              <p className={`text-sm ${isDark ? 'text-white' : 'text-slate-800'}`}>
                 Great question! Both are linear data structures, but they differ in how elements are added and removed...
               </p>
             </div>
@@ -61,7 +64,7 @@ export function ChatbotContent() {
           {['Explain concept', 'Practice problem', 'Study tips', 'Exam prep'].map((suggestion, idx) => (
             <button
               key={idx}
-              className="px-4 py-2 bg-white border-2 border-gray-200 rounded-full text-sm text-gray-700 hover:border-indigo-500 hover:bg-indigo-50 transition-all"
+              className={`px-4 py-2 ${isDark ? 'bg-white/5 border-white/10 text-slate-300 hover:border-[#7C3AED] hover:bg-[#7C3AED]/10' : 'bg-white border-2 border-slate-100 text-slate-700 hover:border-[#7C3AED] hover:bg-[#7C3AED]/10'} rounded-full text-sm transition-all`}
             >
               {suggestion}
             </button>
@@ -72,9 +75,9 @@ export function ChatbotContent() {
           <input
             type="text"
             placeholder="Type your question here..."
-            className="flex-1 px-5 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 transition-all"
+            className={`flex-1 px-5 py-3 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-slate-500' : 'border-2 border-slate-100'} rounded-xl focus:outline-none focus:border-[#7C3AED] focus:ring-4 focus:ring-[#7C3AED]/10 transition-all`}
           />
-          <button className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-xl hover:shadow-lg transition-all flex items-center justify-center gap-2">
+          <button className="px-6 py-3 bg-gradient-to-r from-[#7C3AED] to-[#6D28D9] text-white rounded-xl hover:shadow-lg transition-all flex items-center justify-center gap-2">
             <Send className="w-5 h-5" />
           </button>
         </div>

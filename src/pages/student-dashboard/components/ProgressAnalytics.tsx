@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useTheme } from '../contexts/ThemeContext';
 import {
   BarChart3,
   TrendingUp,
@@ -125,6 +126,7 @@ const weeklyActivity: WeeklyActivity[] = [
 
 export function ProgressAnalytics() {
   const { t } = useLanguage();
+  const { isDark } = useTheme();
   const [selectedCourse, setSelectedCourse] = useState<CourseProgress | null>(null);
   const [timeRange, setTimeRange] = useState<'week' | 'month' | 'semester'>('week');
 
@@ -148,7 +150,7 @@ export function ProgressAnalytics() {
       case 'needs-attention':
         return 'text-amber-600 bg-amber-100 border-amber-200';
       default:
-        return 'text-gray-600 bg-gray-100 border-gray-200';
+        return 'text-slate-600 bg-slate-50 border-slate-100';
     }
   };
 
@@ -162,45 +164,45 @@ export function ProgressAnalytics() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 rounded-2xl p-8 text-white shadow-xl">
+      <div className="bg-gradient-to-br from-[#7C3AED] via-purple-600 to-pink-600 rounded-2xl p-8 text-white shadow-xl">
         <div className="flex items-center gap-3 mb-3">
           <BarChart3 className="w-8 h-8" />
           <span className="text-sm bg-white/20 px-3 py-1 rounded-full">{t('analyticsDashboard')}</span>
         </div>
         <h1 className="text-3xl font-bold mb-2">{t('progressAnalytics')}</h1>
-        <p className="text-indigo-100 text-lg">{t('trackPerformance')}</p>
+        <p className="text-purple-100 text-lg">{t('trackPerformance')}</p>
         
         <div className="grid grid-cols-4 gap-4 mt-6">
           <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
             <div className="flex items-center gap-2 mb-1">
               <Target className="w-4 h-4 text-green-300" />
-              <span className="text-sm text-indigo-200">{t('currentGPA')}</span>
+              <span className="text-sm text-purple-200">{t('currentGPA')}</span>
             </div>
             <p className="text-3xl font-bold">{avgGPA.toFixed(2)}</p>
           </div>
           <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
             <div className="flex items-center gap-2 mb-1">
               <Clock className="w-4 h-4 text-blue-300" />
-              <span className="text-sm text-indigo-200">{t('studyHours')}</span>
+              <span className="text-sm text-purple-200">{t('studyHours')}</span>
             </div>
             <p className="text-3xl font-bold">{totalStudyHours}h</p>
-            <p className="text-xs text-indigo-300">{t('thisWeekLabel')}</p>
+            <p className="text-xs text-purple-300">{t('thisWeekLabel')}</p>
           </div>
           <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
             <div className="flex items-center gap-2 mb-1">
               <CheckCircle className="w-4 h-4 text-emerald-300" />
-              <span className="text-sm text-indigo-200">{t('tasksDone')}</span>
+              <span className="text-sm text-purple-200">{t('tasksDone')}</span>
             </div>
             <p className="text-3xl font-bold">{totalTasksCompleted}</p>
-            <p className="text-xs text-indigo-300">{t('thisWeekLabel')}</p>
+            <p className="text-xs text-purple-300">{t('thisWeekLabel')}</p>
           </div>
           <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
             <div className="flex items-center gap-2 mb-1">
               <Brain className="w-4 h-4 text-purple-300" />
-              <span className="text-sm text-indigo-200">{t('quizzes')}</span>
+              <span className="text-sm text-purple-200">{t('quizzes')}</span>
             </div>
             <p className="text-3xl font-bold">{totalQuizzes}</p>
-            <p className="text-xs text-indigo-300">{t('thisWeekLabel')}</p>
+            <p className="text-xs text-purple-300">{t('thisWeekLabel')}</p>
           </div>
         </div>
       </div>
@@ -213,8 +215,8 @@ export function ProgressAnalytics() {
             onClick={() => setTimeRange(range)}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all capitalize ${
               timeRange === range
-                ? 'bg-indigo-100 text-indigo-700 border-2 border-indigo-300'
-                : 'bg-gray-100 text-gray-600 border-2 border-transparent hover:bg-gray-200'
+                ? 'bg-[#7C3AED]/10 text-[#7C3AED] border-2 border-[#7C3AED]/30'
+                : `${isDark ? 'bg-white/5 text-slate-400' : 'bg-slate-50 text-slate-600'} border-2 border-transparent ${isDark ? 'hover:bg-white/10' : 'hover:bg-slate-200'}`
             }`}
           >
             {{ week: t('thisWeek2'), month: t('thisMonth'), semester: t('thisSemester2') }[range]}
@@ -224,10 +226,10 @@ export function ProgressAnalytics() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Study Activity Chart */}
-        <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <div className="bg-gradient-to-r from-gray-50 to-white p-4 border-b border-gray-200">
-            <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-              <Activity className="w-5 h-5 text-indigo-500" />
+        <div className="glass lg:col-span-2 rounded-[2.5rem] overflow-hidden">
+          <div className={`${isDark ? 'bg-white/5 border-b border-white/5' : 'bg-gradient-to-r from-background-light to-white border-b border-slate-100'} p-4`}>
+            <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'} flex items-center gap-2`}>
+              <Activity className="w-5 h-5 text-[#7C3AED]" />
               {t('weeklyStudyActivity')}
             </h3>
           </div>
@@ -236,35 +238,35 @@ export function ProgressAnalytics() {
               {weeklyActivity.map((day, idx) => (
                 <div key={idx} className="flex-1 flex flex-col items-center gap-2">
                   <div className="w-full flex flex-col items-center gap-1">
-                    <span className="text-xs text-gray-600">{day.studyHours}h</span>
+                    <span className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{day.studyHours}h</span>
                     <div 
-                      className="w-full bg-gradient-to-t from-indigo-500 to-purple-500 rounded-t-lg transition-all hover:from-indigo-600 hover:to-purple-600"
+                      className="w-full bg-gradient-to-t from-[#7C3AED] to-purple-500 rounded-t-lg transition-all hover:from-[#7C3AED] hover:to-purple-600"
                       style={{ height: `${(day.studyHours / maxHours) * 140}px` }}
                     />
                   </div>
-                  <span className="text-sm font-medium text-gray-700">{day.day}</span>
+                  <span className={`text-sm font-medium ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{day.day}</span>
                 </div>
               ))}
             </div>
-            <div className="mt-6 grid grid-cols-3 gap-4 pt-4 border-t border-gray-200">
+            <div className={`mt-6 grid grid-cols-3 gap-4 pt-4 border-t ${isDark ? 'border-white/5' : 'border-slate-100'}`}>
               <div className="text-center">
-                <p className="text-2xl font-bold text-indigo-600">{totalStudyHours}h</p>
-                <p className="text-sm text-gray-600">{t('totalHours')}</p>
+                <p className="text-2xl font-bold text-[#7C3AED]">{totalStudyHours}h</p>
+                <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{t('totalHours')}</p>
               </div>
               <div className="text-center">
                 <p className="text-2xl font-bold text-green-600">{totalTasksCompleted}</p>
-                <p className="text-sm text-gray-600">{t('tasksCompleted')}</p>
+                <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{t('tasksCompleted')}</p>
               </div>
               <div className="text-center">
                 <p className="text-2xl font-bold text-purple-600">{totalQuizzes}</p>
-                <p className="text-sm text-gray-600">{t('quizzesTaken')}</p>
+                <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{t('quizzesTaken')}</p>
               </div>
             </div>
           </div>
         </div>
 
         {/* Weak Topics Alert */}
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="glass rounded-[2.5rem] overflow-hidden">
           <div className="bg-gradient-to-r from-amber-50 to-orange-50 p-4 border-b border-amber-200">
             <h3 className="font-semibold text-amber-900 flex items-center gap-2">
               <AlertTriangle className="w-5 h-5 text-amber-500" />
@@ -287,7 +289,7 @@ export function ProgressAnalytics() {
             ) : (
               <div className="text-center py-8">
                 <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-3" />
-                <p className="text-gray-600">{t('noWeakTopics')}</p>
+                <p className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{t('noWeakTopics')}</p>
               </div>
             )}
           </div>
@@ -295,10 +297,10 @@ export function ProgressAnalytics() {
       </div>
 
       {/* Course Progress */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div className="bg-gradient-to-r from-gray-50 to-white p-4 border-b border-gray-200">
-          <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-            <BookOpen className="w-5 h-5 text-indigo-500" />
+      <div className="glass rounded-[2.5rem] overflow-hidden">
+        <div className={`${isDark ? 'bg-white/5 border-b border-white/5' : 'bg-gradient-to-r from-background-light to-white border-b border-slate-100'} p-4`}>
+          <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'} flex items-center gap-2`}>
+            <BookOpen className="w-5 h-5 text-[#7C3AED]" />
             {t('courseProgressOverview')}
           </h3>
         </div>
@@ -307,32 +309,32 @@ export function ProgressAnalytics() {
             {courseProgress.map((course) => (
               <div
                 key={course.id}
-                className="border-2 border-gray-200 rounded-xl p-4 hover:border-indigo-300 hover:shadow-lg transition-all cursor-pointer"
+                className={`${isDark ? 'border-white/5' : 'border-slate-100'} border-2 rounded-xl p-4 hover:border-[#7C3AED]/50 hover:shadow-lg transition-all cursor-pointer`}
                 onClick={() => setSelectedCourse(course)}
               >
                 <div className="flex items-start justify-between mb-3">
                   <div>
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-sm font-bold text-indigo-600">{course.code}</span>
+                      <span className="text-sm font-bold text-[#7C3AED]">{course.code}</span>
                       <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(course.status)}`}>
                         {course.status === 'needs-attention' ? t('needsWork') : course.status === 'excellent' ? t('excellent') : t('onTrack')}
                       </span>
                     </div>
-                    <p className="text-sm font-medium text-gray-900">{course.name}</p>
+                    <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'}`}>{course.name}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-xl font-bold text-gray-900">{course.grade}</p>
-                    <p className="text-xs text-gray-500">{course.gradePoints.toFixed(1)} GPA</p>
+                    <p className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{course.grade}</p>
+                    <p className="text-xs text-slate-500">{course.gradePoints.toFixed(1)} GPA</p>
                   </div>
                 </div>
 
                 {/* Progress Bar */}
                 <div className="mb-3">
-                  <div className="flex justify-between text-xs text-gray-600 mb-1">
+                  <div className={`flex justify-between text-xs ${isDark ? 'text-slate-400' : 'text-slate-600'} mb-1`}>
                     <span>{t('progress')}</span>
                     <span>{course.progress}%</span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className={`w-full ${isDark ? 'bg-white/10' : 'bg-slate-200'} rounded-full h-2`}>
                     <div 
                       className={`h-2 rounded-full transition-all ${getProgressColor(course.progress)}`}
                       style={{ width: `${course.progress}%` }}
@@ -342,11 +344,11 @@ export function ProgressAnalytics() {
 
                 {/* Stats */}
                 <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div className="flex items-center gap-1 text-gray-600">
+                  <div className={`flex items-center gap-1 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
                     <CheckCircle className="w-3 h-3" />
                     <span>{course.completedTasks}/{course.totalTasks} {t('tasks')}</span>
                   </div>
-                  <div className="flex items-center gap-1 text-gray-600">
+                  <div className={`flex items-center gap-1 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
                     <Clock className="w-3 h-3" />
                     <span>{course.studyHours}h {t('studied')}</span>
                   </div>
@@ -354,7 +356,7 @@ export function ProgressAnalytics() {
 
                 {/* Weak Topics Preview */}
                 {course.weakTopics.length > 0 && (
-                  <div className="mt-3 pt-3 border-t border-gray-200">
+                  <div className={`mt-3 pt-3 border-t ${isDark ? 'border-white/5' : 'border-slate-100'}`}>
                     <p className="text-xs text-amber-600 flex items-center gap-1">
                       <AlertTriangle className="w-3 h-3" />
                       {course.weakTopics.length} {t('topicsNeedReview')}
@@ -370,7 +372,7 @@ export function ProgressAnalytics() {
       {/* Performance Insights */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Courses Needing Attention */}
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="glass rounded-[2.5rem] overflow-hidden">
           <div className="bg-gradient-to-r from-red-50 to-orange-50 p-4 border-b border-red-200">
             <h3 className="font-semibold text-red-900 flex items-center gap-2">
               <TrendingDown className="w-5 h-5 text-red-500" />
@@ -402,14 +404,14 @@ export function ProgressAnalytics() {
             ) : (
               <div className="text-center py-8">
                 <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-3" />
-                <p className="text-gray-600">{t('allOnTrack')}</p>
+                <p className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{t('allOnTrack')}</p>
               </div>
             )}
           </div>
         </div>
 
         {/* Excellent Performance */}
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="glass rounded-[2.5rem] overflow-hidden">
           <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 border-b border-green-200">
             <h3 className="font-semibold text-green-900 flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-green-500" />
@@ -445,8 +447,8 @@ export function ProgressAnalytics() {
               </div>
             ) : (
               <div className="text-center py-8">
-                <Target className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                <p className="text-gray-600">{t('keepWorking')}</p>
+                <Target className="w-12 h-12 text-slate-500 mx-auto mb-3" />
+                <p className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{t('keepWorking')}</p>
               </div>
             )}
           </div>
@@ -454,16 +456,16 @@ export function ProgressAnalytics() {
       </div>
 
       {/* Study Recommendations */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div className="bg-gradient-to-r from-gray-50 to-white p-4 border-b border-gray-200">
-          <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+      <div className="glass rounded-[2.5rem] overflow-hidden">
+        <div className={`${isDark ? 'bg-white/5 border-b border-white/5' : 'bg-gradient-to-r from-background-light to-white border-b border-slate-100'} p-4`}>
+          <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'} flex items-center gap-2`}>
             <Zap className="w-5 h-5 text-amber-500" />
             {t('aiStudyRecommendations')}
           </h3>
         </div>
         <div className="p-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-xl">
+            <div className="p-4 bg-gradient-to-br from-blue-50 to-[#7C3AED]/10 border border-blue-200 rounded-xl">
               <div className="flex items-center gap-2 mb-2">
                 <Clock className="w-5 h-5 text-blue-600" />
                 <h4 className="font-medium text-blue-900">{t('optimalStudyTime')}</h4>
@@ -500,41 +502,41 @@ export function ProgressAnalytics() {
       {/* Course Detail Modal */}
       {selectedCourse && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto shadow-2xl">
-            <div className="p-6 border-b border-gray-200">
+          <div className={`${isDark ? 'bg-card-dark' : 'bg-white'} rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto shadow-2xl`}>
+            <div className={`p-6 border-b ${isDark ? 'border-white/5' : 'border-slate-100'}`}>
               <div className="flex items-start justify-between">
                 <div>
-                  <span className="text-sm font-bold text-indigo-600">{selectedCourse.code}</span>
-                  <h2 className="text-xl font-bold text-gray-900">{selectedCourse.name}</h2>
+                  <span className="text-sm font-bold text-[#7C3AED]">{selectedCourse.code}</span>
+                  <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{selectedCourse.name}</h2>
                 </div>
                 <button
                   onClick={() => setSelectedCourse(null)}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-all"
+                  className={`p-2 ${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'} rounded-lg transition-all`}
                 >
-                  <ChevronRight className="w-5 h-5 text-gray-400" />
+                  <ChevronRight className="w-5 h-5 text-slate-500" />
                 </button>
               </div>
             </div>
             <div className="p-6 space-y-6">
               {/* Grade & Progress */}
               <div className="grid grid-cols-3 gap-4">
-                <div className="text-center p-4 bg-gray-50 rounded-xl">
-                  <p className="text-3xl font-bold text-gray-900">{selectedCourse.grade}</p>
-                  <p className="text-sm text-gray-600">{t('currentGradeLabel')}</p>
+                <div className={`text-center p-4 ${isDark ? 'bg-white/5' : 'bg-background-light'} rounded-xl`}>
+                  <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{selectedCourse.grade}</p>
+                  <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{t('currentGradeLabel')}</p>
                 </div>
-                <div className="text-center p-4 bg-gray-50 rounded-xl">
-                  <p className="text-3xl font-bold text-indigo-600">{selectedCourse.progress}%</p>
-                  <p className="text-sm text-gray-600">{t('progress')}</p>
+                <div className={`text-center p-4 ${isDark ? 'bg-white/5' : 'bg-background-light'} rounded-xl`}>
+                  <p className="text-3xl font-bold text-[#7C3AED]">{selectedCourse.progress}%</p>
+                  <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{t('progress')}</p>
                 </div>
-                <div className="text-center p-4 bg-gray-50 rounded-xl">
+                <div className={`text-center p-4 ${isDark ? 'bg-white/5' : 'bg-background-light'} rounded-xl`}>
                   <p className="text-3xl font-bold text-purple-600">{selectedCourse.studyHours}h</p>
-                  <p className="text-sm text-gray-600">{t('studyHours')}</p>
+                  <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{t('studyHours')}</p>
                 </div>
               </div>
 
               {/* Strong Topics */}
               <div>
-                <h4 className="font-medium text-gray-900 mb-2 flex items-center gap-2">
+                <h4 className={`font-medium ${isDark ? 'text-white' : 'text-slate-800'} mb-2 flex items-center gap-2`}>
                   <CheckCircle className="w-4 h-4 text-green-500" />
                   {t('strongTopicsLabel')}
                 </h4>
@@ -550,7 +552,7 @@ export function ProgressAnalytics() {
               {/* Weak Topics */}
               {selectedCourse.weakTopics.length > 0 && (
                 <div>
-                  <h4 className="font-medium text-gray-900 mb-2 flex items-center gap-2">
+                  <h4 className={`font-medium ${isDark ? 'text-white' : 'text-slate-800'} mb-2 flex items-center gap-2`}>
                     <AlertTriangle className="w-4 h-4 text-amber-500" />
                     {t('topicsToReview')}
                   </h4>
@@ -566,7 +568,7 @@ export function ProgressAnalytics() {
 
               <button
                 onClick={() => setSelectedCourse(null)}
-                className="w-full px-4 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all font-medium"
+                className="w-full px-4 py-3 bg-[#7C3AED] text-white rounded-xl hover:bg-[#6D28D9] transition-all font-medium"
               >
                 {t('close')}
               </button>

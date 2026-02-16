@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTheme } from '../contexts/ThemeContext';
 import {
   Bell,
   BellRing,
@@ -136,6 +137,7 @@ const notifications: Notification[] = [
 ];
 
 export function NotificationCenter() {
+  const { isDark } = useTheme();
   const [notificationList, setNotificationList] = useState<Notification[]>(notifications);
   const [filterType, setFilterType] = useState<string>('all');
   const [showSettings, setShowSettings] = useState(false);
@@ -190,11 +192,11 @@ export function NotificationCenter() {
       case 'achievement':
         return 'bg-amber-100 text-amber-600 border-amber-200';
       case 'message':
-        return 'bg-indigo-100 text-indigo-600 border-indigo-200';
+        return 'bg-[#7C3AED]/10 text-[#7C3AED] border-[#7C3AED]/20';
       case 'warning':
         return 'bg-orange-100 text-orange-600 border-orange-200';
       default:
-        return 'bg-gray-100 text-gray-600 border-gray-200';
+        return 'bg-slate-50 text-slate-600 border-slate-100';
     }
   };
 
@@ -207,9 +209,9 @@ export function NotificationCenter() {
       case 'medium':
         return 'bg-blue-500 text-white';
       case 'low':
-        return 'bg-gray-400 text-white';
+        return 'bg-slate-400 text-white';
       default:
-        return 'bg-gray-400 text-white';
+        return 'bg-slate-400 text-white';
     }
   };
 
@@ -240,7 +242,7 @@ export function NotificationCenter() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 rounded-2xl p-8 text-white shadow-xl">
+      <div className="bg-gradient-to-br from-[#7C3AED] via-purple-600 to-pink-600 rounded-2xl p-8 text-white shadow-xl">
         <div className="flex items-center justify-between">
           <div>
             <div className="flex items-center gap-3 mb-3">
@@ -252,7 +254,7 @@ export function NotificationCenter() {
               )}
             </div>
             <h1 className="text-3xl font-bold mb-2">Notifications</h1>
-            <p className="text-indigo-100">Stay updated with your courses, deadlines, and achievements</p>
+            <p className="text-purple-100">Stay updated with your courses, deadlines, and achievements</p>
           </div>
           <button
             onClick={() => setShowSettings(!showSettings)}
@@ -267,28 +269,28 @@ export function NotificationCenter() {
           <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
             <div className="flex items-center gap-2 mb-1">
               <Clock className="w-4 h-4 text-red-300" />
-              <span className="text-sm text-indigo-200">Deadlines</span>
+              <span className="text-sm text-purple-200">Deadlines</span>
             </div>
             <p className="text-2xl font-bold">{notificationList.filter(n => n.type === 'deadline').length}</p>
           </div>
           <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
             <div className="flex items-center gap-2 mb-1">
               <AlertTriangle className="w-4 h-4 text-orange-300" />
-              <span className="text-sm text-indigo-200">Warnings</span>
+              <span className="text-sm text-purple-200">Warnings</span>
             </div>
             <p className="text-2xl font-bold">{notificationList.filter(n => n.type === 'warning').length}</p>
           </div>
           <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
             <div className="flex items-center gap-2 mb-1">
               <MessageSquare className="w-4 h-4 text-blue-300" />
-              <span className="text-sm text-indigo-200">Messages</span>
+              <span className="text-sm text-purple-200">Messages</span>
             </div>
             <p className="text-2xl font-bold">{notificationList.filter(n => n.type === 'message').length}</p>
           </div>
           <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
             <div className="flex items-center gap-2 mb-1">
               <Award className="w-4 h-4 text-amber-300" />
-              <span className="text-sm text-indigo-200">Achievements</span>
+              <span className="text-sm text-purple-200">Achievements</span>
             </div>
             <p className="text-2xl font-bold">{notificationList.filter(n => n.type === 'achievement').length}</p>
           </div>
@@ -299,7 +301,7 @@ export function NotificationCenter() {
         {/* Notifications List */}
         <div className="lg:col-span-2 space-y-4">
           {/* Filters and Actions */}
-          <div className="bg-white rounded-xl border border-gray-200 p-4">
+          <div className="glass rounded-[2.5rem] p-4">
             <div className="flex items-center justify-between mb-4">
               <div className="flex gap-2 flex-wrap">
                 {[
@@ -315,8 +317,8 @@ export function NotificationCenter() {
                     onClick={() => setFilterType(filter.id)}
                     className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
                       filterType === filter.id
-                        ? 'bg-indigo-100 text-indigo-700 border-2 border-indigo-300'
-                        : 'bg-gray-100 text-gray-600 border-2 border-transparent hover:bg-gray-200'
+                        ? 'bg-[#7C3AED]/10 text-[#7C3AED] border-2 border-[#7C3AED]/30'
+                        : `${isDark ? 'bg-white/5 text-slate-400' : 'bg-slate-50 text-slate-600'} border-2 border-transparent ${isDark ? 'hover:bg-white/10' : 'hover:bg-slate-200'}`
                     }`}
                   >
                     {filter.label}
@@ -327,7 +329,7 @@ export function NotificationCenter() {
             <div className="flex gap-2">
               <button
                 onClick={markAllAsRead}
-                className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-all"
+                className={`flex items-center gap-2 px-3 py-2 text-sm ${isDark ? 'text-slate-300 hover:bg-white/5' : 'text-slate-700 hover:bg-slate-50'} rounded-lg transition-all`}
               >
                 <Check className="w-4 h-4" />
                 Mark all read
@@ -345,17 +347,17 @@ export function NotificationCenter() {
           {/* Notification Items */}
           <div className="space-y-3">
             {filteredNotifications.length === 0 ? (
-              <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-                <Bell className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">No Notifications</h3>
-                <p className="text-gray-600">You're all caught up!</p>
+              <div className="glass rounded-[2.5rem] p-12 text-center">
+                <Bell className="w-16 h-16 text-slate-400 mx-auto mb-4" />
+                <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-800'} mb-2`}>No Notifications</h3>
+                <p className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}>You're all caught up!</p>
               </div>
             ) : (
               filteredNotifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`bg-white rounded-xl border-2 p-4 transition-all hover:shadow-md ${
-                    !notification.read ? 'border-indigo-200 bg-indigo-50/30' : 'border-gray-200'
+                  className={`${isDark ? 'bg-card-dark' : 'bg-white'} rounded-xl border-2 p-4 transition-all hover:shadow-md ${
+                    !notification.read ? 'border-[#7C3AED]/20 bg-[#7C3AED]/10/30' : `${isDark ? 'border-white/5' : 'border-slate-100'}`
                   }`}
                 >
                   <div className="flex items-start gap-4">
@@ -368,11 +370,11 @@ export function NotificationCenter() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2 mb-1">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <h4 className={`font-semibold ${!notification.read ? 'text-gray-900' : 'text-gray-700'}`}>
+                          <h4 className={`font-semibold ${!notification.read ? `${isDark ? 'text-white' : 'text-slate-800'}` : `${isDark ? 'text-slate-300' : 'text-slate-700'}`}`}>
                             {notification.title}
                           </h4>
                           {!notification.read && (
-                            <span className="w-2 h-2 bg-indigo-500 rounded-full" />
+                            <span className="w-2 h-2 bg-[#7C3AED]/100 rounded-full" />
                           )}
                           <span className={`px-2 py-0.5 rounded text-xs font-medium ${getPriorityBadge(notification.priority)}`}>
                             {notification.priority}
@@ -380,21 +382,21 @@ export function NotificationCenter() {
                         </div>
                         <button
                           onClick={() => deleteNotification(notification.id)}
-                          className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                          className="p-1 text-slate-500 hover:text-red-500 transition-colors"
                         >
                           <X className="w-4 h-4" />
                         </button>
                       </div>
-                      <p className="text-sm text-gray-600 mb-2">{notification.description}</p>
+                      <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'} mb-2`}>{notification.description}</p>
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3 text-xs text-gray-500">
+                        <div className="flex items-center gap-3 text-xs text-slate-500">
                           <span>{notification.timestamp}</span>
-                          <span className="px-2 py-0.5 bg-gray-100 rounded">{notification.category}</span>
+                          <span className={`px-2 py-0.5 ${isDark ? 'bg-white/5' : 'bg-slate-50'} rounded`}>{notification.category}</span>
                         </div>
                         {!notification.read && (
                           <button
                             onClick={() => markAsRead(notification.id)}
-                            className="text-xs text-indigo-600 hover:text-indigo-700 font-medium"
+                            className="text-xs text-[#7C3AED] hover:text-[#7C3AED] font-medium"
                           >
                             Mark as read
                           </button>
@@ -411,16 +413,16 @@ export function NotificationCenter() {
         {/* Settings Sidebar */}
         <div className="space-y-4">
           {showSettings ? (
-            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-              <div className="bg-gradient-to-r from-gray-50 to-white p-4 border-b border-gray-200">
-                <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                  <Settings className="w-5 h-5 text-gray-600" />
+            <div className="glass rounded-[2.5rem] overflow-hidden">
+              <div className={`${isDark ? 'bg-white/5 border-b border-white/5' : 'bg-gradient-to-r from-background-light to-white border-b border-slate-100'} p-4`}>
+                <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'} flex items-center gap-2`}>
+                  <Settings className="w-5 h-5 text-slate-600" />
                   Notification Settings
                 </h3>
               </div>
               <div className="p-4 space-y-4">
                 <div>
-                  <h4 className="text-sm font-medium text-gray-900 mb-3">Notification Types</h4>
+                  <h4 className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'} mb-3`}>Notification Types</h4>
                   <div className="space-y-3">
                     {[
                       { key: 'deadlines', label: 'Deadline Reminders', icon: <Clock className="w-4 h-4" /> },
@@ -430,10 +432,10 @@ export function NotificationCenter() {
                       { key: 'achievements', label: 'Achievements', icon: <Award className="w-4 h-4" /> },
                       { key: 'warnings', label: 'Progress Warnings', icon: <AlertTriangle className="w-4 h-4" /> },
                     ].map((setting) => (
-                      <label key={setting.key} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-all">
+                      <label key={setting.key} className={`flex items-center justify-between p-3 ${isDark ? 'bg-white/5 hover:bg-white/10' : 'bg-background-light hover:bg-slate-50'} rounded-lg cursor-pointer transition-all`}>
                         <div className="flex items-center gap-3">
-                          <span className="text-gray-600">{setting.icon}</span>
-                          <span className="text-sm text-gray-700">{setting.label}</span>
+                          <span className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{setting.icon}</span>
+                          <span className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{setting.label}</span>
                         </div>
                         <input
                           type="checkbox"
@@ -442,23 +444,23 @@ export function NotificationCenter() {
                             ...notificationSettings,
                             [setting.key]: e.target.checked
                           })}
-                          className="w-5 h-5 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
+                          className="w-5 h-5 text-[#7C3AED] rounded border-slate-200 focus:ring-[#7C3AED]"
                         />
                       </label>
                     ))}
                   </div>
                 </div>
 
-                <div className="pt-4 border-t border-gray-200">
-                  <h4 className="text-sm font-medium text-gray-900 mb-3">Delivery Methods</h4>
+                <div className={`pt-4 border-t ${isDark ? 'border-white/5' : 'border-slate-100'}`}>
+                  <h4 className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'} mb-3`}>Delivery Methods</h4>
                   <div className="space-y-3">
                     {[
                       { key: 'emailNotifications', label: 'Email Notifications' },
                       { key: 'pushNotifications', label: 'Push Notifications' },
                       { key: 'soundEnabled', label: 'Sound Alerts' },
                     ].map((setting) => (
-                      <label key={setting.key} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-all">
-                        <span className="text-sm text-gray-700">{setting.label}</span>
+                      <label key={setting.key} className={`flex items-center justify-between p-3 ${isDark ? 'bg-white/5 hover:bg-white/10' : 'bg-background-light hover:bg-slate-50'} rounded-lg cursor-pointer transition-all`}>
+                        <span className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{setting.label}</span>
                         <input
                           type="checkbox"
                           checked={notificationSettings[setting.key as keyof typeof notificationSettings] as boolean}
@@ -466,14 +468,14 @@ export function NotificationCenter() {
                             ...notificationSettings,
                             [setting.key]: e.target.checked
                           })}
-                          className="w-5 h-5 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
+                          className="w-5 h-5 text-[#7C3AED] rounded border-slate-200 focus:ring-[#7C3AED]"
                         />
                       </label>
                     ))}
                   </div>
                 </div>
 
-                <button className="w-full px-4 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all font-medium">
+                <button className="w-full px-4 py-3 bg-[#7C3AED] text-white rounded-lg hover:bg-[#6D28D9] transition-all font-medium">
                   Save Settings
                 </button>
               </div>
@@ -481,7 +483,7 @@ export function NotificationCenter() {
           ) : (
             <>
               {/* Urgent Alerts */}
-              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+              <div className="glass rounded-[2.5rem] overflow-hidden">
                 <div className="bg-gradient-to-r from-red-50 to-orange-50 p-4 border-b border-red-200">
                   <h3 className="font-semibold text-red-900 flex items-center gap-2">
                     <AlertTriangle className="w-5 h-5 text-red-500" />
@@ -503,29 +505,29 @@ export function NotificationCenter() {
                   {notificationList.filter(n => n.priority === 'urgent' || n.priority === 'high').length === 0 && (
                     <div className="text-center py-4">
                       <CheckCircle className="w-8 h-8 text-green-500 mx-auto mb-2" />
-                      <p className="text-sm text-gray-600">No urgent alerts</p>
+                      <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>No urgent alerts</p>
                     </div>
                   )}
                 </div>
               </div>
 
               {/* Upcoming Deadlines */}
-              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                <div className="bg-gradient-to-r from-gray-50 to-white p-4 border-b border-gray-200">
-                  <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                    <Calendar className="w-5 h-5 text-indigo-500" />
+              <div className="glass rounded-[2.5rem] overflow-hidden">
+                <div className={`${isDark ? 'bg-white/5 border-b border-white/5' : 'bg-gradient-to-r from-background-light to-white border-b border-slate-100'} p-4`}>
+                  <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'} flex items-center gap-2`}>
+                    <Calendar className="w-5 h-5 text-[#7C3AED]" />
                     Upcoming Deadlines
                   </h3>
                 </div>
                 <div className="p-4 space-y-3">
                   {notificationList.filter(n => n.type === 'deadline' || n.type === 'reminder').slice(0, 4).map((deadline) => (
-                    <div key={deadline.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                      <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
-                        <Clock className="w-5 h-5 text-indigo-600" />
+                    <div key={deadline.id} className={`flex items-center gap-3 p-3 ${isDark ? 'bg-white/5' : 'bg-background-light'} rounded-lg`}>
+                      <div className="w-10 h-10 bg-[#7C3AED]/10 rounded-lg flex items-center justify-center">
+                        <Clock className="w-5 h-5 text-[#7C3AED]" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">{deadline.title}</p>
-                        <p className="text-xs text-gray-500">{deadline.category}</p>
+                        <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'} truncate`}>{deadline.title}</p>
+                        <p className="text-xs text-slate-500">{deadline.category}</p>
                       </div>
                     </div>
                   ))}

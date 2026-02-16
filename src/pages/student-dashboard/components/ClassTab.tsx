@@ -130,14 +130,14 @@ const defaultStats = {
 };
 
 const StatCard = ({ label, value, icon: Icon, color, isDark }: any) => (
-  <div className={`rounded-lg p-6 border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+  <div className={`glass rounded-[2.5rem] p-6`}>
     <div className="flex items-start gap-3 mb-4">
       <div className={`p-2 rounded-lg ${color}`}>
         <Icon className="w-5 h-5" />
       </div>
     </div>
-    <div className={`text-sm mb-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{label}</div>
-    <div className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{value}</div>
+    <div className={`text-sm mb-2 ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{label}</div>
+    <div className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{value}</div>
   </div>
 );
 
@@ -152,7 +152,7 @@ const CourseCard = ({
   isDark: boolean;
   t: (key: string) => string;
 }) => (
-  <div className={`rounded-lg overflow-hidden hover:shadow-lg transition-shadow border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+  <div className={`glass rounded-[2.5rem] overflow-hidden hover:shadow-lg transition-shadow`}>
     {/* Color bar */}
     <div className="h-2" style={{ backgroundColor: course.progressColor }} />
 
@@ -160,16 +160,16 @@ const CourseCard = ({
     <div className="p-6">
       <div className="flex justify-between items-start mb-4">
         <div className="flex-1">
-          <h3 className={`font-semibold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{course.title}</h3>
-          <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{course.courseCode}</p>
+          <h3 className={`font-semibold mb-1 ${isDark ? 'text-white' : 'text-slate-800'}`}>{course.title}</h3>
+          <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{course.courseCode}</p>
         </div>
-        <button className={`transition-colors ${isDark ? 'text-gray-500 hover:text-gray-300' : 'text-gray-400 hover:text-gray-600'}`}>
+        <button className={`transition-colors ${isDark ? 'text-slate-500 hover:text-slate-400' : 'text-slate-500 hover:text-slate-600'}`}>
           <MoreVertical size={20} />
         </button>
       </div>
 
       {/* Instructor */}
-      <div className={`flex items-center gap-3 mb-4 pb-4 border-b ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
+      <div className={`flex items-center gap-3 mb-4 pb-4 border-b ${isDark ? 'border-white/5' : 'border-slate-100'}`}>
         <img
           src={course.instructorImage}
           alt={course.instructor}
@@ -180,13 +180,13 @@ const CourseCard = ({
           }
         />
         <div>
-          <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{course.instructor}</p>
-          <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('instructor')}</p>
+          <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'}`}>{course.instructor}</p>
+          <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{t('instructor')}</p>
         </div>
       </div>
 
       {/* Schedule info */}
-      <div className={`space-y-2 mb-4 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+      <div className={`space-y-2 mb-4 text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
         <div className="flex items-center gap-2">
           <Clock size={16} />
           <span>{course.schedule}</span>
@@ -198,21 +198,21 @@ const CourseCard = ({
       </div>
 
       {/* Stats */}
-      <div className={`flex justify-between items-center mb-4 pt-4 border-t text-sm ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
-        <div className={`flex items-center gap-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+      <div className={`flex justify-between items-center mb-4 pt-4 border-t text-sm ${isDark ? 'border-white/5' : 'border-slate-100'}`}>
+        <div className={`flex items-center gap-1 ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
           <Users size={16} />
           <span>{course.students} {t('students')}</span>
         </div>
-        <span className={isDark ? 'text-gray-400' : 'text-gray-600'}>{course.credits} {t('credits')}</span>
+        <span className={isDark ? 'text-slate-500' : 'text-slate-600'}>{course.credits} {t('credits')}</span>
       </div>
 
       {/* Progress */}
       <div className="mb-4">
         <div className="flex justify-between items-center mb-2">
-          <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('courseProgress')}</span>
-          <span className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{course.progress}%</span>
+          <span className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{t('courseProgress')}</span>
+          <span className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>{course.progress}%</span>
         </div>
-        <div className={`w-full rounded-full h-2 ${isDark ? 'bg-gray-700' : 'bg-gray-200'}`}>
+        <div className={`w-full rounded-full h-2 ${isDark ? 'bg-white/10' : 'bg-slate-200'}`}>
           <div
             className="h-2 rounded-full transition-all"
             style={{ width: `${course.progress}%`, backgroundColor: course.progressColor }}
@@ -230,8 +230,8 @@ const CourseCard = ({
         </button>
         <button className={`flex-1 border font-medium py-2 px-4 rounded-lg transition-colors ${
           isDark 
-            ? 'border-gray-600 hover:bg-gray-700 text-gray-300' 
-            : 'border-gray-200 hover:bg-gray-50 text-gray-700'
+            ? 'border-white/10 hover:bg-white/5 text-slate-400' 
+            : 'border-slate-100 hover:bg-slate-50 text-slate-700'
         }`}>
           {t('materials')}
         </button>
@@ -256,7 +256,7 @@ export default function ClassTab({
           label={t('totalCourses')}
           value={stats.totalCourses}
           icon={() => <BookOpen className="w-5 h-5" />}
-          color="bg-indigo-100"
+          color="bg-[#7C3AED]/10"
           isDark={isDark}
         />
         <StatCard
@@ -285,8 +285,8 @@ export default function ClassTab({
       {/* Enrolled Courses Section */}
       <div>
         <div className="mb-4">
-          <h2 className={`text-xl font-semibold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('enrolledCourses')}</h2>
-          <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('enrolledCoursesDesc')}</p>
+          <h2 className={`text-xl font-semibold mb-1 ${isDark ? 'text-white' : 'text-slate-800'}`}>{t('enrolledCourses')}</h2>
+          <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{t('enrolledCoursesDesc')}</p>
         </div>
 
         {/* Course Cards Grid */}

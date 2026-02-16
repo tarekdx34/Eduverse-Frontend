@@ -233,11 +233,11 @@ const StatCard = ({
   color: string;
   isDark: boolean;
 }) => (
-  <div className={`border rounded-lg p-6 flex justify-between items-start gap-4 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+  <div className={`p-6 rounded-[2.5rem] flex justify-between items-start gap-4 ${isDark ? 'bg-card-dark border border-white/5' : 'glass'}`}>
     <div className="flex-1">
-      <p className={`text-sm mb-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{label}</p>
-      <p className={`text-3xl font-semibold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>{value}</p>
-      <p className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>{subtext}</p>
+      <p className={`text-sm mb-2 ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{label}</p>
+      <p className={`text-3xl font-semibold mb-3 ${isDark ? 'text-white' : 'text-slate-800'}`}>{value}</p>
+      <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>{subtext}</p>
     </div>
     <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${color}`}>
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -252,37 +252,37 @@ const GradeTable = ({ semester, courses, isDark }: { semester: SemesterData; cou
   const [filteredCourses] = useState(courses);
 
   return (
-    <div className={`border rounded-lg overflow-hidden ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+    <div className={`rounded-[2.5rem] overflow-hidden ${isDark ? 'bg-card-dark border border-white/5' : 'glass'}`}>
       {/* Header */}
-      <div className={`border-b p-6 ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+      <div className={`border-b p-6 ${isDark ? 'border-white/5' : 'border-slate-100'}`}>
         <div className="flex justify-between items-start mb-6">
           <div>
-            <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{semester.semester}</h3>
-            <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+            <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>{semester.semester}</h3>
+            <p className={`text-sm mt-1 ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
               GPA: {semester.gpa} | Credits: {semester.credits}
             </p>
           </div>
-          <button className={`flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors ${isDark ? 'border-gray-600 hover:bg-gray-700 text-gray-300' : 'border-gray-200 hover:bg-gray-50'}`}>
+          <button className={`flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors ${isDark ? 'border-white/10 hover:bg-white/5 text-slate-400' : 'border-slate-100 hover:bg-slate-50'}`}>
             <Download size={16} />
-            <span className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Export</span>
+            <span className={`text-sm font-medium ${isDark ? 'text-slate-400' : 'text-slate-700'}`}>Export</span>
           </button>
         </div>
 
         {/* Search and Filter */}
         <div className="flex gap-3">
           <div className="flex-1 relative">
-            <Search size={16} className={`absolute left-3 top-3 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
+            <Search size={16} className={`absolute left-3 top-3 ${isDark ? 'text-slate-500' : 'text-slate-500'}`} />
             <input
               type="text"
               placeholder="Search courses"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className={`w-full pl-10 pr-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'border-gray-200'}`}
+              className={`w-full pl-10 pr-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-slate-500' : 'border-slate-100'}`}
             />
           </div>
-          <button className={`flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors ${isDark ? 'border-gray-600 hover:bg-gray-700 text-gray-300' : 'border-gray-200 hover:bg-gray-50'}`}>
+          <button className={`flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors ${isDark ? 'border-white/10 hover:bg-white/5 text-slate-400' : 'border-slate-100 hover:bg-slate-50'}`}>
             <Filter size={16} />
-            <span className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Filter</span>
+            <span className={`text-sm font-medium ${isDark ? 'text-slate-400' : 'text-slate-700'}`}>Filter</span>
           </button>
           <button className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
             <Download size={16} />
@@ -295,31 +295,31 @@ const GradeTable = ({ semester, courses, isDark }: { semester: SemesterData; cou
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className={`border-b ${isDark ? 'bg-gray-700/50 border-gray-700' : 'bg-gray-50 border-gray-200'}`}>
-              <th className={`px-6 py-4 text-left text-sm font-bold ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Course Code</th>
-              <th className={`px-6 py-4 text-left text-sm font-bold ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Course Name</th>
-              <th className={`px-6 py-4 text-center text-sm font-bold ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Credits</th>
-              <th className={`px-6 py-4 text-center text-sm font-bold ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Percentage</th>
-              <th className={`px-6 py-4 text-center text-sm font-bold ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Grade</th>
-              <th className={`px-6 py-4 text-center text-sm font-bold ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Points</th>
-              <th className={`px-6 py-4 text-center text-sm font-bold ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Status</th>
+            <tr className={`border-b ${isDark ? 'bg-white/5 border-white/5' : 'bg-background-light border-slate-100'}`}>
+              <th className={`px-6 py-4 text-left text-sm font-bold ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Course Code</th>
+              <th className={`px-6 py-4 text-left text-sm font-bold ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Course Name</th>
+              <th className={`px-6 py-4 text-center text-sm font-bold ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Credits</th>
+              <th className={`px-6 py-4 text-center text-sm font-bold ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Percentage</th>
+              <th className={`px-6 py-4 text-center text-sm font-bold ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Grade</th>
+              <th className={`px-6 py-4 text-center text-sm font-bold ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Points</th>
+              <th className={`px-6 py-4 text-center text-sm font-bold ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Status</th>
             </tr>
           </thead>
           <tbody>
             {filteredCourses.map((course) => {
               const gradeColor = getGradeColor(course.grade, isDark);
               return (
-                <tr key={course.code} className={`border-b transition-colors ${isDark ? 'border-gray-700 hover:bg-gray-700/50' : 'border-gray-100 hover:bg-gray-50'}`}>
-                  <td className={`px-6 py-5 text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{course.code}</td>
-                  <td className={`px-6 py-5 text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>{course.name}</td>
-                  <td className={`px-6 py-5 text-sm text-center ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{course.credits}</td>
-                  <td className={`px-6 py-5 text-sm text-center ${isDark ? 'text-white' : 'text-gray-900'}`}>{course.percentage}%</td>
+                <tr key={course.code} className={`border-b transition-colors ${isDark ? 'border-white/5 hover:bg-white/5/50' : 'border-slate-100 hover:bg-slate-50'}`}>
+                  <td className={`px-6 py-5 text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'}`}>{course.code}</td>
+                  <td className={`px-6 py-5 text-sm ${isDark ? 'text-white' : 'text-slate-800'}`}>{course.name}</td>
+                  <td className={`px-6 py-5 text-sm text-center ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{course.credits}</td>
+                  <td className={`px-6 py-5 text-sm text-center ${isDark ? 'text-white' : 'text-slate-800'}`}>{course.percentage}%</td>
                   <td className="px-6 py-5 text-center">
                     <div className={`inline-block px-3 py-1 rounded ${gradeColor.bg} ${gradeColor.text} text-sm font-medium border ${gradeColor.border}`}>
                       {course.grade}
                     </div>
                   </td>
-                  <td className={`px-6 py-5 text-sm font-medium text-center ${isDark ? 'text-white' : 'text-gray-900'}`}>{course.points}</td>
+                  <td className={`px-6 py-5 text-sm font-medium text-center ${isDark ? 'text-white' : 'text-slate-800'}`}>{course.points}</td>
                   <td className="px-6 py-5 text-center">
                     <span className={`inline-block px-3 py-1 rounded text-sm font-medium ${getStatusColor(course.status, isDark)}`}>
                       {course.status}
@@ -331,16 +331,16 @@ const GradeTable = ({ semester, courses, isDark }: { semester: SemesterData; cou
           </tbody>
           {/* Footer Summary */}
           <tfoot>
-            <tr className={`border-t ${isDark ? 'bg-gray-700/50 border-gray-700' : 'bg-gray-50 border-gray-200'}`}>
-              <td colSpan={2} className={`px-6 py-4 text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+            <tr className={`border-t ${isDark ? 'bg-white/5 border-white/5' : 'bg-background-light border-slate-100'}`}>
+              <td colSpan={2} className={`px-6 py-4 text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'}`}>
                 Total
               </td>
-              <td className={`px-6 py-4 text-center text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              <td className={`px-6 py-4 text-center text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'}`}>
                 {filteredCourses.reduce((sum, c) => sum + c.credits, 0)} Credits
               </td>
               <td />
               <td />
-              <td className={`px-6 py-4 text-center text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              <td className={`px-6 py-4 text-center text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'}`}>
                 GPA: {semester.gpa}
               </td>
               <td />
@@ -366,8 +366,8 @@ export default function GradesTranscript({
     <div className="space-y-6" dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Header */}
       <div className="mb-6">
-        <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('gradesAndTranscript')}</h1>
-        <p className={isDark ? 'text-gray-400' : 'text-gray-600'}>{t('academicRecord')}</p>
+        <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{t('gradesAndTranscript')}</h1>
+        <p className={isDark ? 'text-slate-500' : 'text-slate-600'}>{t('academicRecord')}</p>
       </div>
 
       {/* Stats Cards */}
@@ -376,7 +376,7 @@ export default function GradesTranscript({
           label={t('cumulativeGPA')}
           value={cumulativeGPA}
           subtext={`${t('outOf')} 4.00`}
-          color="bg-indigo-100"
+          color="bg-[#7C3AED]/10"
           isDark={isDark}
         />
         <StatCard
