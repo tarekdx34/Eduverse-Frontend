@@ -1,5 +1,6 @@
 import { ChevronLeft, ChevronRight, Clock, Calendar, MapPin, User } from 'lucide-react';
 import { useState } from 'react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface ClassSession {
   id: string;
@@ -22,7 +23,7 @@ interface WeeklyScheduleProps {
   upcomingClasses?: ClassSession[];
 }
 
-const DAYS_OF_WEEK = ['Time', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const DAY_KEYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const;
 const TIME_SLOTS = [
   '08:00 AM',
   '09:00 AM',
@@ -164,7 +165,7 @@ const defaultUpcomingClasses: ClassSession[] = [
   },
 ];
 
-const UpcomingClassCard = ({ classSession }: { classSession: ClassSession }) => (
+const UpcomingClassCard = ({ classSession, t }: { classSession: ClassSession; t: (key: string) => string }) => (
   <div className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
     <div className="flex items-start gap-4 mb-4">
       <div className="w-1 h-16 rounded" style={{ backgroundColor: '#4f39f6' }} />
@@ -196,7 +197,7 @@ const UpcomingClassCard = ({ classSession }: { classSession: ClassSession }) => 
     {classSession.progress !== undefined && (
       <div className="pt-3 border-t border-gray-100">
         <div className="flex justify-between items-center mb-2">
-          <span className="text-sm text-gray-600">Progress</span>
+          <span className="text-sm text-gray-600">{t('progress')}</span>
           <span className="text-sm font-semibold text-gray-900">{classSession.progress}%</span>
         </div>
         <div className="w-full bg-gray-200 rounded-full h-2">
@@ -210,15 +211,16 @@ const UpcomingClassCard = ({ classSession }: { classSession: ClassSession }) => 
   </div>
 );
 
-const ScheduleGrid = ({ scheduleData }: { scheduleData: ScheduleData }) => {
+const ScheduleGrid = ({ scheduleData, t }: { scheduleData: ScheduleData; t: (key: string) => string }) => {
+  const daysOfWeek = [t('timeColumn'), ...DAY_KEYS.map((key) => t(key))];
   return (
     <div className="overflow-x-auto">
       <div className="min-w-max">
         {/* Header */}
         <div className="flex gap-2 mb-4 border-b border-gray-200">
-          {DAYS_OF_WEEK.map((day) => (
+          {daysOfWeek.map((day, index) => (
             <div
-              key={day}
+              key={index}
               className="w-24 py-3 px-2 font-semibold text-center text-gray-900"
             >
               {day}
@@ -235,7 +237,7 @@ const ScheduleGrid = ({ scheduleData }: { scheduleData: ScheduleData }) => {
             </div>
 
             {/* Day Columns */}
-            {DAYS_OF_WEEK.slice(1).map((day) => (
+            {DAY_KEYS.map((day) => (
               <div
                 key={`${day}-${time}`}
                 className="w-24 min-h-24 p-2 border border-gray-100 rounded bg-gray-50"
@@ -266,6 +268,7 @@ export default function WeeklySchedule({
   weekStart = 'Week of Dec 4 - Dec 10, 2025',
   upcomingClasses = defaultUpcomingClasses,
 }: WeeklyScheduleProps) {
+  const { t } = useLanguage();
   const [currentWeek, setCurrentWeek] = useState(0);
 
   return (
@@ -275,7 +278,7 @@ export default function WeeklySchedule({
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Weekly Schedule</h2>
+            <h2 className="text-2xl font-bold text-gray-900">{t('weeklySchedule')}</h2>
             <p className="text-sm text-gray-600 mt-1">{weekStart}</p>
           </div>
 
@@ -297,20 +300,20 @@ export default function WeeklySchedule({
         </div>
 
         {/* Schedule Grid */}
-        <ScheduleGrid scheduleData={scheduleData} />
+        <ScheduleGrid scheduleData={scheduleData} t={t} />
       </div>
 
       {/* Upcoming Classes Section */}
       <div className="space-y-4">
         <div>
-          <h3 className="text-lg font-bold text-gray-900">Upcoming Classes</h3>
-          <p className="text-sm text-gray-600 mt-1">Your next scheduled classes</p>
+          <h3 className="text-lg font-bold text-gray-900">{t('upcomingClasses')}</h3>
+          <p className="text-sm text-gray-600 mt-1">{t('nextScheduledClasses')}</p>
         </div>
 
         {/* Upcoming Classes Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {upcomingClasses.map((classSession) => (
-            <UpcomingClassCard key={classSession.id} classSession={classSession} />
+            <UpcomingClassCard key={classSession.id} classSession={classSession} t={t} />
           ))}
         </div>
       </div>

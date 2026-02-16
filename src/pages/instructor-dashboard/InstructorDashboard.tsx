@@ -16,6 +16,8 @@ import {
   ClipboardList,
   CalendarDays,
   Settings,
+  MessageSquare,
+  MessagesSquare,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -43,10 +45,12 @@ import {
   AnalyticsPage,
   AIToolsPage,
   CommunicationPage,
+  DiscussionPage,
   SettingsPage,
   Header,
 } from './components';
 import { AIAttendanceContainer } from './components/ai-features/attendance';
+import { MessagingChat } from '../../components/shared';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import {
@@ -89,6 +93,8 @@ type TabKey =
   | 'ai-tools'
   | 'attendance'
   | 'communication'
+  | 'discussion'
+  | 'chat'
   | 'settings';
 
 const TABS: { key: TabKey; label: string; labelAr: string; icon: any }[] = [
@@ -105,6 +111,8 @@ const TABS: { key: TabKey; label: string; labelAr: string; icon: any }[] = [
   { key: 'ai-tools', label: 'AI Tools', labelAr: 'أدوات الذكاء', icon: Brain },
   { key: 'attendance', label: 'Attendance', labelAr: 'الحضور', icon: Calendar },
   { key: 'communication', label: 'Communication', labelAr: 'التواصل', icon: MessageCircle },
+  { key: 'discussion', label: 'Discussion', labelAr: 'المناقشات', icon: MessagesSquare },
+  { key: 'chat', label: 'Chat', labelAr: 'الدردشة', icon: MessageSquare },
   { key: 'settings', label: 'Settings', labelAr: 'الإعدادات', icon: Settings },
 ];
 
@@ -721,6 +729,19 @@ function InstructorDashboardContent() {
 
           {/* Communication */}
           {activeTab === 'communication' && <CommunicationPage />}
+
+          {/* Discussion */}
+          {activeTab === 'discussion' && <DiscussionPage />}
+
+          {/* Chat */}
+          {activeTab === 'chat' && (
+            <MessagingChat
+              height="calc(100vh - 160px)"
+              currentUserName="Dr. Jane Smith"
+              showVideoCall={true}
+              showVoiceCall={true}
+            />
+          )}
 
           {/* Settings */}
           {activeTab === 'settings' && <SettingsPage />}

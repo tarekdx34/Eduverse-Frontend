@@ -11,6 +11,7 @@ import {
   HeadphonesIcon,
   Settings,
   LogOut,
+  MessageCircle,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -25,6 +26,7 @@ import {
   FeedbackSupportPage,
   SystemConfigPage,
 } from './components';
+import { MessagingChat } from '../../components/shared';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import {
@@ -50,6 +52,7 @@ type TabKey =
   | 'calendar'
   | 'analytics'
   | 'communication'
+  | 'chat'
   | 'feedback'
   | 'config';
 
@@ -61,6 +64,7 @@ const TABS: { key: TabKey; label: string; labelAr: string; icon: any }[] = [
   { key: 'calendar', label: 'Academic Calendar', labelAr: 'التقويم الأكاديمي', icon: Calendar },
   { key: 'analytics', label: 'Analytics & Reports', labelAr: 'التحليلات والتقارير', icon: BarChart3 },
   { key: 'communication', label: 'Communication', labelAr: 'التواصل', icon: MessageSquare },
+  { key: 'chat', label: 'Chat', labelAr: 'الدردشة', icon: MessageCircle },
   { key: 'feedback', label: 'Feedback & Support', labelAr: 'الملاحظات والدعم', icon: HeadphonesIcon },
   { key: 'config', label: 'System Config', labelAr: 'إعدادات النظام', icon: Settings },
 ];
@@ -328,6 +332,16 @@ function AdminDashboardContent() {
               onEditTemplate={handleEditTemplate}
               onDeleteTemplate={handleDeleteTemplate}
               onSendBroadcast={handleSendBroadcast}
+            />
+          )}
+
+          {/* Chat */}
+          {activeTab === 'chat' && (
+            <MessagingChat
+              height="calc(100vh - 160px)"
+              currentUserName="Administrator"
+              showVideoCall={true}
+              showVoiceCall={true}
             />
           )}
 

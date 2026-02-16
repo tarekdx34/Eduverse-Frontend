@@ -7,6 +7,11 @@ import {
   FileText,
   Users,
   MessageCircle,
+  ClipboardCheck,
+  Calendar,
+  Megaphone,
+  MessageSquare,
+  MessagesSquare,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -17,7 +22,12 @@ import {
   GradingPage,
   StudentPerformancePage,
   CommunicationPage,
+  AttendancePage,
+  SchedulePage,
+  AnnouncementsPage,
+  DiscussionPage,
 } from './components';
+import { MessagingChat } from '../../components/shared';
 import {
   TA_INFO,
   ASSIGNED_COURSES,
@@ -29,7 +39,7 @@ import {
   STUDENT_PERFORMANCE,
 } from './constants';
 
-type TabKey = 'dashboard' | 'courses' | 'labs' | 'grading' | 'students' | 'communication';
+type TabKey = 'dashboard' | 'courses' | 'labs' | 'grading' | 'students' | 'attendance' | 'schedule' | 'announcements' | 'discussion' | 'communication' | 'chat';
 
 const TABS: { key: TabKey; label: string; icon: any }[] = [
   { key: 'dashboard', label: 'Dashboard', icon: LayoutGrid },
@@ -37,7 +47,12 @@ const TABS: { key: TabKey; label: string; icon: any }[] = [
   { key: 'labs', label: 'Labs', icon: Beaker },
   { key: 'grading', label: 'Grading', icon: FileText },
   { key: 'students', label: 'Students', icon: Users },
+  { key: 'attendance', label: 'Attendance', icon: ClipboardCheck },
+  { key: 'schedule', label: 'Schedule', icon: Calendar },
+  { key: 'announcements', label: 'Announcements', icon: Megaphone },
+  { key: 'discussion', label: 'Discussion', icon: MessagesSquare },
   { key: 'communication', label: 'Communication', icon: MessageCircle },
+  { key: 'chat', label: 'Chat', icon: MessageSquare },
 ];
 
 function TADashboard() {
@@ -167,9 +182,31 @@ function TADashboard() {
             <StudentPerformancePage students={STUDENT_PERFORMANCE} />
           )}
 
+          {/* Attendance Tab */}
+          {activeTab === 'attendance' && <AttendancePage />}
+
+          {/* Schedule Tab */}
+          {activeTab === 'schedule' && <SchedulePage />}
+
+          {/* Announcements Tab */}
+          {activeTab === 'announcements' && <AnnouncementsPage />}
+
+          {/* Discussion Tab */}
+          {activeTab === 'discussion' && <DiscussionPage userRole="ta" userName="Ahmed Hassan" />}
+
           {/* Communication Tab */}
           {activeTab === 'communication' && (
             <CommunicationPage messages={mockMessages} questions={mockQuestions} />
+          )}
+
+          {/* Chat Tab */}
+          {activeTab === 'chat' && (
+            <MessagingChat
+              height="calc(100vh - 160px)"
+              currentUserName="Ahmed Hassan"
+              showVideoCall={true}
+              showVoiceCall={true}
+            />
           )}
         </main>
       </div>

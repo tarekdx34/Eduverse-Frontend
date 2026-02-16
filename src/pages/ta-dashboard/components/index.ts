@@ -7,3 +7,7 @@ export { LabsPage } from './LabsPage';
 export { GradingPage } from './GradingPage';
 export { StudentPerformancePage } from './StudentPerformancePage';
 export { CommunicationPage } from './CommunicationPage';
+export { AttendancePage } from './AttendancePage';
+export { SchedulePage } from './SchedulePage';
+export { AnnouncementsPage } from './AnnouncementsPage';
+export { DiscussionPage } from './DiscussionPage';

@@ -9,6 +9,7 @@ import {
   Shield,
   Brain,
   Building2,
+  MessageCircle,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -22,6 +23,7 @@ import {
   AIManagementPage,
   MultiCampusPage,
 } from './components';
+import { MessagingChat } from '../../components/shared';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import {
@@ -47,7 +49,8 @@ type TabKey =
   | 'monitoring'
   | 'security'
   | 'ai'
-  | 'campus';
+  | 'campus'
+  | 'chat';
 
 const TABS: { key: TabKey; label: string; labelAr: string; icon: any }[] = [
   { key: 'dashboard', label: 'Dashboard', labelAr: 'لوحة التحكم', icon: LayoutGrid },
@@ -58,6 +61,7 @@ const TABS: { key: TabKey; label: string; labelAr: string; icon: any }[] = [
   { key: 'security', label: 'Security', labelAr: 'الأمان', icon: Shield },
   { key: 'ai', label: 'AI Management', labelAr: 'إدارة الذكاء الاصطناعي', icon: Brain },
   { key: 'campus', label: 'Multi-Campus', labelAr: 'متعدد الحرم', icon: Building2 },
+  { key: 'chat', label: 'Chat', labelAr: 'الدردشة', icon: MessageCircle },
 ];
 
 function ITAdminDashboardContent() {
@@ -289,6 +293,16 @@ function ITAdminDashboardContent() {
               onAddCampus={handleAddCampus}
               onEditCampus={handleEditCampus}
               onDeleteCampus={handleDeleteCampus}
+            />
+          )}
+
+          {/* Chat */}
+          {activeTab === 'chat' && (
+            <MessagingChat
+              height="calc(100vh - 160px)"
+              currentUserName="IT Administrator"
+              showVideoCall={true}
+              showVoiceCall={true}
             />
           )}
         </main>

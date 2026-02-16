@@ -1,4 +1,5 @@
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface PaymentRecord {
   id: string;
@@ -32,25 +33,26 @@ const defaultPayments: PaymentRecord[] = [
 
 export default function PaymentHistory({ payments = defaultPayments }: PaymentHistoryProps) {
   const { isDark } = useTheme();
+  const { t } = useLanguage();
 
   return (
     <div className={`mt-6 rounded-lg p-6 border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
       <div className="flex items-start justify-between mb-6">
         <div>
-          <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Payment & Tuition History</h2>
-          <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Complete data about your payment and tuition history</p>
+          <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('paymentTuitionHistory')}</h2>
+          <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('paymentHistoryDesc')}</p>
         </div>
-        <button className="text-purple-600 text-sm font-medium hover:text-purple-700 transition-colors">View All Payment</button>
+        <button className="text-purple-600 text-sm font-medium hover:text-purple-700 transition-colors">{t('viewAllPayment')}</button>
       </div>
 
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead className={`border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
             <tr>
-              <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Payment ID</th>
-              <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Payment Category</th>
-              <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Date</th>
-              <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Payment Status</th>
+              <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('paymentId')}</th>
+              <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('paymentCategory')}</th>
+              <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('date')}</th>
+              <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('paymentStatus')}</th>
               <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`} />
             </tr>
           </thead>

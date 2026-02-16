@@ -1,4 +1,4 @@
-# EduVerse Frontend - Complete Dashboard Documentation & Integration Plan
+git # EduVerse Frontend - Complete Dashboard Documentation & Integration Plan
 
 **Document Version:** 1.0  
 **Date:** February 5, 2026  
