@@ -129,7 +129,7 @@ export function SmartTodoReminder() {
       case 'low':
         return 'bg-blue-100 text-blue-700 border-blue-200';
       default:
-        return 'bg-gray-100 text-gray-700 border-gray-200';
+        return 'bg-slate-50 text-slate-700 border-slate-100';
     }
   };
 
@@ -155,13 +155,13 @@ export function SmartTodoReminder() {
   };
 
   const getDueDateColor = (dueDate: string, isCompleted: boolean) => {
-    if (isCompleted) return 'text-gray-500';
+    if (isCompleted) return 'text-slate-500';
     const days = getDaysUntilDue(dueDate);
     if (days < 0) return 'text-red-600 font-semibold';
     if (days === 0) return 'text-orange-600 font-semibold';
     if (days === 1) return 'text-orange-600 font-semibold';
     if (days <= 3) return 'text-yellow-600';
-    return 'text-gray-600';
+    return 'text-slate-600';
   };
 
   const filteredTodos = todos
@@ -207,7 +207,7 @@ export function SmartTodoReminder() {
         case 'high': return 'bg-red-900/50 text-red-400 border-red-700';
         case 'medium': return 'bg-orange-900/50 text-orange-400 border-orange-700';
         case 'low': return 'bg-blue-900/50 text-blue-400 border-blue-700';
-        default: return 'bg-gray-700 text-gray-400 border-gray-600';
+        default: return 'bg-white/5 text-slate-500 border-white/10';
       }
     }
     return getPriorityColor(priority);
@@ -217,63 +217,63 @@ export function SmartTodoReminder() {
     <div className="p-6" dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Header Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div className={`rounded-lg p-6 border shadow-sm ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+        <div className={`rounded-[2.5rem] p-6 ${isDark ? 'bg-card-dark border border-white/5' : 'glass'}`}>
           <div className="flex items-center gap-3 mb-2">
-            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isDark ? 'bg-indigo-900/50' : 'bg-indigo-100'}`}>
-              <Circle className={`w-5 h-5 ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`} />
+            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isDark ? 'bg-[#7C3AED]/20' : 'bg-[#7C3AED]/10'}`}>
+              <Circle className={`w-5 h-5 ${isDark ? 'text-[#7C3AED]/70' : 'text-[#7C3AED]'}`} />
             </div>
-            <span className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('pending')}</span>
+            <span className={`text-sm font-medium ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{t('pending')}</span>
           </div>
-          <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{pendingCount}</p>
+          <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{pendingCount}</p>
         </div>
 
-        <div className={`rounded-lg p-6 border shadow-sm ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+        <div className={`rounded-[2.5rem] p-6 ${isDark ? 'bg-card-dark border border-white/5' : 'glass'}`}>
           <div className="flex items-center gap-3 mb-2">
             <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isDark ? 'bg-green-900/50' : 'bg-green-100'}`}>
               <CheckCircle className={`w-5 h-5 ${isDark ? 'text-green-400' : 'text-green-600'}`} />
             </div>
-            <span className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('completed')}</span>
+            <span className={`text-sm font-medium ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{t('completed')}</span>
           </div>
-          <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{completedCount}</p>
+          <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{completedCount}</p>
         </div>
 
-        <div className={`rounded-lg p-6 border shadow-sm ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+        <div className={`rounded-[2.5rem] p-6 ${isDark ? 'bg-card-dark border border-white/5' : 'glass'}`}>
           <div className="flex items-center gap-3 mb-2">
             <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isDark ? 'bg-red-900/50' : 'bg-red-100'}`}>
               <AlertCircle className={`w-5 h-5 ${isDark ? 'text-red-400' : 'text-red-600'}`} />
             </div>
-            <span className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('high')} {t('priority')}</span>
+            <span className={`text-sm font-medium ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{t('high')} {t('priority')}</span>
           </div>
-          <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{highPriorityCount}</p>
+          <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{highPriorityCount}</p>
         </div>
 
-        <div className={`rounded-lg p-6 border shadow-sm ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+        <div className={`rounded-[2.5rem] p-6 ${isDark ? 'bg-card-dark border border-white/5' : 'glass'}`}>
           <div className="flex items-center gap-3 mb-2">
             <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isDark ? 'bg-orange-900/50' : 'bg-orange-100'}`}>
               <Calendar className={`w-5 h-5 ${isDark ? 'text-orange-400' : 'text-orange-600'}`} />
             </div>
-            <span className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{isRTL ? 'مستحق اليوم' : 'Due Today'}</span>
+            <span className={`text-sm font-medium ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{isRTL ? 'مستحق اليوم' : 'Due Today'}</span>
           </div>
-          <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{dueTodayCount}</p>
+          <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{dueTodayCount}</p>
         </div>
       </div>
 
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className={`font-semibold text-xl mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('smartTodo')}</h2>
-          <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{isRTL ? 'ابق منظماً مع إدارة المهام الذكية' : 'Stay organized with AI-powered task management'}</p>
+          <h2 className={`font-semibold text-xl mb-1 ${isDark ? 'text-white' : 'text-slate-800'}`}>{t('smartTodo')}</h2>
+          <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>{isRTL ? 'ابق منظماً مع إدارة المهام الذكية' : 'Stay organized with AI-powered task management'}</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium">
+        <button className="flex items-center gap-2 px-4 py-2 bg-[#7C3AED] text-white rounded-lg hover:bg-[#6D28D9] transition-colors font-medium">
           <Plus className="w-5 h-5" />
           {t('addTask')}
         </button>
       </div>
 
       {/* Filters */}
-      <div className={`rounded-lg border p-4 mb-6 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+      <div className={`rounded-[2.5rem] p-4 mb-6 ${isDark ? 'bg-card-dark border border-white/5' : 'glass'}`}>
         <div className="flex items-center gap-4 flex-wrap">
           <div className="flex items-center gap-2">
-            <span className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('status')}:</span>
+            <span className={`text-sm font-medium ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{t('status')}:</span>
             <div className="flex gap-2">
               {(['all', 'pending', 'completed'] as const).map((f) => (
                 <button
@@ -281,8 +281,8 @@ export function SmartTodoReminder() {
                   onClick={() => setFilter(f)}
                   className={`px-3 py-1.5 rounded-lg text-sm capitalize font-medium transition-colors ${
                     filter === f
-                      ? 'bg-indigo-100 text-indigo-700 border border-indigo-200'
-                      : isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      ? 'bg-[#7C3AED]/10 text-[#7C3AED] border border-[#7C3AED]/20'
+                      : isDark ? 'bg-white/5 text-slate-400 hover:bg-white/10' : 'bg-slate-50 text-slate-700 hover:bg-slate-200'
                   }`}
                 >
                   {f === 'all' ? t('all') : f === 'pending' ? t('pending') : t('completed')}
@@ -291,7 +291,7 @@ export function SmartTodoReminder() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <span className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('priority')}:</span>
+            <span className={`text-sm font-medium ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{t('priority')}:</span>
             <div className="flex gap-2">
               {(['all', 'high', 'medium', 'low'] as const).map((p) => (
                 <button
@@ -299,8 +299,8 @@ export function SmartTodoReminder() {
                   onClick={() => setPriorityFilter(p)}
                   className={`px-3 py-1.5 rounded-lg text-sm capitalize font-medium transition-colors ${
                     priorityFilter === p
-                      ? 'bg-indigo-100 text-indigo-700 border border-indigo-200'
-                      : isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      ? 'bg-[#7C3AED]/10 text-[#7C3AED] border border-[#7C3AED]/20'
+                      : isDark ? 'bg-white/5 text-slate-400 hover:bg-white/10' : 'bg-slate-50 text-slate-700 hover:bg-slate-200'
                   }`}
                 >
                   {p === 'all' ? t('all') : getPriorityText(p)}
@@ -316,10 +316,10 @@ export function SmartTodoReminder() {
         {filteredTodos.map((todo) => (
           <div
             key={todo.id}
-            className={`rounded-lg border p-5 hover:shadow-lg transition-all ${
+            className={`rounded-[2.5rem] p-5 hover:shadow-lg transition-all ${
               isDark 
-                ? todo.isCompleted ? 'bg-gray-700/50 border-gray-700 opacity-65' : 'bg-gray-800 border-gray-700'
-                : todo.isCompleted ? 'opacity-65 bg-gray-50 border-gray-200' : 'bg-white border-gray-200'
+                ? todo.isCompleted ? 'bg-white/5 border border-white/5 opacity-65' : 'bg-card-dark border border-white/5'
+                : todo.isCompleted ? 'opacity-65 glass' : 'glass'
             }`}
           >
             <div className="flex items-start gap-4">
@@ -330,7 +330,7 @@ export function SmartTodoReminder() {
                 {todo.isCompleted ? (
                   <CheckCircle className="w-6 h-6 text-green-600" />
                 ) : (
-                  <Circle className={`w-6 h-6 hover:text-indigo-600 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
+                  <Circle className={`w-6 h-6 hover:text-[#7C3AED] ${isDark ? 'text-slate-500' : 'text-slate-500'}`} />
                 )}
               </button>
 
@@ -340,17 +340,17 @@ export function SmartTodoReminder() {
                     <h3
                       className={`font-semibold mb-1 ${
                         todo.isCompleted 
-                          ? 'line-through text-gray-500' 
-                          : isDark ? 'text-white' : 'text-gray-900'
+                          ? 'line-through text-slate-500' 
+                          : isDark ? 'text-white' : 'text-slate-800'
                       }`}
                     >
                       {todo.title}
                     </h3>
-                    <p className={`text-sm mb-3 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{todo.description}</p>
+                    <p className={`text-sm mb-3 ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{todo.description}</p>
                   </div>
                   <button
                     onClick={() => deleteTodo(todo.id)}
-                    className={`ml-4 p-2 rounded-lg transition-colors ${isDark ? 'text-gray-500 hover:text-red-400 hover:bg-red-900/30' : 'text-gray-400 hover:text-red-600 hover:bg-red-50'}`}
+                    className={`ml-4 p-2 rounded-lg transition-colors ${isDark ? 'text-slate-500 hover:text-red-400 hover:bg-red-900/30' : 'text-slate-500 hover:text-red-600 hover:bg-red-50'}`}
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -366,7 +366,7 @@ export function SmartTodoReminder() {
                     {todo.priority} priority
                   </span>
 
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${isDark ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-700'}`}>
+                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${isDark ? 'bg-white/5 text-slate-400' : 'bg-slate-50 text-slate-700'}`}>
                     {todo.category}
                   </span>
 
@@ -380,13 +380,13 @@ export function SmartTodoReminder() {
                     {new Date(todo.dueDate).toLocaleDateString()}
                   </span>
 
-                  <span className={`flex items-center gap-1.5 text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                  <span className={`flex items-center gap-1.5 text-xs ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
                     <Clock className="w-3.5 h-3.5" />
                     {todo.dueTime}
                   </span>
 
                   {!todo.isCompleted && getDaysUntilDue(todo.dueDate) >= 0 && (
-                    <span className={`text-xs font-medium ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                    <span className={`text-xs font-medium ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
                       {getDaysUntilDue(todo.dueDate) === 0
                         ? '🔴 Due today'
                         : getDaysUntilDue(todo.dueDate) === 1
@@ -406,7 +406,7 @@ export function SmartTodoReminder() {
                   {todo.tags.map((tag, idx) => (
                     <span
                       key={idx}
-                      className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border ${isDark ? 'bg-indigo-900/50 text-indigo-400 border-indigo-700' : 'bg-indigo-50 text-indigo-700 border-indigo-100'}`}
+                      className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border ${isDark ? 'bg-[#7C3AED]/20 text-[#7C3AED]/70 border-[#7C3AED]/50' : 'bg-[#7C3AED]/10 text-[#7C3AED] border-[#7C3AED]/10'}`}
                     >
                       <Tag className="w-3 h-3" />
                       {tag}
@@ -420,10 +420,10 @@ export function SmartTodoReminder() {
       </div>
 
       {filteredTodos.length === 0 && (
-        <div className={`text-center py-12 rounded-lg border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-          <Circle className={`w-16 h-16 mx-auto mb-4 ${isDark ? 'text-gray-600' : 'text-gray-300'}`} />
-          <h3 className={`font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>No tasks found</h3>
-          <p className={`mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+        <div className={`text-center py-12 rounded-[2.5rem] ${isDark ? 'bg-card-dark border border-white/5' : 'glass'}`}>
+          <Circle className={`w-16 h-16 mx-auto mb-4 ${isDark ? 'text-slate-600' : 'text-slate-400'}`} />
+          <h3 className={`font-semibold mb-2 ${isDark ? 'text-white' : 'text-slate-800'}`}>No tasks found</h3>
+          <p className={`mb-4 ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
             {filter === 'completed'
               ? "You haven't completed any tasks yet"
               : 'Try adjusting your filters or create a new task'}

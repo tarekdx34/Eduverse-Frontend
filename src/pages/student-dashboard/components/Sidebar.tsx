@@ -41,55 +41,51 @@ export default function Sidebar({ onTabChange, tabs, activeTab, onLogout }: Side
   const { isDark } = useTheme();
 
   return (
-    <aside className={`w-56 h-screen flex flex-col ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} ${isRTL ? 'border-l' : 'border-r'}`}>
-      {/* Header */}
-      <div className="flex items-center gap-2 p-4 border-b border-inherit">
-        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex-shrink-0" />
-        <h2 className={`text-sm font-semibold truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>
-          {t('studentDashboard')}
-        </h2>
+    <aside className={`w-64 h-screen flex flex-col ${isDark ? 'bg-card-dark border-white/5' : 'glass border-slate-200'} ${isRTL ? 'border-l' : 'border-r'} p-6`}>
+      {/* Branding */}
+      <div className="flex items-center mb-10 px-2">
+        <span className={`text-2xl font-bold tracking-tight ${isDark ? 'text-white' : 'text-slate-800'}`}>
+          Eduverse
+        </span>
       </div>
       
-      {/* Navigation - Scrollable */}
-      <nav className="flex-1 overflow-y-auto p-3 space-y-0.5">
+      {/* Navigation */}
+      <nav className="flex-1 overflow-y-auto sidebar-scroll space-y-2">
         {tabs && tabs.map((tab) => {
           const IconComponent = tab.icon;
           const translationKey = tabTranslationKeys[tab.id] || tab.id;
           const translatedLabel = t(translationKey);
+          const isActive = activeTab === tab.id;
           
           return (
             <button
               key={tab.id}
               onClick={() => onTabChange?.(tab.id)}
-              className={`w-full flex items-center gap-2 px-2.5 py-2 rounded-lg transition-colors text-xs ${
-                activeTab === tab.id
-                  ? isDark 
-                    ? 'bg-indigo-900/50 text-indigo-300 border border-indigo-700'
-                    : 'bg-indigo-50 text-indigo-700 border border-indigo-100'
+              className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all text-sm ${
+                isActive
+                  ? isDark
+                    ? 'bg-[#7C3AED]/10 text-[#7C3AED] font-semibold'
+                    : 'sidebar-item-active text-white font-semibold'
                   : isDark
-                    ? 'hover:bg-gray-700 text-gray-300'
-                    : 'hover:bg-gray-50 text-gray-800'
+                    ? 'text-slate-400 hover:bg-white/5'
+                    : 'text-slate-500 hover:text-[#7C3AED]'
               }`}
             >
-              <IconComponent className="w-4 h-4 flex-shrink-0" />
-              <span className="font-medium truncate">{translatedLabel}</span>
+              <IconComponent className="w-5 h-5 flex-shrink-0" />
+              <span className="truncate">{translatedLabel}</span>
             </button>
           );
         })}
       </nav>
       
-      {/* Logout Button */}
-      <div className="p-3 border-t border-inherit">
+      {/* Logout */}
+      <div className={`pt-6 mt-6 border-t ${isDark ? 'border-white/5' : 'border-slate-200'}`}>
         <button
           onClick={onLogout}
-          className={`w-full flex items-center gap-2 px-2.5 py-2 rounded-lg transition-colors text-xs ${
-            isDark
-              ? 'hover:bg-red-900/50 text-red-400'
-              : 'hover:bg-red-50 text-red-600'
-          }`}
+          className="w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all text-red-500 hover:bg-red-500/10 font-medium text-sm"
         >
-          <LogOut className="w-4 h-4 flex-shrink-0" />
-          <span className="font-medium">{t('logout')}</span>
+          <LogOut className="w-5 h-5 flex-shrink-0" />
+          <span>{t('logout')}</span>
         </button>
       </div>
     </aside>

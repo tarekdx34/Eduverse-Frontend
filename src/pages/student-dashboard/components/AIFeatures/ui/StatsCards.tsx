@@ -1,6 +1,7 @@
-import { Sparkles, TrendingUp, Zap, Star, Clock } from 'lucide-react';
+import { TrendingUp, Zap, Star, Clock } from 'lucide-react';
 import { AIFeature } from '../types';
 import { useLanguage } from '../../../contexts/LanguageContext';
+import { useTheme } from '../../../contexts/ThemeContext';
 
 interface StatsCardsProps {
   totalFeatures: number;
@@ -10,70 +11,58 @@ interface StatsCardsProps {
 
 export function StatsCards({ totalFeatures, totalUsage, mostUsedFeature }: StatsCardsProps) {
   const { isRTL } = useLanguage();
-  
+  const { isDark } = useTheme();
+
+  const cards = [
+    {
+      label: isRTL ? 'أدوات الذكاء الاصطناعي' : 'AI Tools Available',
+      value: `0${totalFeatures}`,
+      sub: <span className="text-green-500 text-xs font-bold flex items-center gap-1"><TrendingUp className="w-3 h-3" /> {isRTL ? 'جميعها متاحة' : 'All unlocked'}</span>,
+      icon: 'apps',
+      iconBg: 'bg-[#7C3AED]/10 text-[#7C3AED]',
+      hoverBorder: 'hover:border-[#7C3AED]/50',
+    },
+    {
+      label: isRTL ? 'إجمالي التفاعلات' : 'Total Interactions',
+      value: totalUsage.toString(),
+      sub: <span className="text-slate-400 text-xs">{isRTL ? 'هذا الفصل' : 'This semester'}</span>,
+      icon: 'bolt',
+      iconBg: 'bg-purple-500/10 text-purple-500',
+      hoverBorder: 'hover:border-purple-500/50',
+    },
+    {
+      label: isRTL ? 'الأكثر استخداماً' : 'Most Popular',
+      value: mostUsedFeature.title,
+      isText: true,
+      sub: <span className="text-emerald-500 text-xs font-bold">{mostUsedFeature.usageCount} {isRTL ? 'استخدام' : 'uses'}</span>,
+      icon: 'star',
+      iconBg: 'bg-emerald-500/10 text-emerald-500',
+      hoverBorder: 'hover:border-emerald-500/50',
+    },
+    {
+      label: isRTL ? 'الوقت الموفر' : 'Time Saved',
+      value: isRTL ? '42 ساعة' : '42h',
+      sub: <span className="text-amber-500 text-xs font-bold flex items-center gap-1"><TrendingUp className="w-3 h-3" /> {isRTL ? '+8 ساعات هذا الأسبوع' : '+8h this week'}</span>,
+      icon: 'schedule',
+      iconBg: 'bg-amber-500/10 text-amber-500',
+      hoverBorder: 'hover:border-amber-500/50',
+    },
+  ];
+
   return (
-    <div className="grid grid-cols-4 gap-4 mb-6" dir={isRTL ? 'rtl' : 'ltr'}>
-      <div className="bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg transition-shadow">
-        <div className="flex items-center justify-between mb-4">
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8" dir={isRTL ? 'rtl' : 'ltr'}>
+      {cards.map((card, i) => (
+        <div key={i} className={`p-6 glass rounded-[2.5rem] flex items-center justify-between group transition-all ${card.hoverBorder}`}>
           <div>
-            <p className="text-gray-600 text-sm mb-1">{isRTL ? 'أدوات الذكاء الاصطناعي' : 'AI Tools Available'}</p>
-            <p className="text-gray-900 text-3xl">{totalFeatures}</p>
+            <p className={`text-sm font-medium ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{card.label}</p>
+            <h4 className={`mt-1 font-bold ${isDark ? 'text-white' : 'text-slate-800'} ${card.isText ? 'text-lg leading-tight' : 'text-3xl'}`}>{card.value}</h4>
+            <div className="mt-2">{card.sub}</div>
           </div>
-          <div className="w-14 h-14 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-            <Sparkles className="w-7 h-7 text-white" />
-          </div>
-        </div>
-        <div className="flex items-center gap-1 text-sm text-green-600">
-          <TrendingUp className="w-4 h-4" />
-          <span>{isRTL ? 'جميعها متاحة' : 'All unlocked'}</span>
-        </div>
-      </div>
-
-      <div className="bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg transition-shadow">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <p className="text-gray-600 text-sm mb-1">{isRTL ? 'إجمالي التفاعلات' : 'Total Interactions'}</p>
-            <p className="text-gray-900 text-3xl">{totalUsage}</p>
-          </div>
-          <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-            <Zap className="w-7 h-7 text-white" />
+          <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${card.iconBg} transition-all`}>
+            <span className="material-symbols-rounded">{card.icon}</span>
           </div>
         </div>
-        <div className="flex items-center gap-1 text-sm text-purple-600">
-          <span>{isRTL ? 'هذا الفصل' : 'This semester'}</span>
-        </div>
-      </div>
-
-      <div className="bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg transition-shadow">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <p className="text-gray-600 text-sm mb-1">{isRTL ? 'الأكثر استخداماً' : 'Most Popular'}</p>
-            <p className="text-gray-900 text-lg leading-tight">{mostUsedFeature.title}</p>
-          </div>
-          <div className="w-14 h-14 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
-            <Star className="w-7 h-7 text-white" />
-          </div>
-        </div>
-        <div className="flex items-center gap-1 text-sm text-emerald-600">
-          <span>{mostUsedFeature.usageCount} {isRTL ? 'استخدام' : 'uses'}</span>
-        </div>
-      </div>
-
-      <div className="bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg transition-shadow">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <p className="text-gray-600 text-sm mb-1">{isRTL ? 'الوقت الموفر' : 'Time Saved'}</p>
-            <p className="text-gray-900 text-3xl">{isRTL ? '42 ساعة' : '42h'}</p>
-          </div>
-          <div className="w-14 h-14 bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl flex items-center justify-center shadow-lg">
-            <Clock className="w-7 h-7 text-white" />
-          </div>
-        </div>
-        <div className="flex items-center gap-1 text-sm text-amber-600">
-          <TrendingUp className="w-4 h-4" />
-          <span>{isRTL ? '+8 ساعات هذا الأسبوع' : '+8h this week'}</span>
-        </div>
-      </div>
+      ))}
     </div>
   );
 }

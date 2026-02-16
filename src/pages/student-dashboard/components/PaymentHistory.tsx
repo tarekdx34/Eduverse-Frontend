@@ -36,36 +36,36 @@ export default function PaymentHistory({ payments = defaultPayments }: PaymentHi
   const { t } = useLanguage();
 
   return (
-    <div className={`mt-6 rounded-lg p-6 border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+    <div className="glass rounded-[2.5rem] mt-6 p-6">
       <div className="flex items-start justify-between mb-6">
         <div>
-          <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('paymentTuitionHistory')}</h2>
-          <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('paymentHistoryDesc')}</p>
+          <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>{t('paymentTuitionHistory')}</h2>
+          <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{t('paymentHistoryDesc')}</p>
         </div>
         <button className="text-purple-600 text-sm font-medium hover:text-purple-700 transition-colors">{t('viewAllPayment')}</button>
       </div>
 
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className={`border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+          <thead className={`border-b ${isDark ? 'border-white/5' : 'border-slate-100'}`}>
             <tr>
-              <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('paymentId')}</th>
-              <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('paymentCategory')}</th>
-              <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('date')}</th>
-              <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('paymentStatus')}</th>
-              <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`} />
+              <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-slate-400' : 'text-slate-700'}`}>{t('paymentId')}</th>
+              <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-slate-400' : 'text-slate-700'}`}>{t('paymentCategory')}</th>
+              <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-slate-400' : 'text-slate-700'}`}>{t('date')}</th>
+              <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-slate-400' : 'text-slate-700'}`}>{t('paymentStatus')}</th>
+              <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-slate-400' : 'text-slate-700'}`} />
             </tr>
           </thead>
           <tbody>
             {payments.map((payment) => (
-              <tr key={payment.id} className={`border-b transition-colors ${isDark ? 'border-gray-700 hover:bg-gray-700/50' : 'border-gray-100 hover:bg-gray-50'}`}>
-                <td className={`py-4 px-4 ${isDark ? 'text-gray-300' : ''}`}>{payment.id}</td>
-                <td className={`py-4 px-4 ${isDark ? 'text-gray-300' : ''}`}>{payment.category}</td>
-                <td className={`py-4 px-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{payment.date}</td>
+              <tr key={payment.id} className={`border-b transition-colors ${isDark ? 'border-white/5 hover:bg-white/5/50' : 'border-slate-100 hover:bg-slate-50'}`}>
+                <td className={`py-4 px-4 ${isDark ? 'text-slate-400' : ''}`}>{payment.id}</td>
+                <td className={`py-4 px-4 ${isDark ? 'text-slate-400' : ''}`}>{payment.category}</td>
+                <td className={`py-4 px-4 ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{payment.date}</td>
                 <td className="py-4 px-4">
                   <span className={`inline-block px-3 py-1 text-xs font-medium rounded ${getStatusColor(payment.status, isDark)}`}>{payment.status}</span>
                 </td>
-                <td className={`py-4 px-4 cursor-pointer ${isDark ? 'text-gray-500 hover:text-gray-300' : 'text-gray-400 hover:text-gray-600'}`}>⋯</td>
+                <td className={`py-4 px-4 cursor-pointer ${isDark ? 'text-slate-500 hover:text-slate-400' : 'text-slate-500 hover:text-slate-600'}`}>⋯</td>
               </tr>
             ))}
           </tbody>

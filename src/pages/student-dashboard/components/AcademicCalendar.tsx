@@ -109,7 +109,7 @@ const getEventBadgeColor = (type: string) => {
     case 'Holiday':
       return 'bg-orange-100 text-orange-700';
     default:
-      return 'bg-gray-100 text-gray-700';
+      return 'bg-slate-50 text-slate-700';
   }
 };
 
@@ -126,26 +126,26 @@ const StatCard = ({
   color: string;
   isDark: boolean;
 }) => (
-  <div className={`border rounded-lg p-6 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+  <div className={`glass rounded-[2.5rem] p-6`}>
     <div className="flex justify-between items-start gap-4">
       <div>
-        <p className={`text-sm mb-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{label}</p>
-        <p className={`text-4xl font-bold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>{value}</p>
-        <p className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>{subtext}</p>
+        <p className={`text-sm mb-2 ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{label}</p>
+        <p className={`text-4xl font-bold mb-3 ${isDark ? 'text-white' : 'text-slate-800'}`}>{value}</p>
+        <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>{subtext}</p>
       </div>
       <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${color}`}>
-        <Calendar size={24} className={isDark ? 'text-gray-300' : 'text-gray-600'} />
+        <Calendar size={24} className={isDark ? 'text-slate-400' : 'text-slate-600'} />
       </div>
     </div>
   </div>
 );
 
 const UpcomingEventCard = ({ event, isDark }: { event: UpcomingEvent; isDark: boolean }) => (
-  <div className={`border-l-4 border-l-blue-500 rounded-lg p-4 mb-4 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+  <div className={`border-l-4 border-l-blue-500 rounded-lg p-4 mb-4 ${isDark ? 'bg-card-dark' : 'bg-white'}`}>
     <div className="flex justify-between items-start gap-4 mb-3">
       <div>
-        <h4 className={`font-semibold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{event.title}</h4>
-        <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{event.description}</p>
+        <h4 className={`font-semibold mb-1 ${isDark ? 'text-white' : 'text-slate-800'}`}>{event.title}</h4>
+        <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{event.description}</p>
       </div>
       <span className={`text-xs font-semibold px-3 py-1 rounded whitespace-nowrap ${getEventBadgeColor(event.type)}`}>
         {event.type}
@@ -153,16 +153,16 @@ const UpcomingEventCard = ({ event, isDark }: { event: UpcomingEvent; isDark: bo
     </div>
 
     <div className="space-y-2">
-      <div className={`flex items-center gap-3 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+      <div className={`flex items-center gap-3 text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
         <Calendar size={12} />
         <span>{event.date}</span>
       </div>
-      <div className={`flex items-center gap-3 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+      <div className={`flex items-center gap-3 text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
         <Clock size={12} />
         <span>{event.time}</span>
       </div>
       {event.location && (
-        <div className={`flex items-center gap-3 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+        <div className={`flex items-center gap-3 text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
           <MapPin size={12} />
           <span>{event.location}</span>
         </div>
@@ -204,15 +204,15 @@ const CalendarGrid = ({ events, month, year, isDark }: { events: CalendarEvent[]
   );
 
   return (
-    <div className={`rounded-lg p-6 border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+    <div className={`glass rounded-[2.5rem] p-6`}>
       {/* Header */}
-      <div className={`flex justify-between items-center mb-6 pb-6 border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
-        <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{monthNames[month]} {year}</h2>
+      <div className={`flex justify-between items-center mb-6 pb-6 border-b ${isDark ? 'border-white/5' : 'border-slate-100'}`}>
+        <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{monthNames[month]} {year}</h2>
         <div className="flex gap-2">
-          <button className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-100'}`}>
+          <button className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-white/5 text-slate-400' : 'hover:bg-slate-50'}`}>
             <ChevronLeft size={20} />
           </button>
-          <button className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-100'}`}>
+          <button className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-white/5 text-slate-400' : 'hover:bg-slate-50'}`}>
             <ChevronRight size={20} />
           </button>
         </div>
@@ -221,7 +221,7 @@ const CalendarGrid = ({ events, month, year, isDark }: { events: CalendarEvent[]
       {/* Day headers */}
       <div className="grid grid-cols-7 gap-2 mb-4">
         {days.map((day) => (
-          <div key={day} className={`text-center font-semibold text-sm py-3 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+          <div key={day} className={`text-center font-semibold text-sm py-3 ${isDark ? 'text-slate-400' : 'text-slate-700'}`}>
             {day}
           </div>
         ))}
@@ -232,11 +232,11 @@ const CalendarGrid = ({ events, month, year, isDark }: { events: CalendarEvent[]
         {calendarDays.map((day, idx) => (
           <div
             key={idx}
-            className={`border rounded-lg p-3 min-h-24 relative ${isDark ? 'bg-gray-700/50 border-gray-600' : 'bg-gray-50 border-gray-200'}`}
+            className={`border rounded-lg p-3 min-h-24 relative ${isDark ? 'bg-white/5 border-white/10' : 'bg-background-light border-slate-100'}`}
           >
             {day && (
               <>
-                <p className={`font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>{day}</p>
+                <p className={`font-semibold mb-2 ${isDark ? 'text-white' : 'text-slate-800'}`}>{day}</p>
                 {dayEvents[day]?.map((event) => (
                   <div
                     key={event.id}
@@ -253,24 +253,24 @@ const CalendarGrid = ({ events, month, year, isDark }: { events: CalendarEvent[]
       </div>
 
       {/* Legend */}
-      <div className={`mt-6 pt-6 border-t ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
-        <p className={`text-sm font-semibold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>Legend:</p>
-        <div className={`grid grid-cols-3 gap-4 text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+      <div className={`mt-6 pt-6 border-t ${isDark ? 'border-white/5' : 'border-slate-100'}`}>
+        <p className={`text-sm font-semibold mb-3 ${isDark ? 'text-white' : 'text-slate-800'}`}>Legend:</p>
+        <div className={`grid grid-cols-3 gap-4 text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 bg-red-100 rounded"></div>
-            <span className="text-gray-600">Exam</span>
+            <span className="text-slate-600">Exam</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 bg-yellow-100 rounded"></div>
-            <span className="text-gray-600">Assignment</span>
+            <span className="text-slate-600">Assignment</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 bg-green-100 rounded"></div>
-            <span className="text-gray-600">Event</span>
+            <span className="text-slate-600">Event</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 bg-orange-100 rounded"></div>
-            <span className="text-gray-600">Holiday</span>
+            <span className="text-slate-600">Holiday</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 bg-purple-100 rounded"></div>
@@ -315,11 +315,11 @@ export default function AcademicCalendar({
           {/* Header */}
           <div className="flex justify-between items-start">
             <div>
-              <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Upcoming Events</h3>
-              <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Next scheduled events</p>
+              <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>Upcoming Events</h3>
+              <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>Next scheduled events</p>
             </div>
-            <button className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}>
-              <Plus size={20} className={isDark ? 'text-gray-400' : 'text-gray-600'} />
+            <button className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'}`}>
+              <Plus size={20} className={isDark ? 'text-slate-500' : 'text-slate-600'} />
             </button>
           </div>
 
@@ -327,7 +327,7 @@ export default function AcademicCalendar({
           <select
             value={filterCategory}
             onChange={(e) => setFilterCategory(e.target.value)}
-            className={`w-full px-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-200'}`}
+            className={`w-full px-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-white/5 border-white/10 text-white' : 'border-slate-100'}`}
           >
             <option>All Categories</option>
             <option>Exams</option>

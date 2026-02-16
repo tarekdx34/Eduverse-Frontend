@@ -54,9 +54,9 @@ const assignments = [
     points: 150,
     submittedPoints: null,
     progress: 60,
-    color: 'bg-indigo-500',
-    colorLight: 'bg-indigo-50',
-    colorBorder: 'border-indigo-500'
+    color: 'bg-[#7C3AED]/100',
+    colorLight: 'bg-[#7C3AED]/10',
+    colorBorder: 'border-[#7C3AED]'
   },
   {
     id: 3,
@@ -169,7 +169,7 @@ const getStatusBadge = (status: string) => {
     case 'graded':
       return 'bg-emerald-50 text-emerald-700 border-emerald-200';
     default:
-      return 'bg-gray-50 text-gray-700 border-gray-200';
+      return 'bg-background-light text-slate-700 border-slate-100';
   }
 };
 
@@ -199,7 +199,7 @@ export default function Assignments() {
     if (daysUntil === 0) return { label: t('dueToday'), color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-500' };
     if (daysUntil === 1) return { label: t('dueTomorrow'), color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-500' };
     if (daysUntil <= 3) return { label: `${daysUntil} ${t('daysLeft')}`, color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-500' };
-    return { label: `${daysUntil} ${t('daysLeft')}`, color: 'text-gray-600', bg: 'bg-gray-50', border: 'border-gray-300' };
+    return { label: `${daysUntil} ${t('daysLeft')}`, color: 'text-slate-600', bg: 'bg-background-light', border: 'border-slate-200' };
   };
 
   const pendingAssignments = assignments.filter(a => a.status === 'pending' || a.status === 'in-progress');
@@ -239,21 +239,21 @@ export default function Assignments() {
       case 'graded':
         return isDark ? 'bg-emerald-900/50 text-emerald-400 border-emerald-700' : 'bg-emerald-50 text-emerald-700 border-emerald-200';
       default:
-        return isDark ? 'bg-gray-700 text-gray-400 border-gray-600' : 'bg-gray-50 text-gray-700 border-gray-200';
+        return isDark ? 'bg-white/5 text-slate-500 border-white/10' : 'bg-background-light text-slate-700 border-slate-100';
     }
   };
 
   return (
     <div className="space-y-8">
       {/* Hero Banner */}
-      <div className="bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 rounded-2xl p-8 text-white shadow-xl">
+      <div className="bg-gradient-to-br from-[#7C3AED] via-purple-600 to-pink-600 rounded-2xl p-8 text-white shadow-xl">
         <div className="max-w-4xl">
           <div className="flex items-center gap-2 mb-3">
             <Target className="w-6 h-6" />
             <span className="text-sm bg-white/20 px-3 py-1 rounded-full">{t('assignmentTracker')}</span>
           </div>
           <h1 className="text-3xl mb-3 font-bold">{t('stayOnTop')}</h1>
-          <p className="text-indigo-100 text-lg">
+          <p className="text-purple-100 text-lg">
             Track your progress, manage deadlines, and achieve your academic goals with confidence
           </p>
         </div>
@@ -261,26 +261,26 @@ export default function Assignments() {
 
       {/* Enhanced Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className={`rounded-xl p-6 border hover:shadow-lg transition-shadow ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+        <div className="glass rounded-[2.5rem] p-6 hover:shadow-lg transition-shadow">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <p className={`text-sm mb-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('totalAssignments')}</p>
-              <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{assignments.length}</p>
+              <p className={`text-sm mb-1 ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{t('totalAssignments')}</p>
+              <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{assignments.length}</p>
             </div>
-            <div className="w-14 h-14 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+            <div className="w-14 h-14 bg-gradient-to-br from-[#7C3AED] to-[#7C3AED] rounded-xl flex items-center justify-center shadow-lg">
               <FileText className="w-7 h-7 text-white" />
             </div>
           </div>
-          <div className={`flex items-center gap-1 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+          <div className={`flex items-center gap-1 text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
             <span>{t('thisSemester')}</span>
           </div>
         </div>
 
-        <div className={`rounded-xl p-6 border hover:shadow-lg transition-shadow ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+        <div className="glass rounded-[2.5rem] p-6 hover:shadow-lg transition-shadow">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <p className={`text-sm mb-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('activeTasks')}</p>
-              <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{pendingAssignments.length}</p>
+              <p className={`text-sm mb-1 ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{t('activeTasks')}</p>
+              <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{pendingAssignments.length}</p>
             </div>
             <div className="w-14 h-14 bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl flex items-center justify-center shadow-lg">
               <AlertCircle className="w-7 h-7 text-white" />
@@ -292,11 +292,11 @@ export default function Assignments() {
           </div>
         </div>
 
-        <div className={`rounded-xl p-6 border hover:shadow-lg transition-shadow ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+        <div className="glass rounded-[2.5rem] p-6 hover:shadow-lg transition-shadow">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <p className={`text-sm mb-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('completionRate')}</p>
-              <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{Math.round((completedAssignments.length / assignments.length) * 100)}%</p>
+              <p className={`text-sm mb-1 ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{t('completionRate')}</p>
+              <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{Math.round((completedAssignments.length / assignments.length) * 100)}%</p>
             </div>
             <div className="w-14 h-14 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
               <CheckCircle className="w-7 h-7 text-white" />
@@ -307,11 +307,11 @@ export default function Assignments() {
           </div>
         </div>
 
-        <div className={`rounded-xl p-6 border hover:shadow-lg transition-shadow ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+        <div className="glass rounded-[2.5rem] p-6 hover:shadow-lg transition-shadow">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <p className={`text-sm mb-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('averageScore')}</p>
-              <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{avgScore}%</p>
+              <p className={`text-sm mb-1 ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{t('averageScore')}</p>
+              <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{avgScore}%</p>
             </div>
             <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
               <Award className="w-7 h-7 text-white" />
@@ -324,19 +324,19 @@ export default function Assignments() {
       </div>
 
       {/* Active Assignments */}
-      <div className={`rounded-xl border shadow-sm overflow-hidden ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-        <div className={`p-6 border-b ${isDark ? 'bg-gray-700/50 border-gray-700' : 'bg-gradient-to-r from-gray-50 to-white border-gray-200'}`}>
+      <div className="glass rounded-[2.5rem] shadow-sm overflow-hidden">
+        <div className={`p-6 border-b ${isDark ? 'bg-white/5 border-white/5' : 'bg-gradient-to-r from-background-light to-white border-slate-100'}`}>
           <div className="flex items-center justify-between">
             <div>
-              <h2 className={`font-semibold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('activeAssignments')}</h2>
-              <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('trackManageWork')}</p>
+              <h2 className={`font-semibold mb-1 ${isDark ? 'text-white' : 'text-slate-800'}`}>{t('activeAssignments')}</h2>
+              <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{t('trackManageWork')}</p>
             </div>
             <div className="flex items-center gap-3">
-              <button className={`flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl text-sm transition-all ${isDark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-200 text-gray-700 hover:bg-gray-50'}`}>
+              <button className={`flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl text-sm transition-all ${isDark ? 'border-white/10 text-slate-400 hover:bg-white/5' : 'border-slate-100 text-slate-700 hover:bg-slate-50'}`}>
                 <SlidersHorizontal className="w-4 h-4" />
                 Filter
               </button>
-              <button className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-xl text-sm hover:shadow-lg transition-all">
+              <button className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#7C3AED] to-[#6D28D9] text-white rounded-xl text-sm hover:shadow-lg transition-all">
                 <Plus className="w-4 h-4" />
                 Add Assignment
               </button>
@@ -347,11 +347,11 @@ export default function Assignments() {
         <div className="p-6 space-y-4">
           {pendingAssignments.length === 0 ? (
             <div className="text-center py-12">
-              <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 ${isDark ? 'bg-gray-700' : 'bg-gray-100'}`}>
-                <CheckCircle className={`w-8 h-8 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
+              <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 ${isDark ? 'bg-white/5' : 'bg-slate-50'}`}>
+                <CheckCircle className={`w-8 h-8 ${isDark ? 'text-slate-500' : 'text-slate-500'}`} />
               </div>
-              <h3 className={`mb-2 font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('allCaughtUp')}</h3>
-              <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('noPendingAssignments')}</p>
+              <h3 className={`mb-2 font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>{t('allCaughtUp')}</h3>
+              <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{t('noPendingAssignments')}</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -365,13 +365,13 @@ export default function Assignments() {
                     className={`border-2 rounded-xl p-4 hover:shadow-lg transition-all cursor-pointer group ${
                       daysUntil <= 2 
                         ? isDark ? 'border-red-800 bg-red-900/20' : 'border-red-200 bg-red-50/30' 
-                        : isDark ? 'border-gray-700 hover:border-indigo-600' : 'border-gray-200 hover:border-indigo-300'
+                        : isDark ? 'border-white/5 hover:border-[#7C3AED]' : 'border-slate-100 hover:border-[#7C3AED]/50'
                     }`}
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2 flex-wrap">
-                          <h3 className={`group-hover:text-indigo-600 transition-colors text-base font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                          <h3 className={`group-hover:text-[#7C3AED] transition-colors text-base font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>
                             {assignment.title}
                           </h3>
                           <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg border text-xs ${getStatusBadgeDark(assignment.status)}`}>
@@ -379,13 +379,13 @@ export default function Assignments() {
                             <span className="capitalize">{assignment.status === 'in-progress' ? t('inProgress') : t('pending')}</span>
                           </span>
                         </div>
-                        <p className={`text-xs mb-3 leading-relaxed ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{assignment.description}</p>
-                        <div className={`flex items-center gap-2 text-xs flex-wrap mb-3 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                          <div className={`flex items-center gap-1.5 px-2 py-1 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-200'}`}>
+                        <p className={`text-xs mb-3 leading-relaxed ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{assignment.description}</p>
+                        <div className={`flex items-center gap-2 text-xs flex-wrap mb-3 ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
+                          <div className={`flex items-center gap-1.5 px-2 py-1 rounded-lg border ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-slate-100'}`}>
                             <span className={`w-2 h-2 rounded-full ${assignment.color}`}></span>
-                            <span className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{assignment.courseCode}</span>
+                            <span className={`font-medium ${isDark ? 'text-white' : 'text-slate-800'}`}>{assignment.courseCode}</span>
                           </div>
-                          <span className={`px-2 py-1 rounded-lg border ${isDark ? 'bg-gray-700 text-gray-300 border-gray-600' : 'bg-gray-100 text-gray-700 border-gray-200'}`}>
+                          <span className={`px-2 py-1 rounded-lg border ${isDark ? 'bg-white/5 text-slate-400 border-white/10' : 'bg-slate-50 text-slate-700 border-slate-100'}`}>
                             {assignment.type}
                           </span>
                           {assignment.priority === 'high' && (
@@ -402,45 +402,45 @@ export default function Assignments() {
                       </div>
                     </div>
 
-                    <div className={`grid grid-cols-3 gap-2 mb-3 rounded-xl p-3 border ${isDark ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
+                    <div className={`grid grid-cols-3 gap-2 mb-3 rounded-xl p-3 border ${isDark ? 'bg-white/5 border-white/10' : 'bg-background-light border-slate-100'}`}>
                       <div>
                         <div className="flex items-center gap-1.5 mb-1">
-                          <Calendar className="w-3 h-3 text-indigo-600" />
-                          <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('dueDate')}</p>
+                          <Calendar className="w-3 h-3 text-[#7C3AED]" />
+                          <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{t('dueDate')}</p>
                         </div>
-                        <p className={`text-xs font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                        <p className={`text-xs font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>
                           {new Date(assignment.dueDate).toLocaleDateString('en-US', { 
                             month: 'short', 
                             day: 'numeric'
                           })}
                         </p>
-                        <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>{assignment.dueTime}</p>
+                        <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>{assignment.dueTime}</p>
                       </div>
                       <div>
                         <div className="flex items-center gap-1.5 mb-1">
-                          <Clock className="w-3 h-3 text-indigo-600" />
-                          <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('timeLeft')}</p>
+                          <Clock className="w-3 h-3 text-[#7C3AED]" />
+                          <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{t('timeLeft')}</p>
                         </div>
-                        <p className={`text-xs font-semibold ${daysUntil <= 2 ? 'text-red-600' : isDark ? 'text-white' : 'text-gray-900'}`}>
+                        <p className={`text-xs font-semibold ${daysUntil <= 2 ? 'text-red-600' : isDark ? 'text-white' : 'text-slate-800'}`}>
                           {daysUntil > 0 ? `${daysUntil} ${t('days')}` : daysUntil === 0 ? t('dueToday') : t('overdue')}
                         </p>
                       </div>
                       <div>
                         <div className="flex items-center gap-1.5 mb-1">
-                          <Award className="w-3 h-3 text-indigo-600" />
-                          <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('worth')}</p>
+                          <Award className="w-3 h-3 text-[#7C3AED]" />
+                          <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{t('worth')}</p>
                         </div>
-                        <p className={`text-xs font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{assignment.points} {t('pts')}</p>
+                        <p className={`text-xs font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>{assignment.points} {t('pts')}</p>
                       </div>
                     </div>
 
                     <div className="mb-3">
                       <div className="flex items-center justify-between mb-1.5">
-                        <span className={`text-xs font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('progress')}</span>
-                        <span className={`text-xs px-2 py-0.5 rounded font-semibold ${isDark ? 'bg-indigo-900/50 text-indigo-400' : 'bg-indigo-50 text-indigo-700'}`}>{assignment.progress}%</span>
+                        <span className={`text-xs font-medium ${isDark ? 'text-slate-400' : 'text-slate-700'}`}>{t('progress')}</span>
+                        <span className={`text-xs px-2 py-0.5 rounded font-semibold ${isDark ? 'bg-[#7C3AED]/20 text-[#7C3AED]/70' : 'bg-[#7C3AED]/10 text-[#7C3AED]'}`}>{assignment.progress}%</span>
                       </div>
                       <div className="relative">
-                        <div className={`w-full rounded-full h-2 overflow-hidden ${isDark ? 'bg-gray-700' : 'bg-gray-200'}`}>
+                        <div className={`w-full rounded-full h-2 overflow-hidden ${isDark ? 'bg-white/10' : 'bg-slate-200'}`}>
                           <div
                             className={`${assignment.color} h-2 rounded-full transition-all duration-500 shadow-sm`}
                             style={{ width: `${assignment.progress}%` }}
@@ -452,14 +452,14 @@ export default function Assignments() {
                     <div className="flex gap-2">
                       <button 
                         onClick={() => setSelectedAssignmentId(assignment.id)}
-                        className="flex-1 px-3 py-2 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-lg hover:shadow-lg transition-all flex items-center justify-center gap-1.5 text-sm font-medium">
+                        className="flex-1 px-3 py-2 bg-gradient-to-r from-[#7C3AED] to-[#6D28D9] text-white rounded-lg hover:shadow-lg transition-all flex items-center justify-center gap-1.5 text-sm font-medium">
                         <span>{t('continueWork')}</span>
                         <ChevronRight className="w-3 h-3" />
                       </button>
-                      <button className={`px-3 py-2 border-2 rounded-lg transition-all ${isDark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-200 text-gray-700 hover:bg-gray-50'}`}>
+                      <button className={`px-3 py-2 border-2 rounded-lg transition-all ${isDark ? 'border-white/10 text-slate-400 hover:bg-white/5' : 'border-slate-100 text-slate-700 hover:bg-slate-50'}`}>
                         <Eye className="w-4 h-4" />
                       </button>
-                      <button className={`px-3 py-2 border-2 rounded-lg transition-all ${isDark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-200 text-gray-700 hover:bg-gray-50'}`}>
+                      <button className={`px-3 py-2 border-2 rounded-lg transition-all ${isDark ? 'border-white/10 text-slate-400 hover:bg-white/5' : 'border-slate-100 text-slate-700 hover:bg-slate-50'}`}>
                         <Download className="w-4 h-4" />
                       </button>
                     </div>
@@ -472,14 +472,14 @@ export default function Assignments() {
       </div>
 
       {/* Completed Assignments */}
-      <div className={`rounded-xl border shadow-sm overflow-hidden ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-        <div className={`p-6 border-b ${isDark ? 'bg-gray-700/50 border-gray-700' : 'bg-gradient-to-r from-gray-50 to-white border-gray-200'}`}>
+      <div className="glass rounded-[2.5rem] shadow-sm overflow-hidden">
+        <div className={`p-6 border-b ${isDark ? 'bg-white/5 border-white/5' : 'bg-gradient-to-r from-background-light to-white border-slate-100'}`}>
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className={`font-semibold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('completedAssignments')}</h2>
-              <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('reviewSubmitted')}</p>
+              <h2 className={`font-semibold mb-1 ${isDark ? 'text-white' : 'text-slate-800'}`}>{t('completedAssignments')}</h2>
+              <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{t('reviewSubmitted')}</p>
             </div>
-            <button className={`flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl text-sm transition-all ${isDark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-200 text-gray-700 hover:bg-gray-50'}`}>
+            <button className={`flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl text-sm transition-all ${isDark ? 'border-white/10 text-slate-400 hover:bg-white/5' : 'border-slate-100 text-slate-700 hover:bg-slate-50'}`}>
               <Download className="w-4 h-4" />
               Export Report
             </button>
@@ -488,19 +488,19 @@ export default function Assignments() {
           {/* Search and Filter */}
           <div className="flex gap-3">
             <div className="flex-1 relative">
-              <Search className={`w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
+              <Search className={`w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 ${isDark ? 'text-slate-500' : 'text-slate-500'}`} />
               <input
                 type="text"
                 placeholder={t('searchAssignments')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className={`w-full pl-10 pr-4 py-2.5 border-2 rounded-xl focus:outline-none focus:border-indigo-500 transition-all ${isDark ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'border-gray-200 focus:ring-4 focus:ring-indigo-100'}`}
+                className={`w-full pl-10 pr-4 py-2.5 border-2 rounded-xl focus:outline-none focus:border-[#7C3AED] transition-all ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-slate-500' : 'border-slate-100 focus:ring-4 focus:ring-[#7C3AED]/10'}`}
               />
             </div>
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className={`px-4 py-2.5 border-2 rounded-xl focus:outline-none focus:border-indigo-500 transition-all ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-200'}`}
+              className={`px-4 py-2.5 border-2 rounded-xl focus:outline-none focus:border-[#7C3AED] transition-all ${isDark ? 'bg-white/5 border-white/10 text-white' : 'border-slate-100'}`}
             >
               <option value="all">{t('allStatus')}</option>
               <option value="submitted">{t('submitted')}</option>
@@ -511,15 +511,15 @@ export default function Assignments() {
 
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className={isDark ? 'bg-gray-700/50' : 'bg-gradient-to-r from-gray-50 to-gray-100'}>
+            <thead className={isDark ? 'bg-white/5' : 'bg-gradient-to-r from-background-light to-slate-50'}>
               <tr>
-                <th className={`px-6 py-4 text-left text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('assignment')}</th>
-                <th className={`px-6 py-4 text-left text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('course')}</th>
-                <th className={`px-6 py-4 text-center text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('type')}</th>
-                <th className={`px-6 py-4 text-center text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('submitted')}</th>
-                <th className={`px-6 py-4 text-center text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('score')}</th>
-                <th className={`px-6 py-4 text-center text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Status</th>
-                <th className={`px-6 py-4 text-center text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('actions')}</th>
+                <th className={`px-6 py-4 text-left text-sm font-semibold ${isDark ? 'text-slate-400' : 'text-slate-700'}`}>{t('assignment')}</th>
+                <th className={`px-6 py-4 text-left text-sm font-semibold ${isDark ? 'text-slate-400' : 'text-slate-700'}`}>{t('course')}</th>
+                <th className={`px-6 py-4 text-center text-sm font-semibold ${isDark ? 'text-slate-400' : 'text-slate-700'}`}>{t('type')}</th>
+                <th className={`px-6 py-4 text-center text-sm font-semibold ${isDark ? 'text-slate-400' : 'text-slate-700'}`}>{t('submitted')}</th>
+                <th className={`px-6 py-4 text-center text-sm font-semibold ${isDark ? 'text-slate-400' : 'text-slate-700'}`}>{t('score')}</th>
+                <th className={`px-6 py-4 text-center text-sm font-semibold ${isDark ? 'text-slate-400' : 'text-slate-700'}`}>Status</th>
+                <th className={`px-6 py-4 text-center text-sm font-semibold ${isDark ? 'text-slate-400' : 'text-slate-700'}`}>{t('actions')}</th>
               </tr>
             </thead>
             <tbody>
@@ -527,35 +527,35 @@ export default function Assignments() {
                 <tr>
                   <td colSpan={7} className="px-6 py-12 text-center">
                     <div className="flex flex-col items-center">
-                      <FileText className={`w-12 h-12 mb-3 ${isDark ? 'text-gray-600' : 'text-gray-300'}`} />
-                      <p className={isDark ? 'text-gray-400' : 'text-gray-600'}>No completed assignments found</p>
+                      <FileText className={`w-12 h-12 mb-3 ${isDark ? 'text-slate-600' : 'text-slate-400'}`} />
+                      <p className={isDark ? 'text-slate-500' : 'text-slate-600'}>No completed assignments found</p>
                     </div>
                   </td>
                 </tr>
               ) : (
                 filteredCompleted.map((assignment) => (
-                  <tr key={assignment.id} className={`border-b transition-colors ${isDark ? 'border-gray-700 hover:bg-gray-700/50' : 'border-gray-100 hover:bg-gray-50'}`}>
+                  <tr key={assignment.id} className={`border-b transition-colors ${isDark ? 'border-white/5 hover:bg-white/5/50' : 'border-slate-100 hover:bg-slate-50'}`}>
                     <td className="px-6 py-4">
                       <div>
-                        <p className={`font-medium mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{assignment.title}</p>
-                        <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>{assignment.description}</p>
+                        <p className={`font-medium mb-1 ${isDark ? 'text-white' : 'text-slate-800'}`}>{assignment.title}</p>
+                        <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>{assignment.description}</p>
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
                         <span className={`w-3 h-3 rounded-full ${assignment.color} shadow-sm`}></span>
                         <div>
-                          <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{assignment.courseCode}</p>
-                          <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>{assignment.course}</p>
+                          <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'}`}>{assignment.courseCode}</p>
+                          <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>{assignment.course}</p>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 text-center">
-                      <span className={`px-3 py-1.5 border rounded-lg text-xs font-medium ${isDark ? 'bg-indigo-900/50 border-indigo-700 text-indigo-400' : 'bg-indigo-50 border-indigo-200 text-indigo-700'}`}>
+                      <span className={`px-3 py-1.5 border rounded-lg text-xs font-medium ${isDark ? 'bg-[#7C3AED]/20 border-[#7C3AED]/50 text-[#7C3AED]/70' : 'bg-[#7C3AED]/10 border-[#7C3AED]/20 text-[#7C3AED]'}`}>
                         {assignment.type}
                       </span>
                     </td>
-                    <td className={`px-6 py-4 text-center text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                    <td className={`px-6 py-4 text-center text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
                       {new Date(assignment.dueDate).toLocaleDateString('en-US', {
                         month: 'short',
                         day: 'numeric',
@@ -565,7 +565,7 @@ export default function Assignments() {
                     <td className="px-6 py-4 text-center">
                       {assignment.submittedPoints !== null ? (
                         <div>
-                          <p className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                          <p className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>
                             {assignment.submittedPoints}/{assignment.points}
                           </p>
                           <p className={`text-sm font-medium ${
@@ -578,7 +578,7 @@ export default function Assignments() {
                           </p>
                         </div>
                       ) : (
-                        <span className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>Pending</span>
+                        <span className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>Pending</span>
                       )}
                     </td>
                     <td className="px-6 py-4 text-center">
@@ -589,11 +589,11 @@ export default function Assignments() {
                     </td>
                     <td className="px-6 py-4 text-center">
                       <div className="flex items-center justify-center gap-2">
-                        <button className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`} title="View Details">
-                          <Eye className={`w-4 h-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`} />
+                        <button className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'}`} title="View Details">
+                          <Eye className={`w-4 h-4 ${isDark ? 'text-slate-500' : 'text-slate-600'}`} />
                         </button>
-                        <button className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`} title="Download">
-                          <Download className={`w-4 h-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`} />
+                        <button className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'}`} title="Download">
+                          <Download className={`w-4 h-4 ${isDark ? 'text-slate-500' : 'text-slate-600'}`} />
                         </button>
                       </div>
                     </td>

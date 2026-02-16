@@ -1,5 +1,4 @@
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { ChevronDown } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 
@@ -18,97 +17,89 @@ export default function GpaChart({ data }: GpaChartProps) {
   const { t } = useLanguage();
 
   return (
-    <div className={`rounded-lg p-6 border mb-6 col-span-2 ${
-      isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+    <div className={`p-8 rounded-[2.5rem] relative overflow-hidden mb-0 ${
+      isDark ? 'bg-card-dark border border-white/5' : 'glass'
     }`}>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
         <div>
-          <h3 className={`mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('gradePointAverage')}</h3>
-          <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{t('gpaComparison')}</p>
+          <h3 className={`text-2xl font-bold mb-1 ${isDark ? 'text-white' : 'text-slate-800'}`}>
+            {t('gradePointAverage') || 'GPA Performance'}
+          </h3>
+          <p className="text-slate-500 text-sm mb-0">
+            {t('gpaComparison') || 'Academic growth over last 4 semesters'}
+          </p>
         </div>
-        <button className={`flex items-center gap-2 px-3 py-2 border rounded-lg text-sm ${
-          isDark 
-            ? 'border-gray-600 text-gray-300 hover:bg-gray-700' 
-            : 'border-gray-200 text-gray-700 hover:bg-gray-50'
+        <select className={`border-none rounded-xl text-sm font-semibold px-4 py-2 focus:ring-[#7C3AED] cursor-pointer ${
+          isDark ? 'bg-white/5 text-slate-300' : 'glass text-slate-600'
         }`}>
-          {t('allSemesters')}
-          <ChevronDown className="w-4 h-4" />
-        </button>
-      </div>
-
-      <div className="flex items-center gap-6 mb-4">
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1">
-            <div className="w-2 h-2 rounded-full bg-indigo-600"></div>
-            <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('yourGPA')}</span>
-          </div>
-          <span className={isDark ? 'text-white' : 'text-gray-900'}>{currentYourGpa.toFixed(2)}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1">
-            <div className="w-2 h-2 rounded-full bg-pink-400"></div>
-            <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('averageGPA')}</span>
-          </div>
-          <span className={isDark ? 'text-white' : 'text-gray-900'}>{currentAvgGpa.toFixed(2)}</span>
-        </div>
-      </div>
-
-      <div className="text-center mb-4">
-        <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('secondSemester2025')}</span>
+          <option>{t('allSemesters') || 'All Semesters'}</option>
+        </select>
       </div>
 
       <ResponsiveContainer width="100%" height={300}>
         <AreaChart data={data}>
           <defs>
             <linearGradient id="colorYourGPA" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3}/>
-              <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
+              <stop offset="5%" stopColor="#7C3AED" stopOpacity={isDark ? 0.15 : 0.2}/>
+              <stop offset="95%" stopColor="#7C3AED" stopOpacity={0}/>
             </linearGradient>
-            <linearGradient id="colorAvgGPA" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#ec4899" stopOpacity={0.3}/>
-              <stop offset="95%" stopColor="#ec4899" stopOpacity={0}/>
+            <linearGradient id="lineGradientStroke" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stopColor="#7C3AED"/>
+              <stop offset="100%" stopColor="#ec4899"/>
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#374151' : '#f0f0f0'} />
+          <CartesianGrid strokeDasharray="4" stroke={isDark ? 'rgba(255,255,255,0.05)' : '#f1f5f9'} />
           <XAxis 
             dataKey="semester" 
-            tick={{ fill: isDark ? '#9ca3af' : '#9ca3af', fontSize: 12 }}
-            axisLine={{ stroke: isDark ? '#4b5563' : '#e5e7eb' }}
+            tick={{ fill: isDark ? '#64748b' : '#94a3b8', fontSize: 11, fontWeight: 700 }}
+            axisLine={false}
+            tickLine={false}
           />
           <YAxis 
             domain={[1.0, 4.0]}
             ticks={[1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0]}
-            tick={{ fill: isDark ? '#9ca3af' : '#9ca3af', fontSize: 12 }}
-            axisLine={{ stroke: isDark ? '#4b5563' : '#e5e7eb' }}
+            tick={{ fill: isDark ? '#64748b' : '#94a3b8', fontSize: 11 }}
+            axisLine={false}
+            tickLine={false}
           />
           <Tooltip 
             contentStyle={{ 
-              backgroundColor: isDark ? '#1f2937' : 'white', 
-              border: isDark ? '1px solid #374151' : '1px solid #e5e7eb',
-              borderRadius: '8px',
-              boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
-              color: isDark ? '#f3f4f6' : '#111827'
+              backgroundColor: isDark ? '#16161a' : 'rgba(255,255,255,0.9)', 
+              border: isDark ? '1px solid rgba(255,255,255,0.05)' : 'none',
+              borderRadius: '1rem',
+              boxShadow: '0 10px 40px -10px rgba(0,0,0,0.3)',
+              backdropFilter: 'blur(12px)',
+              color: isDark ? '#f1f5f9' : '#1e293b',
+              padding: '12px 16px'
             }}
           />
           <Area
             type="monotone"
             dataKey="yourGpa"
-            stroke="#6366f1"
-            strokeWidth={2}
+            stroke={isDark ? 'url(#lineGradientStroke)' : '#7C3AED'}
+            strokeWidth={4}
             fill="url(#colorYourGPA)"
-            dot={{ fill: '#6366f1', r: 4 }}
-          />
-          <Area
-            type="monotone"
-            dataKey="avgGpa"
-            stroke="#ec4899"
-            strokeWidth={2}
-            strokeDasharray="5 5"
-            fill="url(#colorAvgGPA)"
-            dot={{ fill: '#ec4899', r: 4 }}
+            dot={{ fill: '#7C3AED', r: 5, strokeWidth: 0 }}
+            activeDot={{ fill: isDark ? '#ec4899' : '#7C3AED', r: 7, stroke: isDark ? '#0a0a0c' : 'white', strokeWidth: 2 }}
+            style={{ filter: isDark ? 'drop-shadow(0 0 6px rgba(99, 102, 241, 0.4))' : 'drop-shadow(0 0 8px rgba(124, 58, 237, 0.6))' }}
           />
         </AreaChart>
       </ResponsiveContainer>
+
+      <div className="mt-10 flex gap-8">
+        <div className="flex items-center gap-3">
+          <div className="w-3 h-3 rounded-full bg-[#7C3AED] neon-glow-primary"></div>
+          <span className="text-sm font-semibold">
+            {t('yourGPA') || 'Your GPA'}: <span className="text-lg">{currentYourGpa.toFixed(2)}</span>
+          </span>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="w-3 h-3 rounded-full bg-[#ec4899] neon-glow-accent"></div>
+          <span className="text-sm font-semibold text-slate-500">
+            {t('averageGPA') || 'Average'}: <span className="text-lg">{currentAvgGpa.toFixed(2)}</span>
+          </span>
+        </div>
+      </div>
     </div>
   );
 }

@@ -285,3 +285,62 @@
     font-family: 'Cairo', sans-serif;
   }
 }
+
+/* ============================================================================
+   6. GLASSMORPHISM & ELEVATED UI UTILITIES
+   ============================================================================ */
+
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.dark .glass {
+  background: #16161a;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Custom scrollbar for sidebar - hidden */
+.sidebar-scroll {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.sidebar-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.sidebar-item-active {
+  background: linear-gradient(135deg, #7C3AED 0%, #6366F1 100%);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+}
+
+.dark .sidebar-item-active {
+  background: rgba(99, 102, 241, 0.1);
+  box-shadow: none;
+  color: #7C3AED;
+}
+
+.gradient-bg {
+  background: radial-gradient(circle at top right, rgba(124, 58, 237, 0.1), transparent),
+              radial-gradient(circle at bottom left, rgba(99, 102, 241, 0.1), transparent);
+}
+
+.dark .gradient-bg {
+  background: none;
+}
+
+.neon-glow-primary {
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.2);
+}
+
+.neon-glow-accent {
+  box-shadow: 0 0 20px rgba(236, 72, 153, 0.2);
+}
+
+.chart-line {
+  filter: drop-shadow(0 0 8px rgba(124, 58, 237, 0.6));
+}

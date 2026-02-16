@@ -16,6 +16,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface Achievement {
   id: string;
@@ -181,21 +182,21 @@ export function Gamification() {
 
   const getRarityColor = (rarity: string) => {
     switch (rarity) {
-      case 'common': return 'from-gray-400 to-gray-500';
+      case 'common': return 'from-slate-400 to-slate-500';
       case 'rare': return 'from-blue-400 to-blue-600';
       case 'epic': return 'from-purple-400 to-purple-600';
       case 'legendary': return 'from-amber-400 to-orange-500';
-      default: return 'from-gray-400 to-gray-500';
+      default: return 'from-slate-400 to-slate-500';
     }
   };
 
   const getRarityBg = (rarity: string) => {
     switch (rarity) {
-      case 'common': return 'bg-gray-100 border-gray-200';
+      case 'common': return 'bg-slate-50 border-slate-100';
       case 'rare': return 'bg-blue-50 border-blue-200';
       case 'epic': return 'bg-purple-50 border-purple-200';
       case 'legendary': return 'bg-amber-50 border-amber-200';
-      default: return 'bg-gray-100 border-gray-200';
+      default: return 'bg-slate-50 border-slate-100';
     }
   };
 
@@ -205,6 +206,7 @@ export function Gamification() {
 
   const unlockedAchievements = achievements.filter(a => a.unlocked).length;
   const { t, isRTL } = useLanguage();
+  const { isDark } = useTheme();
 
   return (
     <div className="space-y-6" dir={isRTL ? 'rtl' : 'ltr'}>
@@ -275,7 +277,7 @@ export function Gamification() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 bg-white rounded-xl p-2 border border-gray-200">
+      <div className="glass rounded-[2.5rem] flex gap-2 p-2">
         {[
           { id: 'overview', label: isRTL ? 'نظرة عامة' : 'Overview', icon: <Sparkles className="w-4 h-4" /> },
           { id: 'achievements', label: t('achievements'), icon: <Trophy className="w-4 h-4" /> },
@@ -287,7 +289,7 @@ export function Gamification() {
             className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium transition-all ${
               activeTab === tab.id
                 ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md'
-                : 'text-gray-600 hover:bg-gray-100'
+                : `${isDark ? 'text-slate-400 hover:bg-white/5' : 'text-slate-600 hover:bg-slate-50'}`
             }`}
           >
             {tab.icon}
@@ -300,9 +302,9 @@ export function Gamification() {
       {activeTab === 'overview' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Recent Badges */}
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-            <div className="bg-gradient-to-r from-gray-50 to-white p-4 border-b border-gray-200">
-              <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+          <div className="glass rounded-[2.5rem] overflow-hidden">
+            <div className={`${isDark ? 'bg-white/5 border-b border-white/5' : 'bg-gradient-to-r from-background-light to-white border-b border-slate-100'} p-4`}>
+              <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'} flex items-center gap-2`}>
                 <Award className="w-5 h-5 text-amber-500" />
                 My Badges
               </h3>
@@ -315,17 +317,17 @@ export function Gamification() {
                     className={`relative p-4 rounded-xl border-2 text-center transition-all ${
                       badge.earned 
                         ? 'bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200' 
-                        : 'bg-gray-50 border-gray-200 opacity-50'
+                        : `${isDark ? 'bg-white/5 border-white/5' : 'bg-background-light border-slate-100'} opacity-50`
                     }`}
                   >
                     <div className={`w-12 h-12 mx-auto rounded-full flex items-center justify-center mb-2 ${
-                      badge.earned ? 'bg-gradient-to-br from-amber-400 to-orange-500 text-white' : 'bg-gray-200 text-gray-400'
+                      badge.earned ? 'bg-gradient-to-br from-amber-400 to-orange-500 text-white' : `${isDark ? 'bg-white/10' : 'bg-slate-200'} text-slate-500`
                     }`}>
                       {badge.earned ? badge.icon : <Lock className="w-5 h-5" />}
                     </div>
-                    <p className="text-sm font-medium text-gray-900">{badge.name}</p>
+                    <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'}`}>{badge.name}</p>
                     {badge.earned && badge.earnedDate && (
-                      <p className="text-xs text-gray-500 mt-1">{badge.earnedDate}</p>
+                      <p className="text-xs text-slate-500 mt-1">{badge.earnedDate}</p>
                     )}
                   </div>
                 ))}
@@ -334,10 +336,10 @@ export function Gamification() {
           </div>
 
           {/* Daily Challenges */}
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-            <div className="bg-gradient-to-r from-gray-50 to-white p-4 border-b border-gray-200">
-              <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                <Target className="w-5 h-5 text-indigo-500" />
+          <div className="glass rounded-[2.5rem] overflow-hidden">
+            <div className={`${isDark ? 'bg-white/5 border-b border-white/5' : 'bg-gradient-to-r from-background-light to-white border-b border-slate-100'} p-4`}>
+              <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'} flex items-center gap-2`}>
+                <Target className="w-5 h-5 text-[#7C3AED]" />
                 Daily Challenges
               </h3>
             </div>
@@ -348,7 +350,7 @@ export function Gamification() {
                 { task: 'Review flashcards', progress: 0, max: 1, points: 25, done: false },
                 { task: 'Help a classmate', progress: 0, max: 1, points: 40, done: false },
               ].map((challenge, idx) => (
-                <div key={idx} className={`p-3 rounded-lg border ${challenge.done ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'}`}>
+                <div key={idx} className={`p-3 rounded-lg border ${challenge.done ? 'bg-green-50 border-green-200' : `${isDark ? 'bg-white/5 border-white/5' : 'bg-background-light border-slate-100'}`}`}>
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
                       {challenge.done ? (
@@ -356,18 +358,18 @@ export function Gamification() {
                           <Star className="w-4 h-4 text-white" />
                         </div>
                       ) : (
-                        <div className="w-6 h-6 bg-gray-200 rounded-full" />
+                        <div className={`w-6 h-6 ${isDark ? 'bg-white/10' : 'bg-slate-200'} rounded-full`} />
                       )}
-                      <span className={`text-sm font-medium ${challenge.done ? 'text-green-700 line-through' : 'text-gray-900'}`}>
+                      <span className={`text-sm font-medium ${challenge.done ? 'text-green-700 line-through' : `${isDark ? 'text-white' : 'text-slate-800'}`}`}>
                         {challenge.task}
                       </span>
                     </div>
                     <span className="text-sm font-bold text-amber-600">+{challenge.points} pts</span>
                   </div>
                   {!challenge.done && (
-                    <div className="w-full bg-gray-200 rounded-full h-1.5 ml-8">
+                    <div className={`w-full ${isDark ? 'bg-white/10' : 'bg-slate-200'} rounded-full h-1.5 ml-8`}>
                       <div 
-                        className="bg-indigo-500 h-1.5 rounded-full transition-all"
+                        className="bg-[#7C3AED]/100 h-1.5 rounded-full transition-all"
                         style={{ width: `${(challenge.progress / challenge.max) * 100}%` }}
                       />
                     </div>
@@ -378,13 +380,13 @@ export function Gamification() {
           </div>
 
           {/* Rewards Shop Preview */}
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden lg:col-span-2">
-            <div className="bg-gradient-to-r from-gray-50 to-white p-4 border-b border-gray-200 flex items-center justify-between">
-              <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+          <div className="glass rounded-[2.5rem] overflow-hidden lg:col-span-2">
+            <div className={`${isDark ? 'bg-white/5 border-b border-white/5' : 'bg-gradient-to-r from-background-light to-white border-b border-slate-100'} p-4 flex items-center justify-between`}>
+              <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'} flex items-center gap-2`}>
                 <Gift className="w-5 h-5 text-pink-500" />
                 Rewards Shop
               </h3>
-              <button className="text-sm text-indigo-600 font-medium flex items-center gap-1">
+              <button className="text-sm text-[#7C3AED] font-medium flex items-center gap-1">
                 View All <ChevronRight className="w-4 h-4" />
               </button>
             </div>
@@ -396,9 +398,9 @@ export function Gamification() {
                   { name: 'Priority Support', cost: 2000, icon: '⚡' },
                   { name: 'Certificate Frame', cost: 3000, icon: '🖼️' },
                 ].map((reward, idx) => (
-                  <div key={idx} className="p-4 border border-gray-200 rounded-xl text-center hover:border-amber-300 hover:bg-amber-50 transition-all cursor-pointer">
+                  <div key={idx} className={`p-4 border ${isDark ? 'border-white/5' : 'border-slate-100'} rounded-xl text-center hover:border-amber-300 hover:bg-amber-50 transition-all cursor-pointer`}>
                     <div className="text-4xl mb-2">{reward.icon}</div>
-                    <p className="text-sm font-medium text-gray-900 mb-1">{reward.name}</p>
+                    <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'} mb-1`}>{reward.name}</p>
                     <p className="text-sm font-bold text-amber-600">{reward.cost} pts</p>
                   </div>
                 ))}
@@ -420,7 +422,7 @@ export function Gamification() {
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all capitalize ${
                   selectedCategory === cat
                     ? 'bg-amber-100 text-amber-700 border-2 border-amber-300'
-                    : 'bg-gray-100 text-gray-600 border-2 border-transparent hover:bg-gray-200'
+                    : `${isDark ? 'bg-white/5 text-slate-400' : 'bg-slate-50 text-slate-600'} border-2 border-transparent ${isDark ? 'hover:bg-white/10' : 'hover:bg-slate-200'}`
                 }`}
               >
                 {cat}
@@ -436,7 +438,7 @@ export function Gamification() {
                 className={`relative p-5 rounded-xl border-2 transition-all ${
                   achievement.unlocked 
                     ? getRarityBg(achievement.rarity)
-                    : 'bg-gray-50 border-gray-200'
+                    : `${isDark ? 'bg-white/5 border-white/5' : 'bg-background-light border-slate-100'}`
                 }`}
               >
                 {achievement.unlocked && (
@@ -448,21 +450,21 @@ export function Gamification() {
                   <div className={`w-14 h-14 rounded-xl flex items-center justify-center ${
                     achievement.unlocked 
                       ? `bg-gradient-to-br ${getRarityColor(achievement.rarity)} text-white`
-                      : 'bg-gray-200 text-gray-400'
+                      : `${isDark ? 'bg-white/10' : 'bg-slate-200'} text-slate-500`
                   }`}>
                     {achievement.unlocked ? achievement.icon : <Lock className="w-6 h-6" />}
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-semibold text-gray-900 mb-1">{achievement.title}</h4>
-                    <p className="text-sm text-gray-600 mb-3">{achievement.description}</p>
+                    <h4 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'} mb-1`}>{achievement.title}</h4>
+                    <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'} mb-3`}>{achievement.description}</p>
                     
                     {!achievement.unlocked && (
                       <div className="mb-2">
-                        <div className="flex justify-between text-xs text-gray-600 mb-1">
+                        <div className={`flex justify-between text-xs ${isDark ? 'text-slate-400' : 'text-slate-600'} mb-1`}>
                           <span>Progress</span>
                           <span>{achievement.progress}/{achievement.maxProgress}</span>
                         </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div className={`w-full ${isDark ? 'bg-white/10' : 'bg-slate-200'} rounded-full h-2`}>
                           <div 
                             className={`h-2 rounded-full bg-gradient-to-r ${getRarityColor(achievement.rarity)}`}
                             style={{ width: `${(achievement.progress / achievement.maxProgress) * 100}%` }}
@@ -490,25 +492,25 @@ export function Gamification() {
 
       {/* Leaderboard Tab */}
       {activeTab === 'leaderboard' && (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <div className="bg-gradient-to-r from-gray-50 to-white p-4 border-b border-gray-200">
-            <h3 className="font-semibold text-gray-900">Weekly Leaderboard</h3>
-            <p className="text-sm text-gray-600">Top performers this week</p>
+        <div className="glass rounded-[2.5rem] overflow-hidden">
+          <div className={`${isDark ? 'bg-white/5 border-b border-white/5' : 'bg-gradient-to-r from-background-light to-white border-b border-slate-100'} p-4`}>
+            <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>Weekly Leaderboard</h3>
+            <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Top performers this week</p>
           </div>
-          <div className="divide-y divide-gray-100">
+          <div className={`divide-y ${isDark ? 'divide-white/5' : 'divide-slate-100'}`}>
             {leaderboard.map((entry, idx) => (
               <div
                 key={entry.rank}
                 className={`flex items-center gap-4 p-4 transition-all ${
-                  entry.isCurrentUser ? 'bg-amber-50' : 'hover:bg-gray-50'
+                  entry.isCurrentUser ? 'bg-amber-50' : `${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'}`
                 }`}
               >
                 {/* Rank */}
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
                   entry.rank === 1 ? 'bg-gradient-to-br from-yellow-400 to-amber-500 text-white' :
-                  entry.rank === 2 ? 'bg-gradient-to-br from-gray-300 to-gray-400 text-white' :
+                  entry.rank === 2 ? 'bg-gradient-to-br from-slate-300 to-slate-400 text-white' :
                   entry.rank === 3 ? 'bg-gradient-to-br from-orange-400 to-orange-600 text-white' :
-                  'bg-gray-100 text-gray-600'
+                  'bg-slate-50 text-slate-600'
                 }`}>
                   {entry.rank <= 3 ? (
                     <Crown className="w-5 h-5" />
@@ -519,7 +521,7 @@ export function Gamification() {
 
                 {/* Avatar */}
                 <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold ${
-                  entry.isCurrentUser ? 'bg-gradient-to-br from-indigo-500 to-purple-600' : 'bg-gradient-to-br from-gray-400 to-gray-500'
+                  entry.isCurrentUser ? 'bg-gradient-to-br from-[#7C3AED] to-purple-600' : 'bg-gradient-to-br from-slate-400 to-slate-500'
                 }`}>
                   {entry.avatar}
                 </div>
@@ -527,25 +529,25 @@ export function Gamification() {
                 {/* Info */}
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <p className="font-semibold text-gray-900">{entry.name}</p>
+                    <p className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>{entry.name}</p>
                     {entry.isCurrentUser && (
-                      <span className="px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded text-xs font-medium">You</span>
+                      <span className="px-2 py-0.5 bg-[#7C3AED]/10 text-[#7C3AED] rounded text-xs font-medium">You</span>
                     )}
                   </div>
-                  <p className="text-sm text-gray-600">Level {entry.level}</p>
+                  <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Level {entry.level}</p>
                 </div>
 
                 {/* Points */}
                 <div className="text-right">
-                  <p className="font-bold text-gray-900">{entry.points.toLocaleString()}</p>
-                  <p className="text-xs text-gray-500">points</p>
+                  <p className={`font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{entry.points.toLocaleString()}</p>
+                  <p className="text-xs text-slate-500">points</p>
                 </div>
 
                 {/* Change Indicator */}
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
                   entry.change === 'up' ? 'bg-green-100 text-green-600' :
                   entry.change === 'down' ? 'bg-red-100 text-red-600' :
-                  'bg-gray-100 text-gray-400'
+                  'bg-slate-50 text-slate-500'
                 }`}>
                   {entry.change === 'up' && <TrendingUp className="w-4 h-4" />}
                   {entry.change === 'down' && <TrendingUp className="w-4 h-4 rotate-180" />}

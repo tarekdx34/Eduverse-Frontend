@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTheme } from '../contexts/ThemeContext';
 import {
   Users,
   MessageSquare,
@@ -51,7 +52,7 @@ const communities: Community[] = [
   { id: '2', courseCode: 'CS201', courseName: 'Data Structures & Algorithms', members: 128, posts: 189, lastActivity: '30 min ago', color: 'bg-purple-500', joined: true },
   { id: '3', courseCode: 'CS220', courseName: 'Database Management Systems', members: 98, posts: 145, lastActivity: '1 hour ago', color: 'bg-orange-500', joined: true },
   { id: '4', courseCode: 'CS305', courseName: 'Software Engineering Principles', members: 112, posts: 167, lastActivity: '3 hours ago', color: 'bg-pink-500', joined: true },
-  { id: '5', courseCode: 'CS350', courseName: 'Mobile Application Development', members: 85, posts: 98, lastActivity: '5 hours ago', color: 'bg-indigo-500', joined: false },
+  { id: '5', courseCode: 'CS350', courseName: 'Mobile Application Development', members: 85, posts: 98, lastActivity: '5 hours ago', color: 'bg-[#7C3AED]/100', joined: false },
   { id: '6', courseCode: 'CS401', courseName: 'Machine Learning Fundamentals', members: 145, posts: 256, lastActivity: '20 min ago', color: 'bg-green-500', joined: false },
 ];
 
@@ -129,6 +130,7 @@ const posts: Post[] = [
 ];
 
 export function CourseCommunity() {
+  const { isDark } = useTheme();
   const [selectedCommunity, setSelectedCommunity] = useState<string>('CS220');
   const [postsList, setPostsList] = useState<Post[]>(posts);
   const [newPostContent, setNewPostContent] = useState('');
@@ -200,25 +202,25 @@ export function CourseCommunity() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 rounded-2xl p-8 text-white shadow-xl">
+      <div className="bg-gradient-to-br from-[#7C3AED] via-purple-600 to-pink-600 rounded-2xl p-8 text-white shadow-xl">
         <div className="flex items-center gap-3 mb-3">
           <Users className="w-8 h-8" />
           <span className="text-sm bg-white/20 px-3 py-1 rounded-full">Course Communities</span>
         </div>
         <h1 className="text-3xl font-bold mb-2">Connect & Collaborate</h1>
-        <p className="text-indigo-100 text-lg">Join discussions, ask questions, and learn together with your classmates</p>
+        <p className="text-purple-100 text-lg">Join discussions, ask questions, and learn together with your classmates</p>
         
         <div className="grid grid-cols-3 gap-4 mt-6">
           <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-            <p className="text-sm text-indigo-200 mb-1">Communities Joined</p>
+            <p className="text-sm text-purple-200 mb-1">Communities Joined</p>
             <p className="text-2xl font-bold">{communities.filter(c => c.joined).length}</p>
           </div>
           <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-            <p className="text-sm text-indigo-200 mb-1">Your Posts</p>
+            <p className="text-sm text-purple-200 mb-1">Your Posts</p>
             <p className="text-2xl font-bold">12</p>
           </div>
           <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-            <p className="text-sm text-indigo-200 mb-1">Helpful Answers</p>
+            <p className="text-sm text-purple-200 mb-1">Helpful Answers</p>
             <p className="text-2xl font-bold">8</p>
           </div>
         </div>
@@ -227,9 +229,9 @@ export function CourseCommunity() {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Communities Sidebar */}
         <div className="space-y-4">
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-            <div className="bg-gradient-to-r from-gray-50 to-white p-4 border-b border-gray-200">
-              <h3 className="font-semibold text-gray-900">My Communities</h3>
+          <div className="glass rounded-[2.5rem] overflow-hidden">
+            <div className={`${isDark ? 'bg-white/5 border-b border-white/5' : 'bg-gradient-to-r from-background-light to-white border-b border-slate-100'} p-4`}>
+              <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>My Communities</h3>
             </div>
             <div className="p-2">
               {communities.filter(c => c.joined).map((community) => (
@@ -238,19 +240,19 @@ export function CourseCommunity() {
                   onClick={() => setSelectedCommunity(community.courseCode)}
                   className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all ${
                     selectedCommunity === community.courseCode
-                      ? 'bg-indigo-50 border-2 border-indigo-200'
-                      : 'hover:bg-gray-50 border-2 border-transparent'
+                      ? 'bg-[#7C3AED]/10 border-2 border-[#7C3AED]/20'
+                      : `${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'} border-2 border-transparent`
                   }`}
                 >
                   <div className={`w-10 h-10 ${community.color} rounded-lg flex items-center justify-center text-white font-bold text-sm`}>
                     {community.courseCode.slice(-3)}
                   </div>
                   <div className="flex-1 text-left">
-                    <p className="text-sm font-medium text-gray-900">{community.courseCode}</p>
-                    <p className="text-xs text-gray-500">{community.members} members</p>
+                    <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'}`}>{community.courseCode}</p>
+                    <p className="text-xs text-slate-500">{community.members} members</p>
                   </div>
                   {selectedCommunity === community.courseCode && (
-                    <ChevronRight className="w-4 h-4 text-indigo-500" />
+                    <ChevronRight className="w-4 h-4 text-[#7C3AED]" />
                   )}
                 </button>
               ))}
@@ -258,24 +260,24 @@ export function CourseCommunity() {
           </div>
 
           {/* Discover Communities */}
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-            <div className="bg-gradient-to-r from-gray-50 to-white p-4 border-b border-gray-200">
-              <h3 className="font-semibold text-gray-900">Discover</h3>
+          <div className="glass rounded-[2.5rem] overflow-hidden">
+            <div className={`${isDark ? 'bg-white/5 border-b border-white/5' : 'bg-gradient-to-r from-background-light to-white border-b border-slate-100'} p-4`}>
+              <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>Discover</h3>
             </div>
             <div className="p-2">
               {communities.filter(c => !c.joined).map((community) => (
                 <div
                   key={community.id}
-                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-all"
+                  className={`flex items-center gap-3 p-3 rounded-lg ${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'} transition-all`}
                 >
                   <div className={`w-10 h-10 ${community.color} rounded-lg flex items-center justify-center text-white font-bold text-sm`}>
                     {community.courseCode.slice(-3)}
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900">{community.courseCode}</p>
-                    <p className="text-xs text-gray-500">{community.members} members</p>
+                    <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'}`}>{community.courseCode}</p>
+                    <p className="text-xs text-slate-500">{community.members} members</p>
                   </div>
-                  <button className="px-3 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-all">
+                  <button className="px-3 py-1 text-xs font-medium text-[#7C3AED] bg-[#7C3AED]/10 rounded-lg hover:bg-[#7C3AED]/10 transition-all">
                     Join
                   </button>
                 </div>
@@ -288,15 +290,15 @@ export function CourseCommunity() {
         <div className="lg:col-span-3 space-y-4">
           {/* Community Header */}
           {currentCommunity && (
-            <div className="bg-white rounded-xl border border-gray-200 p-4">
+            <div className="glass rounded-[2.5rem] p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className={`w-14 h-14 ${currentCommunity.color} rounded-xl flex items-center justify-center text-white font-bold text-lg`}>
                     {currentCommunity.courseCode.slice(-3)}
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold text-gray-900">{currentCommunity.courseName}</h2>
-                    <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
+                    <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{currentCommunity.courseName}</h2>
+                    <div className={`flex items-center gap-4 text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'} mt-1`}>
                       <span className="flex items-center gap-1">
                         <Users className="w-4 h-4" />
                         {currentCommunity.members} members
@@ -312,17 +314,17 @@ export function CourseCommunity() {
                     </div>
                   </div>
                 </div>
-                <button className="p-2 hover:bg-gray-100 rounded-lg transition-all">
-                  <MoreVertical className="w-5 h-5 text-gray-600" />
+                <button className={`p-2 ${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'} rounded-lg transition-all`}>
+                  <MoreVertical className={`w-5 h-5 ${isDark ? 'text-slate-400' : 'text-slate-600'}`} />
                 </button>
               </div>
             </div>
           )}
 
           {/* Create Post */}
-          <div className="bg-white rounded-xl border border-gray-200 p-4">
+          <div className="glass rounded-[2.5rem] p-4">
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
+              <div className="w-10 h-10 bg-gradient-to-br from-[#7C3AED] to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
                 TM
               </div>
               <div className="flex-1">
@@ -331,24 +333,24 @@ export function CourseCommunity() {
                   onChange={(e) => setNewPostContent(e.target.value)}
                   placeholder="Share something with your classmates..."
                   rows={3}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-indigo-500 resize-none transition-all"
+                  className={`w-full px-4 py-3 ${isDark ? 'bg-white/5 border-white/10 text-white' : 'border-slate-100'} border-2 rounded-xl focus:outline-none focus:border-[#7C3AED] resize-none transition-all`}
                 />
                 <div className="flex items-center justify-between mt-3">
                   <div className="flex items-center gap-2">
-                    <button className="p-2 hover:bg-gray-100 rounded-lg transition-all">
-                      <ImageIcon className="w-5 h-5 text-gray-500" />
+                    <button className={`p-2 ${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'} rounded-lg transition-all`}>
+                      <ImageIcon className="w-5 h-5 text-slate-500" />
                     </button>
-                    <button className="p-2 hover:bg-gray-100 rounded-lg transition-all">
-                      <Paperclip className="w-5 h-5 text-gray-500" />
+                    <button className={`p-2 ${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'} rounded-lg transition-all`}>
+                      <Paperclip className="w-5 h-5 text-slate-500" />
                     </button>
-                    <button className="p-2 hover:bg-gray-100 rounded-lg transition-all">
-                      <Smile className="w-5 h-5 text-gray-500" />
+                    <button className={`p-2 ${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'} rounded-lg transition-all`}>
+                      <Smile className="w-5 h-5 text-slate-500" />
                     </button>
                   </div>
                   <button
                     onClick={handlePost}
                     disabled={!newPostContent.trim()}
-                    className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex items-center gap-2 px-4 py-2 bg-[#7C3AED] text-white rounded-lg hover:bg-[#6D28D9] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <Send className="w-4 h-4" />
                     Post
@@ -359,22 +361,22 @@ export function CourseCommunity() {
           </div>
 
           {/* Search and Filter */}
-          <div className="bg-white rounded-xl border border-gray-200 p-4">
+          <div className="glass rounded-[2.5rem] p-4">
             <div className="flex gap-3">
               <div className="flex-1 relative">
-                <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search posts..."
-                  className="w-full pl-10 pr-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-indigo-500 transition-all"
+                  className={`w-full pl-10 pr-4 py-2 ${isDark ? 'bg-white/5 border-white/10 text-white' : 'border-slate-100'} border-2 rounded-lg focus:outline-none focus:border-[#7C3AED] transition-all`}
                 />
               </div>
               <select
                 value={filterTag}
                 onChange={(e) => setFilterTag(e.target.value)}
-                className="px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-indigo-500 transition-all"
+                className={`px-4 py-2 ${isDark ? 'bg-white/5 border-white/10 text-white' : 'border-slate-100'} border-2 rounded-lg focus:outline-none focus:border-[#7C3AED] transition-all`}
               >
                 <option value="all">All Posts</option>
                 <option value="announcement">Announcements</option>
@@ -389,12 +391,12 @@ export function CourseCommunity() {
           {/* Pinned Posts */}
           {pinnedPosts.length > 0 && (
             <div className="space-y-3">
-              <h3 className="text-sm font-semibold text-gray-600 flex items-center gap-2 px-1">
+              <h3 className={`text-sm font-semibold ${isDark ? 'text-slate-400' : 'text-slate-600'} flex items-center gap-2 px-1`}>
                 <Pin className="w-4 h-4" />
                 Pinned Posts
               </h3>
               {pinnedPosts.map((post) => (
-                <PostCard key={post.id} post={post} onLike={handleLike} getRoleBadge={getRoleBadge} getRoleLabel={getRoleLabel} />
+                <PostCard key={post.id} post={post} onLike={handleLike} getRoleBadge={getRoleBadge} getRoleLabel={getRoleLabel} isDark={isDark} />
               ))}
             </div>
           )}
@@ -402,16 +404,16 @@ export function CourseCommunity() {
           {/* Regular Posts */}
           <div className="space-y-3">
             {pinnedPosts.length > 0 && (
-              <h3 className="text-sm font-semibold text-gray-600 px-1">Recent Posts</h3>
+              <h3 className={`text-sm font-semibold ${isDark ? 'text-slate-400' : 'text-slate-600'} px-1`}>Recent Posts</h3>
             )}
             {regularPosts.map((post) => (
-              <PostCard key={post.id} post={post} onLike={handleLike} getRoleBadge={getRoleBadge} getRoleLabel={getRoleLabel} />
+              <PostCard key={post.id} post={post} onLike={handleLike} getRoleBadge={getRoleBadge} getRoleLabel={getRoleLabel} isDark={isDark} />
             ))}
             {filteredPosts.length === 0 && (
-              <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-                <MessageSquare className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">No posts yet</h3>
-                <p className="text-gray-600">Be the first to start a discussion!</p>
+              <div className="glass rounded-[2.5rem] p-12 text-center">
+                <MessageSquare className="w-16 h-16 text-slate-400 mx-auto mb-4" />
+                <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-800'} mb-2`}>No posts yet</h3>
+                <p className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Be the first to start a discussion!</p>
               </div>
             )}
           </div>
@@ -421,15 +423,16 @@ export function CourseCommunity() {
   );
 }
 
-function PostCard({ post, onLike, getRoleBadge, getRoleLabel }: { 
+function PostCard({ post, onLike, getRoleBadge, getRoleLabel, isDark }: { 
   post: Post; 
   onLike: (id: string) => void;
   getRoleBadge: (role: string) => string;
   getRoleLabel: (role: string) => string;
+  isDark: boolean;
 }) {
   return (
-    <div className={`bg-white rounded-xl border-2 p-5 transition-all hover:shadow-md ${
-      post.isPinned ? 'border-amber-200 bg-amber-50/30' : 'border-gray-200'
+    <div className={`glass rounded-xl border-2 p-5 transition-all hover:shadow-md ${
+      post.isPinned ? 'border-amber-200 bg-amber-50/30' : ''
     }`}>
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
@@ -437,13 +440,13 @@ function PostCard({ post, onLike, getRoleBadge, getRoleLabel }: {
           <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold ${
             post.authorRole === 'instructor' ? 'bg-gradient-to-br from-blue-500 to-blue-600' :
             post.authorRole === 'ta' ? 'bg-gradient-to-br from-purple-500 to-purple-600' :
-            'bg-gradient-to-br from-gray-400 to-gray-500'
+            'bg-gradient-to-br from-slate-400 to-slate-500'
           }`}>
             {post.authorAvatar}
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-semibold text-gray-900">{post.author}</span>
+              <span className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>{post.author}</span>
               {post.authorRole !== 'student' && (
                 <span className={`px-2 py-0.5 rounded text-xs font-medium border ${getRoleBadge(post.authorRole)}`}>
                   {getRoleLabel(post.authorRole)}
@@ -453,22 +456,22 @@ function PostCard({ post, onLike, getRoleBadge, getRoleLabel }: {
                 <Pin className="w-4 h-4 text-amber-500" />
               )}
             </div>
-            <span className="text-xs text-gray-500">{post.timestamp}</span>
+            <span className="text-xs text-slate-500">{post.timestamp}</span>
           </div>
         </div>
-        <button className="p-1 hover:bg-gray-100 rounded transition-all">
-          <MoreVertical className="w-4 h-4 text-gray-400" />
+        <button className={`p-1 ${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'} rounded transition-all`}>
+          <MoreVertical className="w-4 h-4 text-slate-500" />
         </button>
       </div>
 
       {/* Content */}
-      <p className="text-gray-800 mb-4 whitespace-pre-wrap">{post.content}</p>
+      <p className={`${isDark ? 'text-white' : 'text-slate-800'} mb-4 whitespace-pre-wrap`}>{post.content}</p>
 
       {/* Tags */}
       {post.tags.length > 0 && (
         <div className="flex flex-wrap gap-2 mb-4">
           {post.tags.map((tag, idx) => (
-            <span key={idx} className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs">
+            <span key={idx} className={`px-2 py-1 ${isDark ? 'bg-white/5 text-slate-400' : 'bg-slate-50 text-slate-600'} rounded text-xs`}>
               #{tag}
             </span>
           ))}
@@ -476,19 +479,19 @@ function PostCard({ post, onLike, getRoleBadge, getRoleLabel }: {
       )}
 
       {/* Actions */}
-      <div className="flex items-center gap-4 pt-3 border-t border-gray-100">
+      <div className={`flex items-center gap-4 pt-3 border-t ${isDark ? 'border-white/5' : 'border-slate-100'}`}>
         <button
           onClick={() => onLike(post.id)}
           className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all ${
             post.isLiked 
-              ? 'bg-indigo-100 text-indigo-700' 
-              : 'hover:bg-gray-100 text-gray-600'
+              ? 'bg-[#7C3AED]/10 text-[#7C3AED]' 
+              : `${isDark ? 'hover:bg-white/5 text-slate-400' : 'hover:bg-slate-50 text-slate-600'}`
           }`}
         >
           <ThumbsUp className={`w-4 h-4 ${post.isLiked ? 'fill-current' : ''}`} />
           <span className="text-sm font-medium">{post.likes}</span>
         </button>
-        <button className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-gray-100 text-gray-600 transition-all">
+        <button className={`flex items-center gap-2 px-3 py-1.5 rounded-lg ${isDark ? 'hover:bg-white/5 text-slate-400' : 'hover:bg-slate-50 text-slate-600'} transition-all`}>
           <MessageCircle className="w-4 h-4" />
           <span className="text-sm font-medium">{post.replies} replies</span>
         </button>

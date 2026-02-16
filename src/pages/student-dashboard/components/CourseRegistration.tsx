@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useTheme } from '../contexts/ThemeContext';
 import {
   Search,
   Filter,
@@ -154,6 +155,7 @@ const availableCourses: Course[] = [
 
 export function CourseRegistration() {
   const { t } = useLanguage();
+  const { isDark } = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState('all');
   const [selectedLevel, setSelectedLevel] = useState('all');
@@ -212,7 +214,7 @@ export function CourseRegistration() {
       case 'closed':
         return 'bg-red-100 text-red-700 border-red-200';
       default:
-        return 'bg-gray-100 text-gray-700 border-gray-200';
+        return 'bg-slate-50 text-slate-700 border-slate-100';
     }
   };
 
@@ -223,17 +225,17 @@ export function CourseRegistration() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 rounded-2xl p-8 text-white shadow-xl">
+      <div className="bg-gradient-to-br from-[#7C3AED] via-purple-600 to-pink-600 rounded-2xl p-8 text-white shadow-xl">
         <div className="flex items-center gap-3 mb-3">
           <GraduationCap className="w-8 h-8" />
           <span className="text-sm bg-white/20 px-3 py-1 rounded-full">{t('springRegistration')}</span>
         </div>
         <h1 className="text-3xl font-bold mb-2">{t('courseRegistration')}</h1>
-        <p className="text-indigo-100 text-lg">{t('browseCourses')}</p>
+        <p className="text-purple-100 text-lg">{t('browseCourses')}</p>
         
         <div className="grid grid-cols-3 gap-4 mt-6">
           <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-            <p className="text-sm text-indigo-200 mb-1">{t('creditsEnrolled')}</p>
+            <p className="text-sm text-purple-200 mb-1">{t('creditsEnrolled')}</p>
             <p className="text-2xl font-bold">{totalCredits} / {maxCredits}</p>
             <div className="mt-2 w-full bg-white/20 rounded-full h-2">
               <div 
@@ -243,11 +245,11 @@ export function CourseRegistration() {
             </div>
           </div>
           <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-            <p className="text-sm text-indigo-200 mb-1">{t('coursesRegistered')}</p>
+            <p className="text-sm text-purple-200 mb-1">{t('coursesRegistered')}</p>
             <p className="text-2xl font-bold">{registeredCourses.filter(c => c.status === 'registered').length}</p>
           </div>
           <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-            <p className="text-sm text-indigo-200 mb-1">{t('onWaitlist')}</p>
+            <p className="text-sm text-purple-200 mb-1">{t('onWaitlist')}</p>
             <p className="text-2xl font-bold">{registeredCourses.filter(c => c.status === 'waitlist').length}</p>
           </div>
         </div>
@@ -257,16 +259,16 @@ export function CourseRegistration() {
         {/* Course Catalog */}
         <div className="lg:col-span-2 space-y-4">
           {/* Search and Filters */}
-          <div className="bg-white rounded-xl border border-gray-200 p-4">
+          <div className="glass rounded-[2.5rem] p-4">
             <div className="flex gap-3 mb-4">
               <div className="flex-1 relative">
-                <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder={t('searchCoursePlaceholder')}
-                  className="w-full pl-10 pr-4 py-2.5 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-indigo-500 transition-all"
+                  className={`w-full pl-10 pr-4 py-2.5 ${isDark ? 'bg-white/5 border-white/10 text-white' : 'border-slate-100'} border-2 rounded-lg focus:outline-none focus:border-[#7C3AED] transition-all`}
                 />
               </div>
             </div>
@@ -274,7 +276,7 @@ export function CourseRegistration() {
               <select
                 value={selectedDepartment}
                 onChange={(e) => setSelectedDepartment(e.target.value)}
-                className="px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-indigo-500 transition-all"
+                className={`px-4 py-2 ${isDark ? 'bg-white/5 border-white/10 text-white' : 'border-slate-100'} border-2 rounded-lg focus:outline-none focus:border-[#7C3AED] transition-all`}
               >
                 <option value="all">{t('allDepartments')}</option>
                 <option value="Computer Science">{t('computerScience')}</option>
@@ -284,7 +286,7 @@ export function CourseRegistration() {
               <select
                 value={selectedLevel}
                 onChange={(e) => setSelectedLevel(e.target.value)}
-                className="px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-indigo-500 transition-all"
+                className={`px-4 py-2 ${isDark ? 'bg-white/5 border-white/10 text-white' : 'border-slate-100'} border-2 rounded-lg focus:outline-none focus:border-[#7C3AED] transition-all`}
               >
                 <option value="all">{t('allLevels')}</option>
                 <option value="Beginner">{t('beginner')}</option>
@@ -299,45 +301,45 @@ export function CourseRegistration() {
             {filteredCourses.map((course) => (
               <div
                 key={course.id}
-                className={`bg-white rounded-xl border-2 p-5 transition-all hover:shadow-lg cursor-pointer ${
-                  selectedCourse?.id === course.id ? 'border-indigo-500 shadow-md' : 'border-gray-200'
+                className={`${isDark ? 'bg-card-dark' : 'bg-white'} rounded-xl border-2 p-5 transition-all hover:shadow-lg cursor-pointer ${
+                  selectedCourse?.id === course.id ? 'border-[#7C3AED] shadow-md' : `${isDark ? 'border-white/5' : 'border-slate-100'}`
                 }`}
                 onClick={() => setSelectedCourse(course)}
               >
                 <div className="flex items-start justify-between mb-3">
                   <div>
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-sm font-bold text-indigo-600">{course.code}</span>
+                      <span className="text-sm font-bold text-[#7C3AED]">{course.code}</span>
                       <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${getStatusBadge(course.status)}`}>
                         {course.status === 'open' ? t('open') : course.status === 'waitlist' ? t('waitlist') : t('closed')}
                       </span>
-                      <span className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full text-xs">
+                      <span className={`px-2 py-0.5 ${isDark ? 'bg-white/5 text-slate-400' : 'bg-slate-50 text-slate-600'} rounded-full text-xs`}>
                         {course.level}
                       </span>
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-900">{course.title}</h3>
-                    <p className="text-sm text-gray-600">{course.instructor}</p>
+                    <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>{course.title}</h3>
+                    <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{course.instructor}</p>
                   </div>
                   <div className="text-right">
                     <div className="flex items-center gap-1 text-amber-500 mb-1">
                       <Star className="w-4 h-4 fill-current" />
                       <span className="text-sm font-medium">{course.rating}</span>
                     </div>
-                    <span className="text-lg font-bold text-gray-900">{course.credits} CR</span>
+                    <span className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{course.credits} CR</span>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-4 text-sm text-gray-600 mb-4">
+                <div className={`grid grid-cols-3 gap-4 text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'} mb-4`}>
                   <div className="flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-gray-400" />
+                    <Clock className="w-4 h-4 text-slate-500" />
                     <span>{course.schedule.split(' ').slice(0, 2).join(' ')}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-gray-400" />
+                    <MapPin className="w-4 h-4 text-slate-500" />
                     <span>{course.room}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Users className="w-4 h-4 text-gray-400" />
+                    <Users className="w-4 h-4 text-slate-500" />
                     <span>{course.enrolled}/{course.capacity} {t('enrolled2')}</span>
                   </div>
                 </div>
@@ -345,7 +347,7 @@ export function CourseRegistration() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     {course.prerequisites.length > 0 && (
-                      <span className="text-xs text-gray-500 flex items-center gap-1">
+                      <span className="text-xs text-slate-500 flex items-center gap-1">
                         <Info className="w-3 h-3" />
                         {t('prerequisites')}: {course.prerequisites.join(', ')}
                       </span>
@@ -357,7 +359,7 @@ export function CourseRegistration() {
                       {t('registered')}
                     </span>
                   ) : course.status === 'closed' ? (
-                    <span className="px-4 py-2 bg-gray-100 text-gray-500 rounded-lg text-sm font-medium cursor-not-allowed">
+                    <span className={`px-4 py-2 ${isDark ? 'bg-white/5' : 'bg-slate-50'} text-slate-500 rounded-lg text-sm font-medium cursor-not-allowed`}>
                       {t('closed')}
                     </span>
                   ) : (
@@ -366,7 +368,7 @@ export function CourseRegistration() {
                         e.stopPropagation();
                         handleRegister(course);
                       }}
-                      className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all text-sm font-medium"
+                      className="flex items-center gap-2 px-4 py-2 bg-[#7C3AED] text-white rounded-lg hover:bg-[#6D28D9] transition-all text-sm font-medium"
                     >
                       <Plus className="w-4 h-4" />
                       {course.status === 'waitlist' ? t('joinWaitlist') : t('register')}
@@ -381,43 +383,43 @@ export function CourseRegistration() {
         {/* Sidebar - Registered Courses */}
         <div className="space-y-4">
           {/* Current Schedule */}
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-            <div className="bg-gradient-to-r from-gray-50 to-white p-4 border-b border-gray-200">
-              <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                <Calendar className="w-5 h-5 text-indigo-600" />
+          <div className="glass rounded-[2.5rem] overflow-hidden">
+            <div className={`${isDark ? 'bg-white/5 border-b border-white/5' : 'bg-gradient-to-r from-background-light to-white border-b border-slate-100'} p-4`}>
+              <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'} flex items-center gap-2`}>
+                <Calendar className="w-5 h-5 text-[#7C3AED]" />
                 {t('mySchedule')}
               </h3>
-              <p className="text-sm text-gray-600 mt-1">{registeredCourses.length} {t('coursesCredits')} • {totalCredits} {t('credits')}</p>
+              <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'} mt-1`}>{registeredCourses.length} {t('coursesCredits')} • {totalCredits} {t('credits')}</p>
             </div>
             <div className="p-4 space-y-3">
               {registeredCourses.length === 0 ? (
                 <div className="text-center py-8">
-                  <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                  <p className="text-gray-600">{t('noCourses')}</p>
-                  <p className="text-sm text-gray-500">{t('browseToAdd')}</p>
+                  <BookOpen className="w-12 h-12 text-slate-400 mx-auto mb-3" />
+                  <p className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{t('noCourses')}</p>
+                  <p className="text-sm text-slate-500">{t('browseToAdd')}</p>
                 </div>
               ) : (
                 registeredCourses.map((course) => (
                   <div
                     key={course.id}
-                    className="p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-all"
+                    className={`p-3 border ${isDark ? 'border-white/5' : 'border-slate-100'} rounded-lg ${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'} transition-all`}
                   >
                     <div className="flex items-start justify-between mb-2">
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-bold text-indigo-600">{course.code}</span>
+                          <span className="text-sm font-bold text-[#7C3AED]">{course.code}</span>
                           {course.status === 'waitlist' && (
                             <span className="px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full text-xs">
                               {t('waitlist')}
                             </span>
                           )}
                         </div>
-                        <p className="text-sm font-medium text-gray-900">{course.title}</p>
+                        <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'}`}>{course.title}</p>
                       </div>
-                      <span className="text-sm font-bold text-gray-600">{course.credits} CR</span>
+                      <span className={`text-sm font-bold ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{course.credits} CR</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-xs text-gray-500">{course.schedule}</span>
+                      <span className="text-xs text-slate-500">{course.schedule}</span>
                       <button
                         onClick={() => handleDrop(course.id)}
                         className="text-red-600 hover:text-red-700 text-xs font-medium flex items-center gap-1"
@@ -434,41 +436,41 @@ export function CourseRegistration() {
 
           {/* Course Details */}
           {selectedCourse && (
-            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-              <div className="bg-gradient-to-r from-gray-50 to-white p-4 border-b border-gray-200">
-                <h3 className="font-semibold text-gray-900">{t('courseDetails')}</h3>
+            <div className="glass rounded-[2.5rem] overflow-hidden">
+              <div className={`${isDark ? 'bg-white/5 border-b border-white/5' : 'bg-gradient-to-r from-background-light to-white border-b border-slate-100'} p-4`}>
+                <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>{t('courseDetails')}</h3>
               </div>
               <div className="p-4">
                 <div className="mb-4">
-                  <span className="text-sm font-bold text-indigo-600">{selectedCourse.code}</span>
-                  <h4 className="text-lg font-semibold text-gray-900">{selectedCourse.title}</h4>
-                  <p className="text-sm text-gray-600">{selectedCourse.instructor}</p>
+                  <span className="text-sm font-bold text-[#7C3AED]">{selectedCourse.code}</span>
+                  <h4 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>{selectedCourse.title}</h4>
+                  <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{selectedCourse.instructor}</p>
                 </div>
-                <p className="text-sm text-gray-700 mb-4">{selectedCourse.description}</p>
+                <p className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-700'} mb-4`}>{selectedCourse.description}</p>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">{t('schedule')}</span>
-                    <span className="text-gray-900 font-medium">{selectedCourse.schedule}</span>
+                    <span className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{t('schedule')}</span>
+                    <span className={`${isDark ? 'text-white' : 'text-slate-800'} font-medium`}>{selectedCourse.schedule}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">{t('room')}</span>
-                    <span className="text-gray-900 font-medium">{selectedCourse.room}</span>
+                    <span className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{t('room')}</span>
+                    <span className={`${isDark ? 'text-white' : 'text-slate-800'} font-medium`}>{selectedCourse.room}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">{t('credits')}</span>
-                    <span className="text-gray-900 font-medium">{selectedCourse.credits}</span>
+                    <span className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{t('credits')}</span>
+                    <span className={`${isDark ? 'text-white' : 'text-slate-800'} font-medium`}>{selectedCourse.credits}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">{t('capacity')}</span>
-                    <span className="text-gray-900 font-medium">{selectedCourse.enrolled}/{selectedCourse.capacity}</span>
+                    <span className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{t('capacity')}</span>
+                    <span className={`${isDark ? 'text-white' : 'text-slate-800'} font-medium`}>{selectedCourse.enrolled}/{selectedCourse.capacity}</span>
                   </div>
                 </div>
                 {selectedCourse.prerequisites.length > 0 && (
-                  <div className="mt-4 pt-4 border-t border-gray-200">
-                    <p className="text-sm font-medium text-gray-900 mb-2">{t('prerequisites')}</p>
+                  <div className={`mt-4 pt-4 border-t ${isDark ? 'border-white/5' : 'border-slate-100'}`}>
+                    <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'} mb-2`}>{t('prerequisites')}</p>
                     <div className="flex flex-wrap gap-2">
                       {selectedCourse.prerequisites.map((prereq, idx) => (
-                        <span key={idx} className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
+                        <span key={idx} className={`px-2 py-1 ${isDark ? 'bg-white/5 text-slate-300' : 'bg-slate-50 text-slate-700'} rounded text-xs`}>
                           {prereq}
                         </span>
                       ))}
@@ -484,33 +486,33 @@ export function CourseRegistration() {
       {/* Registration Confirmation Modal */}
       {showConfirmModal && courseToRegister && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl">
-            <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <BookOpen className="w-8 h-8 text-indigo-600" />
+          <div className={`${isDark ? 'bg-card-dark' : 'bg-white'} rounded-2xl p-8 max-w-md w-full shadow-2xl`}>
+            <div className="w-16 h-16 bg-[#7C3AED]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <BookOpen className="w-8 h-8 text-[#7C3AED]" />
             </div>
-            <h2 className="text-xl font-semibold text-gray-900 text-center mb-2">
+            <h2 className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-slate-800'} text-center mb-2`}>
               {courseToRegister.status === 'waitlist' ? t('joinWaitlistQuestion') : t('confirmRegistration')}
             </h2>
-            <p className="text-gray-600 text-center mb-4">
+            <p className={`${isDark ? 'text-slate-400' : 'text-slate-600'} text-center mb-4`}>
               {courseToRegister.status === 'waitlist' 
                 ? `${t('waitlistConfirmText')} ${courseToRegister.code} - ${courseToRegister.title}`
                 : `${t('registerConfirmText')} ${courseToRegister.code} - ${courseToRegister.title}`
               }
             </p>
             
-            <div className="bg-gray-50 rounded-lg p-4 mb-6">
+            <div className={`${isDark ? 'bg-white/5' : 'bg-background-light'} rounded-lg p-4 mb-6`}>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">{t('credits')}</span>
-                  <span className="text-gray-900 font-medium">{courseToRegister.credits}</span>
+                  <span className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{t('credits')}</span>
+                  <span className={`${isDark ? 'text-white' : 'text-slate-800'} font-medium`}>{courseToRegister.credits}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">{t('schedule')}</span>
-                  <span className="text-gray-900 font-medium">{courseToRegister.schedule}</span>
+                  <span className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{t('schedule')}</span>
+                  <span className={`${isDark ? 'text-white' : 'text-slate-800'} font-medium`}>{courseToRegister.schedule}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">{t('instructor')}</span>
-                  <span className="text-gray-900 font-medium">{courseToRegister.instructor}</span>
+                  <span className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{t('instructor')}</span>
+                  <span className={`${isDark ? 'text-white' : 'text-slate-800'} font-medium`}>{courseToRegister.instructor}</span>
                 </div>
               </div>
             </div>
@@ -535,13 +537,13 @@ export function CourseRegistration() {
                   setShowConfirmModal(false);
                   setCourseToRegister(null);
                 }}
-                className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 transition-all font-medium"
+                className={`flex-1 px-4 py-3 border-2 ${isDark ? 'border-white/5 text-slate-300 hover:bg-white/5' : 'border-slate-100 text-slate-700 hover:bg-slate-50'} rounded-xl transition-all font-medium`}
               >
                 {t('cancel')}
               </button>
               <button
                 onClick={confirmRegistration}
-                className="flex-1 px-4 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-xl hover:shadow-lg transition-all font-medium"
+                className="flex-1 px-4 py-3 bg-gradient-to-r from-[#7C3AED] to-[#6D28D9] text-white rounded-xl hover:shadow-lg transition-all font-medium"
               >
                 {courseToRegister.status === 'waitlist' ? t('joinWaitlist') : t('confirm')}
               </button>

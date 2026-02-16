@@ -166,41 +166,41 @@ const defaultUpcomingClasses: ClassSession[] = [
 ];
 
 const UpcomingClassCard = ({ classSession, t }: { classSession: ClassSession; t: (key: string) => string }) => (
-  <div className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+  <div className="bg-white border border-slate-100 rounded-lg p-6 hover:shadow-md transition-shadow">
     <div className="flex items-start gap-4 mb-4">
       <div className="w-1 h-16 rounded" style={{ backgroundColor: '#4f39f6' }} />
       <div className="flex-1">
-        <h3 className="text-lg font-semibold text-gray-900">{classSession.title}</h3>
-        <p className="text-sm text-gray-600 mt-1">{classSession.code}</p>
+        <h3 className="text-lg font-semibold text-slate-800">{classSession.title}</h3>
+        <p className="text-sm text-slate-600 mt-1">{classSession.code}</p>
       </div>
     </div>
 
     <div className="space-y-3 mb-4">
-      <div className="flex items-center gap-3 text-sm text-gray-600">
+      <div className="flex items-center gap-3 text-sm text-slate-600">
         <Clock size={16} />
         <span>{classSession.time}</span>
       </div>
-      <div className="flex items-center gap-3 text-sm text-gray-600">
+      <div className="flex items-center gap-3 text-sm text-slate-600">
         <Calendar size={16} />
         <span>{classSession.date}</span>
       </div>
-      <div className="flex items-center gap-3 text-sm text-gray-600">
+      <div className="flex items-center gap-3 text-sm text-slate-600">
         <MapPin size={16} />
         <span>{classSession.room}</span>
       </div>
-      <div className="flex items-center gap-3 text-sm text-gray-600">
+      <div className="flex items-center gap-3 text-sm text-slate-600">
         <User size={16} />
         <span>{classSession.instructor}</span>
       </div>
     </div>
 
     {classSession.progress !== undefined && (
-      <div className="pt-3 border-t border-gray-100">
+      <div className="pt-3 border-t border-slate-100">
         <div className="flex justify-between items-center mb-2">
-          <span className="text-sm text-gray-600">{t('progress')}</span>
-          <span className="text-sm font-semibold text-gray-900">{classSession.progress}%</span>
+          <span className="text-sm text-slate-600">{t('progress')}</span>
+          <span className="text-sm font-semibold text-slate-800">{classSession.progress}%</span>
         </div>
-        <div className="w-full bg-gray-200 rounded-full h-2">
+        <div className="w-full bg-slate-200 rounded-full h-2">
           <div
             className="h-2 rounded-full"
             style={{ width: `${classSession.progress}%`, backgroundColor: '#4f39f6' }}
@@ -217,11 +217,11 @@ const ScheduleGrid = ({ scheduleData, t }: { scheduleData: ScheduleData; t: (key
     <div className="overflow-x-auto">
       <div className="min-w-max">
         {/* Header */}
-        <div className="flex gap-2 mb-4 border-b border-gray-200">
+        <div className="flex gap-2 mb-4 border-b border-slate-100">
           {daysOfWeek.map((day, index) => (
             <div
               key={index}
-              className="w-24 py-3 px-2 font-semibold text-center text-gray-900"
+              className="w-24 py-3 px-2 font-semibold text-center text-slate-800"
             >
               {day}
             </div>
@@ -230,9 +230,9 @@ const ScheduleGrid = ({ scheduleData, t }: { scheduleData: ScheduleData; t: (key
 
         {/* Time Slots */}
         {TIME_SLOTS.map((time) => (
-          <div key={time} className="flex gap-2 mb-4 border-b border-gray-100">
+          <div key={time} className="flex gap-2 mb-4 border-b border-slate-100">
             {/* Time Column */}
-            <div className="w-20 py-4 px-2 text-sm text-gray-600 font-medium">
+            <div className="w-20 py-4 px-2 text-sm text-slate-600 font-medium">
               {time}
             </div>
 
@@ -240,7 +240,7 @@ const ScheduleGrid = ({ scheduleData, t }: { scheduleData: ScheduleData; t: (key
             {DAY_KEYS.map((day) => (
               <div
                 key={`${day}-${time}`}
-                className="w-24 min-h-24 p-2 border border-gray-100 rounded bg-gray-50"
+                className="w-24 min-h-24 p-2 border border-slate-100 rounded bg-background-light"
               >
                 {scheduleData[day]
                   ?.filter((cls) => cls.time.startsWith(time))
@@ -250,8 +250,8 @@ const ScheduleGrid = ({ scheduleData, t }: { scheduleData: ScheduleData; t: (key
                       className="bg-gradient-to-br from-purple-50 to-blue-50 border-l-4 border-purple-600 rounded p-2 mb-2"
                     >
                       <p className="text-xs font-bold text-purple-900">{cls.code}</p>
-                      <p className="text-xs text-gray-700 line-clamp-2 mt-1">{cls.title}</p>
-                      <p className="text-xs text-gray-600 mt-1">{cls.room}</p>
+                      <p className="text-xs text-slate-700 line-clamp-2 mt-1">{cls.title}</p>
+                      <p className="text-xs text-slate-600 mt-1">{cls.room}</p>
                     </div>
                   ))}
               </div>
@@ -274,27 +274,27 @@ export default function WeeklySchedule({
   return (
     <div className="space-y-8">
       {/* Main Schedule Grid */}
-      <div className="bg-white rounded-lg border border-gray-200 p-8">
+      <div className="bg-white rounded-lg border border-slate-100 p-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">{t('weeklySchedule')}</h2>
-            <p className="text-sm text-gray-600 mt-1">{weekStart}</p>
+            <h2 className="text-2xl font-bold text-slate-800">{t('weeklySchedule')}</h2>
+            <p className="text-sm text-slate-600 mt-1">{weekStart}</p>
           </div>
 
           {/* Navigation Buttons */}
           <div className="flex gap-2">
             <button
               onClick={() => setCurrentWeek(currentWeek - 1)}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 hover:bg-slate-50 rounded-lg transition-colors"
             >
-              <ChevronLeft size={20} className="text-gray-600" />
+              <ChevronLeft size={20} className="text-slate-600" />
             </button>
             <button
               onClick={() => setCurrentWeek(currentWeek + 1)}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 hover:bg-slate-50 rounded-lg transition-colors"
             >
-              <ChevronRight size={20} className="text-gray-600" />
+              <ChevronRight size={20} className="text-slate-600" />
             </button>
           </div>
         </div>
@@ -306,8 +306,8 @@ export default function WeeklySchedule({
       {/* Upcoming Classes Section */}
       <div className="space-y-4">
         <div>
-          <h3 className="text-lg font-bold text-gray-900">{t('upcomingClasses')}</h3>
-          <p className="text-sm text-gray-600 mt-1">{t('nextScheduledClasses')}</p>
+          <h3 className="text-lg font-bold text-slate-800">{t('upcomingClasses')}</h3>
+          <p className="text-sm text-slate-600 mt-1">{t('nextScheduledClasses')}</p>
         </div>
 
         {/* Upcoming Classes Cards */}

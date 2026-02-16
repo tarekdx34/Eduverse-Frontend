@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTheme } from '../../../contexts/ThemeContext';
 import { 
   Sparkles, 
   Layers, 
@@ -25,6 +26,7 @@ interface Flashcard {
 }
 
 export function FlashcardsContent() {
+  const { isDark } = useTheme();
   const [mode, setMode] = useState<'create' | 'study'>('create');
   const [inputText, setInputText] = useState('');
   const [topic, setTopic] = useState('');
@@ -101,11 +103,11 @@ export function FlashcardsContent() {
     return (
       <div className="space-y-5">
         {/* Progress Header */}
-        <div className="bg-gradient-to-br from-teal-50 to-cyan-50 rounded-xl p-4 border border-teal-200">
+        <div className={`${isDark ? 'bg-teal-500/10 border-teal-500/20' : 'bg-gradient-to-br from-teal-50 to-cyan-50 border-teal-200'} rounded-xl p-4 border`}>
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <Layers className="w-5 h-5 text-teal-600" />
-              <span className="font-medium text-teal-900">Studying: {topic || 'Flashcards'}</span>
+              <span className={`font-medium ${isDark ? 'text-white' : 'text-teal-900'}`}>Studying: {topic || 'Flashcards'}</span>
             </div>
             <button 
               onClick={() => setMode('create')}
@@ -115,12 +117,12 @@ export function FlashcardsContent() {
               New Deck
             </button>
           </div>
-          <div className="flex items-center gap-4 text-sm text-teal-700">
+          <div className={`flex items-center gap-4 text-sm ${isDark ? 'text-teal-400' : 'text-teal-700'}`}>
             <span>Card {currentIndex + 1} of {flashcards.length}</span>
             <span>•</span>
             <span>{masteredCount} mastered</span>
           </div>
-          <div className="mt-3 w-full bg-teal-200 rounded-full h-2">
+          <div className={`mt-3 w-full ${isDark ? 'bg-white/10' : 'bg-teal-200'} rounded-full h-2`}>
             <div 
               className="bg-gradient-to-r from-teal-500 to-cyan-500 h-2 rounded-full transition-all duration-300"
               style={{ width: `${progress}%` }}
@@ -135,7 +137,7 @@ export function FlashcardsContent() {
         >
           <div className={`relative w-full h-full transition-transform duration-500 transform-style-3d ${isFlipped ? 'rotate-y-180' : ''}`}>
             {/* Front */}
-            <div className={`absolute inset-0 bg-white rounded-2xl border-2 border-gray-200 p-8 flex flex-col items-center justify-center shadow-lg ${isFlipped ? 'opacity-0' : 'opacity-100'}`}>
+            <div className={`absolute inset-0 ${isDark ? 'bg-card-dark border-white/10' : 'bg-white border-2 border-slate-100'} rounded-2xl p-8 flex flex-col items-center justify-center shadow-lg ${isFlipped ? 'opacity-0' : 'opacity-100'}`}>
               <div className="absolute top-4 left-4">
                 <span className="px-3 py-1 bg-teal-100 text-teal-700 rounded-full text-xs font-medium">
                   {currentCard.category}
@@ -149,8 +151,8 @@ export function FlashcardsContent() {
                 </div>
               )}
               <BookOpen className="w-10 h-10 text-teal-300 mb-4" />
-              <p className="text-xl text-gray-900 text-center font-medium">{currentCard.front}</p>
-              <p className="text-sm text-gray-500 mt-6">Click to reveal answer</p>
+              <p className={`text-xl ${isDark ? 'text-white' : 'text-slate-800'} text-center font-medium`}>{currentCard.front}</p>
+              <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'} mt-6`}>Click to reveal answer</p>
             </div>
 
             {/* Back */}
@@ -167,7 +169,7 @@ export function FlashcardsContent() {
           <button
             onClick={handlePrev}
             disabled={currentIndex === 0}
-            className="flex items-center gap-2 px-4 py-2 border-2 border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            className={`flex items-center gap-2 px-4 py-2 border-2 ${isDark ? 'border-white/10 hover:bg-white/5' : 'border-slate-100 hover:bg-slate-50'} rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all`}
           >
             <ChevronLeft className="w-5 h-5" />
             Previous
@@ -193,7 +195,7 @@ export function FlashcardsContent() {
           <button
             onClick={handleNext}
             disabled={currentIndex === flashcards.length - 1}
-            className="flex items-center gap-2 px-4 py-2 border-2 border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            className={`flex items-center gap-2 px-4 py-2 border-2 ${isDark ? 'border-white/10 hover:bg-white/5' : 'border-slate-100 hover:bg-slate-50'} rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all`}
           >
             Next
             <ChevronRight className="w-5 h-5" />
@@ -201,28 +203,28 @@ export function FlashcardsContent() {
         </div>
 
         {/* Action Buttons */}
-        <div className="grid grid-cols-4 gap-3 pt-4 border-t border-gray-200">
+        <div className={`grid grid-cols-4 gap-3 pt-4 border-t ${isDark ? 'border-white/5' : 'border-slate-100'}`}>
           <button
             onClick={handleShuffle}
-            className="flex items-center justify-center gap-2 px-4 py-3 border-2 border-gray-200 rounded-lg hover:bg-gray-50 transition-all"
+            className={`flex items-center justify-center gap-2 px-4 py-3 border-2 ${isDark ? 'border-white/10 hover:bg-white/5' : 'border-slate-100 hover:bg-slate-50'} rounded-lg transition-all`}
           >
-            <Shuffle className="w-4 h-4 text-gray-600" />
-            <span className="text-sm text-gray-700">Shuffle</span>
+            <Shuffle className={`w-4 h-4 ${isDark ? 'text-slate-400' : 'text-slate-600'}`} />
+            <span className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>Shuffle</span>
           </button>
           <button
             onClick={() => { setCurrentIndex(0); setIsFlipped(false); }}
-            className="flex items-center justify-center gap-2 px-4 py-3 border-2 border-gray-200 rounded-lg hover:bg-gray-50 transition-all"
+            className={`flex items-center justify-center gap-2 px-4 py-3 border-2 ${isDark ? 'border-white/10 hover:bg-white/5' : 'border-slate-100 hover:bg-slate-50'} rounded-lg transition-all`}
           >
-            <RotateCcw className="w-4 h-4 text-gray-600" />
-            <span className="text-sm text-gray-700">Restart</span>
+            <RotateCcw className={`w-4 h-4 ${isDark ? 'text-slate-400' : 'text-slate-600'}`} />
+            <span className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>Restart</span>
           </button>
-          <button className="flex items-center justify-center gap-2 px-4 py-3 border-2 border-gray-200 rounded-lg hover:bg-gray-50 transition-all">
-            <Download className="w-4 h-4 text-gray-600" />
-            <span className="text-sm text-gray-700">Export</span>
+          <button className={`flex items-center justify-center gap-2 px-4 py-3 border-2 ${isDark ? 'border-white/10 hover:bg-white/5' : 'border-slate-100 hover:bg-slate-50'} rounded-lg transition-all`}>
+            <Download className={`w-4 h-4 ${isDark ? 'text-slate-400' : 'text-slate-600'}`} />
+            <span className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>Export</span>
           </button>
-          <button className="flex items-center justify-center gap-2 px-4 py-3 border-2 border-gray-200 rounded-lg hover:bg-gray-50 transition-all">
-            <Share2 className="w-4 h-4 text-gray-600" />
-            <span className="text-sm text-gray-700">Share</span>
+          <button className={`flex items-center justify-center gap-2 px-4 py-3 border-2 ${isDark ? 'border-white/10 hover:bg-white/5' : 'border-slate-100 hover:bg-slate-50'} rounded-lg transition-all`}>
+            <Share2 className={`w-4 h-4 ${isDark ? 'text-slate-400' : 'text-slate-600'}`} />
+            <span className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>Share</span>
           </button>
         </div>
       </div>
@@ -231,29 +233,29 @@ export function FlashcardsContent() {
 
   return (
     <div className="space-y-5">
-      <div className="bg-gradient-to-br from-teal-50 to-cyan-50 rounded-xl p-6 border border-teal-200">
-        <h4 className="text-teal-900 mb-2 flex items-center gap-2">
+      <div className={`${isDark ? 'bg-teal-500/10 border-teal-500/20' : 'bg-gradient-to-br from-teal-50 to-cyan-50 border-teal-200'} rounded-xl p-6 border`}>
+        <h4 className={`${isDark ? 'text-white' : 'text-teal-900'} mb-2 flex items-center gap-2`}>
           <Sparkles className="w-4 h-4" />
           AI-Powered Flashcard Generator
         </h4>
-        <p className="text-sm text-teal-700">
+        <p className={`text-sm ${isDark ? 'text-teal-400' : 'text-teal-700'}`}>
           Transform your study materials into effective flashcards for better memorization
         </p>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-3">Topic or Subject</label>
+        <label className={`block text-sm font-medium ${isDark ? 'text-slate-300' : 'text-slate-700'} mb-3`}>Topic or Subject</label>
         <input
           type="text"
           value={topic}
           onChange={(e) => setTopic(e.target.value)}
           placeholder="Enter topic (e.g., Data Structures, React Hooks, SQL Queries)"
-          className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-teal-500 focus:ring-4 focus:ring-teal-100 transition-all"
+          className={`w-full px-4 py-3 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-slate-500' : 'border-2 border-slate-100'} rounded-lg focus:outline-none focus:border-teal-500 focus:ring-4 focus:ring-teal-100 transition-all`}
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-3">
+        <label className={`block text-sm font-medium ${isDark ? 'text-slate-300' : 'text-slate-700'} mb-3`}>
           Paste your study material (optional)
         </label>
         <textarea
@@ -261,25 +263,25 @@ export function FlashcardsContent() {
           onChange={(e) => setInputText(e.target.value)}
           placeholder="Paste lecture notes, textbook content, or any study material here..."
           rows={5}
-          className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-teal-500 focus:ring-4 focus:ring-teal-100 transition-all resize-none"
+          className={`w-full px-4 py-3 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-slate-500' : 'border-2 border-slate-100'} rounded-lg focus:outline-none focus:border-teal-500 focus:ring-4 focus:ring-teal-100 transition-all resize-none`}
         />
       </div>
 
       <div className="flex items-center gap-4">
-        <label className="flex-1 flex items-center justify-center gap-3 px-4 py-4 border-2 border-dashed border-gray-300 rounded-xl hover:border-teal-400 hover:bg-teal-50 transition-all cursor-pointer">
-          <Upload className="w-5 h-5 text-gray-500" />
-          <span className="text-sm text-gray-600">Upload PDF or Document</span>
+        <label className={`flex-1 flex items-center justify-center gap-3 px-4 py-4 border-2 border-dashed ${isDark ? 'border-white/20 hover:border-teal-400 hover:bg-teal-500/10' : 'border-slate-200 hover:border-teal-400 hover:bg-teal-50'} rounded-xl transition-all cursor-pointer`}>
+          <Upload className={`w-5 h-5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} />
+          <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Upload PDF or Document</span>
           <input type="file" className="hidden" accept=".pdf,.doc,.docx,.txt" />
         </label>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Number of Cards</label>
+          <label className={`block text-sm font-medium ${isDark ? 'text-slate-300' : 'text-slate-700'} mb-2`}>Number of Cards</label>
           <select 
             value={cardCount}
             onChange={(e) => setCardCount(e.target.value)}
-            className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-teal-500 transition-all"
+            className={`w-full px-4 py-3 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-slate-500' : 'border-2 border-slate-100'} rounded-lg focus:outline-none focus:border-teal-500 transition-all`}
           >
             <option value="5">5 Cards</option>
             <option value="10">10 Cards</option>
@@ -289,8 +291,8 @@ export function FlashcardsContent() {
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Card Style</label>
-          <select className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-teal-500 transition-all">
+          <label className={`block text-sm font-medium ${isDark ? 'text-slate-300' : 'text-slate-700'} mb-2`}>Card Style</label>
+          <select className={`w-full px-4 py-3 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-slate-500' : 'border-2 border-slate-100'} rounded-lg focus:outline-none focus:border-teal-500 transition-all`}>
             <option>Question & Answer</option>
             <option>Term & Definition</option>
             <option>Concept & Example</option>
@@ -317,8 +319,8 @@ export function FlashcardsContent() {
       </button>
 
       {/* Recent Decks */}
-      <div className="pt-4 border-t border-gray-200">
-        <h4 className="text-sm font-medium text-gray-700 mb-3">Recent Flashcard Decks</h4>
+      <div className={`pt-4 border-t ${isDark ? 'border-white/5' : 'border-slate-100'}`}>
+        <h4 className={`text-sm font-medium ${isDark ? 'text-slate-300' : 'text-slate-700'} mb-3`}>Recent Flashcard Decks</h4>
         <div className="space-y-2">
           {[
             { name: 'Data Structures Basics', cards: 15, mastered: 12 },
@@ -332,18 +334,18 @@ export function FlashcardsContent() {
                 setTopic(deck.name);
                 setMode('study');
               }}
-              className="w-full flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-all"
+              className={`w-full flex items-center justify-between p-3 border ${isDark ? 'border-white/10 hover:bg-white/5' : 'border-slate-100 hover:bg-slate-50'} rounded-lg transition-all`}
             >
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-teal-100 rounded-lg flex items-center justify-center">
                   <Layers className="w-5 h-5 text-teal-600" />
                 </div>
                 <div className="text-left">
-                  <p className="text-sm font-medium text-gray-900">{deck.name}</p>
-                  <p className="text-xs text-gray-500">{deck.cards} cards • {deck.mastered} mastered</p>
+                  <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'}`}>{deck.name}</p>
+                  <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{deck.cards} cards • {deck.mastered} mastered</p>
                 </div>
               </div>
-              <ChevronRight className="w-5 h-5 text-gray-400" />
+              <ChevronRight className={`w-5 h-5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} />
             </button>
           ))}
         </div>

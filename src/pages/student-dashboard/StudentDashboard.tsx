@@ -49,99 +49,6 @@ import { GPA_DATA, SCHEDULE_DATA } from './constants';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 
-// Route component for each tab view
-function DashboardContent({ activeTab, viewingCourseId, setViewingCourseId }: any) {
-  console.log('DashboardContent rendered with activeTab:', activeTab); // Debug
-
-  return (
-    <>
-      {/* Dashboard Tab */}
-      {activeTab === 'dashboard' && !viewingCourseId && (
-        <>
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-            <StatsCard
-              label="Credits Completed"
-              value="120"
-              maxValue="144"
-              comparison="+24 Credits"
-              isPositive={true}
-            />
-            <StatsCard
-              label="Grade Point Average"
-              value="3.75"
-              maxValue="4.00"
-              comparison="-0.25 Points"
-              isPositive={false}
-            />
-            <StatsCard
-              label="Active Class"
-              value="15"
-              maxValue="18"
-              comparison="Active Course This Semester"
-              isPositive={true}
-            />
-          </div>
-
-          {/* Charts and Schedule */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <GpaChart data={GPA_DATA} />
-            <DailySchedule schedules={SCHEDULE_DATA} />
-          </div>
-
-          {/* Payment History */}
-          <PaymentHistory />
-        </>
-      )}
-
-      {/* My Class Tab or Course View */}
-      {viewingCourseId ? (
-        <CourseViewPage courseId={viewingCourseId} onBack={() => setViewingCourseId(null)} />
-      ) : (
-        <>
-          {activeTab === 'myclass' && (
-            <ClassTab onViewCourse={(courseId) => setViewingCourseId(courseId)} />
-          )}
-        </>
-      )}
-
-      {/* Schedule Tab */}
-      {!viewingCourseId && activeTab === 'schedule' && <WeeklySchedule />}
-
-      {/* Assignments Tab */}
-      {!viewingCourseId && activeTab === 'assignments' && <Assignments />}
-
-      {/* Calendar Tab */}
-      {!viewingCourseId && activeTab === 'calendar' && <AcademicCalendar />}
-
-      {/* AI Features Tab */}
-      {!viewingCourseId && activeTab === 'ai' && <AIFeatures />}
-
-      {/* Grades & Transcript Tab */}
-      {!viewingCourseId && activeTab === 'grades' && <GradesTranscript />}
-
-      {/* Payments Tab */}
-      {!viewingCourseId && activeTab === 'payments' && <PaymentHistory />}
-
-      {/* Chat Tab */}
-      {!viewingCourseId && activeTab === 'chat' && <MessagingChat />}
-
-      {/* Attendance Tab */}
-      {!viewingCourseId && activeTab === 'attendance' && (
-        <div>
-          <AttendanceOverview />
-        </div>
-      )}
-
-      {/* Todo Reminder Tab */}
-      {!viewingCourseId && activeTab === 'todo' && (
-        <div>
-          <SmartTodoReminder />
-        </div>
-      )}
-    </>
-  );
-}
 
 function StudentDashboardContent() {
   const navigate = useNavigate();
@@ -207,11 +114,11 @@ function StudentDashboardContent() {
 
   return (
     <div
-      className={`flex min-h-screen ${isRTL ? 'flex-row-reverse' : ''} ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}
+      className={`flex min-h-screen gradient-bg ${isRTL ? 'flex-row-reverse' : ''} ${isDark ? 'bg-background-dark' : 'bg-background-light'} text-slate-800 dark:text-slate-100 transition-colors duration-300`}
       style={{ fontFamily: "'Montserrat', sans-serif" }}
       dir={isRTL ? 'rtl' : 'ltr'}
     >
-      {/* Sidebar - Collapsible Drawer */}
+      {/* Sidebar */}
       <div
         className={`fixed ${isRTL ? 'right-0' : 'left-0'} top-0 z-50 h-screen transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : (isRTL ? 'translate-x-full' : '-translate-x-full')}`}
       >
@@ -223,40 +130,27 @@ function StudentDashboardContent() {
         />
       </div>
 
-      {/* Main Content - Takes remaining space */}
-      <div
-        className={`flex flex-col transition-all duration-300 ${sidebarOpen ? (isRTL ? 'mr-56' : 'ml-56') + ' flex-1' : (isRTL ? 'mr-0' : 'ml-0') + ' w-full'}`}
+      {/* Main Content */}
+      <main
+        className={`flex-1 transition-all duration-300 ${sidebarOpen ? (isRTL ? 'mr-64' : 'ml-64') : ''} p-6 lg:p-10`}
       >
-        {/* Header */}
-        <div className={`border-b flex items-center justify-between display-absolute ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-          <div className="flex items-center">
-            {!sidebarOpen && (
-              <button
-                onClick={() => setSidebarOpen(true)}
-                className={`p-4 rounded-lg transition-colors ${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
-              >
-                <svg
-                  className={`w-6 h-6 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 6h16M4 12h16M4 18h16"
-                  />
-                </svg>
-              </button>
-            )}
-          </div>
-          <div className="flex-1"></div>
-          <Header userName="Tarek Mohamed" />
-        </div>
+        {/* Mobile sidebar toggle */}
+        {!sidebarOpen && (
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="fixed top-6 left-6 z-40 glass p-3 rounded-2xl hover:bg-white dark:hover:bg-slate-700 transition-all lg:hidden"
+          >
+            <svg className="w-6 h-6 text-slate-600 dark:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+        )}
+
+        {/* Header is now inline */}
+        <Header userName="Tarek Mohamed" />
 
         {/* Content Area */}
-        <div className={`flex-1 overflow-y-auto p-6 pt-18 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
+        <div className="flex-1">
           {viewingCourseId ? (
             <CourseViewPage courseId={viewingCourseId} onBack={handleBackFromCourse} />
           ) : (
@@ -264,7 +158,7 @@ function StudentDashboardContent() {
               {activeTab === 'dashboard' && (
                 <>
                   {/* Stats Cards */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
                     <StatsCard
                       label="Credits Completed"
                       value="120"
@@ -288,14 +182,42 @@ function StudentDashboardContent() {
                     />
                   </div>
 
-                  {/* Charts and Schedule */}
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <GpaChart data={GPA_DATA} />
-                    <DailySchedule schedules={SCHEDULE_DATA} />
+                  {/* Charts, AI Card & Schedule — 12-col grid */}
+                  <div className="grid grid-cols-12 gap-8">
+                    {/* Left column: GPA + AI Insight */}
+                    <div className="col-span-12 lg:col-span-8 space-y-8">
+                      <GpaChart data={GPA_DATA} />
+
+                      {/* AI Academic Insight Card */}
+                      <div className="bg-gradient-to-br from-[#7C3AED] to-indigo-600 p-8 rounded-[2.5rem] text-white relative overflow-hidden">
+                        <div className="relative z-10">
+                          <div className="flex items-center gap-2 mb-4">
+                            <span className="material-symbols-rounded">auto_awesome</span>
+                            <span className="text-xs font-bold uppercase tracking-[0.2em]">AI Academic Insight</span>
+                          </div>
+                          <h4 className="text-xl font-bold mb-2 text-white">Boost your grade in Advanced Networking</h4>
+                          <p className="text-white/80 text-sm max-w-md mb-0">Based on your recent quiz results, we suggest focusing on 'Protocol Architecture'. Students who reviewed this topic improved their final grade by 12%.</p>
+                          <button className="mt-6 bg-white text-[#7C3AED] px-6 py-2.5 rounded-xl font-bold text-sm hover:scale-105 transition-transform">
+                            Explore Study Guide
+                          </button>
+                        </div>
+                        <div className="absolute -bottom-12 -right-12 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+                        <div className="absolute top-0 right-0 p-8 opacity-20">
+                          <span className="material-symbols-rounded text-8xl">psychology</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Right column: Schedule */}
+                    <div className="col-span-12 lg:col-span-4">
+                      <DailySchedule schedules={SCHEDULE_DATA} />
+                    </div>
                   </div>
 
                   {/* Payment History */}
-                  <PaymentHistory />
+                  <div className="mt-10">
+                    <PaymentHistory />
+                  </div>
                 </>
               )}
 
@@ -319,7 +241,7 @@ function StudentDashboardContent() {
             </>
           )}
         </div>
-      </div>
+      </main>
     </div>
   );
 }
