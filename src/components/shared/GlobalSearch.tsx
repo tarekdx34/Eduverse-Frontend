@@ -228,10 +228,10 @@ export function GlobalSearch({
   return (
     <div className="fixed inset-0 z-50 overflow-hidden">
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/30 backdrop-blur-md" onClick={onClose} />
 
       {/* Search Modal */}
-      <div className="relative max-w-3xl mx-auto mt-20 rounded-2xl shadow-2xl overflow-hidden bg-white">
+      <div className="relative max-w-3xl mx-auto mt-20 rounded-2xl shadow-2xl overflow-hidden bg-white/80 backdrop-blur-xl border border-white/30">
         {/* Search Input */}
         <div className="p-4 border-b border-gray-200">
           <div className="relative">
@@ -377,7 +377,7 @@ export function GlobalSearch({
         </div>
 
         {/* Footer */}
-        <div className="p-3 border-t border-gray-200 bg-gray-50 flex items-center justify-between text-xs text-gray-500">
+        <div className="p-3 border-t border-white/20 bg-white/50 backdrop-blur-sm flex items-center justify-between text-xs text-gray-500">
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1">
               <kbd className="px-1.5 py-0.5 rounded bg-gray-200 text-gray-600">↑↓</kbd>

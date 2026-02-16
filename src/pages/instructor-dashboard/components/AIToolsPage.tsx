@@ -21,8 +21,12 @@ import {
   AIChatbot,
   Question,
 } from '../../../components/shared';
+import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export function AIToolsPage() {
+  const { isDark } = useTheme();
+  const { isRTL } = useLanguage();
   const [selectedDifficulty, setSelectedDifficulty] = useState('medium');
   const [activeAITool, setActiveAITool] = useState<string | null>(null);
   const [showChatbot, setShowChatbot] = useState(false);
@@ -88,36 +92,40 @@ export function AIToolsPage() {
     return newQuestions;
   };
 
+  const cardClass = isDark
+    ? 'bg-card-dark border border-white/5'
+    : 'glass';
+
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className={`min-h-screen p-6 ${isDark ? 'bg-gray-950' : 'bg-gray-50'}`} dir={isRTL ? 'rtl' : 'ltr'}>
+      <div className="max-w-7xl mx-auto space-y-8">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">AI Tools</h1>
-          <p className="text-gray-600 mt-1">
+          <h1 className="text-4xl font-extrabold bg-gradient-to-r from-purple-600 via-indigo-500 to-cyan-400 bg-clip-text text-transparent">
+            AI Teaching Toolbox
+          </h1>
+          <p className={`mt-2 text-lg ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
             Use AI to enhance teaching, grade automatically, generate quizzes, create materials, and
             detect student issues.
           </p>
         </div>
 
-        {/* AI Tools Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* AI Quiz Generator */}
-          <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-3 bg-blue-100 rounded-lg">
-                <Brain className="text-blue-600" size={24} />
+        {/* Main Tools Grid - 4 columns */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* Quiz Generator */}
+          <div className={`${cardClass} p-8 rounded-[2.5rem] transition-all duration-300 hover:scale-[1.02]`}>
+            <div className="flex flex-col items-center text-center mb-6">
+              <div className="w-14 h-14 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center mb-4">
+                <Brain className="text-blue-600" size={28} />
               </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">AI Quiz Generator</h3>
-                <p className="text-sm text-gray-600">
-                  Generate MCQs, True/False, and short-answer questions.
-                </p>
-              </div>
+              <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Quiz Generator</h3>
+              <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                Generate MCQs, True/False, and short-answer questions.
+              </p>
             </div>
 
             <div className="mb-4">
-              <label className="text-sm font-medium text-gray-700 mb-2 block">
+              <label className={`text-sm font-medium mb-2 block ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                 Difficulty Level
               </label>
               <div className="flex gap-2">
@@ -125,10 +133,12 @@ export function AIToolsPage() {
                   <button
                     key={level}
                     onClick={() => setSelectedDifficulty(level)}
-                    className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
+                    className={`flex-1 py-2 px-3 rounded-xl text-xs font-medium transition-colors ${
                       selectedDifficulty === level
-                        ? 'bg-indigo-600 text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        ? 'bg-blue-600 text-white'
+                        : isDark
+                          ? 'bg-white/5 text-gray-300 hover:bg-white/10'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >
                     {level.charAt(0).toUpperCase() + level.slice(1)}
@@ -138,235 +148,213 @@ export function AIToolsPage() {
             </div>
 
             <div className="space-y-2">
-              <button className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
-                <Sparkles size={18} />
+              <button className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors text-sm font-medium">
+                <Sparkles size={16} />
                 Generate Quiz
               </button>
-              <button className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors border border-gray-200">
-                <Upload size={16} />
-                Generate from Lecture File
+              <button className={`w-full flex items-center justify-center gap-2 px-4 py-2 text-sm rounded-xl transition-colors border ${
+                isDark ? 'border-white/10 text-gray-300 hover:bg-white/5' : 'border-gray-200 text-gray-700 hover:bg-gray-50'
+              }`}>
+                <Upload size={14} />
+                From Lecture File
               </button>
             </div>
           </div>
 
-          {/* AI Auto-Grading */}
-          <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl p-6 border border-purple-200 shadow-sm">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-3 bg-purple-100 rounded-lg">
-                <Sparkles className="text-purple-600" size={24} />
+          {/* Auto-Grading (Evy) */}
+          <div className={`${cardClass} p-8 rounded-[2.5rem] transition-all duration-300 hover:scale-[1.02]`}>
+            <div className="flex flex-col items-center text-center mb-6">
+              <div className="w-14 h-14 rounded-full bg-purple-100 dark:bg-purple-900/40 flex items-center justify-center mb-4">
+                <Sparkles className="text-purple-600" size={28} />
               </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">AI Auto-Grading (Evy)</h3>
-                <p className="text-sm text-gray-600">
-                  Automatically grade submissions, detect plagiarism, and create feedback.
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-lg p-4 mb-4">
-              <div className="flex items-center justify-center">
-                <div className="p-4 bg-purple-100 rounded-full">
-                  <Sparkles className="text-purple-600" size={48} />
-                </div>
-              </div>
+              <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Auto-Grading (Evy)</h3>
+              <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                Automatically grade submissions, detect plagiarism, and create feedback.
+              </p>
             </div>
 
             <div className="space-y-2">
-              <button className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
-                <Sparkles size={18} />
+              <button className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors text-sm font-medium">
+                <Sparkles size={16} />
                 Auto-Grade All
               </button>
-              <button className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm text-purple-700 hover:bg-purple-100 rounded-lg transition-colors border border-purple-200">
-                <FileText size={16} />
+              <button className={`w-full flex items-center justify-center gap-2 px-4 py-2 text-sm rounded-xl transition-colors border ${
+                isDark ? 'border-white/10 text-gray-300 hover:bg-white/5' : 'border-purple-200 text-purple-700 hover:bg-purple-50'
+              }`}>
+                <FileText size={14} />
                 Generate Feedback
               </button>
-              <button className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm text-red-700 hover:bg-red-50 rounded-lg transition-colors border border-red-200">
-                <AlertTriangle size={16} />
+              <button className={`w-full flex items-center justify-center gap-2 px-4 py-2 text-sm rounded-xl transition-colors border ${
+                isDark ? 'border-red-800/30 text-red-400 hover:bg-red-900/20' : 'border-red-200 text-red-700 hover:bg-red-50'
+              }`}>
+                <AlertTriangle size={14} />
                 Analyze Submissions
               </button>
             </div>
           </div>
 
-          {/* Lecture Materials Generator */}
-          <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-3 bg-green-100 rounded-lg">
-                <FileText className="text-green-600" size={24} />
+          {/* Materials Generator */}
+          <div className={`${cardClass} p-8 rounded-[2.5rem] transition-all duration-300 hover:scale-[1.02]`}>
+            <div className="flex flex-col items-center text-center mb-6">
+              <div className="w-14 h-14 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center mb-4">
+                <FileText className="text-green-600" size={28} />
               </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">Lecture Materials Generator</h3>
-                <p className="text-sm text-gray-600">
-                  Upload a file or type a topic to generate lecture slides, summaries, examples, or
-                  explanations.
-                </p>
-              </div>
+              <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Materials Generator</h3>
+              <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                Upload a file or type a topic to generate slides, summaries, and explanations.
+              </p>
             </div>
 
             <div className="mb-4">
               <input
                 type="text"
-                placeholder="Enter topic or upload a file..."
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
+                placeholder="Enter topic..."
+                className={`w-full px-4 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500 ${
+                  isDark ? 'bg-white/5 border border-white/10 text-white placeholder-gray-500' : 'border border-gray-300 text-gray-900'
+                }`}
               />
             </div>
 
             <div className="space-y-2">
-              <button className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm">
+              <button className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors text-sm font-medium">
                 <Upload size={16} />
                 Upload Material
               </button>
               <div className="grid grid-cols-2 gap-2">
-                <button className="flex items-center justify-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors border border-gray-200">
-                  <FileText size={14} />
+                <button className={`flex items-center justify-center gap-1 px-3 py-2 text-xs rounded-xl transition-colors border ${
+                  isDark ? 'border-white/10 text-gray-300 hover:bg-white/5' : 'border-gray-200 text-gray-700 hover:bg-gray-50'
+                }`}>
+                  <FileText size={12} />
                   Generate Slides
                 </button>
-                <button className="flex items-center justify-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors border border-gray-200">
-                  <Wand2 size={14} />
+                <button className={`flex items-center justify-center gap-1 px-3 py-2 text-xs rounded-xl transition-colors border ${
+                  isDark ? 'border-white/10 text-gray-300 hover:bg-white/5' : 'border-gray-200 text-gray-700 hover:bg-gray-50'
+                }`}>
+                  <Wand2 size={12} />
                   Generate Summary
                 </button>
               </div>
             </div>
           </div>
 
-          {/* AI Insights for Teaching */}
-          <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-3 bg-purple-100 rounded-lg">
-                <BarChart3 className="text-purple-600" size={24} />
+          {/* AI Insights */}
+          <div className={`${cardClass} p-8 rounded-[2.5rem] transition-all duration-300 hover:scale-[1.02]`}>
+            <div className="flex flex-col items-center text-center mb-6">
+              <div className="w-14 h-14 rounded-full bg-purple-100 dark:bg-purple-900/40 flex items-center justify-center mb-4">
+                <BarChart3 className="text-purple-600" size={28} />
               </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">AI Insights for Teaching</h3>
-                <p className="text-sm text-gray-600">
-                  Identify struggling students, weak topics, and performance patterns.
-                </p>
-              </div>
+              <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>AI Insights</h3>
+              <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                Identify struggling students, weak topics, and performance patterns.
+              </p>
             </div>
 
-            <div className="space-y-3 mb-4">
-              <div className="flex items-center gap-2 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-                <AlertTriangle className="text-yellow-600" size={16} />
-                <span className="text-sm text-gray-700">
-                  Students struggled with Derivatives last week.
-                </span>
+            <div className="space-y-2 mb-4">
+              <div className={`flex items-center gap-2 p-2.5 rounded-xl text-xs ${
+                isDark ? 'bg-yellow-900/20 border border-yellow-800/30' : 'bg-yellow-50 border border-yellow-200'
+              }`}>
+                <AlertTriangle className="text-yellow-500 shrink-0" size={14} />
+                <span className={isDark ? 'text-gray-300' : 'text-gray-700'}>Students struggled with Derivatives.</span>
               </div>
-              <div className="flex items-center gap-2 p-3 bg-red-50 rounded-lg border border-red-200">
-                <TrendingDown className="text-red-600" size={16} />
-                <span className="text-sm text-gray-700">Engagement dropped in Physics labs.</span>
+              <div className={`flex items-center gap-2 p-2.5 rounded-xl text-xs ${
+                isDark ? 'bg-red-900/20 border border-red-800/30' : 'bg-red-50 border border-red-200'
+              }`}>
+                <TrendingDown className="text-red-500 shrink-0" size={14} />
+                <span className={isDark ? 'text-gray-300' : 'text-gray-700'}>Engagement dropped in Physics labs.</span>
               </div>
-              <div className="flex items-center gap-2 p-3 bg-orange-50 rounded-lg border border-orange-200">
-                <Users className="text-orange-600" size={16} />
-                <span className="text-sm text-gray-700">
-                  30% of students are at risk of poor performance.
-                </span>
+              <div className={`flex items-center gap-2 p-2.5 rounded-xl text-xs ${
+                isDark ? 'bg-orange-900/20 border border-orange-800/30' : 'bg-orange-50 border border-orange-200'
+              }`}>
+                <Users className="text-orange-500 shrink-0" size={14} />
+                <span className={isDark ? 'text-gray-300' : 'text-gray-700'}>30% of students at risk.</span>
               </div>
             </div>
 
             <div className="space-y-2">
-              <button className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm">
+              <button className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors text-sm font-medium">
                 View Details
               </button>
-              <button className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm text-purple-700 hover:bg-purple-50 rounded-lg transition-colors border border-purple-200">
-                <Sparkles size={16} />
+              <button className={`w-full flex items-center justify-center gap-2 px-4 py-2 text-sm rounded-xl transition-colors border ${
+                isDark ? 'border-white/10 text-gray-300 hover:bg-white/5' : 'border-purple-200 text-purple-700 hover:bg-purple-50'
+              }`}>
+                <Sparkles size={14} />
                 Send Tips
               </button>
             </div>
           </div>
+        </div>
 
-          {/* Smart Teaching Plan */}
-          <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+        {/* Voice & Image Tools Row */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Voice to Text */}
+          <div className={`${cardClass} p-8 rounded-[2.5rem] transition-all duration-300 hover:scale-[1.02]`}>
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-3 bg-orange-100 rounded-lg">
-                <Calendar className="text-orange-600" size={24} />
+              <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center">
+                <Mic className="text-blue-600" size={20} />
               </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">Smart Teaching Plan</h3>
-                <p className="text-sm text-gray-600">
-                  Generate a personalized weekly teaching plan based on analytics.
-                </p>
-              </div>
+              <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Voice to Text</h3>
             </div>
+            <VoiceRecorder
+              onTranscription={handleVoiceTranscription}
+              showTranscription={true}
+              autoTranscribe={true}
+            />
+          </div>
 
-            <div className="bg-gray-50 rounded-lg p-4 mb-4">
-              <p className="text-sm font-medium text-gray-900 mb-2">This Week's Plan</p>
-              <ul className="space-y-2 text-sm text-gray-700">
+          {/* Image to Text (OCR) */}
+          <div className={`${cardClass} p-8 rounded-[2.5rem] transition-all duration-300 hover:scale-[1.02]`}>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center">
+                <Image className="text-indigo-600" size={20} />
+              </div>
+              <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Image to Text (OCR)</h3>
+            </div>
+            <ImageTextExtractor onTextExtracted={handleImageTextExtracted} />
+          </div>
+        </div>
+
+        {/* Smart Teaching Plan - Full Width CTA */}
+        <div className={`p-8 rounded-[2.5rem] transition-all duration-300 hover:scale-[1.01] ${
+          isDark
+            ? 'bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900'
+            : 'bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500'
+        }`}>
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            <div>
+              <div className="flex items-center gap-3 mb-2">
+                <Calendar className="text-white/80" size={24} />
+                <h3 className="text-2xl font-bold text-white">Smart Teaching Plan</h3>
+              </div>
+              <p className="text-white/70 text-sm mb-4">
+                Generate a personalized weekly teaching plan based on analytics.
+              </p>
+              <ul className="space-y-2 text-sm text-white/80">
                 <li className="flex items-start gap-2">
-                  <span className="text-orange-600">•</span>
+                  <span className="text-white">•</span>
                   <span>Review derivatives concepts</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-orange-600">•</span>
+                  <span className="text-white">•</span>
                   <span>Extra practice session for struggling students</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-orange-600">•</span>
+                  <span className="text-white">•</span>
                   <span>Lab session focused on applications</span>
                 </li>
               </ul>
             </div>
-
-            <div className="space-y-2">
-              <button className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors text-sm">
-                <Sparkles size={16} />
+            <div className="shrink-0">
+              <button className="flex items-center gap-2 px-8 py-3 bg-white text-purple-700 rounded-xl font-semibold hover:bg-white/90 transition-colors shadow-lg">
+                <Sparkles size={18} />
                 Generate Plan
               </button>
-              <button className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors border border-gray-200">
-                View Activities
-              </button>
             </div>
           </div>
-
-          {/* Improve My Materials */}
-          <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-3 bg-pink-100 rounded-lg">
-                <Wand2 className="text-pink-600" size={24} />
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">Improve My Materials</h3>
-                <p className="text-sm text-gray-600">
-                  Upload your existing lecture or quiz and let the AI refine it.
-                </p>
-              </div>
-            </div>
-
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 mb-4 text-center">
-              <Upload className="mx-auto text-gray-400 mb-2" size={32} />
-              <p className="text-sm text-gray-600 mb-1">Upload lecture or quiz materials</p>
-              <p className="text-xs text-gray-500">PDF, DOC, PPT</p>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
-              <button className="flex items-center justify-center gap-2 px-3 py-2 text-sm text-pink-700 hover:bg-pink-50 rounded-lg transition-colors border border-pink-200">
-                <Sparkles size={14} />
-                Improve Difficulty
-              </button>
-              <button className="flex items-center justify-center gap-2 px-3 py-2 text-sm text-pink-700 hover:bg-pink-50 rounded-lg transition-colors border border-pink-200">
-                <Wand2 size={14} />
-                Fix Language
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Voice to Text Tool */}
-        <div className="mt-6">
-          <h3 className="text-xl font-semibold text-gray-900 mb-4">Voice to Text</h3>
-          <VoiceRecorder
-            onTranscription={handleVoiceTranscription}
-            showTranscription={true}
-            autoTranscribe={true}
-          />
-        </div>
-
-        {/* Image to Text Tool */}
-        <div className="mt-6">
-          <h3 className="text-xl font-semibold text-gray-900 mb-4">Image to Text (OCR)</h3>
-          <ImageTextExtractor onTextExtracted={handleImageTextExtracted} />
         </div>
 
         {/* AI Question Editor */}
-        <div className="mt-6">
-          <h3 className="text-xl font-semibold text-gray-900 mb-4">AI Question Editor</h3>
+        <div className={`${cardClass} p-8 rounded-[2.5rem] transition-all duration-300`}>
+          <h3 className={`text-xl font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>AI Question Editor</h3>
           <AIQuestionEditor
             questions={generatedQuestions}
             onQuestionsChange={handleQuestionsChange}
