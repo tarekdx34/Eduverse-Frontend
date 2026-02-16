@@ -31,4 +31,5 @@ export { SchedulePage } from './SchedulePage';
 export { AnalyticsPage } from './AnalyticsPage';
 export { AIToolsPage } from './AIToolsPage';
 export { CommunicationPage } from './CommunicationPage';
+export { DiscussionPage } from './DiscussionPage';
 export { SettingsPage } from './SettingsPage';

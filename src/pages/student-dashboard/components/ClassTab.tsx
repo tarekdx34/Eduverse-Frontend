@@ -1,5 +1,6 @@
 import { MoreVertical, Clock, Users, BookOpen } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface Course {
   id: string;
@@ -144,10 +145,12 @@ const CourseCard = ({
   course,
   onViewCourse,
   isDark,
+  t,
 }: {
   course: Course;
   onViewCourse?: (courseId: string) => void;
   isDark: boolean;
+  t: (key: string) => string;
 }) => (
   <div className={`rounded-lg overflow-hidden hover:shadow-lg transition-shadow border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
     {/* Color bar */}
@@ -178,7 +181,7 @@ const CourseCard = ({
         />
         <div>
           <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{course.instructor}</p>
-          <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Instructor</p>
+          <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('instructor')}</p>
         </div>
       </div>
 
@@ -198,15 +201,15 @@ const CourseCard = ({
       <div className={`flex justify-between items-center mb-4 pt-4 border-t text-sm ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
         <div className={`flex items-center gap-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
           <Users size={16} />
-          <span>{course.students} Students</span>
+          <span>{course.students} {t('students')}</span>
         </div>
-        <span className={isDark ? 'text-gray-400' : 'text-gray-600'}>{course.credits} Credits</span>
+        <span className={isDark ? 'text-gray-400' : 'text-gray-600'}>{course.credits} {t('credits')}</span>
       </div>
 
       {/* Progress */}
       <div className="mb-4">
         <div className="flex justify-between items-center mb-2">
-          <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Course Progress</span>
+          <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('courseProgress')}</span>
           <span className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{course.progress}%</span>
         </div>
         <div className={`w-full rounded-full h-2 ${isDark ? 'bg-gray-700' : 'bg-gray-200'}`}>
@@ -223,14 +226,14 @@ const CourseCard = ({
           onClick={() => onViewCourse?.(course.id)}
           className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
         >
-          View Course
+          {t('viewCourse')}
         </button>
         <button className={`flex-1 border font-medium py-2 px-4 rounded-lg transition-colors ${
           isDark 
             ? 'border-gray-600 hover:bg-gray-700 text-gray-300' 
             : 'border-gray-200 hover:bg-gray-50 text-gray-700'
         }`}>
-          Materials
+          {t('materials')}
         </button>
       </div>
     </div>
@@ -243,34 +246,35 @@ export default function ClassTab({
   onViewCourse,
 }: ClassTabProps) {
   const { isDark } = useTheme();
+  const { t } = useLanguage();
 
   return (
     <div className="space-y-6">
       {/* Stats Overview */}
       <div className="grid grid-cols-4 gap-6">
         <StatCard
-          label="Total Courses"
+          label={t('totalCourses')}
           value={stats.totalCourses}
           icon={() => <BookOpen className="w-5 h-5" />}
           color="bg-indigo-100"
           isDark={isDark}
         />
         <StatCard
-          label="Completed"
+          label={t('completed')}
           value={stats.completed}
           icon={() => <div className="w-5 h-5">✓</div>}
           color="bg-green-100"
           isDark={isDark}
         />
         <StatCard
-          label="In Progress"
+          label={t('inProgress')}
           value={stats.inProgress}
           icon={() => <Clock className="w-5 h-5" />}
           color="bg-orange-100"
           isDark={isDark}
         />
         <StatCard
-          label="Total Credits"
+          label={t('totalCredits')}
           value={stats.totalCredits}
           icon={() => <Users className="w-5 h-5" />}
           color="bg-purple-100"
@@ -281,14 +285,14 @@ export default function ClassTab({
       {/* Enrolled Courses Section */}
       <div>
         <div className="mb-4">
-          <h2 className={`text-xl font-semibold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>Enrolled Courses</h2>
-          <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>All courses you are currently enrolled in</p>
+          <h2 className={`text-xl font-semibold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('enrolledCourses')}</h2>
+          <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('enrolledCoursesDesc')}</p>
         </div>
 
         {/* Course Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {courses.map((course) => (
-            <CourseCard key={course.id} course={course} onViewCourse={onViewCourse} isDark={isDark} />
+            <CourseCard key={course.id} course={course} onViewCourse={onViewCourse} isDark={isDark} t={t} />
           ))}
         </div>
       </div>

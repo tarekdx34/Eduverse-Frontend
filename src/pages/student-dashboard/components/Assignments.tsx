@@ -19,6 +19,7 @@ import {
 import { useState } from 'react';
 import AssignmentDetails from './AssignmentDetails';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const assignments = [
   {
@@ -186,19 +187,20 @@ const getStatusIcon = (status: string) => {
   }
 };
 
-const getUrgencyLabel = (daysUntil: number) => {
-  if (daysUntil < 0) return { label: 'Overdue', color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-500' };
-  if (daysUntil === 0) return { label: 'Due Today', color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-500' };
-  if (daysUntil === 1) return { label: 'Due Tomorrow', color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-500' };
-  if (daysUntil <= 3) return { label: `${daysUntil} days left`, color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-500' };
-  return { label: `${daysUntil} days left`, color: 'text-gray-600', bg: 'bg-gray-50', border: 'border-gray-300' };
-};
-
 export default function Assignments() {
   const [filterStatus, setFilterStatus] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<number | null>(null);
   const { isDark } = useTheme();
+  const { t } = useLanguage();
+
+  const getUrgencyLabel = (daysUntil: number) => {
+    if (daysUntil < 0) return { label: t('overdue'), color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-500' };
+    if (daysUntil === 0) return { label: t('dueToday'), color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-500' };
+    if (daysUntil === 1) return { label: t('dueTomorrow'), color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-500' };
+    if (daysUntil <= 3) return { label: `${daysUntil} ${t('daysLeft')}`, color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-500' };
+    return { label: `${daysUntil} ${t('daysLeft')}`, color: 'text-gray-600', bg: 'bg-gray-50', border: 'border-gray-300' };
+  };
 
   const pendingAssignments = assignments.filter(a => a.status === 'pending' || a.status === 'in-progress');
   const completedAssignments = assignments.filter(a => a.status === 'submitted' || a.status === 'graded');
@@ -248,9 +250,9 @@ export default function Assignments() {
         <div className="max-w-4xl">
           <div className="flex items-center gap-2 mb-3">
             <Target className="w-6 h-6" />
-            <span className="text-sm bg-white/20 px-3 py-1 rounded-full">Assignment Tracker</span>
+            <span className="text-sm bg-white/20 px-3 py-1 rounded-full">{t('assignmentTracker')}</span>
           </div>
-          <h1 className="text-3xl mb-3 font-bold">Stay on Top of Your Assignments</h1>
+          <h1 className="text-3xl mb-3 font-bold">{t('stayOnTop')}</h1>
           <p className="text-indigo-100 text-lg">
             Track your progress, manage deadlines, and achieve your academic goals with confidence
           </p>
@@ -262,7 +264,7 @@ export default function Assignments() {
         <div className={`rounded-xl p-6 border hover:shadow-lg transition-shadow ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
           <div className="flex items-center justify-between mb-4">
             <div>
-              <p className={`text-sm mb-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Total Assignments</p>
+              <p className={`text-sm mb-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('totalAssignments')}</p>
               <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{assignments.length}</p>
             </div>
             <div className="w-14 h-14 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
@@ -270,14 +272,14 @@ export default function Assignments() {
             </div>
           </div>
           <div className={`flex items-center gap-1 text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-            <span>This semester</span>
+            <span>{t('thisSemester')}</span>
           </div>
         </div>
 
         <div className={`rounded-xl p-6 border hover:shadow-lg transition-shadow ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
           <div className="flex items-center justify-between mb-4">
             <div>
-              <p className={`text-sm mb-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Active Tasks</p>
+              <p className={`text-sm mb-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('activeTasks')}</p>
               <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{pendingAssignments.length}</p>
             </div>
             <div className="w-14 h-14 bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl flex items-center justify-center shadow-lg">
@@ -286,14 +288,14 @@ export default function Assignments() {
           </div>
           <div className="flex items-center gap-1 text-sm text-amber-600">
             <TrendingUp className="w-4 h-4" />
-            <span>Needs attention</span>
+            <span>{t('needsAttention')}</span>
           </div>
         </div>
 
         <div className={`rounded-xl p-6 border hover:shadow-lg transition-shadow ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
           <div className="flex items-center justify-between mb-4">
             <div>
-              <p className={`text-sm mb-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Completion Rate</p>
+              <p className={`text-sm mb-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('completionRate')}</p>
               <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{Math.round((completedAssignments.length / assignments.length) * 100)}%</p>
             </div>
             <div className="w-14 h-14 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
@@ -308,7 +310,7 @@ export default function Assignments() {
         <div className={`rounded-xl p-6 border hover:shadow-lg transition-shadow ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
           <div className="flex items-center justify-between mb-4">
             <div>
-              <p className={`text-sm mb-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Average Score</p>
+              <p className={`text-sm mb-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('averageScore')}</p>
               <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{avgScore}%</p>
             </div>
             <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
@@ -326,8 +328,8 @@ export default function Assignments() {
         <div className={`p-6 border-b ${isDark ? 'bg-gray-700/50 border-gray-700' : 'bg-gradient-to-r from-gray-50 to-white border-gray-200'}`}>
           <div className="flex items-center justify-between">
             <div>
-              <h2 className={`font-semibold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>Active Assignments</h2>
-              <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Track and manage your ongoing work</p>
+              <h2 className={`font-semibold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('activeAssignments')}</h2>
+              <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('trackManageWork')}</p>
             </div>
             <div className="flex items-center gap-3">
               <button className={`flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl text-sm transition-all ${isDark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-200 text-gray-700 hover:bg-gray-50'}`}>
@@ -348,8 +350,8 @@ export default function Assignments() {
               <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 ${isDark ? 'bg-gray-700' : 'bg-gray-100'}`}>
                 <CheckCircle className={`w-8 h-8 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
               </div>
-              <h3 className={`mb-2 font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>All Caught Up!</h3>
-              <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>You have no pending assignments at the moment</p>
+              <h3 className={`mb-2 font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('allCaughtUp')}</h3>
+              <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('noPendingAssignments')}</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -374,7 +376,7 @@ export default function Assignments() {
                           </h3>
                           <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg border text-xs ${getStatusBadgeDark(assignment.status)}`}>
                             {getStatusIcon(assignment.status)}
-                            <span className="capitalize">{assignment.status === 'in-progress' ? 'In Progress' : 'Pending'}</span>
+                            <span className="capitalize">{assignment.status === 'in-progress' ? t('inProgress') : t('pending')}</span>
                           </span>
                         </div>
                         <p className={`text-xs mb-3 leading-relaxed ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{assignment.description}</p>
@@ -404,7 +406,7 @@ export default function Assignments() {
                       <div>
                         <div className="flex items-center gap-1.5 mb-1">
                           <Calendar className="w-3 h-3 text-indigo-600" />
-                          <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Due Date</p>
+                          <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('dueDate')}</p>
                         </div>
                         <p className={`text-xs font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
                           {new Date(assignment.dueDate).toLocaleDateString('en-US', { 
@@ -417,24 +419,24 @@ export default function Assignments() {
                       <div>
                         <div className="flex items-center gap-1.5 mb-1">
                           <Clock className="w-3 h-3 text-indigo-600" />
-                          <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Time Left</p>
+                          <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('timeLeft')}</p>
                         </div>
                         <p className={`text-xs font-semibold ${daysUntil <= 2 ? 'text-red-600' : isDark ? 'text-white' : 'text-gray-900'}`}>
-                          {daysUntil > 0 ? `${daysUntil} days` : daysUntil === 0 ? 'Due today' : 'Overdue'}
+                          {daysUntil > 0 ? `${daysUntil} ${t('days')}` : daysUntil === 0 ? t('dueToday') : t('overdue')}
                         </p>
                       </div>
                       <div>
                         <div className="flex items-center gap-1.5 mb-1">
                           <Award className="w-3 h-3 text-indigo-600" />
-                          <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Worth</p>
+                          <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('worth')}</p>
                         </div>
-                        <p className={`text-xs font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{assignment.points} pts</p>
+                        <p className={`text-xs font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{assignment.points} {t('pts')}</p>
                       </div>
                     </div>
 
                     <div className="mb-3">
                       <div className="flex items-center justify-between mb-1.5">
-                        <span className={`text-xs font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Progress</span>
+                        <span className={`text-xs font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('progress')}</span>
                         <span className={`text-xs px-2 py-0.5 rounded font-semibold ${isDark ? 'bg-indigo-900/50 text-indigo-400' : 'bg-indigo-50 text-indigo-700'}`}>{assignment.progress}%</span>
                       </div>
                       <div className="relative">
@@ -451,7 +453,7 @@ export default function Assignments() {
                       <button 
                         onClick={() => setSelectedAssignmentId(assignment.id)}
                         className="flex-1 px-3 py-2 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-lg hover:shadow-lg transition-all flex items-center justify-center gap-1.5 text-sm font-medium">
-                        <span>Continue</span>
+                        <span>{t('continueWork')}</span>
                         <ChevronRight className="w-3 h-3" />
                       </button>
                       <button className={`px-3 py-2 border-2 rounded-lg transition-all ${isDark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-200 text-gray-700 hover:bg-gray-50'}`}>
@@ -474,8 +476,8 @@ export default function Assignments() {
         <div className={`p-6 border-b ${isDark ? 'bg-gray-700/50 border-gray-700' : 'bg-gradient-to-r from-gray-50 to-white border-gray-200'}`}>
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className={`font-semibold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>Completed Assignments</h2>
-              <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Review your submitted and graded work</p>
+              <h2 className={`font-semibold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('completedAssignments')}</h2>
+              <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('reviewSubmitted')}</p>
             </div>
             <button className={`flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl text-sm transition-all ${isDark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-200 text-gray-700 hover:bg-gray-50'}`}>
               <Download className="w-4 h-4" />
@@ -489,7 +491,7 @@ export default function Assignments() {
               <Search className={`w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
               <input
                 type="text"
-                placeholder="Search assignments..."
+                placeholder={t('searchAssignments')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className={`w-full pl-10 pr-4 py-2.5 border-2 rounded-xl focus:outline-none focus:border-indigo-500 transition-all ${isDark ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'border-gray-200 focus:ring-4 focus:ring-indigo-100'}`}
@@ -500,9 +502,9 @@ export default function Assignments() {
               onChange={(e) => setFilterStatus(e.target.value)}
               className={`px-4 py-2.5 border-2 rounded-xl focus:outline-none focus:border-indigo-500 transition-all ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-200'}`}
             >
-              <option value="all">All Status</option>
-              <option value="submitted">Submitted</option>
-              <option value="graded">Graded</option>
+              <option value="all">{t('allStatus')}</option>
+              <option value="submitted">{t('submitted')}</option>
+              <option value="graded">{t('graded')}</option>
             </select>
           </div>
         </div>
@@ -511,13 +513,13 @@ export default function Assignments() {
           <table className="w-full">
             <thead className={isDark ? 'bg-gray-700/50' : 'bg-gradient-to-r from-gray-50 to-gray-100'}>
               <tr>
-                <th className={`px-6 py-4 text-left text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Assignment</th>
-                <th className={`px-6 py-4 text-left text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Course</th>
-                <th className={`px-6 py-4 text-center text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Type</th>
-                <th className={`px-6 py-4 text-center text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Submitted</th>
-                <th className={`px-6 py-4 text-center text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Score</th>
+                <th className={`px-6 py-4 text-left text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('assignment')}</th>
+                <th className={`px-6 py-4 text-left text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('course')}</th>
+                <th className={`px-6 py-4 text-center text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('type')}</th>
+                <th className={`px-6 py-4 text-center text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('submitted')}</th>
+                <th className={`px-6 py-4 text-center text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('score')}</th>
                 <th className={`px-6 py-4 text-center text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Status</th>
-                <th className={`px-6 py-4 text-center text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Actions</th>
+                <th className={`px-6 py-4 text-center text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('actions')}</th>
               </tr>
             </thead>
             <tbody>

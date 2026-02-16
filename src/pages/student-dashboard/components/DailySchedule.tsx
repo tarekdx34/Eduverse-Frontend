@@ -1,4 +1,5 @@
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface CourseSchedule {
   id: number;
@@ -14,7 +15,7 @@ interface DailyScheduleProps {
   schedules: CourseSchedule[];
 }
 
-const ScheduleItem = ({ course, isDark }: { course: CourseSchedule; isDark: boolean }) => (
+const ScheduleItem = ({ course, isDark, t }: { course: CourseSchedule; isDark: boolean; t: (key: string) => string }) => (
   <div className={`border-b pb-4 last:border-b-0 ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
     <div className="flex gap-3 mb-3">
       <img
@@ -36,11 +37,11 @@ const ScheduleItem = ({ course, isDark }: { course: CourseSchedule; isDark: bool
       </div>
       <div className="flex items-center gap-2">
         <span className={`inline-block w-4 h-4 rounded ${isDark ? 'bg-gray-600' : 'bg-gray-300'}`} />
-        <span>Course Room: {course.room}</span>
+        <span>{t('courseRoom')}: {course.room}</span>
       </div>
       <div className="flex items-center gap-2">
         <span className={`inline-block w-4 h-4 rounded ${isDark ? 'bg-gray-600' : 'bg-gray-300'}`} />
-        <span>Course Credits: {course.credits}</span>
+        <span>{t('courseCredits')}: {course.credits}</span>
       </div>
     </div>
   </div>
@@ -48,15 +49,16 @@ const ScheduleItem = ({ course, isDark }: { course: CourseSchedule; isDark: bool
 
 export default function DailySchedule({ schedules }: DailyScheduleProps) {
   const { isDark } = useTheme();
+  const { t } = useLanguage();
 
   return (
     <div className={`rounded-lg p-6 border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-      <h2 className={`text-lg font-semibold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>Daily Class Schedule</h2>
-      <p className={`text-sm mb-6 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Schedule for your class in week</p>
+      <h2 className={`text-lg font-semibold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('dailyClassSchedule')}</h2>
+      <p className={`text-sm mb-6 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('scheduleForWeek')}</p>
 
       <div className="space-y-4">
         {schedules.map((course) => (
-          <ScheduleItem key={course.id} course={course} isDark={isDark} />
+          <ScheduleItem key={course.id} course={course} isDark={isDark} t={t} />
         ))}
       </div>
     </div>

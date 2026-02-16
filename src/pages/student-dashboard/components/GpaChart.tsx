@@ -1,6 +1,7 @@
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { ChevronDown } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface GpaChartProps {
   data: Array<{
@@ -14,6 +15,7 @@ export default function GpaChart({ data }: GpaChartProps) {
   const currentYourGpa = data[data.length - 1]?.yourGpa || 0;
   const currentAvgGpa = data[data.length - 1]?.avgGpa || 0;
   const { isDark } = useTheme();
+  const { t } = useLanguage();
 
   return (
     <div className={`rounded-lg p-6 border mb-6 col-span-2 ${
@@ -21,15 +23,15 @@ export default function GpaChart({ data }: GpaChartProps) {
     }`}>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className={`mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>Grade Point Average</h3>
-          <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Comparison between your GPA and Average Student GPA</p>
+          <h3 className={`mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('gradePointAverage')}</h3>
+          <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{t('gpaComparison')}</p>
         </div>
         <button className={`flex items-center gap-2 px-3 py-2 border rounded-lg text-sm ${
           isDark 
             ? 'border-gray-600 text-gray-300 hover:bg-gray-700' 
             : 'border-gray-200 text-gray-700 hover:bg-gray-50'
         }`}>
-          All Semesters
+          {t('allSemesters')}
           <ChevronDown className="w-4 h-4" />
         </button>
       </div>
@@ -38,21 +40,21 @@ export default function GpaChart({ data }: GpaChartProps) {
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1">
             <div className="w-2 h-2 rounded-full bg-indigo-600"></div>
-            <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Your GPA</span>
+            <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('yourGPA')}</span>
           </div>
           <span className={isDark ? 'text-white' : 'text-gray-900'}>{currentYourGpa.toFixed(2)}</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1">
             <div className="w-2 h-2 rounded-full bg-pink-400"></div>
-            <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Average GPA</span>
+            <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('averageGPA')}</span>
           </div>
           <span className={isDark ? 'text-white' : 'text-gray-900'}>{currentAvgGpa.toFixed(2)}</span>
         </div>
       </div>
 
       <div className="text-center mb-4">
-        <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>2nd Semester 2025</span>
+        <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('secondSemester2025')}</span>
       </div>
 
       <ResponsiveContainer width="100%" height={300}>

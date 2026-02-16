@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useLanguage } from '../contexts/LanguageContext';
 import {
   Search,
   Filter,
@@ -152,6 +153,7 @@ const availableCourses: Course[] = [
 ];
 
 export function CourseRegistration() {
+  const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState('all');
   const [selectedLevel, setSelectedLevel] = useState('all');
@@ -224,14 +226,14 @@ export function CourseRegistration() {
       <div className="bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 rounded-2xl p-8 text-white shadow-xl">
         <div className="flex items-center gap-3 mb-3">
           <GraduationCap className="w-8 h-8" />
-          <span className="text-sm bg-white/20 px-3 py-1 rounded-full">Spring 2026 Registration</span>
+          <span className="text-sm bg-white/20 px-3 py-1 rounded-full">{t('springRegistration')}</span>
         </div>
-        <h1 className="text-3xl font-bold mb-2">Course Registration</h1>
-        <p className="text-indigo-100 text-lg">Browse and register for courses for the upcoming semester</p>
+        <h1 className="text-3xl font-bold mb-2">{t('courseRegistration')}</h1>
+        <p className="text-indigo-100 text-lg">{t('browseCourses')}</p>
         
         <div className="grid grid-cols-3 gap-4 mt-6">
           <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-            <p className="text-sm text-indigo-200 mb-1">Credits Enrolled</p>
+            <p className="text-sm text-indigo-200 mb-1">{t('creditsEnrolled')}</p>
             <p className="text-2xl font-bold">{totalCredits} / {maxCredits}</p>
             <div className="mt-2 w-full bg-white/20 rounded-full h-2">
               <div 
@@ -241,11 +243,11 @@ export function CourseRegistration() {
             </div>
           </div>
           <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-            <p className="text-sm text-indigo-200 mb-1">Courses Registered</p>
+            <p className="text-sm text-indigo-200 mb-1">{t('coursesRegistered')}</p>
             <p className="text-2xl font-bold">{registeredCourses.filter(c => c.status === 'registered').length}</p>
           </div>
           <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-            <p className="text-sm text-indigo-200 mb-1">On Waitlist</p>
+            <p className="text-sm text-indigo-200 mb-1">{t('onWaitlist')}</p>
             <p className="text-2xl font-bold">{registeredCourses.filter(c => c.status === 'waitlist').length}</p>
           </div>
         </div>
@@ -263,7 +265,7 @@ export function CourseRegistration() {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search by course name, code, or instructor..."
+                  placeholder={t('searchCoursePlaceholder')}
                   className="w-full pl-10 pr-4 py-2.5 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-indigo-500 transition-all"
                 />
               </div>
@@ -274,20 +276,20 @@ export function CourseRegistration() {
                 onChange={(e) => setSelectedDepartment(e.target.value)}
                 className="px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-indigo-500 transition-all"
               >
-                <option value="all">All Departments</option>
-                <option value="Computer Science">Computer Science</option>
-                <option value="Mathematics">Mathematics</option>
-                <option value="Physics">Physics</option>
+                <option value="all">{t('allDepartments')}</option>
+                <option value="Computer Science">{t('computerScience')}</option>
+                <option value="Mathematics">{t('mathematics')}</option>
+                <option value="Physics">{t('physics')}</option>
               </select>
               <select
                 value={selectedLevel}
                 onChange={(e) => setSelectedLevel(e.target.value)}
                 className="px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-indigo-500 transition-all"
               >
-                <option value="all">All Levels</option>
-                <option value="Beginner">Beginner</option>
-                <option value="Intermediate">Intermediate</option>
-                <option value="Advanced">Advanced</option>
+                <option value="all">{t('allLevels')}</option>
+                <option value="Beginner">{t('beginner')}</option>
+                <option value="Intermediate">{t('intermediate')}</option>
+                <option value="Advanced">{t('advanced')}</option>
               </select>
             </div>
           </div>
@@ -307,7 +309,7 @@ export function CourseRegistration() {
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-sm font-bold text-indigo-600">{course.code}</span>
                       <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${getStatusBadge(course.status)}`}>
-                        {course.status === 'open' ? 'Open' : course.status === 'waitlist' ? 'Waitlist' : 'Closed'}
+                        {course.status === 'open' ? t('open') : course.status === 'waitlist' ? t('waitlist') : t('closed')}
                       </span>
                       <span className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full text-xs">
                         {course.level}
@@ -336,7 +338,7 @@ export function CourseRegistration() {
                   </div>
                   <div className="flex items-center gap-2">
                     <Users className="w-4 h-4 text-gray-400" />
-                    <span>{course.enrolled}/{course.capacity} enrolled</span>
+                    <span>{course.enrolled}/{course.capacity} {t('enrolled2')}</span>
                   </div>
                 </div>
 
@@ -345,18 +347,18 @@ export function CourseRegistration() {
                     {course.prerequisites.length > 0 && (
                       <span className="text-xs text-gray-500 flex items-center gap-1">
                         <Info className="w-3 h-3" />
-                        Prerequisites: {course.prerequisites.join(', ')}
+                        {t('prerequisites')}: {course.prerequisites.join(', ')}
                       </span>
                     )}
                   </div>
                   {isAlreadyRegistered(course.code) ? (
                     <span className="flex items-center gap-2 px-4 py-2 bg-green-100 text-green-700 rounded-lg text-sm font-medium">
                       <Check className="w-4 h-4" />
-                      Registered
+                      {t('registered')}
                     </span>
                   ) : course.status === 'closed' ? (
                     <span className="px-4 py-2 bg-gray-100 text-gray-500 rounded-lg text-sm font-medium cursor-not-allowed">
-                      Closed
+                      {t('closed')}
                     </span>
                   ) : (
                     <button
@@ -367,7 +369,7 @@ export function CourseRegistration() {
                       className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all text-sm font-medium"
                     >
                       <Plus className="w-4 h-4" />
-                      {course.status === 'waitlist' ? 'Join Waitlist' : 'Register'}
+                      {course.status === 'waitlist' ? t('joinWaitlist') : t('register')}
                     </button>
                   )}
                 </div>
@@ -383,16 +385,16 @@ export function CourseRegistration() {
             <div className="bg-gradient-to-r from-gray-50 to-white p-4 border-b border-gray-200">
               <h3 className="font-semibold text-gray-900 flex items-center gap-2">
                 <Calendar className="w-5 h-5 text-indigo-600" />
-                My Schedule
+                {t('mySchedule')}
               </h3>
-              <p className="text-sm text-gray-600 mt-1">{registeredCourses.length} courses • {totalCredits} credits</p>
+              <p className="text-sm text-gray-600 mt-1">{registeredCourses.length} {t('coursesCredits')} • {totalCredits} {t('credits')}</p>
             </div>
             <div className="p-4 space-y-3">
               {registeredCourses.length === 0 ? (
                 <div className="text-center py-8">
                   <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                  <p className="text-gray-600">No courses registered yet</p>
-                  <p className="text-sm text-gray-500">Browse the catalog to add courses</p>
+                  <p className="text-gray-600">{t('noCourses')}</p>
+                  <p className="text-sm text-gray-500">{t('browseToAdd')}</p>
                 </div>
               ) : (
                 registeredCourses.map((course) => (
@@ -406,7 +408,7 @@ export function CourseRegistration() {
                           <span className="text-sm font-bold text-indigo-600">{course.code}</span>
                           {course.status === 'waitlist' && (
                             <span className="px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full text-xs">
-                              Waitlist
+                              {t('waitlist')}
                             </span>
                           )}
                         </div>
@@ -421,7 +423,7 @@ export function CourseRegistration() {
                         className="text-red-600 hover:text-red-700 text-xs font-medium flex items-center gap-1"
                       >
                         <X className="w-3 h-3" />
-                        Drop
+                        {t('drop')}
                       </button>
                     </div>
                   </div>
@@ -434,7 +436,7 @@ export function CourseRegistration() {
           {selectedCourse && (
             <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
               <div className="bg-gradient-to-r from-gray-50 to-white p-4 border-b border-gray-200">
-                <h3 className="font-semibold text-gray-900">Course Details</h3>
+                <h3 className="font-semibold text-gray-900">{t('courseDetails')}</h3>
               </div>
               <div className="p-4">
                 <div className="mb-4">
@@ -445,25 +447,25 @@ export function CourseRegistration() {
                 <p className="text-sm text-gray-700 mb-4">{selectedCourse.description}</p>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Schedule</span>
+                    <span className="text-gray-600">{t('schedule')}</span>
                     <span className="text-gray-900 font-medium">{selectedCourse.schedule}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Room</span>
+                    <span className="text-gray-600">{t('room')}</span>
                     <span className="text-gray-900 font-medium">{selectedCourse.room}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Credits</span>
+                    <span className="text-gray-600">{t('credits')}</span>
                     <span className="text-gray-900 font-medium">{selectedCourse.credits}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Capacity</span>
+                    <span className="text-gray-600">{t('capacity')}</span>
                     <span className="text-gray-900 font-medium">{selectedCourse.enrolled}/{selectedCourse.capacity}</span>
                   </div>
                 </div>
                 {selectedCourse.prerequisites.length > 0 && (
                   <div className="mt-4 pt-4 border-t border-gray-200">
-                    <p className="text-sm font-medium text-gray-900 mb-2">Prerequisites</p>
+                    <p className="text-sm font-medium text-gray-900 mb-2">{t('prerequisites')}</p>
                     <div className="flex flex-wrap gap-2">
                       {selectedCourse.prerequisites.map((prereq, idx) => (
                         <span key={idx} className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
@@ -487,27 +489,27 @@ export function CourseRegistration() {
               <BookOpen className="w-8 h-8 text-indigo-600" />
             </div>
             <h2 className="text-xl font-semibold text-gray-900 text-center mb-2">
-              {courseToRegister.status === 'waitlist' ? 'Join Waitlist?' : 'Confirm Registration'}
+              {courseToRegister.status === 'waitlist' ? t('joinWaitlistQuestion') : t('confirmRegistration')}
             </h2>
             <p className="text-gray-600 text-center mb-4">
               {courseToRegister.status === 'waitlist' 
-                ? `This course is full. You'll be added to the waitlist for ${courseToRegister.code} - ${courseToRegister.title}`
-                : `You are about to register for ${courseToRegister.code} - ${courseToRegister.title}`
+                ? `${t('waitlistConfirmText')} ${courseToRegister.code} - ${courseToRegister.title}`
+                : `${t('registerConfirmText')} ${courseToRegister.code} - ${courseToRegister.title}`
               }
             </p>
             
             <div className="bg-gray-50 rounded-lg p-4 mb-6">
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Credits</span>
+                  <span className="text-gray-600">{t('credits')}</span>
                   <span className="text-gray-900 font-medium">{courseToRegister.credits}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Schedule</span>
+                  <span className="text-gray-600">{t('schedule')}</span>
                   <span className="text-gray-900 font-medium">{courseToRegister.schedule}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Instructor</span>
+                  <span className="text-gray-600">{t('instructor')}</span>
                   <span className="text-gray-900 font-medium">{courseToRegister.instructor}</span>
                 </div>
               </div>
@@ -518,9 +520,9 @@ export function CourseRegistration() {
                 <div className="flex gap-3">
                   <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0" />
                   <div>
-                    <p className="text-amber-900 text-sm font-medium">Credit Limit Warning</p>
+                    <p className="text-amber-900 text-sm font-medium">{t('creditLimitWarning')}</p>
                     <p className="text-amber-700 text-xs">
-                      Adding this course will exceed your {maxCredits} credit limit. You may need advisor approval.
+                      {t('creditLimitText')}
                     </p>
                   </div>
                 </div>
@@ -535,13 +537,13 @@ export function CourseRegistration() {
                 }}
                 className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 transition-all font-medium"
               >
-                Cancel
+                {t('cancel')}
               </button>
               <button
                 onClick={confirmRegistration}
                 className="flex-1 px-4 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-xl hover:shadow-lg transition-all font-medium"
               >
-                {courseToRegister.status === 'waitlist' ? 'Join Waitlist' : 'Confirm'}
+                {courseToRegister.status === 'waitlist' ? t('joinWaitlist') : t('confirm')}
               </button>
             </div>
           </div>

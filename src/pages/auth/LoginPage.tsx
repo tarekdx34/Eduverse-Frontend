@@ -51,7 +51,7 @@ const login = () => {
       {/* Login Card */}
       <div className="relative z-10 min-h-screen flex items-center justify-center px-4 bg-black/20">
         <div className="w-full max-w-md">
-          <div className="bg-gradient-to-b from-[hsl(200,60%,95%)]/80 to-card/95 backdrop-blur-sm rounded-3xl p-8 shadow-[var(--shadow-card)] border border-white/50">
+          <div className="bg-gradient-to-b from-[hsl(200,60%,95%)]/80 to-card/95 dark:from-[hsl(220,20%,14%)]/90 dark:to-[hsl(220,20%,10%)]/95 backdrop-blur-sm rounded-3xl p-8 shadow-[var(--shadow-card)] border border-white/50 dark:border-white/10">
             {/* Icon */}
             <div className="flex justify-center mb-6">
               <button
@@ -75,7 +75,7 @@ const login = () => {
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
               {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                <div className="bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800/50 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg text-sm">
                   {error}
                 </div>
               )}
@@ -134,14 +134,14 @@ const login = () => {
                 <div className="w-full border-t border-border/50 border-dashed" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-transparent text-muted-foreground">Or sign in with</span>
+                <span className="px-4 bg-transparent text-muted-foreground dark:text-gray-400">Or sign in with</span>
               </div>
             </div>
 
             {/* Outlook Sign In */}
             <button
               onClick={handleOutlookSignIn}
-              className="w-full h-12 rounded-xl border border-border/50 bg-card hover:bg-secondary/50 transition-colors flex items-center justify-center gap-3"
+              className="w-full h-12 rounded-xl border border-border/50 bg-card hover:bg-secondary/50 dark:bg-white/5 dark:hover:bg-white/10 dark:border-white/10 transition-colors flex items-center justify-center gap-3"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
                 <path
@@ -168,31 +168,38 @@ const login = () => {
             <div className="grid grid-cols-2 gap-3 mt-4">
               <button
                 onClick={() => navigate('/studentdashboard')}
-                className="h-10 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 transition-colors flex items-center justify-center gap-2 text-amber-700 text-xs font-medium"
+                className="h-10 rounded-xl border border-amber-300/80 bg-amber-50/80 hover:bg-amber-100/80 dark:bg-amber-950/40 dark:border-amber-700/50 dark:hover:bg-amber-900/50 transition-colors flex items-center justify-center gap-2 text-amber-700 dark:text-amber-300 text-xs font-medium"
               >
                 <span>🚀</span>
                 <span>Student</span>
               </button>
               <button
                 onClick={() => navigate('/instructordashboard')}
-                className="h-10 rounded-xl border border-blue-300 bg-blue-50 hover:bg-blue-100 transition-colors flex items-center justify-center gap-2 text-blue-700 text-xs font-medium"
+                className="h-10 rounded-xl border border-blue-300/80 bg-blue-50/80 hover:bg-blue-100/80 dark:bg-blue-950/40 dark:border-blue-700/50 dark:hover:bg-blue-900/50 transition-colors flex items-center justify-center gap-2 text-blue-700 dark:text-blue-300 text-xs font-medium"
               >
                 <span>👨‍🏫</span>
                 <span>Instructor</span>
               </button>
               <button
                 onClick={() => navigate('/admindashboard')}
-                className="h-10 rounded-xl border border-purple-300 bg-purple-50 hover:bg-purple-100 transition-colors flex items-center justify-center gap-2 text-purple-700 text-xs font-medium"
+                className="h-10 rounded-xl border border-purple-300/80 bg-purple-50/80 hover:bg-purple-100/80 dark:bg-purple-950/40 dark:border-purple-700/50 dark:hover:bg-purple-900/50 transition-colors flex items-center justify-center gap-2 text-purple-700 dark:text-purple-300 text-xs font-medium"
               >
                 <span>🛡️</span>
                 <span>Admin</span>
               </button>
               <button
                 onClick={() => navigate('/itadmindashboard')}
-                className="h-10 rounded-xl border border-cyan-300 bg-cyan-50 hover:bg-cyan-100 transition-colors flex items-center justify-center gap-2 text-cyan-700 text-xs font-medium"
+                className="h-10 rounded-xl border border-cyan-300/80 bg-cyan-50/80 hover:bg-cyan-100/80 dark:bg-cyan-950/40 dark:border-cyan-700/50 dark:hover:bg-cyan-900/50 transition-colors flex items-center justify-center gap-2 text-cyan-700 dark:text-cyan-300 text-xs font-medium"
               >
                 <span>⚙️</span>
                 <span>IT Admin</span>
+              </button>
+              <button
+                onClick={() => navigate('/tadashboard')}
+                className="col-span-2 h-10 rounded-xl border border-teal-300/80 bg-teal-50/80 hover:bg-teal-100/80 dark:bg-teal-950/40 dark:border-teal-700/50 dark:hover:bg-teal-900/50 transition-colors flex items-center justify-center gap-2 text-teal-700 dark:text-teal-300 text-xs font-medium"
+              >
+                <span>🎓</span>
+                <span>Teaching Assistant</span>
               </button>
             </div>
 
