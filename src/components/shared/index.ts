@@ -46,3 +46,7 @@ export type { RegistrationPeriod } from './CourseRegistrationPeriod';
 // Course Feature Toggle
 export { CourseFeatureToggle } from './CourseFeatureToggle';
 export type { CourseFeature } from './CourseFeatureToggle';
+
+// Shared Dashboard Layout
+export { DashboardHeader } from './DashboardHeader';
+export { DashboardSidebar } from './DashboardSidebar';

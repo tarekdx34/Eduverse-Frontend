@@ -12,8 +12,6 @@ import {
   MessageCircle,
 } from 'lucide-react';
 import {
-  Sidebar,
-  Header,
   DashboardOverview,
   SystemConfigPage,
   IntegrationsPage,
@@ -23,7 +21,7 @@ import {
   AIManagementPage,
   MultiCampusPage,
 } from './components';
-import { MessagingChat } from '../../components/shared';
+import { DashboardHeader, DashboardSidebar, MessagingChat } from '../../components/shared';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import {
@@ -68,8 +66,8 @@ function ITAdminDashboardContent() {
   const navigate = useNavigate();
   const params = useParams();
   const [activeTab, setActiveTab] = useState<TabKey>('dashboard');
-  const { isDark } = useTheme();
-  const { language } = useLanguage();
+  const { isDark, toggleTheme } = useTheme();
+  const { language, isRTL, setLanguage, t } = useLanguage();
 
   // State for data management
   const [serverStatus, setServerStatus] = useState(SERVER_STATUS);
@@ -205,18 +203,47 @@ function ITAdminDashboardContent() {
 
   return (
     <div
-      className={`min-h-screen ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}
+      className={`flex min-h-screen ${isRTL ? 'flex-row-reverse' : ''} ${isDark ? 'bg-background-dark' : 'bg-background-light'} text-slate-800 dark:text-slate-100 transition-colors duration-300`}
       style={{ fontFamily: "'Montserrat', sans-serif" }}
+      dir={isRTL ? 'rtl' : 'ltr'}
     >
-      {/* Header */}
-      <Header userName="IT Administrator" />
+      {/* Fixed Sidebar */}
+      <div className={`fixed ${isRTL ? 'right-0' : 'left-0'} top-0 z-50 h-screen`}>
+        <DashboardSidebar
+          tabs={translatedTabs.map(tab => ({ id: tab.key, label: tab.label, icon: tab.icon }))}
+          activeTab={activeTab}
+          onTabChange={(key) => handleTabChange(key as TabKey)}
+          onLogout={() => navigate('/login')}
+          isDark={isDark}
+          isRTL={isRTL}
+          accentColor="#0891B2"
+        />
+      </div>
 
-      <div className="flex">
-        {/* Sidebar */}
-        <Sidebar tabs={translatedTabs} activeTab={activeTab} onChangeTab={handleTabChange} />
-
-        {/* Main Content */}
-        <main className="flex-1 p-6 mt-14">
+      {/* Main Content */}
+      <main className={`flex-1 ${isRTL ? 'mr-64' : 'ml-64'} p-6 lg:p-10`}>
+        <DashboardHeader
+          userName="IT Administrator"
+          userRole="IT Admin"
+          isDark={isDark}
+          isRTL={isRTL}
+          accentColor="#0891B2"
+          avatarGradient="from-cyan-500 to-blue-600"
+          language={language}
+          onToggleTheme={toggleTheme}
+          onSetLanguage={setLanguage}
+          searchRole="admin"
+          translations={{
+            search: t('search') || 'Search...',
+            language: t('language'),
+            english: t('english'),
+            arabic: t('arabic'),
+            darkMode: t('darkMode'),
+            lightMode: t('lightMode'),
+            viewProfile: t('viewProfile'),
+            logout: t('logout'),
+          }}
+        />
           {/* Dashboard Overview */}
           {activeTab === 'dashboard' && (
             <DashboardOverview
@@ -305,8 +332,7 @@ function ITAdminDashboardContent() {
               showVoiceCall={true}
             />
           )}
-        </main>
-      </div>
+      </main>
     </div>
   );
 }
