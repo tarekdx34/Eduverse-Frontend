@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Search, Edit2, Trash2, ArrowUpDown, UserPlus, Mail } from 'lucide-react';
+import { useTheme } from '../contexts/ThemeContext';
 
 export type RosterEntry = {
   id: number;
@@ -20,6 +21,7 @@ export function RosterTable({ data, onEdit, onDelete, onToggleStatus }: RosterTa
   const [searchTerm, setSearchTerm] = useState('');
   const [sortField, setSortField] = useState<'name' | 'email' | 'status'>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const { isDark } = useTheme();
 
   const handleSort = (field: 'name' | 'email' | 'status') => {
     if (sortField === field) {
@@ -67,9 +69,9 @@ export function RosterTable({ data, onEdit, onDelete, onToggleStatus }: RosterTa
   };
 
   return (
-    <div className="rounded-lg border bg-white p-6 shadow-sm">
+    <div className={`rounded-lg border p-6 shadow-sm ${isDark ? 'bg-card-dark border-white/10' : 'bg-white border-gray-200'}`}>
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-900">Enrolled Students</h3>
+        <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Enrolled Students</h3>
         <button className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm">
           <UserPlus size={16} />
           Add Student
@@ -78,7 +80,7 @@ export function RosterTable({ data, onEdit, onDelete, onToggleStatus }: RosterTa
 
       <div className="mb-4 relative">
         <Search
-          className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+          className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}
           size={18}
         />
         <input
@@ -86,14 +88,16 @@ export function RosterTable({ data, onEdit, onDelete, onToggleStatus }: RosterTa
           placeholder="Search by name, email, or status..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+            isDark ? 'bg-white/5 border-white/10 text-slate-200 placeholder:text-slate-500' : 'bg-white border-gray-300 text-gray-900'
+          }`}
         />
       </div>
 
       <div className="overflow-x-auto">
         <table className="min-w-full text-sm">
           <thead>
-            <tr className="bg-gray-100 text-gray-700">
+            <tr className={isDark ? 'bg-white/5 text-slate-300' : 'bg-gray-100 text-gray-700'}>
               <th className="p-3 text-left">
                 <button
                   onClick={() => handleSort('name')}
@@ -127,13 +131,13 @@ export function RosterTable({ data, onEdit, onDelete, onToggleStatus }: RosterTa
           </thead>
           <tbody>
             {filteredAndSortedData.slice(0, 100).map((student) => (
-              <tr key={student.id} className="border-t hover:bg-gray-50 transition-colors">
+              <tr key={student.id} className={`border-t transition-colors ${isDark ? 'border-white/5 hover:bg-white/5' : 'hover:bg-gray-50'}`}>
                 <td className="p-3">
-                  <div className="font-medium text-gray-900">{student.name}</div>
+                  <div className={`font-medium ${isDark ? 'text-slate-200' : 'text-gray-900'}`}>{student.name}</div>
                 </td>
                 <td className="p-3">
-                  <div className="flex items-center gap-2 text-gray-600 text-xs">
-                    <Mail size={14} className="text-gray-400" />
+                  <div className={`flex items-center gap-2 text-xs ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                    <Mail size={14} className={isDark ? 'text-slate-500' : 'text-gray-400'} />
                     {student.email}
                   </div>
                 </td>
@@ -145,7 +149,7 @@ export function RosterTable({ data, onEdit, onDelete, onToggleStatus }: RosterTa
                   </span>
                 </td>
                 <td className="p-3">
-                  <span className="font-medium text-gray-900">{student.grade || '-'}</span>
+                  <span className={`font-medium ${isDark ? 'text-slate-200' : 'text-gray-900'}`}>{student.grade || '-'}</span>
                 </td>
                 <td className="p-3">
                   <div className="flex gap-2">
@@ -159,7 +163,9 @@ export function RosterTable({ data, onEdit, onDelete, onToggleStatus }: RosterTa
                     {onToggleStatus && (
                       <button
                         onClick={() => onToggleStatus(student.id)}
-                        className="px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 rounded transition-colors border border-gray-300"
+                        className={`px-3 py-1.5 text-xs rounded transition-colors border ${
+                          isDark ? 'text-slate-300 hover:bg-white/10 border-white/10' : 'text-gray-700 hover:bg-gray-100 border-gray-300'
+                        }`}
                         title="Toggle Status"
                       >
                         Toggle Status
@@ -180,7 +186,7 @@ export function RosterTable({ data, onEdit, onDelete, onToggleStatus }: RosterTa
             ))}
             {filteredAndSortedData.length === 0 && (
               <tr>
-                <td className="p-6 text-center text-gray-500" colSpan={5}>
+                <td className={`p-6 text-center ${isDark ? 'text-slate-500' : 'text-gray-500'}`} colSpan={5}>
                   {searchTerm ? 'No students match your search.' : 'No students enrolled.'}
                 </td>
               </tr>
@@ -188,7 +194,7 @@ export function RosterTable({ data, onEdit, onDelete, onToggleStatus }: RosterTa
           </tbody>
         </table>
         {filteredAndSortedData.length > 100 && (
-          <div className="mt-4 text-sm text-gray-500 text-center">
+          <div className={`mt-4 text-sm text-center ${isDark ? 'text-slate-500' : 'text-gray-500'}`}>
             Showing first 100 of {filteredAndSortedData.length} results
           </div>
         )}

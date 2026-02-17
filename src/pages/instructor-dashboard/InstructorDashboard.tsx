@@ -49,6 +49,7 @@ import {
 } from './components';
 import { AIAttendanceContainer } from './components/ai-features/attendance';
 import { MessagingChat, DashboardHeader, DashboardSidebar } from '../../components/shared';
+import { DashboardProfileTab } from '../../components/shared/DashboardProfileTab';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import {
@@ -93,7 +94,8 @@ type TabKey =
   | 'communication'
   | 'discussion'
   | 'chat'
-  | 'settings';
+  | 'settings'
+  | 'profile';
 
 const TABS: { key: TabKey; label: string; labelAr: string; icon: any }[] = [
   { key: 'dashboard', label: 'Dashboard', labelAr: 'لوحة التحكم', icon: LayoutGrid },
@@ -112,6 +114,7 @@ const TABS: { key: TabKey; label: string; labelAr: string; icon: any }[] = [
   { key: 'discussion', label: 'Discussion', labelAr: 'المناقشات', icon: MessagesSquare },
   { key: 'chat', label: 'Chat', labelAr: 'الدردشة', icon: MessageSquare },
   { key: 'settings', label: 'Settings', labelAr: 'الإعدادات', icon: Settings },
+  { key: 'profile', label: 'Profile', labelAr: 'الملف الشخصي', icon: User },
 ];
 
 function InstructorDashboardContent() {
@@ -489,6 +492,7 @@ function InstructorDashboardContent() {
           onToggleTheme={toggleTheme}
           onSetLanguage={setLanguage}
           searchRole="instructor"
+          onProfileClick={() => handleTabChange('profile')}
           translations={{
             search: t('search') || 'Search...',
             language: t('language'),
@@ -537,9 +541,9 @@ function InstructorDashboardContent() {
           {activeTab === 'roster' && (
             <div className="space-y-4">
               <div className="flex items-center gap-3">
-                <label className="text-sm text-gray-600">Select Section</label>
+                <label className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>Select Section</label>
                 <select
-                  className="border rounded-md px-3 py-2 bg-white"
+                  className={`border rounded-md px-3 py-2 ${isDark ? 'bg-white/5 border-white/10 text-slate-200' : 'bg-white border-gray-300 text-gray-900'}`}
                   value={activeSectionId || String(SECTIONS[0].sectionId)}
                   onChange={(e) => setActiveSectionId(e.target.value)}
                 >
@@ -582,9 +586,9 @@ function InstructorDashboardContent() {
           {activeTab === 'waitlist' && (
             <div className="space-y-4">
               <div className="flex items-center gap-3">
-                <label className="text-sm text-gray-600">Select Section</label>
+                <label className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>Select Section</label>
                 <select
-                  className="border rounded-md px-3 py-2 bg-white"
+                  className={`border rounded-md px-3 py-2 ${isDark ? 'bg-white/5 border-white/10 text-slate-200' : 'bg-white border-gray-300 text-gray-900'}`}
                   value={activeSectionId || String(SECTIONS[0].sectionId)}
                   onChange={(e) => setActiveSectionId(e.target.value)}
                 >
@@ -617,9 +621,9 @@ function InstructorDashboardContent() {
           {activeTab === 'grades' && (
             <div className="space-y-4">
               <div className="flex items-center gap-3">
-                <label className="text-sm text-gray-600">Select Section</label>
+                <label className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>Select Section</label>
                 <select
-                  className="border rounded-md px-3 py-2 bg-white"
+                  className={`border rounded-md px-3 py-2 ${isDark ? 'bg-white/5 border-white/10 text-slate-200' : 'bg-white border-gray-300 text-gray-900'}`}
                   value={activeSectionId || String(SECTIONS[0].sectionId)}
                   onChange={(e) => setActiveSectionId(e.target.value)}
                 >
@@ -646,9 +650,9 @@ function InstructorDashboardContent() {
           {activeTab === 'assignments' && (
             <div className="space-y-4">
               <div className="flex items-center gap-3">
-                <label className="text-sm text-gray-600">Select Section</label>
+                <label className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>Select Section</label>
                 <select
-                  className="border rounded-md px-3 py-2 bg-white"
+                  className={`border rounded-md px-3 py-2 ${isDark ? 'bg-white/5 border-white/10 text-slate-200' : 'bg-white border-gray-300 text-gray-900'}`}
                   value={activeSectionId || String(SECTIONS[0].sectionId)}
                   onChange={(e) => setActiveSectionId(e.target.value)}
                 >
@@ -683,9 +687,9 @@ function InstructorDashboardContent() {
           {activeTab === 'attendance' && (
             <div className="space-y-6">
               <div className="flex items-center gap-3">
-                <label className="text-sm text-gray-600">Select Section</label>
+                <label className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>Select Section</label>
                 <select
-                  className="border rounded-md px-3 py-2 bg-white"
+                  className={`border rounded-md px-3 py-2 ${isDark ? 'bg-white/5 border-white/10 text-slate-200' : 'bg-white border-gray-300 text-gray-900'}`}
                   value={activeSectionId || String(SECTIONS[0].sectionId)}
                   onChange={(e) => setActiveSectionId(e.target.value)}
                 >
@@ -731,12 +735,12 @@ function InstructorDashboardContent() {
 
               {/* Content Area */}
               {attendanceMode === 'ai' ? (
-                <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+                <div className={`rounded-xl border shadow-sm p-6 ${isDark ? 'bg-card-dark border-white/10' : 'bg-white border-gray-200'}`}>
                   <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-lg font-semibold text-gray-900">AI Attendance</h3>
+                    <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>AI Attendance</h3>
                     <button
                       onClick={() => setAttendanceMode('manual')}
-                      className="text-sm text-gray-600 hover:text-gray-900"
+                      className={`text-sm ${isDark ? 'text-slate-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}
                     >
                       ← Back to Manual Attendance
                     </button>
@@ -746,8 +750,8 @@ function InstructorDashboardContent() {
                   />
                 </div>
               ) : (
-                <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Manual Attendance</h3>
+                <div className={`rounded-xl border shadow-sm p-6 ${isDark ? 'bg-card-dark border-white/10' : 'bg-white border-gray-200'}`}>
+                  <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Manual Attendance</h3>
                   <AttendanceTable
                     sessions={activeSectionId ? attendanceData[activeSectionId] || [] : []}
                     onCreate={handleCreateAttendance}
@@ -777,6 +781,42 @@ function InstructorDashboardContent() {
 
           {/* Settings */}
           {activeTab === 'settings' && <SettingsPage />}
+
+          {/* Profile */}
+          {activeTab === 'profile' && (
+            <DashboardProfileTab
+              isDark={isDark}
+              accentColor="#4F46E5"
+              bannerGradient="from-indigo-500 to-purple-500"
+              profileData={{
+                fullName: 'Prof. Sarah Martinez',
+                role: 'Instructor',
+                department: 'Computer Science',
+                email: 'sarah.martinez@university.edu',
+                phone: '+1 (555) 234-5678',
+                address: 'Building A, Room 302',
+                dateOfBirth: '1985-03-22',
+                bio: 'Associate Professor of Computer Science with 12+ years of experience in teaching and research. Specializing in artificial intelligence, machine learning, and software engineering.',
+                office: 'Room A-302',
+                officeHours: 'Mon & Wed 2:00 PM - 4:00 PM',
+                specialization: ['Artificial Intelligence', 'Machine Learning', 'Software Engineering', 'Data Mining', 'Neural Networks'],
+                skills: ['Python', 'TensorFlow', 'PyTorch', 'R', 'MATLAB', 'Java'],
+                badges: [
+                  { name: 'Top Educator', description: '4.8+ rating', icon: 'school', color: '#4F46E5', unlocked: true },
+                  { name: 'Researcher', description: '20+ papers', icon: 'science', color: '#3B82F6', unlocked: true },
+                  { name: 'Mentor', description: '50+ students', icon: 'volunteer_activism', color: '#10B981', unlocked: true },
+                  { name: 'Innovator', description: '5 patents', icon: 'lightbulb', color: '#F59E0B', unlocked: true },
+                  { name: 'Speaker', description: '10+ talks', icon: 'campaign', color: '#EC4899', unlocked: true },
+                  { name: 'Author', description: 'Published book', icon: 'menu_book', color: '#6366F1', unlocked: false },
+                ],
+                achievements: [
+                  { title: 'Excellence in Teaching Award', description: 'Academic Year 2023', emoji: '🏆' },
+                  { title: 'Best Research Paper', description: 'IEEE Conference 2023', emoji: '📄' },
+                  { title: 'Faculty Innovation Grant', description: 'Spring 2024', emoji: '💡' },
+                ],
+              }}
+            />
+          )}
         </main>
 
       {/* Modals */}

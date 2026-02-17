@@ -1,7 +1,24 @@
-import { Bell, Globe, Moon, Sun, User } from 'lucide-react';
+import { Bell, Globe, Moon, Sun, User, Check, Clock, FileText, AlertTriangle, Award, MessageSquare, Info, X } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GlobalSearch } from './GlobalSearch';
+
+interface HeaderNotification {
+  id: string;
+  type: 'deadline' | 'grade' | 'announcement' | 'reminder' | 'achievement' | 'message' | 'warning';
+  title: string;
+  description: string;
+  timestamp: string;
+  read: boolean;
+}
+
+const DEFAULT_NOTIFICATIONS: HeaderNotification[] = [
+  { id: '1', type: 'deadline', title: 'Assignment Due Tomorrow', description: 'Database Design Project is due in 24 hours.', timestamp: '10 min ago', read: false },
+  { id: '2', type: 'warning', title: 'Low Attendance Alert', description: 'Your attendance in DBMS is at 76%.', timestamp: '1 hr ago', read: false },
+  { id: '3', type: 'grade', title: 'New Grade Posted', description: 'Web Portfolio Project: 95/100.', timestamp: '2 hrs ago', read: false },
+  { id: '4', type: 'achievement', title: 'Achievement Unlocked! 🎉', description: 'Earned "Perfect Score" badge.', timestamp: '3 hrs ago', read: true },
+  { id: '5', type: 'announcement', title: 'Class Cancelled', description: 'Tomorrow\'s SE lecture cancelled.', timestamp: '5 hrs ago', read: true },
+];
 
 interface DashboardHeaderProps {
   userName: string;
@@ -15,6 +32,7 @@ interface DashboardHeaderProps {
   onSetLanguage: (lang: 'en' | 'ar') => void;
   onProfileClick?: () => void;
   searchRole?: string;
+  notifications?: HeaderNotification[];
   translations?: {
     search?: string;
     language?: string;
@@ -39,11 +57,49 @@ export function DashboardHeader({
   onSetLanguage,
   onProfileClick,
   searchRole,
+  notifications: externalNotifications,
   translations = {},
 }: DashboardHeaderProps) {
   const [showDropdown, setShowDropdown] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [notificationList, setNotificationList] = useState<HeaderNotification[]>(externalNotifications || DEFAULT_NOTIFICATIONS);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const notificationRef = useRef<HTMLDivElement>(null);
+
+  const unreadCount = notificationList.filter(n => !n.read).length;
+
+  const markAsRead = (id: string) => {
+    setNotificationList(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+  };
+
+  const markAllAsRead = () => {
+    setNotificationList(prev => prev.map(n => ({ ...n, read: true })));
+  };
+
+  const getNotificationIcon = (type: string) => {
+    switch (type) {
+      case 'deadline': return <Clock className="w-4 h-4" />;
+      case 'grade': return <FileText className="w-4 h-4" />;
+      case 'announcement': return <Info className="w-4 h-4" />;
+      case 'achievement': return <Award className="w-4 h-4" />;
+      case 'message': return <MessageSquare className="w-4 h-4" />;
+      case 'warning': return <AlertTriangle className="w-4 h-4" />;
+      default: return <Bell className="w-4 h-4" />;
+    }
+  };
+
+  const getNotificationColor = (type: string) => {
+    switch (type) {
+      case 'deadline': return 'text-red-500 bg-red-100';
+      case 'grade': return 'text-green-500 bg-green-100';
+      case 'announcement': return 'text-blue-500 bg-blue-100';
+      case 'achievement': return 'text-amber-500 bg-amber-100';
+      case 'message': return 'text-purple-500 bg-purple-100';
+      case 'warning': return 'text-orange-500 bg-orange-100';
+      default: return 'text-slate-500 bg-slate-100';
+    }
+  };
   const navigate = useNavigate();
 
   const t = {
@@ -61,6 +117,9 @@ export function DashboardHeader({
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setShowDropdown(false);
+      }
+      if (notificationRef.current && !notificationRef.current.contains(event.target as Node)) {
+        setShowNotifications(false);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
@@ -118,21 +177,101 @@ export function DashboardHeader({
         {/* Actions */}
         <div className="flex items-center gap-4">
           {/* Notification */}
-          <button
-            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all relative ${
-              isDark
-                ? 'bg-white/5 hover:bg-white/10'
-                : 'bg-white border border-slate-200 shadow-sm hover:bg-slate-50'
-            }`}
-          >
-            <Bell size={20} className={isDark ? 'text-slate-400' : 'text-slate-600'} />
-            <span
-              className={`absolute top-2 right-2 w-2.5 h-2.5 rounded-full border-2 ${isDark ? 'border-[#0a0a0c]' : 'border-white'}`}
-              style={{ backgroundColor: accentColor }}
-            />
-          </button>
+          <div className="relative" ref={notificationRef}>
+            <button
+              onClick={() => setShowNotifications(!showNotifications)}
+              className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all relative ${
+                isDark
+                  ? 'bg-white/5 hover:bg-white/10'
+                  : 'bg-white border border-slate-200 shadow-sm hover:bg-slate-50'
+              }`}
+            >
+              <Bell size={20} className={isDark ? 'text-slate-400' : 'text-slate-600'} />
+              {unreadCount > 0 && (
+                <span
+                  className="absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full flex items-center justify-center text-[10px] font-bold text-white px-1"
+                  style={{ backgroundColor: accentColor }}
+                >
+                  {unreadCount}
+                </span>
+              )}
+            </button>
 
-          {isDark && <div className="h-8 w-px bg-white/10" />}
+            {showNotifications && (
+              <div
+                className={`absolute ${isRTL ? 'left-0' : 'right-0'} mt-2 w-80 rounded-2xl shadow-lg z-50 overflow-hidden ${
+                  isDark ? 'bg-card-dark border border-white/10' : 'bg-white border border-slate-200'
+                }`}
+              >
+                {/* Dropdown Header */}
+                <div className={`px-4 py-3 flex items-center justify-between border-b ${isDark ? 'border-white/10' : 'border-slate-100'}`}>
+                  <h3 className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>Notifications</h3>
+                  {unreadCount > 0 && (
+                    <button
+                      onClick={markAllAsRead}
+                      className="text-xs font-medium hover:underline"
+                      style={{ color: accentColor }}
+                    >
+                      Mark all read
+                    </button>
+                  )}
+                </div>
+
+                {/* Notification Items */}
+                <div className="max-h-80 overflow-y-auto">
+                  {notificationList.length === 0 ? (
+                    <div className="px-4 py-8 text-center">
+                      <Bell className={`w-8 h-8 mx-auto mb-2 ${isDark ? 'text-slate-600' : 'text-slate-300'}`} />
+                      <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No notifications</p>
+                    </div>
+                  ) : (
+                    notificationList.map((notification) => (
+                      <div
+                        key={notification.id}
+                        className={`px-4 py-3 flex items-start gap-3 transition-colors cursor-pointer ${
+                          !notification.read
+                            ? isDark ? 'bg-white/5' : 'bg-slate-50'
+                            : ''
+                        } ${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'}`}
+                        onClick={() => markAsRead(notification.id)}
+                      >
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${getNotificationColor(notification.type)}`}>
+                          {getNotificationIcon(notification.type)}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <p className={`text-sm font-medium truncate ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                              {notification.title}
+                            </p>
+                            {!notification.read && (
+                              <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: accentColor }} />
+                            )}
+                          </div>
+                          <p className={`text-xs mt-0.5 truncate ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                            {notification.description}
+                          </p>
+                          <p className={`text-[11px] mt-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                            {notification.timestamp}
+                          </p>
+                        </div>
+                        {!notification.read && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); markAsRead(notification.id); }}
+                            className={`p-1 rounded-lg flex-shrink-0 transition-colors ${isDark ? 'hover:bg-white/10 text-slate-400' : 'hover:bg-slate-100 text-slate-400'}`}
+                            title="Mark as read"
+                          >
+                            <Check size={14} />
+                          </button>
+                        )}
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className={`h-8 w-px ${isDark ? 'bg-white/10' : 'bg-slate-200'}`} />
 
           {/* Profile */}
           <div className="relative" ref={dropdownRef}>
@@ -140,12 +279,10 @@ export function DashboardHeader({
               onClick={() => setShowDropdown(!showDropdown)}
               className="flex items-center gap-3 cursor-pointer group"
             >
-              {isDark && (
-                <div className="text-right">
-                  <p className="text-sm font-bold leading-tight mb-0">{userName}</p>
-                  <p className="text-[11px] text-slate-500 font-medium mb-0">{userRole}</p>
-                </div>
-              )}
+              <div className={`${isRTL ? 'text-left' : 'text-right'}`}>
+                <p className={`text-sm font-bold leading-tight mb-0 ${isDark ? 'text-white' : 'text-slate-800'}`}>{userName}</p>
+                <p className={`text-[11px] font-medium mb-0 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{userRole}</p>
+              </div>
               <div
                 className={`w-10 h-10 rounded-xl overflow-hidden ring-2 ring-transparent group-hover:ring-opacity-50 transition-all bg-gradient-to-tr ${avatarGradient} p-0.5`}
                 style={{ '--tw-ring-color': accentColor } as React.CSSProperties}
@@ -161,7 +298,7 @@ export function DashboardHeader({
                 className={`absolute ${isRTL ? 'left-0' : 'right-0'} mt-2 w-64 rounded-2xl shadow-lg py-2 z-50 ${
                   isDark
                     ? 'bg-card-dark border border-white/10'
-                    : 'glass'
+                    : 'bg-white border border-slate-200'
                 }`}
               >
                 {/* Language Selection */}

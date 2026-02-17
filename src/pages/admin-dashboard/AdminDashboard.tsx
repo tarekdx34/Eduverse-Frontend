@@ -12,6 +12,7 @@ import {
   Settings,
   LogOut,
   MessageCircle,
+  User,
 } from 'lucide-react';
 import {
   DashboardOverview,
@@ -25,6 +26,7 @@ import {
   SystemConfigPage,
 } from './components';
 import { DashboardHeader, DashboardSidebar, MessagingChat } from '../../components/shared';
+import { DashboardProfileTab } from '../../components/shared/DashboardProfileTab';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import {
@@ -52,7 +54,8 @@ type TabKey =
   | 'communication'
   | 'chat'
   | 'feedback'
-  | 'config';
+  | 'config'
+  | 'profile';
 
 const TABS: { key: TabKey; label: string; labelAr: string; icon: any }[] = [
   { key: 'dashboard', label: 'Dashboard', labelAr: 'لوحة التحكم', icon: LayoutGrid },
@@ -65,6 +68,7 @@ const TABS: { key: TabKey; label: string; labelAr: string; icon: any }[] = [
   { key: 'chat', label: 'Chat', labelAr: 'الدردشة', icon: MessageCircle },
   { key: 'feedback', label: 'Feedback & Support', labelAr: 'الملاحظات والدعم', icon: HeadphonesIcon },
   { key: 'config', label: 'System Config', labelAr: 'إعدادات النظام', icon: Settings },
+  { key: 'profile', label: 'Profile', labelAr: 'الملف الشخصي', icon: User },
 ];
 
 function AdminDashboardContent() {
@@ -281,6 +285,7 @@ function AdminDashboardContent() {
           onToggleTheme={toggleTheme}
           onSetLanguage={setLanguage}
           searchRole="admin"
+          onProfileClick={() => handleTabChange('profile')}
           translations={{
             search: t('search') || 'Search...',
             language: t('language'),
@@ -389,6 +394,38 @@ function AdminDashboardContent() {
               onUpdateGamification={handleUpdateGamification}
               onToggleIntegration={handleToggleIntegration}
               onSyncIntegration={handleSyncIntegration}
+            />
+          )}
+
+          {/* Profile */}
+          {activeTab === 'profile' && (
+            <DashboardProfileTab
+              isDark={isDark}
+              accentColor="#E11D48"
+              bannerGradient="from-rose-500 to-orange-500"
+              profileData={{
+                fullName: 'System Administrator',
+                role: 'Super Admin',
+                department: 'Administration',
+                email: 'admin@university.edu',
+                phone: '+1 (555) 100-0001',
+                address: 'Admin Building, Suite 100',
+                dateOfBirth: '1980-01-15',
+                bio: 'University System Administrator responsible for managing all academic and administrative operations. Overseeing user management, course administration, and system configuration.',
+                specialization: ['System Administration', 'User Management', 'Academic Operations', 'Data Analytics', 'Policy Management'],
+                badges: [
+                  { name: 'Admin Pro', description: 'System expert', icon: 'admin_panel_settings', color: '#E11D48', unlocked: true },
+                  { name: 'Data Guardian', description: 'Security lead', icon: 'shield', color: '#3B82F6', unlocked: true },
+                  { name: 'Organizer', description: '1000+ users', icon: 'groups', color: '#10B981', unlocked: true },
+                  { name: 'Strategist', description: '5 yr tenure', icon: 'trending_up', color: '#F59E0B', unlocked: true },
+                  { name: 'Innovator', description: 'System upgrade', icon: 'lightbulb', color: '#EC4899', unlocked: false },
+                  { name: 'Architect', description: 'Full redesign', icon: 'architecture', color: '#6366F1', unlocked: false },
+                ],
+                achievements: [
+                  { title: 'System Uptime Award', description: '99.9% uptime achieved', emoji: '🏆' },
+                  { title: 'Security Excellence', description: 'Zero breaches in 2023', emoji: '🛡️' },
+                ],
+              }}
             />
           )}
       </main>

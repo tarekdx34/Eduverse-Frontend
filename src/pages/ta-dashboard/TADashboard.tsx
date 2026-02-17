@@ -12,6 +12,7 @@ import {
   Megaphone,
   MessageSquare,
   MessagesSquare,
+  User,
 } from 'lucide-react';
 import {
   ModernDashboard,
@@ -26,6 +27,7 @@ import {
   DiscussionPage,
 } from './components';
 import { DashboardHeader, DashboardSidebar, MessagingChat } from '../../components/shared';
+import { DashboardProfileTab } from '../../components/shared/DashboardProfileTab';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import {
@@ -38,7 +40,7 @@ import {
   STUDENT_PERFORMANCE,
 } from './constants';
 
-type TabKey = 'dashboard' | 'courses' | 'labs' | 'grading' | 'students' | 'attendance' | 'schedule' | 'announcements' | 'discussion' | 'communication' | 'chat';
+type TabKey = 'dashboard' | 'courses' | 'labs' | 'grading' | 'students' | 'attendance' | 'schedule' | 'announcements' | 'discussion' | 'communication' | 'chat' | 'profile';
 
 const TABS: { key: TabKey; label: string; icon: any }[] = [
   { key: 'dashboard', label: 'Dashboard', icon: LayoutGrid },
@@ -52,6 +54,7 @@ const TABS: { key: TabKey; label: string; icon: any }[] = [
   { key: 'discussion', label: 'Discussion', icon: MessagesSquare },
   { key: 'communication', label: 'Communication', icon: MessageCircle },
   { key: 'chat', label: 'Chat', icon: MessageSquare },
+  { key: 'profile', label: 'Profile', icon: User },
 ];
 
 function TADashboardContent() {
@@ -172,6 +175,7 @@ function TADashboardContent() {
           language={language}
           onToggleTheme={toggleTheme}
           onSetLanguage={setLanguage}
+          onProfileClick={() => handleTabChange('profile')}
           translations={{
             search: t('search') || 'Search...',
             language: t('language'),
@@ -242,6 +246,39 @@ function TADashboardContent() {
             currentUserName="Ahmed Hassan"
             showVideoCall={true}
             showVoiceCall={true}
+          />
+        )}
+
+        {/* Profile Tab */}
+        {activeTab === 'profile' && (
+          <DashboardProfileTab
+            isDark={isDark}
+            accentColor="#2563EB"
+            bannerGradient="from-blue-500 to-cyan-500"
+            profileData={{
+              fullName: 'Ahmed Hassan',
+              role: 'Teaching Assistant',
+              department: 'Computer Science',
+              email: 'ahmed.hassan@university.edu',
+              phone: '+20 100 234 5678',
+              address: 'Cairo, Egypt',
+              dateOfBirth: '1998-11-10',
+              bio: 'Graduate teaching assistant pursuing M.Sc. in Computer Science. Assisting in programming and data structures courses while conducting research in distributed systems.',
+              interests: ['Distributed Systems', 'Cloud Computing', 'Data Structures', 'Algorithms', 'Teaching Pedagogy'],
+              skills: ['Java', 'Python', 'C++', 'Docker', 'Kubernetes', 'Linux'],
+              badges: [
+                { name: 'Star TA', description: '4.9 rating', icon: 'star', color: '#2563EB', unlocked: true },
+                { name: 'Grading Pro', description: '500+ graded', icon: 'grading', color: '#3B82F6', unlocked: true },
+                { name: 'Lab Expert', description: '100 sessions', icon: 'science', color: '#10B981', unlocked: true },
+                { name: 'Responsive', description: '<1hr reply', icon: 'speed', color: '#F59E0B', unlocked: true },
+                { name: 'Researcher', description: 'First paper', icon: 'article', color: '#EC4899', unlocked: false },
+                { name: 'Innovator', description: 'New curriculum', icon: 'lightbulb', color: '#6366F1', unlocked: false },
+              ],
+              achievements: [
+                { title: 'Outstanding TA Award', description: 'Spring 2024 Semester', emoji: '🏆' },
+                { title: 'Student Choice Award', description: 'Voted by CS students', emoji: '⭐' },
+              ],
+            }}
           />
         )}
       </main>
