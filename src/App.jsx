@@ -10,9 +10,11 @@ import TADashboard from './pages/ta-dashboard/TADashboard';
 import { AuthService } from './services/api/authService';
 import { QuickNavigateModal } from './components/QuickNavigateModal';
 
-function App() {
-  const isAuthenticated = AuthService.isAuthenticated();
+function ProtectedRoute({ children }) {
+  return AuthService.isAuthenticated() ? children : <Navigate to="/login" />;
+}
 
+function App() {
   return (
     <Router>
       <QuickNavigateModal />
@@ -26,21 +28,21 @@ function App() {
         {/* Profile Page - Protected */}
         <Route
           path="/profile"
-          element={isAuthenticated ? <ProfilePage /> : <Navigate to="/login" />}
+          element={<ProtectedRoute><ProfilePage /></ProtectedRoute>}
         />
 
         {/* Student Dashboard - Protected with nested routes */}
         <Route
           path="/studentdashboard"
-          element={isAuthenticated ? <StudentDashboard /> : <Navigate to="/login" />}
+          element={<ProtectedRoute><StudentDashboard /></ProtectedRoute>}
         />
         <Route
           path="/studentdashboard/:tab"
-          element={isAuthenticated ? <StudentDashboard /> : <Navigate to="/login" />}
+          element={<ProtectedRoute><StudentDashboard /></ProtectedRoute>}
         />
         <Route
           path="/studentdashboard/:tab/:id"
-          element={isAuthenticated ? <StudentDashboard /> : <Navigate to="/login" />}
+          element={<ProtectedRoute><StudentDashboard /></ProtectedRoute>}
         />
 
         {/* Instructor Dashboard - Development (no auth protection) */}
