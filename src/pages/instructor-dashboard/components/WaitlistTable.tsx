@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Search, ArrowUpDown, UserCheck, UserX, Mail, Calendar } from 'lucide-react';
+import { useTheme } from '../contexts/ThemeContext';
 
 export type WaitlistEntry = {
   id: number;
@@ -19,6 +20,7 @@ export function WaitlistTable({ data, onApprove, onReject }: WaitlistTableProps)
   const [searchTerm, setSearchTerm] = useState('');
   const [sortField, setSortField] = useState<'name' | 'email' | 'requestedAt'>('requestedAt');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const { isDark } = useTheme();
 
   const handleSort = (field: 'name' | 'email' | 'requestedAt') => {
     if (sortField === field) {
@@ -51,11 +53,11 @@ export function WaitlistTable({ data, onApprove, onReject }: WaitlistTableProps)
     });
 
   return (
-    <div className="rounded-lg border bg-white p-6 shadow-sm">
+    <div className={`rounded-lg border p-6 shadow-sm ${isDark ? 'bg-card-dark border-white/10' : 'bg-white border-gray-200'}`}>
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900">Waitlist</h3>
-          <p className="text-sm text-gray-600 mt-1">
+          <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Waitlist</h3>
+          <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
             {data.length} student{data.length !== 1 ? 's' : ''} waiting for enrollment
           </p>
         </div>
@@ -63,7 +65,7 @@ export function WaitlistTable({ data, onApprove, onReject }: WaitlistTableProps)
 
       <div className="mb-4 relative">
         <Search
-          className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+          className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}
           size={18}
         />
         <input
@@ -71,14 +73,16 @@ export function WaitlistTable({ data, onApprove, onReject }: WaitlistTableProps)
           placeholder="Search by name, email, or date..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+            isDark ? 'bg-white/5 border-white/10 text-slate-200 placeholder:text-slate-500' : 'bg-white border-gray-300 text-gray-900'
+          }`}
         />
       </div>
 
       <div className="overflow-x-auto">
         <table className="min-w-full text-sm">
           <thead>
-            <tr className="bg-gray-100 text-gray-700">
+            <tr className={isDark ? 'bg-white/5 text-slate-300' : 'bg-gray-100 text-gray-700'}>
               <th className="p-3 text-left">
                 <button
                   onClick={() => handleSort('name')}
@@ -112,19 +116,19 @@ export function WaitlistTable({ data, onApprove, onReject }: WaitlistTableProps)
           </thead>
           <tbody>
             {filteredAndSortedData.slice(0, 100).map((student, index) => (
-              <tr key={student.id} className="border-t hover:bg-gray-50 transition-colors">
+              <tr key={student.id} className={`border-t transition-colors ${isDark ? 'border-white/5 hover:bg-white/5' : 'hover:bg-gray-50'}`}>
                 <td className="p-3">
-                  <div className="font-medium text-gray-900">{student.name}</div>
+                  <div className={`font-medium ${isDark ? 'text-slate-200' : 'text-gray-900'}`}>{student.name}</div>
                 </td>
                 <td className="p-3">
-                  <div className="flex items-center gap-2 text-gray-600 text-xs">
-                    <Mail size={14} className="text-gray-400" />
+                  <div className={`flex items-center gap-2 text-xs ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                    <Mail size={14} className={isDark ? 'text-slate-500' : 'text-gray-400'} />
                     {student.email}
                   </div>
                 </td>
                 <td className="p-3">
-                  <div className="flex items-center gap-2 text-gray-600 text-xs">
-                    <Calendar size={14} className="text-gray-400" />
+                  <div className={`flex items-center gap-2 text-xs ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                    <Calendar size={14} className={isDark ? 'text-slate-500' : 'text-gray-400'} />
                     {student.requestedAt}
                   </div>
                 </td>
@@ -161,7 +165,7 @@ export function WaitlistTable({ data, onApprove, onReject }: WaitlistTableProps)
             ))}
             {filteredAndSortedData.length === 0 && (
               <tr>
-                <td className="p-6 text-center text-gray-500" colSpan={5}>
+                <td className={`p-6 text-center ${isDark ? 'text-slate-500' : 'text-gray-500'}`} colSpan={5}>
                   {searchTerm ? 'No students match your search.' : 'No students on waitlist.'}
                 </td>
               </tr>
@@ -169,7 +173,7 @@ export function WaitlistTable({ data, onApprove, onReject }: WaitlistTableProps)
           </tbody>
         </table>
         {filteredAndSortedData.length > 100 && (
-          <div className="mt-4 text-sm text-gray-500 text-center">
+          <div className={`mt-4 text-sm text-center ${isDark ? 'text-slate-500' : 'text-gray-500'}`}>
             Showing first 100 of {filteredAndSortedData.length} results
           </div>
         )}

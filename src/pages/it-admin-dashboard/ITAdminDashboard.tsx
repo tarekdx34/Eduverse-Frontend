@@ -10,6 +10,7 @@ import {
   Brain,
   Building2,
   MessageCircle,
+  User,
 } from 'lucide-react';
 import {
   DashboardOverview,
@@ -22,6 +23,7 @@ import {
   MultiCampusPage,
 } from './components';
 import { DashboardHeader, DashboardSidebar, MessagingChat } from '../../components/shared';
+import { DashboardProfileTab } from '../../components/shared/DashboardProfileTab';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import {
@@ -48,7 +50,8 @@ type TabKey =
   | 'security'
   | 'ai'
   | 'campus'
-  | 'chat';
+  | 'chat'
+  | 'profile';
 
 const TABS: { key: TabKey; label: string; labelAr: string; icon: any }[] = [
   { key: 'dashboard', label: 'Dashboard', labelAr: 'لوحة التحكم', icon: LayoutGrid },
@@ -60,6 +63,7 @@ const TABS: { key: TabKey; label: string; labelAr: string; icon: any }[] = [
   { key: 'ai', label: 'AI Management', labelAr: 'إدارة الذكاء الاصطناعي', icon: Brain },
   { key: 'campus', label: 'Multi-Campus', labelAr: 'متعدد الحرم', icon: Building2 },
   { key: 'chat', label: 'Chat', labelAr: 'الدردشة', icon: MessageCircle },
+  { key: 'profile', label: 'Profile', labelAr: 'الملف الشخصي', icon: User },
 ];
 
 function ITAdminDashboardContent() {
@@ -233,6 +237,7 @@ function ITAdminDashboardContent() {
           onToggleTheme={toggleTheme}
           onSetLanguage={setLanguage}
           searchRole="admin"
+          onProfileClick={() => handleTabChange('profile')}
           translations={{
             search: t('search') || 'Search...',
             language: t('language'),
@@ -330,6 +335,39 @@ function ITAdminDashboardContent() {
               currentUserName="IT Administrator"
               showVideoCall={true}
               showVoiceCall={true}
+            />
+          )}
+
+          {/* Profile */}
+          {activeTab === 'profile' && (
+            <DashboardProfileTab
+              isDark={isDark}
+              accentColor="#0891B2"
+              bannerGradient="from-cyan-500 to-blue-600"
+              profileData={{
+                fullName: 'IT Administrator',
+                role: 'IT Admin',
+                department: 'Information Technology',
+                email: 'it.admin@university.edu',
+                phone: '+1 (555) 900-1234',
+                address: 'IT Building, Server Room 1',
+                dateOfBirth: '1982-07-20',
+                bio: 'Senior IT Administrator managing university infrastructure, server systems, network security, and technology integrations. Ensuring 99.9% uptime and system reliability.',
+                specialization: ['Infrastructure Management', 'Network Security', 'Cloud Architecture', 'DevOps', 'System Integration'],
+                skills: ['AWS', 'Azure', 'Docker', 'Kubernetes', 'Linux', 'Terraform', 'Ansible'],
+                badges: [
+                  { name: 'Uptime Hero', description: '99.9% uptime', icon: 'dns', color: '#0891B2', unlocked: true },
+                  { name: 'Security Pro', description: 'Zero breaches', icon: 'security', color: '#3B82F6', unlocked: true },
+                  { name: 'Cloud Expert', description: 'Multi-cloud', icon: 'cloud', color: '#10B981', unlocked: true },
+                  { name: 'Automator', description: '100+ scripts', icon: 'terminal', color: '#F59E0B', unlocked: true },
+                  { name: 'Architect', description: 'System redesign', icon: 'architecture', color: '#EC4899', unlocked: false },
+                  { name: 'Certified', description: 'AWS Solutions', icon: 'workspace_premium', color: '#6366F1', unlocked: false },
+                ],
+                achievements: [
+                  { title: 'Infrastructure Excellence', description: 'Yearly IT Award 2023', emoji: '🏆' },
+                  { title: 'Zero Downtime Migration', description: 'Cloud migration success', emoji: '☁️' },
+                ],
+              }}
             />
           )}
       </main>

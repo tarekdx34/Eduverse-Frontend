@@ -18,6 +18,7 @@ import {
   Beaker,
   PieChart,
   Settings,
+  User,
 } from 'lucide-react';
 import {
   StatsCard,
@@ -42,6 +43,7 @@ import {
   SettingsPreferences,
 } from './components';
 import { DashboardHeader, DashboardSidebar } from '../../components/shared';
+import { DashboardProfileTab } from '../../components/shared/DashboardProfileTab';
 import CourseViewPage from './pages/CourseView';
 import { GPA_DATA, SCHEDULE_DATA } from './constants';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
@@ -107,6 +109,7 @@ function StudentDashboardContent() {
     { id: 'payments', label: 'Payments', icon: CreditCard },
     { id: 'chat', label: 'Chat', icon: MessageCircle },
     { id: 'settings', label: 'Settings', icon: Settings },
+    { id: 'profile', label: 'Profile', icon: User },
   ];
 
   // Handle tab navigation - clear course view when navigating to other tabs
@@ -189,6 +192,7 @@ function StudentDashboardContent() {
           language={language}
           onToggleTheme={toggleTheme}
           onSetLanguage={setLanguage}
+          onProfileClick={() => handleTabChange('profile')}
           translations={headerTranslations}
         />
 
@@ -281,6 +285,46 @@ function StudentDashboardContent() {
               {activeTab === 'payments' && <PaymentHistory />}
               {activeTab === 'chat' && <MessagingChat />}
               {activeTab === 'settings' && <SettingsPreferences />}
+              {activeTab === 'profile' && (
+                <DashboardProfileTab
+                  isDark={isDark}
+                  accentColor="#7C3AED"
+                  bannerGradient="from-[#7C3AED] to-[#3B82F6]"
+                  profileData={{
+                    fullName: 'Tarek Mohamed',
+                    role: 'CS Junior',
+                    department: 'Computer Science',
+                    email: 'tarek.mohamed@university.edu',
+                    phone: '+20 123 456 7890',
+                    address: 'Cairo, Egypt',
+                    dateOfBirth: '2002-05-15',
+                    bio: 'Passionate computer science student with a keen interest in AI, machine learning, and full-stack web development. Active member of the university coding club and open-source contributor.',
+                    gpa: '3.72',
+                    totalCredits: '96',
+                    maxCredits: '144',
+                    rank: '45',
+                    rankTotal: '1,200',
+                    enrollmentDate: '2021-09-01',
+                    expectedGraduation: '2025-06-15',
+                    studentId: 'STU-2021-0456',
+                    interests: ['Artificial Intelligence', 'Web Development', 'Data Science', 'Cloud Computing', 'Cybersecurity'],
+                    skills: ['Python', 'TypeScript', 'React', 'Node.js', 'TensorFlow', 'SQL'],
+                    badges: [
+                      { name: 'Dean\'s List', description: 'GPA above 3.5', icon: 'school', color: '#7C3AED', unlocked: true },
+                      { name: 'Code Master', description: '100+ commits', icon: 'code', color: '#3B82F6', unlocked: true },
+                      { name: 'Team Player', description: '10 group projects', icon: 'groups', color: '#10B981', unlocked: true },
+                      { name: 'Early Bird', description: '95% attendance', icon: 'schedule', color: '#F59E0B', unlocked: true },
+                      { name: 'Researcher', description: 'Published paper', icon: 'science', color: '#EC4899', unlocked: false },
+                      { name: 'Mentor', description: 'Helped 50 peers', icon: 'volunteer_activism', color: '#6366F1', unlocked: false },
+                    ],
+                    achievements: [
+                      { title: 'Dean\'s Honor Roll', description: 'Fall 2023 Semester', emoji: '🏆' },
+                      { title: 'Hackathon Winner', description: 'University Tech Fest 2023', emoji: '🥇' },
+                      { title: 'Best Project Award', description: 'Software Engineering Course', emoji: '⭐' },
+                    ],
+                  }}
+                />
+              )}
             </>
           )}
         </div>
