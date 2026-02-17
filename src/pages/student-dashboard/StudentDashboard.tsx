@@ -20,8 +20,6 @@ import {
   Settings,
 } from 'lucide-react';
 import {
-  Sidebar,
-  Header,
   StatsCard,
   GpaChart,
   DailySchedule,
@@ -41,13 +39,33 @@ import {
   CourseCommunity,
   LabInstructions,
   ProgressAnalytics,
-  GlobalSearch,
   SettingsPreferences,
 } from './components';
+import { DashboardHeader, DashboardSidebar } from '../../components/shared';
 import CourseViewPage from './pages/CourseView';
 import { GPA_DATA, SCHEDULE_DATA } from './constants';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
+
+const tabTranslationKeys: Record<string, string> = {
+  dashboard: 'dashboard',
+  myclass: 'myClass',
+  registration: 'registration',
+  community: 'community',
+  schedule: 'schedule',
+  assignments: 'assignments',
+  labs: 'labSessions',
+  grades: 'grades',
+  attendance: 'attendance',
+  analytics: 'analytics',
+  todo: 'todoList',
+  ai: 'aiFeatures',
+  gamification: 'achievements',
+  notifications: 'notifications',
+  payments: 'payments',
+  chat: 'chat',
+  settings: 'settings',
+};
 
 
 function StudentDashboardContent() {
@@ -109,8 +127,19 @@ function StudentDashboardContent() {
     setViewingCourseId(null);
   };
 
-  const { isRTL } = useLanguage();
-  const { isDark } = useTheme();
+  const { isRTL, language, setLanguage, t } = useLanguage();
+  const { isDark, toggleTheme } = useTheme();
+
+  const headerTranslations = {
+    search: t('search') || 'Search...',
+    language: t('language'),
+    english: t('english'),
+    arabic: t('arabic'),
+    darkMode: t('darkMode'),
+    lightMode: t('lightMode'),
+    viewProfile: t('viewProfile'),
+    logout: t('logout'),
+  };
 
   return (
     <div
@@ -122,11 +151,14 @@ function StudentDashboardContent() {
       <div
         className={`fixed ${isRTL ? 'right-0' : 'left-0'} top-0 z-50 h-screen transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : (isRTL ? 'translate-x-full' : '-translate-x-full')}`}
       >
-        <Sidebar
-          tabs={tabs}
+        <DashboardSidebar
+          tabs={tabs.map(tab => ({ ...tab, label: t(tabTranslationKeys[tab.id] || tab.id) || tab.label }))}
           activeTab={activeTab}
           onTabChange={handleTabChange}
           onLogout={() => navigate('/login')}
+          isDark={isDark}
+          isRTL={isRTL}
+          accentColor="#7C3AED"
         />
       </div>
 
@@ -147,7 +179,18 @@ function StudentDashboardContent() {
         )}
 
         {/* Header is now inline */}
-        <Header userName="Tarek Mohamed" />
+        <DashboardHeader
+          userName="Tarek Mohamed"
+          userRole="CS Junior"
+          isDark={isDark}
+          isRTL={isRTL}
+          accentColor="#7C3AED"
+          avatarGradient="from-[#7C3AED] to-[#ec4899]"
+          language={language}
+          onToggleTheme={toggleTheme}
+          onSetLanguage={setLanguage}
+          translations={headerTranslations}
+        />
 
         {/* Content Area */}
         <div className="flex-1">

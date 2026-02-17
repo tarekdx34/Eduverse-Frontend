@@ -20,7 +20,6 @@ import {
   MessagesSquare,
 } from 'lucide-react';
 import {
-  Sidebar,
   StatsCard,
   GradesTable,
   RosterTable,
@@ -47,10 +46,9 @@ import {
   CommunicationPage,
   DiscussionPage,
   SettingsPage,
-  Header,
 } from './components';
 import { AIAttendanceContainer } from './components/ai-features/attendance';
-import { MessagingChat } from '../../components/shared';
+import { MessagingChat, DashboardHeader, DashboardSidebar } from '../../components/shared';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import {
@@ -123,8 +121,8 @@ function InstructorDashboardContent() {
   const [activeTab, setActiveTab] = useState<TabKey>('dashboard');
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
   const [attendanceMode, setAttendanceMode] = useState<'manual' | 'ai'>('manual');
-  const { isDark } = useTheme();
-  const { language, isRTL, t } = useLanguage();
+  const { isDark, toggleTheme } = useTheme();
+  const { language, setLanguage, isRTL, t } = useLanguage();
 
   // State for roster management
   const [rosterOverrides, setRosterOverrides] = useState<
@@ -460,14 +458,48 @@ function InstructorDashboardContent() {
   }));
 
   return (
-    <div className={`min-h-screen ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`} style={{ fontFamily: "'Montserrat', sans-serif" }} dir={isRTL ? 'rtl' : 'ltr'}>
-      {/* Header */}
-      <Header userName="Prof. Sarah Martinez" />
-      
-      <div className="flex">
-        <Sidebar tabs={translatedTabs} activeTab={activeTab} onChangeTab={handleTabChange} />
+    <div
+      className={`flex min-h-screen ${isRTL ? 'flex-row-reverse' : ''} ${isDark ? 'bg-background-dark' : 'bg-background-light'} text-slate-800 dark:text-slate-100 transition-colors duration-300`}
+      style={{ fontFamily: "'Montserrat', sans-serif" }}
+      dir={isRTL ? 'rtl' : 'ltr'}
+    >
+      {/* Fixed Sidebar */}
+      <div className={`fixed ${isRTL ? 'right-0' : 'left-0'} top-0 z-50 h-screen`}>
+        <DashboardSidebar
+          tabs={translatedTabs.map(tab => ({ id: tab.key, label: tab.label, icon: tab.icon }))}
+          activeTab={activeTab}
+          onTabChange={(key) => handleTabChange(key as TabKey)}
+          onLogout={() => navigate('/login')}
+          isDark={isDark}
+          isRTL={isRTL}
+          accentColor="#4F46E5"
+        />
+      </div>
 
-        <main className="flex-1 p-6">
+      {/* Main Content */}
+      <main className={`flex-1 ${isRTL ? 'mr-64' : 'ml-64'} p-6 lg:p-10`}>
+        <DashboardHeader
+          userName="Prof. Sarah Martinez"
+          userRole="Instructor"
+          isDark={isDark}
+          isRTL={isRTL}
+          accentColor="#4F46E5"
+          avatarGradient="from-indigo-500 to-purple-500"
+          language={language}
+          onToggleTheme={toggleTheme}
+          onSetLanguage={setLanguage}
+          searchRole="instructor"
+          translations={{
+            search: t('search') || 'Search...',
+            language: t('language'),
+            english: t('english'),
+            arabic: t('arabic'),
+            darkMode: t('darkMode'),
+            lightMode: t('lightMode'),
+            viewProfile: t('viewProfile'),
+            logout: t('logout'),
+          }}
+        />
           {/* Dashboard Overview */}
           {activeTab === 'dashboard' && (
             <ModernDashboard
@@ -746,7 +778,6 @@ function InstructorDashboardContent() {
           {/* Settings */}
           {activeTab === 'settings' && <SettingsPage />}
         </main>
-      </div>
 
       {/* Modals */}
       {isEditOpen && (
