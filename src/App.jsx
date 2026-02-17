@@ -7,12 +7,8 @@ import InstructorDashboard from './pages/instructor-dashboard/InstructorDashboar
 import AdminDashboard from './pages/admin-dashboard/AdminDashboard';
 import ITAdminDashboard from './pages/it-admin-dashboard/ITAdminDashboard';
 import TADashboard from './pages/ta-dashboard/TADashboard';
-import { AuthService } from './services/api/authService';
-import { QuickNavigateModal } from './components/QuickNavigateModal';
 
-function ProtectedRoute({ children }) {
-  return AuthService.isAuthenticated() ? children : <Navigate to="/login" />;
-}
+import { QuickNavigateModal } from './components/QuickNavigateModal';
 
 function App() {
   return (
@@ -25,25 +21,13 @@ function App() {
         {/* Login Page - Public */}
         <Route path="/login" element={<LoginPage />} />
 
-        {/* Profile Page - Protected */}
-        <Route
-          path="/profile"
-          element={<ProtectedRoute><ProfilePage /></ProtectedRoute>}
-        />
+        {/* Profile Page */}
+        <Route path="/profile" element={<ProfilePage />} />
 
-        {/* Student Dashboard - Protected with nested routes */}
-        <Route
-          path="/studentdashboard"
-          element={<ProtectedRoute><StudentDashboard /></ProtectedRoute>}
-        />
-        <Route
-          path="/studentdashboard/:tab"
-          element={<ProtectedRoute><StudentDashboard /></ProtectedRoute>}
-        />
-        <Route
-          path="/studentdashboard/:tab/:id"
-          element={<ProtectedRoute><StudentDashboard /></ProtectedRoute>}
-        />
+        {/* Student Dashboard */}
+        <Route path="/studentdashboard" element={<StudentDashboard />} />
+        <Route path="/studentdashboard/:tab" element={<StudentDashboard />} />
+        <Route path="/studentdashboard/:tab/:id" element={<StudentDashboard />} />
 
         {/* Instructor Dashboard - Development (no auth protection) */}
         <Route path="/instructordashboard" element={<InstructorDashboard />} />
