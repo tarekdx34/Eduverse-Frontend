@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Search, Edit2, Trash2, ArrowUpDown, UserPlus, Mail } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export type RosterEntry = {
   id: number;
@@ -22,6 +23,7 @@ export function RosterTable({ data, onEdit, onDelete, onToggleStatus }: RosterTa
   const [sortField, setSortField] = useState<'name' | 'email' | 'status'>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const { isDark } = useTheme();
+  const { t } = useLanguage();
 
   const handleSort = (field: 'name' | 'email' | 'status') => {
     if (sortField === field) {
@@ -71,10 +73,10 @@ export function RosterTable({ data, onEdit, onDelete, onToggleStatus }: RosterTa
   return (
     <div className={`rounded-lg border p-6 shadow-sm ${isDark ? 'bg-card-dark border-white/10' : 'bg-white border-gray-200'}`}>
       <div className="flex items-center justify-between mb-4">
-        <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Enrolled Students</h3>
+        <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('enrolledStudents')}</h3>
         <button className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm">
           <UserPlus size={16} />
-          Add Student
+          {t('addStudent')}
         </button>
       </div>
 
@@ -85,7 +87,7 @@ export function RosterTable({ data, onEdit, onDelete, onToggleStatus }: RosterTa
         />
         <input
           type="text"
-          placeholder="Search by name, email, or status..."
+          placeholder={t('searchStudentsPlaceholder')}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
@@ -103,7 +105,7 @@ export function RosterTable({ data, onEdit, onDelete, onToggleStatus }: RosterTa
                   onClick={() => handleSort('name')}
                   className="flex items-center gap-1 hover:text-indigo-600 font-semibold"
                 >
-                  Student Name
+                  {t('studentName')}
                   <ArrowUpDown size={14} />
                 </button>
               </th>
@@ -112,7 +114,7 @@ export function RosterTable({ data, onEdit, onDelete, onToggleStatus }: RosterTa
                   onClick={() => handleSort('email')}
                   className="flex items-center gap-1 hover:text-indigo-600 font-semibold"
                 >
-                  Email
+                  {t('email')}
                   <ArrowUpDown size={14} />
                 </button>
               </th>
@@ -121,12 +123,12 @@ export function RosterTable({ data, onEdit, onDelete, onToggleStatus }: RosterTa
                   onClick={() => handleSort('status')}
                   className="flex items-center gap-1 hover:text-indigo-600 font-semibold"
                 >
-                  Status
+                  {t('status')}
                   <ArrowUpDown size={14} />
                 </button>
               </th>
-              <th className="p-3 text-left font-semibold">Grade</th>
-              <th className="p-3 text-left font-semibold">Actions</th>
+              <th className="p-3 text-left font-semibold">{t('grade')}</th>
+              <th className="p-3 text-left font-semibold">{t('actions')}</th>
             </tr>
           </thead>
           <tbody>
@@ -168,7 +170,7 @@ export function RosterTable({ data, onEdit, onDelete, onToggleStatus }: RosterTa
                         }`}
                         title="Toggle Status"
                       >
-                        Toggle Status
+                        {t('toggleStatus')}
                       </button>
                     )}
                     {onDelete && (
@@ -187,7 +189,7 @@ export function RosterTable({ data, onEdit, onDelete, onToggleStatus }: RosterTa
             {filteredAndSortedData.length === 0 && (
               <tr>
                 <td className={`p-6 text-center ${isDark ? 'text-slate-500' : 'text-gray-500'}`} colSpan={5}>
-                  {searchTerm ? 'No students match your search.' : 'No students enrolled.'}
+                  {searchTerm ? t('noStudentsMatch') : t('noStudentsEnrolled')}
                 </td>
               </tr>
             )}
@@ -195,7 +197,7 @@ export function RosterTable({ data, onEdit, onDelete, onToggleStatus }: RosterTa
         </table>
         {filteredAndSortedData.length > 100 && (
           <div className={`mt-4 text-sm text-center ${isDark ? 'text-slate-500' : 'text-gray-500'}`}>
-            Showing first 100 of {filteredAndSortedData.length} results
+            {t('showingFirst100')} {filteredAndSortedData.length} {t('results')}
           </div>
         )}
       </div>

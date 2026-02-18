@@ -26,7 +26,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 
 export function AIToolsPage() {
   const { isDark } = useTheme();
-  const { isRTL } = useLanguage();
+  const { t, isRTL } = useLanguage();
   const [selectedDifficulty, setSelectedDifficulty] = useState('medium');
   const [activeAITool, setActiveAITool] = useState<string | null>(null);
   const [showChatbot, setShowChatbot] = useState(false);
@@ -102,11 +102,10 @@ export function AIToolsPage() {
         {/* Header */}
         <div>
           <h1 className="text-4xl font-extrabold bg-gradient-to-r from-purple-600 via-indigo-500 to-cyan-400 bg-clip-text text-transparent">
-            AI Teaching Toolbox
+            {t('aiTeachingToolbox')}
           </h1>
           <p className={`mt-2 text-lg ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-            Use AI to enhance teaching, grade automatically, generate quizzes, create materials, and
-            detect student issues.
+            {t('aiToolboxDescription')}
           </p>
         </div>
 
@@ -118,15 +117,15 @@ export function AIToolsPage() {
               <div className="w-14 h-14 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center mb-4">
                 <Brain className="text-blue-600" size={28} />
               </div>
-              <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Quiz Generator</h3>
+              <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('quizGenerator')}</h3>
               <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                Generate MCQs, True/False, and short-answer questions.
+                {t('quizGeneratorDescription')}
               </p>
             </div>
 
             <div className="mb-4">
               <label className={`text-sm font-medium mb-2 block ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                Difficulty Level
+                {t('difficultyLevel')}
               </label>
               <div className="flex gap-2">
                 {['easy', 'medium', 'hard'].map((level) => (
@@ -150,13 +149,13 @@ export function AIToolsPage() {
             <div className="space-y-2">
               <button className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors text-sm font-medium">
                 <Sparkles size={16} />
-                Generate Quiz
+                {t('generateQuiz')}
               </button>
               <button className={`w-full flex items-center justify-center gap-2 px-4 py-2 text-sm rounded-xl transition-colors border ${
                 isDark ? 'border-white/10 text-gray-300 hover:bg-white/5' : 'border-gray-200 text-gray-700 hover:bg-gray-50'
               }`}>
                 <Upload size={14} />
-                From Lecture File
+                {t('fromLectureFile')}
               </button>
             </div>
           </div>
@@ -167,28 +166,28 @@ export function AIToolsPage() {
               <div className="w-14 h-14 rounded-full bg-purple-100 dark:bg-purple-900/40 flex items-center justify-center mb-4">
                 <Sparkles className="text-purple-600" size={28} />
               </div>
-              <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Auto-Grading (Evy)</h3>
+              <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('autoGradingEvy')}</h3>
               <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                Automatically grade submissions, detect plagiarism, and create feedback.
+                {t('autoGradingDescription')}
               </p>
             </div>
 
             <div className="space-y-2">
               <button className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors text-sm font-medium">
                 <Sparkles size={16} />
-                Auto-Grade All
+                {t('autoGradeAll')}
               </button>
               <button className={`w-full flex items-center justify-center gap-2 px-4 py-2 text-sm rounded-xl transition-colors border ${
                 isDark ? 'border-white/10 text-gray-300 hover:bg-white/5' : 'border-purple-200 text-purple-700 hover:bg-purple-50'
               }`}>
                 <FileText size={14} />
-                Generate Feedback
+                {t('generateFeedback')}
               </button>
               <button className={`w-full flex items-center justify-center gap-2 px-4 py-2 text-sm rounded-xl transition-colors border ${
                 isDark ? 'border-red-800/30 text-red-400 hover:bg-red-900/20' : 'border-red-200 text-red-700 hover:bg-red-50'
               }`}>
                 <AlertTriangle size={14} />
-                Analyze Submissions
+                {t('analyzeSubmissions')}
               </button>
             </div>
           </div>
@@ -199,16 +198,16 @@ export function AIToolsPage() {
               <div className="w-14 h-14 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center mb-4">
                 <FileText className="text-green-600" size={28} />
               </div>
-              <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Materials Generator</h3>
+              <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('materialsGenerator')}</h3>
               <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                Upload a file or type a topic to generate slides, summaries, and explanations.
+                {t('materialsGeneratorDescription')}
               </p>
             </div>
 
             <div className="mb-4">
               <input
                 type="text"
-                placeholder="Enter topic..."
+                placeholder={t('enterTopic')}
                 className={`w-full px-4 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500 ${
                   isDark ? 'bg-white/5 border border-white/10 text-white placeholder-gray-500' : 'border border-gray-300 text-gray-900'
                 }`}
@@ -218,20 +217,20 @@ export function AIToolsPage() {
             <div className="space-y-2">
               <button className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors text-sm font-medium">
                 <Upload size={16} />
-                Upload Material
+                {t('uploadMaterial')}
               </button>
               <div className="grid grid-cols-2 gap-2">
                 <button className={`flex items-center justify-center gap-1 px-3 py-2 text-xs rounded-xl transition-colors border ${
                   isDark ? 'border-white/10 text-gray-300 hover:bg-white/5' : 'border-gray-200 text-gray-700 hover:bg-gray-50'
                 }`}>
                   <FileText size={12} />
-                  Generate Slides
+                  {t('generateSlides')}
                 </button>
                 <button className={`flex items-center justify-center gap-1 px-3 py-2 text-xs rounded-xl transition-colors border ${
                   isDark ? 'border-white/10 text-gray-300 hover:bg-white/5' : 'border-gray-200 text-gray-700 hover:bg-gray-50'
                 }`}>
                   <Wand2 size={12} />
-                  Generate Summary
+                  {t('generateSummary')}
                 </button>
               </div>
             </div>
@@ -243,9 +242,9 @@ export function AIToolsPage() {
               <div className="w-14 h-14 rounded-full bg-purple-100 dark:bg-purple-900/40 flex items-center justify-center mb-4">
                 <BarChart3 className="text-purple-600" size={28} />
               </div>
-              <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>AI Insights</h3>
+              <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('aiInsights')}</h3>
               <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                Identify struggling students, weak topics, and performance patterns.
+                {t('aiInsightsDescription')}
               </p>
             </div>
 
@@ -272,13 +271,13 @@ export function AIToolsPage() {
 
             <div className="space-y-2">
               <button className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors text-sm font-medium">
-                View Details
+                {t('viewDetails')}
               </button>
               <button className={`w-full flex items-center justify-center gap-2 px-4 py-2 text-sm rounded-xl transition-colors border ${
                 isDark ? 'border-white/10 text-gray-300 hover:bg-white/5' : 'border-purple-200 text-purple-700 hover:bg-purple-50'
               }`}>
                 <Sparkles size={14} />
-                Send Tips
+                {t('sendTips')}
               </button>
             </div>
           </div>
@@ -292,7 +291,7 @@ export function AIToolsPage() {
               <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center">
                 <Mic className="text-blue-600" size={20} />
               </div>
-              <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Voice to Text</h3>
+              <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('voiceToText')}</h3>
             </div>
             <VoiceRecorder
               onTranscription={handleVoiceTranscription}
@@ -307,7 +306,7 @@ export function AIToolsPage() {
               <div className="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center">
                 <Image className="text-indigo-600" size={20} />
               </div>
-              <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Image to Text (OCR)</h3>
+              <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('imageToTextOCR')}</h3>
             </div>
             <ImageTextExtractor onTextExtracted={handleImageTextExtracted} />
           </div>
@@ -323,10 +322,10 @@ export function AIToolsPage() {
             <div>
               <div className="flex items-center gap-3 mb-2">
                 <Calendar className="text-white/80" size={24} />
-                <h3 className="text-2xl font-bold text-white">Smart Teaching Plan</h3>
+                <h3 className="text-2xl font-bold text-white">{t('smartTeachingPlan')}</h3>
               </div>
               <p className="text-white/70 text-sm mb-4">
-                Generate a personalized weekly teaching plan based on analytics.
+                {t('smartTeachingPlanDescription')}
               </p>
               <ul className="space-y-2 text-sm text-white/80">
                 <li className="flex items-start gap-2">
@@ -346,7 +345,7 @@ export function AIToolsPage() {
             <div className="shrink-0">
               <button className="flex items-center gap-2 px-8 py-3 bg-white text-purple-700 rounded-xl font-semibold hover:bg-white/90 transition-colors shadow-lg">
                 <Sparkles size={18} />
-                Generate Plan
+                {t('generatePlan')}
               </button>
             </div>
           </div>
@@ -354,7 +353,7 @@ export function AIToolsPage() {
 
         {/* AI Question Editor */}
         <div className={`${cardClass} p-8 rounded-[2.5rem] transition-all duration-300`}>
-          <h3 className={`text-xl font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>AI Question Editor</h3>
+          <h3 className={`text-xl font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('aiQuestionEditor')}</h3>
           <AIQuestionEditor
             questions={generatedQuestions}
             onQuestionsChange={handleQuestionsChange}

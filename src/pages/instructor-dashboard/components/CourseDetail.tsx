@@ -17,6 +17,7 @@ import {
   Settings,
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import {
   FileUploadDropzone,
   CourseRegistrationPeriod,
@@ -53,6 +54,7 @@ type CourseDetailProps = {
 
 export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
   const { isDark } = useTheme();
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('overview');
 
   // Get actual course data
@@ -62,9 +64,9 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
     return (
       <div className={`min-h-screen ${isDark ? 'bg-transparent' : 'bg-gray-50'} flex items-center justify-center`}>
         <div className="text-center">
-          <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'} mb-2`}>Course not found</h2>
+          <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'} mb-2`}>{t('courseNotFound')}</h2>
           <button onClick={onBack} className="text-indigo-600 hover:text-indigo-700 font-medium">
-            ← Back to Courses
+            {t('backToCourses')}
           </button>
         </div>
       </div>
@@ -78,17 +80,17 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
   };
 
   const tabs = [
-    { id: 'overview', label: 'Overview', icon: BookOpen },
-    { id: 'lectures', label: 'Lectures', icon: Video },
-    { id: 'materials', label: 'Materials', icon: FileText },
-    { id: 'assignments', label: 'Assignments', icon: FileText },
-    { id: 'grading', label: 'Grading', icon: CheckCircle },
-    { id: 'students', label: 'Students', icon: Users },
-    { id: 'registration', label: 'Registration', icon: Calendar },
-    { id: 'settings', label: 'Settings', icon: Settings },
-    { id: 'analytics', label: 'Analytics', icon: BarChart3 },
-    { id: 'announcements', label: 'Announcements', icon: MessageSquare },
-    { id: 'ai-tools', label: 'AI Tools', icon: Sparkles },
+    { id: 'overview', label: t('dashboard'), icon: BookOpen },
+    { id: 'lectures', label: t('lectures'), icon: Video },
+    { id: 'materials', label: t('materials'), icon: FileText },
+    { id: 'assignments', label: t('assignments'), icon: FileText },
+    { id: 'grading', label: t('grading'), icon: CheckCircle },
+    { id: 'students', label: t('students'), icon: Users },
+    { id: 'registration', label: t('registrationPeriod'), icon: Calendar },
+    { id: 'settings', label: t('settings'), icon: Settings },
+    { id: 'analytics', label: t('analytics'), icon: BarChart3 },
+    { id: 'announcements', label: t('announcements'), icon: MessageSquare },
+    { id: 'ai-tools', label: t('aiTools'), icon: Sparkles },
   ];
 
   // Sample data for new components
@@ -229,7 +231,7 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                   <div className="p-2 bg-blue-100 rounded-lg">
                     <Users className="text-blue-600" size={20} />
                   </div>
-                  <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Course Summary</h3>
+                  <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('courseDetails')}</h3>
                 </div>
 
                 <div className="space-y-4">
@@ -256,7 +258,7 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                   <div className="p-2 bg-purple-100 rounded-lg">
                     <Calendar className="text-purple-600" size={20} />
                   </div>
-                  <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Upcoming Events</h3>
+                  <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('upcomingDeadlines')}</h3>
                 </div>
 
                 <div className="space-y-3">
@@ -281,7 +283,7 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                   <div className="p-2 bg-green-100 rounded-lg">
                     <TrendingUp className="text-green-600" size={20} />
                   </div>
-                  <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>AI Insights</h3>
+                  <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('aiInsights')}</h3>
                 </div>
 
                 <div className="space-y-4">
@@ -301,7 +303,7 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
 
             {/* Recent Activity */}
             <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm mt-6`}>
-              <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'} mb-6`}>Recent Activity</h3>
+              <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'} mb-6`}>{t('recentActivity')}</h3>
               <div className="space-y-4">
                 <div className={`flex items-center gap-4 p-4 ${isDark ? 'bg-transparent' : 'bg-gray-50'} rounded-lg`}>
                   <div className={`px-3 py-1 rounded-full text-xs font-medium ${isDark ? 'bg-blue-500/20 text-blue-300' : 'bg-blue-100 text-blue-700'}`}>
@@ -358,7 +360,7 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
         {activeTab === 'materials' && (
           <div className="space-y-6">
             <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}>
-              <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'} mb-4`}>Upload New Materials</h3>
+              <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'} mb-4`}>{t('uploadMaterials')}</h3>
               <FileUploadDropzone
                 onFilesUploaded={(files) => console.log('Uploaded:', files)}
                 acceptedTypes={['application/pdf', 'image/*', 'video/*', '.doc', '.docx', '.ppt', '.pptx']}
@@ -369,7 +371,7 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
             </div>
 
             <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}>
-              <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'} mb-4`}>Existing Materials</h3>
+              <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'} mb-4`}>{t('courseMaterials')}</h3>
               <div className="space-y-3">
                 {['Syllabus.pdf', 'Lecture Notes - Week 1.pdf', 'Assignment Guidelines.pdf', 'Lab Manual.pdf', 'Formula Sheet.pdf'].map(
                   (file, index) => (
@@ -397,7 +399,7 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
           <div className="space-y-6">
             {/* Header */}
             <div className="flex items-center justify-between">
-              <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Assignments</h2>
+              <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('assignments')}</h2>
               <button className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm">
                 <FileText size={16} />
                 Create New Assignment
@@ -573,7 +575,7 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
         {activeTab === 'announcements' && (
           <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}>
             <div className="flex items-center justify-between mb-6">
-              <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Announcements</h3>
+              <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('announcements')}</h3>
               <button className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm">
                 <Bell size={16} />
                 New Announcement

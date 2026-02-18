@@ -125,7 +125,7 @@ export function ModernDashboard({
               <BookOpen className="text-blue-500" size={22} />
             </div>
             <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-500">
-              +2 New
+              {t('newBadge')}
             </span>
           </div>
           <div className={`text-4xl font-extrabold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>
@@ -141,7 +141,7 @@ export function ModernDashboard({
               <FileText className={isDark ? 'text-amber-400' : 'text-purple-600'} size={22} />
             </div>
             <span className="px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-500">
-              High Priority
+              {t('highPriority')}
             </span>
           </div>
           <div className={`text-4xl font-extrabold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>42</div>
@@ -155,7 +155,7 @@ export function ModernDashboard({
               <Users className={isDark ? 'text-emerald-400' : 'text-indigo-600'} size={22} />
             </div>
             <span className={`px-3 py-1 rounded-full text-xs font-semibold ${isDark ? 'bg-white/5 text-gray-400' : 'bg-slate-100 text-slate-500'}`}>
-              Total
+              {t('total')}
             </span>
           </div>
           <div className={`text-4xl font-extrabold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>
@@ -192,11 +192,10 @@ export function ModernDashboard({
               <div className="p-2 bg-white/10 rounded-xl backdrop-blur-sm">
                 <Sparkles size={22} className="text-violet-300" />
               </div>
-              <h3 className="text-xl font-bold text-white">Evy — AI Teaching Assistant</h3>
+              <h3 className="text-xl font-bold text-white">{t('evyAiTeachingAssistant')}</h3>
             </div>
             <p className="text-slate-300 text-sm leading-relaxed mb-6 max-w-xl">
-              &ldquo;Professor, I&rsquo;ve drafted feedback for the Advanced Calculus submissions
-              and flagged 3 students who might need a follow-up session.&rdquo;
+              &ldquo;{t('evyAssistantQuote')}&rdquo;
             </p>
             <div className="flex gap-3 flex-wrap">
               <button
@@ -204,10 +203,10 @@ export function ModernDashboard({
                 className="px-5 py-2.5 bg-white text-slate-800 rounded-xl text-sm font-semibold hover:bg-gray-100 transition-colors flex items-center gap-2"
               >
                 <Sparkles size={16} />
-                Review Insights
+                {t('reviewInsights')}
               </button>
               <button className="px-5 py-2.5 bg-white/10 backdrop-blur-sm text-white rounded-xl text-sm font-medium hover:bg-white/20 transition-colors">
-                Dismiss
+                {t('dismiss')}
               </button>
             </div>
           </div>
@@ -226,7 +225,7 @@ export function ModernDashboard({
           {/* Course Performance Chart */}
           <div className={`rounded-[2rem] p-6 ${cardClass}`}>
             <h3 className={`text-lg font-bold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              Course Performance
+              {t('coursePerformance')}
             </h3>
             <ResponsiveContainer width="100%" height={280}>
               <BarChart data={performanceData}>
@@ -272,7 +271,7 @@ export function ModernDashboard({
           <div className={`rounded-[2rem] p-6 ${cardClass}`}>
             <div className="flex items-center justify-between mb-6">
               <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                Student Engagement
+                {t('studentEngagement')}
               </h3>
               <div className="flex items-center gap-2">
                 <span className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>72%</span>
@@ -377,7 +376,7 @@ export function ModernDashboard({
           {/* Upcoming Teaching */}
           <div className={`rounded-[2.5rem] p-6 ${cardClass}`}>
             <h3 className={`text-base font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              Upcoming Teaching
+              {t('upcomingTeaching')}
             </h3>
             <div className="space-y-3">
               {upcomingClasses.length > 0 ? (
@@ -404,20 +403,20 @@ export function ModernDashboard({
                   );
                 })
               ) : (
-                <p className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>No upcoming classes</p>
+                <p className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{t('noUpcomingClasses')}</p>
               )}
             </div>
           </div>
 
           {/* Quick Actions */}
           <div className={`rounded-[2.5rem] p-6 ${isDark ? 'bg-card-dark border border-white/5' : 'bg-indigo-900'}`}>
-            <h3 className="text-base font-bold mb-4 text-white">Quick Actions</h3>
+            <h3 className="text-base font-bold mb-4 text-white">{t('quickActions')}</h3>
             <div className="grid grid-cols-2 gap-3">
               {[
-                { label: 'Office Hours', icon: Clock, action: () => onNavigate('calendar') },
-                { label: 'Materials', icon: Upload, action: () => onNavigate('courses') },
-                { label: 'Add Task', icon: CheckSquare, action: () => onNavigate('grades') },
-                { label: 'Help Desk', icon: Headphones, action: () => onNavigate('messages') },
+                { label: t('officeHours'), icon: Clock, action: () => onNavigate('calendar') },
+                { label: t('materials'), icon: Upload, action: () => onNavigate('courses') },
+                { label: t('addTask'), icon: CheckSquare, action: () => onNavigate('grades') },
+                { label: t('helpDesk'), icon: Headphones, action: () => onNavigate('messages') },
               ].map((item, i) => (
                 <button
                   key={i}
@@ -461,7 +460,7 @@ export function ModernDashboard({
                   </div>
                 ))
               ) : (
-                <p className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>No recent activity</p>
+                <p className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{t('noRecentActivity')}</p>
               )}
             </div>
           </div>

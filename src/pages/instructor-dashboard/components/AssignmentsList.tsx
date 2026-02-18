@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Search, Plus, Edit2, Trash2 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export type AssignmentItem = {
   id: number;
@@ -28,6 +29,7 @@ export function AssignmentsList({
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'draft' | 'open' | 'closed'>('all');
   const { isDark } = useTheme();
+  const { t } = useLanguage();
 
   const filteredData = data.filter((assignment) => {
     const matchesSearch = assignment.title.toLowerCase().includes(searchTerm.toLowerCase());
@@ -38,13 +40,13 @@ export function AssignmentsList({
   return (
     <div className={`rounded-lg border p-6 ${isDark ? 'bg-card-dark border-white/10' : 'bg-white border-gray-200'}`}>
       <div className="flex items-center justify-between mb-4">
-        <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Assignments</h3>
+        <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('assignments')}</h3>
         <button
           onClick={onCreate}
           className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
         >
           <Plus size={18} />
-          Create Assignment
+          {t('createAssignment')}
         </button>
       </div>
 
@@ -56,7 +58,7 @@ export function AssignmentsList({
           />
           <input
             type="text"
-            placeholder="Search assignments..."
+            placeholder={t('searchAssignments')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className={`w-full pl-10 pr-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
@@ -71,10 +73,10 @@ export function AssignmentsList({
             isDark ? 'bg-white/5 border-white/10 text-slate-200' : 'bg-white border-gray-300 text-gray-900'
           }`}
         >
-          <option value="all">All Status</option>
-          <option value="draft">Draft</option>
-          <option value="open">Open</option>
-          <option value="closed">Closed</option>
+          <option value="all">{t('allStatus')}</option>
+          <option value="draft">{t('draft')}</option>
+          <option value="open">{t('open')}</option>
+          <option value="closed">{t('closed')}</option>
         </select>
       </div>
 
@@ -105,8 +107,8 @@ export function AssignmentsList({
                 </button>
               </div>
             </div>
-            <div className={`text-xs mb-2 ${isDark ? 'text-slate-500' : 'text-gray-500'}`}>Due: {a.dueDate}</div>
-            <div className={`text-sm mb-2 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>Submissions: {a.submissions}</div>
+            <div className={`text-xs mb-2 ${isDark ? 'text-slate-500' : 'text-gray-500'}`}>{t('dueLabel')} {a.dueDate}</div>
+            <div className={`text-sm mb-2 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>{t('submissionsLabel')} {a.submissions}</div>
             <div className="mb-3">
               <span
                 className={`px-2 py-1 rounded text-xs ${
@@ -126,7 +128,7 @@ export function AssignmentsList({
                   onClick={() => onStatusChange(a.id, 'open')}
                   className="flex-1 text-xs px-3 py-2 rounded bg-green-50 text-green-700 border border-green-100 hover:bg-green-100 transition-colors"
                 >
-                  Open
+                  {t('open')}
                 </button>
               )}
               {a.status !== 'closed' && (
@@ -136,7 +138,7 @@ export function AssignmentsList({
                     isDark ? 'bg-white/5 text-slate-300 border-white/10' : 'bg-gray-50 text-gray-700 border-gray-200'
                   }`}
                 >
-                  Close
+                  {t('closeAction')}
                 </button>
               )}
             </div>
@@ -145,8 +147,8 @@ export function AssignmentsList({
         {filteredData.length === 0 && (
           <div className={`col-span-full text-center py-8 ${isDark ? 'text-slate-500' : 'text-gray-500'}`}>
             {searchTerm || filterStatus !== 'all'
-              ? 'No assignments match your search.'
-              : 'No assignments for this section.'}
+              ? t('noAssignmentsMatch')
+              : t('noAssignmentsForSection')}
           </div>
         )}
       </div>

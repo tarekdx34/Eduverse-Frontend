@@ -134,7 +134,7 @@ export function CoursesPage({
         <div className="flex items-center gap-4">
           {/* Semester Filter */}
           <CustomDropdown
-            label="Semester:"
+            label={t('semesterLabel')}
             value={semesterFilter}
             options={[
               { value: 'all', label: 'Spring 2025' },
@@ -145,24 +145,24 @@ export function CoursesPage({
 
           {/* Status Filter */}
           <CustomDropdown
-            label="Status:"
+            label={t('statusLabel')}
             value={statusFilter}
             options={[
-              { value: 'all', label: 'All' },
-              { value: 'active', label: 'Active' },
-              { value: 'archived', label: 'Archived' },
+              { value: 'all', label: t('all') },
+              { value: 'active', label: t('active') },
+              { value: 'archived', label: t('archived') },
             ]}
             onChange={(val) => setStatusFilter(val as any)}
           />
 
           {/* Sort By */}
           <CustomDropdown
-            label="Sort By:"
+            label={t('sortByLabel')}
             value={sortBy}
             options={[
-              { value: 'courseName', label: 'Course Name' },
-              { value: 'courseCode', label: 'Course Code' },
-              { value: 'enrolled', label: 'Students' },
+              { value: 'courseName', label: t('courseName') },
+              { value: 'courseCode', label: t('courseCode') },
+              { value: 'enrolled', label: t('students') },
             ]}
             onChange={setSortBy}
           />
@@ -175,7 +175,7 @@ export function CoursesPage({
             />
             <input
               type="text"
-              placeholder="Search courses..."
+              placeholder={t('searchCourses')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? "border-white/10 bg-white/5 text-white placeholder-gray-500" : "border-gray-300 bg-white text-gray-900"}`}
@@ -203,21 +203,21 @@ export function CoursesPage({
 
               {/* Course Info */}
               <div className="p-5">
-                <h3 className={`font-semibold mb-3 text-base ${isDark ? "text-white" : "text-gray-900"}`}>{course.courseName}</h3>
+                <h3 className={`font-semibold mb-3 text-base truncate ${isDark ? "text-white" : "text-gray-900"}`}>{course.courseName}</h3>
 
                 {/* Course Type */}
-                <div className={`text-sm mb-3 ${isDark ? "text-slate-400" : "text-gray-600"}`}>Lecture + Lab</div>
+                <div className={`text-sm mb-3 ${isDark ? "text-slate-400" : "text-gray-600"}`}>{t('lectureAndLab')}</div>
 
                 {/* Stats */}
                 <div className={`flex items-center gap-2 text-sm mb-2 ${isDark ? "text-slate-400" : "text-gray-600"}`}>
                   <Users size={14} />
-                  <span>{course.enrolled} Students</span>
+                  <span>{course.enrolled} {t('students')}</span>
                 </div>
 
                 {/* Next Lecture */}
                 <div className={`flex items-center gap-2 text-sm mb-4 ${isDark ? "text-slate-400" : "text-gray-600"}`}>
                   <Clock size={14} />
-                  <span>Next Lecture — {course.schedule.split(' ')[0]}, 9:00 AM</span>
+                  <span>{t('nextLecture')} — {course.schedule.split(' ')[0]}, 9:00 AM</span>
                 </div>
 
                 {/* Open Course Button */}
@@ -225,7 +225,7 @@ export function CoursesPage({
                   onClick={() => setSelectedCourseId(course.id)}
                   className={`w-full flex items-center justify-center gap-2 text-sm font-medium py-2 rounded-lg transition-colors ${isDark ? "text-indigo-400 hover:text-indigo-300 hover:bg-white/10" : "text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"}`}
                 >
-                  Open Course
+                  {t('openCourse')}
                   <ArrowRight size={14} />
                 </button>
               </div>
@@ -237,11 +237,11 @@ export function CoursesPage({
         {filteredCourses.length === 0 && (
           <div className="text-center py-12">
             <BookOpen size={48} className="mx-auto text-gray-400 mb-4" />
-            <h3 className={`text-lg font-semibold mb-2 ${isDark ? "text-white" : "text-gray-900"}`}>No courses found</h3>
+            <h3 className={`text-lg font-semibold mb-2 ${isDark ? "text-white" : "text-gray-900"}`}>{t('noCoursesFound')}</h3>
             <p className={`mb-4 ${isDark ? "text-slate-400" : "text-gray-500"}`}>
               {searchTerm || statusFilter !== 'all' || semesterFilter !== 'all'
-                ? 'Try adjusting your filters'
-                : 'Get started by creating your first course'}
+                ? t('tryAdjustingFilters')
+                : t('createFirstCourse')}
             </p>
           </div>
         )}
@@ -254,10 +254,10 @@ export function CoursesPage({
             <div className={`p-3 rounded-xl ${isDark ? "bg-purple-500/20" : "bg-purple-100"}`}>
               <Sparkles className="text-purple-600" size={24} />
             </div>
-            <h3 className={`font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>AI Tools for Teaching</h3>
+            <h3 className={`font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>{t('aiToolsForTeaching')}</h3>
           </div>
           <p className={`text-sm mb-6 ${isDark ? "text-slate-400" : "text-gray-600"}`}>
-            Generate quizzes, summaries, and detect struggling students.
+            {t('aiToolsDescription')}
           </p>
 
           <div className="space-y-3">
@@ -266,7 +266,7 @@ export function CoursesPage({
                 <FileText className="text-purple-600" size={20} />
               </div>
               <div className="flex-1">
-                <div className={`text-sm font-medium ${isDark ? "text-white" : "text-gray-900"}`}>Create Quiz</div>
+                <div className={`text-sm font-medium ${isDark ? "text-white" : "text-gray-900"}`}>{t('createQuiz')}</div>
               </div>
             </button>
 
@@ -275,7 +275,7 @@ export function CoursesPage({
                 <BarChart3 className="text-indigo-600" size={20} />
               </div>
               <div className="flex-1">
-                <div className={`text-sm font-medium ${isDark ? "text-white" : "text-gray-900"}`}>Analyze Course</div>
+                <div className={`text-sm font-medium ${isDark ? "text-white" : "text-gray-900"}`}>{t('analyzeCourse')}</div>
               </div>
             </button>
           </div>
@@ -316,6 +316,7 @@ function CourseModal({
   onSave: (data: CourseFormData) => void;
 }) {
   const { isDark } = useTheme();
+  const { t } = useLanguage();
   const labelClass = `block text-sm font-medium mb-2 ${isDark ? "text-slate-300" : "text-gray-700"}`;
   const inputClass = `w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? "border-white/10 bg-white/5 text-white placeholder-gray-500" : "border-gray-300 bg-white text-gray-900"}`;
 
@@ -341,14 +342,14 @@ function CourseModal({
       <div className={`rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto ${isDark ? "bg-[#1e293b] border border-white/10" : "bg-white"}`}>
         <div className={`sticky top-0 border-b p-6 ${isDark ? "bg-[#1e293b] border-white/10" : "bg-white border-gray-200"}`}>
           <h2 className={`text-xl font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>
-            {course ? 'Edit Course' : 'Create New Course'}
+            {course ? t('editCourse') : t('createNewCourse')}
           </h2>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className={labelClass}>Course Code *</label>
+              <label className={labelClass}>{t('courseCode')} *</label>
               <input
                 type="text"
                 required
@@ -360,7 +361,7 @@ function CourseModal({
             </div>
 
             <div>
-              <label className={labelClass}>Credits *</label>
+              <label className={labelClass}>{t('credits')} *</label>
               <input
                 type="number"
                 required
@@ -374,7 +375,7 @@ function CourseModal({
           </div>
 
           <div>
-            <label className={labelClass}>Course Name *</label>
+            <label className={labelClass}>{t('courseName')} *</label>
             <input
               type="text"
               required
@@ -387,7 +388,7 @@ function CourseModal({
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className={labelClass}>Semester *</label>
+              <label className={labelClass}>{t('semester')} *</label>
               <input
                 type="text"
                 required
@@ -399,7 +400,7 @@ function CourseModal({
             </div>
 
             <div>
-              <label className={labelClass}>Capacity *</label>
+              <label className={labelClass}>{t('capacity')} *</label>
               <input
                 type="number"
                 required
@@ -413,7 +414,7 @@ function CourseModal({
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className={labelClass}>Schedule *</label>
+              <label className={labelClass}>{t('schedule')} *</label>
               <input
                 type="text"
                 required
@@ -425,7 +426,7 @@ function CourseModal({
             </div>
 
             <div>
-              <label className={labelClass}>Room *</label>
+              <label className={labelClass}>{t('room')} *</label>
               <input
                 type="text"
                 required
@@ -438,7 +439,7 @@ function CourseModal({
           </div>
 
           <div>
-            <label className={labelClass}>Prerequisites</label>
+            <label className={labelClass}>{t('prerequisites')}</label>
             <input
               type="text"
               value={formData.prerequisites}
@@ -449,7 +450,7 @@ function CourseModal({
           </div>
 
           <div>
-            <label className={labelClass}>Description</label>
+            <label className={labelClass}>{t('description')}</label>
             <textarea
               rows={4}
               value={formData.description}
@@ -465,13 +466,13 @@ function CourseModal({
               onClick={onClose}
               className={`flex-1 px-4 py-2 border rounded-lg transition-colors ${isDark ? "border-white/10 text-slate-300 hover:bg-white/10" : "border-gray-300 text-gray-700 hover:bg-gray-50"}`}
             >
-              Cancel
+              {t('cancel')}
             </button>
             <button
               type="submit"
               className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
             >
-              {course ? 'Save Changes' : 'Create Course'}
+              {course ? t('saveChanges') : t('createCourse')}
             </button>
           </div>
         </form>

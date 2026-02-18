@@ -90,7 +90,7 @@ export function AnalyticsPage() {
           </div>
           <button
             onClick={() => setShowExportModal(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-500 transition-colors"
           >
             <Download size={18} />
             {t('exportReport')}
@@ -98,14 +98,14 @@ export function AnalyticsPage() {
         </div>
 
         {/* Filters */}
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-4">
           <CustomDropdown
-            label="Course:"
+            label={t('courseLabel')}
             value="calculus"
             options={[
               { value: 'calculus', label: 'Calculus I' },
               { value: 'physics', label: 'Physics I' },
-              { value: 'all', label: 'All Courses' },
+              { value: 'all', label: t('allCourses') },
             ]}
             onChange={() => {}}
           />
@@ -113,32 +113,32 @@ export function AnalyticsPage() {
             label="Teachings:"
             value="this-month"
             options={[
-              { value: 'this-week', label: 'This Week' },
-              { value: 'this-month', label: 'This Month' },
-              { value: 'this-semester', label: 'This Semester' },
+              { value: 'this-week', label: t('thisWeek') },
+              { value: 'this-month', label: t('thisMonth') },
+              { value: 'this-semester', label: t('semesterReport') },
             ]}
             onChange={() => {}}
           />
           <CustomDropdown
-            label="Analytics Type:"
+            label={t('analytics') + ':'}
             value="all"
             options={[
-              { value: 'all', label: 'All Metrics' },
-              { value: 'performance', label: 'Performance' },
-              { value: 'engagement', label: 'Engagement' },
+              { value: 'all', label: t('allMetrics') },
+              { value: 'performance', label: t('performance') },
+              { value: 'engagement', label: t('studentEngagement') },
             ]}
             onChange={() => {}}
           />
         </div>
 
         {/* Top Row - Performance and Engagement */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
           {/* Course Performance Overview */}
           <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
             <div className="mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Course Performance Overview</h3>
+              <h3 className="text-lg font-semibold text-gray-900">{t('coursePerformanceOverview')}</h3>
               <div className="flex items-center gap-2 mt-1">
-                <span className="text-sm text-gray-600">Average Grade:</span>
+                <span className="text-sm text-gray-600">{t('averageGradeLabel')}</span>
                 <span className="text-sm font-semibold text-gray-900">82%</span>
                 <span className="text-xs text-green-600">↑ +5.8% this month</span>
               </div>
@@ -163,9 +163,9 @@ export function AnalyticsPage() {
           {/* Engagement Analytics */}
           <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
             <div className="mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Engagement Analytics</h3>
+              <h3 className="text-lg font-semibold text-gray-900">{t('engagementAnalytics')}</h3>
               <div className="flex items-center gap-2 mt-1">
-                <span className="text-sm text-gray-600">Engagement Rate:</span>
+                <span className="text-sm text-gray-600">{t('engagementRateLabel')}</span>
                 <span className="text-sm font-semibold text-gray-900">76%</span>
               </div>
             </div>
@@ -197,7 +197,7 @@ export function AnalyticsPage() {
         </div>
 
         {/* Middle Row - Attendance, Low Performance, Students at Risk */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
           {/* Attendance Overview */}
           <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
             <div className="flex items-center gap-2 mb-4">
@@ -205,8 +205,8 @@ export function AnalyticsPage() {
                 <Users className="text-green-600" size={20} />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">Attendance Overview</h3>
-                <p className="text-sm text-gray-600">88% Average</p>
+                <h3 className="text-lg font-semibold text-gray-900">{t('attendanceOverview')}</h3>
+                <p className="text-sm text-gray-600">88% {t('average')}</p>
               </div>
             </div>
             <ResponsiveContainer width="100%" height={180}>
@@ -227,8 +227,8 @@ export function AnalyticsPage() {
                 <AlertTriangle className="text-orange-600" size={20} />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">Low-Performance Topics</h3>
-                <p className="text-sm text-gray-600">4 Detected</p>
+                <h3 className="text-lg font-semibold text-gray-900">{t('lowPerformanceTopics')}</h3>
+                <p className="text-sm text-gray-600">4 {t('detected')}</p>
               </div>
             </div>
             <div className="space-y-3">
@@ -261,8 +261,8 @@ export function AnalyticsPage() {
                 <AlertTriangle className="text-red-600" size={20} />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">Students at Risk</h3>
-                <p className="text-sm text-gray-600">5 flagged students</p>
+                <h3 className="text-lg font-semibold text-gray-900">{t('atRiskStudents')}</h3>
+                <p className="text-sm text-gray-600">5 {t('flaggedStudents')}</p>
               </div>
             </div>
             <div className="space-y-3">
@@ -295,10 +295,10 @@ export function AnalyticsPage() {
             </div>
             <div className="mt-4 pt-4 border-t border-gray-200 flex gap-2">
               <button className="flex-1 text-sm text-gray-700 hover:bg-gray-50 py-2 rounded-lg transition-colors">
-                View All
+                {t('viewAll')}
               </button>
               <button className="flex-1 text-sm text-indigo-600 bg-indigo-50 hover:bg-indigo-100 py-2 rounded-lg transition-colors">
-                Message
+                {t('message')}
               </button>
             </div>
           </div>
@@ -306,8 +306,8 @@ export function AnalyticsPage() {
 
         {/* Course Comparison */}
         <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Course Comparison</h3>
-          <p className="text-sm text-gray-600 mb-4">Average Completion Rate by Course</p>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('courseComparison')}</h3>
+          <p className="text-sm text-gray-600 mb-4">{t('avgCompletionRateByCourse')}</p>
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={courseComparisonData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -323,20 +323,20 @@ export function AnalyticsPage() {
         <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl p-6 border border-purple-200 shadow-sm">
           <div className="flex items-center gap-2 mb-4">
             <Sparkles className="text-purple-600" size={24} />
-            <h3 className="text-lg font-semibold text-gray-900">AI Insights — Powered by Evy</h3>
+            <h3 className="text-lg font-semibold text-gray-900">{t('aiInsightsPoweredByEvy')}</h3>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
             <div className="bg-white rounded-lg p-4">
               <div className="flex items-center gap-2 mb-2">
                 <TrendingUp className="text-green-600" size={16} />
-                <span className="text-sm font-semibold text-gray-900">Performance Improvement</span>
+                <span className="text-sm font-semibold text-gray-900">{t('performanceImprovement')}</span>
               </div>
               <p className="text-xs text-gray-600">Your students improved by 6% this month.</p>
             </div>
             <div className="bg-white rounded-lg p-4">
               <div className="flex items-center gap-2 mb-2">
                 <AlertTriangle className="text-orange-600" size={16} />
-                <span className="text-sm font-semibold text-gray-900">Struggling Topic</span>
+                <span className="text-sm font-semibold text-gray-900">{t('strugglingTopic')}</span>
               </div>
               <p className="text-xs text-gray-600">
                 56% of students struggle with derivative applications.
@@ -345,7 +345,7 @@ export function AnalyticsPage() {
             <div className="bg-white rounded-lg p-4">
               <div className="flex items-center gap-2 mb-2">
                 <Target className="text-blue-600" size={16} />
-                <span className="text-sm font-semibold text-gray-900">Recommendation</span>
+                <span className="text-sm font-semibold text-gray-900">{t('recommendation')}</span>
               </div>
               <p className="text-xs text-gray-600">
                 Recommend 3 extra practice sessions this week.
@@ -354,19 +354,19 @@ export function AnalyticsPage() {
             <div className="bg-white rounded-lg p-4">
               <div className="flex items-center gap-2 mb-2">
                 <BookOpen className="text-purple-600" size={16} />
-                <span className="text-sm font-semibold text-gray-900">Generate Teaching Plan</span>
+                <span className="text-sm font-semibold text-gray-900">{t('generateTeachingPlan')}</span>
               </div>
-              <p className="text-xs text-gray-600">Let AI create a personalized plan.</p>
+              <p className="text-xs text-gray-600">{t('letAiCreatePlan')}</p>
             </div>
           </div>
           <div className="flex gap-3">
             <button className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm">
               <Sparkles size={16} />
-              Generate Teaching Plan
+              {t('generateTeachingPlan')}
             </button>
             <button className="flex items-center gap-2 px-4 py-2 bg-white border border-purple-200 text-purple-700 rounded-lg hover:bg-purple-50 transition-colors text-sm">
               <MessageSquare size={16} />
-              Send Feedback to Students
+              {t('sendFeedbackToStudents')}
             </button>
           </div>
         </div>

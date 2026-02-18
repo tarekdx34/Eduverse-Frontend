@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Search, Edit2, Trash2, ArrowUpDown } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export type GradeEntry = {
   id: number;
@@ -22,6 +23,7 @@ export function GradesTable({ data, onEdit, onDelete }: GradesTableProps) {
   const [sortField, setSortField] = useState<'student' | 'assignment' | 'score'>('student');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const { isDark } = useTheme();
+  const { t } = useLanguage();
 
   const handleSort = (field: 'student' | 'assignment' | 'score') => {
     if (sortField === field) {
@@ -55,7 +57,7 @@ export function GradesTable({ data, onEdit, onDelete }: GradesTableProps) {
 
   return (
     <div className={`rounded-lg border p-6 ${isDark ? 'bg-card-dark border-white/10' : 'bg-white border-gray-200'}`}>
-      <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Grades</h3>
+      <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('grades')}</h3>
 
       <div className="mb-4 relative">
         <Search
@@ -64,7 +66,7 @@ export function GradesTable({ data, onEdit, onDelete }: GradesTableProps) {
         />
         <input
           type="text"
-          placeholder="Search by student, assignment, or email..."
+          placeholder={t('searchGradesPlaceholder')}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className={`w-full pl-10 pr-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
@@ -82,17 +84,17 @@ export function GradesTable({ data, onEdit, onDelete }: GradesTableProps) {
                   onClick={() => handleSort('student')}
                   className="flex items-center gap-1 hover:text-indigo-600"
                 >
-                  Student
+                  {t('student')}
                   <ArrowUpDown size={14} />
                 </button>
               </th>
-              <th className="p-2 text-left">Email</th>
+              <th className="p-2 text-left">{t('email')}</th>
               <th className="p-2 text-left">
                 <button
                   onClick={() => handleSort('assignment')}
                   className="flex items-center gap-1 hover:text-indigo-600"
                 >
-                  Assignment
+                  {t('assignment')}
                   <ArrowUpDown size={14} />
                 </button>
               </th>
@@ -101,12 +103,12 @@ export function GradesTable({ data, onEdit, onDelete }: GradesTableProps) {
                   onClick={() => handleSort('score')}
                   className="flex items-center gap-1 hover:text-indigo-600"
                 >
-                  Score
+                  {t('score')}
                   <ArrowUpDown size={14} />
                 </button>
               </th>
-              <th className="p-2 text-left">Grade</th>
-              <th className="p-2 text-left">Actions</th>
+              <th className="p-2 text-left">{t('grade')}</th>
+              <th className="p-2 text-left">{t('actions')}</th>
             </tr>
           </thead>
           <tbody>
@@ -144,7 +146,7 @@ export function GradesTable({ data, onEdit, onDelete }: GradesTableProps) {
             {filteredAndSortedData.length === 0 && (
               <tr>
                 <td className={`p-4 text-center ${isDark ? 'text-slate-500' : 'text-gray-500'}`} colSpan={6}>
-                  {searchTerm ? 'No grades match your search.' : 'No grades recorded.'}
+                  {searchTerm ? t('noGradesMatch') : t('noGradesRecorded')}
                 </td>
               </tr>
             )}
@@ -152,7 +154,7 @@ export function GradesTable({ data, onEdit, onDelete }: GradesTableProps) {
         </table>
         {filteredAndSortedData.length > 100 && (
           <div className={`mt-4 text-sm text-center ${isDark ? 'text-slate-500' : 'text-gray-500'}`}>
-            Showing first 100 of {filteredAndSortedData.length} results
+            {t('showingFirst100')} {filteredAndSortedData.length} {t('results')}
           </div>
         )}
       </div>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Search, ArrowUpDown, UserCheck, UserX, Mail, Calendar } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export type WaitlistEntry = {
   id: number;
@@ -21,6 +22,7 @@ export function WaitlistTable({ data, onApprove, onReject }: WaitlistTableProps)
   const [sortField, setSortField] = useState<'name' | 'email' | 'requestedAt'>('requestedAt');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const { isDark } = useTheme();
+  const { t } = useLanguage();
 
   const handleSort = (field: 'name' | 'email' | 'requestedAt') => {
     if (sortField === field) {
@@ -56,9 +58,9 @@ export function WaitlistTable({ data, onApprove, onReject }: WaitlistTableProps)
     <div className={`rounded-lg border p-6 shadow-sm ${isDark ? 'bg-card-dark border-white/10' : 'bg-white border-gray-200'}`}>
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Waitlist</h3>
+          <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('waitlist')}</h3>
           <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-            {data.length} student{data.length !== 1 ? 's' : ''} waiting for enrollment
+            {data.length} {t('waitingForEnrollment')}
           </p>
         </div>
       </div>
@@ -70,7 +72,7 @@ export function WaitlistTable({ data, onApprove, onReject }: WaitlistTableProps)
         />
         <input
           type="text"
-          placeholder="Search by name, email, or date..."
+          placeholder={t('searchWaitlistPlaceholder')}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
@@ -88,7 +90,7 @@ export function WaitlistTable({ data, onApprove, onReject }: WaitlistTableProps)
                   onClick={() => handleSort('name')}
                   className="flex items-center gap-1 hover:text-indigo-600 font-semibold"
                 >
-                  Student Name
+                  {t('studentName')}
                   <ArrowUpDown size={14} />
                 </button>
               </th>
@@ -97,7 +99,7 @@ export function WaitlistTable({ data, onApprove, onReject }: WaitlistTableProps)
                   onClick={() => handleSort('email')}
                   className="flex items-center gap-1 hover:text-indigo-600 font-semibold"
                 >
-                  Email
+                  {t('email')}
                   <ArrowUpDown size={14} />
                 </button>
               </th>
@@ -106,12 +108,12 @@ export function WaitlistTable({ data, onApprove, onReject }: WaitlistTableProps)
                   onClick={() => handleSort('requestedAt')}
                   className="flex items-center gap-1 hover:text-indigo-600 font-semibold"
                 >
-                  Requested Date
+                  {t('requestedDate')}
                   <ArrowUpDown size={14} />
                 </button>
               </th>
-              <th className="p-3 text-left font-semibold">Priority</th>
-              <th className="p-3 text-left font-semibold">Actions</th>
+              <th className="p-3 text-left font-semibold">{t('priority')}</th>
+              <th className="p-3 text-left font-semibold">{t('actions')}</th>
             </tr>
           </thead>
           <tbody>
@@ -146,7 +148,7 @@ export function WaitlistTable({ data, onApprove, onReject }: WaitlistTableProps)
                         title="Approve & Enroll"
                       >
                         <UserCheck size={14} />
-                        Approve
+                        {t('approve')}
                       </button>
                     )}
                     {onReject && (
@@ -156,7 +158,7 @@ export function WaitlistTable({ data, onApprove, onReject }: WaitlistTableProps)
                         title="Reject Request"
                       >
                         <UserX size={14} />
-                        Reject
+                        {t('reject')}
                       </button>
                     )}
                   </div>
@@ -166,7 +168,7 @@ export function WaitlistTable({ data, onApprove, onReject }: WaitlistTableProps)
             {filteredAndSortedData.length === 0 && (
               <tr>
                 <td className={`p-6 text-center ${isDark ? 'text-slate-500' : 'text-gray-500'}`} colSpan={5}>
-                  {searchTerm ? 'No students match your search.' : 'No students on waitlist.'}
+                  {searchTerm ? t('noStudentsMatch') : t('noStudentsOnWaitlist')}
                 </td>
               </tr>
             )}
@@ -174,7 +176,7 @@ export function WaitlistTable({ data, onApprove, onReject }: WaitlistTableProps)
         </table>
         {filteredAndSortedData.length > 100 && (
           <div className={`mt-4 text-sm text-center ${isDark ? 'text-slate-500' : 'text-gray-500'}`}>
-            Showing first 100 of {filteredAndSortedData.length} results
+            {t('showingFirst100')} {filteredAndSortedData.length} {t('results')}
           </div>
         )}
       </div>

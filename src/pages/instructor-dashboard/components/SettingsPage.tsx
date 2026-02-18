@@ -10,8 +10,10 @@ import {
   AlertTriangle,
   Camera,
 } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export function SettingsPage() {
+  const { t, isRTL } = useLanguage();
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
   const [notifications, setNotifications] = useState({
     newAssignments: true,
@@ -38,10 +40,9 @@ export function SettingsPage() {
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Profile & Settings</h1>
+          <h1 className="text-3xl font-bold text-gray-900">{t('profileSettings')}</h1>
           <p className="text-gray-600 mt-1">
-            Manage your personal information, account preferences, teaching preferences, and
-            security settings.
+            {t('profileSettingsDescription')}
           </p>
         </div>
 
@@ -52,9 +53,9 @@ export function SettingsPage() {
               <User className="text-blue-600" size={20} />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Profile Information</h2>
+              <h2 className="text-lg font-semibold text-gray-900">{t('profileInformation')}</h2>
               <p className="text-sm text-gray-600">
-                Update your personal details and profile photo
+                {t('updateProfileDescription')}
               </p>
             </div>
           </div>
@@ -71,7 +72,7 @@ export function SettingsPage() {
             </div>
             <div>
               <button className="px-4 py-2 text-sm text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors border border-indigo-200">
-                Change Photo
+                {t('changePhoto')}
               </button>
               <p className="text-xs text-gray-500 mt-1">JPG, PNG or GIF. Max size 2MB</p>
             </div>
@@ -80,7 +81,7 @@ export function SettingsPage() {
           {/* Form Fields */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('fullName')}</label>
               <input
                 type="text"
                 defaultValue="Sarah Martinez"
@@ -88,7 +89,7 @@ export function SettingsPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Academic Title</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('academicTitle')}</label>
               <input
                 type="text"
                 defaultValue="Assistant Professor"
@@ -96,7 +97,7 @@ export function SettingsPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('email')}</label>
               <input
                 type="email"
                 defaultValue="sarah.martinez@university.edu"
@@ -104,7 +105,7 @@ export function SettingsPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('phoneNumber')}</label>
               <input
                 type="tel"
                 defaultValue="+1 (555) 123-4567"
@@ -112,7 +113,7 @@ export function SettingsPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Department</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('department')}</label>
               <input
                 type="text"
                 defaultValue="Mathematics"
@@ -121,7 +122,7 @@ export function SettingsPage() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Office Location
+                {t('officeLocationLabel')}
               </label>
               <input
                 type="text"
@@ -133,18 +134,18 @@ export function SettingsPage() {
 
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Bio / Short Description
+              {t('bioDescription')}
             </label>
             <textarea
               rows={4}
-              placeholder="Tell students about yourself, your research interests, and teaching philosophy..."
+              placeholder={t('bioPlaceholder')}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </div>
 
           <div className="flex justify-end">
             <button className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
-              Save Changes
+              {t('saveChanges')}
             </button>
           </div>
         </div>
@@ -156,9 +157,9 @@ export function SettingsPage() {
               <Lock className="text-purple-600" size={20} />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Account Settings</h2>
+              <h2 className="text-lg font-semibold text-gray-900">{t('accountSettings')}</h2>
               <p className="text-sm text-gray-600">
-                Manage security, notifications, and preferences
+                {t('accountSettingsDescription')}
               </p>
             </div>
           </div>
@@ -167,18 +168,18 @@ export function SettingsPage() {
           <div className="mb-6">
             <div className="flex items-center gap-2 mb-4">
               <Lock size={18} className="text-gray-600" />
-              <h3 className="font-semibold text-gray-900">Password & Security</h3>
+              <h3 className="font-semibold text-gray-900">{t('passwordSecurity')}</h3>
             </div>
 
             <button className="w-full flex items-center justify-between px-4 py-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors mb-3">
-              <span className="text-sm text-gray-700">Change Password</span>
+              <span className="text-sm text-gray-700">{t('changePassword')}</span>
               <span className="text-gray-400">›</span>
             </button>
 
             <div className="flex items-center justify-between px-4 py-3 border border-gray-200 rounded-lg">
               <div>
-                <div className="text-sm font-medium text-gray-900">Two-Factor Authentication</div>
-                <div className="text-xs text-gray-600">Add an extra layer of security</div>
+                <div className="text-sm font-medium text-gray-900">{t('twoFactorAuth')}</div>
+                <div className="text-xs text-gray-600">{t('twoFactorDescription')}</div>
               </div>
               <button
                 onClick={() => setTwoFactorEnabled(!twoFactorEnabled)}
@@ -195,7 +196,7 @@ export function SettingsPage() {
             </div>
 
             <div className="mt-3 px-4 py-2 bg-gray-50 rounded-lg">
-              <div className="text-xs font-medium text-gray-700">Login Activity</div>
+              <div className="text-xs font-medium text-gray-700">{t('loginActivity')}</div>
               <div className="text-xs text-gray-600">Last login: May 10, 2025 at 9:14 AM</div>
             </div>
           </div>
@@ -204,16 +205,16 @@ export function SettingsPage() {
           <div className="mb-6">
             <div className="flex items-center gap-2 mb-4">
               <Bell size={18} className="text-gray-600" />
-              <h3 className="font-semibold text-gray-900">Notification Preferences</h3>
+              <h3 className="font-semibold text-gray-900">{t('notificationPreferences')}</h3>
             </div>
 
             <div className="space-y-3">
               {Object.entries({
-                newAssignments: 'New Assignment Submissions',
-                lateSubmissions: 'Late Submissions',
-                newMessages: 'New Messages',
-                courseChatMentions: 'Course Chat Mentions',
-                aiAssistantAlerts: 'AI Assistant Alerts',
+                newAssignments: t('newAssignmentSubmissions'),
+                lateSubmissions: t('lateSubmissions'),
+                newMessages: t('newMessages'),
+                courseChatMentions: t('courseChatMentions'),
+                aiAssistantAlerts: t('aiAssistantAlerts'),
               }).map(([key, label]) => (
                 <div
                   key={key}
@@ -250,7 +251,7 @@ export function SettingsPage() {
           <div>
             <div className="flex items-center gap-2 mb-4">
               <Globe size={18} className="text-gray-600" />
-              <h3 className="font-semibold text-gray-900">Language Preference</h3>
+              <h3 className="font-semibold text-gray-900">{t('languagePreference')}</h3>
             </div>
             <select className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
               <option>English</option>
@@ -268,8 +269,8 @@ export function SettingsPage() {
               <GraduationCap className="text-green-600" size={20} />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Teaching Preferences</h2>
-              <p className="text-sm text-gray-600">Customize your teaching tools and AI settings</p>
+              <h2 className="text-lg font-semibold text-gray-900">{t('teachingPreferences')}</h2>
+              <p className="text-sm text-gray-600">{t('teachingPreferencesDescription')}</p>
             </div>
           </div>
 
@@ -277,15 +278,15 @@ export function SettingsPage() {
           <div className="mb-6">
             <div className="flex items-center gap-2 mb-4">
               <GraduationCap size={18} className="text-gray-600" />
-              <h3 className="font-semibold text-gray-900">Classroom Preferences</h3>
+              <h3 className="font-semibold text-gray-900">{t('classroomPreferences')}</h3>
             </div>
 
             <div className="space-y-3">
               {Object.entries({
-                showStudentAnalytics: 'Show Student Analytics on Course Page',
-                enableAutoGrading: 'Enable Auto-Grading Suggestions',
-                enableSmartAttendance: 'Enable Smart Attendance Alerts',
-                showStudentsAtRisk: 'Show "Students at Risk" Panel',
+                showStudentAnalytics: t('showStudentAnalyticsLabel'),
+                enableAutoGrading: t('enableAutoGradingLabel'),
+                enableSmartAttendance: t('enableSmartAttendanceLabel'),
+                showStudentsAtRisk: t('showStudentsAtRiskLabel'),
               }).map(([key, label]) => (
                 <div
                   key={key}
@@ -322,12 +323,12 @@ export function SettingsPage() {
           <div>
             <div className="flex items-center gap-2 mb-4">
               <Brain size={18} className="text-gray-600" />
-              <h3 className="font-semibold text-gray-900">AI Preferences</h3>
+              <h3 className="font-semibold text-gray-900">{t('aiPreferences')}</h3>
             </div>
 
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Difficulty Level for Generated Quizzes
+                {t('difficultyForQuizzes')}
               </label>
               <div className="flex gap-2">
                 {['easy', 'medium', 'hard'].map((level) => (
@@ -348,23 +349,23 @@ export function SettingsPage() {
 
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Preferred Explanation Style
+                {t('preferredExplanationStyle')}
               </label>
               <select className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                <option>Detailed with Examples</option>
-                <option>Concise and Direct</option>
-                <option>Step-by-Step</option>
+                <option>{t('detailedWithExamples')}</option>
+                <option>{t('conciseAndDirect')}</option>
+                <option>{t('stepByStep')}</option>
               </select>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Default AI Tone
+                {t('defaultAiTone')}
               </label>
               <select className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                <option>Professional</option>
-                <option>Friendly</option>
-                <option>Formal</option>
+                <option>{t('professional')}</option>
+                <option>{t('friendly')}</option>
+                <option>{t('formal')}</option>
               </select>
             </div>
           </div>
@@ -377,16 +378,16 @@ export function SettingsPage() {
               <Shield className="text-indigo-600" size={20} />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Privacy & Sharing</h2>
-              <p className="text-sm text-gray-600">Control who can access your information</p>
+              <h2 className="text-lg font-semibold text-gray-900">{t('privacySharing')}</h2>
+              <p className="text-sm text-gray-600">{t('privacyDescription')}</p>
             </div>
           </div>
 
           <div className="space-y-3">
             {Object.entries({
-              allowTAsAccess: 'Allow TAs to access analytics',
-              allowAutoAnnouncements: 'Allow auto-generated announcements',
-              hideEmailFromStudents: 'Hide instructor email from students',
+              allowTAsAccess: t('allowTAsAccess'),
+              allowAutoAnnouncements: t('allowAutoAnnouncements'),
+              hideEmailFromStudents: t('hideEmailFromStudents'),
             }).map(([key, label]) => (
               <div
                 key={key}
@@ -419,33 +420,33 @@ export function SettingsPage() {
               <AlertTriangle className="text-red-600" size={20} />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Danger Zone</h2>
-              <p className="text-sm text-gray-600">Irreversible actions — proceed with caution</p>
+              <h2 className="text-lg font-semibold text-gray-900">{t('dangerZone')}</h2>
+              <p className="text-sm text-gray-600">{t('dangerZoneDescription')}</p>
             </div>
           </div>
 
           <div className="space-y-3">
             <div className="flex items-center justify-between px-4 py-3 bg-white border border-red-200 rounded-lg">
               <div>
-                <div className="text-sm font-medium text-gray-900">Deactivate Account</div>
+                <div className="text-sm font-medium text-gray-900">{t('deactivateAccount')}</div>
                 <div className="text-xs text-gray-600">
-                  Temporarily disable your account. You can reactivate it anytime.
+                  {t('deactivateDescription')}
                 </div>
               </div>
               <button className="px-4 py-2 text-sm text-red-600 border border-red-300 rounded-lg hover:bg-red-50 transition-colors">
-                Deactivate
+                {t('deactivate')}
               </button>
             </div>
 
             <div className="flex items-center justify-between px-4 py-3 bg-white border border-red-200 rounded-lg">
               <div>
-                <div className="text-sm font-medium text-gray-900">Delete Account</div>
+                <div className="text-sm font-medium text-gray-900">{t('deleteAccount')}</div>
                 <div className="text-xs text-gray-600">
-                  Permanently delete your account and all associated data. This cannot be undone.
+                  {t('deleteAccountDescription')}
                 </div>
               </div>
               <button className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
-                Delete
+                {t('delete')}
               </button>
             </div>
           </div>
