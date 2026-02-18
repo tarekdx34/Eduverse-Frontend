@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Megaphone, Plus, Send, Calendar, BookOpen, Pin, Edit, Trash2 } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 type Announcement = {
   id: string;
@@ -46,6 +47,7 @@ const MOCK_ANNOUNCEMENTS: Announcement[] = [
 ];
 
 export function AnnouncementsPage() {
+  const { t } = useLanguage();
   const [announcements, setAnnouncements] = useState(MOCK_ANNOUNCEMENTS);
   const [showForm, setShowForm] = useState(false);
   const [filterCourse, setFilterCourse] = useState<string>('all');
@@ -96,35 +98,35 @@ export function AnnouncementsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Announcements</h2>
-          <p className="text-gray-600 mt-1">Post and manage announcements for your lab sections</p>
+          <h2 className="text-2xl font-bold text-gray-900">{t('announcements')}</h2>
+          <p className="text-gray-600 mt-1">{t('postAndManageAnnouncements')}</p>
         </div>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center gap-2"
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500 transition-colors text-sm font-medium flex items-center gap-2"
         >
           <Plus className="w-4 h-4" />
-          New Announcement
+          {t('newAnnouncement')}
         </button>
       </div>
 
       {/* New Announcement Form */}
       {showForm && (
         <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Create Announcement</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('createAnnouncement')}</h3>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('title')}</label>
               <input
                 type="text"
                 value={newAnn.title}
                 onChange={(e) => setNewAnn({ ...newAnn, title: e.target.value })}
-                placeholder="Announcement title..."
+                placeholder={t('announcementTitlePlaceholder')}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Course</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('course')}</label>
               <select
                 value={newAnn.courseCode}
                 onChange={(e) => setNewAnn({ ...newAnn, courseCode: e.target.value })}
@@ -138,11 +140,11 @@ export function AnnouncementsPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Content</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('content')}</label>
               <textarea
                 value={newAnn.content}
                 onChange={(e) => setNewAnn({ ...newAnn, content: e.target.value })}
-                placeholder="Write your announcement..."
+                placeholder={t('writeAnnouncementPlaceholder')}
                 rows={4}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
               />
@@ -155,22 +157,22 @@ export function AnnouncementsPage() {
                 onChange={(e) => setNewAnn({ ...newAnn, pinned: e.target.checked })}
                 className="rounded border-gray-300"
               />
-              <label htmlFor="pin" className="text-sm text-gray-700">Pin this announcement</label>
+              <label htmlFor="pin" className="text-sm text-gray-700">{t('pinThisAnnouncement')}</label>
             </div>
             <div className="flex gap-3">
               <button
                 onClick={handlePost}
                 disabled={!newAnn.title || !newAnn.content}
-                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500 transition-colors text-sm font-medium flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Send className="w-4 h-4" />
-                Post Announcement
+                {t('postAnnouncement')}
               </button>
               <button
                 onClick={() => setShowForm(false)}
                 className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium text-gray-700"
               >
-                Cancel
+                {t('cancel')}
               </button>
             </div>
           </div>
@@ -188,7 +190,7 @@ export function AnnouncementsPage() {
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
-            All Courses
+            {t('allCourses')}
           </button>
           {courses.map((c) => (
             <button
@@ -247,21 +249,21 @@ export function AnnouncementsPage() {
                       ? 'text-blue-600 hover:bg-blue-100'
                       : 'text-gray-400 hover:bg-gray-100'
                   }`}
-                  title={announcement.pinned ? 'Unpin' : 'Pin'}
+                  title={announcement.pinned ? t('unpin') : t('pin')}
                 >
                   <Pin className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => handleDelete(announcement.id)}
                   className="p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
-                  title="Delete"
+                  title={t('delete')}
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>
             </div>
             <p className="text-sm text-gray-700 leading-relaxed ml-[52px]">{announcement.content}</p>
-            <p className="text-xs text-gray-400 mt-3 ml-[52px]">Posted by {announcement.author}</p>
+            <p className="text-xs text-gray-400 mt-3 ml-[52px]">{t('postedBy')} {announcement.author}</p>
           </div>
         ))}
       </div>
@@ -269,7 +271,7 @@ export function AnnouncementsPage() {
       {filteredAnnouncements.length === 0 && (
         <div className="text-center py-12 bg-white border border-gray-200 rounded-lg">
           <Megaphone className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-600">No announcements found.</p>
+          <p className="text-gray-600">{t('noAnnouncementsFound')}</p>
         </div>
       )}
     </div>

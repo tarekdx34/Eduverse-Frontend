@@ -21,6 +21,7 @@ import {
   Image as ImageIcon,
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 // --- Types ---
 type DetectedStudent = {
@@ -76,10 +77,10 @@ function generateMockAttendance(labTitle: string, courseName: string) {
 }
 
 // --- Processing Animation ---
-function ProcessingAnimation({ message, isDark }: { message: string; isDark: boolean }) {
+function ProcessingAnimation({ message, isDark, t }: { message: string; isDark: boolean; t: (key: string) => string }) {
   const [progress, setProgress] = React.useState(0);
   const [tipIdx, setTipIdx] = React.useState(0);
-  const tips = ['Analyzing image...', 'Detecting faces...', 'Matching students...', 'Almost there...', 'Finalizing results...'];
+  const tips = [t('analyzingImage'), t('detectingFacesTip'), t('matchingStudents'), t('almostThere'), t('finalizingResults')];
 
   React.useEffect(() => {
     const pi = setInterval(() => setProgress((p) => Math.min(p + 2, 100)), 100);
@@ -114,7 +115,7 @@ function ProcessingAnimation({ message, isDark }: { message: string; isDark: boo
         <div className="h-full bg-gradient-to-r from-indigo-500 to-purple-600 transition-all duration-300" style={{ width: `${progress}%` }} />
       </div>
       <div className={`mt-6 p-4 rounded-lg max-w-md border ${isDark ? 'bg-yellow-500/10 border-yellow-500/20' : 'bg-yellow-50 border-yellow-200'}`}>
-        <p className={`text-xs text-center ${isDark ? 'text-yellow-300' : 'text-yellow-800'}`}><strong>Note:</strong> This is a demo simulation. Real AI processing may vary.</p>
+        <p className={`text-xs text-center ${isDark ? 'text-yellow-300' : 'text-yellow-800'}`}><strong>{t('demoNote').split('.')[0]}.</strong> {t('demoNote').split('. ').slice(1).join('. ')}</p>
       </div>
     </div>
   );
@@ -123,6 +124,7 @@ function ProcessingAnimation({ message, isDark }: { message: string; isDark: boo
 // --- Main Component ---
 export function AttendancePage() {
   const { isDark } = useTheme();
+  const { t } = useLanguage();
   const [view, setView] = useState<'upload' | 'processing' | 'results' | 'history'>('upload');
   const [sessions, setSessions] = useState<AttendanceSession[]>([]);
   const [currentResults, setCurrentResults] = useState<any>(null);
@@ -218,8 +220,8 @@ export function AttendancePage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>AI-Powered Attendance</h2>
-        <p className={`mt-1 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>Upload a photo of your lab/class and AI will detect and mark attendance automatically</p>
+        <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('aiPoweredAttendance')}</h2>
+        <p className={`mt-1 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>{t('uploadPhotoDescription')}</p>
       </div>
 
       {/* Tab Navigation */}
@@ -232,11 +234,11 @@ export function AttendancePage() {
               : `${isDark ? 'text-slate-400 hover:text-slate-200' : 'text-gray-500 hover:text-gray-700'}`
           }`}
         >
-          Upload Photo
+          {t('uploadPhoto')}
         </button>
         {view === 'results' && (
-          <button className="px-4 py-2 font-medium text-indigo-600 border-b-2 border-indigo-600">
-            Results
+           <button className="px-4 py-2 font-medium text-indigo-600 border-b-2 border-indigo-600">
+            {t('results')}
           </button>
         )}
         <button
@@ -247,7 +249,7 @@ export function AttendancePage() {
               : `${isDark ? 'text-slate-400 hover:text-slate-200' : 'text-gray-500 hover:text-gray-700'}`
           }`}
         >
-          History ({sessions.length})
+          {t('history')} ({sessions.length})
         </button>
       </div>
 
@@ -256,7 +258,7 @@ export function AttendancePage() {
         <div className="space-y-6">
           {/* Lab Selection */}
           <div className={`rounded-lg p-6 border ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}>
-            <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Select Lab Session</h3>
+            <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('selectLabSession')}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {labs.map((l) => (
                 <button
@@ -282,8 +284,8 @@ export function AttendancePage() {
                 <Camera className={isDark ? 'text-indigo-400' : 'text-indigo-600'} size={24} />
               </div>
               <div>
-                <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Upload Class Photo</h3>
-                <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>Upload a clear photo of your lab session for AI detection</p>
+                <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('uploadClassPhoto')}</h3>
+                <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>{t('uploadPhotoForAI')}</p>
               </div>
             </div>
 
@@ -304,9 +306,9 @@ export function AttendancePage() {
                     <Upload className={isDark ? 'text-indigo-400' : 'text-indigo-600'} size={32} />
                   </div>
                   <div>
-                    <p className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Upload Class Photo</p>
-                    <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>Drag and drop or click to browse</p>
-                    <p className={`text-xs mt-2 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>Max size: 5MB • Formats: .jpg, .jpeg, .png</p>
+                    <p className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('uploadClassPhoto')}</p>
+                    <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>{t('dragAndDrop')}</p>
+                    <p className={`text-xs mt-2 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>{t('maxSizeFormats')}</p>
                   </div>
                 </div>
               </div>
@@ -332,12 +334,12 @@ export function AttendancePage() {
 
           {/* Photo Guidelines */}
           <div className={`rounded-lg p-4 border ${isDark ? 'bg-blue-500/10 border-blue-500/20' : 'bg-blue-50 border-blue-200'}`}>
-            <h4 className={`font-semibold mb-2 ${isDark ? 'text-blue-300' : 'text-blue-900'}`}>📸 Photo Guidelines:</h4>
+            <h4 className={`font-semibold mb-2 ${isDark ? 'text-blue-300' : 'text-blue-900'}`}>📸 {t('photoGuidelines')}</h4>
             <ul className={`text-sm space-y-1 list-disc list-inside ${isDark ? 'text-blue-300/80' : 'text-blue-800'}`}>
-              <li>Ensure all students are clearly visible</li>
-              <li>Good lighting and focus are important</li>
-              <li>Avoid blurry or low-resolution images</li>
-              <li>Students should face the camera</li>
+              <li>{t('guidelineVisible')}</li>
+              <li>{t('guidelineLighting')}</li>
+              <li>{t('guidelineBlurry')}</li>
+              <li>{t('guidelineFacing')}</li>
             </ul>
           </div>
 
@@ -348,7 +350,7 @@ export function AttendancePage() {
               className="w-full py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-semibold flex items-center justify-center gap-2"
             >
               <Brain size={20} />
-              Process with AI — Detect Students
+              {t('processWithAI')}
             </button>
           )}
         </div>
@@ -356,7 +358,7 @@ export function AttendancePage() {
 
       {/* --- Processing View --- */}
       {view === 'processing' && (
-        <ProcessingAnimation message="Detecting faces and marking attendance..." isDark={isDark} />
+        <ProcessingAnimation message={t('detectingFaces')} isDark={isDark} t={t} />
       )}
 
       {/* --- Results View --- */}
@@ -375,7 +377,7 @@ export function AttendancePage() {
             <div className={`rounded-xl border p-6 shadow-sm ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}>
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Attendance Results</h3>
+                  <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('attendanceResults')}</h3>
                   <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
                     {currentResults.labTitle} • {currentResults.courseName} • {currentResults.photoName}
                   </p>
@@ -385,26 +387,26 @@ export function AttendancePage() {
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${isDark ? 'text-indigo-400 hover:bg-indigo-500/10' : 'text-indigo-600 hover:bg-indigo-50'}`}
                 >
                   <Edit2 size={16} />
-                  {editMode ? 'View Mode' : 'Edit Mode'}
+                  {editMode ? t('viewMode') : t('editMode')}
                 </button>
               </div>
 
-              <div className="grid grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
                 <div className={`rounded-lg p-4 border ${isDark ? 'bg-transparent border-white/10' : 'bg-gray-50 border-gray-200'}`}>
                   <div className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{currentResults.totalStudents}</div>
-                  <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>Total Students</div>
+                  <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>{t('totalStudents')}</div>
                 </div>
                 <div className={`rounded-lg p-4 border ${isDark ? 'bg-green-500/10 border-green-500/20' : 'bg-green-50 border-green-200'}`}>
                   <div className={`text-2xl font-bold ${isDark ? 'text-green-400' : 'text-green-700'}`}>{presentCount}</div>
-                  <div className={`text-sm ${isDark ? 'text-green-400/80' : 'text-green-600'}`}>Present</div>
+                  <div className={`text-sm ${isDark ? 'text-green-400/80' : 'text-green-600'}`}>{t('present')}</div>
                 </div>
                 <div className={`rounded-lg p-4 border ${isDark ? 'bg-red-500/10 border-red-500/20' : 'bg-red-50 border-red-200'}`}>
                   <div className={`text-2xl font-bold ${isDark ? 'text-red-400' : 'text-red-700'}`}>{absentCount}</div>
-                  <div className={`text-sm ${isDark ? 'text-red-400/80' : 'text-red-600'}`}>Absent</div>
+                  <div className={`text-sm ${isDark ? 'text-red-400/80' : 'text-red-600'}`}>{t('absent')}</div>
                 </div>
                 <div className={`rounded-lg p-4 border ${isDark ? 'bg-yellow-500/10 border-yellow-500/20' : 'bg-yellow-50 border-yellow-200'}`}>
                   <div className={`text-2xl font-bold ${isDark ? 'text-yellow-400' : 'text-yellow-700'}`}>{uncertainCount}</div>
-                  <div className={`text-sm ${isDark ? 'text-yellow-400/80' : 'text-yellow-600'}`}>Uncertain</div>
+                  <div className={`text-sm ${isDark ? 'text-yellow-400/80' : 'text-yellow-600'}`}>{t('uncertain')}</div>
                 </div>
               </div>
             </div>
@@ -415,24 +417,25 @@ export function AttendancePage() {
                 <div className="flex items-center gap-2 mb-4">
                   <AlertTriangle className={isDark ? 'text-yellow-400' : 'text-yellow-600'} size={20} />
                   <h4 className={`text-lg font-semibold ${isDark ? 'text-yellow-300' : 'text-yellow-900'}`}>
-                    Needs Review ({uncertainStudents.length + absentStudents.length} students)
+                    {t('needsReview')} ({uncertainStudents.length + absentStudents.length} {t('students').toLowerCase()})
                   </h4>
                 </div>
-                <p className={`text-sm mb-4 ${isDark ? 'text-yellow-300/80' : 'text-yellow-800'}`}>These students need your attention. Please verify their attendance.</p>
+                <p className={`text-sm mb-4 ${isDark ? 'text-yellow-300/80' : 'text-yellow-800'}`}>{t('needsReviewDescription')}</p>
                 <div className={`rounded-lg border shadow-sm overflow-hidden ${isDark ? 'bg-white/5 border-yellow-500/20' : 'bg-white border-yellow-200'}`}>
+                  <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead className={`border-b ${isDark ? 'bg-yellow-500/10 border-yellow-500/20' : 'bg-yellow-100 border-yellow-200'}`}>
                       <tr>
-                        <th className={`px-6 py-3 text-left text-xs font-medium uppercase ${isDark ? 'text-yellow-300' : 'text-yellow-900'}`}>Student</th>
-                        <th className={`px-6 py-3 text-left text-xs font-medium uppercase ${isDark ? 'text-yellow-300' : 'text-yellow-900'}`}>Status</th>
-                        <th className={`px-6 py-3 text-left text-xs font-medium uppercase ${isDark ? 'text-yellow-300' : 'text-yellow-900'}`}>Confidence</th>
-                        {editMode && <th className={`px-6 py-3 text-left text-xs font-medium uppercase ${isDark ? 'text-yellow-300' : 'text-yellow-900'}`}>Actions</th>}
+                        <th className={`px-3 md:px-6 py-3 text-left text-xs font-medium uppercase ${isDark ? 'text-yellow-300' : 'text-yellow-900'}`}>{t('student')}</th>
+                        <th className={`px-3 md:px-6 py-3 text-left text-xs font-medium uppercase ${isDark ? 'text-yellow-300' : 'text-yellow-900'}`}>{t('status')}</th>
+                        <th className={`px-3 md:px-6 py-3 text-left text-xs font-medium uppercase ${isDark ? 'text-yellow-300' : 'text-yellow-900'}`}>{t('confidence')}</th>
+                        {editMode && <th className={`px-3 md:px-6 py-3 text-left text-xs font-medium uppercase ${isDark ? 'text-yellow-300' : 'text-yellow-900'}`}>{t('actions')}</th>}
                       </tr>
                     </thead>
                     <tbody className={`divide-y ${isDark ? 'divide-white/10' : 'divide-gray-200'}`}>
                       {[...uncertainStudents, ...absentStudents].map((r) => (
                         <tr key={r.studentId} className={isDark ? 'hover:bg-white/10' : 'hover:bg-gray-50'}>
-                          <td className="px-6 py-4">
+                          <td className="px-3 md:px-6 py-4">
                             <div className="flex items-center gap-3">
                               <div className={`w-10 h-10 rounded-full flex items-center justify-center ${isDark ? 'bg-indigo-500/20' : 'bg-indigo-100'}`}>
                                 <span className={`font-semibold text-sm ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`}>
@@ -445,22 +448,22 @@ export function AttendancePage() {
                               </div>
                             </div>
                           </td>
-                          <td className="px-6 py-4">
+                          <td className="px-3 md:px-6 py-4">
                             {r.status === 'uncertain' && (
                               <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${isDark ? 'bg-yellow-500/20 text-yellow-300' : 'bg-yellow-100 text-yellow-800'}`}>
-                                <AlertTriangle size={14} className="mr-1" />Uncertain
+                                <AlertTriangle size={14} className="mr-1" />{t('uncertain')}
                               </span>
                             )}
                             {r.status === 'absent' && (
                               <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${isDark ? 'bg-red-500/20 text-red-300' : 'bg-red-100 text-red-800'}`}>
-                                <XCircle size={14} className="mr-1" />Absent
+                                <XCircle size={14} className="mr-1" />{t('absent')}
                               </span>
                             )}
                             {r.manualOverride && (
-                              <span className={`ml-2 text-xs px-2 py-0.5 rounded font-medium ${isDark ? 'bg-blue-500/20 text-blue-300' : 'bg-blue-100 text-blue-700'}`}>Manual</span>
+                              <span className={`ml-2 text-xs px-2 py-0.5 rounded font-medium ${isDark ? 'bg-blue-500/20 text-blue-300' : 'bg-blue-100 text-blue-700'}`}>{t('manual')}</span>
                             )}
                           </td>
-                          <td className="px-6 py-4">
+                          <td className="px-3 md:px-6 py-4">
                             {r.status !== 'absent' ? (
                               <span className={`text-sm font-medium px-3 py-1 rounded-full ${
                                 r.confidence >= 80
@@ -472,15 +475,15 @@ export function AttendancePage() {
                             ) : <span className={`text-sm ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>N/A</span>}
                           </td>
                           {editMode && (
-                            <td className="px-6 py-4">
+                            <td className="px-3 md:px-6 py-4">
                               <div className="flex gap-2">
                                 <button onClick={() => handleStatusChange(r.studentId, 'present')}
                                   className={`px-3 py-1 rounded text-xs font-medium ${r.status === 'present' ? 'bg-green-600 text-white' : (isDark ? 'bg-white/10 text-slate-300 hover:bg-green-500/20' : 'bg-gray-100 text-gray-600 hover:bg-green-100')}`}>
-                                  Present
+                                  {t('present')}
                                 </button>
                                 <button onClick={() => handleStatusChange(r.studentId, 'absent')}
                                   className={`px-3 py-1 rounded text-xs font-medium ${r.status === 'absent' ? 'bg-red-600 text-white' : (isDark ? 'bg-white/10 text-slate-300 hover:bg-red-500/20' : 'bg-gray-100 text-gray-600 hover:bg-red-100')}`}>
-                                  Absent
+                                  {t('absent')}
                                 </button>
                               </div>
                             </td>
@@ -489,6 +492,7 @@ export function AttendancePage() {
                       ))}
                     </tbody>
                   </table>
+                  </div>
                 </div>
               </div>
             )}
@@ -496,21 +500,22 @@ export function AttendancePage() {
             {/* All Present Students */}
             <div className={`rounded-xl border shadow-sm overflow-hidden ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}>
               <div className={`px-6 py-4 border-b ${isDark ? 'border-white/10 bg-transparent' : 'border-gray-200 bg-gray-50'}`}>
-                <h4 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>All Students ({presentStudents.length} Present)</h4>
+                <h4 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('allStudents')} ({presentStudents.length} {t('present')})</h4>
               </div>
+              <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className={`border-b ${isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
                   <tr>
-                    <th className={`px-6 py-3 text-left text-xs font-medium uppercase ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>Student</th>
-                    <th className={`px-6 py-3 text-left text-xs font-medium uppercase ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>Status</th>
-                    <th className={`px-6 py-3 text-left text-xs font-medium uppercase ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>Confidence</th>
-                    {editMode && <th className={`px-6 py-3 text-left text-xs font-medium uppercase ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>Actions</th>}
+                    <th className={`px-3 md:px-6 py-3 text-left text-xs font-medium uppercase ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>{t('student')}</th>
+                    <th className={`px-3 md:px-6 py-3 text-left text-xs font-medium uppercase ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>{t('status')}</th>
+                    <th className={`px-3 md:px-6 py-3 text-left text-xs font-medium uppercase ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>{t('confidence')}</th>
+                    {editMode && <th className={`px-3 md:px-6 py-3 text-left text-xs font-medium uppercase ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>{t('actions')}</th>}
                   </tr>
                 </thead>
                 <tbody className={`divide-y ${isDark ? 'divide-white/10' : 'divide-gray-200'}`}>
                   {presentStudents.map((r) => (
                     <tr key={r.studentId} className={isDark ? 'hover:bg-white/10' : 'hover:bg-gray-50'}>
-                      <td className="px-6 py-4">
+                      <td className="px-3 md:px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className={`w-10 h-10 rounded-full flex items-center justify-center ${isDark ? 'bg-indigo-500/20' : 'bg-indigo-100'}`}>
                             <span className={`font-semibold text-sm ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`}>
@@ -523,15 +528,15 @@ export function AttendancePage() {
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-3 md:px-6 py-4">
                         <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${isDark ? 'bg-green-500/20 text-green-300' : 'bg-green-100 text-green-800'}`}>
-                          <CheckCircle size={14} className="mr-1" />Present
+                          <CheckCircle size={14} className="mr-1" />{t('present')}
                         </span>
                         {r.manualOverride && (
-                          <span className={`ml-2 text-xs px-2 py-0.5 rounded font-medium ${isDark ? 'bg-blue-500/20 text-blue-300' : 'bg-blue-100 text-blue-700'}`}>Manual</span>
+                          <span className={`ml-2 text-xs px-2 py-0.5 rounded font-medium ${isDark ? 'bg-blue-500/20 text-blue-300' : 'bg-blue-100 text-blue-700'}`}>{t('manual')}</span>
                         )}
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-3 md:px-6 py-4">
                         <span className={`text-sm font-medium px-3 py-1 rounded-full ${
                           r.confidence >= 80
                             ? (isDark ? 'bg-green-500/20 text-green-300' : 'bg-green-100 text-green-700')
@@ -541,12 +546,12 @@ export function AttendancePage() {
                         }`}>{r.confidence}%</span>
                       </td>
                       {editMode && (
-                        <td className="px-6 py-4">
+                        <td className="px-3 md:px-6 py-4">
                           <div className="flex gap-2">
                             <button onClick={() => handleStatusChange(r.studentId, 'present')}
-                              className="px-3 py-1 rounded text-xs font-medium bg-green-600 text-white">Present</button>
+                              className="px-3 py-1 rounded text-xs font-medium bg-green-600 text-white">{t('present')}</button>
                             <button onClick={() => handleStatusChange(r.studentId, 'absent')}
-                              className={`px-3 py-1 rounded text-xs font-medium ${isDark ? 'bg-white/10 text-slate-300 hover:bg-red-500/20' : 'bg-gray-100 text-gray-600 hover:bg-red-100'}`}>Absent</button>
+                              className={`px-3 py-1 rounded text-xs font-medium ${isDark ? 'bg-white/10 text-slate-300 hover:bg-red-500/20' : 'bg-gray-100 text-gray-600 hover:bg-red-100'}`}>{t('absent')}</button>
                           </div>
                         </td>
                       )}
@@ -554,18 +559,19 @@ export function AttendancePage() {
                   ))}
                 </tbody>
               </table>
+              </div>
             </div>
 
             {/* Action Buttons */}
             <div className="flex items-center justify-between">
               <button onClick={handleExport} className={`flex items-center gap-2 px-4 py-2 border rounded-lg ${isDark ? 'border-white/10 text-slate-300 hover:bg-white/10' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}>
-                <Download size={18} />Export CSV
+                <Download size={18} />{t('exportCSV')}
               </button>
               <div className="flex gap-3">
                 <button onClick={() => { setCurrentResults(null); setSelectedFile(null); setView('upload'); }}
-                  className={`px-6 py-2 border rounded-lg ${isDark ? 'border-white/10 text-slate-300 hover:bg-white/10' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}>Cancel</button>
+                  className={`px-6 py-2 border rounded-lg ${isDark ? 'border-white/10 text-slate-300 hover:bg-white/10' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}>{t('cancel')}</button>
                 <button onClick={handleSave} className="flex items-center gap-2 px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
-                  <Save size={18} />Save Attendance
+                  <Save size={18} />{t('saveAttendance')}
                 </button>
               </div>
             </div>
@@ -579,8 +585,8 @@ export function AttendancePage() {
           {sessions.length === 0 ? (
             <div className={`rounded-xl border-2 border-dashed p-12 text-center ${isDark ? 'bg-transparent border-white/10' : 'bg-gray-50 border-gray-300'}`}>
               <History className={`mx-auto mb-4 ${isDark ? 'text-slate-500' : 'text-gray-400'}`} size={48} />
-              <h3 className={`text-lg font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>No History Yet</h3>
-              <p className={isDark ? 'text-slate-400' : 'text-gray-500'}>AI attendance sessions will appear here after you process class photos</p>
+              <h3 className={`text-lg font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('noHistoryYet')}</h3>
+              <p className={isDark ? 'text-slate-400' : 'text-gray-500'}>{t('noHistoryDescription')}</p>
             </div>
           ) : (
             sessions.map((session) => {
@@ -602,17 +608,17 @@ export function AttendancePage() {
                         <div className="flex items-center gap-2">
                           <Users size={16} className={isDark ? 'text-slate-500' : 'text-gray-400'} />
                           <span className={isDark ? 'text-slate-400' : 'text-gray-600'}>
-                            <span className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{session.totalDetected}</span>/{session.totalStudents} detected
+                            <span className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{session.totalDetected}</span>/{session.totalStudents} {t('detected')}
                           </span>
                         </div>
                         <div className={`font-semibold ${parseFloat(rate) >= 80 ? 'text-green-600' : parseFloat(rate) >= 60 ? 'text-yellow-600' : 'text-red-600'}`}>
-                          {rate}% attendance
+                          {rate}% {t('attendance').toLowerCase()}
                         </div>
                       </div>
                     </div>
                     <button onClick={() => handleViewHistoryDetails(session)}
                       className={`flex items-center gap-2 px-4 py-2 rounded-lg ${isDark ? 'bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20' : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100'}`}>
-                      <Eye size={16} />View Details
+                      <Eye size={16} />{t('viewDetails')}
                     </button>
                   </div>
                 </div>

@@ -20,6 +20,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
+import { useLanguage } from '../contexts/LanguageContext';
 
 type DashboardProps = {
   stats: any;
@@ -36,6 +37,7 @@ export function ModernDashboard({
   recentActivity,
   onNavigate,
 }: DashboardProps) {
+  const { t } = useLanguage();
   // Chart data for performance
   const performanceData = courses.map((course) => ({
     course: course.code,
@@ -60,7 +62,7 @@ export function ModernDashboard({
               <BookOpen className="w-5 h-5 text-blue-600" />
             </div>
             <div>
-              <p className="text-xs text-gray-600">Assigned Courses</p>
+              <p className="text-xs text-gray-600">{t('assignedCourses')}</p>
               <p className="text-2xl font-bold text-gray-900">{stats.totalCourses}</p>
             </div>
           </div>
@@ -72,7 +74,7 @@ export function ModernDashboard({
               <Clock className="w-5 h-5 text-green-600" />
             </div>
             <div>
-              <p className="text-xs text-gray-600">Active Labs</p>
+              <p className="text-xs text-gray-600">{t('activeLabs')}</p>
               <p className="text-2xl font-bold text-gray-900">{stats.activeLabs}</p>
             </div>
           </div>
@@ -84,7 +86,7 @@ export function ModernDashboard({
               <FileText className="w-5 h-5 text-orange-600" />
             </div>
             <div>
-              <p className="text-xs text-gray-600">Pending Submissions</p>
+              <p className="text-xs text-gray-600">{t('pendingSubmissions')}</p>
               <p className="text-2xl font-bold text-gray-900">{stats.pendingSubmissions}</p>
             </div>
           </div>
@@ -96,7 +98,7 @@ export function ModernDashboard({
               <TrendingUp className="w-5 h-5 text-purple-600" />
             </div>
             <div>
-              <p className="text-xs text-gray-600">Avg Performance</p>
+              <p className="text-xs text-gray-600">{t('avgPerformance')}</p>
               <p className="text-2xl font-bold text-gray-900">{stats.averagePerformance}%</p>
             </div>
           </div>
@@ -108,7 +110,7 @@ export function ModernDashboard({
               <MessageSquare className="w-5 h-5 text-red-600" />
             </div>
             <div>
-              <p className="text-xs text-gray-600">Unread Messages</p>
+              <p className="text-xs text-gray-600">{t('unreadMessages')}</p>
               <p className="text-2xl font-bold text-gray-900">{stats.unreadMessages}</p>
             </div>
           </div>
@@ -120,7 +122,7 @@ export function ModernDashboard({
               <Calendar className="w-5 h-5 text-indigo-600" />
             </div>
             <div>
-              <p className="text-xs text-gray-600">Upcoming Labs</p>
+              <p className="text-xs text-gray-600">{t('upcomingLabs')}</p>
               <p className="text-2xl font-bold text-gray-900">{stats.upcomingLabs}</p>
             </div>
           </div>
@@ -131,7 +133,7 @@ export function ModernDashboard({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Performance Chart */}
         <div className="lg:col-span-2 bg-white border border-gray-200 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Course Performance</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('coursePerformance')}</h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={performanceData}>
               <CartesianGrid strokeDasharray="3 3" />
@@ -146,12 +148,12 @@ export function ModernDashboard({
         {/* Upcoming Labs */}
         <div className="bg-white border border-gray-200 rounded-lg p-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Upcoming Labs</h3>
+            <h3 className="text-lg font-semibold text-gray-900">{t('upcomingLabs')}</h3>
             <button
               onClick={() => onNavigate('labs')}
               className="text-sm text-blue-600 hover:text-blue-700 font-medium"
             >
-              View All
+              {t('viewAll')}
             </button>
           </div>
           <div className="space-y-3">
@@ -182,7 +184,7 @@ export function ModernDashboard({
       {/* Activity Feed */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('recentActivity')}</h3>
           <div className="space-y-3">
             {recentActivity.map((activity) => (
               <div key={activity.id} className="flex items-start gap-3 p-3 border border-gray-200 rounded-lg">
@@ -209,7 +211,7 @@ export function ModernDashboard({
 
         {/* Quick Actions */}
         <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('quickActions')}</h3>
           <div className="space-y-2">
             <button
               onClick={() => onNavigate('courses')}
@@ -217,7 +219,7 @@ export function ModernDashboard({
             >
               <div className="flex items-center gap-3">
                 <BookOpen className="w-5 h-5 text-blue-600" />
-                <span className="text-sm font-medium text-gray-900">View All Courses</span>
+                <span className="text-sm font-medium text-gray-900">{t('viewAllCourses')}</span>
               </div>
               <ArrowRight className="w-4 h-4 text-gray-400" />
             </button>
@@ -229,7 +231,7 @@ export function ModernDashboard({
               <div className="flex items-center gap-3">
                 <FileText className="w-5 h-5 text-orange-600" />
                 <span className="text-sm font-medium text-gray-900">
-                  Grade Pending Submissions ({stats.pendingSubmissions})
+                  {t('gradePendingSubmissions')} ({stats.pendingSubmissions})
                 </span>
               </div>
               <ArrowRight className="w-4 h-4 text-gray-400" />
@@ -242,7 +244,7 @@ export function ModernDashboard({
               <div className="flex items-center gap-3">
                 <MessageSquare className="w-5 h-5 text-red-600" />
                 <span className="text-sm font-medium text-gray-900">
-                  Check Messages ({stats.unreadMessages})
+                  {t('checkMessages')} ({stats.unreadMessages})
                 </span>
               </div>
               <ArrowRight className="w-4 h-4 text-gray-400" />
@@ -254,7 +256,7 @@ export function ModernDashboard({
             >
               <div className="flex items-center gap-3">
                 <Clock className="w-5 h-5 text-green-600" />
-                <span className="text-sm font-medium text-gray-900">Manage Labs</span>
+                <span className="text-sm font-medium text-gray-900">{t('manageLabs')}</span>
               </div>
               <ArrowRight className="w-4 h-4 text-gray-400" />
             </button>

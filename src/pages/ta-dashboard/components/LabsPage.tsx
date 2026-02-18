@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Beaker, Calendar, MapPin, Users, FileText, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 type Lab = {
   id: string;
@@ -24,6 +25,7 @@ type LabsPageProps = {
 
 export function LabsPage({ labs, onViewLab }: LabsPageProps) {
   const { isDark } = useTheme();
+  const { t } = useLanguage();
   const [filter, setFilter] = useState<'all' | 'upcoming' | 'active' | 'completed'>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -40,19 +42,19 @@ export function LabsPage({ labs, onViewLab }: LabsPageProps) {
       case 'upcoming':
         return (
           <span className={`px-2 py-1 text-xs font-medium rounded-full ${isDark ? 'bg-blue-500/20 text-blue-300' : 'bg-blue-100 text-blue-800'}`}>
-            Upcoming
+            {t('upcoming')}
           </span>
         );
       case 'active':
         return (
           <span className={`px-2 py-1 text-xs font-medium rounded-full ${isDark ? 'bg-green-500/20 text-green-300' : 'bg-green-100 text-green-800'}`}>
-            Active
+            {t('active')}
           </span>
         );
       case 'completed':
         return (
           <span className={`px-2 py-1 text-xs font-medium rounded-full ${isDark ? 'bg-gray-500/20 text-gray-300' : 'bg-gray-100 text-gray-800'}`}>
-            Completed
+            {t('completed')}
           </span>
         );
       default:
@@ -65,11 +67,11 @@ export function LabsPage({ labs, onViewLab }: LabsPageProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Lab Management</h2>
-          <p className={`mt-1 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>Manage lab sessions, materials, and submissions</p>
+          <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('labManagement')}</h2>
+          <p className={`mt-1 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>{t('manageLabSessions')}</p>
         </div>
         <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
-          Create New Lab
+          {t('createNewLab')}
         </button>
       </div>
 
@@ -79,7 +81,7 @@ export function LabsPage({ labs, onViewLab }: LabsPageProps) {
           <div className="flex-1">
             <input
               type="text"
-              placeholder="Search labs..."
+              placeholder={t('searchLabsPlaceholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-slate-400' : 'border-gray-300'}`}
@@ -98,7 +100,7 @@ export function LabsPage({ labs, onViewLab }: LabsPageProps) {
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                {status.charAt(0).toUpperCase() + status.slice(1)}
+                {status === 'all' ? t('all') : status === 'upcoming' ? t('upcoming') : status === 'active' ? t('active') : t('completed')}
               </button>
             ))}
           </div>
@@ -112,25 +114,25 @@ export function LabsPage({ labs, onViewLab }: LabsPageProps) {
             <thead className={`border-b ${isDark ? 'bg-transparent border-white/10' : 'bg-gray-50 border-gray-200'}`}>
               <tr>
                 <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
-                  Lab
+                  {t('lab')}
                 </th>
                 <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
-                  Course
+                  {t('course')}
                 </th>
                 <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
-                  Date & Time
+                  {t('dateAndTime')}
                 </th>
                 <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
-                  Location
+                  {t('location')}
                 </th>
                 <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
-                  Submissions
+                  {t('submissions')}
                 </th>
                 <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
-                  Status
+                  {t('status')}
                 </th>
                 <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
-                  Actions
+                  {t('actions')}
                 </th>
               </tr>
             </thead>
@@ -169,12 +171,12 @@ export function LabsPage({ labs, onViewLab }: LabsPageProps) {
                       <div className="flex items-center gap-2">
                         <FileText className={`w-4 h-4 ${isDark ? 'text-slate-400' : 'text-gray-400'}`} />
                         <span>
-                          {lab.gradedCount}/{lab.submissionCount} graded
+                          {lab.gradedCount}/{lab.submissionCount} {t('graded')}
                         </span>
                       </div>
                       {lab.submissionCount - lab.gradedCount > 0 && (
                         <div className="text-xs text-orange-600 mt-1">
-                          {lab.submissionCount - lab.gradedCount} pending
+                          {lab.submissionCount - lab.gradedCount} {t('pending').toLowerCase()}
                         </div>
                       )}
                     </div>
@@ -185,7 +187,7 @@ export function LabsPage({ labs, onViewLab }: LabsPageProps) {
                       onClick={() => onViewLab(lab.id)}
                       className="text-blue-600 hover:text-blue-700 text-sm font-medium"
                     >
-                      View Details
+                      {t('viewDetails')}
                     </button>
                   </td>
                 </tr>
@@ -198,7 +200,7 @@ export function LabsPage({ labs, onViewLab }: LabsPageProps) {
       {filteredLabs.length === 0 && (
         <div className={`text-center py-12 border rounded-lg ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}>
           <Beaker className={`w-12 h-12 mx-auto mb-4 ${isDark ? 'text-slate-400' : 'text-gray-400'}`} />
-          <p className={isDark ? 'text-slate-400' : 'text-gray-600'}>No labs found matching your criteria.</p>
+          <p className={isDark ? 'text-slate-400' : 'text-gray-600'}>{t('noLabsFound')}</p>
         </div>
       )}
     </div>

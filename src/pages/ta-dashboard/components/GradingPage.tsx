@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { FileText, Download, CheckCircle, Clock, User, Brain } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 type Submission = {
   id: string;
@@ -20,6 +21,7 @@ type GradingPageProps = {
 
 export function GradingPage({ submissions, onGrade }: GradingPageProps) {
   const { isDark } = useTheme();
+  const { t } = useLanguage();
   const [filter, setFilter] = useState<'all' | 'submitted' | 'graded'>('all');
 
   const filteredSubmissions = submissions.filter((sub) => {
@@ -37,18 +39,18 @@ export function GradingPage({ submissions, onGrade }: GradingPageProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Grading</h2>
-          <p className={`mt-1 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>Grade lab submissions with AI assistance or manually</p>
+          <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('grading')}</h2>
+          <p className={`mt-1 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>{t('gradeLabSubmissions')}</p>
         </div>
         <div className="flex items-center gap-4">
           <div className={`rounded-lg px-4 py-2 border ${isDark ? 'bg-orange-500/10 border-orange-500/30' : 'bg-orange-50 border-orange-200'}`}>
             <div className={`text-sm ${isDark ? 'text-orange-300' : 'text-orange-900'}`}>
-              <span className="font-semibold">{pendingCount}</span> Pending
+              <span className="font-semibold">{pendingCount}</span> {t('pending')}
             </div>
           </div>
           <div className={`rounded-lg px-4 py-2 border ${isDark ? 'bg-green-500/10 border-green-500/30' : 'bg-green-50 border-green-200'}`}>
             <div className={`text-sm ${isDark ? 'text-green-300' : 'text-green-900'}`}>
-              <span className="font-semibold">{gradedCount}</span> Graded
+              <span className="font-semibold">{gradedCount}</span> {t('graded')}
             </div>
           </div>
         </div>
@@ -69,7 +71,7 @@ export function GradingPage({ submissions, onGrade }: GradingPageProps) {
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
-              {status.charAt(0).toUpperCase() + status.slice(1)}
+              {status === 'all' ? t('all') : status === 'submitted' ? t('submitted') : t('graded')}
             </button>
           ))}
         </div>
@@ -97,12 +99,12 @@ export function GradingPage({ submissions, onGrade }: GradingPageProps) {
                     {submission.status === 'graded' && submission.grade !== undefined && (
                       <div className="flex items-center gap-2">
                         <CheckCircle className="w-4 h-4 text-green-600" />
-                        <span className="font-semibold text-green-600">Grade: {submission.grade}%</span>
+                        <span className="font-semibold text-green-600">{t('grade')}: {submission.grade}%</span>
                       </div>
                     )}
                     {submission.status === 'submitted' && (
                       <span className={`px-2 py-1 rounded text-xs font-medium ${isDark ? 'bg-orange-500/10 text-orange-300' : 'bg-orange-100 text-orange-800'}`}>
-                        Pending
+                        {t('pending')}
                       </span>
                     )}
                   </div>
@@ -112,7 +114,7 @@ export function GradingPage({ submissions, onGrade }: GradingPageProps) {
 
             {/* Files */}
             <div className="mb-4">
-              <h4 className={`text-sm font-medium mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>Submitted Files:</h4>
+              <h4 className={`text-sm font-medium mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('submittedFiles')}:</h4>
               <div className="flex flex-wrap gap-2">
                 {submission.files.map((file, idx) => (
                   <div
@@ -133,7 +135,7 @@ export function GradingPage({ submissions, onGrade }: GradingPageProps) {
             {/* Feedback */}
             {submission.feedback && (
               <div className={`mb-4 p-3 border rounded-lg ${isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
-                <h4 className={`text-sm font-medium mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>Feedback:</h4>
+                <h4 className={`text-sm font-medium mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('feedback')}:</h4>
                 <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-700'}`}>{submission.feedback}</p>
               </div>
             )}
@@ -147,14 +149,14 @@ export function GradingPage({ submissions, onGrade }: GradingPageProps) {
                     className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
                   >
                     <Brain className="w-4 h-4" />
-                    AI-Assisted Grade
+                    {t('aiAssistedGrade')}
                   </button>
                   <button
                     onClick={() => onGrade(submission.id)}
                     className="flex items-center gap-2 bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors text-sm font-medium"
                   >
                     <FileText className="w-4 h-4" />
-                    Manual Grade
+                    {t('manualGrade')}
                   </button>
                 </>
               )}
@@ -163,7 +165,7 @@ export function GradingPage({ submissions, onGrade }: GradingPageProps) {
                   onClick={() => onGrade(submission.id)}
                   className="text-blue-600 hover:text-blue-700 text-sm font-medium"
                 >
-                  Edit Grade
+                  {t('editGrade')}
                 </button>
               )}
             </div>
@@ -174,7 +176,7 @@ export function GradingPage({ submissions, onGrade }: GradingPageProps) {
       {filteredSubmissions.length === 0 && (
         <div className={`text-center py-12 border rounded-lg ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}>
           <FileText className={`w-12 h-12 mx-auto mb-4 ${isDark ? 'text-slate-500' : 'text-gray-400'}`} />
-          <p className={isDark ? 'text-slate-400' : 'text-gray-600'}>No submissions found matching your criteria.</p>
+          <p className={isDark ? 'text-slate-400' : 'text-gray-600'}>{t('noSubmissionsFound')}</p>
         </div>
       )}
     </div>

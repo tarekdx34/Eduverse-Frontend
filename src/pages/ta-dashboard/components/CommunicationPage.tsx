@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { MessageSquare, Send, Flag, CheckCircle, Clock, User } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 type Message = {
   id: string;
@@ -27,6 +28,7 @@ type CommunicationPageProps = {
 };
 
 export function CommunicationPage({ messages: initialMessages, questions: initialQuestions }: CommunicationPageProps) {
+  const { t } = useLanguage();
   const [messages, setMessages] = useState(initialMessages);
   const [questions, setQuestions] = useState(initialQuestions);
   const [activeTab, setActiveTab] = useState<'messages' | 'qa'>('messages');
@@ -52,8 +54,8 @@ export function CommunicationPage({ messages: initialMessages, questions: initia
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h2 className="text-2xl font-bold text-gray-900">Communication</h2>
-        <p className="text-gray-600 mt-1">Manage messages, Q&A discussions, and reminders</p>
+        <h2 className="text-2xl font-bold text-gray-900">{t('communication')}</h2>
+        <p className="text-gray-600 mt-1">{t('manageMessagesDescription')}</p>
       </div>
 
       {/* Tabs */}
@@ -66,7 +68,7 @@ export function CommunicationPage({ messages: initialMessages, questions: initia
               : 'text-gray-700 hover:bg-gray-100'
           }`}
         >
-          Messages {unreadCount > 0 && <span className="ml-2">({unreadCount})</span>}
+          {t('messages')} {unreadCount > 0 && <span className="ml-2">({unreadCount})</span>}
         </button>
         <button
           onClick={() => setActiveTab('qa')}
@@ -74,7 +76,7 @@ export function CommunicationPage({ messages: initialMessages, questions: initia
             activeTab === 'qa' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100'
           }`}
         >
-          Q&A Discussions {unansweredCount > 0 && <span className="ml-2">({unansweredCount})</span>}
+          {t('qaDiscussions')} {unansweredCount > 0 && <span className="ml-2">({unansweredCount})</span>}
         </button>
       </div>
 
@@ -82,10 +84,10 @@ export function CommunicationPage({ messages: initialMessages, questions: initia
       {activeTab === 'messages' && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-900">Messages</h3>
+            <h3 className="text-lg font-semibold text-gray-900">{t('messages')}</h3>
             <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center gap-2">
               <Send className="w-4 h-4" />
-              New Message
+              {t('newMessage')}
             </button>
           </div>
 
@@ -124,10 +126,10 @@ export function CommunicationPage({ messages: initialMessages, questions: initia
       {activeTab === 'qa' && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-900">Q&A Discussions</h3>
+            <h3 className="text-lg font-semibold text-gray-900">{t('qaDiscussions')}</h3>
             <div className="flex gap-2">
               <button className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50">
-                Filter
+                {t('filter')}
               </button>
             </div>
           </div>
@@ -155,7 +157,7 @@ export function CommunicationPage({ messages: initialMessages, questions: initia
                     {question.answer && (
                       <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                         <p className="text-sm text-gray-900">
-                          <span className="font-semibold">Your Answer: </span>
+                          <span className="font-semibold">{t('yourAnswer')} </span>
                           {question.answer}
                         </p>
                       </div>
@@ -164,17 +166,17 @@ export function CommunicationPage({ messages: initialMessages, questions: initia
                   <div className="flex items-center gap-2">
                     {question.status === 'new' && (
                       <span className="px-2 py-1 bg-orange-100 text-orange-800 rounded text-xs font-medium">
-                        New
+                        {t('newStatus')}
                       </span>
                     )}
                     {question.status === 'answered' && (
                       <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs font-medium">
-                        Answered
+                        {t('answered')}
                       </span>
                     )}
                     {question.status === 'flagged' && (
                       <span className="px-2 py-1 bg-red-100 text-red-800 rounded text-xs font-medium">
-                        Flagged
+                        {t('flagged')}
                       </span>
                     )}
                   </div>
@@ -188,14 +190,14 @@ export function CommunicationPage({ messages: initialMessages, questions: initia
                         className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
                       >
                         <CheckCircle className="w-4 h-4" />
-                        Answer
+                        {t('answer')}
                       </button>
                       <button
                         onClick={() => handleFlagQuestion(question.id)}
                         className="flex items-center gap-2 border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
                       >
                         <Flag className="w-4 h-4" />
-                        Flag for Instructor
+                        {t('flagForInstructor')}
                       </button>
                     </>
                   )}
