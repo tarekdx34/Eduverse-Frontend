@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Calendar, Clock, MapPin, BookOpen, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 type ScheduleEvent = {
   id: string;
@@ -101,9 +102,10 @@ const MOCK_SCHEDULE: ScheduleEvent[] = [
   },
 ];
 
-const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday'];
+const DAYS_KEYS = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday'] as const;
 
 export function SchedulePage() {
+  const { t } = useLanguage();
   const [view, setView] = useState<'week' | 'list'>('week');
   const [currentWeekStart] = useState('2025-02-22');
 
@@ -121,10 +123,10 @@ export function SchedulePage() {
 
   const getTypeBadge = (type: string) => {
     const badges: Record<string, { label: string; className: string }> = {
-      lab: { label: 'Lab Session', className: 'bg-blue-100 text-blue-800' },
-      'office-hours': { label: 'Office Hours', className: 'bg-green-100 text-green-800' },
-      meeting: { label: 'Meeting', className: 'bg-orange-100 text-orange-800' },
-      'grading-deadline': { label: 'Deadline', className: 'bg-red-100 text-red-800' },
+      lab: { label: t('labSession'), className: 'bg-blue-100 text-blue-800' },
+      'office-hours': { label: t('officeHours'), className: 'bg-green-100 text-green-800' },
+      meeting: { label: t('meeting'), className: 'bg-orange-100 text-orange-800' },
+      'grading-deadline': { label: t('deadline'), className: 'bg-red-100 text-red-800' },
     };
     const badge = badges[type] || badges.lab;
     return (
@@ -144,8 +146,8 @@ export function SchedulePage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Schedule</h2>
-          <p className="text-gray-600 mt-1">View your labs, office hours, meetings, and deadlines</p>
+          <h2 className="text-2xl font-bold text-gray-900">{t('schedule')}</h2>
+          <p className="text-gray-600 mt-1">{t('viewScheduleDescription')}</p>
         </div>
         <div className="flex items-center gap-2">
           <div className="bg-white border border-gray-200 rounded-lg p-1 flex gap-1">
@@ -155,7 +157,7 @@ export function SchedulePage() {
                 view === 'week' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100'
               }`}
             >
-              Week
+              {t('week')}
             </button>
             <button
               onClick={() => setView('list')}
@@ -163,7 +165,7 @@ export function SchedulePage() {
                 view === 'list' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100'
               }`}
             >
-              List
+              {t('list')}
             </button>
           </div>
         </div>
@@ -236,16 +238,16 @@ export function SchedulePage() {
         /* Week Grid View */
         <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
           <div className="grid grid-cols-5 divide-x divide-gray-200">
-            {DAYS.map((day, idx) => {
+            {DAYS_KEYS.map((dayKey, idx) => {
               const date = new Date('2025-02-22');
               date.setDate(date.getDate() + idx);
               const dateStr = date.toISOString().split('T')[0];
               const dayEvents = groupedByDate[dateStr] || [];
 
               return (
-                <div key={day} className="min-h-[300px]">
+                <div key={dayKey} className="min-h-[300px]">
                   <div className="bg-gray-50 p-3 border-b border-gray-200 text-center">
-                    <p className="text-xs text-gray-500 font-medium">{day}</p>
+                    <p className="text-xs text-gray-500 font-medium">{t(dayKey)}</p>
                     <p className="text-lg font-bold text-gray-900">{date.getDate()}</p>
                   </div>
                   <div className="p-2 space-y-2">
@@ -272,23 +274,23 @@ export function SchedulePage() {
 
       {/* Legend */}
       <div className="bg-white border border-gray-200 rounded-lg p-4">
-        <h4 className="text-sm font-medium text-gray-900 mb-3">Legend</h4>
+        <h4 className="text-sm font-medium text-gray-900 mb-3">{t('legend')}</h4>
         <div className="flex flex-wrap gap-4">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded bg-blue-500" />
-            <span className="text-sm text-gray-600">Lab Sessions</span>
+            <span className="text-sm text-gray-600">{t('labSessions')}</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded bg-green-500" />
-            <span className="text-sm text-gray-600">Office Hours</span>
+            <span className="text-sm text-gray-600">{t('officeHours')}</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded bg-orange-500" />
-            <span className="text-sm text-gray-600">Meetings</span>
+            <span className="text-sm text-gray-600">{t('meetings')}</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded bg-red-500" />
-            <span className="text-sm text-gray-600">Deadlines</span>
+            <span className="text-sm text-gray-600">{t('deadlines')}</span>
           </div>
         </div>
       </div>
