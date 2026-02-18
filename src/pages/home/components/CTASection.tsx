@@ -103,7 +103,7 @@ export function CTASection() {
           <Sparkles className="h-12 w-12 text-white animate-pulse" />
         </div>
 
-        <h2 className="text-3xl md:text-4xl lg:text-5xl text-white mb-4">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl text-white mb-4">
           {t('Ready to Transform Education?', 'هل أنت مستعد لتحويل التعليم؟')}
         </h2>
         <p className="text-lg md:text-xl text-white/90 mb-4 max-w-2xl mx-auto">
@@ -143,7 +143,7 @@ export function CTASection() {
         </div>
 
         {/* Stats */}
-        <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
+        <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 lg:gap-8 max-w-4xl mx-auto">
           {[
             { value: '50K+', label: t('Students', 'طالب') },
             { value: '500+', label: t('Instructors', 'مدرس') },
@@ -151,7 +151,7 @@ export function CTASection() {
             { value: '1M+', label: t('AI Interactions', 'تفاعل ذكي') },
           ].map((stat, index) => (
             <div key={index} className="text-white">
-              <div className="text-3xl md:text-4xl mb-2">{stat.value}</div>
+              <div className="text-2xl sm:text-3xl md:text-4xl mb-2">{stat.value}</div>
               <div className="text-sm text-white/80">{stat.label}</div>
             </div>
           ))}

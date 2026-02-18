@@ -65,7 +65,7 @@ export function UserManagementPage({ users, onAddUser, onEditUser, onDeleteUser 
         </div>
         <button
           onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-rose-500 transition-colors"
         >
           <UserPlus size={18} />
           {t('addUser')}
@@ -108,7 +108,7 @@ export function UserManagementPage({ users, onAddUser, onEditUser, onDeleteUser 
             <option value="inactive">Inactive</option>
             <option value="suspended">Suspended</option>
           </select>
-          <button className={`flex items-center gap-2 px-4 py-2 rounded-lg border ${isDark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-200 text-gray-700 hover:bg-gray-50'}`}>
+          <button className={`flex items-center gap-2 px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-rose-500 ${isDark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-200 text-gray-700 hover:bg-gray-50'}`}>
             <Download size={18} />
             Export
           </button>
@@ -121,18 +121,18 @@ export function UserManagementPage({ users, onAddUser, onEditUser, onDeleteUser 
           <table className="w-full">
             <thead className={isDark ? 'bg-gray-700' : 'bg-gray-50'}>
               <tr>
-                <th className={`px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>User</th>
-                <th className={`px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Role</th>
-                <th className={`px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Department</th>
-                <th className={`px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Status</th>
-                <th className={`px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Last Active</th>
-                <th className={`px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Actions</th>
+                <th className={`px-3 md:px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>User</th>
+                <th className={`px-3 md:px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Role</th>
+                <th className={`px-3 md:px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Department</th>
+                <th className={`px-3 md:px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Status</th>
+                <th className={`px-3 md:px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Last Active</th>
+                <th className={`px-3 md:px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Actions</th>
               </tr>
             </thead>
             <tbody className={`divide-y ${isDark ? 'divide-gray-700' : 'divide-gray-200'}`}>
               {filteredUsers.map((user) => (
                 <tr key={user.id} className={isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}>
-                  <td className="px-6 py-4">
+                  <td className="px-3 md:px-6 py-4">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-gradient-to-br from-red-400 to-orange-400 flex items-center justify-center text-white font-semibold">
                         {user.name.split(' ').map(n => n[0]).join('')}
@@ -143,19 +143,19 @@ export function UserManagementPage({ users, onAddUser, onEditUser, onDeleteUser 
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-3 md:px-6 py-4">
                     <span className={`px-3 py-1 rounded-full text-xs font-medium capitalize ${getRoleColor(user.role)}`}>
                       {user.role}
                     </span>
                   </td>
-                  <td className={`px-6 py-4 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{user.department}</td>
-                  <td className="px-6 py-4">
+                  <td className={`px-3 md:px-6 py-4 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{user.department}</td>
+                  <td className="px-3 md:px-6 py-4">
                     <span className={`px-3 py-1 rounded-full text-xs font-medium capitalize ${getStatusColor(user.status)}`}>
                       {user.status}
                     </span>
                   </td>
-                  <td className={`px-6 py-4 text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{user.lastActive}</td>
-                  <td className="px-6 py-4">
+                  <td className={`px-3 md:px-6 py-4 text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{user.lastActive}</td>
+                  <td className="px-3 md:px-6 py-4">
                     <div className="flex items-center justify-end gap-2">
                       <button 
                         onClick={() => setEditingUser(user)}
