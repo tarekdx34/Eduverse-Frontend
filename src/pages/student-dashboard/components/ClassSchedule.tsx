@@ -292,7 +292,7 @@ export default function ClassSchedule() {
 
   return (
     <div className="space-y-8" dir={isRTL ? 'rtl' : 'ltr'}>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-8">
         {/* Calendar View */}
         <div className="lg:col-span-2">
           {/* Header */}
@@ -315,8 +315,9 @@ export default function ClassSchedule() {
 
           {/* Calendar Grid */}
           <div className={`rounded-[2.5rem] overflow-hidden ${isDark ? 'bg-card-dark border border-white/5' : 'glass'}`}>
+           <div className="overflow-x-auto">
             {/* Week Days Header */}
-            <div className={`grid grid-cols-8 border-b ${isDark ? 'border-white/5' : 'border-slate-100'}`}>
+            <div className={`grid grid-cols-8 min-w-[700px] border-b ${isDark ? 'border-white/5' : 'border-slate-100'}`}>
               <div className={`p-4 border-r ${isDark ? 'border-white/5 bg-white/5' : 'border-slate-100 bg-gradient-to-b from-background-light to-white'}`}>
                 <span className={`text-sm font-semibold ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{t('time')}</span>
               </div>
@@ -330,7 +331,7 @@ export default function ClassSchedule() {
             {/* Time Slots */}
             <div className="overflow-y-auto max-h-[600px]">
               {timeSlots.map((time, timeIndex) => (
-                <div key={time} className={`grid grid-cols-8 border-b last:border-b-0 transition-colors ${isDark ? 'border-white/5 hover:bg-white/5/30' : 'border-slate-100 hover:bg-slate-50/50'}`}>
+                <div key={time} className={`grid grid-cols-8 min-w-[700px] border-b last:border-b-0 transition-colors ${isDark ? 'border-white/5 hover:bg-white/5/30' : 'border-slate-100 hover:bg-slate-50/50'}`}>
                   <div className={`p-3 border-r ${isDark ? 'border-white/5 bg-white/[0.03]' : 'border-slate-100 bg-background-light/50'}`}>
                     <span className={`text-xs font-medium ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{time}</span>
                   </div>
@@ -358,6 +359,7 @@ export default function ClassSchedule() {
                 </div>
               ))}
             </div>
+           </div>
           </div>
         </div>
 

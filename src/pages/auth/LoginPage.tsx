@@ -50,15 +50,15 @@ const login = () => {
     >
       {/* Login Card */}
       <div className="relative z-10 min-h-screen flex items-center justify-center px-4 bg-black/20">
-        <div className="w-full max-w-md">
-          <div className="bg-gradient-to-b from-[hsl(200,60%,95%)]/80 to-card/95 dark:from-[hsl(220,20%,14%)]/90 dark:to-[hsl(220,20%,10%)]/95 backdrop-blur-sm rounded-3xl p-8 shadow-[var(--shadow-card)] border border-white/50 dark:border-white/10">
+        <div className="mx-auto w-full max-w-md">
+          <div className="bg-gradient-to-b from-[hsl(200,60%,95%)]/80 to-card/95 dark:from-[hsl(220,20%,14%)]/90 dark:to-[hsl(220,20%,10%)]/95 backdrop-blur-sm rounded-3xl px-4 sm:px-8 py-8 shadow-[var(--shadow-card)] border border-white/50 dark:border-white/10">
             {/* Icon */}
             <div className="flex justify-center mb-6">
               <button
                 className="flex items-center space-x-2 flex-shrink-0 cursor-pointer"
                 onClick={handleLogo}
               >
-                <span className="text-2xl tracking-tight">
+                <span className="text-xl sm:text-2xl tracking-tight">
                   {isArabic ? 'إيدوفيرس' : 'Eduverse'}
                 </span>
               </button>{' '}
@@ -66,7 +66,7 @@ const login = () => {
 
             {/* Title */}
             <div className="text-center mb-8">
-              <h1 className="text-2xl font-semibold text-foreground mb-2">Sign in with email</h1>
+              <h1 className="text-xl sm:text-2xl font-semibold text-foreground mb-2">Sign in with email</h1>
               <p className="text-muted-foreground text-sm">
                 Access your Eduverse account to manage your learning journey.
               </p>
@@ -165,7 +165,7 @@ const login = () => {
             </button>
 
             {/* Development Buttons */}
-            <div className="grid grid-cols-2 gap-3 mt-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
               <button
                 onClick={() => navigate('/studentdashboard')}
                 className="h-10 rounded-xl border border-amber-300/80 bg-amber-50/80 hover:bg-amber-100/80 dark:bg-amber-950/40 dark:border-amber-700/50 dark:hover:bg-amber-900/50 transition-colors flex items-center justify-center gap-2 text-amber-700 dark:text-amber-300 text-xs font-medium"
@@ -196,7 +196,7 @@ const login = () => {
               </button>
               <button
                 onClick={() => navigate('/tadashboard')}
-                className="col-span-2 h-10 rounded-xl border border-teal-300/80 bg-teal-50/80 hover:bg-teal-100/80 dark:bg-teal-950/40 dark:border-teal-700/50 dark:hover:bg-teal-900/50 transition-colors flex items-center justify-center gap-2 text-teal-700 dark:text-teal-300 text-xs font-medium"
+                className="col-span-1 sm:col-span-2 h-10 rounded-xl border border-teal-300/80 bg-teal-50/80 hover:bg-teal-100/80 dark:bg-teal-950/40 dark:border-teal-700/50 dark:hover:bg-teal-900/50 transition-colors flex items-center justify-center gap-2 text-teal-700 dark:text-teal-300 text-xs font-medium"
               >
                 <span>🎓</span>
                 <span>Teaching Assistant</span>

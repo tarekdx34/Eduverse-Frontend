@@ -18,6 +18,7 @@ import {
   Settings,
   MessageSquare,
   MessagesSquare,
+  Menu,
 } from 'lucide-react';
 import {
   StatsCard,
@@ -97,24 +98,24 @@ type TabKey =
   | 'settings'
   | 'profile';
 
-const TABS: { key: TabKey; label: string; labelAr: string; icon: any }[] = [
-  { key: 'dashboard', label: 'Dashboard', labelAr: 'لوحة التحكم', icon: LayoutGrid },
-  { key: 'courses', label: 'Courses', labelAr: 'المقررات', icon: BookOpen },
-  { key: 'roster', label: 'Roster', labelAr: 'قائمة الطلاب', icon: Users },
-  { key: 'waitlist', label: 'Waitlist', labelAr: 'قائمة الانتظار', icon: UserCheck },
-  { key: 'grades', label: 'Grades', labelAr: 'الدرجات', icon: FileText },
-  { key: 'assignments', label: 'Assignments', labelAr: 'الواجبات', icon: CheckSquare },
-  { key: 'labs', label: 'Labs', labelAr: 'المعامل', icon: Beaker },
-  { key: 'quizzes', label: 'Quizzes', labelAr: 'الاختبارات', icon: ClipboardList },
-  { key: 'schedule', label: 'Schedule', labelAr: 'الجدول', icon: CalendarDays },
-  { key: 'analytics', label: 'Analytics', labelAr: 'التحليلات', icon: BarChart3 },
-  { key: 'ai-tools', label: 'AI Tools', labelAr: 'أدوات الذكاء', icon: Brain },
-  { key: 'attendance', label: 'Attendance', labelAr: 'الحضور', icon: Calendar },
-  { key: 'communication', label: 'Communication', labelAr: 'التواصل', icon: MessageCircle },
-  { key: 'discussion', label: 'Discussion', labelAr: 'المناقشات', icon: MessagesSquare },
-  { key: 'chat', label: 'Chat', labelAr: 'الدردشة', icon: MessageSquare },
-  { key: 'settings', label: 'Settings', labelAr: 'الإعدادات', icon: Settings },
-  { key: 'profile', label: 'Profile', labelAr: 'الملف الشخصي', icon: User },
+const TABS: { key: TabKey; label: string; labelAr: string; icon: any; group: string }[] = [
+  { key: 'dashboard', label: 'Dashboard', labelAr: 'لوحة التحكم', icon: LayoutGrid, group: 'Overview' },
+  { key: 'courses', label: 'Courses', labelAr: 'المقررات', icon: BookOpen, group: 'Teaching' },
+  { key: 'labs', label: 'Labs', labelAr: 'المعامل', icon: Beaker, group: 'Teaching' },
+  { key: 'quizzes', label: 'Quizzes', labelAr: 'الاختبارات', icon: ClipboardList, group: 'Teaching' },
+  { key: 'assignments', label: 'Assignments', labelAr: 'الواجبات', icon: CheckSquare, group: 'Teaching' },
+  { key: 'schedule', label: 'Schedule', labelAr: 'الجدول', icon: CalendarDays, group: 'Teaching' },
+  { key: 'roster', label: 'Roster', labelAr: 'قائمة الطلاب', icon: Users, group: 'Students' },
+  { key: 'waitlist', label: 'Waitlist', labelAr: 'قائمة الانتظار', icon: UserCheck, group: 'Students' },
+  { key: 'grades', label: 'Grades', labelAr: 'الدرجات', icon: FileText, group: 'Students' },
+  { key: 'attendance', label: 'Attendance', labelAr: 'الحضور', icon: Calendar, group: 'Students' },
+  { key: 'analytics', label: 'Analytics', labelAr: 'التحليلات', icon: BarChart3, group: 'Students' },
+  { key: 'communication', label: 'Communication', labelAr: 'التواصل', icon: MessageCircle, group: 'Communication' },
+  { key: 'discussion', label: 'Discussion', labelAr: 'المناقشات', icon: MessagesSquare, group: 'Communication' },
+  { key: 'chat', label: 'Chat', labelAr: 'الدردشة', icon: MessageSquare, group: 'Communication' },
+  { key: 'ai-tools', label: 'AI Tools', labelAr: 'أدوات الذكاء', icon: Brain, group: 'Tools' },
+  { key: 'settings', label: 'Settings', labelAr: 'الإعدادات', icon: Settings, group: 'Tools' },
+  { key: 'profile', label: 'Profile', labelAr: 'الملف الشخصي', icon: User, group: 'Tools' },
 ];
 
 function InstructorDashboardContent() {
@@ -122,6 +123,7 @@ function InstructorDashboardContent() {
   const location = useLocation();
   const params = useParams();
   const [activeTab, setActiveTab] = useState<TabKey>('dashboard');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
   const [attendanceMode, setAttendanceMode] = useState<'manual' | 'ai'>('manual');
   const { isDark, toggleTheme } = useTheme();
@@ -466,21 +468,30 @@ function InstructorDashboardContent() {
       style={{ fontFamily: "'Montserrat', sans-serif" }}
       dir={isRTL ? 'rtl' : 'ltr'}
     >
-      {/* Fixed Sidebar */}
-      <div className={`fixed ${isRTL ? 'right-0' : 'left-0'} top-0 z-50 h-screen`}>
-        <DashboardSidebar
-          tabs={translatedTabs.map(tab => ({ id: tab.key, label: tab.label, icon: tab.icon }))}
-          activeTab={activeTab}
-          onTabChange={(key) => handleTabChange(key as TabKey)}
-          onLogout={() => navigate('/login')}
-          isDark={isDark}
-          isRTL={isRTL}
-          accentColor="#4F46E5"
-        />
-      </div>
+      {/* Sidebar */}
+      <DashboardSidebar
+        tabs={translatedTabs.map(tab => ({ id: tab.key, label: tab.label, icon: tab.icon, group: tab.group }))}
+        activeTab={activeTab}
+        onTabChange={(key) => handleTabChange(key as TabKey)}
+        onLogout={() => navigate('/login')}
+        isDark={isDark}
+        isRTL={isRTL}
+        accentColor="#4F46E5"
+        isMobileOpen={sidebarOpen}
+        onMobileClose={() => setSidebarOpen(false)}
+        groupOrder={['Overview', 'Teaching', 'Students', 'Communication', 'Tools']}
+      />
 
       {/* Main Content */}
-      <main className={`flex-1 ${isRTL ? 'mr-64' : 'ml-64'} p-6 lg:p-10`}>
+      <main className={`flex-1 ${isRTL ? 'lg:mr-64' : 'lg:ml-64'} p-4 lg:p-10`}>
+        {/* Mobile menu toggle */}
+        <button
+          onClick={() => setSidebarOpen(true)}
+          className={`lg:hidden mb-4 p-2 rounded-xl transition-colors ${isDark ? 'bg-white/5 hover:bg-white/10 text-slate-400' : 'bg-white border border-slate-200 hover:bg-slate-50 text-slate-600'}`}
+          aria-label="Open navigation menu"
+        >
+          <Menu className="w-6 h-6" />
+        </button>
         <DashboardHeader
           userName="Prof. Sarah Martinez"
           userRole="Instructor"
@@ -705,34 +716,6 @@ function InstructorDashboardContent() {
               </div>
               <SelectedSectionSummary section={selectedSection as any} />
 
-              {/* AI Attendance Hero Section */}
-              <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg p-6 text-white shadow-md">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
-                      <Brain size={24} className="text-white" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-lg font-semibold">AI-Powered Attendance</h3>
-                        <span className="px-2 py-0.5 bg-yellow-400 text-yellow-900 text-xs font-bold rounded">
-                          NEW
-                        </span>
-                      </div>
-                      <p className="text-indigo-100 text-sm mt-0.5">
-                        Upload a class photo to automatically detect and mark attendance
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => setAttendanceMode('ai')}
-                    className="px-5 py-2 bg-white text-indigo-600 rounded-lg font-medium hover:bg-indigo-50 transition-colors text-sm"
-                  >
-                    Try AI Attendance →
-                  </button>
-                </div>
-              </div>
-
               {/* Content Area */}
               {attendanceMode === 'ai' ? (
                 <div className={`rounded-xl border shadow-sm p-6 ${isDark ? 'bg-card-dark border-white/10' : 'bg-white border-gray-200'}`}>
@@ -801,19 +784,6 @@ function InstructorDashboardContent() {
                 officeHours: 'Mon & Wed 2:00 PM - 4:00 PM',
                 specialization: ['Artificial Intelligence', 'Machine Learning', 'Software Engineering', 'Data Mining', 'Neural Networks'],
                 skills: ['Python', 'TensorFlow', 'PyTorch', 'R', 'MATLAB', 'Java'],
-                badges: [
-                  { name: 'Top Educator', description: '4.8+ rating', icon: 'school', color: '#4F46E5', unlocked: true },
-                  { name: 'Researcher', description: '20+ papers', icon: 'science', color: '#3B82F6', unlocked: true },
-                  { name: 'Mentor', description: '50+ students', icon: 'volunteer_activism', color: '#10B981', unlocked: true },
-                  { name: 'Innovator', description: '5 patents', icon: 'lightbulb', color: '#F59E0B', unlocked: true },
-                  { name: 'Speaker', description: '10+ talks', icon: 'campaign', color: '#EC4899', unlocked: true },
-                  { name: 'Author', description: 'Published book', icon: 'menu_book', color: '#6366F1', unlocked: false },
-                ],
-                achievements: [
-                  { title: 'Excellence in Teaching Award', description: 'Academic Year 2023', emoji: '🏆' },
-                  { title: 'Best Research Paper', description: 'IEEE Conference 2023', emoji: '📄' },
-                  { title: 'Faculty Innovation Grant', description: 'Spring 2024', emoji: '💡' },
-                ],
               }}
             />
           )}

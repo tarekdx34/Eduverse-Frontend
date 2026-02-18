@@ -226,9 +226,9 @@ export function GlobalSearch({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden">
+    <div className="fixed inset-0 z-50 overflow-hidden" role="dialog" aria-modal="true" aria-label="Search">
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/30 backdrop-blur-md" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/30 backdrop-blur-md" onClick={onClose} aria-hidden="true" />
 
       {/* Search Modal */}
       <div className="relative max-w-3xl mx-auto mt-20 rounded-2xl shadow-2xl overflow-hidden bg-white/80 backdrop-blur-xl border border-white/30">

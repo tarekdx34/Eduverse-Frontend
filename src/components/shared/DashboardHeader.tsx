@@ -151,7 +151,7 @@ export function DashboardHeader({
 
   return (
     <>
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+      <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10" role="banner">
         {/* Search bar */}
         <div
           className={`relative group flex items-center rounded-2xl px-4 py-2 w-96 max-w-full focus-within:ring-2 transition-all ${
@@ -166,6 +166,7 @@ export function DashboardHeader({
             placeholder={t.search}
             type="text"
             readOnly
+            aria-label="Search"
           />
           <span
             className={`hidden md:block text-[10px] font-bold px-2 py-1 rounded-lg ${isDark ? 'bg-white/10 text-slate-500' : 'bg-slate-200 text-slate-500'}`}
@@ -180,6 +181,9 @@ export function DashboardHeader({
           <div className="relative" ref={notificationRef}>
             <button
               onClick={() => setShowNotifications(!showNotifications)}
+              aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
+              aria-expanded={showNotifications}
+              aria-haspopup="true"
               className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all relative ${
                 isDark
                   ? 'bg-white/5 hover:bg-white/10'
@@ -191,6 +195,7 @@ export function DashboardHeader({
                 <span
                   className="absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full flex items-center justify-center text-[10px] font-bold text-white px-1"
                   style={{ backgroundColor: accentColor }}
+                  aria-hidden="true"
                 >
                   {unreadCount}
                 </span>
@@ -278,6 +283,12 @@ export function DashboardHeader({
             <div
               onClick={() => setShowDropdown(!showDropdown)}
               className="flex items-center gap-3 cursor-pointer group"
+              role="button"
+              aria-label="User menu"
+              aria-expanded={showDropdown}
+              aria-haspopup="true"
+              tabIndex={0}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setShowDropdown(!showDropdown); } }}
             >
               <div className={`${isRTL ? 'text-left' : 'text-right'}`}>
                 <p className={`text-sm font-bold leading-tight mb-0 ${isDark ? 'text-white' : 'text-slate-800'}`}>{userName}</p>

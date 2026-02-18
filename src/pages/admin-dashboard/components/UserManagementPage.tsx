@@ -38,20 +38,20 @@ export function UserManagementPage({ users, onAddUser, onEditUser, onDeleteUser 
 
   const getRoleColor = (role: string) => {
     switch (role) {
-      case 'admin': return 'bg-red-100 text-red-700';
-      case 'instructor': return 'bg-blue-100 text-blue-700';
-      case 'ta': return 'bg-purple-100 text-purple-700';
-      case 'student': return 'bg-green-100 text-green-700';
-      default: return 'bg-gray-100 text-gray-700';
+      case 'admin': return isDark ? 'bg-red-500/20 text-red-300' : 'bg-red-100 text-red-700';
+      case 'instructor': return isDark ? 'bg-blue-500/20 text-blue-300' : 'bg-blue-100 text-blue-700';
+      case 'ta': return isDark ? 'bg-purple-500/20 text-purple-300' : 'bg-purple-100 text-purple-700';
+      case 'student': return isDark ? 'bg-green-500/20 text-green-300' : 'bg-green-100 text-green-700';
+      default: return isDark ? 'bg-gray-500/20 text-gray-300' : 'bg-gray-100 text-gray-700';
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return 'bg-green-100 text-green-700';
-      case 'inactive': return 'bg-gray-100 text-gray-700';
-      case 'suspended': return 'bg-red-100 text-red-700';
-      default: return 'bg-gray-100 text-gray-700';
+      case 'active': return isDark ? 'bg-green-500/20 text-green-300' : 'bg-green-100 text-green-700';
+      case 'inactive': return isDark ? 'bg-gray-500/20 text-gray-300' : 'bg-gray-100 text-gray-700';
+      case 'suspended': return isDark ? 'bg-red-500/20 text-red-300' : 'bg-red-100 text-red-700';
+      default: return isDark ? 'bg-gray-500/20 text-gray-300' : 'bg-gray-100 text-gray-700';
     }
   };
 

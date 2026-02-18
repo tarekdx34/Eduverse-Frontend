@@ -26,10 +26,10 @@ export function DatabasePage({ backups, onRunBackup, onRestoreBackup, onDownload
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'completed': return 'bg-green-100 text-green-700';
-      case 'running': return 'bg-cyan-100 text-cyan-700';
-      case 'failed': return 'bg-red-100 text-red-700';
-      default: return 'bg-gray-100 text-gray-700';
+      case 'completed': return isDark ? 'bg-green-500/20 text-green-300' : 'bg-green-100 text-green-700';
+      case 'running': return isDark ? 'bg-cyan-500/20 text-cyan-300' : 'bg-cyan-100 text-cyan-700';
+      case 'failed': return isDark ? 'bg-red-500/20 text-red-300' : 'bg-red-100 text-red-700';
+      default: return isDark ? 'bg-gray-500/20 text-gray-300' : 'bg-gray-100 text-gray-700';
     }
   };
 

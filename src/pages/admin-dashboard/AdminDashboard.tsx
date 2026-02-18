@@ -13,6 +13,7 @@ import {
   LogOut,
   MessageCircle,
   User,
+  Menu,
 } from 'lucide-react';
 import {
   DashboardOverview,
@@ -76,6 +77,7 @@ function AdminDashboardContent() {
   const location = useLocation();
   const params = useParams();
   const [activeTab, setActiveTab] = useState<TabKey>('dashboard');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const { isDark, toggleTheme } = useTheme();
   const { language, setLanguage, isRTL, t } = useLanguage();
 
@@ -259,21 +261,29 @@ function AdminDashboardContent() {
       style={{ fontFamily: "'Montserrat', sans-serif" }}
       dir={isRTL ? 'rtl' : 'ltr'}
     >
-      {/* Fixed Sidebar */}
-      <div className={`fixed ${isRTL ? 'right-0' : 'left-0'} top-0 z-50 h-screen`}>
-        <DashboardSidebar
-          tabs={translatedTabs.map(tab => ({ id: tab.key, label: tab.label, icon: tab.icon }))}
-          activeTab={activeTab}
-          onTabChange={(key) => handleTabChange(key as TabKey)}
-          onLogout={handleLogout}
-          isDark={isDark}
-          isRTL={isRTL}
-          accentColor="#E11D48"
-        />
-      </div>
+      {/* Sidebar */}
+      <DashboardSidebar
+        tabs={translatedTabs.map(tab => ({ id: tab.key, label: tab.label, icon: tab.icon }))}
+        activeTab={activeTab}
+        onTabChange={(key) => handleTabChange(key as TabKey)}
+        onLogout={handleLogout}
+        isDark={isDark}
+        isRTL={isRTL}
+        accentColor="#E11D48"
+        isMobileOpen={sidebarOpen}
+        onMobileClose={() => setSidebarOpen(false)}
+      />
 
       {/* Main Content */}
-      <main className={`flex-1 ${isRTL ? 'mr-64' : 'ml-64'} p-6 lg:p-10`}>
+      <main className={`flex-1 ${isRTL ? 'lg:mr-64' : 'lg:ml-64'} p-4 lg:p-10`}>
+        {/* Mobile menu toggle */}
+        <button
+          onClick={() => setSidebarOpen(true)}
+          className={`lg:hidden mb-4 p-2 rounded-xl transition-colors ${isDark ? 'bg-white/5 hover:bg-white/10 text-slate-400' : 'bg-white border border-slate-200 hover:bg-slate-50 text-slate-600'}`}
+          aria-label="Open navigation menu"
+        >
+          <Menu className="w-6 h-6" />
+        </button>
         <DashboardHeader
           userName="System Administrator"
           userRole="Super Admin"
@@ -413,18 +423,6 @@ function AdminDashboardContent() {
                 dateOfBirth: '1980-01-15',
                 bio: 'University System Administrator responsible for managing all academic and administrative operations. Overseeing user management, course administration, and system configuration.',
                 specialization: ['System Administration', 'User Management', 'Academic Operations', 'Data Analytics', 'Policy Management'],
-                badges: [
-                  { name: 'Admin Pro', description: 'System expert', icon: 'admin_panel_settings', color: '#E11D48', unlocked: true },
-                  { name: 'Data Guardian', description: 'Security lead', icon: 'shield', color: '#3B82F6', unlocked: true },
-                  { name: 'Organizer', description: '1000+ users', icon: 'groups', color: '#10B981', unlocked: true },
-                  { name: 'Strategist', description: '5 yr tenure', icon: 'trending_up', color: '#F59E0B', unlocked: true },
-                  { name: 'Innovator', description: 'System upgrade', icon: 'lightbulb', color: '#EC4899', unlocked: false },
-                  { name: 'Architect', description: 'Full redesign', icon: 'architecture', color: '#6366F1', unlocked: false },
-                ],
-                achievements: [
-                  { title: 'System Uptime Award', description: '99.9% uptime achieved', emoji: '🏆' },
-                  { title: 'Security Excellence', description: 'Zero breaches in 2023', emoji: '🛡️' },
-                ],
               }}
             />
           )}

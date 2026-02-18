@@ -124,7 +124,7 @@ export function HeroSection() {
           {/* LEFT SIDE - Content */}
           <div className="flex flex-col justify-center space-y-8 order-1 lg:order-1">
             <div className="space-y-6">
-              <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight">
                 <span className="bg-gradient-to-r from-primary via-chart-1 to-chart-2 bg-clip-text text-transparent">
                   {t('Eduverse', 'ايدوفيرسا')}
                 </span>
@@ -164,7 +164,7 @@ export function HeroSection() {
           </div>
 
           {/* RIGHT SIDE - Floating Student Avatars Scene */}
-          <div className="relative mx-auto w-full h-96 lg:h-[500px] order-2 lg:order-2">
+          <div className="hidden lg:block relative mx-auto w-full h-96 lg:h-[500px] order-2 lg:order-2">
             <div
               ref={sceneRef}
               className="relative w-full h-full"

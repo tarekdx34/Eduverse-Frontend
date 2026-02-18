@@ -242,59 +242,17 @@ export function NotificationCenter() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-gradient-to-br from-[#7C3AED] via-purple-600 to-pink-600 rounded-2xl p-8 text-white shadow-xl">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="flex items-center gap-3 mb-3">
-              <BellRing className="w-8 h-8" />
-              {unreadCount > 0 && (
-                <span className="bg-red-500 px-3 py-1 rounded-full text-sm font-bold">
-                  {unreadCount} New
-                </span>
-              )}
-            </div>
-            <h1 className="text-3xl font-bold mb-2">Notifications</h1>
-            <p className="text-purple-100">Stay updated with your courses, deadlines, and achievements</p>
-          </div>
-          <button
-            onClick={() => setShowSettings(!showSettings)}
-            className="p-3 bg-white/20 rounded-xl hover:bg-white/30 transition-all"
-          >
-            <Settings className="w-6 h-6" />
-          </button>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>Notifications</h1>
+          <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Stay updated with your courses, deadlines, and achievements</p>
         </div>
-
-        {/* Quick Stats */}
-        <div className="grid grid-cols-4 gap-4 mt-6">
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-            <div className="flex items-center gap-2 mb-1">
-              <Clock className="w-4 h-4 text-red-300" />
-              <span className="text-sm text-purple-200">Deadlines</span>
-            </div>
-            <p className="text-2xl font-bold">{notificationList.filter(n => n.type === 'deadline').length}</p>
-          </div>
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-            <div className="flex items-center gap-2 mb-1">
-              <AlertTriangle className="w-4 h-4 text-orange-300" />
-              <span className="text-sm text-purple-200">Warnings</span>
-            </div>
-            <p className="text-2xl font-bold">{notificationList.filter(n => n.type === 'warning').length}</p>
-          </div>
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-            <div className="flex items-center gap-2 mb-1">
-              <MessageSquare className="w-4 h-4 text-blue-300" />
-              <span className="text-sm text-purple-200">Messages</span>
-            </div>
-            <p className="text-2xl font-bold">{notificationList.filter(n => n.type === 'message').length}</p>
-          </div>
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-            <div className="flex items-center gap-2 mb-1">
-              <Award className="w-4 h-4 text-amber-300" />
-              <span className="text-sm text-purple-200">Achievements</span>
-            </div>
-            <p className="text-2xl font-bold">{notificationList.filter(n => n.type === 'achievement').length}</p>
-          </div>
-        </div>
+        <button
+          onClick={() => setShowSettings(!showSettings)}
+          className={`p-2.5 rounded-xl transition-all ${isDark ? 'bg-white/5 hover:bg-white/10' : 'bg-slate-100 hover:bg-slate-200'}`}
+        >
+          <Settings className={`w-5 h-5 ${isDark ? 'text-slate-400' : 'text-slate-600'}`} />
+        </button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

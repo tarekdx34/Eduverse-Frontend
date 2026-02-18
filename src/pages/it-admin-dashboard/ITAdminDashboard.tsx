@@ -11,6 +11,7 @@ import {
   Building2,
   MessageCircle,
   User,
+  Menu,
 } from 'lucide-react';
 import {
   DashboardOverview,
@@ -70,6 +71,7 @@ function ITAdminDashboardContent() {
   const navigate = useNavigate();
   const params = useParams();
   const [activeTab, setActiveTab] = useState<TabKey>('dashboard');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const { isDark, toggleTheme } = useTheme();
   const { language, isRTL, setLanguage, t } = useLanguage();
 
@@ -211,21 +213,29 @@ function ITAdminDashboardContent() {
       style={{ fontFamily: "'Montserrat', sans-serif" }}
       dir={isRTL ? 'rtl' : 'ltr'}
     >
-      {/* Fixed Sidebar */}
-      <div className={`fixed ${isRTL ? 'right-0' : 'left-0'} top-0 z-50 h-screen`}>
-        <DashboardSidebar
-          tabs={translatedTabs.map(tab => ({ id: tab.key, label: tab.label, icon: tab.icon }))}
-          activeTab={activeTab}
-          onTabChange={(key) => handleTabChange(key as TabKey)}
-          onLogout={() => navigate('/login')}
-          isDark={isDark}
-          isRTL={isRTL}
-          accentColor="#0891B2"
-        />
-      </div>
+      {/* Sidebar */}
+      <DashboardSidebar
+        tabs={translatedTabs.map(tab => ({ id: tab.key, label: tab.label, icon: tab.icon }))}
+        activeTab={activeTab}
+        onTabChange={(key) => handleTabChange(key as TabKey)}
+        onLogout={() => navigate('/login')}
+        isDark={isDark}
+        isRTL={isRTL}
+        accentColor="#0891B2"
+        isMobileOpen={sidebarOpen}
+        onMobileClose={() => setSidebarOpen(false)}
+      />
 
       {/* Main Content */}
-      <main className={`flex-1 ${isRTL ? 'mr-64' : 'ml-64'} p-6 lg:p-10`}>
+      <main className={`flex-1 ${isRTL ? 'lg:mr-64' : 'lg:ml-64'} p-4 lg:p-10`}>
+        {/* Mobile menu toggle */}
+        <button
+          onClick={() => setSidebarOpen(true)}
+          className={`lg:hidden mb-4 p-2 rounded-xl transition-colors ${isDark ? 'bg-white/5 hover:bg-white/10 text-slate-400' : 'bg-white border border-slate-200 hover:bg-slate-50 text-slate-600'}`}
+          aria-label="Open navigation menu"
+        >
+          <Menu className="w-6 h-6" />
+        </button>
         <DashboardHeader
           userName="IT Administrator"
           userRole="IT Admin"
@@ -355,18 +365,6 @@ function ITAdminDashboardContent() {
                 bio: 'Senior IT Administrator managing university infrastructure, server systems, network security, and technology integrations. Ensuring 99.9% uptime and system reliability.',
                 specialization: ['Infrastructure Management', 'Network Security', 'Cloud Architecture', 'DevOps', 'System Integration'],
                 skills: ['AWS', 'Azure', 'Docker', 'Kubernetes', 'Linux', 'Terraform', 'Ansible'],
-                badges: [
-                  { name: 'Uptime Hero', description: '99.9% uptime', icon: 'dns', color: '#0891B2', unlocked: true },
-                  { name: 'Security Pro', description: 'Zero breaches', icon: 'security', color: '#3B82F6', unlocked: true },
-                  { name: 'Cloud Expert', description: 'Multi-cloud', icon: 'cloud', color: '#10B981', unlocked: true },
-                  { name: 'Automator', description: '100+ scripts', icon: 'terminal', color: '#F59E0B', unlocked: true },
-                  { name: 'Architect', description: 'System redesign', icon: 'architecture', color: '#EC4899', unlocked: false },
-                  { name: 'Certified', description: 'AWS Solutions', icon: 'workspace_premium', color: '#6366F1', unlocked: false },
-                ],
-                achievements: [
-                  { title: 'Infrastructure Excellence', description: 'Yearly IT Award 2023', emoji: '🏆' },
-                  { title: 'Zero Downtime Migration', description: 'Cloud migration success', emoji: '☁️' },
-                ],
               }}
             />
           )}

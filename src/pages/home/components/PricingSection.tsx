@@ -122,7 +122,7 @@ export function PricingSection() {
           {plans.map((plan, index) => (
             <Card
               key={index}
-              className={`relative ${plan.popular ? 'border-primary shadow-lg scale-105' : ''}`}
+              className={`relative ${plan.popular ? 'border-primary shadow-lg scale-100 md:scale-105' : ''}`}
             >
               {plan.popular && (
                 <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-chart-1 to-chart-2">

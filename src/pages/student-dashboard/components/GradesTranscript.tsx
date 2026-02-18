@@ -269,7 +269,7 @@ const GradeTable = ({ semester, courses, isDark }: { semester: SemesterData; cou
         </div>
 
         {/* Search and Filter */}
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3">
           <div className="flex-1 relative">
             <Search size={16} className={`absolute left-3 top-3 ${isDark ? 'text-slate-500' : 'text-slate-500'}`} />
             <input
@@ -296,13 +296,13 @@ const GradeTable = ({ semester, courses, isDark }: { semester: SemesterData; cou
         <table className="w-full">
           <thead>
             <tr className={`border-b ${isDark ? 'bg-white/5 border-white/5' : 'bg-background-light border-slate-100'}`}>
-              <th className={`px-6 py-4 text-left text-sm font-bold ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Course Code</th>
-              <th className={`px-6 py-4 text-left text-sm font-bold ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Course Name</th>
-              <th className={`px-6 py-4 text-center text-sm font-bold ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Credits</th>
-              <th className={`px-6 py-4 text-center text-sm font-bold ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Percentage</th>
-              <th className={`px-6 py-4 text-center text-sm font-bold ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Grade</th>
-              <th className={`px-6 py-4 text-center text-sm font-bold ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Points</th>
-              <th className={`px-6 py-4 text-center text-sm font-bold ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Status</th>
+              <th className={`px-3 py-2 md:px-6 md:py-4 text-left text-sm font-bold ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Course Code</th>
+              <th className={`px-3 py-2 md:px-6 md:py-4 text-left text-sm font-bold ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Course Name</th>
+              <th className={`px-3 py-2 md:px-6 md:py-4 text-center text-sm font-bold ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Credits</th>
+              <th className={`px-3 py-2 md:px-6 md:py-4 text-center text-sm font-bold ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Percentage</th>
+              <th className={`px-3 py-2 md:px-6 md:py-4 text-center text-sm font-bold ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Grade</th>
+              <th className={`px-3 py-2 md:px-6 md:py-4 text-center text-sm font-bold ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Points</th>
+              <th className={`px-3 py-2 md:px-6 md:py-4 text-center text-sm font-bold ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Status</th>
             </tr>
           </thead>
           <tbody>
@@ -310,17 +310,17 @@ const GradeTable = ({ semester, courses, isDark }: { semester: SemesterData; cou
               const gradeColor = getGradeColor(course.grade, isDark);
               return (
                 <tr key={course.code} className={`border-b transition-colors ${isDark ? 'border-white/5 hover:bg-white/5/50' : 'border-slate-100 hover:bg-slate-50'}`}>
-                  <td className={`px-6 py-5 text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'}`}>{course.code}</td>
-                  <td className={`px-6 py-5 text-sm ${isDark ? 'text-white' : 'text-slate-800'}`}>{course.name}</td>
-                  <td className={`px-6 py-5 text-sm text-center ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{course.credits}</td>
-                  <td className={`px-6 py-5 text-sm text-center ${isDark ? 'text-white' : 'text-slate-800'}`}>{course.percentage}%</td>
-                  <td className="px-6 py-5 text-center">
+                  <td className={`px-3 py-2 md:px-6 md:py-4 text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'}`}>{course.code}</td>
+                  <td className={`px-3 py-2 md:px-6 md:py-4 text-sm ${isDark ? 'text-white' : 'text-slate-800'}`}>{course.name}</td>
+                  <td className={`px-3 py-2 md:px-6 md:py-4 text-sm text-center ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{course.credits}</td>
+                  <td className={`px-3 py-2 md:px-6 md:py-4 text-sm text-center ${isDark ? 'text-white' : 'text-slate-800'}`}>{course.percentage}%</td>
+                  <td className="px-3 py-2 md:px-6 md:py-4 text-center">
                     <div className={`inline-block px-3 py-1 rounded ${gradeColor.bg} ${gradeColor.text} text-sm font-medium border ${gradeColor.border}`}>
                       {course.grade}
                     </div>
                   </td>
-                  <td className={`px-6 py-5 text-sm font-medium text-center ${isDark ? 'text-white' : 'text-slate-800'}`}>{course.points}</td>
-                  <td className="px-6 py-5 text-center">
+                  <td className={`px-3 py-2 md:px-6 md:py-4 text-sm font-medium text-center ${isDark ? 'text-white' : 'text-slate-800'}`}>{course.points}</td>
+                  <td className="px-3 py-2 md:px-6 md:py-4 text-center">
                     <span className={`inline-block px-3 py-1 rounded text-sm font-medium ${getStatusColor(course.status, isDark)}`}>
                       {course.status}
                     </span>
@@ -332,15 +332,15 @@ const GradeTable = ({ semester, courses, isDark }: { semester: SemesterData; cou
           {/* Footer Summary */}
           <tfoot>
             <tr className={`border-t ${isDark ? 'bg-white/5 border-white/5' : 'bg-background-light border-slate-100'}`}>
-              <td colSpan={2} className={`px-6 py-4 text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'}`}>
+              <td colSpan={2} className={`px-3 py-2 md:px-6 md:py-4 text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'}`}>
                 Total
               </td>
-              <td className={`px-6 py-4 text-center text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'}`}>
+              <td className={`px-3 py-2 md:px-6 md:py-4 text-center text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'}`}>
                 {filteredCourses.reduce((sum, c) => sum + c.credits, 0)} Credits
               </td>
               <td />
               <td />
-              <td className={`px-6 py-4 text-center text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'}`}>
+              <td className={`px-3 py-2 md:px-6 md:py-4 text-center text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'}`}>
                 GPA: {semester.gpa}
               </td>
               <td />
