@@ -33,10 +33,10 @@ export function MultiCampusPage({ campuses, onAddCampus, onEditCampus, onDeleteC
       <div className="flex items-center justify-between">
         <div>
           <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-            Multi-Campus Management
+            {t('multiCampusManagement')}
           </h1>
           <p className={`mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-            Manage multiple campus configurations and settings
+            {t('multiCampusDescription')}
           </p>
         </div>
         <button
@@ -44,7 +44,7 @@ export function MultiCampusPage({ campuses, onAddCampus, onEditCampus, onDeleteC
           className="flex items-center gap-2 px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-colors"
         >
           <Plus className="w-4 h-4" />
-          Add Campus
+          {t('addCampus')}
         </button>
       </div>
 
@@ -55,7 +55,7 @@ export function MultiCampusPage({ campuses, onAddCampus, onEditCampus, onDeleteC
             <div className={`p-2 rounded-lg ${isDark ? 'bg-cyan-900/50' : 'bg-cyan-50'}`}>
               <Building2 className={`w-5 h-5 ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`} />
             </div>
-            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Total Campuses</p>
+            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('totalCampuses')}</p>
           </div>
           <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{campuses.length}</p>
         </div>
@@ -65,7 +65,7 @@ export function MultiCampusPage({ campuses, onAddCampus, onEditCampus, onDeleteC
             <div className={`p-2 rounded-lg ${isDark ? 'bg-blue-900/50' : 'bg-blue-50'}`}>
               <Users className={`w-5 h-5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
             </div>
-            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Total Students</p>
+            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('totalStudents')}</p>
           </div>
           <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
             {(totalStudents / 1000).toFixed(1)}K
@@ -77,7 +77,7 @@ export function MultiCampusPage({ campuses, onAddCampus, onEditCampus, onDeleteC
             <div className={`p-2 rounded-lg ${isDark ? 'bg-green-900/50' : 'bg-green-50'}`}>
               <BookOpen className={`w-5 h-5 ${isDark ? 'text-green-400' : 'text-green-600'}`} />
             </div>
-            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Total Instructors</p>
+            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('totalInstructors')}</p>
           </div>
           <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
             {totalInstructors.toLocaleString()}
@@ -89,7 +89,7 @@ export function MultiCampusPage({ campuses, onAddCampus, onEditCampus, onDeleteC
             <div className={`p-2 rounded-lg ${isDark ? 'bg-purple-900/50' : 'bg-purple-50'}`}>
               <HardDrive className={`w-5 h-5 ${isDark ? 'text-purple-400' : 'text-purple-600'}`} />
             </div>
-            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Total Storage</p>
+            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('totalStorage')}</p>
           </div>
           <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
             {totalStorage.toFixed(1)} TB
@@ -101,7 +101,7 @@ export function MultiCampusPage({ campuses, onAddCampus, onEditCampus, onDeleteC
       <div className={`rounded-xl border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
         <div className={`p-6 border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
           <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-            Campus Overview
+            {t('campusOverview')}
           </h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
@@ -160,19 +160,19 @@ export function MultiCampusPage({ campuses, onAddCampus, onEditCampus, onDeleteC
                   <p className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
                     {(campus.students / 1000).toFixed(1)}K
                   </p>
-                  <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Students</p>
+                  <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{t('students')}</p>
                 </div>
                 <div>
                   <p className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
                     {campus.instructors}
                   </p>
-                  <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Instructors</p>
+                  <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{t('instructors')}</p>
                 </div>
                 <div>
                   <p className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
                     {campus.storage}
                   </p>
-                  <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Storage</p>
+                  <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{t('storage')}</p>
                 </div>
               </div>
 
@@ -184,7 +184,7 @@ export function MultiCampusPage({ campuses, onAddCampus, onEditCampus, onDeleteC
                 }`}
               >
                 <Settings className="w-4 h-4" />
-                Configure
+                {t('configure')}
               </button>
             </div>
           ))}

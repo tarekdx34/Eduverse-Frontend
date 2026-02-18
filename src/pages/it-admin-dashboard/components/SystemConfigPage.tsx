@@ -33,14 +33,14 @@ export function SystemConfigPage({
   const handleSave = () => {
     onUpdateSystemSettings(settings);
     onUpdateBrandingSettings(branding);
-    alert('Settings saved successfully!');
+    alert(t('settingsSavedSuccess'));
   };
 
   const sections = [
-    { id: 'general', label: 'General Settings', icon: Settings },
-    { id: 'security', label: 'Security Policies', icon: Shield },
-    { id: 'branding', label: 'Branding & Domain', icon: Palette },
-    { id: 'session', label: 'Session Management', icon: Clock },
+    { id: 'general', label: t('generalSettings'), icon: Settings },
+    { id: 'security', label: t('securityPolicies'), icon: Shield },
+    { id: 'branding', label: t('brandingAndDomain'), icon: Palette },
+    { id: 'session', label: t('sessionManagement'), icon: Clock },
   ];
 
   return (
@@ -48,10 +48,10 @@ export function SystemConfigPage({
       <div className="flex items-center justify-between">
         <div>
           <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-            System Configuration
+            {t('systemConfig')}
           </h1>
           <p className={`mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-            Configure system settings, security policies, and branding
+            {t('systemConfigDescription')}
           </p>
         </div>
         <button
@@ -59,7 +59,7 @@ export function SystemConfigPage({
           className="flex items-center gap-2 px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-colors"
         >
           <Save className="w-4 h-4" />
-          Save Changes
+          {t('saveChanges')}
         </button>
       </div>
 
@@ -92,14 +92,14 @@ export function SystemConfigPage({
         <div className={`lg:col-span-3 rounded-xl border p-6 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
           {activeSection === 'general' && (
             <div className="space-y-6">
-              <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>General Settings</h2>
+              <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('generalSettings')}</h2>
               
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>Maintenance Mode</p>
+                    <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('maintenanceMode')}</p>
                     <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                      Temporarily disable access to the platform
+                      {t('maintenanceModeDescription')}
                     </p>
                   </div>
                   <button
@@ -112,9 +112,9 @@ export function SystemConfigPage({
 
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>Debug Mode</p>
+                    <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('debugMode')}</p>
                     <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                      Enable detailed error logging
+                      {t('debugModeDescription')}
                     </p>
                   </div>
                   <button
@@ -127,7 +127,7 @@ export function SystemConfigPage({
 
                 <div>
                   <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                    Rate Limit (requests per minute)
+                    {t('rateLimitPerMinute')}
                   </label>
                   <input
                     type="number"
@@ -143,7 +143,7 @@ export function SystemConfigPage({
 
                 <div>
                   <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                    Max File Upload Size (MB)
+                    {t('maxFileUploadSize')}
                   </label>
                   <input
                     type="number"
@@ -162,14 +162,14 @@ export function SystemConfigPage({
 
           {activeSection === 'security' && (
             <div className="space-y-6">
-              <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Security Policies</h2>
+              <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('securityPolicies')}</h2>
               
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>Two-Factor Authentication</p>
+                    <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('twoFactorAuth')}</p>
                     <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                      Require 2FA for all users
+                      {t('twoFactorAuthDescription')}
                     </p>
                   </div>
                   <button
@@ -182,7 +182,7 @@ export function SystemConfigPage({
 
                 <div>
                   <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                    Max Login Attempts
+                    {t('maxLoginAttempts')}
                   </label>
                   <input
                     type="number"
@@ -198,7 +198,7 @@ export function SystemConfigPage({
 
                 <div>
                   <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                    Password Expiry (days)
+                    {t('passwordExpiry')}
                   </label>
                   <input
                     type="number"
@@ -217,12 +217,12 @@ export function SystemConfigPage({
 
           {activeSection === 'branding' && (
             <div className="space-y-6">
-              <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Branding & Domain</h2>
+              <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('brandingAndDomain')}</h2>
               
               <div className="space-y-4">
                 <div>
                   <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                    Company Name
+                    {t('companyName')}
                   </label>
                   <input
                     type="text"
@@ -238,7 +238,7 @@ export function SystemConfigPage({
 
                 <div>
                   <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                    Support Email
+                    {t('supportEmail')}
                   </label>
                   <input
                     type="email"
@@ -255,7 +255,7 @@ export function SystemConfigPage({
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                      Primary Color
+                      {t('primaryColor')}
                     </label>
                     <div className="flex items-center gap-2">
                       <input
@@ -279,7 +279,7 @@ export function SystemConfigPage({
 
                   <div>
                     <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                      Secondary Color
+                      {t('secondaryColor')}
                     </label>
                     <div className="flex items-center gap-2">
                       <input
@@ -307,12 +307,12 @@ export function SystemConfigPage({
 
           {activeSection === 'session' && (
             <div className="space-y-6">
-              <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Session Management</h2>
+              <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('sessionManagement')}</h2>
               
               <div className="space-y-4">
                 <div>
                   <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                    Session Timeout (minutes)
+                    {t('sessionTimeout')}
                   </label>
                   <input
                     type="number"
@@ -325,26 +325,26 @@ export function SystemConfigPage({
                     }`}
                   />
                   <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                    Users will be logged out after this period of inactivity
+                    {t('sessionTimeoutDescription')}
                   </p>
                 </div>
 
                 <div className={`p-4 rounded-lg ${isDark ? 'bg-gray-700/50' : 'bg-gray-50'}`}>
                   <h3 className={`font-medium mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                    Active Sessions Overview
+                    {t('activeSessionsOverview')}
                   </h3>
                   <div className="grid grid-cols-3 gap-4 text-center">
                     <div>
                       <p className={`text-2xl font-bold ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`}>2,847</p>
-                      <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Active Now</p>
+                      <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{t('activeNow')}</p>
                     </div>
                     <div>
                       <p className={`text-2xl font-bold ${isDark ? 'text-green-400' : 'text-green-600'}`}>12,450</p>
-                      <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Today</p>
+                      <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{t('today')}</p>
                     </div>
                     <div>
                       <p className={`text-2xl font-bold ${isDark ? 'text-purple-400' : 'text-purple-600'}`}>45,200</p>
-                      <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>This Week</p>
+                      <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{t('thisWeek')}</p>
                     </div>
                   </div>
                 </div>
