@@ -51,7 +51,7 @@ const login = () => {
       {/* Login Card */}
       <div className="relative z-10 min-h-screen flex items-center justify-center px-4 bg-black/20">
         <div className="mx-auto w-full max-w-md">
-          <div className="bg-gradient-to-b from-[hsl(200,60%,95%)]/80 to-card/95 dark:from-[hsl(220,20%,14%)]/90 dark:to-[hsl(220,20%,10%)]/95 backdrop-blur-sm rounded-3xl px-4 sm:px-8 py-8 shadow-[var(--shadow-card)] border border-white/50 dark:border-white/10">
+          <div className="bg-white/95 dark:bg-gradient-to-b dark:from-[hsl(220,20%,14%)]/90 dark:to-[hsl(220,20%,10%)]/95 backdrop-blur-md rounded-3xl px-4 sm:px-8 py-8 shadow-xl border border-gray-200/60 dark:border-white/10">
             {/* Icon */}
             <div className="flex justify-center mb-6">
               <button

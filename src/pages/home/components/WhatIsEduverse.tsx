@@ -9,7 +9,7 @@ export function WhatIsEduverse() {
     <section id="about" className="py-20 lg:py-32 bg-muted/30">
       {/* Right - Text Content */}
       <div className="flex flex-col lg:flex-col items-center lg:items-center max-w-7xl mx-auto px-6 lg:px-8 gap-12">
-        <h2 className="text-3xl md:text-4xl lg:text-5xl mb-6">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl mb-6">
           {t('What is', 'ما هو')}{' '}
           <span className="bg-gradient-to-r from-chart-1 to-chart-2 bg-clip-text text-transparent">
             {t('Eduverse?', 'إيدوفيرس؟')}
