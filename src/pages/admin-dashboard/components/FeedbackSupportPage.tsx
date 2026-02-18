@@ -88,7 +88,7 @@ export function FeedbackSupportPage({ tickets, onUpdateTicket, onReplyTicket }: 
       <div className="flex items-center justify-between">
         <div>
           <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('feedback')}</h1>
-          <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Manage user feedback, reports, and support tickets</p>
+          <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('manageFeedbackSub')}</p>
         </div>
       </div>
 
@@ -101,7 +101,7 @@ export function FeedbackSupportPage({ tickets, onUpdateTicket, onReplyTicket }: 
             </div>
             <div>
               <div className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{stats.total}</div>
-              <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Total Tickets</div>
+              <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('totalTickets')}</div>
             </div>
           </div>
         </div>
@@ -112,7 +112,7 @@ export function FeedbackSupportPage({ tickets, onUpdateTicket, onReplyTicket }: 
             </div>
             <div>
               <div className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{stats.pending}</div>
-              <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Pending</div>
+              <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('pending')}</div>
             </div>
           </div>
         </div>
@@ -123,7 +123,7 @@ export function FeedbackSupportPage({ tickets, onUpdateTicket, onReplyTicket }: 
             </div>
             <div>
               <div className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{stats.inProgress}</div>
-              <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>In Progress</div>
+              <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('inProgress')}</div>
             </div>
           </div>
         </div>
@@ -134,7 +134,7 @@ export function FeedbackSupportPage({ tickets, onUpdateTicket, onReplyTicket }: 
             </div>
             <div>
               <div className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{stats.resolved}</div>
-              <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Resolved</div>
+              <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('resolved')}</div>
             </div>
           </div>
         </div>
@@ -148,7 +148,7 @@ export function FeedbackSupportPage({ tickets, onUpdateTicket, onReplyTicket }: 
               <Search className={`absolute left-3 top-1/2 -translate-y-1/2 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} size={18} />
               <input
                 type="text"
-                placeholder="Search tickets..."
+                placeholder={t('searchTickets')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className={`w-full pl-10 pr-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}
@@ -160,20 +160,20 @@ export function FeedbackSupportPage({ tickets, onUpdateTicket, onReplyTicket }: 
             onChange={(e) => setStatusFilter(e.target.value)}
             className={`px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}
           >
-            <option value="all">All Status</option>
-            <option value="pending">Pending</option>
-            <option value="inProgress">In Progress</option>
-            <option value="resolved">Resolved</option>
+            <option value="all">{t('allStatus')}</option>
+            <option value="pending">{t('pending')}</option>
+            <option value="inProgress">{t('inProgress')}</option>
+            <option value="resolved">{t('resolved')}</option>
           </select>
           <select
             value={priorityFilter}
             onChange={(e) => setPriorityFilter(e.target.value)}
             className={`px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}
           >
-            <option value="all">All Priorities</option>
-            <option value="high">High</option>
-            <option value="medium">Medium</option>
-            <option value="low">Low</option>
+            <option value="all">{t('allPriorities')}</option>
+            <option value="high">{t('high')}</option>
+            <option value="medium">{t('medium')}</option>
+            <option value="low">{t('low')}</option>
           </select>
         </div>
       </div>
@@ -207,7 +207,7 @@ export function FeedbackSupportPage({ tickets, onUpdateTicket, onReplyTicket }: 
                 </span>
                 <span className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium ${getStatusColor(ticket.status)}`}>
                   {getStatusIcon(ticket.status)}
-                  {ticket.status === 'inProgress' ? 'In Progress' : ticket.status.charAt(0).toUpperCase() + ticket.status.slice(1)}
+                  {ticket.status === 'inProgress' ? t('inProgress') : ticket.status === 'pending' ? t('pending') : t('resolved')}
                 </span>
                 <ArrowRight size={16} className={isDark ? 'text-gray-400' : 'text-gray-500'} />
               </div>
@@ -221,7 +221,7 @@ export function FeedbackSupportPage({ tickets, onUpdateTicket, onReplyTicket }: 
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className={`w-full max-w-2xl rounded-xl overflow-hidden ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
             <div className={`p-4 border-b flex items-center justify-between ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
-              <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Ticket #{selectedTicket.id}</h3>
+              <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('ticketId')} #{selectedTicket.id}</h3>
               <button
                 onClick={() => setSelectedTicket(null)}
                 className={`p-2 rounded-lg ${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
@@ -266,7 +266,7 @@ export function FeedbackSupportPage({ tickets, onUpdateTicket, onReplyTicket }: 
 
               {/* Status Update */}
               <div className="mb-6">
-                <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Update Status</label>
+                <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('updateStatus')}</label>
                 <div className="flex gap-2">
                   {['pending', 'inProgress', 'resolved'].map(status => (
                     <button
@@ -279,7 +279,7 @@ export function FeedbackSupportPage({ tickets, onUpdateTicket, onReplyTicket }: 
                       }`}
                     >
                       {getStatusIcon(status)}
-                      {status === 'inProgress' ? 'In Progress' : status.charAt(0).toUpperCase() + status.slice(1)}
+                      {status === 'inProgress' ? t('inProgress') : status === 'pending' ? t('pending') : t('resolved')}
                     </button>
                   ))}
                 </div>
@@ -287,7 +287,7 @@ export function FeedbackSupportPage({ tickets, onUpdateTicket, onReplyTicket }: 
 
               {/* Reply Form */}
               <div>
-                <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Reply</label>
+                <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('reply')}</label>
                 <textarea
                   value={replyText}
                   onChange={(e) => setReplyText(e.target.value)}
@@ -313,7 +313,7 @@ export function FeedbackSupportPage({ tickets, onUpdateTicket, onReplyTicket }: 
                 className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
               >
                 <Mail size={18} />
-                Send Reply
+                {t('sendReply')}
               </button>
             </div>
           </div>

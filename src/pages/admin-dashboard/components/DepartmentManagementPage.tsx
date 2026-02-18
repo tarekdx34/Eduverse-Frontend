@@ -49,7 +49,7 @@ export function DepartmentManagementPage({ departments, onAddDepartment, onEditD
       <div className="flex items-center justify-between">
         <div>
           <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('departmentManagement')}</h1>
-          <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Manage academic departments and their structure</p>
+          <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('manageDeptSub')}</p>
         </div>
         <button
           onClick={() => setShowAddModal(true)}
@@ -69,7 +69,7 @@ export function DepartmentManagementPage({ departments, onAddDepartment, onEditD
             </div>
             <div>
               <div className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{departments.length}</div>
-              <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Total Departments</div>
+              <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('totalDepartments')}</div>
             </div>
           </div>
         </div>
@@ -80,7 +80,7 @@ export function DepartmentManagementPage({ departments, onAddDepartment, onEditD
             </div>
             <div>
               <div className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{totalStats.students.toLocaleString()}</div>
-              <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Total Students</div>
+              <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('totalStudentsInDept')}</div>
             </div>
           </div>
         </div>
@@ -91,7 +91,7 @@ export function DepartmentManagementPage({ departments, onAddDepartment, onEditD
             </div>
             <div>
               <div className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{totalStats.courses}</div>
-              <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Total Courses</div>
+              <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('totalCourses')}</div>
             </div>
           </div>
         </div>
@@ -102,7 +102,7 @@ export function DepartmentManagementPage({ departments, onAddDepartment, onEditD
             </div>
             <div>
               <div className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{totalStats.instructors}</div>
-              <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Total Instructors</div>
+              <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('totalInstructors')}</div>
             </div>
           </div>
         </div>
@@ -116,7 +116,7 @@ export function DepartmentManagementPage({ departments, onAddDepartment, onEditD
               <Search className={`absolute left-3 top-1/2 -translate-y-1/2 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} size={18} />
               <input
                 type="text"
-                placeholder="Search departments..."
+                placeholder={t('searchDepartments')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className={`w-full pl-10 pr-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}
@@ -128,14 +128,14 @@ export function DepartmentManagementPage({ departments, onAddDepartment, onEditD
             onChange={(e) => setFacultyFilter(e.target.value)}
             className={`px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}
           >
-            <option value="all">All Faculties</option>
+            <option value="all">{t('allFaculties')}</option>
             {faculties.map(faculty => (
               <option key={faculty} value={faculty}>{faculty}</option>
             ))}
           </select>
           <button className={`flex items-center gap-2 px-4 py-2 rounded-lg border ${isDark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-200 text-gray-700 hover:bg-gray-50'}`}>
             <Download size={18} />
-            Export
+            {t('export')}
           </button>
         </div>
       </div>
@@ -158,26 +158,26 @@ export function DepartmentManagementPage({ departments, onAddDepartment, onEditD
               </div>
 
               <div className={`text-sm mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                <p className="font-medium">Head: {dept.head}</p>
+                <p className="font-medium">{t('head')}: {dept.head}</p>
               </div>
               
               <div className="grid grid-cols-3 gap-2 mb-4">
                 <div className={`text-center p-2 rounded-lg ${isDark ? 'bg-gray-700' : 'bg-gray-50'}`}>
                   <div className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{dept.courses}</div>
-                  <div className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Courses</div>
+                  <div className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{t('courses')}</div>
                 </div>
                 <div className={`text-center p-2 rounded-lg ${isDark ? 'bg-gray-700' : 'bg-gray-50'}`}>
                   <div className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{dept.students}</div>
-                  <div className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Students</div>
+                  <div className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{t('students')}</div>
                 </div>
                 <div className={`text-center p-2 rounded-lg ${isDark ? 'bg-gray-700' : 'bg-gray-50'}`}>
                   <div className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{dept.instructors}</div>
-                  <div className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Faculty</div>
+                  <div className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{t('faculty')}</div>
                 </div>
               </div>
 
               <div className={`flex items-center justify-between mb-4 p-2 rounded-lg ${isDark ? 'bg-gray-700' : 'bg-gray-50'}`}>
-                <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Budget</span>
+                <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('deptBudget')}</span>
                 <span className={`font-semibold ${isDark ? 'text-green-400' : 'text-green-600'}`}>{dept.budget}</span>
               </div>
 
@@ -187,7 +187,7 @@ export function DepartmentManagementPage({ departments, onAddDepartment, onEditD
                   className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg border ${isDark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-200 text-gray-700 hover:bg-gray-50'}`}
                 >
                   <Edit2 size={14} />
-                  Edit
+                  {t('edit')}
                 </button>
                 <button
                   onClick={() => onDeleteDepartment(dept.id)}
@@ -210,11 +210,11 @@ export function DepartmentManagementPage({ departments, onAddDepartment, onEditD
             </h2>
             <form className="space-y-4">
               <div>
-                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Department Name</label>
+                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('departmentName')}</label>
                 <input type="text" defaultValue={editingDepartment?.name} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`} />
               </div>
               <div>
-                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Faculty</label>
+                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('faculty')}</label>
                 <select defaultValue={editingDepartment?.faculty} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}>
                   <option value="Engineering">Engineering</option>
                   <option value="Science">Science</option>
@@ -224,11 +224,11 @@ export function DepartmentManagementPage({ departments, onAddDepartment, onEditD
                 </select>
               </div>
               <div>
-                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Head of Department</label>
+                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('headOfDepartment')}</label>
                 <input type="text" defaultValue={editingDepartment?.head} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`} />
               </div>
               <div>
-                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Budget</label>
+                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('deptBudget')}</label>
                 <input type="text" defaultValue={editingDepartment?.budget} placeholder="e.g., $2.5M" className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`} />
               </div>
               <div className="flex justify-end gap-3 mt-6">

@@ -71,11 +71,11 @@ export function AcademicCalendarPage({ events, onAddEvent, onEditEvent, onDelete
 
   const getEventTypeLabel = (type: string) => {
     switch (type) {
-      case 'semesterStart': return 'Semester Start';
-      case 'semesterEnd': return 'Semester End';
-      case 'registration': return 'Registration';
-      case 'holiday': return 'Holiday';
-      case 'examPeriod': return 'Exam Period';
+      case 'semesterStart': return t('semesterStart');
+      case 'semesterEnd': return t('semesterEnd');
+      case 'registration': return t('registration');
+      case 'holiday': return t('holiday');
+      case 'examPeriod': return t('examPeriod');
       default: return type;
     }
   };
@@ -92,7 +92,7 @@ export function AcademicCalendarPage({ events, onAddEvent, onEditEvent, onDelete
       <div className="flex items-center justify-between">
         <div>
           <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('academicCalendar')}</h1>
-          <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Manage academic events, holidays, and important dates</p>
+          <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('manageCalendarSub')}</p>
         </div>
         <button
           onClick={() => setShowAddModal(true)}
@@ -107,13 +107,13 @@ export function AcademicCalendarPage({ events, onAddEvent, onEditEvent, onDelete
       <div className={`p-4 rounded-xl border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex flex-wrap items-center gap-4">
-            <span className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Event Types:</span>
+            <span className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('eventTypes')}:</span>
             {[
-              { type: 'semesterStart', color: '#10b981', label: 'Semester Start' },
-              { type: 'semesterEnd', color: '#6366f1', label: 'Semester End' },
-              { type: 'registration', color: '#3b82f6', label: 'Registration' },
-              { type: 'holiday', color: '#ef4444', label: 'Holiday' },
-              { type: 'examPeriod', color: '#f59e0b', label: 'Exam Period' },
+              { type: 'semesterStart', color: '#10b981', label: t('semesterStart') },
+              { type: 'semesterEnd', color: '#6366f1', label: t('semesterEnd') },
+              { type: 'registration', color: '#3b82f6', label: t('registration') },
+              { type: 'holiday', color: '#ef4444', label: t('holiday') },
+              { type: 'examPeriod', color: '#f59e0b', label: t('examPeriod') },
             ].map(item => (
               <div key={item.type} className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
@@ -126,13 +126,13 @@ export function AcademicCalendarPage({ events, onAddEvent, onEditEvent, onDelete
               onClick={() => setViewMode('month')}
               className={`px-3 py-1 rounded-lg text-sm ${viewMode === 'month' ? 'bg-red-600 text-white' : isDark ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-700'}`}
             >
-              Month
+              {t('monthView')}
             </button>
             <button
               onClick={() => setViewMode('list')}
               className={`px-3 py-1 rounded-lg text-sm ${viewMode === 'list' ? 'bg-red-600 text-white' : isDark ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-700'}`}
             >
-              List
+              {t('listView')}
             </button>
           </div>
         </div>
@@ -222,12 +222,12 @@ export function AcademicCalendarPage({ events, onAddEvent, onEditEvent, onDelete
               onChange={(e) => setSelectedType(e.target.value)}
               className={`px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}
             >
-              <option value="all">All Event Types</option>
-              <option value="semesterStart">Semester Start</option>
-              <option value="semesterEnd">Semester End</option>
-              <option value="registration">Registration</option>
-              <option value="holiday">Holiday</option>
-              <option value="examPeriod">Exam Period</option>
+              <option value="all">{t('allEventTypes')}</option>
+              <option value="semesterStart">{t('semesterStart')}</option>
+              <option value="semesterEnd">{t('semesterEnd')}</option>
+              <option value="registration">{t('registration')}</option>
+              <option value="holiday">{t('holiday')}</option>
+              <option value="examPeriod">{t('examPeriod')}</option>
             </select>
           </div>
 
@@ -287,27 +287,27 @@ export function AcademicCalendarPage({ events, onAddEvent, onEditEvent, onDelete
             </h2>
             <form className="space-y-4">
               <div>
-                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Event Title</label>
+                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('eventTitle')}</label>
                 <input type="text" defaultValue={editingEvent?.title} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`} />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Start Date</label>
+                  <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('startDate')}</label>
                   <input type="date" defaultValue={editingEvent?.date} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`} />
                 </div>
                 <div>
-                  <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>End Date (Optional)</label>
+                  <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('endDateOptional')}</label>
                   <input type="date" defaultValue={editingEvent?.endDate || ''} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`} />
                 </div>
               </div>
               <div>
-                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Event Type</label>
+                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('eventType')}</label>
                 <select defaultValue={editingEvent?.type} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}>
-                  <option value="semesterStart">Semester Start</option>
-                  <option value="semesterEnd">Semester End</option>
-                  <option value="registration">Registration Period</option>
-                  <option value="holiday">Holiday</option>
-                  <option value="examPeriod">Exam Period</option>
+                  <option value="semesterStart">{t('semesterStart')}</option>
+                  <option value="semesterEnd">{t('semesterEnd')}</option>
+                  <option value="registration">{t('registrationPeriod')}</option>
+                  <option value="holiday">{t('holiday')}</option>
+                  <option value="examPeriod">{t('examPeriod')}</option>
                 </select>
               </div>
               <div className="flex justify-end gap-3 mt-6">

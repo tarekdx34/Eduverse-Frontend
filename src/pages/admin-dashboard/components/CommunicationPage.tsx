@@ -52,10 +52,10 @@ export function CommunicationPage({ templates, onCreateTemplate, onEditTemplate,
   });
 
   const audienceOptions = [
-    { value: 'all', label: 'All Users', count: 5420 },
-    { value: 'students', label: 'Students Only', count: 5200 },
-    { value: 'instructors', label: 'Instructors Only', count: 205 },
-    { value: 'admins', label: 'Admins Only', count: 15 },
+    { value: 'all', label: t('allUsersAudience'), count: 5420 },
+    { value: 'students', label: t('studentsOnly'), count: 5200 },
+    { value: 'instructors', label: t('instructorsOnly'), count: 205 },
+    { value: 'admins', label: t('adminsOnly'), count: 15 },
   ];
 
   const recentBroadcasts = [
@@ -79,7 +79,7 @@ export function CommunicationPage({ templates, onCreateTemplate, onEditTemplate,
       <div className="flex items-center justify-between">
         <div>
           <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('communication')}</h1>
-          <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Send broadcasts and manage notification templates</p>
+          <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('sendBroadcastsSub')}</p>
         </div>
       </div>
 
@@ -116,11 +116,11 @@ export function CommunicationPage({ templates, onCreateTemplate, onEditTemplate,
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Broadcast Form */}
           <div className={`lg:col-span-2 rounded-xl p-6 border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-            <h3 className={`text-lg font-semibold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Compose Broadcast</h3>
+            <h3 className={`text-lg font-semibold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('composeBroadcast')}</h3>
             
             <div className="space-y-4">
               <div>
-                <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Title</label>
+                <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('title')}</label>
                 <input
                   type="text"
                   value={broadcastData.title}
@@ -131,7 +131,7 @@ export function CommunicationPage({ templates, onCreateTemplate, onEditTemplate,
               </div>
 
               <div>
-                <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Message</label>
+                <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('messageBody')}</label>
                 <textarea
                   value={broadcastData.message}
                   onChange={(e) => setBroadcastData({ ...broadcastData, message: e.target.value })}
@@ -142,7 +142,7 @@ export function CommunicationPage({ templates, onCreateTemplate, onEditTemplate,
               </div>
 
               <div>
-                <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Target Audience</label>
+                <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('targetAudience')}</label>
                 <div className="grid grid-cols-2 gap-2">
                   {audienceOptions.map(option => (
                     <button
@@ -162,7 +162,7 @@ export function CommunicationPage({ templates, onCreateTemplate, onEditTemplate,
               </div>
 
               <div>
-                <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Notification Channels</label>
+                <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('notificationChannels')}</label>
                 <div className="flex gap-3">
                   {[
                     { id: 'push', label: 'Push', icon: Bell },
@@ -186,7 +186,7 @@ export function CommunicationPage({ templates, onCreateTemplate, onEditTemplate,
               </div>
 
               <div>
-                <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Send Time</label>
+                <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('sendTime')}</label>
                 <div className="flex gap-3">
                   <button
                     onClick={() => setBroadcastData({ ...broadcastData, scheduleType: 'now' })}
@@ -196,7 +196,7 @@ export function CommunicationPage({ templates, onCreateTemplate, onEditTemplate,
                         : isDark ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-200'
                     }`}
                   >
-                    <div className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>Send Now</div>
+                    <div className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('sendNow')}</div>
                   </button>
                   <button
                     onClick={() => setBroadcastData({ ...broadcastData, scheduleType: 'scheduled' })}
@@ -206,7 +206,7 @@ export function CommunicationPage({ templates, onCreateTemplate, onEditTemplate,
                         : isDark ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-200'
                     }`}
                   >
-                    <div className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>Schedule</div>
+                    <div className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('scheduleSend')}</div>
                   </button>
                 </div>
                 {broadcastData.scheduleType === 'scheduled' && (
@@ -225,14 +225,14 @@ export function CommunicationPage({ templates, onCreateTemplate, onEditTemplate,
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg border ${isDark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-200 text-gray-700 hover:bg-gray-50'}`}
                 >
                   <Eye size={18} />
-                  Preview
+                  {t('preview')}
                 </button>
                 <button
                   onClick={() => onSendBroadcast(broadcastData)}
                   className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
                 >
                   <Send size={18} />
-                  Send Broadcast
+                  {t('sendBroadcast')}
                 </button>
               </div>
             </div>
@@ -240,7 +240,7 @@ export function CommunicationPage({ templates, onCreateTemplate, onEditTemplate,
 
           {/* Recent Broadcasts */}
           <div className={`rounded-xl p-6 border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-            <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Recent Broadcasts</h3>
+            <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('recentBroadcasts')}</h3>
             <div className="space-y-4">
               {recentBroadcasts.map(broadcast => (
                 <div key={broadcast.id} className={`p-4 rounded-lg ${isDark ? 'bg-gray-700' : 'bg-gray-50'}`}>
@@ -290,7 +290,7 @@ export function CommunicationPage({ templates, onCreateTemplate, onEditTemplate,
                 </div>
                 <div className={`p-4 ${isDark ? 'bg-gray-700/50' : 'bg-gray-50'}`}>
                   <div className={`text-sm mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                    <strong>Subject:</strong> {template.subject}
+                    <strong>{t('messageSubject')}:</strong> {template.subject}
                   </div>
                   <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'} line-clamp-2`}>
                     {template.content}
@@ -302,7 +302,7 @@ export function CommunicationPage({ templates, onCreateTemplate, onEditTemplate,
                     className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg border ${isDark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-200 text-gray-700 hover:bg-gray-50'}`}
                   >
                     <Edit2 size={14} />
-                    Edit
+                    {t('edit')}
                   </button>
                   <button className={`p-2 rounded-lg border ${isDark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-200 text-gray-700 hover:bg-gray-50'}`}>
                     <Copy size={14} />
@@ -325,7 +325,7 @@ export function CommunicationPage({ templates, onCreateTemplate, onEditTemplate,
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className={`w-full max-w-md rounded-xl overflow-hidden ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
             <div className={`p-4 border-b ${isDark ? 'border-gray-700 bg-gray-700' : 'border-gray-200 bg-gray-50'}`}>
-              <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Notification Preview</h3>
+              <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('notificationPreview')}</h3>
             </div>
             <div className="p-6">
               <div className={`p-4 rounded-lg ${isDark ? 'bg-gray-700' : 'bg-gray-100'}`}>
@@ -346,7 +346,7 @@ export function CommunicationPage({ templates, onCreateTemplate, onEditTemplate,
                 onClick={() => setShowPreview(false)}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
               >
-                Close
+                {t('close')}
               </button>
             </div>
           </div>
@@ -362,11 +362,11 @@ export function CommunicationPage({ templates, onCreateTemplate, onEditTemplate,
             </h2>
             <form className="space-y-4">
               <div>
-                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Template Name</label>
+                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('templateName')}</label>
                 <input type="text" defaultValue={editingTemplate?.name} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`} />
               </div>
               <div>
-                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Type</label>
+                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('type')}</label>
                 <select defaultValue={editingTemplate?.type} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}>
                   <option value="email">Email</option>
                   <option value="push">Push Notification</option>
@@ -374,11 +374,11 @@ export function CommunicationPage({ templates, onCreateTemplate, onEditTemplate,
                 </select>
               </div>
               <div>
-                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Subject</label>
+                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('messageSubject')}</label>
                 <input type="text" defaultValue={editingTemplate?.subject} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`} />
               </div>
               <div>
-                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Content</label>
+                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('content')}</label>
                 <textarea rows={5} defaultValue={editingTemplate?.content} placeholder="Use {{name}}, {{courseName}}, {{date}} for dynamic content..." className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`} />
               </div>
               <div className="flex justify-end gap-3 mt-6">

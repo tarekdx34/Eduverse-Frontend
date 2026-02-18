@@ -47,7 +47,7 @@ export function CourseManagementPage({ courses, onAddCourse, onEditCourse, onDel
       <div className="flex items-center justify-between">
         <div>
           <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('courseManagement')}</h1>
-          <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Manage all courses across departments</p>
+          <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('manageCoursesSub')}</p>
         </div>
         <button
           onClick={() => setShowAddModal(true)}
@@ -66,7 +66,7 @@ export function CourseManagementPage({ courses, onAddCourse, onEditCourse, onDel
               <Search className={`absolute left-3 top-1/2 -translate-y-1/2 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} size={18} />
               <input
                 type="text"
-                placeholder="Search courses..."
+                placeholder={t('searchCourses')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className={`w-full pl-10 pr-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}
@@ -78,7 +78,7 @@ export function CourseManagementPage({ courses, onAddCourse, onEditCourse, onDel
             onChange={(e) => setDepartmentFilter(e.target.value)}
             className={`px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}
           >
-            <option value="all">All Departments</option>
+            <option value="all">{t('allDepartments')}</option>
             {departments.map(dept => (
               <option key={dept} value={dept}>{dept}</option>
             ))}
@@ -88,13 +88,13 @@ export function CourseManagementPage({ courses, onAddCourse, onEditCourse, onDel
             onChange={(e) => setStatusFilter(e.target.value)}
             className={`px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}
           >
-            <option value="all">All Status</option>
-            <option value="active">Active</option>
-            <option value="archived">Archived</option>
+            <option value="all">{t('allStatus')}</option>
+            <option value="active">{t('active')}</option>
+            <option value="archived">{t('archived')}</option>
           </select>
           <button className={`flex items-center gap-2 px-4 py-2 rounded-lg border ${isDark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-200 text-gray-700 hover:bg-gray-50'}`}>
             <Download size={18} />
-            Export
+            {t('export')}
           </button>
         </div>
       </div>
@@ -119,23 +119,23 @@ export function CourseManagementPage({ courses, onAddCourse, onEditCourse, onDel
               <div className="space-y-2 mb-4">
                 <div className="flex items-center gap-2 text-sm">
                   <Users size={14} className={isDark ? 'text-gray-400' : 'text-gray-500'} />
-                  <span className={isDark ? 'text-gray-300' : 'text-gray-700'}>{course.enrolled}/{course.capacity} enrolled</span>
+                  <span className={isDark ? 'text-gray-300' : 'text-gray-700'}>{course.enrolled}/{course.capacity} {t('enrolled')}</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <Clock size={14} className={isDark ? 'text-gray-400' : 'text-gray-500'} />
-                  <span className={isDark ? 'text-gray-300' : 'text-gray-700'}>{course.credits} credits</span>
+                  <span className={isDark ? 'text-gray-300' : 'text-gray-700'}>{course.credits} {t('credits')}</span>
                 </div>
               </div>
 
               <div className={`text-sm mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                <p>Instructor: {course.instructor}</p>
-                <p>Department: {course.department}</p>
+                <p>{t('courseInstructor')}: {course.instructor}</p>
+                <p>{t('department')}: {course.department}</p>
               </div>
 
               {/* Enrollment Progress */}
               <div className="mb-4">
                 <div className="flex justify-between text-xs mb-1">
-                  <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>Enrollment</span>
+                  <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>{t('enrollment')}</span>
                   <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>{Math.round((course.enrolled / course.capacity) * 100)}%</span>
                 </div>
                 <div className={`h-2 rounded-full ${isDark ? 'bg-gray-700' : 'bg-gray-200'}`}>
@@ -152,7 +152,7 @@ export function CourseManagementPage({ courses, onAddCourse, onEditCourse, onDel
                   className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg border ${isDark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-200 text-gray-700 hover:bg-gray-50'}`}
                 >
                   <Edit2 size={14} />
-                  Edit
+                  {t('edit')}
                 </button>
                 <button
                   onClick={() => onDeleteCourse(course.id)}
@@ -176,21 +176,21 @@ export function CourseManagementPage({ courses, onAddCourse, onEditCourse, onDel
             <form className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Course Code</label>
+                  <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('courseCode')}</label>
                   <input type="text" defaultValue={editingCourse?.code} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`} />
                 </div>
                 <div>
-                  <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Credits</label>
+                  <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('credits')}</label>
                   <input type="number" defaultValue={editingCourse?.credits} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`} />
                 </div>
               </div>
               <div>
-                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Course Name</label>
+                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('courseName')}</label>
                 <input type="text" defaultValue={editingCourse?.name} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`} />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Department</label>
+                  <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('department')}</label>
                   <select defaultValue={editingCourse?.department} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}>
                     <option value="Computer Science">Computer Science</option>
                     <option value="Mathematics">Mathematics</option>
@@ -200,7 +200,7 @@ export function CourseManagementPage({ courses, onAddCourse, onEditCourse, onDel
                   </select>
                 </div>
                 <div>
-                  <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Semester</label>
+                  <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('semester')}</label>
                   <select defaultValue={editingCourse?.semester} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}>
                     <option value="Fall 2025">Fall 2025</option>
                     <option value="Spring 2026">Spring 2026</option>
@@ -209,7 +209,7 @@ export function CourseManagementPage({ courses, onAddCourse, onEditCourse, onDel
                 </div>
               </div>
               <div>
-                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Capacity</label>
+                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('capacity')}</label>
                 <input type="number" defaultValue={editingCourse?.capacity} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`} />
               </div>
               <div className="flex justify-end gap-3 mt-6">
