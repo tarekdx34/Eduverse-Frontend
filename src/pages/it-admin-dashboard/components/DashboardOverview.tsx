@@ -37,10 +37,10 @@ export function DashboardOverview({ stats, serverStatus, recentActivity, onNavig
       {/* Welcome Header */}
       <div>
         <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-          IT Infrastructure Dashboard
+          {t('itInfrastructureDashboard')}
         </h1>
         <p className={`mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-          Monitor servers, APIs, and system performance in real-time
+          {t('monitorServersDescription')}
         </p>
       </div>
 
@@ -69,13 +69,13 @@ export function DashboardOverview({ stats, serverStatus, recentActivity, onNavig
         <div className={`rounded-xl border p-6 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
           <div className="flex items-center justify-between mb-4">
             <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              Server Status
+              {t('serverStatus')}
             </h2>
             <button
               onClick={() => onNavigate('monitoring')}
               className={`text-sm ${isDark ? 'text-cyan-400 hover:text-cyan-300' : 'text-cyan-600 hover:text-cyan-700'}`}
             >
-              View All
+              {t('viewAll')}
             </button>
           </div>
           <div className="space-y-3">
@@ -93,10 +93,10 @@ export function DashboardOverview({ stats, serverStatus, recentActivity, onNavig
                 </div>
                 <div className="text-right">
                   <p className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                    CPU: {server.cpu}%
+                    {t('cpu')}: {server.cpu}%
                   </p>
                   <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                    Memory: {server.memory}%
+                    {t('memory')}: {server.memory}%
                   </p>
                 </div>
               </div>
@@ -108,13 +108,13 @@ export function DashboardOverview({ stats, serverStatus, recentActivity, onNavig
         <div className={`rounded-xl border p-6 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
           <div className="flex items-center justify-between mb-4">
             <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              Recent IT Activity
+              {t('recentItActivity')}
             </h2>
             <button
               onClick={() => onNavigate('security')}
               className={`text-sm ${isDark ? 'text-cyan-400 hover:text-cyan-300' : 'text-cyan-600 hover:text-cyan-700'}`}
             >
-              View Logs
+              {t('viewLogs')}
             </button>
           </div>
           <div className="space-y-3">
@@ -140,14 +140,14 @@ export function DashboardOverview({ stats, serverStatus, recentActivity, onNavig
       {/* Quick Actions */}
       <div className={`rounded-xl border p-6 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
         <h2 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-          Quick Actions
+          {t('quickActions')}
         </h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
-            { label: 'Run Backup', icon: HardDrive, onClick: () => onNavigate('database') },
-            { label: 'View Logs', icon: Activity, onClick: () => onNavigate('security') },
-            { label: 'Check APIs', icon: Wifi, onClick: () => onNavigate('integrations') },
-            { label: 'AI Usage', icon: TrendingUp, onClick: () => onNavigate('ai') },
+            { label: t('runBackup'), icon: HardDrive, onClick: () => onNavigate('database') },
+            { label: t('viewLogs'), icon: Activity, onClick: () => onNavigate('security') },
+            { label: t('checkApis'), icon: Wifi, onClick: () => onNavigate('integrations') },
+            { label: t('aiUsage'), icon: TrendingUp, onClick: () => onNavigate('ai') },
           ].map((action, index) => (
             <button
               key={index}

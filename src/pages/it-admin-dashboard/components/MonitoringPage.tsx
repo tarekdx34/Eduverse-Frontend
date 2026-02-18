@@ -43,10 +43,10 @@ export function MonitoringPage({ serverStatus, performanceMetrics, onRefresh, on
       <div className="flex items-center justify-between">
         <div>
           <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-            Monitoring & Performance
+            {t('monitoring')}
           </h1>
           <p className={`mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-            Monitor server health, API performance, and system metrics
+            {t('monitoringDescription')}
           </p>
         </div>
         <button
@@ -54,7 +54,7 @@ export function MonitoringPage({ serverStatus, performanceMetrics, onRefresh, on
           className="flex items-center gap-2 px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-colors"
         >
           <RefreshCw className="w-4 h-4" />
-          Refresh
+          {t('refresh')}
         </button>
       </div>
 
@@ -62,37 +62,37 @@ export function MonitoringPage({ serverStatus, performanceMetrics, onRefresh, on
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className={`rounded-xl border p-6 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
           <div className="flex items-center justify-between mb-4">
-            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Avg Response Time</p>
+            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('avgResponseTime')}</p>
             <Activity className={`w-5 h-5 ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`} />
           </div>
           <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>185ms</p>
           <div className="flex items-center gap-1 mt-2">
             <TrendingDown className="w-4 h-4 text-green-500" />
-            <span className="text-sm text-green-500">-12% from last hour</span>
+            <span className="text-sm text-green-500">-12% {t('fromLastHour')}</span>
           </div>
         </div>
 
         <div className={`rounded-xl border p-6 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
           <div className="flex items-center justify-between mb-4">
-            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Error Rate</p>
+            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('errorRate')}</p>
             <AlertTriangle className={`w-5 h-5 ${isDark ? 'text-yellow-400' : 'text-yellow-600'}`} />
           </div>
           <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>0.3%</p>
           <div className="flex items-center gap-1 mt-2">
             <TrendingUp className="w-4 h-4 text-red-500" />
-            <span className="text-sm text-red-500">+0.1% from last hour</span>
+            <span className="text-sm text-red-500">+0.1% {t('fromLastHour')}</span>
           </div>
         </div>
 
         <div className={`rounded-xl border p-6 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
           <div className="flex items-center justify-between mb-4">
-            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Request Throughput</p>
+            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('requestThroughput')}</p>
             <Wifi className={`w-5 h-5 ${isDark ? 'text-green-400' : 'text-green-600'}`} />
           </div>
           <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>12.4K/min</p>
           <div className="flex items-center gap-1 mt-2">
             <TrendingUp className="w-4 h-4 text-green-500" />
-            <span className="text-sm text-green-500">+8% from last hour</span>
+            <span className="text-sm text-green-500">+8% {t('fromLastHour')}</span>
           </div>
         </div>
       </div>
@@ -101,7 +101,7 @@ export function MonitoringPage({ serverStatus, performanceMetrics, onRefresh, on
       <div className={`rounded-xl border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
         <div className={`p-6 border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
           <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-            Server Status
+            {t('serverStatus')}
           </h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
@@ -133,7 +133,7 @@ export function MonitoringPage({ serverStatus, performanceMetrics, onRefresh, on
               <div className="mb-3">
                 <div className="flex items-center justify-between mb-1">
                   <span className={`text-xs flex items-center gap-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                    <Cpu className="w-3 h-3" /> CPU
+                    <Cpu className="w-3 h-3" /> {t('cpu')}
                   </span>
                   <span className={`text-xs font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{server.cpu}%</span>
                 </div>
@@ -146,7 +146,7 @@ export function MonitoringPage({ serverStatus, performanceMetrics, onRefresh, on
               <div className="mb-3">
                 <div className="flex items-center justify-between mb-1">
                   <span className={`text-xs flex items-center gap-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                    <HardDrive className="w-3 h-3" /> Memory
+                    <HardDrive className="w-3 h-3" /> {t('memory')}
                   </span>
                   <span className={`text-xs font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{server.memory}%</span>
                 </div>
@@ -157,7 +157,7 @@ export function MonitoringPage({ serverStatus, performanceMetrics, onRefresh, on
 
               <div className="flex items-center justify-between mt-4 pt-3 border-t ${isDark ? 'border-gray-600' : 'border-gray-200'}">
                 <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                  Uptime: {server.uptime}
+                  {t('uptime')}: {server.uptime}
                 </span>
                 <button
                   onClick={() => onRestartServer(server.id)}
@@ -165,7 +165,7 @@ export function MonitoringPage({ serverStatus, performanceMetrics, onRefresh, on
                     isDark ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
                   }`}
                 >
-                  Restart
+                  {t('restart')}
                 </button>
               </div>
             </div>
@@ -176,16 +176,16 @@ export function MonitoringPage({ serverStatus, performanceMetrics, onRefresh, on
       {/* Performance Charts Placeholder */}
       <div className={`rounded-xl border p-6 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
         <h2 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-          Performance Trends (24h)
+          {t('performanceTrends24h')}
         </h2>
         <div className={`h-64 flex items-center justify-center ${isDark ? 'bg-gray-700/50' : 'bg-gray-50'} rounded-lg`}>
           <div className="text-center">
             <Activity className={`w-12 h-12 mx-auto mb-2 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
             <p className={`${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-              Performance charts will be displayed here
+              {t('performanceChartsPlaceholder')}
             </p>
             <p className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
-              Integrate with a charting library like Recharts
+              {t('integrateChartingLibrary')}
             </p>
           </div>
         </div>

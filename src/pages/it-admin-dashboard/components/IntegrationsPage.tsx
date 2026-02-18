@@ -47,10 +47,10 @@ export function IntegrationsPage({
     <div className="space-y-6">
       <div>
         <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-          Integrations & APIs
+          {t('integrations')}
         </h1>
         <p className={`mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-          Manage external service integrations and API configurations
+          {t('integrationsDescription')}
         </p>
       </div>
 
@@ -61,7 +61,7 @@ export function IntegrationsPage({
             <div className={`p-2 rounded-lg ${isDark ? 'bg-cyan-900/50' : 'bg-cyan-50'}`}>
               <Wifi className={`w-5 h-5 ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`} />
             </div>
-            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Active Integrations</p>
+            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('activeIntegrations')}</p>
           </div>
           <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
             {integrations.filter(i => i.status === 'active').length}
@@ -73,7 +73,7 @@ export function IntegrationsPage({
             <div className={`p-2 rounded-lg ${isDark ? 'bg-green-900/50' : 'bg-green-50'}`}>
               <CheckCircle className={`w-5 h-5 ${isDark ? 'text-green-400' : 'text-green-600'}`} />
             </div>
-            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Total API Calls Today</p>
+            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('totalApiCallsToday')}</p>
           </div>
           <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>245,800</p>
         </div>
@@ -83,7 +83,7 @@ export function IntegrationsPage({
             <div className={`p-2 rounded-lg ${isDark ? 'bg-purple-900/50' : 'bg-purple-50'}`}>
               <Brain className={`w-5 h-5 ${isDark ? 'text-purple-400' : 'text-purple-600'}`} />
             </div>
-            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Monthly Cost</p>
+            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('monthlyCost')}</p>
           </div>
           <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>$2,750</p>
         </div>
@@ -93,7 +93,7 @@ export function IntegrationsPage({
       <div className={`rounded-xl border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
         <div className="p-6 border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}">
           <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-            Configured Integrations
+            {t('configuredIntegrations')}
           </h2>
         </div>
 
@@ -119,7 +119,7 @@ export function IntegrationsPage({
                       </span>
                     </div>
                     <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                      Type: {integration.type}
+                      {t('type')}: {integration.type}
                     </p>
                     
                     {/* API Key */}
@@ -131,7 +131,7 @@ export function IntegrationsPage({
                             type="text"
                             value={newKey}
                             onChange={(e) => setNewKey(e.target.value)}
-                            placeholder="Enter new API key"
+                            placeholder={t('enterNewApiKey')}
                             className={`px-2 py-1 text-sm rounded border ${
                               isDark 
                                 ? 'bg-gray-700 border-gray-600 text-white' 
@@ -146,7 +146,7 @@ export function IntegrationsPage({
                             }}
                             className="text-cyan-500 text-sm hover:underline"
                           >
-                            Save
+                            {t('save')}
                           </button>
                           <button
                             onClick={() => {
@@ -155,7 +155,7 @@ export function IntegrationsPage({
                             }}
                             className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}
                           >
-                            Cancel
+                            {t('cancel')}
                           </button>
                         </div>
                       ) : (
@@ -167,7 +167,7 @@ export function IntegrationsPage({
                             onClick={() => setEditingKey(integration.id)}
                             className={`text-sm ${isDark ? 'text-cyan-400 hover:text-cyan-300' : 'text-cyan-600 hover:text-cyan-700'}`}
                           >
-                            Edit
+                            {t('edit')}
                           </button>
                         </div>
                       )}
@@ -178,7 +178,7 @@ export function IntegrationsPage({
                       <div className="mt-3">
                         <div className="flex items-center justify-between mb-1">
                           <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                            Usage: {integration.usage.toLocaleString()} / {integration.limit.toLocaleString()}
+                            {t('usage')}: {integration.usage.toLocaleString()} / {integration.limit.toLocaleString()}
                           </span>
                           <span className={`text-xs font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                             {Math.round((integration.usage / integration.limit) * 100)}%
@@ -210,7 +210,7 @@ export function IntegrationsPage({
                     className={`p-2 rounded-lg transition-colors ${
                       isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
                     }`}
-                    title="Sync"
+                    title={t('sync')}
                   >
                     <RefreshCw className={`w-4 h-4 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
                   </button>

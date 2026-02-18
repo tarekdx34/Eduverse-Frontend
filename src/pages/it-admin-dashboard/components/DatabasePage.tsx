@@ -37,10 +37,10 @@ export function DatabasePage({ backups, onRunBackup, onRestoreBackup, onDownload
     <div className="space-y-6">
       <div>
         <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-          Database Management
+          {t('database')}
         </h1>
         <p className={`mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-          Manage database backups, restores, and retention policies
+          {t('databaseDescription')}
         </p>
       </div>
 
@@ -51,7 +51,7 @@ export function DatabasePage({ backups, onRunBackup, onRestoreBackup, onDownload
             <div className={`p-2 rounded-lg ${isDark ? 'bg-cyan-900/50' : 'bg-cyan-50'}`}>
               <Database className={`w-5 h-5 ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`} />
             </div>
-            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Database Size</p>
+            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('databaseSize')}</p>
           </div>
           <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>125.8 GB</p>
         </div>
@@ -61,7 +61,7 @@ export function DatabasePage({ backups, onRunBackup, onRestoreBackup, onDownload
             <div className={`p-2 rounded-lg ${isDark ? 'bg-green-900/50' : 'bg-green-50'}`}>
               <HardDrive className={`w-5 h-5 ${isDark ? 'text-green-400' : 'text-green-600'}`} />
             </div>
-            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Backup Storage</p>
+            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('backupStorage')}</p>
           </div>
           <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>1.2 TB</p>
         </div>
@@ -71,7 +71,7 @@ export function DatabasePage({ backups, onRunBackup, onRestoreBackup, onDownload
             <div className={`p-2 rounded-lg ${isDark ? 'bg-purple-900/50' : 'bg-purple-50'}`}>
               <Clock className={`w-5 h-5 ${isDark ? 'text-purple-400' : 'text-purple-600'}`} />
             </div>
-            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Last Backup</p>
+            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('lastBackup')}</p>
           </div>
           <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>2h ago</p>
         </div>
@@ -81,7 +81,7 @@ export function DatabasePage({ backups, onRunBackup, onRestoreBackup, onDownload
             <div className={`p-2 rounded-lg ${isDark ? 'bg-orange-900/50' : 'bg-orange-50'}`}>
               <RefreshCw className={`w-5 h-5 ${isDark ? 'text-orange-400' : 'text-orange-600'}`} />
             </div>
-            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Recovery Point</p>
+            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('recoveryPoint')}</p>
           </div>
           <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>15 min</p>
         </div>
@@ -90,12 +90,12 @@ export function DatabasePage({ backups, onRunBackup, onRestoreBackup, onDownload
       {/* Run Backup Section */}
       <div className={`rounded-xl border p-6 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
         <h2 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-          Run Manual Backup
+          {t('runManualBackup')}
         </h2>
         <div className="flex items-end gap-4">
           <div className="flex-1">
             <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-              Backup Type
+              {t('backupType')}
             </label>
             <select
               value={selectedBackupType}
@@ -106,9 +106,9 @@ export function DatabasePage({ backups, onRunBackup, onRestoreBackup, onDownload
                   : 'bg-white border-gray-300 text-gray-900'
               }`}
             >
-              <option value="full">Full Backup</option>
-              <option value="incremental">Incremental Backup</option>
-              <option value="differential">Differential Backup</option>
+              <option value="full">{t('fullBackup')}</option>
+              <option value="incremental">{t('incrementalBackup')}</option>
+              <option value="differential">{t('differentialBackup')}</option>
             </select>
           </div>
           <button
@@ -116,7 +116,7 @@ export function DatabasePage({ backups, onRunBackup, onRestoreBackup, onDownload
             className="flex items-center gap-2 px-6 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-colors"
           >
             <Play className="w-4 h-4" />
-            Run Backup
+            {t('runBackup')}
           </button>
         </div>
       </div>
@@ -125,7 +125,7 @@ export function DatabasePage({ backups, onRunBackup, onRestoreBackup, onDownload
       <div className={`rounded-xl border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
         <div className={`p-6 border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
           <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-            Backup Schedule & History
+            {t('backupScheduleHistory')}
           </h2>
         </div>
         
@@ -134,25 +134,25 @@ export function DatabasePage({ backups, onRunBackup, onRestoreBackup, onDownload
             <thead>
               <tr className={isDark ? 'bg-gray-700/50' : 'bg-gray-50'}>
                 <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                  Backup Name
+                  {t('backupName')}
                 </th>
                 <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                  Schedule
+                  {t('schedule')}
                 </th>
                 <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                  Last Run
+                  {t('lastRun')}
                 </th>
                 <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                  Status
+                  {t('status')}
                 </th>
                 <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                  Size
+                  {t('size')}
                 </th>
                 <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                  Retention
+                  {t('retention')}
                 </th>
                 <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                  Actions
+                  {t('actions')}
                 </th>
               </tr>
             </thead>
@@ -191,7 +191,7 @@ export function DatabasePage({ backups, onRunBackup, onRestoreBackup, onDownload
                         className={`p-1.5 rounded-lg transition-colors ${
                           isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
                         }`}
-                        title="Download"
+                        title={t('download')}
                       >
                         <Download className={`w-4 h-4 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
                       </button>
@@ -200,7 +200,7 @@ export function DatabasePage({ backups, onRunBackup, onRestoreBackup, onDownload
                         className={`p-1.5 rounded-lg transition-colors ${
                           isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
                         }`}
-                        title="Restore"
+                        title={t('restore')}
                       >
                         <Upload className={`w-4 h-4 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
                       </button>

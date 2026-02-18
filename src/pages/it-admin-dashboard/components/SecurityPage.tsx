@@ -47,10 +47,10 @@ export function SecurityPage({ securityEvents, sslCertificates, onRenewCertifica
       <div className="flex items-center justify-between">
         <div>
           <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-            Security Management
+            {t('security')}
           </h1>
           <p className={`mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-            Monitor security events, manage certificates, and view access logs
+            {t('securityDescription')}
           </p>
         </div>
         <button
@@ -58,7 +58,7 @@ export function SecurityPage({ securityEvents, sslCertificates, onRenewCertifica
           className="flex items-center gap-2 px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-colors"
         >
           <Download className="w-4 h-4" />
-          Export Logs
+          {t('exportLogs')}
         </button>
       </div>
 
@@ -69,7 +69,7 @@ export function SecurityPage({ securityEvents, sslCertificates, onRenewCertifica
             <div className={`p-2 rounded-lg ${isDark ? 'bg-green-900/50' : 'bg-green-50'}`}>
               <Shield className={`w-5 h-5 ${isDark ? 'text-green-400' : 'text-green-600'}`} />
             </div>
-            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Security Score</p>
+            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('securityScore')}</p>
           </div>
           <p className={`text-3xl font-bold text-green-500`}>95/100</p>
         </div>
@@ -79,7 +79,7 @@ export function SecurityPage({ securityEvents, sslCertificates, onRenewCertifica
             <div className={`p-2 rounded-lg ${isDark ? 'bg-yellow-900/50' : 'bg-yellow-50'}`}>
               <AlertTriangle className={`w-5 h-5 ${isDark ? 'text-yellow-400' : 'text-yellow-600'}`} />
             </div>
-            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Active Alerts</p>
+            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('activeAlerts')}</p>
           </div>
           <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>3</p>
         </div>
@@ -89,7 +89,7 @@ export function SecurityPage({ securityEvents, sslCertificates, onRenewCertifica
             <div className={`p-2 rounded-lg ${isDark ? 'bg-cyan-900/50' : 'bg-cyan-50'}`}>
               <Lock className={`w-5 h-5 ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`} />
             </div>
-            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Failed Logins (24h)</p>
+            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('failedLogins24h')}</p>
           </div>
           <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>47</p>
         </div>
@@ -99,7 +99,7 @@ export function SecurityPage({ securityEvents, sslCertificates, onRenewCertifica
             <div className={`p-2 rounded-lg ${isDark ? 'bg-purple-900/50' : 'bg-purple-50'}`}>
               <Key className={`w-5 h-5 ${isDark ? 'text-purple-400' : 'text-purple-600'}`} />
             </div>
-            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Active Certificates</p>
+            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('activeCertificates')}</p>
           </div>
           <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{sslCertificates.length}</p>
         </div>
@@ -116,7 +116,7 @@ export function SecurityPage({ securityEvents, sslCertificates, onRenewCertifica
                 : isDark ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
-            Security Events
+            {t('securityEvents')}
           </button>
           <button
             onClick={() => setActiveTab('certificates')}
@@ -126,7 +126,7 @@ export function SecurityPage({ securityEvents, sslCertificates, onRenewCertifica
                 : isDark ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
-            SSL Certificates
+            {t('sslCertificates')}
           </button>
         </div>
 
@@ -146,7 +146,7 @@ export function SecurityPage({ securityEvents, sslCertificates, onRenewCertifica
                         {event.message}
                       </p>
                       <span className={`px-2 py-0.5 rounded text-xs font-medium ${getSeverityColor(event.severity)}`}>
-                        {event.severity}
+                        {t(event.severity)}
                       </span>
                     </div>
                     <div className="flex items-center gap-4">
@@ -172,22 +172,22 @@ export function SecurityPage({ securityEvents, sslCertificates, onRenewCertifica
               <thead>
                 <tr className={isDark ? 'bg-gray-700/50' : 'bg-gray-50'}>
                   <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                    Domain
+                    {t('domain')}
                   </th>
                   <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                    Issuer
+                    {t('issuer')}
                   </th>
                   <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                    Valid From
+                    {t('validFrom')}
                   </th>
                   <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                    Valid To
+                    {t('validTo')}
                   </th>
                   <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                    Status
+                    {t('status')}
                   </th>
                   <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                    Actions
+                    {t('actions')}
                   </th>
                 </tr>
               </thead>
@@ -213,7 +213,7 @@ export function SecurityPage({ securityEvents, sslCertificates, onRenewCertifica
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-2 py-1 rounded text-xs font-medium ${getCertStatusColor(cert.status)}`}>
-                        {cert.status}
+                        {t(cert.status)}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -224,7 +224,7 @@ export function SecurityPage({ securityEvents, sslCertificates, onRenewCertifica
                         }`}
                       >
                         <RefreshCw className="w-4 h-4" />
-                        Renew
+                        {t('renew')}
                       </button>
                     </td>
                   </tr>
