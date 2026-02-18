@@ -13,6 +13,7 @@ import {
   MessageSquare,
   MessagesSquare,
   User,
+  Menu,
 } from 'lucide-react';
 import {
   ModernDashboard,
@@ -42,19 +43,19 @@ import {
 
 type TabKey = 'dashboard' | 'courses' | 'labs' | 'grading' | 'students' | 'attendance' | 'schedule' | 'announcements' | 'discussion' | 'communication' | 'chat' | 'profile';
 
-const TABS: { key: TabKey; label: string; icon: any }[] = [
-  { key: 'dashboard', label: 'Dashboard', icon: LayoutGrid },
-  { key: 'courses', label: 'Courses', icon: BookOpen },
-  { key: 'labs', label: 'Labs', icon: Beaker },
-  { key: 'grading', label: 'Grading', icon: FileText },
-  { key: 'students', label: 'Students', icon: Users },
-  { key: 'attendance', label: 'Attendance', icon: ClipboardCheck },
-  { key: 'schedule', label: 'Schedule', icon: Calendar },
-  { key: 'announcements', label: 'Announcements', icon: Megaphone },
-  { key: 'discussion', label: 'Discussion', icon: MessagesSquare },
-  { key: 'communication', label: 'Communication', icon: MessageCircle },
-  { key: 'chat', label: 'Chat', icon: MessageSquare },
-  { key: 'profile', label: 'Profile', icon: User },
+const TABS: { key: TabKey; label: string; icon: any; group: string }[] = [
+  { key: 'dashboard', label: 'Dashboard', icon: LayoutGrid, group: 'Overview' },
+  { key: 'courses', label: 'Courses', icon: BookOpen, group: 'Teaching' },
+  { key: 'labs', label: 'Labs', icon: Beaker, group: 'Teaching' },
+  { key: 'grading', label: 'Grading', icon: FileText, group: 'Teaching' },
+  { key: 'students', label: 'Students', icon: Users, group: 'Students' },
+  { key: 'attendance', label: 'Attendance', icon: ClipboardCheck, group: 'Students' },
+  { key: 'schedule', label: 'Schedule', icon: Calendar, group: 'Schedule' },
+  { key: 'announcements', label: 'Announcements', icon: Megaphone, group: 'Schedule' },
+  { key: 'discussion', label: 'Discussion', icon: MessagesSquare, group: 'Communication' },
+  { key: 'communication', label: 'Communication', icon: MessageCircle, group: 'Communication' },
+  { key: 'chat', label: 'Chat', icon: MessageSquare, group: 'Communication' },
+  { key: 'profile', label: 'Profile', icon: User, group: 'Account' },
 ];
 
 function TADashboardContent() {
@@ -63,6 +64,7 @@ function TADashboardContent() {
   const { isDark, toggleTheme } = useTheme();
   const { language, isRTL, setLanguage, t } = useLanguage();
   const [activeTab, setActiveTab] = useState<TabKey>('dashboard');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
   const [selectedLabId, setSelectedLabId] = useState<string | null>(null);
 
@@ -116,6 +118,7 @@ function TADashboardContent() {
     id: tab.key,
     label: t(tab.key) || tab.label,
     icon: tab.icon,
+    group: tab.group,
   }));
 
   // Sync active tab with URL
@@ -150,21 +153,30 @@ function TADashboardContent() {
       style={{ fontFamily: "'Montserrat', sans-serif" }}
       dir={isRTL ? 'rtl' : 'ltr'}
     >
-      {/* Fixed Sidebar */}
-      <div className={`fixed ${isRTL ? 'right-0' : 'left-0'} top-0 z-50 h-screen`}>
-        <DashboardSidebar
-          tabs={translatedTabs}
-          activeTab={activeTab}
-          onTabChange={(key) => handleTabChange(key as TabKey)}
-          onLogout={() => navigate('/login')}
-          isDark={isDark}
-          isRTL={isRTL}
-          accentColor="#2563EB"
-        />
-      </div>
+      {/* Sidebar */}
+      <DashboardSidebar
+        tabs={translatedTabs}
+        activeTab={activeTab}
+        onTabChange={(key) => handleTabChange(key as TabKey)}
+        onLogout={() => navigate('/login')}
+        isDark={isDark}
+        isRTL={isRTL}
+        accentColor="#2563EB"
+        isMobileOpen={sidebarOpen}
+        onMobileClose={() => setSidebarOpen(false)}
+        groupOrder={['Overview', 'Teaching', 'Students', 'Schedule', 'Communication', 'Account']}
+      />
 
       {/* Main Content */}
-      <main className={`flex-1 ${isRTL ? 'mr-64' : 'ml-64'} p-6 lg:p-10`}>
+      <main className={`flex-1 ${isRTL ? 'lg:mr-64' : 'lg:ml-64'} p-4 lg:p-10`}>
+        {/* Mobile menu toggle */}
+        <button
+          onClick={() => setSidebarOpen(true)}
+          className={`lg:hidden mb-4 p-2 rounded-xl transition-colors ${isDark ? 'bg-white/5 hover:bg-white/10 text-slate-400' : 'bg-white border border-slate-200 hover:bg-slate-50 text-slate-600'}`}
+          aria-label="Open navigation menu"
+        >
+          <Menu className="w-6 h-6" />
+        </button>
         <DashboardHeader
           userName="Ahmed Hassan"
           userRole="Teaching Assistant"
@@ -266,18 +278,6 @@ function TADashboardContent() {
               bio: 'Graduate teaching assistant pursuing M.Sc. in Computer Science. Assisting in programming and data structures courses while conducting research in distributed systems.',
               interests: ['Distributed Systems', 'Cloud Computing', 'Data Structures', 'Algorithms', 'Teaching Pedagogy'],
               skills: ['Java', 'Python', 'C++', 'Docker', 'Kubernetes', 'Linux'],
-              badges: [
-                { name: 'Star TA', description: '4.9 rating', icon: 'star', color: '#2563EB', unlocked: true },
-                { name: 'Grading Pro', description: '500+ graded', icon: 'grading', color: '#3B82F6', unlocked: true },
-                { name: 'Lab Expert', description: '100 sessions', icon: 'science', color: '#10B981', unlocked: true },
-                { name: 'Responsive', description: '<1hr reply', icon: 'speed', color: '#F59E0B', unlocked: true },
-                { name: 'Researcher', description: 'First paper', icon: 'article', color: '#EC4899', unlocked: false },
-                { name: 'Innovator', description: 'New curriculum', icon: 'lightbulb', color: '#6366F1', unlocked: false },
-              ],
-              achievements: [
-                { title: 'Outstanding TA Award', description: 'Spring 2024 Semester', emoji: '🏆' },
-                { title: 'Student Choice Award', description: 'Voted by CS students', emoji: '⭐' },
-              ],
             }}
           />
         )}

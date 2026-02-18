@@ -106,7 +106,7 @@ export function DashboardOverview({ stats, analytics, recentActivity, onNavigate
       {/* System Health Banner */}
       <div
         className="rounded-xl p-6 text-white relative overflow-hidden"
-        style={{ background: 'linear-gradient(135deg, #ef4444 0%, #f97316 100%)' }}
+        style={{ background: isDark ? 'linear-gradient(135deg, #991b1b 0%, #9a3412 100%)' : 'linear-gradient(135deg, #ef4444 0%, #f97316 100%)' }}
       >
         <div className="flex items-start justify-between">
           <div className="flex-1">
@@ -233,10 +233,10 @@ export function DashboardOverview({ stats, analytics, recentActivity, onNavigate
               {recentActivity.slice(0, 4).map((activity, index) => (
                 <div key={index} className={`flex items-start gap-3 p-3 rounded-lg ${isDark ? 'bg-gray-700' : 'bg-gray-50'}`}>
                   <div className={`p-2 rounded-lg ${
-                    activity.type === 'user' ? 'bg-blue-100 text-blue-600' :
-                    activity.type === 'course' ? 'bg-green-100 text-green-600' :
-                    activity.type === 'alert' ? 'bg-red-100 text-red-600' :
-                    'bg-purple-100 text-purple-600'
+                    activity.type === 'user' ? (isDark ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-600') :
+                    activity.type === 'course' ? (isDark ? 'bg-green-500/20 text-green-400' : 'bg-green-100 text-green-600') :
+                    activity.type === 'alert' ? (isDark ? 'bg-red-500/20 text-red-400' : 'bg-red-100 text-red-600') :
+                    (isDark ? 'bg-purple-500/20 text-purple-400' : 'bg-purple-100 text-purple-600')
                   }`}>
                     {activity.type === 'user' ? <Users size={14} /> :
                      activity.type === 'course' ? <BookOpen size={14} /> :

@@ -17,10 +17,10 @@ export function SecurityPage({ securityEvents, sslCertificates, onRenewCertifica
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
-      case 'high': return 'bg-red-100 text-red-700';
-      case 'medium': return 'bg-yellow-100 text-yellow-700';
-      case 'low': return 'bg-green-100 text-green-700';
-      default: return 'bg-gray-100 text-gray-700';
+      case 'high': return isDark ? 'bg-red-500/20 text-red-300' : 'bg-red-100 text-red-700';
+      case 'medium': return isDark ? 'bg-yellow-500/20 text-yellow-300' : 'bg-yellow-100 text-yellow-700';
+      case 'low': return isDark ? 'bg-green-500/20 text-green-300' : 'bg-green-100 text-green-700';
+      default: return isDark ? 'bg-gray-500/20 text-gray-300' : 'bg-gray-100 text-gray-700';
     }
   };
 
@@ -35,10 +35,10 @@ export function SecurityPage({ securityEvents, sslCertificates, onRenewCertifica
 
   const getCertStatusColor = (status: string) => {
     switch (status) {
-      case 'valid': return 'bg-green-100 text-green-700';
-      case 'expiring': return 'bg-yellow-100 text-yellow-700';
-      case 'expired': return 'bg-red-100 text-red-700';
-      default: return 'bg-gray-100 text-gray-700';
+      case 'valid': return isDark ? 'bg-green-500/20 text-green-300' : 'bg-green-100 text-green-700';
+      case 'expiring': return isDark ? 'bg-yellow-500/20 text-yellow-300' : 'bg-yellow-100 text-yellow-700';
+      case 'expired': return isDark ? 'bg-red-500/20 text-red-300' : 'bg-red-100 text-red-700';
+      default: return isDark ? 'bg-gray-500/20 text-gray-300' : 'bg-gray-100 text-gray-700';
     }
   };
 

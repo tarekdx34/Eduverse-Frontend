@@ -65,7 +65,7 @@ export function GamificationSection() {
         </div>
 
         {/* Main Grid Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {/* Left Column: Leaderboard Card */}
           <div className="lg:col-span-1">
             <div className="flex flex-col items-stretch justify-start rounded-xl shadow-sm border border-border bg-card h-full p-6">
@@ -118,7 +118,7 @@ export function GamificationSection() {
           </div>
 
           {/* Right Column: Achievements & Progress */}
-          <div className="lg:col-span-2 flex flex-col gap-8">
+          <div className="md:col-span-2 lg:col-span-2 flex flex-col gap-8">
             {/* Achievement Badges Card */}
             <div className="p-6 rounded-xl shadow-sm border border-border bg-card">
               <h3 className="text-foreground text-lg font-bold leading-tight mb-4">

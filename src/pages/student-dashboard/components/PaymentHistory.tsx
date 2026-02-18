@@ -49,23 +49,23 @@ export default function PaymentHistory({ payments = defaultPayments }: PaymentHi
         <table className="w-full text-sm">
           <thead className={`border-b ${isDark ? 'border-white/5' : 'border-slate-100'}`}>
             <tr>
-              <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-slate-400' : 'text-slate-700'}`}>{t('paymentId')}</th>
-              <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-slate-400' : 'text-slate-700'}`}>{t('paymentCategory')}</th>
-              <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-slate-400' : 'text-slate-700'}`}>{t('date')}</th>
-              <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-slate-400' : 'text-slate-700'}`}>{t('paymentStatus')}</th>
-              <th className={`text-left py-3 px-4 font-semibold ${isDark ? 'text-slate-400' : 'text-slate-700'}`} />
+              <th className={`text-left py-2 px-2 md:py-3 md:px-4 font-semibold ${isDark ? 'text-slate-400' : 'text-slate-700'}`}>{t('paymentId')}</th>
+              <th className={`text-left py-2 px-2 md:py-3 md:px-4 font-semibold ${isDark ? 'text-slate-400' : 'text-slate-700'}`}>{t('paymentCategory')}</th>
+              <th className={`text-left py-2 px-2 md:py-3 md:px-4 font-semibold ${isDark ? 'text-slate-400' : 'text-slate-700'}`}>{t('date')}</th>
+              <th className={`text-left py-2 px-2 md:py-3 md:px-4 font-semibold ${isDark ? 'text-slate-400' : 'text-slate-700'}`}>{t('paymentStatus')}</th>
+              <th className={`text-left py-2 px-2 md:py-3 md:px-4 font-semibold ${isDark ? 'text-slate-400' : 'text-slate-700'}`} />
             </tr>
           </thead>
           <tbody>
             {payments.map((payment) => (
               <tr key={payment.id} className={`border-b transition-colors ${isDark ? 'border-white/5 hover:bg-white/5/50' : 'border-slate-100 hover:bg-slate-50'}`}>
-                <td className={`py-4 px-4 ${isDark ? 'text-slate-400' : ''}`}>{payment.id}</td>
-                <td className={`py-4 px-4 ${isDark ? 'text-slate-400' : ''}`}>{payment.category}</td>
-                <td className={`py-4 px-4 ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{payment.date}</td>
-                <td className="py-4 px-4">
+                <td className={`py-2 px-2 md:py-4 md:px-4 ${isDark ? 'text-slate-400' : ''}`}>{payment.id}</td>
+                <td className={`py-2 px-2 md:py-4 md:px-4 ${isDark ? 'text-slate-400' : ''}`}>{payment.category}</td>
+                <td className={`py-2 px-2 md:py-4 md:px-4 ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{payment.date}</td>
+                <td className="py-2 px-2 md:py-4 md:px-4">
                   <span className={`inline-block px-3 py-1 text-xs font-medium rounded ${getStatusColor(payment.status, isDark)}`}>{payment.status}</span>
                 </td>
-                <td className={`py-4 px-4 cursor-pointer ${isDark ? 'text-slate-500 hover:text-slate-400' : 'text-slate-500 hover:text-slate-600'}`}>⋯</td>
+                <td className={`py-2 px-2 md:py-4 md:px-4 cursor-pointer ${isDark ? 'text-slate-500 hover:text-slate-400' : 'text-slate-500 hover:text-slate-600'}`}>⋯</td>
               </tr>
             ))}
           </tbody>

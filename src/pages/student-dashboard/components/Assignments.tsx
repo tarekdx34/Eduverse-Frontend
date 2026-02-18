@@ -245,82 +245,12 @@ export default function Assignments() {
 
   return (
     <div className="space-y-8">
-      {/* Hero Banner */}
-      <div className="bg-gradient-to-br from-[#7C3AED] via-purple-600 to-pink-600 rounded-2xl p-8 text-white shadow-xl">
-        <div className="max-w-4xl">
-          <div className="flex items-center gap-2 mb-3">
-            <Target className="w-6 h-6" />
-            <span className="text-sm bg-white/20 px-3 py-1 rounded-full">{t('assignmentTracker')}</span>
-          </div>
-          <h1 className="text-3xl mb-3 font-bold">{t('stayOnTop')}</h1>
-          <p className="text-purple-100 text-lg">
-            Track your progress, manage deadlines, and achieve your academic goals with confidence
-          </p>
-        </div>
-      </div>
-
-      {/* Enhanced Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="glass rounded-[2.5rem] p-6 hover:shadow-lg transition-shadow">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <p className={`text-sm mb-1 ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{t('totalAssignments')}</p>
-              <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{assignments.length}</p>
-            </div>
-            <div className="w-14 h-14 bg-gradient-to-br from-[#7C3AED] to-[#7C3AED] rounded-xl flex items-center justify-center shadow-lg">
-              <FileText className="w-7 h-7 text-white" />
-            </div>
-          </div>
-          <div className={`flex items-center gap-1 text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
-            <span>{t('thisSemester')}</span>
-          </div>
-        </div>
-
-        <div className="glass rounded-[2.5rem] p-6 hover:shadow-lg transition-shadow">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <p className={`text-sm mb-1 ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{t('activeTasks')}</p>
-              <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{pendingAssignments.length}</p>
-            </div>
-            <div className="w-14 h-14 bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl flex items-center justify-center shadow-lg">
-              <AlertCircle className="w-7 h-7 text-white" />
-            </div>
-          </div>
-          <div className="flex items-center gap-1 text-sm text-amber-600">
-            <TrendingUp className="w-4 h-4" />
-            <span>{t('needsAttention')}</span>
-          </div>
-        </div>
-
-        <div className="glass rounded-[2.5rem] p-6 hover:shadow-lg transition-shadow">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <p className={`text-sm mb-1 ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{t('completionRate')}</p>
-              <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{Math.round((completedAssignments.length / assignments.length) * 100)}%</p>
-            </div>
-            <div className="w-14 h-14 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
-              <CheckCircle className="w-7 h-7 text-white" />
-            </div>
-          </div>
-          <div className="flex items-center gap-1 text-sm text-emerald-600">
-            <span>{completedAssignments.length}/{assignments.length} completed</span>
-          </div>
-        </div>
-
-        <div className="glass rounded-[2.5rem] p-6 hover:shadow-lg transition-shadow">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <p className={`text-sm mb-1 ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{t('averageScore')}</p>
-              <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{avgScore}%</p>
-            </div>
-            <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-              <Award className="w-7 h-7 text-white" />
-            </div>
-          </div>
-          <div className="flex items-center gap-1 text-sm text-purple-600">
-            <span>{earnedPoints}/{totalPoints} points earned</span>
-          </div>
-        </div>
+      {/* Page Header */}
+      <div>
+        <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{t('stayOnTop')}</h1>
+        <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+          Track your progress, manage deadlines, and achieve your academic goals
+        </p>
       </div>
 
       {/* Active Assignments */}
@@ -331,7 +261,7 @@ export default function Assignments() {
               <h2 className={`font-semibold mb-1 ${isDark ? 'text-white' : 'text-slate-800'}`}>{t('activeAssignments')}</h2>
               <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{t('trackManageWork')}</p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               <button className={`flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl text-sm transition-all ${isDark ? 'border-white/10 text-slate-400 hover:bg-white/5' : 'border-slate-100 text-slate-700 hover:bg-slate-50'}`}>
                 <SlidersHorizontal className="w-4 h-4" />
                 Filter
@@ -402,7 +332,7 @@ export default function Assignments() {
                       </div>
                     </div>
 
-                    <div className={`grid grid-cols-3 gap-2 mb-3 rounded-xl p-3 border ${isDark ? 'bg-white/5 border-white/10' : 'bg-background-light border-slate-100'}`}>
+                    <div className={`grid grid-cols-1 sm:grid-cols-3 gap-2 mb-3 rounded-xl p-3 border ${isDark ? 'bg-white/5 border-white/10' : 'bg-background-light border-slate-100'}`}>
                       <div>
                         <div className="flex items-center gap-1.5 mb-1">
                           <Calendar className="w-3 h-3 text-[#7C3AED]" />

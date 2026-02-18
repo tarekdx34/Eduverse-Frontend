@@ -211,69 +211,9 @@ export function Gamification() {
   return (
     <div className="space-y-6" dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Header */}
-      <div className="bg-gradient-to-br from-amber-500 via-orange-500 to-red-500 rounded-2xl p-8 text-white shadow-xl">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="flex items-center gap-3 mb-3">
-              <Trophy className="w-8 h-8" />
-              <span className="text-sm bg-white/20 px-3 py-1 rounded-full">{t('level')} {currentLevel}</span>
-            </div>
-            <h1 className="text-3xl font-bold mb-2">{t('gamificationAchievements')}</h1>
-            <p className="text-amber-100">{isRTL ? 'اكسب نقاط، افتح شارات، وتسلق لوحة المتصدرين!' : 'Earn points, unlock badges, and climb the leaderboard!'}</p>
-          </div>
-          <div className={`${isRTL ? 'text-left' : 'text-right'}`}>
-            <div className="text-5xl font-bold mb-1">{currentPoints.toLocaleString()}</div>
-            <p className="text-amber-200">{t('totalPoints')}</p>
-          </div>
-        </div>
-        
-        <div className="mt-6 grid grid-cols-4 gap-4">
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-            <div className="flex items-center gap-2 mb-2">
-              <Flame className="w-5 h-5 text-orange-300" />
-              <span className="text-sm text-amber-200">{t('streak')}</span>
-            </div>
-            <p className="text-2xl font-bold">{streak} {isRTL ? 'يوم' : 'days'}</p>
-          </div>
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-            <div className="flex items-center gap-2 mb-2">
-              <Medal className="w-5 h-5 text-amber-300" />
-              <span className="text-sm text-amber-200">{t('achievements')}</span>
-            </div>
-            <p className="text-2xl font-bold">{unlockedAchievements}/{achievements.length}</p>
-          </div>
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-            <div className="flex items-center gap-2 mb-2">
-              <TrendingUp className="w-5 h-5 text-green-300" />
-              <span className="text-sm text-amber-200">{t('rank')}</span>
-            </div>
-            <p className="text-2xl font-bold">#5</p>
-          </div>
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-            <div className="flex items-center gap-2 mb-2">
-              <Star className="w-5 h-5 text-yellow-300" />
-              <span className="text-sm text-amber-200">{t('xpToNextLevel')}</span>
-            </div>
-            <p className="text-2xl font-bold">{pointsToNextLevel - currentPoints} {isRTL ? 'نقطة' : 'pts'}</p>
-          </div>
-        </div>
-
-        {/* Level Progress */}
-        <div className="mt-6">
-          <div className="flex items-center justify-between text-sm mb-2">
-            <span>{t('level')} {currentLevel}</span>
-            <span>{t('level')} {currentLevel + 1}</span>
-          </div>
-          <div className="w-full bg-white/20 rounded-full h-3">
-            <div 
-              className="bg-gradient-to-r from-yellow-300 to-orange-300 h-3 rounded-full transition-all"
-              style={{ width: `${(currentPoints / pointsToNextLevel) * 100}%` }}
-            />
-          </div>
-          <p className="text-sm text-amber-200 mt-2 text-center">
-            {currentPoints.toLocaleString()} / {pointsToNextLevel.toLocaleString()} XP
-          </p>
-        </div>
+      <div>
+        <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{t('gamificationAchievements')}</h1>
+        <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{isRTL ? 'اكسب نقاط، افتح شارات، وتسلق لوحة المتصدرين!' : 'Earn points, unlock badges, and climb the leaderboard!'}</p>
       </div>
 
       {/* Tabs */}

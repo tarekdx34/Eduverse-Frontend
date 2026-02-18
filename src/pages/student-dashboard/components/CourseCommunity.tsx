@@ -202,28 +202,9 @@ export function CourseCommunity() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-gradient-to-br from-[#7C3AED] via-purple-600 to-pink-600 rounded-2xl p-8 text-white shadow-xl">
-        <div className="flex items-center gap-3 mb-3">
-          <Users className="w-8 h-8" />
-          <span className="text-sm bg-white/20 px-3 py-1 rounded-full">Course Communities</span>
-        </div>
-        <h1 className="text-3xl font-bold mb-2">Connect & Collaborate</h1>
-        <p className="text-purple-100 text-lg">Join discussions, ask questions, and learn together with your classmates</p>
-        
-        <div className="grid grid-cols-3 gap-4 mt-6">
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-            <p className="text-sm text-purple-200 mb-1">Communities Joined</p>
-            <p className="text-2xl font-bold">{communities.filter(c => c.joined).length}</p>
-          </div>
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-            <p className="text-sm text-purple-200 mb-1">Your Posts</p>
-            <p className="text-2xl font-bold">12</p>
-          </div>
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-            <p className="text-sm text-purple-200 mb-1">Helpful Answers</p>
-            <p className="text-2xl font-bold">8</p>
-          </div>
-        </div>
+      <div>
+        <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>Connect & Collaborate</h1>
+        <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Join discussions, ask questions, and learn together with your classmates</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">

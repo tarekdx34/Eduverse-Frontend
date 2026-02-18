@@ -16,6 +16,7 @@ import {
   Bell,
   Settings,
 } from 'lucide-react';
+import { useTheme } from '../contexts/ThemeContext';
 import {
   FileUploadDropzone,
   CourseRegistrationPeriod,
@@ -51,6 +52,7 @@ type CourseDetailProps = {
 };
 
 export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
+  const { isDark } = useTheme();
   const [activeTab, setActiveTab] = useState('overview');
 
   // Get actual course data
@@ -58,9 +60,9 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
 
   if (!course) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className={`min-h-screen ${isDark ? 'bg-transparent' : 'bg-gray-50'} flex items-center justify-center`}>
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Course not found</h2>
+          <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'} mb-2`}>Course not found</h2>
           <button onClick={onBack} className="text-indigo-600 hover:text-indigo-700 font-medium">
             ← Back to Courses
           </button>
@@ -150,30 +152,30 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className={`min-h-screen ${isDark ? 'bg-transparent' : 'bg-gray-50'}`}>
       {/* Header */}
-      <div className="bg-white border-b border-gray-200">
+      <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} border-b`}>
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <button
                 onClick={onBack}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className={`p-2 ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'} rounded-lg transition-colors`}
               >
-                <ArrowLeft size={20} className="text-gray-600" />
+                <ArrowLeft size={20} className={isDark ? 'text-slate-400' : 'text-gray-600'} />
               </button>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-semibold">
                   E
                 </div>
-                <span className="text-sm text-gray-600">EduVerse</span>
+                <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>EduVerse</span>
               </div>
             </div>
 
             <div className="flex items-center gap-3">
               <div className="text-right">
-                <div className="text-sm font-medium text-gray-900">{instructor.name}</div>
-                <div className="text-xs text-gray-500">{instructor.department}</div>
+                <div className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{instructor.name}</div>
+                <div className={`text-xs ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>{instructor.department}</div>
               </div>
               <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center text-white font-semibold">
                 {instructor.avatar}
@@ -184,17 +186,17 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
       </div>
 
       {/* Course Title */}
-      <div className="bg-white border-b border-gray-200">
+      <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} border-b`}>
         <div className="max-w-7xl mx-auto px-6 py-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">{course.courseName}</h1>
-          <p className="text-gray-600">
+          <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'} mb-2`}>{course.courseName}</h1>
+          <p className={isDark ? 'text-slate-400' : 'text-gray-600'}>
             Manage lectures, assignments, materials, students, analytics, and announcements.
           </p>
         </div>
       </div>
 
       {/* Tabs - Fixed scrollbar issue */}
-      <div className="bg-white border-b border-gray-200">
+      <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} border-b`}>
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex items-center gap-6 -mb-px">
             {tabs.map((tab) => (
@@ -204,7 +206,7 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                 className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-colors whitespace-nowrap ${
                   activeTab === tab.id
                     ? 'border-indigo-600 text-indigo-600'
-                    : 'border-transparent text-gray-600 hover:text-gray-900'
+                    : `border-transparent ${isDark ? 'text-slate-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`
                 }`}
               >
                 <tab.icon size={18} />
@@ -222,25 +224,25 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
           <>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Course Summary */}
-              <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+              <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}>
                 <div className="flex items-center gap-3 mb-6">
                   <div className="p-2 bg-blue-100 rounded-lg">
                     <Users className="text-blue-600" size={20} />
                   </div>
-                  <h3 className="font-semibold text-gray-900">Course Summary</h3>
+                  <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Course Summary</h3>
                 </div>
 
                 <div className="space-y-4">
                   <div>
-                    <div className="text-sm text-gray-600 mb-1">Students</div>
-                    <div className="text-2xl font-bold text-gray-900">{course.enrolled}</div>
+                    <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'} mb-1`}>Students</div>
+                    <div className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{course.enrolled}</div>
                   </div>
                   <div>
-                    <div className="text-sm text-gray-600 mb-1">Average Grade</div>
-                    <div className="text-2xl font-bold text-gray-900">{course.averageGrade}%</div>
+                    <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'} mb-1`}>Average Grade</div>
+                    <div className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{course.averageGrade}%</div>
                   </div>
                   <div>
-                    <div className="text-sm text-gray-600 mb-1">Engagement</div>
+                    <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'} mb-1`}>Engagement</div>
                     <div className="text-2xl font-bold text-green-600">
                       {course.attendanceRate}%
                     </div>
@@ -249,44 +251,44 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
               </div>
 
               {/* Upcoming Events */}
-              <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+              <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}>
                 <div className="flex items-center gap-3 mb-6">
                   <div className="p-2 bg-purple-100 rounded-lg">
                     <Calendar className="text-purple-600" size={20} />
                   </div>
-                  <h3 className="font-semibold text-gray-900">Upcoming Events</h3>
+                  <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Upcoming Events</h3>
                 </div>
 
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <span className="text-sm text-gray-900">Lecture</span>
-                    <span className="text-sm text-gray-600">May 12</span>
+                  <div className={`flex items-center justify-between p-3 ${isDark ? 'bg-transparent' : 'bg-gray-50'} rounded-lg`}>
+                    <span className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>Lecture</span>
+                    <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>May 12</span>
                   </div>
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <span className="text-sm text-gray-900">Quiz</span>
-                    <span className="text-sm text-gray-600">May 13</span>
+                  <div className={`flex items-center justify-between p-3 ${isDark ? 'bg-transparent' : 'bg-gray-50'} rounded-lg`}>
+                    <span className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>Quiz</span>
+                    <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>May 13</span>
                   </div>
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <span className="text-sm text-gray-900">Office Hour</span>
-                    <span className="text-sm text-gray-600">May 14</span>
+                  <div className={`flex items-center justify-between p-3 ${isDark ? 'bg-transparent' : 'bg-gray-50'} rounded-lg`}>
+                    <span className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>Office Hour</span>
+                    <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>May 14</span>
                   </div>
                 </div>
               </div>
 
               {/* AI Insights */}
-              <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border border-green-200 shadow-sm">
+              <div className={`${isDark ? 'bg-gradient-to-br from-green-500/10 to-emerald-500/10 border-green-500/20' : 'bg-gradient-to-br from-green-50 to-emerald-50 border-green-200'} rounded-xl p-6 border shadow-sm`}>
                 <div className="flex items-center gap-3 mb-6">
                   <div className="p-2 bg-green-100 rounded-lg">
                     <TrendingUp className="text-green-600" size={20} />
                   </div>
-                  <h3 className="font-semibold text-gray-900">AI Insights</h3>
+                  <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>AI Insights</h3>
                 </div>
 
                 <div className="space-y-4">
-                  <div className="text-sm text-gray-700">
+                  <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-700'}`}>
                     Students struggled with {course.courseName.split(' ')[0]} concepts last week.
                   </div>
-                  <div className="text-sm text-green-700 font-medium">
+                  <div className={`text-sm font-medium ${isDark ? 'text-green-300' : 'text-green-700'}`}>
                     Engagement improved by 5%
                   </div>
                   <button className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium">
@@ -298,29 +300,29 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
             </div>
 
             {/* Recent Activity */}
-            <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm mt-6">
-              <h3 className="font-semibold text-gray-900 mb-6">Recent Activity</h3>
+            <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm mt-6`}>
+              <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'} mb-6`}>Recent Activity</h3>
               <div className="space-y-4">
-                <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
-                  <div className="px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                <div className={`flex items-center gap-4 p-4 ${isDark ? 'bg-transparent' : 'bg-gray-50'} rounded-lg`}>
+                  <div className={`px-3 py-1 rounded-full text-xs font-medium ${isDark ? 'bg-blue-500/20 text-blue-300' : 'bg-blue-100 text-blue-700'}`}>
                     New assignment submitted
                   </div>
-                  <span className="text-sm text-gray-900">John Smith</span>
-                  <span className="text-sm text-gray-500 ml-auto">2 hours ago</span>
+                  <span className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>John Smith</span>
+                  <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-500'} ml-auto`}>2 hours ago</span>
                 </div>
-                <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
-                  <div className="px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700">
+                <div className={`flex items-center gap-4 p-4 ${isDark ? 'bg-transparent' : 'bg-gray-50'} rounded-lg`}>
+                  <div className={`px-3 py-1 rounded-full text-xs font-medium ${isDark ? 'bg-purple-500/20 text-purple-300' : 'bg-purple-100 text-purple-700'}`}>
                     Quiz completed
                   </div>
-                  <span className="text-sm text-gray-900">15 students</span>
-                  <span className="text-sm text-gray-500 ml-auto">4 hours ago</span>
+                  <span className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>15 students</span>
+                  <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-500'} ml-auto`}>4 hours ago</span>
                 </div>
-                <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
-                  <div className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                <div className={`flex items-center gap-4 p-4 ${isDark ? 'bg-transparent' : 'bg-gray-50'} rounded-lg`}>
+                  <div className={`px-3 py-1 rounded-full text-xs font-medium ${isDark ? 'bg-green-500/20 text-green-300' : 'bg-green-100 text-green-700'}`}>
                     Material uploaded
                   </div>
-                  <span className="text-sm text-gray-900">Prof. Martinez</span>
-                  <span className="text-sm text-gray-500 ml-auto">Yesterday</span>
+                  <span className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>Prof. Martinez</span>
+                  <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-500'} ml-auto`}>Yesterday</span>
                 </div>
               </div>
             </div>
@@ -331,17 +333,17 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
         {activeTab === 'lectures' && (
           <div className="space-y-4">
             {[1, 2, 3, 4].map((week) => (
-              <div key={week} className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-                <h3 className="font-semibold text-gray-900 mb-4">Week {week}</h3>
+              <div key={week} className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}>
+                <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'} mb-4`}>Week {week}</h3>
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer">
+                  <div className={`flex items-center justify-between p-4 ${isDark ? 'bg-transparent hover:bg-white/10' : 'bg-gray-50 hover:bg-gray-100'} rounded-lg transition-colors cursor-pointer`}>
                     <div className="flex items-center gap-3">
                       <Video size={20} className="text-indigo-600" />
                       <div>
-                        <div className="font-medium text-gray-900">
+                        <div className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
                           Lecture {week}.1 - Introduction
                         </div>
-                        <div className="text-sm text-gray-600">{course.schedule}</div>
+                        <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>{course.schedule}</div>
                       </div>
                     </div>
                     <CheckCircle size={20} className="text-green-600" />
@@ -355,8 +357,8 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
         {/* Materials Tab */}
         {activeTab === 'materials' && (
           <div className="space-y-6">
-            <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-              <h3 className="font-semibold text-gray-900 mb-4">Upload New Materials</h3>
+            <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}>
+              <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'} mb-4`}>Upload New Materials</h3>
               <FileUploadDropzone
                 onFilesUploaded={(files) => console.log('Uploaded:', files)}
                 acceptedTypes={['application/pdf', 'image/*', 'video/*', '.doc', '.docx', '.ppt', '.pptx']}
@@ -366,21 +368,21 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
               />
             </div>
 
-            <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-              <h3 className="font-semibold text-gray-900 mb-4">Existing Materials</h3>
+            <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}>
+              <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'} mb-4`}>Existing Materials</h3>
               <div className="space-y-3">
                 {['Syllabus.pdf', 'Lecture Notes - Week 1.pdf', 'Assignment Guidelines.pdf', 'Lab Manual.pdf', 'Formula Sheet.pdf'].map(
                   (file, index) => (
                     <div
                       key={index}
-                      className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                      className={`flex items-center justify-between p-4 ${isDark ? 'bg-transparent hover:bg-white/10' : 'bg-gray-50 hover:bg-gray-100'} rounded-lg transition-colors`}
                     >
                       <div className="flex items-center gap-3">
-                        <FileText size={20} className="text-gray-600" />
-                        <span className="text-sm text-gray-900">{file}</span>
+                        <FileText size={20} className={isDark ? 'text-slate-400' : 'text-gray-600'} />
+                        <span className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>{file}</span>
                       </div>
-                      <button className="p-2 hover:bg-gray-200 rounded-lg transition-colors">
-                        <Download size={16} className="text-gray-600" />
+                      <button className={`p-2 ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-200'} rounded-lg transition-colors`}>
+                        <Download size={16} className={isDark ? 'text-slate-400' : 'text-gray-600'} />
                       </button>
                     </div>
                   )
@@ -395,7 +397,7 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
           <div className="space-y-6">
             {/* Header */}
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-gray-900">Assignments</h2>
+              <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Assignments</h2>
               <button className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm">
                 <FileText size={16} />
                 Create New Assignment
@@ -447,19 +449,19 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
               ].map((assignment, index) => (
                 <div
                   key={index}
-                  className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm"
+                  className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-lg font-semibold text-gray-900">{assignment.title}</h3>
+                        <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{assignment.title}</h3>
                         <span
                           className={`px-2 py-1 rounded-full text-xs font-medium ${assignment.subjectColor}`}
                         >
                           {assignment.subject}
                         </span>
                       </div>
-                      <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
+                      <div className={`flex items-center gap-4 text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'} mb-3`}>
                         <div className="flex items-center gap-1">
                           <Calendar size={14} />
                           <span>{assignment.dueDate}</span>
@@ -471,12 +473,12 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                           </span>
                         </div>
                       </div>
-                      <p className="text-sm text-gray-600 mb-4">{assignment.description}</p>
+                      <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'} mb-4`}>{assignment.description}</p>
                       <div className="flex items-center gap-2">
                         {assignment.files.map((file, fileIndex) => (
                           <div
                             key={fileIndex}
-                            className="flex items-center gap-2 px-3 py-1 bg-gray-50 rounded-lg text-sm text-gray-700"
+                            className={`flex items-center gap-2 px-3 py-1 ${isDark ? 'bg-transparent' : 'bg-gray-50'} rounded-lg text-sm ${isDark ? 'text-slate-400' : 'text-gray-700'}`}
                           >
                             <FileText size={14} />
                             <span>{file}</span>
@@ -490,14 +492,14 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                       {assignment.status}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2 pt-4 border-t border-gray-200">
-                    <button className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">
+                  <div className={`flex items-center gap-2 pt-4 border-t ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
+                    <button className={`flex items-center gap-2 px-3 py-2 text-sm ${isDark ? 'text-slate-400 hover:bg-white/10' : 'text-gray-700 hover:bg-gray-50'} rounded-lg transition-colors`}>
                       View Submissions
                     </button>
-                    <button className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">
+                    <button className={`flex items-center gap-2 px-3 py-2 text-sm ${isDark ? 'text-slate-400 hover:bg-white/10' : 'text-gray-700 hover:bg-gray-50'} rounded-lg transition-colors`}>
                       Edit
                     </button>
-                    <button className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">
+                    <button className={`flex items-center gap-2 px-3 py-2 text-sm ${isDark ? 'text-slate-400 hover:bg-white/10' : 'text-gray-700 hover:bg-gray-50'} rounded-lg transition-colors`}>
                       Grade Manually
                     </button>
                     <button className="flex items-center gap-2 px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
@@ -518,26 +520,26 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
 
         {/* Students Tab */}
         {activeTab === 'students' && (
-          <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-            <h3 className="font-semibold text-gray-900 mb-6">
+          <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}>
+            <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'} mb-6`}>
               Enrolled Students ({course.enrolled})
             </h3>
             <div className="space-y-2">
               {Array.from({ length: Math.min(10, course.enrolled) }).map((_, index) => (
                 <div
                   key={index}
-                  className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
+                  className={`flex items-center justify-between p-4 ${isDark ? 'bg-transparent' : 'bg-gray-50'} rounded-lg`}
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 font-semibold">
                       {String.fromCharCode(65 + index)}
                     </div>
                     <div>
-                      <div className="font-medium text-gray-900">Student {index + 1}</div>
-                      <div className="text-sm text-gray-600">student{index + 1}@edu.com</div>
+                      <div className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>Student {index + 1}</div>
+                      <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>student{index + 1}@edu.com</div>
                     </div>
                   </div>
-                  <div className="text-sm text-gray-600">Grade: A-</div>
+                  <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>Grade: A-</div>
                 </div>
               ))}
             </div>
@@ -548,19 +550,19 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
         {activeTab === 'analytics' && (
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-                <div className="text-sm text-gray-600 mb-2">Average Grade</div>
-                <div className="text-3xl font-bold text-gray-900">{course.averageGrade}%</div>
+              <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}>
+                <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'} mb-2`}>Average Grade</div>
+                <div className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{course.averageGrade}%</div>
                 <div className="text-sm text-green-600 mt-2">↑ 3% from last month</div>
               </div>
-              <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-                <div className="text-sm text-gray-600 mb-2">Attendance Rate</div>
-                <div className="text-3xl font-bold text-gray-900">{course.attendanceRate}%</div>
+              <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}>
+                <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'} mb-2`}>Attendance Rate</div>
+                <div className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{course.attendanceRate}%</div>
                 <div className="text-sm text-green-600 mt-2">↑ 2% from last month</div>
               </div>
-              <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-                <div className="text-sm text-gray-600 mb-2">Completion Rate</div>
-                <div className="text-3xl font-bold text-gray-900">89%</div>
+              <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}>
+                <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'} mb-2`}>Completion Rate</div>
+                <div className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>89%</div>
                 <div className="text-sm text-green-600 mt-2">↑ 5% from last month</div>
               </div>
             </div>
@@ -569,9 +571,9 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
 
         {/* Announcements Tab */}
         {activeTab === 'announcements' && (
-          <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+          <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}>
             <div className="flex items-center justify-between mb-6">
-              <h3 className="font-semibold text-gray-900">Announcements</h3>
+              <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Announcements</h3>
               <button className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm">
                 <Bell size={16} />
                 New Announcement
@@ -582,12 +584,12 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                 { title: 'Midterm Schedule', date: 'May 10', content: 'Midterm exam on June 1st' },
                 { title: 'Office Hours Update', date: 'May 8', content: 'New office hours posted' },
               ].map((announcement, index) => (
-                <div key={index} className="p-4 bg-gray-50 rounded-lg">
+                <div key={index} className={`p-4 ${isDark ? 'bg-transparent' : 'bg-gray-50'} rounded-lg`}>
                   <div className="flex items-center justify-between mb-2">
-                    <div className="font-medium text-gray-900">{announcement.title}</div>
-                    <div className="text-sm text-gray-600">{announcement.date}</div>
+                    <div className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{announcement.title}</div>
+                    <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>{announcement.date}</div>
                   </div>
-                  <div className="text-sm text-gray-600">{announcement.content}</div>
+                  <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>{announcement.content}</div>
                 </div>
               ))}
             </div>
@@ -638,28 +640,28 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
         {/* AI Tools Tab */}
         {activeTab === 'ai-tools' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+            <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}>
               <div className="flex items-center gap-3 mb-4">
                 <div className="p-3 bg-purple-100 rounded-xl">
                   <Sparkles className="text-purple-600" size={24} />
                 </div>
-                <h3 className="font-semibold text-gray-900">Generate Quiz</h3>
+                <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Generate Quiz</h3>
               </div>
-              <p className="text-sm text-gray-600 mb-4">
+              <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'} mb-4`}>
                 Automatically generate quizzes based on course materials
               </p>
               <button className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm">
                 Generate Quiz
               </button>
             </div>
-            <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+            <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}>
               <div className="flex items-center gap-3 mb-4">
                 <div className="p-3 bg-indigo-100 rounded-xl">
                   <BarChart3 className="text-indigo-600" size={24} />
                 </div>
-                <h3 className="font-semibold text-gray-900">Analyze Performance</h3>
+                <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Analyze Performance</h3>
               </div>
-              <p className="text-sm text-gray-600 mb-4">
+              <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'} mb-4`}>
                 Get AI-powered insights on student performance
               </p>
               <button className="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm">
