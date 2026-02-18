@@ -71,7 +71,7 @@ export function AnalyticsReportsPage({ analytics, onExport }: AnalyticsReportsPa
       <div className="flex items-center justify-between">
         <div>
           <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('analytics')}</h1>
-          <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>System-wide analytics and reports</p>
+          <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('systemWideAnalytics')}</p>
         </div>
         <div className="flex items-center gap-3">
           <select
@@ -79,10 +79,10 @@ export function AnalyticsReportsPage({ analytics, onExport }: AnalyticsReportsPa
             onChange={(e) => setDateRange(e.target.value)}
             className={`px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}
           >
-            <option value="lastWeek">Last 7 Days</option>
-            <option value="lastMonth">Last 30 Days</option>
-            <option value="lastQuarter">Last 3 Months</option>
-            <option value="lastYear">Last Year</option>
+            <option value="lastWeek">{t('lastWeek')}</option>
+            <option value="lastMonth">{t('last30Days')}</option>
+            <option value="lastQuarter">{t('last3Months')}</option>
+            <option value="lastYear">{t('lastYear')}</option>
           </select>
           <div className="flex items-center gap-2">
             <button
@@ -107,10 +107,10 @@ export function AnalyticsReportsPage({ analytics, onExport }: AnalyticsReportsPa
       <div className={`p-2 rounded-xl border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
         <div className="flex gap-2">
           {[
-            { id: 'users', label: 'User Analytics', icon: Users },
-            { id: 'courses', label: 'Course Analytics', icon: BookOpen },
-            { id: 'engagement', label: 'Engagement', icon: TrendingUp },
-            { id: 'ai', label: 'AI Usage', icon: Brain },
+            { id: 'users', label: t('userAnalytics'), icon: Users },
+            { id: 'courses', label: t('courseAnalytics'), icon: BookOpen },
+            { id: 'engagement', label: t('engagement'), icon: TrendingUp },
+            { id: 'ai', label: t('aiUsage'), icon: Brain },
           ].map(tab => (
             <button
               key={tab.id}
@@ -133,7 +133,7 @@ export function AnalyticsReportsPage({ analytics, onExport }: AnalyticsReportsPa
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* User Growth Chart */}
           <div className={`lg:col-span-2 rounded-xl p-6 border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-            <h3 className={`text-lg font-semibold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>User Growth Trend</h3>
+            <h3 className={`text-lg font-semibold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('userGrowthTrend')}</h3>
             <ResponsiveContainer width="100%" height={300}>
               <AreaChart data={analytics.userGrowth}>
                 <defs>
@@ -158,7 +158,7 @@ export function AnalyticsReportsPage({ analytics, onExport }: AnalyticsReportsPa
 
           {/* Role Distribution */}
           <div className={`rounded-xl p-6 border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-            <h3 className={`text-lg font-semibold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>User Distribution</h3>
+            <h3 className={`text-lg font-semibold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('userDistribution')}</h3>
             <ResponsiveContainer width="100%" height={250}>
               <PieChart>
                 <Pie data={roleDistribution} cx="50%" cy="50%" innerRadius={50} outerRadius={80} dataKey="value" label>
@@ -175,10 +175,10 @@ export function AnalyticsReportsPage({ analytics, onExport }: AnalyticsReportsPa
           {/* User Stats Summary */}
           <div className={`lg:col-span-3 grid grid-cols-4 gap-4`}>
             {[
-              { label: 'Total Users', value: '5,505', change: '+12%', positive: true },
-              { label: 'Active Today', value: '2,340', change: '+5%', positive: true },
-              { label: 'New This Month', value: '320', change: '+18%', positive: true },
-              { label: 'Inactive Users', value: '245', change: '-8%', positive: true },
+              { label: t('totalUsers'), value: '5,505', change: '+12%', positive: true },
+              { label: t('activeTodayLabel'), value: '2,340', change: '+5%', positive: true },
+              { label: t('newThisMonth'), value: '320', change: '+18%', positive: true },
+              { label: t('inactiveUsers'), value: '245', change: '-8%', positive: true },
             ].map((stat, index) => (
               <div key={index} className={`p-4 rounded-xl border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
                 <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{stat.label}</div>
@@ -195,7 +195,7 @@ export function AnalyticsReportsPage({ analytics, onExport }: AnalyticsReportsPa
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Course Performance Chart */}
           <div className={`rounded-xl p-6 border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-            <h3 className={`text-lg font-semibold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Course Performance</h3>
+            <h3 className={`text-lg font-semibold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('coursePerformance')}</h3>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={coursePerformance}>
                 <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#374151' : '#f0f0f0'} />
@@ -210,7 +210,7 @@ export function AnalyticsReportsPage({ analytics, onExport }: AnalyticsReportsPa
 
           {/* Course Engagement */}
           <div className={`rounded-xl p-6 border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-            <h3 className={`text-lg font-semibold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Engagement by Course</h3>
+            <h3 className={`text-lg font-semibold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('engagementByCourse')}</h3>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={analytics.courseEngagement} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#374151' : '#f0f0f0'} />
@@ -225,16 +225,16 @@ export function AnalyticsReportsPage({ analytics, onExport }: AnalyticsReportsPa
 
           {/* Course Stats */}
           <div className={`lg:col-span-2 rounded-xl p-6 border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-            <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Course Statistics</h3>
+            <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('courseStatistics')}</h3>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className={isDark ? 'border-b border-gray-700' : 'border-b border-gray-200'}>
-                    <th className={`text-left py-3 px-4 text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Course</th>
-                    <th className={`text-left py-3 px-4 text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Avg Grade</th>
-                    <th className={`text-left py-3 px-4 text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Attendance</th>
-                    <th className={`text-left py-3 px-4 text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Active Students</th>
-                    <th className={`text-left py-3 px-4 text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Trend</th>
+                    <th className={`text-left py-3 px-4 text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{t('course')}</th>
+                    <th className={`text-left py-3 px-4 text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{t('avgGrade')}</th>
+                    <th className={`text-left py-3 px-4 text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{t('attendance')}</th>
+                    <th className={`text-left py-3 px-4 text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{t('activeUsers')}</th>
+                    <th className={`text-left py-3 px-4 text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{t('enrollmentTrends')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -260,7 +260,7 @@ export function AnalyticsReportsPage({ analytics, onExport }: AnalyticsReportsPa
       {activeReport === 'engagement' && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className={`lg:col-span-2 rounded-xl p-6 border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-            <h3 className={`text-lg font-semibold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>Weekly Engagement</h3>
+            <h3 className={`text-lg font-semibold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('weeklyEngagement')}</h3>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={engagementData}>
                 <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#374151' : '#f0f0f0'} />

@@ -102,7 +102,7 @@ export function SystemConfigPage({
       <div className="flex items-center justify-between">
         <div>
           <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('systemConfig')}</h1>
-          <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Manage system settings, integrations, and audit logs</p>
+          <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('manageSystemSub')}</p>
         </div>
       </div>
 
@@ -141,7 +141,7 @@ export function SystemConfigPage({
                   <Search className={`absolute left-3 top-1/2 -translate-y-1/2 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} size={18} />
                   <input
                     type="text"
-                    placeholder="Search logs..."
+                    placeholder={t('searchLogs')}
                     value={logSearch}
                     onChange={(e) => setLogSearch(e.target.value)}
                     className={`w-full pl-10 pr-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}
@@ -153,14 +153,14 @@ export function SystemConfigPage({
                 onChange={(e) => setLogFilter(e.target.value)}
                 className={`px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}
               >
-                <option value="all">All Actions</option>
-                <option value="user">User Actions</option>
-                <option value="course">Course Actions</option>
-                <option value="system">System Actions</option>
+                <option value="all">{t('allActions')}</option>
+                <option value="user">{t('userActionsFilter')}</option>
+                <option value="course">{t('courseActionsFilter')}</option>
+                <option value="system">{t('systemActionsFilter')}</option>
               </select>
               <button className={`flex items-center gap-2 px-4 py-2 rounded-lg border ${isDark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-200 text-gray-700 hover:bg-gray-50'}`}>
                 <Download size={18} />
-                Export Logs
+                {t('exportLogs')}
               </button>
             </div>
           </div>
@@ -171,11 +171,11 @@ export function SystemConfigPage({
               <table className="w-full">
                 <thead className={isDark ? 'bg-gray-700' : 'bg-gray-50'}>
                   <tr>
-                    <th className={`px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Timestamp</th>
-                    <th className={`px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Action</th>
-                    <th className={`px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>User</th>
-                    <th className={`px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Target</th>
-                    <th className={`px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>IP Address</th>
+                    <th className={`px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{t('timestamp')}</th>
+                    <th className={`px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{t('action')}</th>
+                    <th className={`px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{t('user')}</th>
+                    <th className={`px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{t('target')}</th>
+                    <th className={`px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{t('ipAddress')}</th>
                   </tr>
                 </thead>
                 <tbody className={`divide-y ${isDark ? 'divide-gray-700' : 'divide-gray-200'}`}>
@@ -200,12 +200,12 @@ export function SystemConfigPage({
         <div className="space-y-6">
           {/* Main Toggles */}
           <div className={`rounded-xl p-6 border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-            <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Feature Toggles</h3>
+            <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('featureToggles')}</h3>
             <div className="space-y-4">
               {[
-                { key: 'pointsEnabled', label: t('enablePoints'), icon: Zap, description: 'Award points for various activities' },
-                { key: 'badgesEnabled', label: t('enableBadges'), icon: Award, description: 'Enable achievement badges for students' },
-                { key: 'leaderboardsEnabled', label: t('enableLeaderboards'), icon: Trophy, description: 'Show public leaderboards' },
+                { key: 'pointsEnabled', label: t('enablePoints'), icon: Zap, description: t('awardPointsDesc') },
+                { key: 'badgesEnabled', label: t('enableBadges'), icon: Award, description: t('enableBadgesDesc') },
+                { key: 'leaderboardsEnabled', label: t('enableLeaderboards'), icon: Trophy, description: t('showLeaderboardsDesc') },
               ].map(feature => (
                 <div key={feature.key} className={`flex items-center justify-between p-4 rounded-lg ${isDark ? 'bg-gray-700' : 'bg-gray-50'}`}>
                   <div className="flex items-center gap-3">
@@ -239,7 +239,7 @@ export function SystemConfigPage({
 
           {/* Points Configuration */}
           <div className={`rounded-xl p-6 border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-            <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Points Configuration</h3>
+            <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('pointsConfiguration')}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {Object.entries(localGamification.pointsConfig).map(([key, value]) => (
                 <div key={key} className={`p-4 rounded-lg ${isDark ? 'bg-gray-700' : 'bg-gray-50'}`}>
@@ -265,7 +265,7 @@ export function SystemConfigPage({
 
           {/* Badges Management */}
           <div className={`rounded-xl p-6 border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-            <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Badges</h3>
+            <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('badgesLabel')}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {localGamification.badges.map(badge => (
                 <div key={badge.id} className={`p-4 rounded-lg ${isDark ? 'bg-gray-700' : 'bg-gray-50'}`}>
@@ -306,7 +306,7 @@ export function SystemConfigPage({
               onClick={() => onUpdateGamification(localGamification)}
               className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
             >
-              Save Changes
+              {t('saveChanges')}
             </button>
           </div>
         </div>
@@ -351,15 +351,15 @@ export function SystemConfigPage({
                   {integration.status === 'connected' ? (
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
-                        <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Last Sync</span>
+                        <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{t('lastSync')}</span>
                         <span className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{integration.lastSync}</span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Sync Frequency</span>
+                        <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{t('syncFrequencyLabel')}</span>
                         <span className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{integration.syncFrequency}</span>
                       </div>
                       <div>
-                        <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Data Types</span>
+                        <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{t('dataTypes')}</span>
                         <div className="flex flex-wrap gap-2 mt-1">
                           {integration.dataTypes.map((type, index) => (
                             <span key={index} className={`px-2 py-1 rounded text-xs ${isDark ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-700'}`}>
@@ -373,14 +373,14 @@ export function SystemConfigPage({
                         className={`w-full flex items-center justify-center gap-2 px-4 py-2 mt-2 rounded-lg border ${isDark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-200 text-gray-700 hover:bg-gray-50'}`}
                       >
                         <RefreshCw size={16} />
-                        Sync Now
+                        {t('syncNow')}
                       </button>
                     </div>
                   ) : (
                     <div className={`text-center py-4 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                      <p className="mb-3">Not connected</p>
+                      <p className="mb-3">{t('notConnected')}</p>
                       <button className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
-                        Configure Connection
+                        {t('configureConnection')}
                       </button>
                     </div>
                   )}

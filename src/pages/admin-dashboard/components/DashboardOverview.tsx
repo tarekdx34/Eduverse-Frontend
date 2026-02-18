@@ -64,7 +64,7 @@ export function DashboardOverview({ stats, analytics, recentActivity, onNavigate
           </div>
           <div className={`text-3xl font-bold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{stats.totalUsers?.toLocaleString()}</div>
           <div className={`text-sm mb-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('totalUsers')}</div>
-          <div className="text-xs text-green-600 font-medium">+{stats.activeUsers?.toLocaleString()} active</div>
+          <div className="text-xs text-green-600 font-medium">+{stats.activeUsers?.toLocaleString()} {t('active')}</div>
         </div>
 
         <div className={`rounded-xl p-6 border shadow-sm ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
@@ -75,7 +75,7 @@ export function DashboardOverview({ stats, analytics, recentActivity, onNavigate
           </div>
           <div className={`text-3xl font-bold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{stats.totalCourses}</div>
           <div className={`text-sm mb-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('totalCourses')}</div>
-          <div className="text-xs text-green-600 font-medium">{stats.activeCourses} active courses</div>
+          <div className="text-xs text-green-600 font-medium">{stats.activeCourses} {t('activeCourses')}</div>
         </div>
 
         <div className={`rounded-xl p-6 border shadow-sm ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
@@ -98,7 +98,7 @@ export function DashboardOverview({ stats, analytics, recentActivity, onNavigate
           <div className={`text-3xl font-bold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{stats.systemUptime}</div>
           <div className={`text-sm mb-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('systemUptime')}</div>
           <div className="text-xs text-green-600 font-medium flex items-center gap-1">
-            <CheckCircle2 size={12} /> All systems operational
+            <CheckCircle2 size={12} /> {t('allOperational')}
           </div>
         </div>
       </div>
@@ -112,10 +112,10 @@ export function DashboardOverview({ stats, analytics, recentActivity, onNavigate
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
               <Sparkles size={20} />
-              <h3 className="text-lg font-semibold">Platform Health Dashboard</h3>
+              <h3 className="text-lg font-semibold">{t('platformHealthDashboard')}</h3>
             </div>
             <p className="text-red-100 text-sm mb-4 max-w-lg">
-              Monitor real-time system performance, user activity, and AI feature usage across the platform.
+              {t('monitorPerformance')}
             </p>
             <div className="grid grid-cols-4 gap-4">
               {systemHealth.map((metric) => (
@@ -141,7 +141,7 @@ export function DashboardOverview({ stats, analytics, recentActivity, onNavigate
           {/* User Growth Chart */}
           <div className={`rounded-xl p-6 border shadow-sm ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
             <div className="flex items-center justify-between mb-6">
-              <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>User Growth Trend</h3>
+              <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('userGrowthTrend')}</h3>
               <div className="flex items-center gap-2">
                 <TrendingUp className="text-green-600" size={16} />
                 <span className="text-sm text-green-600 font-medium">+12% this month</span>
@@ -175,7 +175,7 @@ export function DashboardOverview({ stats, analytics, recentActivity, onNavigate
                     <span className="text-xs text-green-600 font-medium">{item.trend}</span>
                   </div>
                   <div className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{item.usage.toLocaleString()}</div>
-                  <div className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>requests this month</div>
+                  <div className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{t('requestsThisMonth')}</div>
                 </div>
               ))}
             </div>
@@ -186,7 +186,7 @@ export function DashboardOverview({ stats, analytics, recentActivity, onNavigate
         <div className="space-y-6">
           {/* User Distribution */}
           <div className={`rounded-xl p-6 border shadow-sm ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-            <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>User Distribution</h3>
+            <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('userDistribution')}</h3>
             <ResponsiveContainer width="100%" height={200}>
               <PieChart>
                 <Pie data={userDistribution} cx="50%" cy="50%" innerRadius={50} outerRadius={80} dataKey="value" label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
@@ -201,7 +201,7 @@ export function DashboardOverview({ stats, analytics, recentActivity, onNavigate
 
           {/* Quick Actions */}
           <div className={`rounded-xl p-6 border shadow-sm ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-            <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Quick Actions</h3>
+            <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('quickActions')}</h3>
             <div className="space-y-3">
               <button
                 onClick={() => onNavigate('users')}
@@ -210,7 +210,7 @@ export function DashboardOverview({ stats, analytics, recentActivity, onNavigate
                 <div className={`p-2 rounded-lg ${isDark ? 'bg-blue-900/50' : 'bg-blue-100'}`}>
                   <Users className="text-blue-600" size={18} />
                 </div>
-                <span className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>Manage Users</span>
+                <span className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('manageUsers')}</span>
                 <ArrowRight size={16} className={`ml-auto ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
               </button>
               <button
@@ -220,7 +220,7 @@ export function DashboardOverview({ stats, analytics, recentActivity, onNavigate
                 <div className={`p-2 rounded-lg ${isDark ? 'bg-orange-900/50' : 'bg-orange-100'}`}>
                   <AlertCircle className="text-orange-600" size={18} />
                 </div>
-                <span className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>Send Broadcast</span>
+                <span className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('sendBroadcast')}</span>
                 <ArrowRight size={16} className={`ml-auto ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
               </button>
             </div>
@@ -228,7 +228,7 @@ export function DashboardOverview({ stats, analytics, recentActivity, onNavigate
 
           {/* Recent Activity */}
           <div className={`rounded-xl p-6 border shadow-sm ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-            <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Recent Activity</h3>
+            <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('recentActivity')}</h3>
             <div className="space-y-4">
               {recentActivity.slice(0, 4).map((activity, index) => (
                 <div key={index} className={`flex items-start gap-3 p-3 rounded-lg ${isDark ? 'bg-gray-700' : 'bg-gray-50'}`}>
