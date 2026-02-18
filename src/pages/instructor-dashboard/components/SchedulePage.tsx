@@ -1,46 +1,48 @@
 import React, { useState } from 'react';
 import { CalendarDays, Sparkles } from 'lucide-react';
 import { CustomDropdown } from './CustomDropdown';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export function SchedulePage() {
+  const { t, isRTL } = useLanguage();
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Teaching Schedule</h1>
+          <h1 className="text-3xl font-bold text-gray-900">{t('teachingSchedule')}</h1>
           <p className="text-gray-600 mt-1">
-            View lectures, labs, office hours, quizzes, and deadlines in one smart calendar.
+            {t('scheduleDescription')}
           </p>
         </div>
 
         {/* View toggles and filters */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
               <button className="px-4 py-2 text-sm text-gray-600 hover:bg-white rounded-md transition-colors">
-                Month
+                {t('month')}
               </button>
               <button className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-md">
-                Week
+                {t('week')}
               </button>
               <button className="px-4 py-2 text-sm text-gray-600 hover:bg-white rounded-md transition-colors">
-                Day
+                {t('day')}
               </button>
             </div>
             <CustomDropdown
-              label="Course:"
+              label={t('courseLabel')}
               value="all"
-              options={[{ value: 'all', label: 'All Courses' }]}
+              options={[{ value: 'all', label: t('allCourses') }]}
               onChange={() => {}}
             />
             <CustomDropdown
-              label="Event Type:"
+              label={t('eventTypeLabel')}
               value="all"
               options={[
-                { value: 'all', label: 'All Events' },
-                { value: 'lecture', label: 'Lectures' },
-                { value: 'lab', label: 'Labs' },
+                { value: 'all', label: t('allEvents') },
+                { value: 'lecture', label: t('lectures') },
+                { value: 'lab', label: t('labs') },
               ]}
               onChange={() => {}}
             />
@@ -52,10 +54,10 @@ export function SchedulePage() {
           <div className="lg:col-span-3 bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
             <div className="p-4 border-b border-gray-200 flex items-center justify-between">
               <h3 className="font-semibold text-gray-900">May 12 - May 16, 2025</h3>
-              <button className="text-sm text-indigo-600 hover:text-indigo-700">Today</button>
+              <button className="text-sm text-indigo-600 hover:text-indigo-700">{t('today')}</button>
             </div>
-            <div className="p-4">
-              <div className="grid grid-cols-6 gap-2 mb-4">
+            <div className="p-4 overflow-x-auto">
+              <div className="grid grid-cols-6 gap-2 mb-4 min-w-[600px]">
                 <div className="text-xs font-medium text-gray-500">Time</div>
                 {[
                   'Monday May 12',
@@ -80,7 +82,7 @@ export function SchedulePage() {
                 '3:00 PM',
                 '4:00 PM',
               ].map((time) => (
-                <div key={time} className="grid grid-cols-6 gap-2 mb-2">
+                <div key={time} className="grid grid-cols-6 gap-2 mb-2 min-w-[600px]">
                   <div className="text-xs text-gray-500 py-2">{time}</div>
                   {[0, 1, 2, 3, 4].map((day) => (
                     <div key={day} className="border border-gray-100 rounded p-1 min-h-[60px]">
@@ -119,7 +121,7 @@ export function SchedulePage() {
           <div className="space-y-6">
             {/* Upcoming Events */}
             <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
-              <h3 className="font-semibold text-gray-900 mb-4">Upcoming Teaching Events</h3>
+              <h3 className="font-semibold text-gray-900 mb-4">{t('upcomingTeachingEvents')}</h3>
               <div className="space-y-3">
                 {[
                   {
@@ -141,7 +143,7 @@ export function SchedulePage() {
                     color: 'bg-purple-100 text-purple-700',
                   },
                   {
-                    title: 'Office Hours',
+                    title: t('officeHours'),
                     time: '12:00 PM',
                     date: 'May 15',
                     color: 'bg-green-100 text-green-700',
@@ -162,39 +164,39 @@ export function SchedulePage() {
                 <div className="p-2 bg-purple-100 rounded-lg">
                   <Sparkles className="text-purple-600" size={20} />
                 </div>
-                <h3 className="font-semibold text-gray-900">Evy - Smart Scheduling Assistant</h3>
+                <h3 className="font-semibold text-gray-900">{t('evySchedulingAssistant')}</h3>
               </div>
               <p className="text-sm text-gray-600 mb-4">
-                Automatically detect conflicts and suggest optimal teaching times.
+                {t('scheduleAssistantDescription')}
               </p>
               <div className="space-y-2">
                 <button className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-white border border-purple-200 text-purple-700 rounded-lg hover:bg-purple-50 transition-colors text-sm">
-                  Detect Conflicts
+                  {t('detectConflicts')}
                 </button>
                 <button className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm">
-                  Optimize Schedule
+                  {t('optimizeSchedule')}
                 </button>
               </div>
             </div>
 
             {/* Stats */}
             <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
-              <h3 className="font-semibold text-gray-900 mb-4">This Week</h3>
+              <h3 className="font-semibold text-gray-900 mb-4">{t('thisWeek')}</h3>
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Total Hours:</span>
+                  <span className="text-sm text-gray-600">{t('totalHours')}</span>
                   <span className="text-sm font-semibold text-gray-900">18.5h</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Lectures:</span>
+                  <span className="text-sm text-gray-600">{t('lectures')}</span>
                   <span className="text-sm font-semibold text-gray-900">6</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Labs:</span>
+                  <span className="text-sm text-gray-600">{t('labs')}</span>
                   <span className="text-sm font-semibold text-gray-900">4</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Conflicts:</span>
+                  <span className="text-sm text-gray-600">{t('conflicts')}</span>
                   <span className="text-sm font-semibold text-red-600">0</span>
                 </div>
               </div>

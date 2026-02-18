@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { Plus, Edit, Trash2, Bell, Sparkles, MessageSquare, FileText, Search, Clock } from 'lucide-react';
 import { CustomDropdown } from './CustomDropdown';
 import { MessagingChat, ScheduledAnnouncement, GlobalSearch } from '../../../components/shared';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export function CommunicationPage() {
+  const { t, isRTL } = useLanguage();
   const [activeTab, setActiveTab] = useState<'announcements' | 'chats' | 'messages'>(
     'announcements'
   );
@@ -72,9 +74,9 @@ export function CommunicationPage() {
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Communication Center</h1>
+          <h1 className="text-3xl font-bold text-gray-900">{t('communicationCenter')}</h1>
           <p className="text-gray-600 mt-1">
-            Manage announcements, interact with course chats, and message students easily.
+            {t('communicationDescription')}
           </p>
         </div>
 
@@ -88,7 +90,7 @@ export function CommunicationPage() {
                 : 'text-gray-600 hover:text-gray-900'
             }`}
           >
-            Announcements
+            {t('announcements')}
           </button>
           <button
             onClick={() => setActiveTab('chats')}
@@ -98,7 +100,7 @@ export function CommunicationPage() {
                 : 'text-gray-600 hover:text-gray-900'
             }`}
           >
-            Course Chats
+            {t('courseChats')}
           </button>
           <button
             onClick={() => setActiveTab('messages')}
@@ -108,7 +110,7 @@ export function CommunicationPage() {
                 : 'text-gray-600 hover:text-gray-900'
             }`}
           >
-            Direct Messages
+            {t('directMessages')}
           </button>
         </div>
 
@@ -119,10 +121,10 @@ export function CommunicationPage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <CustomDropdown
-                  label="Course:"
+                  label={t('courseLabel')}
                   value="all"
                   options={[
-                    { value: 'all', label: 'All Courses' },
+                    { value: 'all', label: t('allCourses') },
                     { value: 'calculus', label: 'Calculus I' },
                     { value: 'physics', label: 'Physics I' },
                   ]}
@@ -135,7 +137,7 @@ export function CommunicationPage() {
                   />
                   <input
                     type="text"
-                    placeholder="Search announcements..."
+                    placeholder={t('searchAnnouncements')}
                     className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
@@ -144,7 +146,7 @@ export function CommunicationPage() {
                 onClick={() => setShowScheduleModal(true)}
                 className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
                 <Plus size={18} />
-                Create Announcement
+                {t('createAnnouncement')}
               </button>
             </div>
 
@@ -169,7 +171,7 @@ export function CommunicationPage() {
                         {announcement.scheduled && (
                           <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium flex items-center gap-1">
                             <Clock size={12} />
-                            Scheduled
+                            {t('scheduled')}
                           </span>
                         )}
                       </div>
@@ -183,15 +185,15 @@ export function CommunicationPage() {
                   <div className="flex items-center gap-2 pt-4 border-t border-gray-200">
                     <button className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">
                       <Edit size={16} />
-                      Edit
+                      {t('edit')}
                     </button>
                     <button className="flex items-center gap-2 px-3 py-2 text-sm text-red-700 hover:bg-red-50 rounded-lg transition-colors">
                       <Trash2 size={16} />
-                      Delete
+                      {t('delete')}
                     </button>
                     <button className="flex items-center gap-2 px-3 py-2 text-sm text-indigo-700 hover:bg-indigo-50 rounded-lg transition-colors">
                       <Bell size={16} />
-                      Send Notification
+                      {t('sendNotification')}
                     </button>
                   </div>
                 </div>
@@ -224,27 +226,26 @@ export function CommunicationPage() {
           <div className="flex items-center gap-2 mb-4">
             <Sparkles className="text-purple-600" size={24} />
             <h3 className="text-lg font-semibold text-gray-900">
-              AI Communication Assistant — Powered by Evy
+              {t('aiCommunicationAssistant')}
             </h3>
           </div>
           <p className="text-sm text-gray-600 mb-4">
-            Let AI draft announcements, summarize long chats, and suggest responses to save you
-            time.
+            {t('aiCommunicationDescription')}
           </p>
           <div className="flex gap-3">
             <button 
               onClick={() => setShowScheduleModal(true)}
               className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm">
               <FileText size={16} />
-              Generate Announcement
+              {t('generateAnnouncement')}
             </button>
             <button className="flex items-center gap-2 px-4 py-2 bg-white border border-purple-200 text-purple-700 rounded-lg hover:bg-purple-50 transition-colors text-sm">
               <MessageSquare size={16} />
-              Summarize Chat
+              {t('summarizeChat')}
             </button>
             <button className="flex items-center gap-2 px-4 py-2 bg-white border border-purple-200 text-purple-700 rounded-lg hover:bg-purple-50 transition-colors text-sm">
               <Sparkles size={16} />
-              Suggest Reply
+              {t('suggestReply')}
             </button>
           </div>
         </div>

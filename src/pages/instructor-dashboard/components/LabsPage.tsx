@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { Beaker, Users, TrendingUp, Upload, Sparkles, Search, Eye, Edit } from 'lucide-react';
 import { CustomDropdown } from './CustomDropdown';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export function LabsPage() {
   const { isDark } = useTheme();
+  const { t, isRTL } = useLanguage();
 
   return (
     <div className={`min-h-screen p-6 ${isDark ? 'bg-transparent' : 'bg-gray-50'}`}>
@@ -12,37 +14,36 @@ export function LabsPage() {
         {/* Header with filters */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Labs Management</h1>
+            <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('labsManagement')}</h1>
             <p className={`mt-1 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-              Create labs, manage submissions, track attendance, and use AI to assist lab
-              evaluation.
+              {t('labsDescription')}
             </p>
           </div>
           <button className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
             <Beaker size={20} />
-            Create New Lab
+            {t('createNewLab')}
           </button>
         </div>
 
         {/* Filters */}
         <div className="flex items-center gap-4">
           <CustomDropdown
-            label="Course:"
+            label={t('courseLabel')}
             value="all"
             options={[
-              { value: 'all', label: 'All Courses' },
+              { value: 'all', label: t('allCourses') },
               { value: 'physics', label: 'Physics I' },
               { value: 'chemistry', label: 'Chemistry I' },
             ]}
             onChange={() => {}}
           />
           <CustomDropdown
-            label="Status:"
+            label={t('statusLabel')}
             value="active"
             options={[
-              { value: 'all', label: 'All' },
-              { value: 'active', label: 'Active' },
-              { value: 'graded', label: 'Graded' },
+              { value: 'all', label: t('all') },
+              { value: 'active', label: t('active') },
+              { value: 'graded', label: t('graded') },
             ]}
             onChange={() => {}}
           />
@@ -53,7 +54,7 @@ export function LabsPage() {
             />
             <input
               type="text"
-              placeholder="Search labs..."
+              placeholder={t('searchLabs')}
               className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500' : 'border-gray-300 bg-white'}`}
             />
           </div>
@@ -72,7 +73,7 @@ export function LabsPage() {
               attendance: 89,
               description:
                 'Measure electric field strength and visualize field lines using charged particles.',
-              status: 'Active',
+              status: t('active'),
               statusColor: isDark ? 'bg-blue-500/20 text-blue-300' : 'bg-blue-100 text-blue-700',
             },
             {
@@ -84,7 +85,7 @@ export function LabsPage() {
               total: 38,
               attendance: 92,
               description: 'Observe and document exothermic and endothermic chemical reactions.',
-              status: 'Pending',
+              status: t('pending'),
               statusColor: isDark ? 'bg-yellow-500/20 text-yellow-300' : 'bg-yellow-100 text-yellow-700',
             },
             {
@@ -97,7 +98,7 @@ export function LabsPage() {
               attendance: 95,
               description:
                 'Implement linked lists, stacks, and queues in Python with performance analysis.',
-              status: 'Active',
+              status: t('active'),
               statusColor: isDark ? 'bg-blue-500/20 text-blue-300' : 'bg-blue-100 text-blue-700',
             },
           ].map((lab, index) => (
@@ -132,33 +133,33 @@ export function LabsPage() {
                       <span className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
                         {lab.submitted}/{lab.total}
                       </span>
-                      <span className={isDark ? 'text-slate-400' : 'text-gray-600'}>Submitted</span>
+                      <span className={isDark ? 'text-slate-400' : 'text-gray-600'}>{t('submitted')}</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm">
                       <TrendingUp size={16} className="text-green-600" />
                       <span className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{lab.attendance}%</span>
-                      <span className={isDark ? 'text-slate-400' : 'text-gray-600'}>Attendance</span>
+                      <span className={isDark ? 'text-slate-400' : 'text-gray-600'}>{t('attendance')}</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <button className={`flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors ${isDark ? 'text-slate-300 hover:bg-white/10' : 'text-gray-700 hover:bg-gray-50'}`}>
                       <Eye size={16} />
-                      View Submissions
+                      {t('viewSubmissions')}
                     </button>
                     <button className={`flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors ${isDark ? 'text-slate-300 hover:bg-white/10' : 'text-gray-700 hover:bg-gray-50'}`}>
                       <Edit size={16} />
-                      Edit Lab
+                      {t('editLab')}
                     </button>
                     <button className={`flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors ${isDark ? 'text-slate-300 hover:bg-white/10' : 'text-gray-700 hover:bg-gray-50'}`}>
                       <Upload size={16} />
-                      Upload Instructions
+                      {t('uploadInstructions')}
                     </button>
                     <button className={`flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors ${isDark ? 'text-slate-300 hover:bg-white/10' : 'text-gray-700 hover:bg-gray-50'}`}>
-                      Grade Lab
+                      {t('gradeLab')}
                     </button>
                     <button className="flex items-center gap-2 px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
                       <Sparkles size={16} />
-                      AI Auto-Grading
+                      {t('aiAutoGrading')}
                     </button>
                   </div>
                 </div>

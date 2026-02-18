@@ -11,45 +11,46 @@ import {
   Edit,
 } from 'lucide-react';
 import { CustomDropdown } from './CustomDropdown';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export function QuizzesPage() {
+  const { t, isRTL } = useLanguage();
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Quizzes Management</h1>
+            <h1 className="text-3xl font-bold text-gray-900">{t('quizzesManagement')}</h1>
             <p className="text-gray-600 mt-1">
-              Create quizzes, manage attempts, auto-generate questions, and review student
-              performance.
+              {t('quizzesDescription')}
             </p>
           </div>
-          <button className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+          <button className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-500 transition-colors">
             <ClipboardList size={20} />
-            Create New Quiz
+            {t('createNewQuiz')}
           </button>
         </div>
 
         {/* Filters */}
         <div className="flex items-center gap-4">
           <CustomDropdown
-            label="Course:"
+            label={t('courseLabel')}
             value="all"
             options={[
-              { value: 'all', label: 'All Courses' },
+              { value: 'all', label: t('allCourses') },
               { value: 'calculus', label: 'Calculus I' },
               { value: 'physics', label: 'Physics I' },
             ]}
             onChange={() => {}}
           />
           <CustomDropdown
-            label="Status:"
+            label={t('statusLabel')}
             value="active"
             options={[
-              { value: 'all', label: 'All' },
-              { value: 'active', label: 'Active' },
-              { value: 'closed', label: 'Closed' },
+              { value: 'all', label: t('all') },
+              { value: 'active', label: t('active') },
+              { value: 'closed', label: t('closed') },
             ]}
             onChange={() => {}}
           />
@@ -60,7 +61,7 @@ export function QuizzesPage() {
             />
             <input
               type="text"
-              placeholder="Search quizzes..."
+              placeholder={t('searchQuizzes')}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </div>
@@ -116,7 +117,7 @@ export function QuizzesPage() {
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
-                    <h3 className="text-lg font-semibold text-gray-900">{quiz.title}</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 truncate">{quiz.title}</h3>
                     <span
                       className={`px-2 py-1 rounded-full text-xs font-medium ${quiz.subjectColor}`}
                     >
@@ -131,14 +132,14 @@ export function QuizzesPage() {
                     <div className="flex items-center gap-2 text-sm">
                       <ClipboardList size={16} className="text-gray-400" />
                       <span className="text-gray-900 font-medium">{quiz.questions}</span>
-                      <span className="text-gray-600">Questions</span>
+                      <span className="text-gray-600">{t('questions')}</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm">
                       <Users size={16} className="text-gray-400" />
                       <span className="text-gray-900 font-medium">
                         {quiz.attempted}/{quiz.total}
                       </span>
-                      <span className="text-gray-600">Attempted</span>
+                      <span className="text-gray-600">{t('attempted')}</span>
                     </div>
                     <span
                       className={`px-2 py-1 rounded-full text-xs font-medium ${quiz.difficultyColor}`}
@@ -147,7 +148,7 @@ export function QuizzesPage() {
                     </span>
                     <div className="flex items-center gap-2 text-sm">
                       <Clock size={16} className="text-gray-400" />
-                      <span className="text-gray-600">{quiz.duration} min Duration</span>
+                      <span className="text-gray-600">{quiz.duration} {t('minDuration')}</span>
                     </div>
                   </div>
                 </div>
@@ -156,25 +157,25 @@ export function QuizzesPage() {
                 </span>
               </div>
               <div className="flex items-center gap-2 pt-4 border-t border-gray-200">
-                <button className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">
+                <button className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-500 rounded-lg transition-colors">
                   <Eye size={16} />
-                  View Attempts
+                  {t('viewAttempts')}
                 </button>
-                <button className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">
+                <button className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-500 rounded-lg transition-colors">
                   <Edit size={16} />
-                  Edit Quiz
+                  {t('editQuiz')}
                 </button>
-                <button className="flex items-center gap-2 px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
+                <button className="flex items-center gap-2 px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-500 rounded-lg transition-colors">
                   <Sparkles size={16} />
-                  Generate with AI
+                  {t('generateWithAI')}
                 </button>
-                <button className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">
+                <button className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-500 rounded-lg transition-colors">
                   <BarChart3 size={16} />
-                  Analyze Results
+                  {t('analyzeResults')}
                 </button>
                 {quiz.status === 'Scheduled' && (
-                  <button className="flex items-center gap-2 px-3 py-2 text-sm text-green-600 hover:bg-green-50 rounded-lg transition-colors ml-auto">
-                    Publish
+                  <button className="flex items-center gap-2 px-3 py-2 text-sm text-green-600 hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-500 rounded-lg transition-colors ml-auto">
+                    {t('publish')}
                   </button>
                 )}
               </div>

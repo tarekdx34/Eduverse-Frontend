@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Search, Plus, Edit2, Trash2 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export type AttendanceSession = {
   id: number;
@@ -19,19 +20,20 @@ type AttendanceTableProps = {
 export function AttendanceTable({ sessions, onCreate, onEdit, onDelete }: AttendanceTableProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const { isDark } = useTheme();
+  const { t } = useLanguage();
 
   const filteredSessions = sessions.filter((session) => session.date.includes(searchTerm));
 
   return (
     <div className={`rounded-lg border p-6 ${isDark ? 'bg-card-dark border-white/10' : 'bg-white border-gray-200'}`}>
       <div className="flex items-center justify-between mb-4">
-        <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Attendance Records</h3>
+        <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('attendanceRecords')}</h3>
         <button
           onClick={onCreate}
           className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
         >
           <Plus size={18} />
-          Add Record
+          {t('addRecord')}
         </button>
       </div>
 
@@ -42,7 +44,7 @@ export function AttendanceTable({ sessions, onCreate, onEdit, onDelete }: Attend
         />
         <input
           type="text"
-          placeholder="Search by date..."
+          placeholder={t('searchByDate')}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className={`w-full pl-10 pr-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
@@ -55,12 +57,12 @@ export function AttendanceTable({ sessions, onCreate, onEdit, onDelete }: Attend
         <table className="min-w-full text-sm">
           <thead>
             <tr className={isDark ? 'bg-white/5 text-slate-300' : 'bg-gray-100 text-gray-700'}>
-              <th className="p-2 text-left">Date</th>
-              <th className="p-2 text-left">Present</th>
-              <th className="p-2 text-left">Absent</th>
-              <th className="p-2 text-left">Total</th>
-              <th className="p-2 text-left">Attendance %</th>
-              <th className="p-2 text-left">Actions</th>
+              <th className="p-2 text-left">{t('date')}</th>
+              <th className="p-2 text-left">{t('present')}</th>
+              <th className="p-2 text-left">{t('absent')}</th>
+              <th className="p-2 text-left">{t('total')}</th>
+              <th className="p-2 text-left">{t('attendancePercent')}</th>
+              <th className="p-2 text-left">{t('actions')}</th>
             </tr>
           </thead>
           <tbody>
@@ -105,8 +107,8 @@ export function AttendanceTable({ sessions, onCreate, onEdit, onDelete }: Attend
               <tr>
                 <td className={`p-4 text-center ${isDark ? 'text-slate-500' : 'text-gray-500'}`} colSpan={6}>
                   {searchTerm
-                    ? 'No attendance records match your search.'
-                    : 'No attendance records.'}
+                    ? t('noAttendanceMatch')
+                    : t('noAttendanceRecords')}
                 </td>
               </tr>
             )}
