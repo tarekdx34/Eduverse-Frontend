@@ -85,22 +85,14 @@ export function DashboardSidebar({
           onTabChange(tab.id);
           onMobileClose?.();
         }}
-        className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all text-sm ${
+        className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-colors text-sm ${
           isActive
-            ? isDark
-              ? 'font-semibold'
-              : 'sidebar-item-active text-white font-semibold'
+            ? 'font-semibold'
             : isDark
-              ? 'text-slate-400 hover:bg-white/5'
-              : 'text-slate-500 hover:text-slate-700'
+              ? 'text-slate-400 hover:bg-white/5 hover:text-slate-300'
+              : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
         }`}
-        style={
-          isActive
-            ? isDark
-              ? { backgroundColor: `${accentColor}15`, color: accentColor }
-              : undefined
-            : undefined
-        }
+        style={isActive ? { backgroundColor: `${accentColor}15`, color: accentColor } : undefined}
       >
         <IconComponent className="w-5 h-5 flex-shrink-0" />
         <span className="truncate">{tab.label}</span>
@@ -112,7 +104,7 @@ export function DashboardSidebar({
     <aside
       role="navigation"
       aria-label="Dashboard navigation"
-      className={`w-64 h-screen flex flex-col ${isDark ? 'bg-card-dark border-white/5' : 'glass border-slate-200'} ${isRTL ? 'border-l' : 'border-r'} p-6`}
+      className={`w-64 h-screen flex flex-col ${isDark ? 'bg-card-dark border-white/5' : 'bg-white border-slate-200'} ${isRTL ? 'border-l' : 'border-r'} p-6`}
     >
       {/* Branding + Mobile Close */}
       <div className="flex items-center justify-between mb-10 px-2">
@@ -133,32 +125,37 @@ export function DashboardSidebar({
       </div>
 
       {/* Navigation */}
-      <nav role="tablist" aria-label="Navigation tabs" className="flex-1 overflow-y-auto sidebar-scroll space-y-1">
-        {hasGroups
-          ? groups.map((group) => (
-              <div key={group.label || 'ungrouped'} className="mb-2">
-                {group.label && (
-                  <button
-                    onClick={() => toggleGroup(group.label)}
-                    className={`w-full flex items-center justify-between px-4 py-2 text-xs font-semibold uppercase tracking-wider rounded-lg transition-colors ${
-                      isDark ? 'text-slate-500 hover:text-slate-300' : 'text-slate-400 hover:text-slate-600'
-                    }`}
-                  >
-                    <span>{group.label}</span>
-                    <ChevronDown
-                      className={`w-3.5 h-3.5 transition-transform ${collapsedGroups.has(group.label) ? '-rotate-90' : ''}`}
-                    />
-                  </button>
-                )}
-                {!collapsedGroups.has(group.label) && (
-                  <div className="space-y-1">
-                    {group.tabs.map(renderTab)}
-                  </div>
-                )}
-              </div>
-            ))
-          : <div className="space-y-2">{tabs.map(renderTab)}</div>
-        }
+      <nav
+        role="tablist"
+        aria-label="Navigation tabs"
+        className="flex-1 overflow-y-auto sidebar-scroll space-y-1"
+      >
+        {hasGroups ? (
+          groups.map((group) => (
+            <div key={group.label || 'ungrouped'} className="mb-2">
+              {group.label && (
+                <button
+                  onClick={() => toggleGroup(group.label)}
+                  className={`w-full flex items-center justify-between px-4 py-2 text-xs font-semibold uppercase tracking-wider rounded-lg transition-colors ${
+                    isDark
+                      ? 'text-slate-500 hover:text-slate-300'
+                      : 'text-slate-400 hover:text-slate-600'
+                  }`}
+                >
+                  <span>{group.label}</span>
+                  <ChevronDown
+                    className={`w-3.5 h-3.5 transition-transform ${collapsedGroups.has(group.label) ? '-rotate-90' : ''}`}
+                  />
+                </button>
+              )}
+              {!collapsedGroups.has(group.label) && (
+                <div className="space-y-1">{group.tabs.map(renderTab)}</div>
+              )}
+            </div>
+          ))
+        ) : (
+          <div className="space-y-2">{tabs.map(renderTab)}</div>
+        )}
       </nav>
 
       {/* Logout */}
@@ -166,7 +163,7 @@ export function DashboardSidebar({
         <button
           onClick={onLogout}
           aria-label="Logout"
-          className="w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all text-red-500 hover:bg-red-500/10 font-medium text-sm"
+          className="w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-colors text-red-500 hover:bg-red-50 font-medium text-sm dark:hover:bg-red-500/10"
         >
           <LogOut className="w-5 h-5 flex-shrink-0" />
           <span>Logout</span>
@@ -178,7 +175,9 @@ export function DashboardSidebar({
   return (
     <>
       {/* Desktop: always visible, fixed */}
-      <div className={`hidden lg:block fixed ${isRTL ? 'right-0' : 'left-0'} top-0 z-50 h-screen`}>{sidebarContent}</div>
+      <div className={`hidden lg:block fixed ${isRTL ? 'right-0' : 'left-0'} top-0 z-50 h-screen`}>
+        {sidebarContent}
+      </div>
 
       {/* Mobile: overlay drawer */}
       {isMobileOpen && (

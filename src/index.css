@@ -210,8 +210,8 @@
   }
 
   /* RTL language support - Cairo font for Arabic */
-  [dir="rtl"],
-  body[dir="rtl"] {
+  [dir='rtl'],
+  body[dir='rtl'] {
     font-family: 'Cairo', sans-serif;
   }
 
@@ -277,11 +277,11 @@
   }
 
   /* RTL typography adjustments */
-  [dir="rtl"] h1,
-  [dir="rtl"] h2,
-  [dir="rtl"] h3,
-  [dir="rtl"] h4,
-  [dir="rtl"] p {
+  [dir='rtl'] h1,
+  [dir='rtl'] h2,
+  [dir='rtl'] h3,
+  [dir='rtl'] h4,
+  [dir='rtl'] p {
     font-family: 'Cairo', sans-serif;
   }
 }
@@ -307,42 +307,40 @@
 /* Custom scrollbar for sidebar */
 .sidebar-scroll {
   scrollbar-width: thin;
-  scrollbar-color: rgba(124, 58, 237, 0.2) transparent;
-}
-.sidebar-scroll:hover {
-  scrollbar-color: rgba(124, 58, 237, 0.35) transparent;
+  scrollbar-color: rgba(156, 163, 175, 0.3) transparent;
 }
 .sidebar-scroll::-webkit-scrollbar {
-  width: 5px;
+  width: 4px;
 }
 .sidebar-scroll::-webkit-scrollbar-track {
   background: transparent;
 }
 .sidebar-scroll::-webkit-scrollbar-thumb {
-  background: rgba(124, 58, 237, 0.2);
-  border-radius: 9999px;
+  background: rgba(156, 163, 175, 0.3);
+  border-radius: 4px;
 }
 .sidebar-scroll:hover::-webkit-scrollbar-thumb {
-  background: rgba(124, 58, 237, 0.35);
+  background: rgba(156, 163, 175, 0.5);
 }
 .sidebar-scroll::-webkit-scrollbar-thumb:hover {
-  background: rgba(124, 58, 237, 0.5);
+  background: rgba(156, 163, 175, 0.7);
 }
 
 .sidebar-item-active {
-  background: linear-gradient(135deg, #7C3AED 0%, #6366F1 100%);
+  background: linear-gradient(135deg, #7c3aed 0%, #6366f1 100%);
   box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
 }
 
 .dark .sidebar-item-active {
   background: rgba(99, 102, 241, 0.1);
   box-shadow: none;
-  color: #7C3AED;
+  color: #7c3aed;
 }
 
 .gradient-bg {
-  background: radial-gradient(circle at top right, rgba(124, 58, 237, 0.1), transparent),
-              radial-gradient(circle at bottom left, rgba(99, 102, 241, 0.1), transparent);
+  background:
+    radial-gradient(circle at top right, rgba(124, 58, 237, 0.1), transparent),
+    radial-gradient(circle at bottom left, rgba(99, 102, 241, 0.1), transparent);
 }
 
 .dark .gradient-bg {

@@ -99,19 +99,61 @@ type TabKey =
   | 'profile';
 
 const TABS: { key: TabKey; label: string; labelAr: string; icon: any; group: string }[] = [
-  { key: 'dashboard', label: 'Dashboard', labelAr: 'لوحة التحكم', icon: LayoutGrid, group: 'Overview' },
+  {
+    key: 'dashboard',
+    label: 'Dashboard',
+    labelAr: 'لوحة التحكم',
+    icon: LayoutGrid,
+    group: 'Overview',
+  },
   { key: 'courses', label: 'Courses', labelAr: 'المقررات', icon: BookOpen, group: 'Teaching' },
   { key: 'labs', label: 'Labs', labelAr: 'المعامل', icon: Beaker, group: 'Teaching' },
-  { key: 'quizzes', label: 'Quizzes', labelAr: 'الاختبارات', icon: ClipboardList, group: 'Teaching' },
-  { key: 'assignments', label: 'Assignments', labelAr: 'الواجبات', icon: CheckSquare, group: 'Teaching' },
+  {
+    key: 'quizzes',
+    label: 'Quizzes',
+    labelAr: 'الاختبارات',
+    icon: ClipboardList,
+    group: 'Teaching',
+  },
+  {
+    key: 'assignments',
+    label: 'Assignments',
+    labelAr: 'الواجبات',
+    icon: CheckSquare,
+    group: 'Teaching',
+  },
   { key: 'schedule', label: 'Schedule', labelAr: 'الجدول', icon: CalendarDays, group: 'Teaching' },
   { key: 'roster', label: 'Roster', labelAr: 'قائمة الطلاب', icon: Users, group: 'Students' },
-  { key: 'waitlist', label: 'Waitlist', labelAr: 'قائمة الانتظار', icon: UserCheck, group: 'Students' },
+  {
+    key: 'waitlist',
+    label: 'Waitlist',
+    labelAr: 'قائمة الانتظار',
+    icon: UserCheck,
+    group: 'Students',
+  },
   { key: 'grades', label: 'Grades', labelAr: 'الدرجات', icon: FileText, group: 'Students' },
   { key: 'attendance', label: 'Attendance', labelAr: 'الحضور', icon: Calendar, group: 'Students' },
-  { key: 'analytics', label: 'Analytics', labelAr: 'التحليلات', icon: BarChart3, group: 'Students' },
-  { key: 'communication', label: 'Communication', labelAr: 'التواصل', icon: MessageCircle, group: 'Communication' },
-  { key: 'discussion', label: 'Discussion', labelAr: 'المناقشات', icon: MessagesSquare, group: 'Communication' },
+  {
+    key: 'analytics',
+    label: 'Analytics',
+    labelAr: 'التحليلات',
+    icon: BarChart3,
+    group: 'Students',
+  },
+  {
+    key: 'communication',
+    label: 'Communication',
+    labelAr: 'التواصل',
+    icon: MessageCircle,
+    group: 'Communication',
+  },
+  {
+    key: 'discussion',
+    label: 'Discussion',
+    labelAr: 'المناقشات',
+    icon: MessagesSquare,
+    group: 'Communication',
+  },
   { key: 'chat', label: 'Chat', labelAr: 'الدردشة', icon: MessageSquare, group: 'Communication' },
   { key: 'ai-tools', label: 'AI Tools', labelAr: 'أدوات الذكاء', icon: Brain, group: 'Tools' },
   { key: 'settings', label: 'Settings', labelAr: 'الإعدادات', icon: Settings, group: 'Tools' },
@@ -126,7 +168,7 @@ function InstructorDashboardContent() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
   const [attendanceMode, setAttendanceMode] = useState<'manual' | 'ai'>('manual');
-  const { isDark, toggleTheme } = useTheme();
+  const { isDark, toggleTheme, primaryHex, primaryColor, setPrimaryColor } = useTheme() as any;
   const { language, setLanguage, isRTL, t } = useLanguage();
 
   // State for roster management
@@ -457,9 +499,9 @@ function InstructorDashboardContent() {
   };
 
   // Translate tabs based on language
-  const translatedTabs = TABS.map(tab => ({
+  const translatedTabs = TABS.map((tab) => ({
     ...tab,
-    label: language === 'ar' ? tab.labelAr : tab.label
+    label: language === 'ar' ? tab.labelAr : tab.label,
   }));
 
   return (
@@ -470,13 +512,18 @@ function InstructorDashboardContent() {
     >
       {/* Sidebar */}
       <DashboardSidebar
-        tabs={translatedTabs.map(tab => ({ id: tab.key, label: tab.label, icon: tab.icon, group: tab.group }))}
+        tabs={translatedTabs.map((tab) => ({
+          id: tab.key,
+          label: tab.label,
+          icon: tab.icon,
+          group: tab.group,
+        }))}
         activeTab={activeTab}
         onTabChange={(key) => handleTabChange(key as TabKey)}
         onLogout={() => navigate('/login')}
         isDark={isDark}
         isRTL={isRTL}
-        accentColor="#4F46E5"
+        accentColor={primaryHex || '#4F46E5'}
         isMobileOpen={sidebarOpen}
         onMobileClose={() => setSidebarOpen(false)}
         groupOrder={['Overview', 'Teaching', 'Students', 'Communication', 'Tools']}
@@ -497,13 +544,22 @@ function InstructorDashboardContent() {
           userRole="Instructor"
           isDark={isDark}
           isRTL={isRTL}
-          accentColor="#4F46E5"
+          accentColor={primaryHex || '#4F46E5'}
           avatarGradient="from-indigo-500 to-purple-500"
           language={language}
           onToggleTheme={toggleTheme}
           onSetLanguage={setLanguage}
           searchRole="instructor"
           onProfileClick={() => handleTabChange('profile')}
+          primaryColor={primaryColor}
+          onSetPrimaryColor={setPrimaryColor}
+          availableColors={[
+            { id: 'blue', colorClass: 'bg-blue-500', hex: '#3b82f6' },
+            { id: 'emerald', colorClass: 'bg-emerald-500', hex: '#10b981' },
+            { id: 'violet', colorClass: 'bg-violet-500', hex: '#8b5cf6' },
+            { id: 'rose', colorClass: 'bg-rose-500', hex: '#f43f5e' },
+            { id: 'amber', colorClass: 'bg-amber-500', hex: '#f59e0b' },
+          ]}
           translations={{
             search: t('search') || 'Search...',
             language: t('language'),
@@ -515,279 +571,307 @@ function InstructorDashboardContent() {
             logout: t('logout'),
           }}
         />
-          {/* Dashboard Overview */}
-          {activeTab === 'dashboard' && (
-            <ModernDashboard
-              stats={DASHBOARD_STATS}
-              sections={SECTIONS}
-              upcomingClasses={UPCOMING_CLASSES}
-              recentActivity={RECENT_ACTIVITY}
-              pendingTasks={PENDING_TASKS}
-              onNavigate={(tab) => handleTabChange(tab as TabKey)}
-            />
-          )}
+        {/* Dashboard Overview */}
+        {activeTab === 'dashboard' && (
+          <ModernDashboard
+            stats={DASHBOARD_STATS}
+            sections={SECTIONS}
+            upcomingClasses={UPCOMING_CLASSES}
+            recentActivity={RECENT_ACTIVITY}
+            pendingTasks={PENDING_TASKS}
+            onNavigate={(tab) => handleTabChange(tab as TabKey)}
+          />
+        )}
 
-          {/* Courses */}
-          {activeTab === 'courses' && (
-            <CoursesPage
-              courses={coursesData}
-              onCreateCourse={handleCreateCourse}
-              onEditCourse={handleEditCourse}
-              onDeleteCourse={handleDeleteCourse}
-              onDuplicateCourse={handleDuplicateCourse}
-              onViewCourse={handleViewCourse}
-            />
-          )}
+        {/* Courses */}
+        {activeTab === 'courses' && (
+          <CoursesPage
+            courses={coursesData}
+            onCreateCourse={handleCreateCourse}
+            onEditCourse={handleEditCourse}
+            onDeleteCourse={handleDeleteCourse}
+            onDuplicateCourse={handleDuplicateCourse}
+            onViewCourse={handleViewCourse}
+          />
+        )}
 
-          {/* Labs */}
-          {activeTab === 'labs' && <LabsPage />}
+        {/* Labs */}
+        {activeTab === 'labs' && <LabsPage />}
 
-          {/* Quizzes */}
-          {activeTab === 'quizzes' && <QuizzesPage />}
+        {/* Quizzes */}
+        {activeTab === 'quizzes' && <QuizzesPage />}
 
-          {/* Schedule */}
-          {activeTab === 'schedule' && <SchedulePage />}
+        {/* Schedule */}
+        {activeTab === 'schedule' && <SchedulePage />}
 
-          {/* Roster */}
-          {activeTab === 'roster' && (
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <label className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>Select Section</label>
-                <select
-                  className={`border rounded-md px-3 py-2 ${isDark ? 'bg-white/5 border-white/10 text-slate-200' : 'bg-white border-gray-300 text-gray-900'}`}
-                  value={activeSectionId || String(SECTIONS[0].sectionId)}
-                  onChange={(e) => setActiveSectionId(e.target.value)}
-                >
-                  <option value="" disabled>
-                    Choose a section
+        {/* Roster */}
+        {activeTab === 'roster' && (
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <label className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                Select Section
+              </label>
+              <select
+                className={`border rounded-md px-3 py-2 ${isDark ? 'bg-white/5 border-white/10 text-slate-200' : 'bg-white border-gray-300 text-gray-900'}`}
+                value={activeSectionId || String(SECTIONS[0].sectionId)}
+                onChange={(e) => setActiveSectionId(e.target.value)}
+              >
+                <option value="" disabled>
+                  Choose a section
+                </option>
+                {sectionOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
                   </option>
-                  {sectionOptions.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <SelectedSectionSummary section={selectedSection as any} />
-              <RosterTable
-                data={currentRoster}
-                onEdit={(student) => {
-                  setEditingStudent(student);
-                  setIsEditOpen(true);
-                }}
-                onToggleStatus={(id) => {
-                  const updated = currentRoster.map((r) =>
-                    r.id === id
-                      ? {
-                          ...r,
-                          status: r.status === 'enrolled' ? 'auditing' : 'enrolled',
-                        }
-                      : r
-                  );
-                  setRosterOverrides((prev) => ({
-                    ...prev,
-                    [String(activeSectionId)]: updated,
-                  }));
-                }}
-              />
+                ))}
+              </select>
             </div>
-          )}
-
-          {/* Waitlist */}
-          {activeTab === 'waitlist' && (
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <label className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>Select Section</label>
-                <select
-                  className={`border rounded-md px-3 py-2 ${isDark ? 'bg-white/5 border-white/10 text-slate-200' : 'bg-white border-gray-300 text-gray-900'}`}
-                  value={activeSectionId || String(SECTIONS[0].sectionId)}
-                  onChange={(e) => setActiveSectionId(e.target.value)}
-                >
-                  <option value="" disabled>
-                    Choose a section
-                  </option>
-                  {sectionOptions.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <SelectedSectionSummary section={selectedSection as any} />
-              <WaitlistTable
-                data={currentWaitlist}
-                onApprove={(id) => {
-                  console.log('Approve student:', id);
-                  // Add logic to approve and move to roster
-                }}
-                onReject={(id) => {
-                  console.log('Reject student:', id);
-                  // Add logic to reject waitlist request
-                }}
-              />
-            </div>
-          )}
-
-          {/* Grades */}
-          {activeTab === 'grades' && (
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <label className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>Select Section</label>
-                <select
-                  className={`border rounded-md px-3 py-2 ${isDark ? 'bg-white/5 border-white/10 text-slate-200' : 'bg-white border-gray-300 text-gray-900'}`}
-                  value={activeSectionId || String(SECTIONS[0].sectionId)}
-                  onChange={(e) => setActiveSectionId(e.target.value)}
-                >
-                  <option value="" disabled>
-                    Choose a section
-                  </option>
-                  {sectionOptions.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <SelectedSectionSummary section={selectedSection as any} />
-              <GradesTable
-                data={activeSectionId ? gradesData[activeSectionId] || [] : []}
-                onEdit={handleEditGrade}
-                onDelete={handleDeleteGrade}
-              />
-            </div>
-          )}
-
-          {/* Assignments */}
-          {activeTab === 'assignments' && (
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <label className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>Select Section</label>
-                <select
-                  className={`border rounded-md px-3 py-2 ${isDark ? 'bg-white/5 border-white/10 text-slate-200' : 'bg-white border-gray-300 text-gray-900'}`}
-                  value={activeSectionId || String(SECTIONS[0].sectionId)}
-                  onChange={(e) => setActiveSectionId(e.target.value)}
-                >
-                  <option value="" disabled>
-                    Choose a section
-                  </option>
-                  {sectionOptions.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <SelectedSectionSummary section={selectedSection as any} />
-              <AssignmentsList
-                data={activeSectionId ? assignmentsData[activeSectionId] || [] : []}
-                onEdit={handleEditAssignment}
-                onDelete={handleDeleteAssignment}
-                onCreate={handleCreateAssignment}
-                onStatusChange={handleAssignmentStatusChange}
-              />
-            </div>
-          )}
-
-          {/* Analytics */}
-          {activeTab === 'analytics' && <AnalyticsPage />}
-
-          {/* AI Tools */}
-          {activeTab === 'ai-tools' && <AIToolsPage />}
-
-          {/* Attendance */}
-          {activeTab === 'attendance' && (
-            <div className="space-y-6">
-              <div className="flex items-center gap-3">
-                <label className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>Select Section</label>
-                <select
-                  className={`border rounded-md px-3 py-2 ${isDark ? 'bg-white/5 border-white/10 text-slate-200' : 'bg-white border-gray-300 text-gray-900'}`}
-                  value={activeSectionId || String(SECTIONS[0].sectionId)}
-                  onChange={(e) => setActiveSectionId(e.target.value)}
-                >
-                  <option value="" disabled>
-                    Choose a section
-                  </option>
-                  {sectionOptions.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <SelectedSectionSummary section={selectedSection as any} />
-
-              {/* Content Area */}
-              {attendanceMode === 'ai' ? (
-                <div className={`rounded-xl border shadow-sm p-6 ${isDark ? 'bg-card-dark border-white/10' : 'bg-white border-gray-200'}`}>
-                  <div className="flex items-center justify-between mb-6">
-                    <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>AI Attendance</h3>
-                    <button
-                      onClick={() => setAttendanceMode('manual')}
-                      className={`text-sm ${isDark ? 'text-slate-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}
-                    >
-                      ← Back to Manual Attendance
-                    </button>
-                  </div>
-                  <AIAttendanceContainer
-                    courseSection={selectedSection?.courseCode || 'Unknown Section'}
-                  />
-                </div>
-              ) : (
-                <div className={`rounded-xl border shadow-sm p-6 ${isDark ? 'bg-card-dark border-white/10' : 'bg-white border-gray-200'}`}>
-                  <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Manual Attendance</h3>
-                  <AttendanceTable
-                    sessions={activeSectionId ? attendanceData[activeSectionId] || [] : []}
-                    onCreate={handleCreateAttendance}
-                    onEdit={handleEditAttendance}
-                    onDelete={handleDeleteAttendance}
-                  />
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Communication */}
-          {activeTab === 'communication' && <CommunicationPage />}
-
-          {/* Discussion */}
-          {activeTab === 'discussion' && <DiscussionPage />}
-
-          {/* Chat */}
-          {activeTab === 'chat' && (
-            <MessagingChat
-              height="calc(100vh - 160px)"
-              currentUserName="Dr. Jane Smith"
-              showVideoCall={true}
-              showVoiceCall={true}
-            />
-          )}
-
-          {/* Settings */}
-          {activeTab === 'settings' && <SettingsPage />}
-
-          {/* Profile */}
-          {activeTab === 'profile' && (
-            <DashboardProfileTab
-              isDark={isDark}
-              accentColor="#4F46E5"
-              bannerGradient="from-indigo-500 to-purple-500"
-              profileData={{
-                fullName: 'Prof. Sarah Martinez',
-                role: 'Instructor',
-                department: 'Computer Science',
-                email: 'sarah.martinez@university.edu',
-                phone: '+1 (555) 234-5678',
-                address: 'Building A, Room 302',
-                dateOfBirth: '1985-03-22',
-                bio: 'Associate Professor of Computer Science with 12+ years of experience in teaching and research. Specializing in artificial intelligence, machine learning, and software engineering.',
-                office: 'Room A-302',
-                officeHours: 'Mon & Wed 2:00 PM - 4:00 PM',
-                specialization: ['Artificial Intelligence', 'Machine Learning', 'Software Engineering', 'Data Mining', 'Neural Networks'],
-                skills: ['Python', 'TensorFlow', 'PyTorch', 'R', 'MATLAB', 'Java'],
+            <SelectedSectionSummary section={selectedSection as any} />
+            <RosterTable
+              data={currentRoster}
+              onEdit={(student) => {
+                setEditingStudent(student);
+                setIsEditOpen(true);
+              }}
+              onToggleStatus={(id) => {
+                const updated = currentRoster.map((r) =>
+                  r.id === id
+                    ? {
+                        ...r,
+                        status: r.status === 'enrolled' ? 'auditing' : 'enrolled',
+                      }
+                    : r
+                );
+                setRosterOverrides((prev) => ({
+                  ...prev,
+                  [String(activeSectionId)]: updated,
+                }));
               }}
             />
-          )}
-        </main>
+          </div>
+        )}
+
+        {/* Waitlist */}
+        {activeTab === 'waitlist' && (
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <label className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                Select Section
+              </label>
+              <select
+                className={`border rounded-md px-3 py-2 ${isDark ? 'bg-white/5 border-white/10 text-slate-200' : 'bg-white border-gray-300 text-gray-900'}`}
+                value={activeSectionId || String(SECTIONS[0].sectionId)}
+                onChange={(e) => setActiveSectionId(e.target.value)}
+              >
+                <option value="" disabled>
+                  Choose a section
+                </option>
+                {sectionOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <SelectedSectionSummary section={selectedSection as any} />
+            <WaitlistTable
+              data={currentWaitlist}
+              onApprove={(id) => {
+                console.log('Approve student:', id);
+                // Add logic to approve and move to roster
+              }}
+              onReject={(id) => {
+                console.log('Reject student:', id);
+                // Add logic to reject waitlist request
+              }}
+            />
+          </div>
+        )}
+
+        {/* Grades */}
+        {activeTab === 'grades' && (
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <label className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                Select Section
+              </label>
+              <select
+                className={`border rounded-md px-3 py-2 ${isDark ? 'bg-white/5 border-white/10 text-slate-200' : 'bg-white border-gray-300 text-gray-900'}`}
+                value={activeSectionId || String(SECTIONS[0].sectionId)}
+                onChange={(e) => setActiveSectionId(e.target.value)}
+              >
+                <option value="" disabled>
+                  Choose a section
+                </option>
+                {sectionOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <SelectedSectionSummary section={selectedSection as any} />
+            <GradesTable
+              data={activeSectionId ? gradesData[activeSectionId] || [] : []}
+              onEdit={handleEditGrade}
+              onDelete={handleDeleteGrade}
+            />
+          </div>
+        )}
+
+        {/* Assignments */}
+        {activeTab === 'assignments' && (
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <label className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                Select Section
+              </label>
+              <select
+                className={`border rounded-md px-3 py-2 ${isDark ? 'bg-white/5 border-white/10 text-slate-200' : 'bg-white border-gray-300 text-gray-900'}`}
+                value={activeSectionId || String(SECTIONS[0].sectionId)}
+                onChange={(e) => setActiveSectionId(e.target.value)}
+              >
+                <option value="" disabled>
+                  Choose a section
+                </option>
+                {sectionOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <SelectedSectionSummary section={selectedSection as any} />
+            <AssignmentsList
+              data={activeSectionId ? assignmentsData[activeSectionId] || [] : []}
+              onEdit={handleEditAssignment}
+              onDelete={handleDeleteAssignment}
+              onCreate={handleCreateAssignment}
+              onStatusChange={handleAssignmentStatusChange}
+            />
+          </div>
+        )}
+
+        {/* Analytics */}
+        {activeTab === 'analytics' && <AnalyticsPage />}
+
+        {/* AI Tools */}
+        {activeTab === 'ai-tools' && <AIToolsPage />}
+
+        {/* Attendance */}
+        {activeTab === 'attendance' && (
+          <div className="space-y-6">
+            <div className="flex items-center gap-3">
+              <label className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                Select Section
+              </label>
+              <select
+                className={`border rounded-md px-3 py-2 ${isDark ? 'bg-white/5 border-white/10 text-slate-200' : 'bg-white border-gray-300 text-gray-900'}`}
+                value={activeSectionId || String(SECTIONS[0].sectionId)}
+                onChange={(e) => setActiveSectionId(e.target.value)}
+              >
+                <option value="" disabled>
+                  Choose a section
+                </option>
+                {sectionOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <SelectedSectionSummary section={selectedSection as any} />
+
+            {/* Content Area */}
+            {attendanceMode === 'ai' ? (
+              <div
+                className={`rounded-xl border shadow-sm p-6 ${isDark ? 'bg-card-dark border-white/10' : 'bg-white border-gray-200'}`}
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <h3
+                    className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}
+                  >
+                    AI Attendance
+                  </h3>
+                  <button
+                    onClick={() => setAttendanceMode('manual')}
+                    className={`text-sm ${isDark ? 'text-slate-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}
+                  >
+                    ← Back to Manual Attendance
+                  </button>
+                </div>
+                <AIAttendanceContainer
+                  courseSection={selectedSection?.courseCode || 'Unknown Section'}
+                />
+              </div>
+            ) : (
+              <div
+                className={`rounded-xl border shadow-sm p-6 ${isDark ? 'bg-card-dark border-white/10' : 'bg-white border-gray-200'}`}
+              >
+                <h3
+                  className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}
+                >
+                  Manual Attendance
+                </h3>
+                <AttendanceTable
+                  sessions={activeSectionId ? attendanceData[activeSectionId] || [] : []}
+                  onCreate={handleCreateAttendance}
+                  onEdit={handleEditAttendance}
+                  onDelete={handleDeleteAttendance}
+                />
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Communication */}
+        {activeTab === 'communication' && <CommunicationPage />}
+
+        {/* Discussion */}
+        {activeTab === 'discussion' && <DiscussionPage />}
+
+        {/* Chat */}
+        {activeTab === 'chat' && (
+          <MessagingChat
+            height="calc(100vh - 160px)"
+            currentUserName="Dr. Jane Smith"
+            showVideoCall={true}
+            showVoiceCall={true}
+          />
+        )}
+
+        {/* Settings */}
+        {activeTab === 'settings' && <SettingsPage />}
+
+        {/* Profile */}
+        {activeTab === 'profile' && (
+          <DashboardProfileTab
+            isDark={isDark}
+            accentColor="#4F46E5"
+            bannerGradient="from-indigo-500 to-purple-500"
+            profileData={{
+              fullName: 'Prof. Sarah Martinez',
+              role: 'Instructor',
+              department: 'Computer Science',
+              email: 'sarah.martinez@university.edu',
+              phone: '+1 (555) 234-5678',
+              address: 'Building A, Room 302',
+              dateOfBirth: '1985-03-22',
+              bio: 'Associate Professor of Computer Science with 12+ years of experience in teaching and research. Specializing in artificial intelligence, machine learning, and software engineering.',
+              office: 'Room A-302',
+              officeHours: 'Mon & Wed 2:00 PM - 4:00 PM',
+              specialization: [
+                'Artificial Intelligence',
+                'Machine Learning',
+                'Software Engineering',
+                'Data Mining',
+                'Neural Networks',
+              ],
+              skills: ['Python', 'TensorFlow', 'PyTorch', 'R', 'MATLAB', 'Java'],
+            }}
+          />
+        )}
+      </main>
 
       {/* Modals */}
       {isEditOpen && (

@@ -6,6 +6,9 @@ interface ThemeContextType {
   theme: Theme;
   toggleTheme: () => void;
   isDark: boolean;
+  primaryColor: string;
+  primaryHex: string;
+  setPrimaryColor: (color: string) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -19,6 +22,22 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     return 'light';
   });
 
+  const [primaryColor, setPrimaryColorState] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('eduverse-primary-color') || 'blue';
+    }
+    return 'blue';
+  });
+
+  const setPrimaryColor = (color: string) => {
+    setPrimaryColorState(color);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('eduverse-primary-color', color);
+      // Dispatch a custom event to sync across components easily if they don't subscribe to this specific ThemeContext instance
+      window.dispatchEvent(new CustomEvent('eduverse-color-change', { detail: color }));
+    }
+  };
+
   useEffect(() => {
     localStorage.setItem('eduverse-instructor-theme', theme);
     if (theme === 'dark') {
@@ -28,14 +47,34 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     }
   }, [theme]);
 
+  // Sync color from other dashboards via custom event
+  useEffect(() => {
+    const handleColorChange = (e: any) => {
+      setPrimaryColorState(e.detail);
+    };
+    window.addEventListener('eduverse-color-change', handleColorChange);
+    return () => window.removeEventListener('eduverse-color-change', handleColorChange);
+  }, []);
+
   const toggleTheme = () => {
-    setTheme(prev => prev === 'light' ? 'dark' : 'light');
+    setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
   };
 
   const isDark = theme === 'dark';
 
+  const hexMap: Record<string, string> = {
+    blue: '#3b82f6',
+    emerald: '#10b981',
+    violet: '#8b5cf6',
+    rose: '#f43f5e',
+    amber: '#f59e0b',
+  };
+  const primaryHex = hexMap[primaryColor] || '#3b82f6';
+
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme, isDark }}>
+    <ThemeContext.Provider
+      value={{ theme, toggleTheme, isDark, primaryColor, primaryHex, setPrimaryColor }}
+    >
       {children}
     </ThemeContext.Provider>
   );
