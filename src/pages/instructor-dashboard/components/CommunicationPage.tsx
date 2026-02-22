@@ -1,7 +1,17 @@
 import React, { useState } from 'react';
-import { Plus, Edit, Trash2, Bell, Sparkles, MessageSquare, FileText, Search, Clock } from 'lucide-react';
+import {
+  Plus,
+  Edit,
+  Trash2,
+  Bell,
+  Sparkles,
+  MessageSquare,
+  FileText,
+  Search,
+  Clock,
+} from 'lucide-react';
 import { CustomDropdown } from './CustomDropdown';
-import { MessagingChat, ScheduledAnnouncement, GlobalSearch } from '../../../components/shared';
+import { MessagingChat, ScheduledAnnouncement } from '../../../components/shared';
 import { useLanguage } from '../contexts/LanguageContext';
 
 export function CommunicationPage() {
@@ -10,7 +20,6 @@ export function CommunicationPage() {
     'announcements'
   );
   const [showScheduleModal, setShowScheduleModal] = useState(false);
-  const [showGlobalSearch, setShowGlobalSearch] = useState(false);
 
   const announcements = [
     {
@@ -57,27 +66,13 @@ export function CommunicationPage() {
     setShowScheduleModal(false);
   };
 
-  // Keyboard shortcut for global search
-  React.useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault();
-        setShowGlobalSearch(true);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
-
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div>
           <h1 className="text-3xl font-bold text-gray-900">{t('communicationCenter')}</h1>
-          <p className="text-gray-600 mt-1">
-            {t('communicationDescription')}
-          </p>
+          <p className="text-gray-600 mt-1">{t('communicationDescription')}</p>
         </div>
 
         {/* Tab Navigation */}
@@ -142,9 +137,10 @@ export function CommunicationPage() {
                   />
                 </div>
               </div>
-              <button 
+              <button
                 onClick={() => setShowScheduleModal(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+                className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+              >
                 <Plus size={18} />
                 {t('createAnnouncement')}
               </button>
@@ -204,11 +200,7 @@ export function CommunicationPage() {
 
         {/* Course Chats Tab */}
         {activeTab === 'chats' && (
-          <MessagingChat
-            height="500px"
-            showVideoCall={true}
-            showVoiceCall={true}
-          />
+          <MessagingChat height="500px" showVideoCall={true} showVoiceCall={true} />
         )}
 
         {/* Direct Messages Tab */}
@@ -225,17 +217,14 @@ export function CommunicationPage() {
         <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl p-6 border border-purple-200 shadow-sm">
           <div className="flex items-center gap-2 mb-4">
             <Sparkles className="text-purple-600" size={24} />
-            <h3 className="text-lg font-semibold text-gray-900">
-              {t('aiCommunicationAssistant')}
-            </h3>
+            <h3 className="text-lg font-semibold text-gray-900">{t('aiCommunicationAssistant')}</h3>
           </div>
-          <p className="text-sm text-gray-600 mb-4">
-            {t('aiCommunicationDescription')}
-          </p>
+          <p className="text-sm text-gray-600 mb-4">{t('aiCommunicationDescription')}</p>
           <div className="flex gap-3">
-            <button 
+            <button
               onClick={() => setShowScheduleModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm">
+              className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm"
+            >
               <FileText size={16} />
               {t('generateAnnouncement')}
             </button>
@@ -249,13 +238,6 @@ export function CommunicationPage() {
             </button>
           </div>
         </div>
-
-        {/* Global Search Modal */}
-        <GlobalSearch
-          isOpen={showGlobalSearch}
-          onClose={() => setShowGlobalSearch(false)}
-          userRole="instructor"
-        />
 
         {/* Schedule Announcement Modal */}
         {showScheduleModal && (

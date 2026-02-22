@@ -9,6 +9,7 @@ import ITAdminDashboard from './pages/it-admin-dashboard/ITAdminDashboard';
 import TADashboard from './pages/ta-dashboard/TADashboard';
 
 import { QuickNavigateModal } from './components/QuickNavigateModal';
+import { PageTitle } from './components/PageTitle';
 
 function App() {
   return (
@@ -16,38 +17,38 @@ function App() {
       <QuickNavigateModal />
       <Routes>
         {/* Home Page - Public */}
-        <Route path="/" element={<HomePage />} />
+        <Route path="/" element={<PageTitle title="Home"><HomePage /></PageTitle>} />
 
         {/* Login Page - Public */}
-        <Route path="/login" element={<LoginPage />} />
+        <Route path="/login" element={<PageTitle title="Login"><LoginPage /></PageTitle>} />
 
         {/* Profile Page */}
-        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/profile" element={<PageTitle title="Profile"><ProfilePage /></PageTitle>} />
 
         {/* Student Dashboard */}
-        <Route path="/studentdashboard" element={<StudentDashboard />} />
-        <Route path="/studentdashboard/:tab" element={<StudentDashboard />} />
-        <Route path="/studentdashboard/:tab/:id" element={<StudentDashboard />} />
+        <Route path="/studentdashboard" element={<PageTitle title="Student Dashboard"><StudentDashboard /></PageTitle>} />
+        <Route path="/studentdashboard/:tab" element={<PageTitle title="Student Dashboard"><StudentDashboard /></PageTitle>} />
+        <Route path="/studentdashboard/:tab/:id" element={<PageTitle title="Student Dashboard"><StudentDashboard /></PageTitle>} />
 
         {/* Instructor Dashboard - Development (no auth protection) */}
-        <Route path="/instructordashboard" element={<InstructorDashboard />} />
-        <Route path="/instructordashboard/:tab" element={<InstructorDashboard />} />
-        <Route path="/instructordashboard/:tab/:id" element={<InstructorDashboard />} />
+        <Route path="/instructordashboard" element={<PageTitle title="Instructor Dashboard"><InstructorDashboard /></PageTitle>} />
+        <Route path="/instructordashboard/:tab" element={<PageTitle title="Instructor Dashboard"><InstructorDashboard /></PageTitle>} />
+        <Route path="/instructordashboard/:tab/:id" element={<PageTitle title="Instructor Dashboard"><InstructorDashboard /></PageTitle>} />
 
         {/* Admin Dashboard - Development (no auth protection) */}
-        <Route path="/admindashboard" element={<AdminDashboard />} />
-        <Route path="/admindashboard/:tab" element={<AdminDashboard />} />
-        <Route path="/admindashboard/:tab/:id" element={<AdminDashboard />} />
+        <Route path="/admindashboard" element={<PageTitle title="Admin Dashboard"><AdminDashboard /></PageTitle>} />
+        <Route path="/admindashboard/:tab" element={<PageTitle title="Admin Dashboard"><AdminDashboard /></PageTitle>} />
+        <Route path="/admindashboard/:tab/:id" element={<PageTitle title="Admin Dashboard"><AdminDashboard /></PageTitle>} />
 
         {/* IT Admin Dashboard - Development (no auth protection) */}
-        <Route path="/itadmindashboard" element={<ITAdminDashboard />} />
-        <Route path="/itadmindashboard/:tab" element={<ITAdminDashboard />} />
-        <Route path="/itadmindashboard/:tab/:id" element={<ITAdminDashboard />} />
+        <Route path="/itadmindashboard" element={<PageTitle title="IT Admin Dashboard"><ITAdminDashboard /></PageTitle>} />
+        <Route path="/itadmindashboard/:tab" element={<PageTitle title="IT Admin Dashboard"><ITAdminDashboard /></PageTitle>} />
+        <Route path="/itadmindashboard/:tab/:id" element={<PageTitle title="IT Admin Dashboard"><ITAdminDashboard /></PageTitle>} />
 
         {/* TA Dashboard - Development (no auth protection) */}
-        <Route path="/tadashboard" element={<TADashboard />} />
-        <Route path="/tadashboard/:tab" element={<TADashboard />} />
-        <Route path="/tadashboard/:tab/:id" element={<TADashboard />} />
+        <Route path="/tadashboard" element={<PageTitle title="TA Dashboard"><TADashboard /></PageTitle>} />
+        <Route path="/tadashboard/:tab" element={<PageTitle title="TA Dashboard"><TADashboard /></PageTitle>} />
+        <Route path="/tadashboard/:tab/:id" element={<PageTitle title="TA Dashboard"><TADashboard /></PageTitle>} />
 
         {/* Legacy /dashboard route - redirect to /studentdashboard */}
         <Route path="/dashboard" element={<Navigate to="/studentdashboard" replace />} />
