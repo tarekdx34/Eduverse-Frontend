@@ -82,7 +82,7 @@ export function DashboardProfileTab({
           <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white via-transparent to-transparent" />
         </div>
 
-        <div className="px-8 -mt-20 relative z-10 flex flex-col md:flex-row items-end gap-6">
+        <div className="px-8 -mt-20 relative z-10 flex flex-col md:flex-row items-start md:items-end gap-6">
           {/* Avatar */}
           <div className="relative">
             <div
@@ -126,7 +126,7 @@ export function DashboardProfileTab({
 
           {/* Action Buttons */}
           <div className="pb-4 flex gap-3">
-            <button className="px-6 py-3 bg-white/20 backdrop-blur-md border border-white/30 text-white font-bold rounded-2xl hover:bg-white/30 transition-all flex items-center gap-2">
+            <button className={`px-6 py-3 backdrop-blur-md border font-bold rounded-2xl transition-all flex items-center gap-2 ${isDark ? 'bg-white/20 border-white/30 text-white hover:bg-white/30' : 'bg-white/80 border-slate-200 text-[#7C3AED] hover:bg-white'}`}>
               <Download className="w-4 h-4" />
               Download CV
             </button>

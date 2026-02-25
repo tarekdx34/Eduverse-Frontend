@@ -3,7 +3,6 @@ import {
   Brain,
   MessageSquare,
   Mic,
-  Lightbulb,
   Image as ImageIcon,
   Layers,
 } from 'lucide-react';
@@ -87,21 +86,6 @@ export const aiFeatures: AIFeature[] = [
     usageCount: 67,
     lastUsed: '5 hours ago',
     features: ['Real-time Processing', 'Multi-language', 'Speaker Detection']
-  },
-  {
-    id: 'recommendation',
-    title: 'Smart Recommender',
-    subtitle: 'Personalized Learning Path',
-    description: 'Discover curated study materials, courses, and resources powered by your unique learning patterns and goals',
-    icon: Lightbulb,
-    color: 'bg-amber-600',
-    bgLight: 'bg-amber-50',
-    bgHover: 'hover:bg-amber-100',
-    textColor: 'text-amber-700',
-    borderColor: 'border-amber-500',
-    usageCount: 89,
-    lastUsed: '1 hour ago',
-    features: ['AI Matching', 'Progress Tracking', 'Resource Library']
   },
   {
     id: 'flashcards',

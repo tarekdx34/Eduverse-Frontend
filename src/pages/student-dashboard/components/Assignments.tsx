@@ -6,7 +6,6 @@ import {
   AlertCircle, 
   Circle, 
   Filter, 
-  Plus, 
   TrendingUp,
   Award,
   Target,
@@ -195,11 +194,11 @@ export default function Assignments() {
   const { t } = useLanguage();
 
   const getUrgencyLabel = (daysUntil: number) => {
-    if (daysUntil < 0) return { label: t('overdue'), color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-500' };
-    if (daysUntil === 0) return { label: t('dueToday'), color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-500' };
-    if (daysUntil === 1) return { label: t('dueTomorrow'), color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-500' };
-    if (daysUntil <= 3) return { label: `${daysUntil} ${t('daysLeft')}`, color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-500' };
-    return { label: `${daysUntil} ${t('daysLeft')}`, color: 'text-slate-600', bg: 'bg-background-light', border: 'border-slate-200' };
+    if (daysUntil < 0) return { label: t('overdue'), color: 'text-red-600', bg: isDark ? 'bg-red-900/50' : 'bg-red-50', border: isDark ? 'border-red-700' : 'border-red-500' };
+    if (daysUntil === 0) return { label: t('dueToday'), color: 'text-red-600', bg: isDark ? 'bg-red-900/50' : 'bg-red-50', border: isDark ? 'border-red-700' : 'border-red-500' };
+    if (daysUntil === 1) return { label: t('dueTomorrow'), color: isDark ? 'text-orange-400' : 'text-orange-600', bg: isDark ? 'bg-orange-900/50' : 'bg-orange-50', border: isDark ? 'border-orange-700' : 'border-orange-500' };
+    if (daysUntil <= 3) return { label: `${daysUntil} ${t('daysLeft')}`, color: isDark ? 'text-amber-400' : 'text-amber-600', bg: isDark ? 'bg-amber-900/50' : 'bg-amber-50', border: isDark ? 'border-amber-700' : 'border-amber-500' };
+    return { label: `${daysUntil} ${t('daysLeft')}`, color: isDark ? 'text-slate-400' : 'text-slate-600', bg: isDark ? 'bg-white/5' : 'bg-background-light', border: isDark ? 'border-white/10' : 'border-slate-200' };
   };
 
   const pendingAssignments = assignments.filter(a => a.status === 'pending' || a.status === 'in-progress');
@@ -261,16 +260,10 @@ export default function Assignments() {
               <h2 className={`font-semibold mb-1 ${isDark ? 'text-white' : 'text-slate-800'}`}>{t('activeAssignments')}</h2>
               <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{t('trackManageWork')}</p>
             </div>
-            <div className="flex flex-wrap items-center gap-3">
-              <button className={`flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl text-sm transition-all ${isDark ? 'border-white/10 text-slate-400 hover:bg-white/5' : 'border-slate-100 text-slate-700 hover:bg-slate-50'}`}>
-                <SlidersHorizontal className="w-4 h-4" />
-                Filter
-              </button>
-              <button className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#7C3AED] to-[#6D28D9] text-white rounded-xl text-sm hover:shadow-lg transition-all">
-                <Plus className="w-4 h-4" />
-                Add Assignment
-              </button>
-            </div>
+            <button className={`flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl text-sm transition-all ${isDark ? 'border-white/10 text-slate-400 hover:bg-white/5' : 'border-slate-100 text-slate-700 hover:bg-slate-50'}`}>
+              <SlidersHorizontal className="w-4 h-4" />
+              Filter
+            </button>
           </div>
         </div>
 
@@ -404,7 +397,7 @@ export default function Assignments() {
       {/* Completed Assignments */}
       <div className="glass rounded-[2.5rem] shadow-sm overflow-hidden">
         <div className={`p-6 border-b ${isDark ? 'bg-white/5 border-white/5' : 'bg-gradient-to-r from-background-light to-white border-slate-100'}`}>
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
             <div>
               <h2 className={`font-semibold mb-1 ${isDark ? 'text-white' : 'text-slate-800'}`}>{t('completedAssignments')}</h2>
               <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{t('reviewSubmitted')}</p>
@@ -416,7 +409,7 @@ export default function Assignments() {
           </div>
 
           {/* Search and Filter */}
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-3">
             <div className="flex-1 relative">
               <Search className={`w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 ${isDark ? 'text-slate-500' : 'text-slate-500'}`} />
               <input
@@ -440,7 +433,7 @@ export default function Assignments() {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full min-w-[700px]">
             <thead className={isDark ? 'bg-white/5' : 'bg-gradient-to-r from-background-light to-slate-50'}>
               <tr>
                 <th className={`px-6 py-4 text-left text-sm font-semibold ${isDark ? 'text-slate-400' : 'text-slate-700'}`}>{t('assignment')}</th>

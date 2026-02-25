@@ -18,7 +18,8 @@ import {
   ChevronRight,
   GraduationCap,
   Award,
-  Info
+  Info,
+  CheckCircle
 } from 'lucide-react';
 
 interface Course {
@@ -233,7 +234,7 @@ export function CourseRegistration() {
         <h1 className="text-3xl font-bold mb-2">{t('courseRegistration')}</h1>
         <p className="text-purple-100 text-lg">{t('browseCourses')}</p>
         
-        <div className="grid grid-cols-3 gap-4 mt-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
           <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
             <p className="text-sm text-purple-200 mb-1">{t('creditsEnrolled')}</p>
             <p className="text-2xl font-bold">{totalCredits} / {maxCredits}</p>
@@ -276,7 +277,7 @@ export function CourseRegistration() {
               <select
                 value={selectedDepartment}
                 onChange={(e) => setSelectedDepartment(e.target.value)}
-                className={`px-4 py-2 ${isDark ? 'bg-white/5 border-white/10 text-white' : 'border-slate-100'} border-2 rounded-lg focus:outline-none focus:border-[#7C3AED] transition-all`}
+                className={`px-4 py-2 ${isDark ? 'bg-slate-800 border-white/10 text-white' : 'border-slate-100'} border-2 rounded-lg focus:outline-none focus:border-[#7C3AED] transition-all`}
               >
                 <option value="all">{t('allDepartments')}</option>
                 <option value="Computer Science">{t('computerScience')}</option>
@@ -286,7 +287,7 @@ export function CourseRegistration() {
               <select
                 value={selectedLevel}
                 onChange={(e) => setSelectedLevel(e.target.value)}
-                className={`px-4 py-2 ${isDark ? 'bg-white/5 border-white/10 text-white' : 'border-slate-100'} border-2 rounded-lg focus:outline-none focus:border-[#7C3AED] transition-all`}
+                className={`px-4 py-2 ${isDark ? 'bg-slate-800 border-white/10 text-white' : 'border-slate-100'} border-2 rounded-lg focus:outline-none focus:border-[#7C3AED] transition-all`}
               >
                 <option value="all">{t('allLevels')}</option>
                 <option value="Beginner">{t('beginner')}</option>
@@ -477,6 +478,24 @@ export function CourseRegistration() {
                     </div>
                   </div>
                 )}
+                {/* What You Will Learn */}
+                <div className={`mt-4 pt-4 border-t ${isDark ? 'border-white/5' : 'border-slate-100'}`}>
+                  <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'} mb-2`}>{t('whatYouWillLearn') || 'What You Will Learn'}</p>
+                  <ul className="space-y-2">
+                    <li className={`flex items-start gap-2 text-sm ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                      <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                      <span>Core concepts and fundamentals of {selectedCourse.title.toLowerCase()}</span>
+                    </li>
+                    <li className={`flex items-start gap-2 text-sm ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                      <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                      <span>Practical hands-on experience with real-world applications</span>
+                    </li>
+                    <li className={`flex items-start gap-2 text-sm ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                      <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                      <span>Industry-standard tools and best practices</span>
+                    </li>
+                  </ul>
+                </div>
               </div>
             </div>
           )}
