@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { Megaphone, Plus, Send, Calendar, BookOpen, Pin, Edit, Trash2 } from 'lucide-react';
+import { Megaphone, Plus, Send, Calendar, BookOpen, Pin, Edit, Trash2, MessageSquare, Users } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useTheme } from '../contexts/ThemeContext';
+import { MessagingChat } from '../../../components/shared';
 
 type Announcement = {
   id: string;
@@ -48,10 +50,12 @@ const MOCK_ANNOUNCEMENTS: Announcement[] = [
 
 export function AnnouncementsPage() {
   const { t } = useLanguage();
+  const { isDark } = useTheme();
   const [announcements, setAnnouncements] = useState(MOCK_ANNOUNCEMENTS);
   const [showForm, setShowForm] = useState(false);
   const [filterCourse, setFilterCourse] = useState<string>('all');
   const [newAnn, setNewAnn] = useState({ title: '', content: '', courseCode: 'CS101', pinned: false });
+  const [activeCommTab, setActiveCommTab] = useState<'announcements' | 'courseChats' | 'directMessages'>('announcements');
 
   const courses = [
     { code: 'CS101', name: 'Introduction to Programming' },
@@ -94,185 +98,244 @@ export function AnnouncementsPage() {
     );
   };
 
+  const commTabs = [
+    { id: 'announcements' as const, label: 'Announcements', icon: Megaphone },
+    { id: 'courseChats' as const, label: 'Course Chats', icon: Users },
+    { id: 'directMessages' as const, label: 'Direct Messages', icon: MessageSquare },
+  ];
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">{t('announcements')}</h2>
-          <p className="text-gray-600 mt-1">{t('postAndManageAnnouncements')}</p>
-        </div>
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500 transition-colors text-sm font-medium flex items-center gap-2"
-        >
-          <Plus className="w-4 h-4" />
-          {t('newAnnouncement')}
-        </button>
-      </div>
-
-      {/* New Announcement Form */}
-      {showForm && (
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('createAnnouncement')}</h3>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">{t('title')}</label>
-              <input
-                type="text"
-                value={newAnn.title}
-                onChange={(e) => setNewAnn({ ...newAnn, title: e.target.value })}
-                placeholder={t('announcementTitlePlaceholder')}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">{t('course')}</label>
-              <select
-                value={newAnn.courseCode}
-                onChange={(e) => setNewAnn({ ...newAnn, courseCode: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                {courses.map((c) => (
-                  <option key={c.code} value={c.code}>
-                    {c.code} - {c.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">{t('content')}</label>
-              <textarea
-                value={newAnn.content}
-                onChange={(e) => setNewAnn({ ...newAnn, content: e.target.value })}
-                placeholder={t('writeAnnouncementPlaceholder')}
-                rows={4}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                id="pin"
-                checked={newAnn.pinned}
-                onChange={(e) => setNewAnn({ ...newAnn, pinned: e.target.checked })}
-                className="rounded border-gray-300"
-              />
-              <label htmlFor="pin" className="text-sm text-gray-700">{t('pinThisAnnouncement')}</label>
-            </div>
-            <div className="flex gap-3">
-              <button
-                onClick={handlePost}
-                disabled={!newAnn.title || !newAnn.content}
-                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500 transition-colors text-sm font-medium flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <Send className="w-4 h-4" />
-                {t('postAnnouncement')}
-              </button>
-              <button
-                onClick={() => setShowForm(false)}
-                className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium text-gray-700"
-              >
-                {t('cancel')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Course Filter */}
-      <div className="bg-white border border-gray-200 rounded-lg p-4">
-        <div className="flex gap-2">
-          <button
-            onClick={() => setFilterCourse('all')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              filterCourse === 'all'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-          >
-            {t('allCourses')}
-          </button>
-          {courses.map((c) => (
+      {/* Communication Hub Tabs */}
+      <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} border rounded-lg p-2 overflow-x-auto`}>
+        <div className="flex flex-wrap gap-2">
+          {commTabs.map((tab) => (
             <button
-              key={c.code}
-              onClick={() => setFilterCourse(c.code)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                filterCourse === c.code
+              key={tab.id}
+              onClick={() => setActiveCommTab(tab.id)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
+                activeCommTab === tab.id
                   ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  : isDark
+                    ? 'text-slate-400 hover:bg-white/10 hover:text-white'
+                    : 'text-gray-700 hover:bg-gray-100'
               }`}
             >
-              {c.code}
+              <tab.icon className="w-4 h-4" />
+              {tab.label}
             </button>
           ))}
         </div>
       </div>
 
-      {/* Announcements List */}
-      <div className="space-y-4">
-        {filteredAnnouncements.map((announcement) => (
-          <div
-            key={announcement.id}
-            className={`bg-white border rounded-lg p-6 ${
-              announcement.pinned ? 'border-blue-200 bg-blue-50/30' : 'border-gray-200'
-            }`}
-          >
-            <div className="flex items-start justify-between mb-3">
-              <div className="flex items-start gap-3 flex-1">
-                <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
-                  <Megaphone className="w-5 h-5 text-blue-600" />
+      {/* Course Chats Tab */}
+      {activeCommTab === 'courseChats' && (
+        <div className="h-[calc(100vh-220px)]">
+          <MessagingChat isDark={isDark} />
+        </div>
+      )}
+
+      {/* Direct Messages Tab */}
+      {activeCommTab === 'directMessages' && (
+        <div className="h-[calc(100vh-220px)]">
+          <MessagingChat isDark={isDark} />
+        </div>
+      )}
+
+      {/* Announcements Tab */}
+      {activeCommTab === 'announcements' && (
+        <>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('announcements')}</h2>
+              <p className={`mt-1 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>{t('postAndManageAnnouncements')}</p>
+            </div>
+            <button
+              onClick={() => setShowForm(!showForm)}
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500 transition-colors text-sm font-medium flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              {t('newAnnouncement')}
+            </button>
+          </div>
+
+          {/* New Announcement Form */}
+          {showForm && (
+            <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} border rounded-lg p-6`}>
+              <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'} mb-4`}>{t('createAnnouncement')}</h3>
+              <div className="space-y-4">
+                <div>
+                  <label className={`block text-sm font-medium ${isDark ? 'text-slate-400' : 'text-gray-700'} mb-1`}>{t('title')}</label>
+                  <input
+                    type="text"
+                    value={newAnn.title}
+                    onChange={(e) => setNewAnn({ ...newAnn, title: e.target.value })}
+                    placeholder={t('announcementTitlePlaceholder')}
+                    className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500' : 'bg-white border-gray-300 text-gray-900'}`}
+                  />
                 </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className="text-lg font-semibold text-gray-900">{announcement.title}</h3>
-                    {announcement.pinned && (
-                      <Pin className="w-4 h-4 text-blue-600" />
-                    )}
-                  </div>
-                  <div className="flex items-center gap-3 text-xs text-gray-500">
-                    <div className="flex items-center gap-1">
-                      <BookOpen className="w-3 h-3" />
-                      <span>{announcement.courseCode} - {announcement.course}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Calendar className="w-3 h-3" />
-                      <span>{announcement.date}</span>
-                    </div>
-                  </div>
+                <div>
+                  <label className={`block text-sm font-medium ${isDark ? 'text-slate-400' : 'text-gray-700'} mb-1`}>{t('course')}</label>
+                  <select
+                    value={newAnn.courseCode}
+                    onChange={(e) => setNewAnn({ ...newAnn, courseCode: e.target.value })}
+                    className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+                  >
+                    {courses.map((c) => (
+                      <option key={c.code} value={c.code}>
+                        {c.code} - {c.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
-              </div>
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={() => handleTogglePin(announcement.id)}
-                  className={`p-2 rounded-lg transition-colors ${
-                    announcement.pinned
-                      ? 'text-blue-600 hover:bg-blue-100'
-                      : 'text-gray-400 hover:bg-gray-100'
-                  }`}
-                  title={announcement.pinned ? t('unpin') : t('pin')}
-                >
-                  <Pin className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => handleDelete(announcement.id)}
-                  className="p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
-                  title={t('delete')}
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                <div>
+                  <label className={`block text-sm font-medium ${isDark ? 'text-slate-400' : 'text-gray-700'} mb-1`}>{t('content')}</label>
+                  <textarea
+                    value={newAnn.content}
+                    onChange={(e) => setNewAnn({ ...newAnn, content: e.target.value })}
+                    placeholder={t('writeAnnouncementPlaceholder')}
+                    rows={4}
+                    className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none ${isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500' : 'bg-white border-gray-300 text-gray-900'}`}
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="pin"
+                    checked={newAnn.pinned}
+                    onChange={(e) => setNewAnn({ ...newAnn, pinned: e.target.checked })}
+                    className={`rounded ${isDark ? 'border-white/10' : 'border-gray-300'}`}
+                  />
+                  <label htmlFor="pin" className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-700'}`}>{t('pinThisAnnouncement')}</label>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <button
+                    onClick={handlePost}
+                    disabled={!newAnn.title || !newAnn.content}
+                    className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500 transition-colors text-sm font-medium flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Send className="w-4 h-4" />
+                    {t('postAnnouncement')}
+                  </button>
+                  <button
+                    onClick={() => setShowForm(false)}
+                    className={`px-6 py-2 border rounded-lg transition-colors text-sm font-medium ${isDark ? 'border-white/10 text-slate-400 hover:bg-white/5' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}
+                  >
+                    {t('cancel')}
+                  </button>
+                </div>
               </div>
             </div>
-            <p className="text-sm text-gray-700 leading-relaxed ml-[52px]">{announcement.content}</p>
-            <p className="text-xs text-gray-400 mt-3 ml-[52px]">{t('postedBy')} {announcement.author}</p>
-          </div>
-        ))}
-      </div>
+          )}
 
-      {filteredAnnouncements.length === 0 && (
-        <div className="text-center py-12 bg-white border border-gray-200 rounded-lg">
-          <Megaphone className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-600">{t('noAnnouncementsFound')}</p>
-        </div>
+          {/* Course Filter */}
+          <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} border rounded-lg p-4`}>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => setFilterCourse('all')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  filterCourse === 'all'
+                    ? 'bg-blue-600 text-white'
+                    : isDark
+                      ? 'bg-white/5 text-slate-400 hover:bg-white/10'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                {t('allCourses')}
+              </button>
+              {courses.map((c) => (
+                <button
+                  key={c.code}
+                  onClick={() => setFilterCourse(c.code)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    filterCourse === c.code
+                      ? 'bg-blue-600 text-white'
+                      : isDark
+                        ? 'bg-white/5 text-slate-400 hover:bg-white/10'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {c.code}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Announcements List */}
+          <div className="space-y-4">
+            {filteredAnnouncements.map((announcement) => (
+              <div
+                key={announcement.id}
+                className={`border rounded-lg p-6 ${
+                  announcement.pinned
+                    ? isDark
+                      ? 'bg-blue-900/20 border-blue-500/30'
+                      : 'bg-blue-50/30 border-blue-200'
+                    : isDark
+                      ? 'bg-white/5 border-white/10'
+                      : 'bg-white border-gray-200'
+                }`}
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-start gap-3 flex-1">
+                    <div className={`w-10 h-10 rounded-lg ${isDark ? 'bg-blue-900/40' : 'bg-blue-100'} flex items-center justify-center flex-shrink-0`}>
+                      <Megaphone className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{announcement.title}</h3>
+                        {announcement.pinned && (
+                          <Pin className="w-4 h-4 text-blue-600" />
+                        )}
+                      </div>
+                      <div className={`flex items-center gap-3 text-xs ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
+                        <div className="flex items-center gap-1">
+                          <BookOpen className="w-3 h-3" />
+                          <span>{announcement.courseCode} - {announcement.course}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Calendar className="w-3 h-3" />
+                          <span>{announcement.date}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => handleTogglePin(announcement.id)}
+                      className={`p-2 rounded-lg transition-colors ${
+                        announcement.pinned
+                          ? 'text-blue-600 hover:bg-blue-100'
+                          : isDark
+                            ? 'text-slate-400 hover:bg-white/10'
+                            : 'text-gray-400 hover:bg-gray-100'
+                      }`}
+                      title={announcement.pinned ? t('unpin') : t('pin')}
+                    >
+                      <Pin className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(announcement.id)}
+                      className={`p-2 rounded-lg transition-colors ${isDark ? 'text-slate-400 hover:text-red-400 hover:bg-red-900/30' : 'text-gray-400 hover:text-red-600 hover:bg-red-50'}`}
+                      title={t('delete')}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+                <p className={`text-sm leading-relaxed ml-[52px] ${isDark ? 'text-slate-400' : 'text-gray-700'}`}>{announcement.content}</p>
+                <p className={`text-xs mt-3 ml-[52px] ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>{t('postedBy')} {announcement.author}</p>
+              </div>
+            ))}
+          </div>
+
+          {filteredAnnouncements.length === 0 && (
+            <div className={`text-center py-12 ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} border rounded-lg`}>
+              <Megaphone className={`w-12 h-12 ${isDark ? 'text-slate-500' : 'text-gray-400'} mx-auto mb-4`} />
+              <p className={isDark ? 'text-slate-400' : 'text-gray-600'}>{t('noAnnouncementsFound')}</p>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

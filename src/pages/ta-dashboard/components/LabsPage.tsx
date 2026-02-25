@@ -65,12 +65,12 @@ export function LabsPage({ labs, onViewLab }: LabsPageProps) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('labManagement')}</h2>
           <p className={`mt-1 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>{t('manageLabSessions')}</p>
         </div>
-        <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
+        <button className="w-full sm:w-auto bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
           {t('createNewLab')}
         </button>
       </div>
@@ -87,7 +87,7 @@ export function LabsPage({ labs, onViewLab }: LabsPageProps) {
               className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-slate-400' : 'border-gray-300'}`}
             />
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             {(['all', 'upcoming', 'active', 'completed'] as const).map((status) => (
               <button
                 key={status}
@@ -122,10 +122,10 @@ export function LabsPage({ labs, onViewLab }: LabsPageProps) {
                 <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
                   {t('dateAndTime')}
                 </th>
-                <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
+                <th className={`hidden md:table-cell px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
                   {t('location')}
                 </th>
-                <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
+                <th className={`hidden md:table-cell px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
                   {t('submissions')}
                 </th>
                 <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
@@ -160,13 +160,13 @@ export function LabsPage({ labs, onViewLab }: LabsPageProps) {
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap">
                     <div className={`flex items-center gap-2 text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
                       <MapPin className={`w-4 h-4 ${isDark ? 'text-slate-400' : 'text-gray-400'}`} />
                       {lab.location}
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap">
                     <div className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
                       <div className="flex items-center gap-2">
                         <FileText className={`w-4 h-4 ${isDark ? 'text-slate-400' : 'text-gray-400'}`} />
@@ -183,12 +183,14 @@ export function LabsPage({ labs, onViewLab }: LabsPageProps) {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">{getStatusBadge(lab.status)}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <button
-                      onClick={() => onViewLab(lab.id)}
-                      className="text-blue-600 hover:text-blue-700 text-sm font-medium"
-                    >
-                      {t('viewDetails')}
-                    </button>
+                    <div className="flex flex-wrap gap-1">
+                      <button
+                        onClick={() => onViewLab(lab.id)}
+                        className="p-1.5 sm:p-2 text-blue-600 hover:text-blue-700 text-sm font-medium"
+                      >
+                        {t('viewDetails')}
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

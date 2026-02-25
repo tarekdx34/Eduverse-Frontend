@@ -87,22 +87,22 @@ type DateRange = 'week' | 'month' | 'semester';
 
 const insightStyles = {
   warning: {
-    dark: 'bg-yellow-500/10 border-yellow-500/30 text-yellow-400',
+    dark: 'bg-yellow-900/20 border-yellow-700/30 text-yellow-400',
     light: 'bg-yellow-50 border-yellow-200 text-yellow-700',
     icon: 'text-yellow-400',
   },
   error: {
-    dark: 'bg-red-500/10 border-red-500/30 text-red-400',
+    dark: 'bg-red-900/20 border-red-700/30 text-red-400',
     light: 'bg-red-50 border-red-200 text-red-700',
     icon: 'text-red-400',
   },
   success: {
-    dark: 'bg-green-500/10 border-green-500/30 text-green-400',
+    dark: 'bg-green-900/20 border-green-700/30 text-green-400',
     light: 'bg-green-50 border-green-200 text-green-700',
     icon: 'text-green-400',
   },
   info: {
-    dark: 'bg-blue-500/10 border-blue-500/30 text-blue-400',
+    dark: 'bg-blue-900/20 border-blue-700/30 text-blue-400',
     light: 'bg-blue-50 border-blue-200 text-blue-700',
     icon: 'text-blue-400',
   },
