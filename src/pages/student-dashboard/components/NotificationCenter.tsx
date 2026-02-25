@@ -177,26 +177,26 @@ export function NotificationCenter() {
   };
 
   const getNotificationColor = (type: string, priority: string) => {
-    if (priority === 'urgent') return 'bg-red-100 text-red-600 border-red-200';
-    if (priority === 'high') return 'bg-orange-100 text-orange-600 border-orange-200';
+    if (priority === 'urgent') return isDark ? 'bg-red-900/50 text-red-400 border-red-800' : 'bg-red-100 text-red-600 border-red-200';
+    if (priority === 'high') return isDark ? 'bg-orange-900/50 text-orange-400 border-orange-800' : 'bg-orange-100 text-orange-600 border-orange-200';
     
     switch (type) {
       case 'deadline':
-        return 'bg-red-100 text-red-600 border-red-200';
+        return isDark ? 'bg-red-900/50 text-red-400 border-red-800' : 'bg-red-100 text-red-600 border-red-200';
       case 'grade':
-        return 'bg-green-100 text-green-600 border-green-200';
+        return isDark ? 'bg-green-900/50 text-green-400 border-green-800' : 'bg-green-100 text-green-600 border-green-200';
       case 'announcement':
-        return 'bg-blue-100 text-blue-600 border-blue-200';
+        return isDark ? 'bg-blue-900/50 text-blue-400 border-blue-800' : 'bg-blue-100 text-blue-600 border-blue-200';
       case 'reminder':
-        return 'bg-purple-100 text-purple-600 border-purple-200';
+        return isDark ? 'bg-purple-900/50 text-purple-400 border-purple-800' : 'bg-purple-100 text-purple-600 border-purple-200';
       case 'achievement':
-        return 'bg-amber-100 text-amber-600 border-amber-200';
+        return isDark ? 'bg-amber-900/50 text-amber-400 border-amber-800' : 'bg-amber-100 text-amber-600 border-amber-200';
       case 'message':
         return 'bg-[#7C3AED]/10 text-[#7C3AED] border-[#7C3AED]/20';
       case 'warning':
-        return 'bg-orange-100 text-orange-600 border-orange-200';
+        return isDark ? 'bg-orange-900/50 text-orange-400 border-orange-800' : 'bg-orange-100 text-orange-600 border-orange-200';
       default:
-        return 'bg-slate-50 text-slate-600 border-slate-100';
+        return isDark ? 'bg-slate-800 text-slate-400 border-slate-700' : 'bg-slate-50 text-slate-600 border-slate-100';
     }
   };
 
@@ -294,7 +294,7 @@ export function NotificationCenter() {
               </button>
               <button
                 onClick={clearAllRead}
-                className="flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                className={`flex items-center gap-2 px-3 py-2 text-sm text-red-600 ${isDark ? 'hover:bg-red-900/30' : 'hover:bg-red-50'} rounded-lg transition-all`}
               >
                 <Trash2 className="w-4 h-4" />
                 Clear read
@@ -442,20 +442,20 @@ export function NotificationCenter() {
             <>
               {/* Urgent Alerts */}
               <div className="glass rounded-[2.5rem] overflow-hidden">
-                <div className="bg-gradient-to-r from-red-50 to-orange-50 p-4 border-b border-red-200">
-                  <h3 className="font-semibold text-red-900 flex items-center gap-2">
+                <div className={`${isDark ? 'bg-gradient-to-r from-red-900/40 to-orange-900/40 border-b border-red-800' : 'bg-gradient-to-r from-red-50 to-orange-50 border-b border-red-200'} p-4`}>
+                  <h3 className={`font-semibold ${isDark ? 'text-red-400' : 'text-red-900'} flex items-center gap-2`}>
                     <AlertTriangle className="w-5 h-5 text-red-500" />
                     Urgent Alerts
                   </h3>
                 </div>
                 <div className="p-4 space-y-3">
                   {notificationList.filter(n => n.priority === 'urgent' || n.priority === 'high').slice(0, 3).map((alert) => (
-                    <div key={alert.id} className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <div key={alert.id} className={`p-3 ${isDark ? 'bg-red-900/30 border border-red-800' : 'bg-red-50 border border-red-200'} rounded-lg`}>
                       <div className="flex items-start gap-2">
                         <AlertTriangle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
                         <div>
-                          <p className="text-sm font-medium text-red-900">{alert.title}</p>
-                          <p className="text-xs text-red-700 mt-1">{alert.timestamp}</p>
+                          <p className={`text-sm font-medium ${isDark ? 'text-red-400' : 'text-red-900'}`}>{alert.title}</p>
+                          <p className={`text-xs ${isDark ? 'text-red-500' : 'text-red-700'} mt-1`}>{alert.timestamp}</p>
                         </div>
                       </div>
                     </div>

@@ -1,4 +1,4 @@
-import { CheckCircle, Circle, Calendar, Clock, Tag, Plus, Trash2, Star, AlertCircle } from 'lucide-react';
+import { CheckCircle, Circle, Calendar, Clock, Hash, Plus, Trash2, Bookmark, AlertCircle } from 'lucide-react';
 import { useState } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -138,7 +138,7 @@ export function SmartTodoReminder() {
       case 'high':
         return <AlertCircle className="w-4 h-4" />;
       case 'medium':
-        return <Star className="w-4 h-4" />;
+        return <Bookmark className="w-4 h-4" />;
       case 'low':
         return <Circle className="w-4 h-4" />;
       default:
@@ -408,7 +408,7 @@ export function SmartTodoReminder() {
                       key={idx}
                       className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border ${isDark ? 'bg-[#7C3AED]/20 text-[#7C3AED]/70 border-[#7C3AED]/50' : 'bg-[#7C3AED]/10 text-[#7C3AED] border-[#7C3AED]/10'}`}
                     >
-                      <Tag className="w-3 h-3" />
+                      <Hash className="w-3 h-3" />
                       {tag}
                     </span>
                   ))}

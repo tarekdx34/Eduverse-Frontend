@@ -162,7 +162,7 @@ export function DashboardHeader({
           <span className="material-symbols-rounded text-slate-400 text-xl mr-2">search</span>
           <input
             onClick={() => setShowSearch(true)}
-            className="bg-transparent border-none focus:ring-0 text-sm w-full placeholder:text-slate-500 cursor-pointer"
+            className={`bg-transparent border-none focus:ring-0 text-sm w-full cursor-pointer ${isDark ? 'placeholder:text-slate-400' : 'placeholder:text-slate-500'}`}
             placeholder={t.search}
             type="text"
             readOnly
@@ -176,7 +176,7 @@ export function DashboardHeader({
         </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 md:gap-4 justify-end w-full md:w-auto">
           {/* Notification */}
           <div className="relative" ref={notificationRef}>
             <button

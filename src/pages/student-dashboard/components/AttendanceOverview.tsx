@@ -1,4 +1,5 @@
-import { Calendar, Clock, CheckCircle, XCircle, AlertCircle, TrendingUp, Users, BarChart3 } from 'lucide-react';
+import { useState } from 'react';
+import { Calendar, Clock, CheckCircle, XCircle, AlertCircle, TrendingUp, Users, BarChart3, ChevronLeft } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -83,6 +84,69 @@ const attendanceData = [
   }
 ];
 
+const courseDailyRecords: Record<number, { date: string; day: string; status: string }[]> = {
+  1: [
+    { date: '2024-12-04', day: 'Wednesday', status: 'present' },
+    { date: '2024-12-02', day: 'Monday', status: 'present' },
+    { date: '2024-11-27', day: 'Wednesday', status: 'present' },
+    { date: '2024-11-25', day: 'Monday', status: 'absent' },
+    { date: '2024-11-20', day: 'Wednesday', status: 'present' },
+    { date: '2024-11-18', day: 'Monday', status: 'late' },
+    { date: '2024-11-13', day: 'Wednesday', status: 'present' },
+    { date: '2024-11-11', day: 'Monday', status: 'present' },
+  ],
+  2: [
+    { date: '2024-12-01', day: 'Sunday', status: 'present' },
+    { date: '2024-11-28', day: 'Thursday', status: 'present' },
+    { date: '2024-11-24', day: 'Sunday', status: 'absent' },
+    { date: '2024-11-21', day: 'Thursday', status: 'present' },
+    { date: '2024-11-17', day: 'Sunday', status: 'late' },
+    { date: '2024-11-14', day: 'Thursday', status: 'present' },
+    { date: '2024-11-10', day: 'Sunday', status: 'absent' },
+    { date: '2024-11-07', day: 'Thursday', status: 'present' },
+  ],
+  3: [
+    { date: '2024-12-03', day: 'Tuesday', status: 'present' },
+    { date: '2024-11-29', day: 'Friday', status: 'present' },
+    { date: '2024-11-26', day: 'Tuesday', status: 'present' },
+    { date: '2024-11-22', day: 'Friday', status: 'present' },
+    { date: '2024-11-19', day: 'Tuesday', status: 'present' },
+    { date: '2024-11-15', day: 'Friday', status: 'absent' },
+    { date: '2024-11-12', day: 'Tuesday', status: 'present' },
+    { date: '2024-11-08', day: 'Friday', status: 'present' },
+  ],
+  4: [
+    { date: '2024-11-30', day: 'Saturday', status: 'absent' },
+    { date: '2024-11-27', day: 'Wednesday', status: 'present' },
+    { date: '2024-11-23', day: 'Saturday', status: 'absent' },
+    { date: '2024-11-20', day: 'Wednesday', status: 'late' },
+    { date: '2024-11-16', day: 'Saturday', status: 'present' },
+    { date: '2024-11-13', day: 'Wednesday', status: 'absent' },
+    { date: '2024-11-09', day: 'Saturday', status: 'late' },
+    { date: '2024-11-06', day: 'Wednesday', status: 'present' },
+  ],
+  5: [
+    { date: '2024-12-04', day: 'Wednesday', status: 'present' },
+    { date: '2024-12-02', day: 'Monday', status: 'present' },
+    { date: '2024-11-27', day: 'Wednesday', status: 'present' },
+    { date: '2024-11-25', day: 'Monday', status: 'present' },
+    { date: '2024-11-20', day: 'Wednesday', status: 'present' },
+    { date: '2024-11-18', day: 'Monday', status: 'late' },
+    { date: '2024-11-13', day: 'Wednesday', status: 'present' },
+    { date: '2024-11-11', day: 'Monday', status: 'present' },
+  ],
+  6: [
+    { date: '2024-12-02', day: 'Monday', status: 'late' },
+    { date: '2024-11-28', day: 'Thursday', status: 'present' },
+    { date: '2024-11-25', day: 'Monday', status: 'absent' },
+    { date: '2024-11-21', day: 'Thursday', status: 'present' },
+    { date: '2024-11-18', day: 'Monday', status: 'present' },
+    { date: '2024-11-14', day: 'Thursday', status: 'absent' },
+    { date: '2024-11-11', day: 'Monday', status: 'present' },
+    { date: '2024-11-07', day: 'Thursday', status: 'present' },
+  ],
+};
+
 const recentAttendance = [
   { date: '2024-12-04', course: 'Software Engineering Principles', status: 'present', time: '11:00 AM' },
   { date: '2024-12-03', course: 'Web Development Fundamentals', status: 'present', time: '02:00 PM' },
@@ -95,6 +159,7 @@ const recentAttendance = [
 export function AttendanceOverview() {
   const { t, isRTL } = useLanguage();
   const { isDark } = useTheme();
+  const [selectedCourse, setSelectedCourse] = useState<typeof attendanceData[number] | null>(null);
   const totalClasses = attendanceData.reduce((sum, course) => sum + course.totalClasses, 0);
   const totalAttended = attendanceData.reduce((sum, course) => sum + course.attended, 0);
   const totalAbsent = attendanceData.reduce((sum, course) => sum + course.absent, 0);
@@ -147,6 +212,119 @@ export function AttendanceOverview() {
       default: return status;
     }
   };
+
+  const getRecordStatusStyle = (status: string) => {
+    switch (status) {
+      case 'present':
+        return isDark ? 'text-green-400 bg-green-900/50' : 'text-green-700 bg-green-100';
+      case 'absent':
+        return isDark ? 'text-red-400 bg-red-900/50' : 'text-red-700 bg-red-100';
+      case 'late':
+        return isDark ? 'text-orange-400 bg-orange-900/50' : 'text-orange-700 bg-orange-100';
+      default:
+        return '';
+    }
+  };
+
+  const getRecordStatusIcon = (status: string) => {
+    switch (status) {
+      case 'present': return '✅';
+      case 'absent': return '❌';
+      case 'late': return '⏰';
+      default: return '';
+    }
+  };
+
+  if (selectedCourse) {
+    const dailyRecords = courseDailyRecords[selectedCourse.id] || [];
+    return (
+      <div className="space-y-6" dir={isRTL ? 'rtl' : 'ltr'}>
+        {/* Back Button */}
+        <button
+          onClick={() => setSelectedCourse(null)}
+          className={`flex items-center gap-2 text-sm font-medium px-3 py-2 rounded-lg transition-colors ${
+            isDark
+              ? 'text-slate-300 hover:bg-white/10'
+              : 'text-slate-600 hover:bg-slate-100'
+          }`}
+        >
+          <ChevronLeft className="w-4 h-4" />
+          {isRTL ? 'العودة للنظرة العامة' : 'Back to Overview'}
+        </button>
+
+        {/* Course Info Header */}
+        <div className="glass rounded-[2.5rem] overflow-hidden">
+          <div className={`${selectedCourse.color} h-2`}></div>
+          <div className="p-8">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              <div>
+                <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                  {selectedCourse.courseName}
+                </h1>
+                <p className={`text-sm mt-1 ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
+                  {selectedCourse.courseCode}
+                </p>
+              </div>
+              <div className="flex items-center gap-6">
+                <div className="text-center">
+                  <p className={`text-3xl font-bold text-blue-600`}>{selectedCourse.percentage}%</p>
+                  <p className={`text-xs mt-1 ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{t('overallAttendance')}</p>
+                </div>
+                <div className={`grid grid-cols-3 gap-4 text-center`}>
+                  <div>
+                    <p className={`text-lg font-bold ${isDark ? 'text-green-400' : 'text-green-700'}`}>{selectedCourse.attended}</p>
+                    <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{t('present')}</p>
+                  </div>
+                  <div>
+                    <p className={`text-lg font-bold ${isDark ? 'text-red-400' : 'text-red-700'}`}>{selectedCourse.absent}</p>
+                    <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{t('absent')}</p>
+                  </div>
+                  <div>
+                    <p className={`text-lg font-bold ${isDark ? 'text-orange-400' : 'text-orange-700'}`}>{selectedCourse.late}</p>
+                    <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{t('late')}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Day-by-Day Records */}
+        <div>
+          <h2 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-slate-800'}`}>
+            {isRTL ? 'سجلات الحضور اليومية' : 'Day-by-Day Attendance Records'}
+          </h2>
+          <div className="glass rounded-[2.5rem] overflow-hidden">
+            <div className="divide-y divide-slate-100 dark:divide-white/5">
+              {dailyRecords.map((record, idx) => (
+                <div
+                  key={idx}
+                  className={`flex items-center justify-between px-6 py-4 ${
+                    isDark ? 'border-white/5' : 'border-slate-100'
+                  } ${idx !== dailyRecords.length - 1 ? (isDark ? 'border-b border-white/5' : 'border-b border-slate-100') : ''}`}
+                >
+                  <div className="flex items-center gap-4">
+                    <span className="text-xl">{getRecordStatusIcon(record.status)}</span>
+                    <div>
+                      <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                        {record.day}
+                      </p>
+                      <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
+                        {new Date(record.date).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${getRecordStatusStyle(record.status)}`}>
+                    {getStatusText(record.status)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8" dir={isRTL ? 'rtl' : 'ltr'}>
@@ -202,7 +380,8 @@ export function AttendanceOverview() {
             {attendanceData.map((course) => (
               <div
                 key={course.id}
-                className={`glass rounded-[2.5rem] overflow-hidden hover:shadow-md transition-shadow`}
+                onClick={() => setSelectedCourse(course)}
+                className={`glass rounded-[2.5rem] overflow-hidden hover:shadow-md transition-shadow cursor-pointer`}
               >
                 <div className={`${course.color} h-1`}></div>
                 <div className="p-6">
