@@ -1,57 +1,29 @@
 import { useEffect, useState } from 'react';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import {
   LayoutGrid,
-  Users,
   BookOpen,
   Building2,
   Calendar,
   BarChart3,
   MessageSquare,
-  HeadphonesIcon,
-  Settings,
-  LogOut,
   MessageCircle,
   User,
   Menu,
-  CalendarClock,
-  FileText,
   ClipboardList,
   GitBranch,
-  UserPlus,
-  Shield,
-  ClipboardCheck,
-  Lock,
-  Database,
   CreditCard,
-  Bell,
-  Brain,
-  Search,
 } from 'lucide-react';
 import {
   DashboardOverview,
-  UserManagementPage,
   CourseManagementPage,
   DepartmentManagementPage,
   AcademicCalendarPage,
   AnalyticsReportsPage,
   CommunicationPage,
-  FeedbackSupportPage,
-  SystemConfigPage,
-  ScheduleManagementPage,
-  ExamSchedulePage,
   EnrollmentPeriodPage,
   PrerequisitesManagementPage,
-  StaffAssignmentPage,
-  RoleManagementPage,
-  AttendanceManagementPage,
-  SecurityLogsPage,
-  BackupCenterPage,
   PaymentManagementPage,
-  AdminNotificationsPage,
-  AIInsightsPage,
-  GlobalSearchPage,
-  SettingsHubPage,
 } from './components';
 import { DashboardHeader, DashboardSidebar, MessagingChat } from '../../components/shared';
 import { DashboardProfileTab } from '../../components/shared/DashboardProfileTab';
@@ -65,75 +37,40 @@ import {
   CALENDAR_EVENTS,
   ANALYTICS,
   NOTIFICATION_TEMPLATES,
-  SUPPORT_TICKETS,
-  AUDIT_LOGS,
-  GAMIFICATION_SETTINGS,
-  API_INTEGRATIONS,
   RECENT_ACTIVITY,
   ADMIN_DEPARTMENT,
-  SCHEDULES,
   ENROLLMENT_PERIODS,
-  EXAM_SCHEDULES,
 } from './constants';
 
 type TabKey =
   | 'dashboard'
-  | 'users'
   | 'courses'
   | 'departments'
-  | 'staff-assignment'
-  | 'roles'
-  | 'schedule'
-  | 'exams'
   | 'enrollment'
   | 'prerequisites'
   | 'calendar'
-  | 'attendance'
   | 'analytics'
   | 'communication'
   | 'chat'
-  | 'feedback'
-  | 'notifications'
-  | 'security'
-  | 'backup'
   | 'payments'
-  | 'ai-insights'
-  | 'search'
-  | 'settings'
-  | 'config'
   | 'profile';
 
 const TABS: { key: TabKey; label: string; labelAr: string; icon: any }[] = [
   { key: 'dashboard', label: 'Dashboard', labelAr: 'لوحة التحكم', icon: LayoutGrid },
-  { key: 'users', label: 'User Management', labelAr: 'إدارة المستخدمين', icon: Users },
   { key: 'courses', label: 'Course Management', labelAr: 'إدارة المقررات', icon: BookOpen },
   { key: 'departments', label: 'Departments', labelAr: 'الأقسام', icon: Building2 },
-  { key: 'staff-assignment', label: 'Staff Assignment', labelAr: 'تعيين الموظفين', icon: UserPlus },
-  { key: 'roles', label: 'Role Management', labelAr: 'إدارة الأدوار', icon: Shield },
-  { key: 'schedule', label: 'Schedule Management', labelAr: 'إدارة الجداول', icon: CalendarClock },
-  { key: 'exams', label: 'Exam Schedule', labelAr: 'جدول الامتحانات', icon: FileText },
   { key: 'enrollment', label: 'Enrollment Periods', labelAr: 'فترات التسجيل', icon: ClipboardList },
   { key: 'prerequisites', label: 'Prerequisites', labelAr: 'المتطلبات السابقة', icon: GitBranch },
   { key: 'calendar', label: 'Academic Calendar', labelAr: 'التقويم الأكاديمي', icon: Calendar },
-  { key: 'attendance', label: 'Attendance', labelAr: 'الحضور', icon: ClipboardCheck },
   { key: 'analytics', label: 'Analytics & Reports', labelAr: 'التحليلات والتقارير', icon: BarChart3 },
   { key: 'communication', label: 'Communication', labelAr: 'التواصل', icon: MessageSquare },
   { key: 'chat', label: 'Chat', labelAr: 'الدردشة', icon: MessageCircle },
-  { key: 'notifications', label: 'Notifications', labelAr: 'الإشعارات', icon: Bell },
-  { key: 'feedback', label: 'Feedback & Support', labelAr: 'الملاحظات والدعم', icon: HeadphonesIcon },
-  { key: 'security', label: 'Security & Logs', labelAr: 'الأمان والسجلات', icon: Lock },
-  { key: 'backup', label: 'Backup Center', labelAr: 'مركز النسخ الاحتياطي', icon: Database },
   { key: 'payments', label: 'Payment Management', labelAr: 'إدارة المدفوعات', icon: CreditCard },
-  { key: 'ai-insights', label: 'AI Insights', labelAr: 'رؤى الذكاء الاصطناعي', icon: Brain },
-  { key: 'search', label: 'Global Search', labelAr: 'البحث الشامل', icon: Search },
-  { key: 'settings', label: 'Settings', labelAr: 'الإعدادات', icon: Settings },
-  { key: 'config', label: 'System Config', labelAr: 'إعدادات النظام', icon: Settings },
   { key: 'profile', label: 'Profile', labelAr: 'الملف الشخصي', icon: User },
 ];
 
 function AdminDashboardContent() {
   const navigate = useNavigate();
-  const location = useLocation();
   const params = useParams();
   const [activeTab, setActiveTab] = useState<TabKey>('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -141,16 +78,11 @@ function AdminDashboardContent() {
   const { language, setLanguage, isRTL, t } = useLanguage();
 
   // State for data management
-  const [usersData, setUsersData] = useState(USERS);
   const [coursesData, setCoursesData] = useState(COURSES);
   const [departmentsData, setDepartmentsData] = useState(DEPARTMENTS);
   const [calendarEvents, setCalendarEvents] = useState(CALENDAR_EVENTS);
   const [templates, setTemplates] = useState(NOTIFICATION_TEMPLATES);
-  const [tickets, setTickets] = useState(SUPPORT_TICKETS);
-  const [gamification, setGamification] = useState(GAMIFICATION_SETTINGS);
-  const [schedulesData, setSchedulesData] = useState(SCHEDULES);
   const [enrollmentPeriodsData, setEnrollmentPeriodsData] = useState(ENROLLMENT_PERIODS);
-  const [examSchedulesData, setExamSchedulesData] = useState(EXAM_SCHEDULES);
 
   // Sync tab from URL
   useEffect(() => {
@@ -173,24 +105,6 @@ function AdminDashboardContent() {
     ...tab,
     label: language === 'ar' ? tab.labelAr : tab.label
   }));
-
-  // User management handlers
-  const handleAddUser = (user: any) => {
-    const newUser = {
-      id: Math.max(...usersData.map(u => u.id)) + 1,
-      ...user,
-      lastActive: new Date().toISOString().slice(0, 16).replace('T', ' '),
-    };
-    setUsersData([...usersData, newUser]);
-  };
-
-  const handleEditUser = (id: number, user: any) => {
-    setUsersData(usersData.map(u => u.id === id ? { ...u, ...user } : u));
-  };
-
-  const handleDeleteUser = (id: number) => {
-    setUsersData(usersData.filter(u => u.id !== id));
-  };
 
   // Course management handlers
   const handleAddCourse = (course: any) => {
@@ -249,40 +163,6 @@ function AdminDashboardContent() {
     setCalendarEvents(calendarEvents.filter(e => e.id !== id));
   };
 
-  // Schedule management handlers
-  const handleAddSchedule = (schedule: any) => {
-    const newSchedule = {
-      id: Math.max(0, ...schedulesData.map(s => s.id)) + 1,
-      ...schedule,
-    };
-    setSchedulesData([...schedulesData, newSchedule]);
-  };
-
-  const handleEditSchedule = (id: number, schedule: any) => {
-    setSchedulesData(schedulesData.map(s => s.id === id ? { ...s, ...schedule } : s));
-  };
-
-  const handleDeleteSchedule = (id: number) => {
-    setSchedulesData(schedulesData.filter(s => s.id !== id));
-  };
-
-  // Exam schedule handlers
-  const handleAddExam = (exam: any) => {
-    const newExam = {
-      id: Math.max(0, ...examSchedulesData.map(e => e.id)) + 1,
-      ...exam,
-    };
-    setExamSchedulesData([...examSchedulesData, newExam]);
-  };
-
-  const handleEditExam = (id: number, exam: any) => {
-    setExamSchedulesData(examSchedulesData.map(e => e.id === id ? { ...e, ...exam } : e));
-  };
-
-  const handleDeleteExam = (id: number) => {
-    setExamSchedulesData(examSchedulesData.filter(e => e.id !== id));
-  };
-
   // Enrollment period handlers
   const handleAddEnrollmentPeriod = (period: any) => {
     const newPeriod = {
@@ -337,31 +217,6 @@ function AdminDashboardContent() {
   const handleSendBroadcast = (message: any) => {
     console.log('Sending broadcast:', message);
     alert('Broadcast sent successfully!');
-  };
-
-  // Ticket handlers
-  const handleUpdateTicket = (id: number, status: string) => {
-    setTickets(tickets.map(t => t.id === id ? { ...t, status } : t));
-  };
-
-  const handleReplyTicket = (id: number, message: string) => {
-    console.log('Replying to ticket:', id, message);
-    alert('Reply sent successfully!');
-  };
-
-  // System config handlers
-  const handleUpdateGamification = (settings: any) => {
-    setGamification(settings);
-    alert('Gamification settings updated!');
-  };
-
-  const handleToggleIntegration = (id: number, enabled: boolean) => {
-    console.log('Toggle integration:', id, enabled);
-  };
-
-  const handleSyncIntegration = (id: number) => {
-    console.log('Sync integration:', id);
-    alert('Sync started!');
   };
 
   const handleExport = (format: string) => {
@@ -435,21 +290,13 @@ function AdminDashboardContent() {
             />
           )}
 
-          {/* User Management */}
-          {activeTab === 'users' && (
-            <UserManagementPage
-              users={usersData}
-              onAddUser={handleAddUser}
-              onEditUser={handleEditUser}
-              onDeleteUser={handleDeleteUser}
-            />
-          )}
+          {/* User Management - REMOVED (moved to IT Admin) */}
 
           {/* Course Management */}
           {activeTab === 'courses' && (
             <CourseManagementPage
               courses={coursesData}
-              users={usersData}
+              users={USERS}
               adminDepartment={ADMIN_DEPARTMENT}
               onAddCourse={handleAddCourse}
               onEditCourse={handleEditCourse}
@@ -464,31 +311,6 @@ function AdminDashboardContent() {
               onAddDepartment={handleAddDepartment}
               onEditDepartment={handleEditDepartment}
               onDeleteDepartment={handleDeleteDepartment}
-            />
-          )}
-
-          {/* Schedule Management */}
-          {activeTab === 'schedule' && (
-            <ScheduleManagementPage
-              schedules={schedulesData}
-              courses={coursesData}
-              users={usersData}
-              adminDepartment={ADMIN_DEPARTMENT}
-              onAddSchedule={handleAddSchedule}
-              onEditSchedule={handleEditSchedule}
-              onDeleteSchedule={handleDeleteSchedule}
-            />
-          )}
-
-          {/* Exam Schedule */}
-          {activeTab === 'exams' && (
-            <ExamSchedulePage
-              exams={examSchedulesData}
-              courses={coursesData}
-              adminDepartment={ADMIN_DEPARTMENT}
-              onAddExam={handleAddExam}
-              onEditExam={handleEditExam}
-              onDeleteExam={handleDeleteExam}
             />
           )}
 
@@ -549,27 +371,7 @@ function AdminDashboardContent() {
               currentUserName="Administrator"
               showVideoCall={true}
               showVoiceCall={true}
-            />
-          )}
-
-          {/* Feedback & Support */}
-          {activeTab === 'feedback' && (
-            <FeedbackSupportPage
-              tickets={tickets}
-              onUpdateTicket={handleUpdateTicket}
-              onReplyTicket={handleReplyTicket}
-            />
-          )}
-
-          {/* System Configuration */}
-          {activeTab === 'config' && (
-            <SystemConfigPage
-              auditLogs={AUDIT_LOGS}
-              gamificationSettings={gamification}
-              apiIntegrations={API_INTEGRATIONS}
-              onUpdateGamification={handleUpdateGamification}
-              onToggleIntegration={handleToggleIntegration}
-              onSyncIntegration={handleSyncIntegration}
+              isDark={isDark}
             />
           )}
 
@@ -593,35 +395,8 @@ function AdminDashboardContent() {
             />
           )}
 
-          {/* Staff Assignment */}
-          {activeTab === 'staff-assignment' && <StaffAssignmentPage />}
-
-          {/* Role Management */}
-          {activeTab === 'roles' && <RoleManagementPage />}
-
-          {/* Attendance Management */}
-          {activeTab === 'attendance' && <AttendanceManagementPage />}
-
-          {/* Security & Logs */}
-          {activeTab === 'security' && <SecurityLogsPage />}
-
-          {/* Backup Center */}
-          {activeTab === 'backup' && <BackupCenterPage />}
-
           {/* Payment Management */}
           {activeTab === 'payments' && <PaymentManagementPage />}
-
-          {/* Notifications */}
-          {activeTab === 'notifications' && <AdminNotificationsPage />}
-
-          {/* AI Insights */}
-          {activeTab === 'ai-insights' && <AIInsightsPage />}
-
-          {/* Global Search */}
-          {activeTab === 'search' && <GlobalSearchPage />}
-
-          {/* Settings Hub */}
-          {activeTab === 'settings' && <SettingsHubPage />}
       </main>
     </div>
   );

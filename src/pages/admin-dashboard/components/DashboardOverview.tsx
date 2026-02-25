@@ -9,7 +9,6 @@ import {
   CheckCircle2,
   Clock,
   Sparkles,
-  ArrowRight,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -197,33 +196,6 @@ export function DashboardOverview({ stats, analytics, recentActivity, onNavigate
                 <Tooltip />
               </PieChart>
             </ResponsiveContainer>
-          </div>
-
-          {/* Quick Actions */}
-          <div className={`rounded-xl p-6 border shadow-sm ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-            <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('quickActions')}</h3>
-            <div className="space-y-3">
-              <button
-                onClick={() => onNavigate('users')}
-                className={`w-full flex items-center gap-3 p-4 rounded-lg transition-colors text-left ${isDark ? 'bg-gray-700 hover:bg-gray-600' : 'bg-blue-50 hover:bg-blue-100'}`}
-              >
-                <div className={`p-2 rounded-lg ${isDark ? 'bg-blue-900/50' : 'bg-blue-100'}`}>
-                  <Users className="text-blue-600" size={18} />
-                </div>
-                <span className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('manageUsers')}</span>
-                <ArrowRight size={16} className={`ml-auto ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
-              </button>
-              <button
-                onClick={() => onNavigate('communication')}
-                className={`w-full flex items-center gap-3 p-4 rounded-lg transition-colors text-left ${isDark ? 'bg-gray-700 hover:bg-gray-600' : 'bg-orange-50 hover:bg-orange-100'}`}
-              >
-                <div className={`p-2 rounded-lg ${isDark ? 'bg-orange-900/50' : 'bg-orange-100'}`}>
-                  <AlertCircle className="text-orange-600" size={18} />
-                </div>
-                <span className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('sendBroadcast')}</span>
-                <ArrowRight size={16} className={`ml-auto ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
-              </button>
-            </div>
           </div>
 
           {/* Recent Activity */}
