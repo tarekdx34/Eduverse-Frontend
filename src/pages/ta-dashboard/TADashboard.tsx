@@ -14,6 +14,12 @@ import {
   MessagesSquare,
   User,
   Menu,
+  BarChart3,
+  Upload,
+  Clock,
+  Bell,
+  Brain,
+  FolderOpen,
 } from 'lucide-react';
 import {
   ModernDashboard,
@@ -26,6 +32,12 @@ import {
   SchedulePage,
   AnnouncementsPage,
   DiscussionPage,
+  AnalyticsPage,
+  UploadMaterialsPage,
+  OfficeHoursPage,
+  NotificationsPage,
+  AIAssistantPage,
+  LabResourcesPage,
 } from './components';
 import { DashboardHeader, DashboardSidebar, MessagingChat } from '../../components/shared';
 import { DashboardProfileTab } from '../../components/shared/DashboardProfileTab';
@@ -41,20 +53,26 @@ import {
   STUDENT_PERFORMANCE,
 } from './constants';
 
-type TabKey = 'dashboard' | 'courses' | 'labs' | 'grading' | 'students' | 'attendance' | 'schedule' | 'announcements' | 'discussion' | 'communication' | 'chat' | 'profile';
+type TabKey = 'dashboard' | 'courses' | 'labs' | 'grading' | 'students' | 'attendance' | 'schedule' | 'announcements' | 'discussion' | 'communication' | 'chat' | 'profile' | 'analytics' | 'upload-materials' | 'office-hours' | 'notifications' | 'ai-assistant' | 'lab-resources';
 
 const TABS: { key: TabKey; label: string; icon: any; group: string }[] = [
   { key: 'dashboard', label: 'Dashboard', icon: LayoutGrid, group: 'Overview' },
+  { key: 'analytics', label: 'Analytics', icon: BarChart3, group: 'Overview' },
   { key: 'courses', label: 'Courses', icon: BookOpen, group: 'Teaching' },
   { key: 'labs', label: 'Labs', icon: Beaker, group: 'Teaching' },
+  { key: 'lab-resources', label: 'Lab Resources', icon: FolderOpen, group: 'Teaching' },
+  { key: 'upload-materials', label: 'Upload Materials', icon: Upload, group: 'Teaching' },
   { key: 'grading', label: 'Grading', icon: FileText, group: 'Teaching' },
   { key: 'students', label: 'Students', icon: Users, group: 'Students' },
   { key: 'attendance', label: 'Attendance', icon: ClipboardCheck, group: 'Students' },
   { key: 'schedule', label: 'Schedule', icon: Calendar, group: 'Schedule' },
+  { key: 'office-hours', label: 'Office Hours', icon: Clock, group: 'Schedule' },
   { key: 'announcements', label: 'Announcements', icon: Megaphone, group: 'Schedule' },
+  { key: 'notifications', label: 'Notifications', icon: Bell, group: 'Communication' },
   { key: 'discussion', label: 'Discussion', icon: MessagesSquare, group: 'Communication' },
   { key: 'communication', label: 'Communication', icon: MessageCircle, group: 'Communication' },
   { key: 'chat', label: 'Chat', icon: MessageSquare, group: 'Communication' },
+  { key: 'ai-assistant', label: 'AI Assistant', icon: Brain, group: 'Tools' },
   { key: 'profile', label: 'Profile', icon: User, group: 'Account' },
 ];
 
@@ -164,7 +182,7 @@ function TADashboardContent() {
         accentColor="#2563EB"
         isMobileOpen={sidebarOpen}
         onMobileClose={() => setSidebarOpen(false)}
-        groupOrder={['Overview', 'Teaching', 'Students', 'Schedule', 'Communication', 'Account']}
+        groupOrder={['Overview', 'Teaching', 'Students', 'Schedule', 'Communication', 'Tools', 'Account']}
       />
 
       {/* Main Content */}
@@ -281,6 +299,24 @@ function TADashboardContent() {
             }}
           />
         )}
+
+        {/* Analytics Tab */}
+        {activeTab === 'analytics' && <AnalyticsPage />}
+
+        {/* Upload Materials Tab */}
+        {activeTab === 'upload-materials' && <UploadMaterialsPage />}
+
+        {/* Office Hours Tab */}
+        {activeTab === 'office-hours' && <OfficeHoursPage />}
+
+        {/* Notifications Tab */}
+        {activeTab === 'notifications' && <NotificationsPage />}
+
+        {/* AI Assistant Tab */}
+        {activeTab === 'ai-assistant' && <AIAssistantPage />}
+
+        {/* Lab Resources Tab */}
+        {activeTab === 'lab-resources' && <LabResourcesPage />}
       </main>
     </div>
   );

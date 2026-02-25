@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Shield, Key, Lock, AlertTriangle, CheckCircle, Eye, Clock, FileText, RefreshCw, Download } from 'lucide-react';
+import { Shield, Key, Lock, AlertTriangle, CheckCircle, Eye, Clock, FileText, RefreshCw, Download, Users, Settings, Sparkles, UserCheck, UserX, Wifi } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 
@@ -13,7 +13,7 @@ interface SecurityPageProps {
 export function SecurityPage({ securityEvents, sslCertificates, onRenewCertificate, onExportLogs }: SecurityPageProps) {
   const { isDark } = useTheme();
   const { t } = useLanguage();
-  const [activeTab, setActiveTab] = useState('events');
+  const [activeTab, setActiveTab] = useState<'events' | 'certificates' | 'access' | 'policies' | 'ai'>('events');
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
@@ -128,6 +128,36 @@ export function SecurityPage({ securityEvents, sslCertificates, onRenewCertifica
           >
             {t('sslCertificates')}
           </button>
+          <button
+            onClick={() => setActiveTab('access')}
+            className={`px-6 py-3 text-sm font-medium transition-colors ${
+              activeTab === 'access'
+                ? isDark ? 'text-cyan-400 border-b-2 border-cyan-400' : 'text-cyan-600 border-b-2 border-cyan-600'
+                : isDark ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            Access Requests
+          </button>
+          <button
+            onClick={() => setActiveTab('policies')}
+            className={`px-6 py-3 text-sm font-medium transition-colors ${
+              activeTab === 'policies'
+                ? isDark ? 'text-cyan-400 border-b-2 border-cyan-400' : 'text-cyan-600 border-b-2 border-cyan-600'
+                : isDark ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            Policies
+          </button>
+          <button
+            onClick={() => setActiveTab('ai')}
+            className={`px-6 py-3 text-sm font-medium transition-colors ${
+              activeTab === 'ai'
+                ? isDark ? 'text-cyan-400 border-b-2 border-cyan-400' : 'text-cyan-600 border-b-2 border-cyan-600'
+                : isDark ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            AI Insights
+          </button>
         </div>
 
         {/* Security Events */}
@@ -231,6 +261,213 @@ export function SecurityPage({ securityEvents, sslCertificates, onRenewCertifica
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {/* Access Requests */}
+        {activeTab === 'access' && (
+          <div className="p-6">
+            <div className="space-y-3">
+              {[
+                { id: 1, name: 'Dr. Smith', request: 'Admin Panel Access', role: 'Instructor', status: 'Pending', time: '2h ago' },
+                { id: 2, name: 'Sara Ibrahim', request: 'Grade Export', role: 'TA', status: 'Approved', time: '1 day ago' },
+                { id: 3, name: 'Ahmed Hassan', request: 'Server SSH', role: 'TA', status: 'Denied', time: '2 days ago' },
+                { id: 4, name: 'Dr. Johnson', request: 'API Key Generation', role: 'Instructor', status: 'Pending', time: '3h ago' },
+                { id: 5, name: 'Mohamed Ali', request: 'Database Read', role: 'Student', status: 'Denied', time: '5 days ago' },
+              ].map((item) => (
+                <div
+                  key={item.id}
+                  className={`flex items-center gap-4 p-4 rounded-lg ${isDark ? 'bg-gray-700/50' : 'bg-gray-50'}`}
+                >
+                  <Users className={`w-5 h-5 ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`} />
+                  <div className="flex-1">
+                    <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{item.name}</p>
+                    <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                      Request: {item.request} · Role: {item.role}
+                    </p>
+                  </div>
+                  <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                    <Clock className="w-3 h-3 inline mr-1" />
+                    {item.time}
+                  </span>
+                  <span className={`px-2 py-1 rounded text-xs font-medium ${
+                    item.status === 'Pending'
+                      ? isDark ? 'bg-yellow-500/20 text-yellow-300' : 'bg-yellow-100 text-yellow-700'
+                      : item.status === 'Approved'
+                        ? isDark ? 'bg-green-500/20 text-green-300' : 'bg-green-100 text-green-700'
+                        : isDark ? 'bg-red-500/20 text-red-300' : 'bg-red-100 text-red-700'
+                  }`}>
+                    {item.status}
+                  </span>
+                  {item.status === 'Pending' && (
+                    <div className="flex gap-2">
+                      <button className="flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white text-xs rounded-lg hover:bg-green-700 transition-colors">
+                        <UserCheck className="w-3 h-3" />
+                        Approve
+                      </button>
+                      <button className="flex items-center gap-1 px-3 py-1.5 bg-red-600 text-white text-xs rounded-lg hover:bg-red-700 transition-colors">
+                        <UserX className="w-3 h-3" />
+                        Deny
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Policies */}
+        {activeTab === 'policies' && (
+          <div className="p-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Password Policy */}
+              <div className={`rounded-xl border p-6 ${isDark ? 'bg-gray-700/50 border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
+                <div className="flex items-center gap-2 mb-4">
+                  <Key className={`w-5 h-5 ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`} />
+                  <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Password Policy</h3>
+                </div>
+                <div className="space-y-3">
+                  {[
+                    { label: 'Min 8 characters', defaultOn: true },
+                    { label: 'Uppercase required', defaultOn: true },
+                    { label: 'Numbers required', defaultOn: true },
+                    { label: 'Special chars optional', defaultOn: false },
+                  ].map((rule, i) => (
+                    <div key={i} className="flex items-center justify-between">
+                      <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{rule.label}</span>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" defaultChecked={rule.defaultOn} className="sr-only peer" />
+                        <div className="w-9 h-5 bg-gray-300 peer-checked:bg-cyan-600 rounded-full peer peer-focus:ring-2 peer-focus:ring-cyan-300 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"></div>
+                      </label>
+                    </div>
+                  ))}
+                  <div className="flex items-center justify-between">
+                    <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Password expiry (days)</span>
+                    <input type="number" defaultValue={90} className={`w-20 px-2 py-1 rounded border text-sm ${isDark ? 'bg-gray-600 border-gray-500 text-white' : 'bg-white border-gray-300 text-gray-900'}`} />
+                  </div>
+                </div>
+                <button className="mt-4 px-4 py-2 bg-cyan-600 text-white text-sm rounded-lg hover:bg-cyan-700 transition-colors">Save</button>
+              </div>
+
+              {/* Login Policy */}
+              <div className={`rounded-xl border p-6 ${isDark ? 'bg-gray-700/50 border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
+                <div className="flex items-center gap-2 mb-4">
+                  <Lock className={`w-5 h-5 ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`} />
+                  <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Login Policy</h3>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Max login attempts</span>
+                    <input type="number" defaultValue={5} className={`w-20 px-2 py-1 rounded border text-sm ${isDark ? 'bg-gray-600 border-gray-500 text-white' : 'bg-white border-gray-300 text-gray-900'}`} />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Lockout duration (min)</span>
+                    <input type="number" defaultValue={30} className={`w-20 px-2 py-1 rounded border text-sm ${isDark ? 'bg-gray-600 border-gray-500 text-white' : 'bg-white border-gray-300 text-gray-900'}`} />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>2FA required for admins</span>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input type="checkbox" defaultChecked className="sr-only peer" />
+                      <div className="w-9 h-5 bg-gray-300 peer-checked:bg-cyan-600 rounded-full peer peer-focus:ring-2 peer-focus:ring-cyan-300 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"></div>
+                    </label>
+                  </div>
+                </div>
+                <button className="mt-4 px-4 py-2 bg-cyan-600 text-white text-sm rounded-lg hover:bg-cyan-700 transition-colors">Save</button>
+              </div>
+
+              {/* Network Policy */}
+              <div className={`rounded-xl border p-6 ${isDark ? 'bg-gray-700/50 border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
+                <div className="flex items-center gap-2 mb-4">
+                  <Wifi className={`w-5 h-5 ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`} />
+                  <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Network Policy</h3>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>IP whitelist enabled</span>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input type="checkbox" defaultChecked className="sr-only peer" />
+                      <div className="w-9 h-5 bg-gray-300 peer-checked:bg-cyan-600 rounded-full peer peer-focus:ring-2 peer-focus:ring-cyan-300 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"></div>
+                    </label>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>VPN required for admin</span>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input type="checkbox" defaultChecked className="sr-only peer" />
+                      <div className="w-9 h-5 bg-gray-300 peer-checked:bg-cyan-600 rounded-full peer peer-focus:ring-2 peer-focus:ring-cyan-300 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"></div>
+                    </label>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Rate limiting (req/min)</span>
+                    <input type="number" defaultValue={1000} className={`w-20 px-2 py-1 rounded border text-sm ${isDark ? 'bg-gray-600 border-gray-500 text-white' : 'bg-white border-gray-300 text-gray-900'}`} />
+                  </div>
+                </div>
+                <button className="mt-4 px-4 py-2 bg-cyan-600 text-white text-sm rounded-lg hover:bg-cyan-700 transition-colors">Save</button>
+              </div>
+
+              {/* Data Policy */}
+              <div className={`rounded-xl border p-6 ${isDark ? 'bg-gray-700/50 border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
+                <div className="flex items-center gap-2 mb-4">
+                  <Settings className={`w-5 h-5 ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`} />
+                  <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Data Policy</h3>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Encryption at rest</span>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input type="checkbox" defaultChecked className="sr-only peer" />
+                      <div className="w-9 h-5 bg-gray-300 peer-checked:bg-cyan-600 rounded-full peer peer-focus:ring-2 peer-focus:ring-cyan-300 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"></div>
+                    </label>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Backup encryption</span>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input type="checkbox" defaultChecked className="sr-only peer" />
+                      <div className="w-9 h-5 bg-gray-300 peer-checked:bg-cyan-600 rounded-full peer peer-focus:ring-2 peer-focus:ring-cyan-300 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"></div>
+                    </label>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Data retention (days)</span>
+                    <input type="number" defaultValue={365} className={`w-20 px-2 py-1 rounded border text-sm ${isDark ? 'bg-gray-600 border-gray-500 text-white' : 'bg-white border-gray-300 text-gray-900'}`} />
+                  </div>
+                </div>
+                <button className="mt-4 px-4 py-2 bg-cyan-600 text-white text-sm rounded-lg hover:bg-cyan-700 transition-colors">Save</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* AI Insights */}
+        {activeTab === 'ai' && (
+          <div className="p-6">
+            <div className="space-y-4">
+              {[
+                { id: 1, severity: 'critical', border: 'border-red-500', icon: '🔴', text: 'Critical: 3 accounts with weak passwords detected. Force password reset recommended.' },
+                { id: 2, severity: 'warning', border: 'border-yellow-500', icon: '🟡', text: 'Warning: Unusual login pattern detected for dr.smith@uni.edu - 15 logins from 5 different IPs in 24h.' },
+                { id: 3, severity: 'info', border: 'border-blue-500', icon: '🔵', text: 'Info: SSL certificate for api.university.edu expires in 30 days. Auto-renewal is configured.' },
+                { id: 4, severity: 'positive', border: 'border-green-500', icon: '🟢', text: 'Positive: No brute force attempts detected in the last 7 days. Security posture improving.' },
+              ].map((insight) => (
+                <div
+                  key={insight.id}
+                  className={`flex items-start gap-4 p-4 rounded-lg border-l-4 ${insight.border} ${isDark ? 'bg-gray-700/50' : 'bg-gray-50'}`}
+                >
+                  <Sparkles className={`w-5 h-5 mt-0.5 ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`} />
+                  <div className="flex-1">
+                    <p className={`text-sm ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>
+                      {insight.icon} {insight.text}
+                    </p>
+                  </div>
+                  <div className="flex gap-2 shrink-0">
+                    <button className="px-3 py-1.5 bg-cyan-600 text-white text-xs rounded-lg hover:bg-cyan-700 transition-colors">
+                      Take Action
+                    </button>
+                    <button className={`px-3 py-1.5 text-xs rounded-lg transition-colors ${isDark ? 'bg-gray-600 text-gray-300 hover:bg-gray-500' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>
+                      Dismiss
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>

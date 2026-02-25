@@ -19,6 +19,10 @@ import {
   MessageSquare,
   MessagesSquare,
   Menu,
+  Upload,
+  Bell,
+  Megaphone,
+  Search,
 } from 'lucide-react';
 import {
   StatsCard,
@@ -47,6 +51,10 @@ import {
   CommunicationPage,
   DiscussionPage,
   SettingsPage,
+  UploadMaterialsPage,
+  NotificationsPage,
+  AnnouncementsManager,
+  GlobalSearchPage,
 } from './components';
 import { AIAttendanceContainer } from './components/ai-features/attendance';
 import { MessagingChat, DashboardHeader, DashboardSidebar } from '../../components/shared';
@@ -96,7 +104,11 @@ type TabKey =
   | 'discussion'
   | 'chat'
   | 'settings'
-  | 'profile';
+  | 'profile'
+  | 'upload-materials'
+  | 'notifications'
+  | 'announcements'
+  | 'search';
 
 const TABS: { key: TabKey; label: string; labelAr: string; icon: any; group: string }[] = [
   { key: 'dashboard', label: 'Dashboard', labelAr: 'لوحة التحكم', icon: LayoutGrid, group: 'Overview' },
@@ -104,6 +116,7 @@ const TABS: { key: TabKey; label: string; labelAr: string; icon: any; group: str
   { key: 'labs', label: 'Labs', labelAr: 'المعامل', icon: Beaker, group: 'Teaching' },
   { key: 'quizzes', label: 'Quizzes', labelAr: 'الاختبارات', icon: ClipboardList, group: 'Teaching' },
   { key: 'assignments', label: 'Assignments', labelAr: 'الواجبات', icon: CheckSquare, group: 'Teaching' },
+  { key: 'upload-materials', label: 'Materials', labelAr: 'المواد', icon: Upload, group: 'Teaching' },
   { key: 'schedule', label: 'Schedule', labelAr: 'الجدول', icon: CalendarDays, group: 'Teaching' },
   { key: 'roster', label: 'Roster', labelAr: 'قائمة الطلاب', icon: Users, group: 'Students' },
   { key: 'waitlist', label: 'Waitlist', labelAr: 'قائمة الانتظار', icon: UserCheck, group: 'Students' },
@@ -111,8 +124,11 @@ const TABS: { key: TabKey; label: string; labelAr: string; icon: any; group: str
   { key: 'attendance', label: 'Attendance', labelAr: 'الحضور', icon: Calendar, group: 'Students' },
   { key: 'analytics', label: 'Analytics', labelAr: 'التحليلات', icon: BarChart3, group: 'Students' },
   { key: 'communication', label: 'Communication', labelAr: 'التواصل', icon: MessageCircle, group: 'Communication' },
+  { key: 'announcements', label: 'Announcements', labelAr: 'الإعلانات', icon: Megaphone, group: 'Communication' },
+  { key: 'notifications', label: 'Notifications', labelAr: 'الإشعارات', icon: Bell, group: 'Communication' },
   { key: 'discussion', label: 'Discussion', labelAr: 'المناقشات', icon: MessagesSquare, group: 'Communication' },
   { key: 'chat', label: 'Chat', labelAr: 'الدردشة', icon: MessageSquare, group: 'Communication' },
+  { key: 'search', label: 'Search', labelAr: 'البحث', icon: Search, group: 'Tools' },
   { key: 'ai-tools', label: 'AI Tools', labelAr: 'أدوات الذكاء', icon: Brain, group: 'Tools' },
   { key: 'settings', label: 'Settings', labelAr: 'الإعدادات', icon: Settings, group: 'Tools' },
   { key: 'profile', label: 'Profile', labelAr: 'الملف الشخصي', icon: User, group: 'Tools' },
@@ -764,6 +780,18 @@ function InstructorDashboardContent() {
 
           {/* Settings */}
           {activeTab === 'settings' && <SettingsPage />}
+
+          {/* Upload Materials */}
+          {activeTab === 'upload-materials' && <UploadMaterialsPage />}
+
+          {/* Notifications */}
+          {activeTab === 'notifications' && <NotificationsPage />}
+
+          {/* Announcements */}
+          {activeTab === 'announcements' && <AnnouncementsManager />}
+
+          {/* Global Search */}
+          {activeTab === 'search' && <GlobalSearchPage />}
 
           {/* Profile */}
           {activeTab === 'profile' && (

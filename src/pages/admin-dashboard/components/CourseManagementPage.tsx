@@ -14,16 +14,21 @@ interface Course {
   capacity: number;
   status: string;
   instructor: string;
+  instructorId: number;
+  taIds: number[];
+  prerequisites: string[];
 }
 
 interface CourseManagementPageProps {
   courses: Course[];
+  users: { id: number; name: string; role: string; department: string }[];
+  adminDepartment: string;
   onAddCourse: (course: any) => void;
   onEditCourse: (id: number, course: any) => void;
   onDeleteCourse: (id: number) => void;
 }
 
-export function CourseManagementPage({ courses, onAddCourse, onEditCourse, onDeleteCourse }: CourseManagementPageProps) {
+export function CourseManagementPage({ courses, users, adminDepartment, onAddCourse, onEditCourse, onDeleteCourse }: CourseManagementPageProps) {
   const { isDark } = useTheme();
   const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
@@ -32,25 +37,71 @@ export function CourseManagementPage({ courses, onAddCourse, onEditCourse, onDel
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
 
-  const filteredCourses = courses.filter(course => {
+  // Form state for controlled form
+  const [formData, setFormData] = useState({
+    code: '', name: '', department: adminDepartment, semester: 'Fall 2025',
+    credits: 3, capacity: 100, instructorId: 0, instructor: '', taIds: [] as number[],
+  });
+
+  const deptCourses = courses.filter(c => c.department === adminDepartment);
+  const deptInstructors = users.filter(u => u.role === 'instructor' && u.department === adminDepartment);
+  const deptTAs = users.filter(u => u.role === 'ta' && u.department === adminDepartment);
+
+  const filteredCourses = deptCourses.filter(course => {
     const matchesSearch = course.name.toLowerCase().includes(searchTerm.toLowerCase()) || course.code.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesDepartment = departmentFilter === 'all' || course.department === departmentFilter;
     const matchesStatus = statusFilter === 'all' || course.status === statusFilter;
     return matchesSearch && matchesDepartment && matchesStatus;
   });
 
-  const departments = [...new Set(courses.map(c => c.department))];
+  const departments = [...new Set(deptCourses.map(c => c.department))];
+
+  const openAddModal = () => {
+    setFormData({ code: '', name: '', department: adminDepartment, semester: 'Fall 2025', credits: 3, capacity: 100, instructorId: 0, instructor: '', taIds: [] });
+    setShowAddModal(true);
+  };
+
+  const openEditModal = (course: Course) => {
+    setFormData({ code: course.code, name: course.name, department: course.department, semester: course.semester, credits: course.credits, capacity: course.capacity, instructorId: course.instructorId || 0, instructor: course.instructor, taIds: course.taIds || [] });
+    setEditingCourse(course);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const payload = { ...formData, prerequisites: editingCourse?.prerequisites || [] };
+    if (editingCourse) {
+      onEditCourse(editingCourse.id, payload);
+      setEditingCourse(null);
+    } else {
+      onAddCourse(payload);
+      setShowAddModal(false);
+    }
+  };
+
+  const toggleTA = (taId: number) => {
+    setFormData(prev => ({
+      ...prev,
+      taIds: prev.taIds.includes(taId) ? prev.taIds.filter(id => id !== taId) : [...prev.taIds, taId],
+    }));
+  };
+
+  const getTANames = (taIds: number[]) => {
+    return taIds.map(id => users.find(u => u.id === id)?.name).filter(Boolean).join(', ');
+  };
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('courseManagement')}</h1>
+          <div className="flex items-center gap-2">
+            <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('courseManagement')}</h1>
+            <span className="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">{adminDepartment}</span>
+          </div>
           <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('manageCoursesSub')}</p>
         </div>
         <button
-          onClick={() => setShowAddModal(true)}
+          onClick={openAddModal}
           className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
         >
           <Plus size={18} />
@@ -129,6 +180,9 @@ export function CourseManagementPage({ courses, onAddCourse, onEditCourse, onDel
 
               <div className={`text-sm mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
                 <p>{t('courseInstructor')}: {course.instructor}</p>
+                {course.taIds && course.taIds.length > 0 && (
+                  <p>{t('assignedTAs')}: {getTANames(course.taIds)}</p>
+                )}
                 <p>{t('department')}: {course.department}</p>
               </div>
 
@@ -148,7 +202,7 @@ export function CourseManagementPage({ courses, onAddCourse, onEditCourse, onDel
 
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => setEditingCourse(course)}
+                  onClick={() => openEditModal(course)}
                   className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg border ${isDark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-200 text-gray-700 hover:bg-gray-50'}`}
                 >
                   <Edit2 size={14} />
@@ -173,44 +227,75 @@ export function CourseManagementPage({ courses, onAddCourse, onEditCourse, onDel
             <h2 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
               {editingCourse ? t('editCourse') : t('addCourse')}
             </h2>
-            <form className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('courseCode')}</label>
-                  <input type="text" defaultValue={editingCourse?.code} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`} />
+                  <input type="text" value={formData.code} onChange={(e) => setFormData({ ...formData, code: e.target.value })} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`} required />
                 </div>
                 <div>
                   <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('credits')}</label>
-                  <input type="number" defaultValue={editingCourse?.credits} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`} />
+                  <input type="number" value={formData.credits} onChange={(e) => setFormData({ ...formData, credits: Number(e.target.value) })} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`} required />
                 </div>
               </div>
               <div>
                 <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('courseName')}</label>
-                <input type="text" defaultValue={editingCourse?.name} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`} />
+                <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`} required />
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('department')}</label>
-                  <select defaultValue={editingCourse?.department} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}>
-                    <option value="Computer Science">Computer Science</option>
-                    <option value="Mathematics">Mathematics</option>
-                    <option value="Engineering">Engineering</option>
-                    <option value="Business">Business</option>
-                    <option value="Arts">Arts</option>
-                  </select>
-                </div>
-                <div>
-                  <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('semester')}</label>
-                  <select defaultValue={editingCourse?.semester} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}>
-                    <option value="Fall 2025">Fall 2025</option>
-                    <option value="Spring 2026">Spring 2026</option>
-                    <option value="Summer 2026">Summer 2026</option>
-                  </select>
+              <div>
+                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('semester')}</label>
+                <select value={formData.semester} onChange={(e) => setFormData({ ...formData, semester: e.target.value })} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}>
+                  <option value="Fall 2025">Fall 2025</option>
+                  <option value="Spring 2026">Spring 2026</option>
+                  <option value="Summer 2026">Summer 2026</option>
+                </select>
+              </div>
+              {/* Instructor Dropdown */}
+              <div>
+                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('assignInstructor')}</label>
+                <select
+                  value={formData.instructorId}
+                  onChange={(e) => {
+                    const inst = deptInstructors.find(i => i.id === Number(e.target.value));
+                    setFormData({ ...formData, instructorId: Number(e.target.value), instructor: inst?.name || '' });
+                  }}
+                  className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}
+                >
+                  <option value={0}>{t('selectInstructor')}</option>
+                  {deptInstructors.map(inst => (
+                    <option key={inst.id} value={inst.id}>{inst.name}</option>
+                  ))}
+                </select>
+              </div>
+              {/* TA Multi-Select */}
+              <div>
+                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('assignTA')}</label>
+                <div className={`p-3 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
+                  {deptTAs.length === 0 ? (
+                    <p className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>No TAs available in this department</p>
+                  ) : (
+                    <div className="flex flex-wrap gap-2">
+                      {deptTAs.map(ta => (
+                        <button
+                          key={ta.id}
+                          type="button"
+                          onClick={() => toggleTA(ta.id)}
+                          className={`px-3 py-1 rounded-full text-sm transition-colors ${
+                            formData.taIds.includes(ta.id)
+                              ? 'bg-red-600 text-white'
+                              : isDark ? 'bg-gray-600 text-gray-300 hover:bg-gray-500' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                          }`}
+                        >
+                          {ta.name}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
               <div>
                 <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('capacity')}</label>
-                <input type="number" defaultValue={editingCourse?.capacity} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`} />
+                <input type="number" value={formData.capacity} onChange={(e) => setFormData({ ...formData, capacity: Number(e.target.value) })} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`} required />
               </div>
               <div className="flex justify-end gap-3 mt-6">
                 <button

@@ -14,6 +14,19 @@ import {
   MessageCircle,
   User,
   Menu,
+  CalendarClock,
+  FileText,
+  ClipboardList,
+  GitBranch,
+  UserPlus,
+  Shield,
+  ClipboardCheck,
+  Lock,
+  Database,
+  CreditCard,
+  Bell,
+  Brain,
+  Search,
 } from 'lucide-react';
 import {
   DashboardOverview,
@@ -25,6 +38,20 @@ import {
   CommunicationPage,
   FeedbackSupportPage,
   SystemConfigPage,
+  ScheduleManagementPage,
+  ExamSchedulePage,
+  EnrollmentPeriodPage,
+  PrerequisitesManagementPage,
+  StaffAssignmentPage,
+  RoleManagementPage,
+  AttendanceManagementPage,
+  SecurityLogsPage,
+  BackupCenterPage,
+  PaymentManagementPage,
+  AdminNotificationsPage,
+  AIInsightsPage,
+  GlobalSearchPage,
+  SettingsHubPage,
 } from './components';
 import { DashboardHeader, DashboardSidebar, MessagingChat } from '../../components/shared';
 import { DashboardProfileTab } from '../../components/shared/DashboardProfileTab';
@@ -43,6 +70,10 @@ import {
   GAMIFICATION_SETTINGS,
   API_INTEGRATIONS,
   RECENT_ACTIVITY,
+  ADMIN_DEPARTMENT,
+  SCHEDULES,
+  ENROLLMENT_PERIODS,
+  EXAM_SCHEDULES,
 } from './constants';
 
 type TabKey =
@@ -50,11 +81,25 @@ type TabKey =
   | 'users'
   | 'courses'
   | 'departments'
+  | 'staff-assignment'
+  | 'roles'
+  | 'schedule'
+  | 'exams'
+  | 'enrollment'
+  | 'prerequisites'
   | 'calendar'
+  | 'attendance'
   | 'analytics'
   | 'communication'
   | 'chat'
   | 'feedback'
+  | 'notifications'
+  | 'security'
+  | 'backup'
+  | 'payments'
+  | 'ai-insights'
+  | 'search'
+  | 'settings'
   | 'config'
   | 'profile';
 
@@ -63,11 +108,25 @@ const TABS: { key: TabKey; label: string; labelAr: string; icon: any }[] = [
   { key: 'users', label: 'User Management', labelAr: 'إدارة المستخدمين', icon: Users },
   { key: 'courses', label: 'Course Management', labelAr: 'إدارة المقررات', icon: BookOpen },
   { key: 'departments', label: 'Departments', labelAr: 'الأقسام', icon: Building2 },
+  { key: 'staff-assignment', label: 'Staff Assignment', labelAr: 'تعيين الموظفين', icon: UserPlus },
+  { key: 'roles', label: 'Role Management', labelAr: 'إدارة الأدوار', icon: Shield },
+  { key: 'schedule', label: 'Schedule Management', labelAr: 'إدارة الجداول', icon: CalendarClock },
+  { key: 'exams', label: 'Exam Schedule', labelAr: 'جدول الامتحانات', icon: FileText },
+  { key: 'enrollment', label: 'Enrollment Periods', labelAr: 'فترات التسجيل', icon: ClipboardList },
+  { key: 'prerequisites', label: 'Prerequisites', labelAr: 'المتطلبات السابقة', icon: GitBranch },
   { key: 'calendar', label: 'Academic Calendar', labelAr: 'التقويم الأكاديمي', icon: Calendar },
+  { key: 'attendance', label: 'Attendance', labelAr: 'الحضور', icon: ClipboardCheck },
   { key: 'analytics', label: 'Analytics & Reports', labelAr: 'التحليلات والتقارير', icon: BarChart3 },
   { key: 'communication', label: 'Communication', labelAr: 'التواصل', icon: MessageSquare },
   { key: 'chat', label: 'Chat', labelAr: 'الدردشة', icon: MessageCircle },
+  { key: 'notifications', label: 'Notifications', labelAr: 'الإشعارات', icon: Bell },
   { key: 'feedback', label: 'Feedback & Support', labelAr: 'الملاحظات والدعم', icon: HeadphonesIcon },
+  { key: 'security', label: 'Security & Logs', labelAr: 'الأمان والسجلات', icon: Lock },
+  { key: 'backup', label: 'Backup Center', labelAr: 'مركز النسخ الاحتياطي', icon: Database },
+  { key: 'payments', label: 'Payment Management', labelAr: 'إدارة المدفوعات', icon: CreditCard },
+  { key: 'ai-insights', label: 'AI Insights', labelAr: 'رؤى الذكاء الاصطناعي', icon: Brain },
+  { key: 'search', label: 'Global Search', labelAr: 'البحث الشامل', icon: Search },
+  { key: 'settings', label: 'Settings', labelAr: 'الإعدادات', icon: Settings },
   { key: 'config', label: 'System Config', labelAr: 'إعدادات النظام', icon: Settings },
   { key: 'profile', label: 'Profile', labelAr: 'الملف الشخصي', icon: User },
 ];
@@ -89,6 +148,9 @@ function AdminDashboardContent() {
   const [templates, setTemplates] = useState(NOTIFICATION_TEMPLATES);
   const [tickets, setTickets] = useState(SUPPORT_TICKETS);
   const [gamification, setGamification] = useState(GAMIFICATION_SETTINGS);
+  const [schedulesData, setSchedulesData] = useState(SCHEDULES);
+  const [enrollmentPeriodsData, setEnrollmentPeriodsData] = useState(ENROLLMENT_PERIODS);
+  const [examSchedulesData, setExamSchedulesData] = useState(EXAM_SCHEDULES);
 
   // Sync tab from URL
   useEffect(() => {
@@ -185,6 +247,62 @@ function AdminDashboardContent() {
 
   const handleDeleteEvent = (id: number) => {
     setCalendarEvents(calendarEvents.filter(e => e.id !== id));
+  };
+
+  // Schedule management handlers
+  const handleAddSchedule = (schedule: any) => {
+    const newSchedule = {
+      id: Math.max(0, ...schedulesData.map(s => s.id)) + 1,
+      ...schedule,
+    };
+    setSchedulesData([...schedulesData, newSchedule]);
+  };
+
+  const handleEditSchedule = (id: number, schedule: any) => {
+    setSchedulesData(schedulesData.map(s => s.id === id ? { ...s, ...schedule } : s));
+  };
+
+  const handleDeleteSchedule = (id: number) => {
+    setSchedulesData(schedulesData.filter(s => s.id !== id));
+  };
+
+  // Exam schedule handlers
+  const handleAddExam = (exam: any) => {
+    const newExam = {
+      id: Math.max(0, ...examSchedulesData.map(e => e.id)) + 1,
+      ...exam,
+    };
+    setExamSchedulesData([...examSchedulesData, newExam]);
+  };
+
+  const handleEditExam = (id: number, exam: any) => {
+    setExamSchedulesData(examSchedulesData.map(e => e.id === id ? { ...e, ...exam } : e));
+  };
+
+  const handleDeleteExam = (id: number) => {
+    setExamSchedulesData(examSchedulesData.filter(e => e.id !== id));
+  };
+
+  // Enrollment period handlers
+  const handleAddEnrollmentPeriod = (period: any) => {
+    const newPeriod = {
+      id: Math.max(0, ...enrollmentPeriodsData.map(p => p.id)) + 1,
+      ...period,
+    };
+    setEnrollmentPeriodsData([...enrollmentPeriodsData, newPeriod]);
+  };
+
+  const handleEditEnrollmentPeriod = (id: number, period: any) => {
+    setEnrollmentPeriodsData(enrollmentPeriodsData.map(p => p.id === id ? { ...p, ...period } : p));
+  };
+
+  const handleDeleteEnrollmentPeriod = (id: number) => {
+    setEnrollmentPeriodsData(enrollmentPeriodsData.filter(p => p.id !== id));
+  };
+
+  // Prerequisites handler
+  const handleUpdatePrerequisites = (courseId: number, prerequisites: string[]) => {
+    setCoursesData(coursesData.map(c => c.id === courseId ? { ...c, prerequisites } : c));
   };
 
   const getEventColor = (type: string) => {
@@ -331,6 +449,8 @@ function AdminDashboardContent() {
           {activeTab === 'courses' && (
             <CourseManagementPage
               courses={coursesData}
+              users={usersData}
+              adminDepartment={ADMIN_DEPARTMENT}
               onAddCourse={handleAddCourse}
               onEditCourse={handleEditCourse}
               onDeleteCourse={handleDeleteCourse}
@@ -344,6 +464,52 @@ function AdminDashboardContent() {
               onAddDepartment={handleAddDepartment}
               onEditDepartment={handleEditDepartment}
               onDeleteDepartment={handleDeleteDepartment}
+            />
+          )}
+
+          {/* Schedule Management */}
+          {activeTab === 'schedule' && (
+            <ScheduleManagementPage
+              schedules={schedulesData}
+              courses={coursesData}
+              users={usersData}
+              adminDepartment={ADMIN_DEPARTMENT}
+              onAddSchedule={handleAddSchedule}
+              onEditSchedule={handleEditSchedule}
+              onDeleteSchedule={handleDeleteSchedule}
+            />
+          )}
+
+          {/* Exam Schedule */}
+          {activeTab === 'exams' && (
+            <ExamSchedulePage
+              exams={examSchedulesData}
+              courses={coursesData}
+              adminDepartment={ADMIN_DEPARTMENT}
+              onAddExam={handleAddExam}
+              onEditExam={handleEditExam}
+              onDeleteExam={handleDeleteExam}
+            />
+          )}
+
+          {/* Enrollment Periods */}
+          {activeTab === 'enrollment' && (
+            <EnrollmentPeriodPage
+              enrollmentPeriods={enrollmentPeriodsData}
+              courses={coursesData}
+              adminDepartment={ADMIN_DEPARTMENT}
+              onAddPeriod={handleAddEnrollmentPeriod}
+              onEditPeriod={handleEditEnrollmentPeriod}
+              onDeletePeriod={handleDeleteEnrollmentPeriod}
+            />
+          )}
+
+          {/* Prerequisites Management */}
+          {activeTab === 'prerequisites' && (
+            <PrerequisitesManagementPage
+              courses={coursesData}
+              adminDepartment={ADMIN_DEPARTMENT}
+              onUpdatePrerequisites={handleUpdatePrerequisites}
             />
           )}
 
@@ -426,6 +592,36 @@ function AdminDashboardContent() {
               }}
             />
           )}
+
+          {/* Staff Assignment */}
+          {activeTab === 'staff-assignment' && <StaffAssignmentPage />}
+
+          {/* Role Management */}
+          {activeTab === 'roles' && <RoleManagementPage />}
+
+          {/* Attendance Management */}
+          {activeTab === 'attendance' && <AttendanceManagementPage />}
+
+          {/* Security & Logs */}
+          {activeTab === 'security' && <SecurityLogsPage />}
+
+          {/* Backup Center */}
+          {activeTab === 'backup' && <BackupCenterPage />}
+
+          {/* Payment Management */}
+          {activeTab === 'payments' && <PaymentManagementPage />}
+
+          {/* Notifications */}
+          {activeTab === 'notifications' && <AdminNotificationsPage />}
+
+          {/* AI Insights */}
+          {activeTab === 'ai-insights' && <AIInsightsPage />}
+
+          {/* Global Search */}
+          {activeTab === 'search' && <GlobalSearchPage />}
+
+          {/* Settings Hub */}
+          {activeTab === 'settings' && <SettingsHubPage />}
       </main>
     </div>
   );
