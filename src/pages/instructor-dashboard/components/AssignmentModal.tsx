@@ -151,7 +151,8 @@ export function AssignmentModal({ open, assignment, onClose, onSave }: Assignmen
 
   const assignmentType = formData.assignmentType || 'assignment';
   const labelCls = `block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`;
-  const inputCls = `w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? 'bg-white/5 border-white/10 text-white' : 'border-gray-300 bg-white'}`;
+  const inputCls = `w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-gray-500' : 'border-gray-300 bg-white'}`;
+  const optionCls = isDark ? 'bg-gray-800 text-white' : '';
   const sectionTitle = `text-sm font-semibold mb-3 ${isDark ? 'text-gray-200' : 'text-gray-800'}`;
 
   const typeLabel = TYPE_CONFIG[assignmentType].label;
@@ -235,8 +236,8 @@ export function AssignmentModal({ open, assignment, onClose, onSave }: Assignmen
               <div>
                 <label className={labelCls}>Course</label>
                 <select value={formData.course || ''} onChange={e => update('course', e.target.value)} className={inputCls}>
-                  <option value="">Select course</option>
-                  {COURSES.map(c => <option key={c} value={c}>{c}</option>)}
+                  <option value="" className={optionCls}>Select course</option>
+                  {COURSES.map(c => <option key={c} value={c} className={optionCls}>{c}</option>)}
                 </select>
               </div>
 
@@ -281,6 +282,7 @@ export function AssignmentModal({ open, assignment, onClose, onSave }: Assignmen
                   value={formData.dueDate}
                   onChange={e => update('dueDate', e.target.value)}
                   className={inputCls}
+                  style={isDark ? { colorScheme: 'dark' } : undefined}
                 />
               </div>
               <div>
@@ -290,9 +292,9 @@ export function AssignmentModal({ open, assignment, onClose, onSave }: Assignmen
                   onChange={e => update('status', e.target.value as 'draft' | 'open' | 'closed')}
                   className={inputCls}
                 >
-                  <option value="draft">Draft</option>
-                  <option value="open">Open</option>
-                  <option value="closed">Closed</option>
+                  <option value="draft" className={optionCls}>Draft</option>
+                  <option value="open" className={optionCls}>Open</option>
+                  <option value="closed" className={optionCls}>Closed</option>
                 </select>
               </div>
             </div>
@@ -339,8 +341,8 @@ export function AssignmentModal({ open, assignment, onClose, onSave }: Assignmen
                 <div>
                   <label className={labelCls}>Lab Room</label>
                   <select value={formData.labRoom || ''} onChange={e => update('labRoom', e.target.value)} className={inputCls}>
-                    <option value="">Select room</option>
-                    {LAB_ROOMS.map(r => <option key={r} value={r}>{r}</option>)}
+                    <option value="" className={optionCls}>Select room</option>
+                    {LAB_ROOMS.map(r => <option key={r} value={r} className={optionCls}>{r}</option>)}
                   </select>
                 </div>
                 <div>
@@ -370,7 +372,7 @@ export function AssignmentModal({ open, assignment, onClose, onSave }: Assignmen
                 <textarea rows={3} value={formData.procedure || ''} onChange={e => update('procedure', e.target.value)} className={inputCls} placeholder="Step-by-step procedure..." />
               </div>
 
-              <div className={`border rounded-lg p-3 space-y-3 ${isDark ? 'border-white/10' : 'border-gray-100 bg-gray-50'}`}>
+              <div className={`border rounded-lg p-3 space-y-3 ${isDark ? 'border-white/10 bg-white/5' : 'border-gray-100 bg-gray-50'}`}>
                 <p className={`text-xs font-semibold uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Safety Requirements</p>
                 <div className="flex items-center justify-between">
                   <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Require Lab Coat</span>
@@ -411,7 +413,7 @@ export function AssignmentModal({ open, assignment, onClose, onSave }: Assignmen
                 <textarea rows={2} value={formData.learningObjectives || ''} onChange={e => update('learningObjectives', e.target.value)} className={inputCls} placeholder="What students will learn..." />
               </div>
 
-              <div className={`border rounded-lg p-3 space-y-3 ${isDark ? 'border-white/10' : 'border-gray-100 bg-gray-50'}`}>
+              <div className={`border rounded-lg p-3 space-y-3 ${isDark ? 'border-white/10 bg-white/5' : 'border-gray-100 bg-gray-50'}`}>
                 <p className={`text-xs font-semibold uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Team Configuration</p>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
