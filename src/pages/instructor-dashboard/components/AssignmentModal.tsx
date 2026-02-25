@@ -152,7 +152,8 @@ export function AssignmentModal({ open, assignment, onClose, onSave }: Assignmen
   const assignmentType = formData.assignmentType || 'assignment';
   const labelCls = `block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`;
   const inputCls = `w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-gray-500' : 'border-gray-300 bg-white'}`;
-  const optionCls = isDark ? 'bg-gray-800 text-white' : '';
+  const selectCls = `w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? 'bg-gray-700 border-white/10 text-white' : 'border-gray-300 bg-white text-gray-900'}`;
+  const optionStyle: React.CSSProperties = { backgroundColor: isDark ? '#1f2937' : '#ffffff', color: isDark ? '#ffffff' : '#111827' };
   const sectionTitle = `text-sm font-semibold mb-3 ${isDark ? 'text-gray-200' : 'text-gray-800'}`;
 
   const typeLabel = TYPE_CONFIG[assignmentType].label;
@@ -235,9 +236,9 @@ export function AssignmentModal({ open, assignment, onClose, onSave }: Assignmen
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className={labelCls}>Course</label>
-                <select value={formData.course || ''} onChange={e => update('course', e.target.value)} className={inputCls}>
-                  <option value="" className={optionCls}>Select course</option>
-                  {COURSES.map(c => <option key={c} value={c} className={optionCls}>{c}</option>)}
+                <select value={formData.course || ''} onChange={e => update('course', e.target.value)} className={selectCls}>
+                  <option value="" style={optionStyle}>Select course</option>
+                  {COURSES.map(c => <option key={c} value={c} style={optionStyle}>{c}</option>)}
                 </select>
               </div>
 
@@ -290,11 +291,11 @@ export function AssignmentModal({ open, assignment, onClose, onSave }: Assignmen
                 <select
                   value={formData.status}
                   onChange={e => update('status', e.target.value as 'draft' | 'open' | 'closed')}
-                  className={inputCls}
+                  className={selectCls}
                 >
-                  <option value="draft" className={optionCls}>Draft</option>
-                  <option value="open" className={optionCls}>Open</option>
-                  <option value="closed" className={optionCls}>Closed</option>
+                  <option value="draft" style={optionStyle}>Draft</option>
+                  <option value="open" style={optionStyle}>Open</option>
+                  <option value="closed" style={optionStyle}>Closed</option>
                 </select>
               </div>
             </div>
@@ -340,9 +341,9 @@ export function AssignmentModal({ open, assignment, onClose, onSave }: Assignmen
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className={labelCls}>Lab Room</label>
-                  <select value={formData.labRoom || ''} onChange={e => update('labRoom', e.target.value)} className={inputCls}>
-                    <option value="" className={optionCls}>Select room</option>
-                    {LAB_ROOMS.map(r => <option key={r} value={r} className={optionCls}>{r}</option>)}
+                  <select value={formData.labRoom || ''} onChange={e => update('labRoom', e.target.value)} className={selectCls}>
+                    <option value="" style={optionStyle}>Select room</option>
+                    {LAB_ROOMS.map(r => <option key={r} value={r} style={optionStyle}>{r}</option>)}
                   </select>
                 </div>
                 <div>

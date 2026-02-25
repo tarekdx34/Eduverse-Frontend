@@ -220,14 +220,14 @@ export function AcademicCalendarPage({ events, onAddEvent, onEditEvent, onDelete
             <select
               value={selectedType}
               onChange={(e) => setSelectedType(e.target.value)}
-              className={`px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}
+              className={`px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
             >
-              <option value="all">{t('allEventTypes')}</option>
-              <option value="semesterStart">{t('semesterStart')}</option>
-              <option value="semesterEnd">{t('semesterEnd')}</option>
-              <option value="registration">{t('registration')}</option>
-              <option value="holiday">{t('holiday')}</option>
-              <option value="examPeriod">{t('examPeriod')}</option>
+              <option value="all" className={isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'}>{t('allEventTypes')}</option>
+              <option value="semesterStart" className={isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'}>{t('semesterStart')}</option>
+              <option value="semesterEnd" className={isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'}>{t('semesterEnd')}</option>
+              <option value="registration" className={isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'}>{t('registration')}</option>
+              <option value="holiday" className={isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'}>{t('holiday')}</option>
+              <option value="examPeriod" className={isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'}>{t('examPeriod')}</option>
             </select>
           </div>
 
@@ -288,26 +288,26 @@ export function AcademicCalendarPage({ events, onAddEvent, onEditEvent, onDelete
             <form className="space-y-4">
               <div>
                 <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('eventTitle')}</label>
-                <input type="text" defaultValue={editingEvent?.title} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`} />
+                <input type="text" defaultValue={editingEvent?.title} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200 text-gray-900'}`} />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('startDate')}</label>
-                  <input type="date" defaultValue={editingEvent?.date} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`} />
+                  <input type="date" defaultValue={editingEvent?.date} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200 text-gray-900'}`} />
                 </div>
                 <div>
                   <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('endDateOptional')}</label>
-                  <input type="date" defaultValue={editingEvent?.endDate || ''} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`} />
+                  <input type="date" defaultValue={editingEvent?.endDate || ''} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200 text-gray-900'}`} />
                 </div>
               </div>
               <div>
                 <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('eventType')}</label>
-                <select defaultValue={editingEvent?.type} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}>
-                  <option value="semesterStart">{t('semesterStart')}</option>
-                  <option value="semesterEnd">{t('semesterEnd')}</option>
-                  <option value="registration">{t('registrationPeriod')}</option>
-                  <option value="holiday">{t('holiday')}</option>
-                  <option value="examPeriod">{t('examPeriod')}</option>
+                <select defaultValue={editingEvent?.type} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200 text-gray-900'}`}>
+                  <option value="semesterStart" className={isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'}>{t('semesterStart')}</option>
+                  <option value="semesterEnd" className={isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'}>{t('semesterEnd')}</option>
+                  <option value="registration" className={isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'}>{t('registrationPeriod')}</option>
+                  <option value="holiday" className={isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'}>{t('holiday')}</option>
+                  <option value="examPeriod" className={isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'}>{t('examPeriod')}</option>
                 </select>
               </div>
               <div className="flex justify-end gap-3 mt-6">

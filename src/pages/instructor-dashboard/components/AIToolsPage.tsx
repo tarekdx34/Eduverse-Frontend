@@ -358,6 +358,7 @@ export function AIToolsPage() {
             questions={generatedQuestions}
             onQuestionsChange={handleQuestionsChange}
             onGenerateMore={generateMoreQuestions}
+            isDark={isDark}
           />
         </div>
 

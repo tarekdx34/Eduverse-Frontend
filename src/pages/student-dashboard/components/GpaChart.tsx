@@ -30,9 +30,9 @@ export default function GpaChart({ data }: GpaChartProps) {
           </p>
         </div>
         <select className={`border-none rounded-xl text-sm font-semibold px-4 py-2 focus:ring-[#7C3AED] cursor-pointer ${
-          isDark ? 'bg-white/5 text-slate-300' : 'glass text-slate-600'
+          isDark ? 'bg-white/5 text-slate-300' : 'glass text-slate-800'
         }`}>
-          <option>{t('allSemesters') || 'All Semesters'}</option>
+          <option className={isDark ? 'bg-slate-800 text-white' : 'bg-white text-slate-900'}>{t('allSemesters') || 'All Semesters'}</option>
         </select>
       </div>
 

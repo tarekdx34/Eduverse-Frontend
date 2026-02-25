@@ -3,27 +3,21 @@ import { useNavigate, useParams } from 'react-router-dom';
 import {
   LayoutGrid,
   BookOpen,
-  Building2,
   Calendar,
-  BarChart3,
   MessageSquare,
   MessageCircle,
   User,
   Menu,
   ClipboardList,
-  GitBranch,
-  CreditCard,
+  GraduationCap,
 } from 'lucide-react';
 import {
   DashboardOverview,
   CourseManagementPage,
-  DepartmentManagementPage,
   AcademicCalendarPage,
-  AnalyticsReportsPage,
   CommunicationPage,
   EnrollmentPeriodPage,
   PrerequisitesManagementPage,
-  PaymentManagementPage,
 } from './components';
 import { DashboardHeader, DashboardSidebar, MessagingChat } from '../../components/shared';
 import { DashboardProfileTab } from '../../components/shared/DashboardProfileTab';
@@ -33,7 +27,6 @@ import {
   DASHBOARD_STATS,
   USERS,
   COURSES,
-  DEPARTMENTS,
   CALENDAR_EVENTS,
   ANALYTICS,
   NOTIFICATION_TEMPLATES,
@@ -41,31 +34,26 @@ import {
   ADMIN_DEPARTMENT,
   ENROLLMENT_PERIODS,
 } from './constants';
+import { StudentManagementPage } from './components/StudentManagementPage';
 
 type TabKey =
   | 'dashboard'
+  | 'students'
   | 'courses'
-  | 'departments'
-  | 'enrollment'
-  | 'prerequisites'
+  | 'periods'
   | 'calendar'
-  | 'analytics'
   | 'communication'
   | 'chat'
-  | 'payments'
   | 'profile';
 
 const TABS: { key: TabKey; label: string; labelAr: string; icon: any }[] = [
   { key: 'dashboard', label: 'Dashboard', labelAr: 'لوحة التحكم', icon: LayoutGrid },
+  { key: 'students', label: 'Student Management', labelAr: 'إدارة الطلاب', icon: GraduationCap },
   { key: 'courses', label: 'Course Management', labelAr: 'إدارة المقررات', icon: BookOpen },
-  { key: 'departments', label: 'Departments', labelAr: 'الأقسام', icon: Building2 },
-  { key: 'enrollment', label: 'Enrollment Periods', labelAr: 'فترات التسجيل', icon: ClipboardList },
-  { key: 'prerequisites', label: 'Prerequisites', labelAr: 'المتطلبات السابقة', icon: GitBranch },
+  { key: 'periods', label: 'Periods & Scheduling', labelAr: 'الفترات والجدولة', icon: ClipboardList },
   { key: 'calendar', label: 'Academic Calendar', labelAr: 'التقويم الأكاديمي', icon: Calendar },
-  { key: 'analytics', label: 'Analytics & Reports', labelAr: 'التحليلات والتقارير', icon: BarChart3 },
   { key: 'communication', label: 'Communication', labelAr: 'التواصل', icon: MessageSquare },
   { key: 'chat', label: 'Chat', labelAr: 'الدردشة', icon: MessageCircle },
-  { key: 'payments', label: 'Payment Management', labelAr: 'إدارة المدفوعات', icon: CreditCard },
   { key: 'profile', label: 'Profile', labelAr: 'الملف الشخصي', icon: User },
 ];
 
@@ -79,7 +67,6 @@ function AdminDashboardContent() {
 
   // State for data management
   const [coursesData, setCoursesData] = useState(COURSES);
-  const [departmentsData, setDepartmentsData] = useState(DEPARTMENTS);
   const [calendarEvents, setCalendarEvents] = useState(CALENDAR_EVENTS);
   const [templates, setTemplates] = useState(NOTIFICATION_TEMPLATES);
   const [enrollmentPeriodsData, setEnrollmentPeriodsData] = useState(ENROLLMENT_PERIODS);
@@ -125,26 +112,6 @@ function AdminDashboardContent() {
     setCoursesData(coursesData.filter(c => c.id !== id));
   };
 
-  // Department management handlers
-  const handleAddDepartment = (department: any) => {
-    const newDept = {
-      id: Math.max(...departmentsData.map(d => d.id)) + 1,
-      ...department,
-      courses: 0,
-      students: 0,
-      instructors: 0,
-    };
-    setDepartmentsData([...departmentsData, newDept]);
-  };
-
-  const handleEditDepartment = (id: number, department: any) => {
-    setDepartmentsData(departmentsData.map(d => d.id === id ? { ...d, ...department } : d));
-  };
-
-  const handleDeleteDepartment = (id: number) => {
-    setDepartmentsData(departmentsData.filter(d => d.id !== id));
-  };
-
   // Calendar event handlers
   const handleAddEvent = (event: any) => {
     const newEvent = {
@@ -178,11 +145,6 @@ function AdminDashboardContent() {
 
   const handleDeleteEnrollmentPeriod = (id: number) => {
     setEnrollmentPeriodsData(enrollmentPeriodsData.filter(p => p.id !== id));
-  };
-
-  // Prerequisites handler
-  const handleUpdatePrerequisites = (courseId: number, prerequisites: string[]) => {
-    setCoursesData(coursesData.map(c => c.id === courseId ? { ...c, prerequisites } : c));
   };
 
   const getEventColor = (type: string) => {
@@ -219,11 +181,6 @@ function AdminDashboardContent() {
     alert('Broadcast sent successfully!');
   };
 
-  const handleExport = (format: string) => {
-    console.log('Exporting as:', format);
-    alert(`Exporting report as ${format.toUpperCase()}...`);
-  };
-
   const handleLogout = () => {
     navigate('/login');
   };
@@ -258,8 +215,8 @@ function AdminDashboardContent() {
           <Menu className="w-6 h-6" />
         </button>
         <DashboardHeader
-          userName="System Administrator"
-          userRole="Super Admin"
+          userName="Department Head"
+          userRole="Admin"
           isDark={isDark}
           isRTL={isRTL}
           accentColor="#E11D48"
@@ -290,7 +247,8 @@ function AdminDashboardContent() {
             />
           )}
 
-          {/* User Management - REMOVED (moved to IT Admin) */}
+          {/* Student Management */}
+          {activeTab === 'students' && <StudentManagementPage />}
 
           {/* Course Management */}
           {activeTab === 'courses' && (
@@ -304,18 +262,8 @@ function AdminDashboardContent() {
             />
           )}
 
-          {/* Department Management */}
-          {activeTab === 'departments' && (
-            <DepartmentManagementPage
-              departments={departmentsData}
-              onAddDepartment={handleAddDepartment}
-              onEditDepartment={handleEditDepartment}
-              onDeleteDepartment={handleDeleteDepartment}
-            />
-          )}
-
-          {/* Enrollment Periods */}
-          {activeTab === 'enrollment' && (
+          {/* Periods & Scheduling */}
+          {activeTab === 'periods' && (
             <EnrollmentPeriodPage
               enrollmentPeriods={enrollmentPeriodsData}
               courses={coursesData}
@@ -326,15 +274,6 @@ function AdminDashboardContent() {
             />
           )}
 
-          {/* Prerequisites Management */}
-          {activeTab === 'prerequisites' && (
-            <PrerequisitesManagementPage
-              courses={coursesData}
-              adminDepartment={ADMIN_DEPARTMENT}
-              onUpdatePrerequisites={handleUpdatePrerequisites}
-            />
-          )}
-
           {/* Academic Calendar */}
           {activeTab === 'calendar' && (
             <AcademicCalendarPage
@@ -342,14 +281,6 @@ function AdminDashboardContent() {
               onAddEvent={handleAddEvent}
               onEditEvent={handleEditEvent}
               onDeleteEvent={handleDeleteEvent}
-            />
-          )}
-
-          {/* Analytics & Reports */}
-          {activeTab === 'analytics' && (
-            <AnalyticsReportsPage
-              analytics={ANALYTICS}
-              onExport={handleExport}
             />
           )}
 
@@ -382,21 +313,18 @@ function AdminDashboardContent() {
               accentColor="#E11D48"
               bannerGradient="from-rose-500 to-orange-500"
               profileData={{
-                fullName: 'System Administrator',
-                role: 'Super Admin',
-                department: 'Administration',
-                email: 'admin@university.edu',
+                fullName: 'Dr. Ahmad Khalil',
+                role: 'Department Head',
+                department: ADMIN_DEPARTMENT,
+                email: 'a.khalil@university.edu',
                 phone: '+1 (555) 100-0001',
-                address: 'Admin Building, Suite 100',
-                dateOfBirth: '1980-01-15',
-                bio: 'University System Administrator responsible for managing all academic and administrative operations. Overseeing user management, course administration, and system configuration.',
-                specialization: ['System Administration', 'User Management', 'Academic Operations', 'Data Analytics', 'Policy Management'],
+                address: 'Faculty Building, Office 312',
+                dateOfBirth: '1975-03-20',
+                bio: 'Department Head for Computer Science and Engineering. Responsible for managing department courses, faculty assignments, student enrollment, and academic scheduling.',
+                specialization: ['Academic Administration', 'Course Management', 'Student Affairs', 'Faculty Coordination', 'Enrollment Management'],
               }}
             />
           )}
-
-          {/* Payment Management */}
-          {activeTab === 'payments' && <PaymentManagementPage />}
       </main>
     </div>
   );
