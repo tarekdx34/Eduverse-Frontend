@@ -17,3 +17,4 @@ export { OfficeHoursPage } from './OfficeHoursPage';
 export { AIAssistantPage } from './AIAssistantPage';
 export { NotificationsPage } from './NotificationsPage';
 export { LabResourcesPage } from './LabResourcesPage';
+export { QuizzesPage } from './QuizzesPage';

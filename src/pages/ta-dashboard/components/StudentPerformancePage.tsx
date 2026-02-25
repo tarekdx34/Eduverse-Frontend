@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Users, TrendingUp, TrendingDown, CheckCircle, AlertCircle, Search, AlertTriangle, Sparkles, Filter, Clock } from 'lucide-react';
+import { Users, TrendingUp, TrendingDown, CheckCircle, AlertCircle, Search, AlertTriangle, Sparkles, Filter, Clock, StickyNote, X } from 'lucide-react';
 import {
   LineChart,
   Line,
@@ -39,6 +39,9 @@ export function StudentPerformancePage({ students }: StudentPerformancePageProps
   const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [courseFilter, setCourseFilter] = useState('');
+  const [studentNotes, setStudentNotes] = useState<Record<string, string>>({});
+  const [noteModalStudentId, setNoteModalStudentId] = useState<string | null>(null);
+  const [noteText, setNoteText] = useState('');
 
   const student = selectedStudent ? students.find((s) => s.studentId === selectedStudent) : null;
 
@@ -96,6 +99,19 @@ export function StudentPerformancePage({ students }: StudentPerformancePageProps
     info: isDark ? 'bg-blue-500/10 border-blue-500/30 text-blue-300' : 'bg-blue-50 border-blue-200 text-blue-800',
   };
 
+  const openNoteModal = (studentId: string) => {
+    setNoteModalStudentId(studentId);
+    setNoteText(studentNotes[studentId] || '');
+  };
+
+  const saveNote = () => {
+    if (noteModalStudentId) {
+      setStudentNotes((prev) => ({ ...prev, [noteModalStudentId]: noteText }));
+      setNoteModalStudentId(null);
+      setNoteText('');
+    }
+  };
+
   const chartData = student
     ? student.courses.map((course) => ({
         course: course.courseName,
@@ -114,9 +130,11 @@ export function StudentPerformancePage({ students }: StudentPerformancePageProps
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('studentPerformance')}</h2>
-        <p className={`${isDark ? 'text-slate-400' : 'text-gray-600'} mt-1`}>{t('monitorPerformance')}</p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div>
+          <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('studentPerformance')}</h2>
+          <p className={`${isDark ? 'text-slate-400' : 'text-gray-600'} mt-1`}>{t('monitorPerformance')}</p>
+        </div>
       </div>
 
       {/* Stats Grid */}
@@ -195,8 +213,18 @@ export function StudentPerformancePage({ students }: StudentPerformancePageProps
                   }`}
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <span className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{student.studentName}</span>
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className={`font-medium truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>{student.studentName}</span>
+                      <button
+                        type="button"
+                        title="Add Note"
+                        onClick={(e) => { e.stopPropagation(); openNoteModal(student.studentId); }}
+                        className={`shrink-0 p-1 rounded hover:bg-opacity-20 ${isDark ? 'text-slate-400 hover:text-yellow-400 hover:bg-yellow-500' : 'text-gray-400 hover:text-yellow-600 hover:bg-yellow-100'}`}
+                      >
+                        <StickyNote className="w-4 h-4" />
+                      </button>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
                       {risk.label && (
                         <span className={`text-xs font-medium px-2 py-0.5 rounded ${risk.color}`}>
                           {risk.label}
@@ -207,6 +235,11 @@ export function StudentPerformancePage({ students }: StudentPerformancePageProps
                       </span>
                     </div>
                   </div>
+                  {studentNotes[student.studentId] && (
+                    <p className={`text-xs italic mb-2 truncate ${isDark ? 'text-yellow-400/80' : 'text-yellow-700'}`}>
+                      📝 {studentNotes[student.studentId]}
+                    </p>
+                  )}
                   <div className={`flex items-center gap-4 text-xs ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
                     <span>{t('avg')}: {student.overallAverage}%</span>
                     <span>{t('attendance')}: {student.overallAttendance}%</span>
@@ -306,6 +339,46 @@ export function StudentPerformancePage({ students }: StudentPerformancePageProps
           )}
         </div>
       </div>
+
+      {/* Note Modal */}
+      {noteModalStudentId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className={`w-full max-w-md rounded-lg border p-6 ${isDark ? 'bg-slate-800 border-white/10' : 'bg-white border-gray-200'}`}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                Add Note
+              </h3>
+              <button
+                onClick={() => { setNoteModalStudentId(null); setNoteText(''); }}
+                className={`p-1 rounded ${isDark ? 'text-slate-400 hover:text-white' : 'text-gray-400 hover:text-gray-600'}`}
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <textarea
+              value={noteText}
+              onChange={(e) => setNoteText(e.target.value)}
+              rows={4}
+              placeholder="Write a note about this student..."
+              className={`w-full rounded-lg border p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-slate-500' : 'border-gray-300 bg-white text-gray-900 placeholder-gray-400'}`}
+            />
+            <div className="flex justify-end gap-2 mt-4">
+              <button
+                onClick={() => { setNoteModalStudentId(null); setNoteText(''); }}
+                className={`px-4 py-2 text-sm rounded-lg border ${isDark ? 'border-white/10 text-slate-300 hover:bg-white/5' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={saveNote}
+                className="px-4 py-2 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700"
+              >
+                Save Note
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
