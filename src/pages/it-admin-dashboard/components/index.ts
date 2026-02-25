@@ -10,3 +10,6 @@ export { default as MonitoringPage } from './MonitoringPage';
 export { default as SecurityPage } from './SecurityPage';
 export { default as AIManagementPage } from './AIManagementPage';
 export { default as MultiCampusPage } from './MultiCampusPage';
+export { AlertsManagementPage } from './AlertsManagementPage';
+export { ErrorLogsPage } from './ErrorLogsPage';
+export { CloudServicesPage } from './CloudServicesPage';

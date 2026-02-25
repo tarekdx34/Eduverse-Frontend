@@ -19,6 +19,11 @@ import {
   PieChart,
   Settings,
   User,
+  TrendingUp,
+  StickyNote,
+  ClipboardCheck,
+  FolderOpen,
+  Brain,
 } from 'lucide-react';
 import {
   StatsCard,
@@ -41,6 +46,11 @@ import {
   LabInstructions,
   ProgressAnalytics,
   SettingsPreferences,
+  GradeAnalysis,
+  AINotes,
+  QuizTaking,
+  MyFiles,
+  SmartStudy,
 } from './components';
 import { DashboardHeader, DashboardSidebar } from '../../components/shared';
 import { DashboardProfileTab } from '../../components/shared/DashboardProfileTab';
@@ -58,10 +68,15 @@ const tabTranslationKeys: Record<string, string> = {
   assignments: 'assignments',
   labs: 'labSessions',
   grades: 'grades',
+  'grade-analysis': 'gradeAnalysis',
   attendance: 'attendance',
   analytics: 'analytics',
   todo: 'todoList',
   ai: 'aiFeatures',
+  'ai-notes': 'aiNotes',
+  quizzes: 'quizzes',
+  'my-files': 'myFiles',
+  'smart-study': 'smartStudy',
   gamification: 'achievements',
   notifications: 'notifications',
   payments: 'payments',
@@ -100,10 +115,15 @@ function StudentDashboardContent() {
     { id: 'assignments', label: 'Assignments', icon: CheckSquare },
     { id: 'labs', label: 'Lab Sessions', icon: Beaker },
     { id: 'grades', label: 'Grades', icon: FileText },
+    { id: 'grade-analysis', label: 'Grade Analysis', icon: TrendingUp },
     { id: 'attendance', label: 'Attendance', icon: BarChart3 },
     { id: 'analytics', label: 'Analytics', icon: PieChart },
     { id: 'todo', label: 'Todo List', icon: ListChecks },
     { id: 'ai', label: 'AI Features', icon: Sparkles },
+    { id: 'ai-notes', label: 'AI Notes', icon: StickyNote },
+    { id: 'quizzes', label: 'Quiz Center', icon: ClipboardCheck },
+    { id: 'smart-study', label: 'Smart Study', icon: Brain },
+    { id: 'my-files', label: 'My Files', icon: FolderOpen },
     { id: 'gamification', label: 'Achievements', icon: Trophy },
     { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'payments', label: 'Payments', icon: CreditCard },
@@ -254,7 +274,12 @@ function StudentDashboardContent() {
               {activeTab === 'labs' && <LabInstructions />}
               {activeTab === 'calendar' && <AcademicCalendar />}
               {activeTab === 'ai' && <AIFeatures />}
+              {activeTab === 'ai-notes' && <AINotes />}
+              {activeTab === 'quizzes' && <QuizTaking />}
+              {activeTab === 'smart-study' && <SmartStudy />}
+              {activeTab === 'my-files' && <MyFiles />}
               {activeTab === 'grades' && <GradesTranscript />}
+              {activeTab === 'grade-analysis' && <GradeAnalysis />}
               {activeTab === 'attendance' && <AttendanceOverview />}
               {activeTab === 'analytics' && <ProgressAnalytics />}
               {activeTab === 'todo' && <SmartTodoReminder />}

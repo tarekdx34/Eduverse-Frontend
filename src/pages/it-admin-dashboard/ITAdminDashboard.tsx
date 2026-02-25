@@ -12,6 +12,9 @@ import {
   MessageCircle,
   User,
   Menu,
+  Bell,
+  Cloud,
+  Bug,
 } from 'lucide-react';
 import {
   DashboardOverview,
@@ -22,6 +25,9 @@ import {
   SecurityPage,
   AIManagementPage,
   MultiCampusPage,
+  AlertsManagementPage,
+  CloudServicesPage,
+  ErrorLogsPage,
 } from './components';
 import { DashboardHeader, DashboardSidebar, MessagingChat } from '../../components/shared';
 import { DashboardProfileTab } from '../../components/shared/DashboardProfileTab';
@@ -51,6 +57,9 @@ type TabKey =
   | 'security'
   | 'ai'
   | 'campus'
+  | 'alerts'
+  | 'cloud'
+  | 'error-logs'
   | 'chat'
   | 'profile';
 
@@ -63,6 +72,9 @@ const TABS: { key: TabKey; label: string; labelAr: string; icon: any }[] = [
   { key: 'security', label: 'Security', labelAr: 'الأمان', icon: Shield },
   { key: 'ai', label: 'AI Management', labelAr: 'إدارة الذكاء الاصطناعي', icon: Brain },
   { key: 'campus', label: 'Multi-Campus', labelAr: 'متعدد الحرم', icon: Building2 },
+  { key: 'alerts', label: 'Alerts', labelAr: 'التنبيهات', icon: Bell },
+  { key: 'cloud', label: 'Cloud Services', labelAr: 'الخدمات السحابية', icon: Cloud },
+  { key: 'error-logs', label: 'Error Logs', labelAr: 'سجلات الأخطاء', icon: Bug },
   { key: 'chat', label: 'Chat', labelAr: 'الدردشة', icon: MessageCircle },
   { key: 'profile', label: 'Profile', labelAr: 'الملف الشخصي', icon: User },
 ];
@@ -337,6 +349,15 @@ function ITAdminDashboardContent() {
               onDeleteCampus={handleDeleteCampus}
             />
           )}
+
+          {/* Alerts Management */}
+          {activeTab === 'alerts' && <AlertsManagementPage />}
+
+          {/* Cloud Services */}
+          {activeTab === 'cloud' && <CloudServicesPage />}
+
+          {/* Error Logs */}
+          {activeTab === 'error-logs' && <ErrorLogsPage />}
 
           {/* Chat */}
           {activeTab === 'chat' && (

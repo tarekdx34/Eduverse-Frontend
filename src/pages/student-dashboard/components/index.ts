@@ -23,4 +23,8 @@ export { LabInstructions } from './LabInstructions';
 export { ProgressAnalytics } from './ProgressAnalytics';
 export { GlobalSearch } from './GlobalSearch';
 export { SettingsPreferences } from './SettingsPreferences';
-
+export { AINotes } from './AINotes';
+export { QuizTaking } from './QuizTaking';
+export { MyFiles } from './MyFiles';
+export { GradeAnalysis } from './GradeAnalysis';
+export { SmartStudy } from './SmartStudy';
