@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { MessagingChat } from '../../../components/shared';
 import {
   Megaphone,
   Plus,
@@ -19,6 +20,8 @@ import {
   Eye,
   Send,
   Upload,
+  MessageSquare,
+  Users,
 } from 'lucide-react';
 
 interface Announcement {
@@ -134,6 +137,7 @@ export function AnnouncementsManager() {
   const [deletingAnnouncement, setDeletingAnnouncement] = useState<Announcement | null>(null);
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
   const [form, setForm] = useState(emptyCourseForm);
+  const [activeCommTab, setActiveCommTab] = useState<'announcements' | 'chats' | 'messages'>('announcements');
 
   const counts = {
     all: announcements.length,
@@ -265,10 +269,35 @@ export function AnnouncementsManager() {
   const inputClass = `w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-gray-500' : 'border-gray-300 bg-white text-gray-900'}`;
   const modalBg = isDark ? 'bg-[#1e293b] border border-white/10' : 'bg-white';
 
-  // Empty state
-  if (announcements.length === 0) {
-    return (
-      <div className="max-w-7xl mx-auto space-y-6">
+
+  return (
+    <div className="max-w-7xl mx-auto space-y-6">
+      {/* Communication Hub Tabs */}
+      <div className={`flex items-center gap-1 p-1 rounded-xl overflow-x-auto ${isDark ? 'bg-white/5' : 'bg-gray-100'}`}>
+        {([
+          { key: 'announcements', label: 'Announcements', icon: Megaphone },
+          { key: 'chats', label: 'Course Chats', icon: MessageSquare },
+          { key: 'messages', label: 'Direct Messages', icon: Users },
+        ] as const).map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => setActiveCommTab(tab.key)}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap flex-1 justify-center ${
+              activeCommTab === tab.key
+                ? 'bg-indigo-600 text-white shadow-sm'
+                : isDark
+                  ? 'text-gray-400 hover:text-white hover:bg-white/5'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-white'
+            }`}
+          >
+            <tab.icon size={16} />
+            <span className="hidden sm:inline">{tab.label}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Announcements Tab - Empty State */}
+      {activeCommTab === 'announcements' && announcements.length === 0 && (
         <div className="flex flex-col items-center justify-center py-24">
           <div className={`p-4 rounded-full mb-4 ${isDark ? 'bg-white/5' : 'bg-gray-100'}`}>
             <Megaphone size={48} className={textSecondary} />
@@ -282,12 +311,11 @@ export function AnnouncementsManager() {
             <Plus size={18} /> New Announcement
           </button>
         </div>
-      </div>
-    );
-  }
+      )}
 
-  return (
-    <div className="max-w-7xl mx-auto space-y-6">
+      {/* Announcements Tab - Content */}
+      {activeCommTab === 'announcements' && announcements.length > 0 && (
+      <>
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -537,6 +565,40 @@ export function AnnouncementsManager() {
           ))
         )}
       </div>
+
+      </>
+      )}
+
+      {/* Course Chats Tab */}
+      {activeCommTab === 'chats' && (
+        <div className={cardClass}>
+          <div className="flex items-center gap-2 mb-4">
+            <MessageSquare size={22} className="text-indigo-500" />
+            <h2 className={`text-lg font-semibold ${textPrimary}`}>Course Chats</h2>
+          </div>
+          <MessagingChat
+            height="600px"
+            showVideoCall={true}
+            showVoiceCall={true}
+          />
+        </div>
+      )}
+
+      {/* Direct Messages Tab */}
+      {activeCommTab === 'messages' && (
+        <div className={cardClass}>
+          <div className="flex items-center gap-2 mb-4">
+            <Users size={22} className="text-indigo-500" />
+            <h2 className={`text-lg font-semibold ${textPrimary}`}>Direct Messages</h2>
+          </div>
+          <MessagingChat
+            height="600px"
+            currentUserName="Professor Martinez"
+            showVideoCall={false}
+            showVoiceCall={true}
+          />
+        </div>
+      )}
 
       {/* Create/Edit Modal */}
       {showCreateModal && (

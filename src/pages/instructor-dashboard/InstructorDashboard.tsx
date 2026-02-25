@@ -4,31 +4,23 @@ import {
   LayoutGrid,
   BookOpen,
   Users,
-  UserCheck,
   FileText,
   CheckSquare,
   BarChart3,
   Calendar,
-  MessageCircle,
   User,
-  Brain,
-  Beaker,
   ClipboardList,
   CalendarDays,
-  Settings,
   MessageSquare,
   MessagesSquare,
   Menu,
-  Upload,
   Bell,
   Megaphone,
-  Search,
 } from 'lucide-react';
 import {
   StatsCard,
   GradesTable,
   RosterTable,
-  WaitlistTable,
   AssignmentsList,
   AttendanceTable,
   ReportsAnalytics,
@@ -43,18 +35,12 @@ import {
   ProfilePage,
   ModernDashboard,
   CoursesPage,
-  LabsPage,
   QuizzesPage,
   SchedulePage,
   AnalyticsPage,
-  AIToolsPage,
-  CommunicationPage,
   DiscussionPage,
-  SettingsPage,
-  UploadMaterialsPage,
   NotificationsPage,
   AnnouncementsManager,
-  GlobalSearchPage,
 } from './components';
 import { AIAttendanceContainer } from './components/ai-features/attendance';
 import { MessagingChat, DashboardHeader, DashboardSidebar } from '../../components/shared';
@@ -91,46 +77,31 @@ type TabKey =
   | 'dashboard'
   | 'courses'
   | 'roster'
-  | 'waitlist'
   | 'grades'
   | 'assignments'
-  | 'labs'
   | 'quizzes'
   | 'schedule'
   | 'analytics'
-  | 'ai-tools'
   | 'attendance'
-  | 'communication'
   | 'discussion'
   | 'chat'
-  | 'settings'
   | 'profile'
-  | 'upload-materials'
   | 'notifications'
-  | 'announcements'
-  | 'search';
+  | 'announcements';
 
 const TABS: { key: TabKey; label: string; labelAr: string; icon: any; group: string }[] = [
   { key: 'dashboard', label: 'Dashboard', labelAr: 'لوحة التحكم', icon: LayoutGrid, group: 'Overview' },
   { key: 'courses', label: 'Courses', labelAr: 'المقررات', icon: BookOpen, group: 'Teaching' },
-  { key: 'labs', label: 'Labs', labelAr: 'المعامل', icon: Beaker, group: 'Teaching' },
   { key: 'quizzes', label: 'Quizzes', labelAr: 'الاختبارات', icon: ClipboardList, group: 'Teaching' },
   { key: 'assignments', label: 'Assignments', labelAr: 'الواجبات', icon: CheckSquare, group: 'Teaching' },
-  { key: 'upload-materials', label: 'Materials', labelAr: 'المواد', icon: Upload, group: 'Teaching' },
   { key: 'schedule', label: 'Schedule', labelAr: 'الجدول', icon: CalendarDays, group: 'Teaching' },
   { key: 'roster', label: 'Roster', labelAr: 'قائمة الطلاب', icon: Users, group: 'Students' },
-  { key: 'waitlist', label: 'Waitlist', labelAr: 'قائمة الانتظار', icon: UserCheck, group: 'Students' },
-  { key: 'grades', label: 'Grades', labelAr: 'الدرجات', icon: FileText, group: 'Students' },
   { key: 'attendance', label: 'Attendance', labelAr: 'الحضور', icon: Calendar, group: 'Students' },
   { key: 'analytics', label: 'Analytics', labelAr: 'التحليلات', icon: BarChart3, group: 'Students' },
-  { key: 'communication', label: 'Communication', labelAr: 'التواصل', icon: MessageCircle, group: 'Communication' },
   { key: 'announcements', label: 'Announcements', labelAr: 'الإعلانات', icon: Megaphone, group: 'Communication' },
   { key: 'notifications', label: 'Notifications', labelAr: 'الإشعارات', icon: Bell, group: 'Communication' },
   { key: 'discussion', label: 'Discussion', labelAr: 'المناقشات', icon: MessagesSquare, group: 'Communication' },
   { key: 'chat', label: 'Chat', labelAr: 'الدردشة', icon: MessageSquare, group: 'Communication' },
-  { key: 'search', label: 'Search', labelAr: 'البحث', icon: Search, group: 'Tools' },
-  { key: 'ai-tools', label: 'AI Tools', labelAr: 'أدوات الذكاء', icon: Brain, group: 'Tools' },
-  { key: 'settings', label: 'Settings', labelAr: 'الإعدادات', icon: Settings, group: 'Tools' },
   { key: 'profile', label: 'Profile', labelAr: 'الملف الشخصي', icon: User, group: 'Tools' },
 ];
 
@@ -205,7 +176,7 @@ function InstructorDashboardContent() {
   useEffect(() => {
     if (
       !activeSectionId &&
-      ['roster', 'waitlist', 'grades', 'assignments', 'attendance'].includes(activeTab)
+      ['roster', 'assignments', 'attendance'].includes(activeTab)
     ) {
       setActiveSectionId(String(SECTIONS[0].sectionId));
     }
@@ -215,7 +186,7 @@ function InstructorDashboardContent() {
   const handleTabChange = (key: TabKey) => {
     setActiveTab(key);
     // reset section on non section-related tabs
-    if (!['roster', 'waitlist', 'grades', 'attendance'].includes(key)) {
+    if (!['roster', 'grades', 'attendance'].includes(key)) {
       setActiveSectionId(null);
     }
     navigate(`/instructordashboard/${key}`);
@@ -555,8 +526,7 @@ function InstructorDashboardContent() {
             />
           )}
 
-          {/* Labs */}
-          {activeTab === 'labs' && <LabsPage />}
+          {/* Labs - Removed for instructor */}
 
           {/* Quizzes */}
           {activeTab === 'quizzes' && <QuizzesPage />}
@@ -587,91 +557,16 @@ function InstructorDashboardContent() {
               <SelectedSectionSummary section={selectedSection as any} />
               <RosterTable
                 data={currentRoster}
+                grades={activeSectionId ? gradesData[activeSectionId] || [] : []}
                 onEdit={(student) => {
                   setEditingStudent(student);
                   setIsEditOpen(true);
                 }}
-                onToggleStatus={(id) => {
-                  const updated = currentRoster.map((r) =>
-                    r.id === id
-                      ? {
-                          ...r,
-                          status: r.status === 'enrolled' ? 'auditing' : 'enrolled',
-                        }
-                      : r
-                  );
-                  setRosterOverrides((prev) => ({
-                    ...prev,
-                    [String(activeSectionId)]: updated,
-                  }));
-                }}
               />
             </div>
           )}
 
-          {/* Waitlist */}
-          {activeTab === 'waitlist' && (
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <label className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>Select Section</label>
-                <select
-                  className={`border rounded-md px-3 py-2 ${isDark ? 'bg-white/5 border-white/10 text-slate-200' : 'bg-white border-gray-300 text-gray-900'}`}
-                  value={activeSectionId || String(SECTIONS[0].sectionId)}
-                  onChange={(e) => setActiveSectionId(e.target.value)}
-                >
-                  <option value="" disabled>
-                    Choose a section
-                  </option>
-                  {sectionOptions.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <SelectedSectionSummary section={selectedSection as any} />
-              <WaitlistTable
-                data={currentWaitlist}
-                onApprove={(id) => {
-                  console.log('Approve student:', id);
-                  // Add logic to approve and move to roster
-                }}
-                onReject={(id) => {
-                  console.log('Reject student:', id);
-                  // Add logic to reject waitlist request
-                }}
-              />
-            </div>
-          )}
 
-          {/* Grades */}
-          {activeTab === 'grades' && (
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <label className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>Select Section</label>
-                <select
-                  className={`border rounded-md px-3 py-2 ${isDark ? 'bg-white/5 border-white/10 text-slate-200' : 'bg-white border-gray-300 text-gray-900'}`}
-                  value={activeSectionId || String(SECTIONS[0].sectionId)}
-                  onChange={(e) => setActiveSectionId(e.target.value)}
-                >
-                  <option value="" disabled>
-                    Choose a section
-                  </option>
-                  {sectionOptions.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <SelectedSectionSummary section={selectedSection as any} />
-              <GradesTable
-                data={activeSectionId ? gradesData[activeSectionId] || [] : []}
-                onEdit={handleEditGrade}
-                onDelete={handleDeleteGrade}
-              />
-            </div>
-          )}
 
           {/* Assignments */}
           {activeTab === 'assignments' && (
@@ -706,9 +601,6 @@ function InstructorDashboardContent() {
 
           {/* Analytics */}
           {activeTab === 'analytics' && <AnalyticsPage />}
-
-          {/* AI Tools */}
-          {activeTab === 'ai-tools' && <AIToolsPage />}
 
           {/* Attendance */}
           {activeTab === 'attendance' && (
@@ -762,9 +654,6 @@ function InstructorDashboardContent() {
             </div>
           )}
 
-          {/* Communication */}
-          {activeTab === 'communication' && <CommunicationPage />}
-
           {/* Discussion */}
           {activeTab === 'discussion' && <DiscussionPage />}
 
@@ -778,20 +667,11 @@ function InstructorDashboardContent() {
             />
           )}
 
-          {/* Settings */}
-          {activeTab === 'settings' && <SettingsPage />}
-
-          {/* Upload Materials */}
-          {activeTab === 'upload-materials' && <UploadMaterialsPage />}
-
           {/* Notifications */}
           {activeTab === 'notifications' && <NotificationsPage />}
 
           {/* Announcements */}
           {activeTab === 'announcements' && <AnnouncementsManager />}
-
-          {/* Global Search */}
-          {activeTab === 'search' && <GlobalSearchPage />}
 
           {/* Profile */}
           {activeTab === 'profile' && (

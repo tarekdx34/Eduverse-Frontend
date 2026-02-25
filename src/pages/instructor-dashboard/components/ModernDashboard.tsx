@@ -1,18 +1,12 @@
 import React, { useState } from 'react';
 import {
-  Calendar,
   Users,
   FileText,
-  BookOpen,
   ArrowRight,
   Sparkles,
-  GraduationCap,
-  Bell,
   TrendingUp,
+  MapPin,
   Clock,
-  Upload,
-  CheckSquare,
-  Headphones,
 } from 'lucide-react';
 import {
   BarChart,
@@ -91,9 +85,6 @@ export function ModernDashboard({
     },
   ];
 
-  const totalStudents = sections.reduce((sum, s) => sum + s.enrolled, 0);
-  const activeCourses = sections.length;
-
   const performanceData = [
     { course: 'Calc I', value: 85 },
     { course: 'Physics', value: 78 },
@@ -116,55 +107,6 @@ export function ModernDashboard({
 
   return (
     <div className="space-y-6">
-      {/* ── Metric Cards ── */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Active Courses */}
-        <div className={`rounded-[2.5rem] p-6 relative overflow-hidden transition-all hover:scale-[1.02] ${cardClass}`}>
-          <div className="flex items-start justify-between mb-4">
-            <div className={`p-3 rounded-2xl ${isDark ? 'bg-blue-500/10' : 'bg-blue-50'}`}>
-              <BookOpen className="text-blue-500" size={22} />
-            </div>
-            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-500">
-              {t('newBadge')}
-            </span>
-          </div>
-          <div className={`text-4xl font-extrabold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-            {activeCourses}
-          </div>
-          <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{t('activeCourses')}</div>
-        </div>
-
-        {/* Pending Grading */}
-        <div className={`rounded-[2.5rem] p-6 relative overflow-hidden transition-all hover:scale-[1.02] ${cardClass}`}>
-          <div className="flex items-start justify-between mb-4">
-            <div className={`p-3 rounded-2xl ${isDark ? 'bg-amber-500/10' : 'bg-purple-50'}`}>
-              <FileText className={isDark ? 'text-amber-400' : 'text-purple-600'} size={22} />
-            </div>
-            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-500">
-              {t('highPriority')}
-            </span>
-          </div>
-          <div className={`text-4xl font-extrabold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>42</div>
-          <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{t('pendingGrading')}</div>
-        </div>
-
-        {/* Total Students */}
-        <div className={`rounded-[2.5rem] p-6 relative overflow-hidden transition-all hover:scale-[1.02] ${cardClass}`}>
-          <div className="flex items-start justify-between mb-4">
-            <div className={`p-3 rounded-2xl ${isDark ? 'bg-emerald-500/10' : 'bg-indigo-50'}`}>
-              <Users className={isDark ? 'text-emerald-400' : 'text-indigo-600'} size={22} />
-            </div>
-            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${isDark ? 'bg-white/5 text-gray-400' : 'bg-slate-100 text-slate-500'}`}>
-              {t('total')}
-            </span>
-          </div>
-          <div className={`text-4xl font-extrabold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-            {totalStudents}
-          </div>
-          <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{t('totalStudents')}</div>
-        </div>
-      </div>
-
       {/* ── Evy — AI Teaching Assistant ── */}
       <div className={`rounded-[2.5rem] p-8 relative overflow-hidden ${
         isDark
@@ -384,10 +326,12 @@ export function ModernDashboard({
                   const dateObj = cls.date ? new Date(cls.date) : new Date();
                   const month = dateObj.toLocaleString('en', { month: 'short' }).toUpperCase();
                   const day = dateObj.getDate();
+                  const timeStr = cls.time || cls.startTime || dateObj.toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' });
+                  const location = cls.room || cls.location || 'TBD';
                   const colors = ['bg-violet-500', 'bg-blue-500', 'bg-emerald-500', 'bg-amber-500'];
                   return (
-                    <div key={index} className={`flex items-center gap-3 p-3 rounded-2xl transition-colors ${isDark ? 'hover:bg-white/5' : 'hover:bg-gray-50'}`}>
-                      <div className={`w-12 h-12 rounded-xl flex flex-col items-center justify-center text-white text-xs font-bold ${colors[index % colors.length]}`}>
+                    <div key={index} className={`flex items-start gap-3 p-3 rounded-2xl transition-colors ${isDark ? 'hover:bg-white/5' : 'hover:bg-gray-50'}`}>
+                      <div className={`w-12 h-12 rounded-xl flex flex-col items-center justify-center text-white text-xs font-bold shrink-0 ${colors[index % colors.length]}`}>
                         <span className="text-[10px] leading-none opacity-80">{month}</span>
                         <span className="text-base leading-tight">{day}</span>
                       </div>
@@ -395,9 +339,14 @@ export function ModernDashboard({
                         <h4 className={`font-medium text-sm truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>
                           {cls.title || cls.name}
                         </h4>
-                        <p className={`text-xs mt-0.5 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
-                          {cls.time || cls.startTime}
-                        </p>
+                        <div className={`flex items-center gap-1 text-xs mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                          <Clock size={12} />
+                          <span>{timeStr}</span>
+                        </div>
+                        <div className={`flex items-center gap-1 text-xs mt-0.5 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                          <MapPin size={12} />
+                          <span className="truncate">{location}</span>
+                        </div>
                       </div>
                     </div>
                   );
@@ -405,32 +354,6 @@ export function ModernDashboard({
               ) : (
                 <p className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{t('noUpcomingClasses')}</p>
               )}
-            </div>
-          </div>
-
-          {/* Quick Actions */}
-          <div className={`rounded-[2.5rem] p-6 ${isDark ? 'bg-card-dark border border-white/5' : 'bg-indigo-900'}`}>
-            <h3 className="text-base font-bold mb-4 text-white">{t('quickActions')}</h3>
-            <div className="grid grid-cols-2 gap-3">
-              {[
-                { label: t('officeHours'), icon: Clock, action: () => onNavigate('calendar') },
-                { label: t('materials'), icon: Upload, action: () => onNavigate('courses') },
-                { label: t('addTask'), icon: CheckSquare, action: () => onNavigate('grades') },
-                { label: t('helpDesk'), icon: Headphones, action: () => onNavigate('messages') },
-              ].map((item, i) => (
-                <button
-                  key={i}
-                  onClick={item.action}
-                  className={`flex flex-col items-center gap-2 p-4 rounded-2xl text-xs font-medium transition-all ${
-                    isDark
-                      ? 'bg-white/5 text-gray-300 hover:bg-white/10'
-                      : 'bg-white/10 text-indigo-100 hover:bg-white/20'
-                  }`}
-                >
-                  <item.icon size={20} />
-                  {item.label}
-                </button>
-              ))}
             </div>
           </div>
 
