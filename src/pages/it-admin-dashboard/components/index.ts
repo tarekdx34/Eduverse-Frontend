@@ -13,3 +13,5 @@ export { default as MultiCampusPage } from './MultiCampusPage';
 export { AlertsManagementPage } from './AlertsManagementPage';
 export { ErrorLogsPage } from './ErrorLogsPage';
 export { CloudServicesPage } from './CloudServicesPage';
+export { FeedbackSupportPage } from './FeedbackSupportPage';
+export { UserManagementPage } from './UserManagementPage';

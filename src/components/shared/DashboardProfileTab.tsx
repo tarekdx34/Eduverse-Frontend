@@ -250,9 +250,9 @@ export function DashboardProfileTab({
       </div>
 
       {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+      <div className={`grid grid-cols-1 ${((data.badges && data.badges.length > 0) || (data.achievements && data.achievements.length > 0)) ? 'lg:grid-cols-12' : ''} gap-10`}>
         {/* Left Column */}
-        <div className="lg:col-span-5 space-y-10">
+        <div className={`${((data.badges && data.badges.length > 0) || (data.achievements && data.achievements.length > 0)) ? 'lg:col-span-5' : ''} space-y-10`}>
           {/* Personal Information */}
           <div className={`${cardClass} p-8 rounded-[2.5rem]`}>
             <h3 className={`text-2xl font-bold mb-6 flex items-center gap-3 ${valueClass}`}>
@@ -419,7 +419,8 @@ export function DashboardProfileTab({
           )}
         </div>
 
-        {/* Right Column - Badges & Achievements */}
+        {/* Right Column - Badges & Achievements (only shown if data is passed) */}
+        {((data.badges && data.badges.length > 0) || (data.achievements && data.achievements.length > 0)) && (
         <div className="lg:col-span-7">
           <div className={`${cardClass} p-8 rounded-[2.5rem] h-full`}>
             <div className="flex justify-between items-center mb-10">
@@ -513,6 +514,7 @@ export function DashboardProfileTab({
             </div>
           </div>
         </div>
+        )}
       </div>
     </div>
   );

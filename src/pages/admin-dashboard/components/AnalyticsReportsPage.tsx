@@ -245,7 +245,7 @@ export function AnalyticsReportsPage({ analytics, onExport }: AnalyticsReportsPa
                       <td className={`py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{course.avgAttendance}%</td>
                       <td className={`py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{course.activeStudents}</td>
                       <td className="py-3 px-4">
-                        <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">+5%</span>
+                        <span className={`px-2 py-1 ${isDark ? 'bg-green-900/50 text-green-300' : 'bg-green-100 text-green-700'} text-xs rounded-full`}>+5%</span>
                       </td>
                     </tr>
                   ))}
@@ -284,8 +284,8 @@ export function AnalyticsReportsPage({ analytics, onExport }: AnalyticsReportsPa
             ].map((stat, index) => (
               <div key={index} className={`p-4 rounded-xl border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
                 <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-lg ${isDark ? `bg-${stat.color}-900/50` : `bg-${stat.color}-100`}`}>
-                    <stat.icon className={`text-${stat.color}-600`} size={20} />
+                  <div className="p-2 rounded-lg" style={{ backgroundColor: isDark ? { blue: 'rgba(59,130,246,0.2)', green: 'rgba(16,185,129,0.2)', purple: 'rgba(139,92,246,0.2)', orange: 'rgba(249,115,22,0.2)' }[stat.color] : { blue: '#dbeafe', green: '#dcfce7', purple: '#ede9fe', orange: '#ffedd5' }[stat.color] }}>
+                    <stat.icon style={{ color: { blue: '#2563eb', green: '#16a34a', purple: '#7c3aed', orange: '#ea580c' }[stat.color] }} size={20} />
                   </div>
                   <div>
                     <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{stat.label}</div>
@@ -306,7 +306,7 @@ export function AnalyticsReportsPage({ analytics, onExport }: AnalyticsReportsPa
               <div key={index} className={`p-4 rounded-xl border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
                 <div className="flex items-center justify-between mb-2">
                   <span className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{item.feature}</span>
-                  <span className="text-xs text-green-600 font-medium">{item.trend}</span>
+                  <span className={`text-xs font-medium ${isDark ? 'text-green-400' : 'text-green-600'}`}>{item.trend}</span>
                 </div>
                 <div className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{item.usage.toLocaleString()}</div>
                 <div className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>requests this month</div>
