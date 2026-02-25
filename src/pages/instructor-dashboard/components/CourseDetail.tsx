@@ -550,6 +550,109 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
           </div>
         )}
 
+        {/* Grading Tab */}
+        {activeTab === 'grading' && (
+          <div className="space-y-6">
+            {/* Sub-tabs */}
+            <div className={`flex gap-2 border-b ${isDark ? 'border-white/10' : 'border-gray-200'} pb-2`}>
+              <button
+                onClick={() => setGradingSubTab('manual')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  gradingSubTab === 'manual'
+                    ? 'bg-indigo-600 text-white'
+                    : isDark ? 'text-slate-400 hover:bg-white/10' : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                Manual Grading
+              </button>
+              <button
+                onClick={() => setGradingSubTab('auto')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  gradingSubTab === 'auto'
+                    ? 'bg-indigo-600 text-white'
+                    : isDark ? 'text-slate-400 hover:bg-white/10' : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                Auto-Graded Results
+              </button>
+            </div>
+
+            {gradingSubTab === 'manual' && (
+              <div className="space-y-4">
+                <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                  Written and uploaded assignments that require manual review and grading.
+                </p>
+                {sampleSubmissions.map((sub) => (
+                  <div key={sub.id} className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-4 sm:p-6 border shadow-sm`}>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+                      <div>
+                        <h4 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{sub.studentName}</h4>
+                        <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>{sub.studentId} • {sub.assignmentTitle}</p>
+                      </div>
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        sub.status === 'graded' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+                      }`}>
+                        {sub.status === 'graded' ? `Graded: ${sub.grade}` : 'Pending Review'}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        onClick={() => alert(`Viewing submission from ${sub.studentName}`)}
+                        className="px-3 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                      >
+                        View & Grade
+                      </button>
+                      {sub.fileUrl && (
+                        <button
+                          onClick={() => alert(`Downloading ${sub.fileName}`)}
+                          className={`flex items-center gap-1 px-3 py-2 text-sm rounded-lg transition-colors ${isDark ? 'text-slate-300 hover:bg-white/10' : 'text-gray-700 hover:bg-gray-100'}`}
+                        >
+                          <Download size={14} /> {sub.fileName}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {gradingSubTab === 'auto' && (
+              <div className="space-y-4">
+                <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                  MCQ assignments are auto-graded. Results are displayed below (view only).
+                </p>
+                <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl border shadow-sm overflow-x-auto`}>
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className={isDark ? 'border-b border-white/10' : 'border-b border-gray-200'}>
+                        <th className={`text-left p-4 font-medium ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>Student</th>
+                        <th className={`text-left p-4 font-medium ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>Quiz</th>
+                        <th className={`text-left p-4 font-medium ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>Score</th>
+                        <th className={`text-left p-4 font-medium ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>Grade</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[
+                        { student: 'Ahmed Hassan', quiz: 'Midterm MCQ', score: '92/100', grade: 'A' },
+                        { student: 'Sara Mohamed', quiz: 'Midterm MCQ', score: '85/100', grade: 'B+' },
+                        { student: 'Omar Ali', quiz: 'Midterm MCQ', score: '78/100', grade: 'B' },
+                        { student: 'Layla Ibrahim', quiz: 'Midterm MCQ', score: '95/100', grade: 'A+' },
+                      ].map((row, i) => (
+                        <tr key={i} className={isDark ? 'border-b border-white/5' : 'border-b border-gray-100'}>
+                          <td className={`p-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>{row.student}</td>
+                          <td className={`p-4 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>{row.quiz}</td>
+                          <td className={`p-4 font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{row.score}</td>
+                          <td className="p-4"><span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">{row.grade}</span></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Students Tab */}
         {activeTab === 'students' && (
           <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}>
@@ -574,29 +677,6 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                   <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>Grade: A-</div>
                 </div>
               ))}
-            </div>
-          </div>
-        )}
-
-        {/* Analytics Tab */}
-        {activeTab === 'analytics' && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}>
-                <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'} mb-2`}>Average Grade</div>
-                <div className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{course.averageGrade}%</div>
-                <div className="text-sm text-green-600 mt-2">↑ 3% from last month</div>
-              </div>
-              <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}>
-                <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'} mb-2`}>Attendance Rate</div>
-                <div className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{course.attendanceRate}%</div>
-                <div className="text-sm text-green-600 mt-2">↑ 2% from last month</div>
-              </div>
-              <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}>
-                <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'} mb-2`}>Completion Rate</div>
-                <div className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>89%</div>
-                <div className="text-sm text-green-600 mt-2">↑ 5% from last month</div>
-              </div>
             </div>
           </div>
         )}

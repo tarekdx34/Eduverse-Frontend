@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, Plus, Paperclip, Smile, Phone, Video, Search, X, Image, File, Mic, MicOff } from 'lucide-react';
+import { Send, Plus, Paperclip, Smile, Phone, Video, Search, X, Image, File, Mic, MicOff, ArrowLeft } from 'lucide-react';
 
 export interface Message {
   id: string;
@@ -39,6 +39,7 @@ interface MessagingChatProps {
   showVoiceCall?: boolean;
   className?: string;
   height?: string;
+  isDark?: boolean;
 }
 
 const DEFAULT_CONVERSATIONS: Conversation[] = [
@@ -119,6 +120,7 @@ export function MessagingChat({
   showVoiceCall = true,
   className = '',
   height = '600px',
+  isDark = false,
 }: MessagingChatProps) {
   const [selectedConversation, setSelectedConversation] = useState<string>(conversations[0]?.id || '');
   const [messageInput, setMessageInput] = useState('');
@@ -126,6 +128,7 @@ export function MessagingChat({
   const [searchTerm, setSearchTerm] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showChatOnMobile, setShowChatOnMobile] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -199,6 +202,7 @@ export function MessagingChat({
 
   const handleConversationSelect = (id: string) => {
     setSelectedConversation(id);
+    setShowChatOnMobile(true);
     if (onSelectConversation) {
       onSelectConversation(id);
     }
@@ -215,21 +219,21 @@ export function MessagingChat({
 
   return (
     <div
-      className={`bg-white rounded-lg border border-gray-200 flex ${className}`}
+      className={`${isDark ? 'bg-gray-800 border-white/10' : 'bg-white border-gray-200'} rounded-lg border flex ${className}`}
       style={{ height }}
     >
       {/* Conversations List */}
-      <div className="w-80 bg-gray-50 border-r border-gray-200 flex flex-col">
+      <div className={`${showChatOnMobile ? 'hidden lg:flex' : 'flex'} w-full lg:w-80 ${isDark ? 'bg-gray-900 border-white/10' : 'bg-gray-50 border-gray-200'} border-r flex-col`}>
         {/* Header */}
-        <div className="border-b border-gray-200 p-4">
+        <div className={`${isDark ? 'border-white/10' : 'border-gray-200'} border-b p-4`}>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Messages</h3>
+            <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Messages</h3>
             <button
               onClick={onStartNewConversation}
-              className="p-2 hover:bg-white rounded-lg transition-colors"
+              className={`p-2 ${isDark ? 'hover:bg-white/10' : 'hover:bg-white'} rounded-lg transition-colors`}
               title="New conversation"
             >
-              <Plus size={20} className="text-gray-600" />
+              <Plus size={20} className={isDark ? 'text-slate-400' : 'text-gray-600'} />
             </button>
           </div>
           <div className="relative">
@@ -238,15 +242,15 @@ export function MessagingChat({
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search conversations..."
-              className="w-full px-3 py-2 pl-10 border border-gray-200 rounded-lg text-sm text-gray-600 focus:outline-none focus:border-indigo-600"
+              className={`w-full px-3 py-2 pl-10 border rounded-lg text-sm focus:outline-none focus:border-indigo-600 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500' : 'border-gray-200 text-gray-600'}`}
             />
-            <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
+            <Search className={`absolute left-3 top-2.5 w-4 h-4 ${isDark ? 'text-slate-500' : 'text-gray-400'}`} />
             {searchTerm && (
               <button
                 onClick={() => setSearchTerm('')}
                 className="absolute right-3 top-2.5"
               >
-                <X className="w-4 h-4 text-gray-400" />
+                <X className={`w-4 h-4 ${isDark ? 'text-slate-500' : 'text-gray-400'}`} />
               </button>
             )}
           </div>
@@ -260,8 +264,8 @@ export function MessagingChat({
               onClick={() => handleConversationSelect(conversation.id)}
               className={`w-full p-4 border-l-4 transition-colors text-left ${
                 selectedConversation === conversation.id
-                  ? 'bg-indigo-50 border-l-indigo-600'
-                  : 'border-l-transparent hover:bg-gray-100'
+                  ? `${isDark ? 'bg-indigo-900/30' : 'bg-indigo-50'} border-l-indigo-600`
+                  : `border-l-transparent ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`
               }`}
             >
               <div className="flex items-start gap-3">
@@ -279,10 +283,10 @@ export function MessagingChat({
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">
-                    <p className="font-medium text-gray-900 truncate">{conversation.name}</p>
-                    <span className="text-xs text-gray-500 flex-shrink-0">{conversation.timestamp}</span>
+                    <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'} truncate`}>{conversation.name}</p>
+                    <span className={`text-xs ${isDark ? 'text-slate-400' : 'text-gray-500'} flex-shrink-0`}>{conversation.timestamp}</span>
                   </div>
-                  <p className="text-sm text-gray-600 truncate">{conversation.lastMessage}</p>
+                  <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'} truncate`}>{conversation.lastMessage}</p>
                 </div>
 
                 {conversation.unreadCount > 0 && (
@@ -298,10 +302,16 @@ export function MessagingChat({
 
       {/* Chat Area */}
       {currentConversation ? (
-        <div className="flex-1 flex flex-col">
+        <div className={`${showChatOnMobile ? 'flex' : 'hidden lg:flex'} flex-1 flex-col`}>
           {/* Header */}
-          <div className="border-b border-gray-200 p-4 flex items-center justify-between">
+          <div className={`${isDark ? 'border-white/10' : 'border-gray-200'} border-b p-4 flex items-center justify-between`}>
             <div className="flex items-center gap-3">
+              <button
+                onClick={() => setShowChatOnMobile(false)}
+                className={`p-2 rounded-lg transition-colors lg:hidden ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`}
+              >
+                <ArrowLeft size={20} className={isDark ? 'text-slate-400' : 'text-gray-600'} />
+              </button>
               <div
                 className="w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold"
                 style={{ backgroundColor: currentConversation.color }}
@@ -309,9 +319,9 @@ export function MessagingChat({
                 {currentConversation.initials}
               </div>
               <div>
-                <p className="font-semibold text-gray-900">{currentConversation.name}</p>
+                <p className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{currentConversation.name}</p>
                 {currentConversation.role && (
-                  <p className="text-xs text-gray-600">{currentConversation.role}</p>
+                  <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>{currentConversation.role}</p>
                 )}
                 {currentConversation.isOnline && !currentConversation.role && (
                   <p className="text-xs text-green-600">Online</p>
@@ -321,20 +331,20 @@ export function MessagingChat({
 
             <div className="flex gap-2">
               {showVoiceCall && (
-                <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                  <Phone size={20} className="text-gray-600" />
+                <button className={`p-2 ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'} rounded-lg transition-colors`}>
+                  <Phone size={20} className={isDark ? 'text-slate-400' : 'text-gray-600'} />
                 </button>
               )}
               {showVideoCall && (
-                <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                  <Video size={20} className="text-gray-600" />
+                <button className={`p-2 ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'} rounded-lg transition-colors`}>
+                  <Video size={20} className={isDark ? 'text-slate-400' : 'text-gray-600'} />
                 </button>
               )}
             </div>
           </div>
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50">
+          <div className={`flex-1 overflow-y-auto p-6 space-y-4 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
             {messages.map((message) => (
               <div
                 key={message.id}
@@ -358,11 +368,11 @@ export function MessagingChat({
                     />
                   )}
                   {message.file && (
-                    <div className="px-4 py-3 rounded-2xl bg-white border border-gray-200 flex items-center gap-3">
-                      <File size={24} className="text-gray-500" />
+                    <div className={`px-4 py-3 rounded-2xl ${isDark ? 'bg-white/10 border-white/10' : 'bg-white border-gray-200'} border flex items-center gap-3`}>
+                      <File size={24} className={isDark ? 'text-slate-400' : 'text-gray-500'} />
                       <div>
-                        <p className="text-sm font-medium text-gray-900">{message.file.name}</p>
-                        <p className="text-xs text-gray-500">{message.file.size}</p>
+                        <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{message.file.name}</p>
+                        <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>{message.file.size}</p>
                       </div>
                     </div>
                   )}
@@ -371,16 +381,16 @@ export function MessagingChat({
                       className={`px-4 py-3 rounded-2xl max-w-xs ${
                         message.isCurrentUser
                           ? 'bg-indigo-600 text-white rounded-br-sm'
-                          : 'bg-white text-gray-900 border border-gray-200 rounded-tl-sm'
+                          : `${isDark ? 'bg-white/10 text-white border-white/10' : 'bg-white text-gray-900 border-gray-200'} border rounded-tl-sm`
                       }`}
                     >
                       <p className="text-sm">{message.text}</p>
                     </div>
                   )}
                   <div className="flex items-center gap-1">
-                    <p className="text-xs text-gray-500">{message.timestamp}</p>
+                    <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>{message.timestamp}</p>
                     {message.isCurrentUser && message.status && (
-                      <span className="text-xs text-gray-400">
+                      <span className={`text-xs ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>
                         {message.status === 'read' ? '✓✓' : message.status === 'delivered' ? '✓✓' : '✓'}
                       </span>
                     )}
@@ -392,10 +402,10 @@ export function MessagingChat({
           </div>
 
           {/* Message Input */}
-          <div className="border-t border-gray-200 p-4">
+          <div className={`${isDark ? 'border-white/10' : 'border-gray-200'} border-t p-4`}>
             {/* Emoji Picker */}
             {showEmojiPicker && (
-              <div className="mb-2 p-2 bg-gray-100 rounded-lg flex gap-2">
+              <div className={`mb-2 p-2 ${isDark ? 'bg-white/10' : 'bg-gray-100'} rounded-lg flex gap-2`}>
                 {emojis.map((emoji) => (
                   <button
                     key={emoji}
@@ -420,20 +430,20 @@ export function MessagingChat({
               />
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className={`p-2 ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'} rounded-lg transition-colors`}
                 title="Attach file"
               >
-                <Paperclip size={20} className="text-gray-600" />
+                <Paperclip size={20} className={isDark ? 'text-slate-400' : 'text-gray-600'} />
               </button>
               <button
                 onClick={() => setIsRecording(!isRecording)}
-                className={`p-2 rounded-lg transition-colors ${isRecording ? 'bg-red-100' : 'hover:bg-gray-100'}`}
+                className={`p-2 rounded-lg transition-colors ${isRecording ? 'bg-red-100' : `${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`}`}
                 title="Voice message"
               >
                 {isRecording ? (
                   <MicOff size={20} className="text-red-600" />
                 ) : (
-                  <Mic size={20} className="text-gray-600" />
+                  <Mic size={20} className={isDark ? 'text-slate-400' : 'text-gray-600'} />
                 )}
               </button>
               <input
@@ -442,35 +452,35 @@ export function MessagingChat({
                 onChange={(e) => setMessageInput(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Type a message..."
-                className="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-indigo-600"
+                className={`flex-1 px-4 py-2 border rounded-lg text-sm focus:outline-none focus:border-indigo-600 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500' : 'border-gray-200'}`}
               />
               <button
                 onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className={`p-2 ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'} rounded-lg transition-colors`}
                 title="Add emoji"
               >
-                <Smile size={20} className="text-gray-600" />
+                <Smile size={20} className={isDark ? 'text-slate-400' : 'text-gray-600'} />
               </button>
               <button
                 onClick={handleSendMessage}
                 disabled={!messageInput.trim()}
-                className="p-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-300 text-white rounded-lg transition-colors"
+                className={`p-2 bg-indigo-600 hover:bg-indigo-700 ${isDark ? 'disabled:bg-gray-600' : 'disabled:bg-gray-300'} text-white rounded-lg transition-colors`}
               >
                 <Send size={20} />
               </button>
             </div>
-            <p className="text-xs text-gray-500 text-center mt-2">
+            <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-gray-500'} text-center mt-2`}>
               Press Enter to send, Shift + Enter for new line
             </p>
           </div>
         </div>
       ) : (
-        <div className="flex-1 flex items-center justify-center bg-gray-50">
+        <div className={`${showChatOnMobile ? 'flex' : 'hidden lg:flex'} flex-1 items-center justify-center ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
           <div className="text-center">
-            <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Send size={24} className="text-gray-400" />
+            <div className={`w-16 h-16 ${isDark ? 'bg-white/10' : 'bg-gray-200'} rounded-full flex items-center justify-center mx-auto mb-4`}>
+              <Send size={24} className={isDark ? 'text-slate-500' : 'text-gray-400'} />
             </div>
-            <p className="text-gray-600">Select a conversation to start messaging</p>
+            <p className={isDark ? 'text-slate-400' : 'text-gray-600'}>Select a conversation to start messaging</p>
           </div>
         </div>
       )}

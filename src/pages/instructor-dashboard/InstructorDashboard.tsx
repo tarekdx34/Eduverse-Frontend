@@ -664,6 +664,7 @@ function InstructorDashboardContent() {
               currentUserName="Dr. Jane Smith"
               showVideoCall={true}
               showVoiceCall={true}
+              isDark={isDark}
             />
           )}
 

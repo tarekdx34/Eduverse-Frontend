@@ -580,6 +580,7 @@ export function AnnouncementsManager() {
             height="600px"
             showVideoCall={true}
             showVoiceCall={true}
+            isDark={isDark}
           />
         </div>
       )}
@@ -596,6 +597,7 @@ export function AnnouncementsManager() {
             currentUserName="Professor Martinez"
             showVideoCall={false}
             showVoiceCall={true}
+            isDark={isDark}
           />
         </div>
       )}
