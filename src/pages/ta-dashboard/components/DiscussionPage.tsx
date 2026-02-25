@@ -15,6 +15,7 @@ import {
   ChevronUp,
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useTheme } from '../contexts/ThemeContext';
 
 type Reply = {
   id: string;
@@ -159,6 +160,7 @@ interface DiscussionPageProps {
 
 export function DiscussionPage({ userRole = 'ta', userName = 'Ahmed Hassan' }: DiscussionPageProps) {
   const { t } = useLanguage();
+  const { isDark } = useTheme();
   const [discussions, setDiscussions] = useState(MOCK_DISCUSSIONS);
   const [selectedDiscussion, setSelectedDiscussion] = useState<string | null>(null);
   const [filterCourse, setFilterCourse] = useState<string>('all');
@@ -260,19 +262,19 @@ export function DiscussionPage({ userRole = 'ta', userName = 'Ahmed Hassan' }: D
     switch (status) {
       case 'open':
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+          <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${isDark ? 'bg-orange-900/30 text-orange-400' : 'bg-orange-100 text-orange-800'}`}>
             <Clock size={12} /> {t('open')}
           </span>
         );
       case 'answered':
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+          <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${isDark ? 'bg-green-900/30 text-green-400' : 'bg-green-100 text-green-800'}`}>
             <CheckCircle size={12} /> {t('answered')}
           </span>
         );
       case 'closed':
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+          <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${isDark ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-800'}`}>
             {t('closed')}
           </span>
         );
@@ -284,11 +286,11 @@ export function DiscussionPage({ userRole = 'ta', userName = 'Ahmed Hassan' }: D
   const getRoleBadge = (role: string) => {
     switch (role) {
       case 'ta':
-        return <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-medium">{t('ta')}</span>;
+        return <span className={`px-2 py-0.5 rounded text-xs font-medium ${isDark ? 'bg-blue-900/30 text-blue-400' : 'bg-blue-100 text-blue-700'}`}>{t('ta')}</span>;
       case 'instructor':
-        return <span className="px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-xs font-medium">{t('instructorRole')}</span>;
+        return <span className={`px-2 py-0.5 rounded text-xs font-medium ${isDark ? 'bg-purple-900/30 text-purple-400' : 'bg-purple-100 text-purple-700'}`}>{t('instructorRole')}</span>;
       default:
-        return <span className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs font-medium">{t('studentRole')}</span>;
+        return <span className={`px-2 py-0.5 rounded text-xs font-medium ${isDark ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'}`}>{t('studentRole')}</span>;
     }
   };
 
@@ -296,23 +298,23 @@ export function DiscussionPage({ userRole = 'ta', userName = 'Ahmed Hassan' }: D
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">{t('discussionForum')}</h2>
-          <p className="text-gray-600 mt-1">{t('respondToQuestions')}</p>
+          <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('discussionForum')}</h2>
+          <p className={`mt-1 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>{t('respondToQuestions')}</p>
         </div>
         <div className="flex items-center gap-3">
-          <div className="bg-orange-50 border border-orange-200 rounded-lg px-4 py-2">
-            <span className="text-sm font-semibold text-orange-900">{openCount}</span>
-            <span className="text-sm text-orange-700 ml-1">{t('open')}</span>
+          <div className={`border rounded-lg px-4 py-2 ${isDark ? 'bg-orange-900/20 border-orange-700/30' : 'bg-orange-50 border-orange-200'}`}>
+            <span className={`text-sm font-semibold ${isDark ? 'text-orange-400' : 'text-orange-900'}`}>{openCount}</span>
+            <span className={`text-sm ml-1 ${isDark ? 'text-orange-500' : 'text-orange-700'}`}>{t('open')}</span>
           </div>
-          <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-2">
-            <span className="text-sm font-semibold text-green-900">{answeredCount}</span>
-            <span className="text-sm text-green-700 ml-1">{t('answered')}</span>
+          <div className={`border rounded-lg px-4 py-2 ${isDark ? 'bg-green-900/20 border-green-700/30' : 'bg-green-50 border-green-200'}`}>
+            <span className={`text-sm font-semibold ${isDark ? 'text-green-400' : 'text-green-900'}`}>{answeredCount}</span>
+            <span className={`text-sm ml-1 ${isDark ? 'text-green-500' : 'text-green-700'}`}>{t('answered')}</span>
           </div>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="bg-white border border-gray-200 rounded-lg p-4">
+      <div className={`border rounded-lg p-4 ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}>
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -321,14 +323,14 @@ export function DiscussionPage({ userRole = 'ta', userName = 'Ahmed Hassan' }: D
               placeholder={t('searchDiscussionsPlaceholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${isDark ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'}`}
             />
           </div>
           <div className="flex gap-2">
             <select
               value={filterCourse}
               onChange={(e) => setFilterCourse(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={`px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
             >
               <option value="all">{t('allCourses')}</option>
               {courses.map((c) => (
@@ -338,7 +340,7 @@ export function DiscussionPage({ userRole = 'ta', userName = 'Ahmed Hassan' }: D
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={`px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
             >
               <option value="all">{t('allStatus')}</option>
               <option value="open">{t('open')}</option>
@@ -357,24 +359,24 @@ export function DiscussionPage({ userRole = 'ta', userName = 'Ahmed Hassan' }: D
           return (
             <div
               key={discussion.id}
-              className={`bg-white border rounded-lg overflow-hidden ${
-                discussion.pinned ? 'border-blue-200' : 'border-gray-200'
+              className={`border rounded-lg overflow-hidden ${isDark ? 'bg-white/5' : 'bg-white'} ${
+                discussion.pinned ? 'border-blue-200' : isDark ? 'border-white/10' : 'border-gray-200'
               }`}
             >
               {/* Discussion Header */}
               <div
-                className="p-6 cursor-pointer hover:bg-gray-50 transition-colors"
+                className={`p-6 cursor-pointer transition-colors ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-50'}`}
                 onClick={() => toggleExpand(discussion.id)}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2 flex-wrap">
                       {discussion.pinned && <Pin size={14} className="text-blue-600" />}
-                      <h3 className="text-lg font-semibold text-gray-900">{discussion.title}</h3>
+                      <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{discussion.title}</h3>
                       {getStatusBadge(discussion.status)}
                     </div>
-                    <p className="text-sm text-gray-600 line-clamp-2">{discussion.content}</p>
-                    <div className="flex items-center gap-4 mt-3 text-xs text-gray-500">
+                    <p className={`text-sm line-clamp-2 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>{discussion.content}</p>
+                    <div className={`flex items-center gap-4 mt-3 text-xs ${isDark ? 'text-slate-500' : 'text-gray-500'}`}>
                       <div className="flex items-center gap-1">
                         <User size={12} />
                         <span>{discussion.studentName}</span>
@@ -400,17 +402,17 @@ export function DiscussionPage({ userRole = 'ta', userName = 'Ahmed Hassan' }: D
 
               {/* Expanded Content */}
               {isExpanded && (
-                <div className="border-t border-gray-200">
+                <div className={`border-t ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
                   {/* Full Question */}
-                  <div className="p-6 bg-gray-50">
-                    <p className="text-sm text-gray-800 leading-relaxed">{discussion.content}</p>
+                  <div className={`p-6 ${isDark ? 'bg-white/5' : 'bg-gray-50'}`}>
+                    <p className={`text-sm leading-relaxed ${isDark ? 'text-slate-300' : 'text-gray-800'}`}>{discussion.content}</p>
                     <div className="flex items-center gap-2 mt-4">
                       <button
                         onClick={() => handleTogglePin(discussion.id)}
                         className={`text-xs px-3 py-1 rounded-lg transition-colors ${
                           discussion.pinned
-                            ? 'bg-blue-100 text-blue-700'
-                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            ? isDark ? 'bg-blue-900/30 text-blue-400' : 'bg-blue-100 text-blue-700'
+                            : isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                         }`}
                       >
                         {discussion.pinned ? t('unpin') : t('pin')}
@@ -418,7 +420,7 @@ export function DiscussionPage({ userRole = 'ta', userName = 'Ahmed Hassan' }: D
                       {discussion.status !== 'closed' && (
                         <button
                           onClick={() => handleCloseThread(discussion.id)}
-                          className="text-xs px-3 py-1 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+                          className={`text-xs px-3 py-1 rounded-lg transition-colors ${isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
                         >
                           {t('closeThread')}
                         </button>
@@ -428,16 +430,16 @@ export function DiscussionPage({ userRole = 'ta', userName = 'Ahmed Hassan' }: D
 
                   {/* Replies */}
                   {discussion.replies.length > 0 && (
-                    <div className="divide-y divide-gray-100">
+                    <div className={`divide-y ${isDark ? 'divide-white/10' : 'divide-gray-100'}`}>
                       {discussion.replies.map((reply) => (
                         <div
                           key={reply.id}
-                          className={`p-6 ${reply.isAnswer ? 'bg-green-50 border-l-4 border-green-500' : ''}`}
+                          className={`p-6 ${reply.isAnswer ? (isDark ? 'bg-green-900/20 border-l-4 border-green-500' : 'bg-green-50 border-l-4 border-green-500') : ''}`}
                         >
                           <div className="flex items-start gap-3">
                             <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                              reply.authorRole === 'ta' ? 'bg-blue-100' :
-                              reply.authorRole === 'instructor' ? 'bg-purple-100' : 'bg-gray-100'
+                              reply.authorRole === 'ta' ? (isDark ? 'bg-blue-900/30' : 'bg-blue-100') :
+                              reply.authorRole === 'instructor' ? (isDark ? 'bg-purple-900/30' : 'bg-purple-100') : (isDark ? 'bg-gray-700' : 'bg-gray-100')
                             }`}>
                               <User size={14} className={
                                 reply.authorRole === 'ta' ? 'text-blue-600' :
@@ -446,16 +448,16 @@ export function DiscussionPage({ userRole = 'ta', userName = 'Ahmed Hassan' }: D
                             </div>
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-1">
-                                <span className="font-medium text-gray-900 text-sm">{reply.author}</span>
+                                <span className={`font-medium text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>{reply.author}</span>
                                 {getRoleBadge(reply.authorRole)}
                                 {reply.isAnswer && (
-                                  <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs font-medium flex items-center gap-1">
+                                  <span className={`px-2 py-0.5 rounded text-xs font-medium flex items-center gap-1 ${isDark ? 'bg-green-900/30 text-green-400' : 'bg-green-100 text-green-700'}`}>
                                     <CheckCircle size={10} /> {t('acceptedAnswer')}
                                   </span>
                                 )}
                               </div>
-                              <p className="text-sm text-gray-700 leading-relaxed">{reply.content}</p>
-                              <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+                              <p className={`text-sm leading-relaxed ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>{reply.content}</p>
+                              <div className={`flex items-center gap-4 mt-2 text-xs ${isDark ? 'text-slate-500' : 'text-gray-500'}`}>
                                 <span>{new Date(reply.timestamp).toLocaleString()}</span>
                                 <div className="flex items-center gap-1">
                                   <ThumbsUp size={12} />
@@ -479,9 +481,9 @@ export function DiscussionPage({ userRole = 'ta', userName = 'Ahmed Hassan' }: D
 
                   {/* Reply Box */}
                   {discussion.status !== 'closed' && (
-                    <div className="p-6 bg-gray-50 border-t border-gray-200">
+                    <div className={`p-6 border-t ${isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
                       <div className="flex gap-3">
-                        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${isDark ? 'bg-blue-900/30' : 'bg-blue-100'}`}>
                           <User size={14} className="text-blue-600" />
                         </div>
                         <div className="flex-1">
@@ -491,7 +493,7 @@ export function DiscussionPage({ userRole = 'ta', userName = 'Ahmed Hassan' }: D
                             onChange={(e) => { setSelectedDiscussion(discussion.id); setReplyText(e.target.value); }}
                             placeholder={t('writeReplyPlaceholder')}
                             rows={3}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none text-sm"
+                            className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none text-sm ${isDark ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'}`}
                           />
                           <div className="flex justify-end mt-2">
                             <button
@@ -515,9 +517,9 @@ export function DiscussionPage({ userRole = 'ta', userName = 'Ahmed Hassan' }: D
       </div>
 
       {filteredDiscussions.length === 0 && (
-        <div className="text-center py-12 bg-white border border-gray-200 rounded-lg">
+        <div className={`text-center py-12 border rounded-lg ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}>
           <MessageSquare className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-600">{t('noDiscussionsFound')}</p>
+          <p className={isDark ? 'text-slate-400' : 'text-gray-600'}>{t('noDiscussionsFound')}</p>
         </div>
       )}
     </div>
