@@ -100,18 +100,60 @@ const TABS: { key: TabKey; label: string; labelAr: string; icon: any; group: str
   { key: 'courses', label: 'Courses', labelAr: 'المقررات', icon: BookOpen, group: 'Teaching' },
   // Awab Changes: Kept 'labs' and 'waitlist' from v2
   { key: 'labs', label: 'Labs', labelAr: 'المعامل', icon: Beaker, group: 'Teaching' },
-  { key: 'quizzes', label: 'Quizzes', labelAr: 'الاختبارات', icon: ClipboardList, group: 'Teaching' },
-  { key: 'assignments', label: 'Assignments', labelAr: 'الواجبات', icon: CheckSquare, group: 'Teaching' },
+  {
+    key: 'quizzes',
+    label: 'Quizzes',
+    labelAr: 'الاختبارات',
+    icon: ClipboardList,
+    group: 'Teaching',
+  },
+  {
+    key: 'assignments',
+    label: 'Assignments',
+    labelAr: 'الواجبات',
+    icon: CheckSquare,
+    group: 'Teaching',
+  },
   { key: 'schedule', label: 'Schedule', labelAr: 'الجدول', icon: CalendarDays, group: 'Teaching' },
   { key: 'roster', label: 'Roster', labelAr: 'قائمة الطلاب', icon: Users, group: 'Students' },
-  { key: 'waitlist', label: 'Waitlist', labelAr: 'قائمة الانتظار', icon: UserCheck, group: 'Students' },
+  {
+    key: 'waitlist',
+    label: 'Waitlist',
+    labelAr: 'قائمة الانتظار',
+    icon: UserCheck,
+    group: 'Students',
+  },
   { key: 'grades', label: 'Grades', labelAr: 'الدرجات', icon: FileText, group: 'Students' },
   { key: 'attendance', label: 'Attendance', labelAr: 'الحضور', icon: Calendar, group: 'Students' },
-  { key: 'analytics', label: 'Analytics', labelAr: 'التحليلات', icon: BarChart3, group: 'Students' },
+  {
+    key: 'analytics',
+    label: 'Analytics',
+    labelAr: 'التحليلات',
+    icon: BarChart3,
+    group: 'Students',
+  },
   // Tarek Changes: Added announcements and notifications
-  { key: 'announcements', label: 'Announcements', labelAr: 'الإعلانات', icon: Megaphone, group: 'Communication' },
-  { key: 'notifications', label: 'Notifications', labelAr: 'الإشعارات', icon: Bell, group: 'Communication' },
-  { key: 'discussion', label: 'Discussion', labelAr: 'المناقشات', icon: MessagesSquare, group: 'Communication' },
+  {
+    key: 'announcements',
+    label: 'Announcements',
+    labelAr: 'الإعلانات',
+    icon: Megaphone,
+    group: 'Communication',
+  },
+  {
+    key: 'notifications',
+    label: 'Notifications',
+    labelAr: 'الإشعارات',
+    icon: Bell,
+    group: 'Communication',
+  },
+  {
+    key: 'discussion',
+    label: 'Discussion',
+    labelAr: 'المناقشات',
+    icon: MessagesSquare,
+    group: 'Communication',
+  },
   { key: 'chat', label: 'Chat', labelAr: 'الدردشة', icon: MessageSquare, group: 'Communication' },
   { key: 'profile', label: 'Profile', labelAr: 'الملف الشخصي', icon: User, group: 'Tools' },
 ];
@@ -185,10 +227,7 @@ function InstructorDashboardContent() {
 
   // Set default section on mount and when entering section-dependent tabs
   useEffect(() => {
-    if (
-      !activeSectionId &&
-      ['roster', 'assignments', 'attendance'].includes(activeTab)
-    ) {
+    if (!activeSectionId && ['roster', 'assignments', 'attendance'].includes(activeTab)) {
       setActiveSectionId(String(SECTIONS[0].sectionId));
     }
   }, [activeTab, activeSectionId]);
@@ -596,136 +635,155 @@ function InstructorDashboardContent() {
           </div>
         )}
 
-
-          {/* Assignments */}
-          {activeTab === 'assignments' && (
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <label className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>Select Section</label>
-                <select
-                  className={`border rounded-md px-3 py-2 ${isDark ? 'bg-white/5 border-white/10 text-slate-200' : 'bg-white border-gray-300 text-gray-900'}`}
-                  value={activeSectionId || String(SECTIONS[0].sectionId)}
-                  onChange={(e) => setActiveSectionId(e.target.value)}
-                >
-                  <option value="" disabled>
-                    Choose a section
+        {/* Assignments */}
+        {activeTab === 'assignments' && (
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <label className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                Select Section
+              </label>
+              <select
+                className={`border rounded-md px-3 py-2 ${isDark ? 'bg-white/5 border-white/10 text-slate-200' : 'bg-white border-gray-300 text-gray-900'}`}
+                value={activeSectionId || String(SECTIONS[0].sectionId)}
+                onChange={(e) => setActiveSectionId(e.target.value)}
+              >
+                <option value="" disabled>
+                  Choose a section
+                </option>
+                {sectionOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
                   </option>
-                  {sectionOptions.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <SelectedSectionSummary section={selectedSection as any} />
-              <AssignmentsList
-                data={activeSectionId ? assignmentsData[activeSectionId] || [] : []}
-                onEdit={handleEditAssignment}
-                onDelete={handleDeleteAssignment}
-                onCreate={handleCreateAssignment}
-                onStatusChange={handleAssignmentStatusChange}
-              />
+                ))}
+              </select>
             </div>
-          )}
-
-          {/* Analytics */}
-          {activeTab === 'analytics' && <AnalyticsPage />}
-
-          {/* Attendance */}
-          {activeTab === 'attendance' && (
-            <div className="space-y-6">
-              <div className="flex items-center gap-3">
-                <label className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>Select Section</label>
-                <select
-                  className={`border rounded-md px-3 py-2 ${isDark ? 'bg-white/5 border-white/10 text-slate-200' : 'bg-white border-gray-300 text-gray-900'}`}
-                  value={activeSectionId || String(SECTIONS[0].sectionId)}
-                  onChange={(e) => setActiveSectionId(e.target.value)}
-                >
-                  <option value="" disabled>
-                    Choose a section
-                  </option>
-                  {sectionOptions.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <SelectedSectionSummary section={selectedSection as any} />
-
-              {/* Content Area */}
-              {attendanceMode === 'ai' ? (
-                <div className={`rounded-xl border shadow-sm p-6 ${isDark ? 'bg-card-dark border-white/10' : 'bg-white border-gray-200'}`}>
-                  <div className="flex items-center justify-between mb-6">
-                    <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>AI Attendance</h3>
-                    <button
-                      onClick={() => setAttendanceMode('manual')}
-                      className={`text-sm ${isDark ? 'text-slate-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}
-                    >
-                      ← Back to Manual Attendance
-                    </button>
-                  </div>
-                  <AIAttendanceContainer
-                    courseSection={selectedSection?.courseCode || 'Unknown Section'}
-                  />
-                </div>
-              ) : (
-                <div className={`rounded-xl border shadow-sm p-6 ${isDark ? 'bg-card-dark border-white/10' : 'bg-white border-gray-200'}`}>
-                  <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Manual Attendance</h3>
-                  <AttendanceTable
-                    sessions={activeSectionId ? attendanceData[activeSectionId] || [] : []}
-                    onCreate={handleCreateAttendance}
-                    onEdit={handleEditAttendance}
-                    onDelete={handleDeleteAttendance}
-                  />
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Discussion */}
-          {activeTab === 'discussion' && <DiscussionPage />}
-
-          {/* Chat */}
-          {activeTab === 'chat' && (
-            <MessagingChat
-              height="calc(100vh - 160px)"
-              currentUserName="Dr. Jane Smith"
-              showVideoCall={true}
-              showVoiceCall={true}
-              isDark={isDark}
-            />
-          )}
-
-          {/* Notifications */}
-          {activeTab === 'notifications' && <NotificationsPage />}
-
-          {/* Announcements */}
-          {activeTab === 'announcements' && <AnnouncementsManager />}
-
-          {/* Profile */}
-          {activeTab === 'profile' && (
-            <DashboardProfileTab
-              isDark={isDark}
-              accentColor="#4F46E5"
-              bannerGradient="from-indigo-500 to-purple-500"
-              profileData={{
-                fullName: 'Prof. Sarah Martinez',
-                role: 'Instructor',
-                department: 'Computer Science',
-                email: 'sarah.martinez@university.edu',
-                phone: '+1 (555) 234-5678',
-                address: 'Building A, Room 302',
-                dateOfBirth: '1985-03-22',
-                bio: 'Associate Professor of Computer Science with 12+ years of experience in teaching and research. Specializing in artificial intelligence, machine learning, and software engineering.',
-                office: 'Room A-302',
-                officeHours: 'Mon & Wed 2:00 PM - 4:00 PM',
-                specialization: ['Artificial Intelligence', 'Machine Learning', 'Software Engineering', 'Data Mining', 'Neural Networks'],
-                skills: ['Python', 'TensorFlow', 'PyTorch', 'R', 'MATLAB', 'Java'],
->>>>>>> origin/finalize
-              }}
+            <SelectedSectionSummary section={selectedSection as any} />
+            <AssignmentsList
+              data={activeSectionId ? assignmentsData[activeSectionId] || [] : []}
+              onEdit={handleEditAssignment}
+              onDelete={handleDeleteAssignment}
+              onCreate={handleCreateAssignment}
+              onStatusChange={handleAssignmentStatusChange}
             />
           </div>
+        )}
+
+        {/* Analytics */}
+        {activeTab === 'analytics' && <AnalyticsPage />}
+
+        {/* Attendance */}
+        {activeTab === 'attendance' && (
+          <div className="space-y-6">
+            <div className="flex items-center gap-3">
+              <label className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                Select Section
+              </label>
+              <select
+                className={`border rounded-md px-3 py-2 ${isDark ? 'bg-white/5 border-white/10 text-slate-200' : 'bg-white border-gray-300 text-gray-900'}`}
+                value={activeSectionId || String(SECTIONS[0].sectionId)}
+                onChange={(e) => setActiveSectionId(e.target.value)}
+              >
+                <option value="" disabled>
+                  Choose a section
+                </option>
+                {sectionOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <SelectedSectionSummary section={selectedSection as any} />
+
+            {/* Content Area */}
+            {attendanceMode === 'ai' ? (
+              <div
+                className={`rounded-xl border shadow-sm p-6 ${isDark ? 'bg-card-dark border-white/10' : 'bg-white border-gray-200'}`}
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <h3
+                    className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}
+                  >
+                    AI Attendance
+                  </h3>
+                  <button
+                    onClick={() => setAttendanceMode('manual')}
+                    className={`text-sm ${isDark ? 'text-slate-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}
+                  >
+                    ← Back to Manual Attendance
+                  </button>
+                </div>
+                <AIAttendanceContainer
+                  courseSection={selectedSection?.courseCode || 'Unknown Section'}
+                />
+              </div>
+            ) : (
+              <div
+                className={`rounded-xl border shadow-sm p-6 ${isDark ? 'bg-card-dark border-white/10' : 'bg-white border-gray-200'}`}
+              >
+                <h3
+                  className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}
+                >
+                  Manual Attendance
+                </h3>
+                <AttendanceTable
+                  sessions={activeSectionId ? attendanceData[activeSectionId] || [] : []}
+                  onCreate={handleCreateAttendance}
+                  onEdit={handleEditAttendance}
+                  onDelete={handleDeleteAttendance}
+                />
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Discussion */}
+        {activeTab === 'discussion' && <DiscussionPage />}
+
+        {/* Chat */}
+        {activeTab === 'chat' && (
+          <MessagingChat
+            height="calc(100vh - 160px)"
+            currentUserName="Dr. Jane Smith"
+            showVideoCall={true}
+            showVoiceCall={true}
+            isDark={isDark}
+          />
+        )}
+
+        {/* Notifications */}
+        {activeTab === 'notifications' && <NotificationsPage />}
+
+        {/* Announcements */}
+        {activeTab === 'announcements' && <AnnouncementsManager />}
+
+        {/* Profile */}
+        {activeTab === 'profile' && (
+          <DashboardProfileTab
+            isDark={isDark}
+            accentColor="#4F46E5"
+            bannerGradient="from-indigo-500 to-purple-500"
+            profileData={{
+              fullName: 'Prof. Sarah Martinez',
+              role: 'Instructor',
+              department: 'Computer Science',
+              email: 'sarah.martinez@university.edu',
+              phone: '+1 (555) 234-5678',
+              address: 'Building A, Room 302',
+              dateOfBirth: '1985-03-22',
+              bio: 'Associate Professor of Computer Science with 12+ years of experience in teaching and research. Specializing in artificial intelligence, machine learning, and software engineering.',
+              office: 'Room A-302',
+              officeHours: 'Mon & Wed 2:00 PM - 4:00 PM',
+              specialization: [
+                'Artificial Intelligence',
+                'Machine Learning',
+                'Software Engineering',
+                'Data Mining',
+                'Neural Networks',
+              ],
+              skills: ['Python', 'TensorFlow', 'PyTorch', 'R', 'MATLAB', 'Java'],
+            }}
+          />
         )}
 
         {/* Waitlist */}
