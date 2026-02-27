@@ -123,7 +123,7 @@ const emptyCourseForm = {
 };
 
 export function AnnouncementsManager() {
-  const { isDark } = useTheme();
+  const { isDark, primaryHex = '#3b82f6' } = useTheme() as any;
   const { t } = useLanguage();
 
   const [announcements, setAnnouncements] = useState<Announcement[]>(mockAnnouncements);
@@ -137,7 +137,9 @@ export function AnnouncementsManager() {
   const [deletingAnnouncement, setDeletingAnnouncement] = useState<Announcement | null>(null);
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
   const [form, setForm] = useState(emptyCourseForm);
-  const [activeCommTab, setActiveCommTab] = useState<'announcements' | 'chats' | 'messages'>('announcements');
+  const [activeCommTab, setActiveCommTab] = useState<'announcements' | 'chats' | 'messages'>(
+    'announcements'
+  );
 
   const counts = {
     all: announcements.length,
@@ -221,7 +223,8 @@ export function AnnouncementsManager() {
       reads: editingAnnouncement?.reads ?? 0,
       status: action === 'publish' ? 'published' : action === 'schedule' ? 'scheduled' : 'draft',
       daysAgo: action === 'publish' ? 0 : undefined,
-      scheduledFor: action === 'schedule' ? `${form.scheduledDate} ${form.scheduledTime}` : undefined,
+      scheduledFor:
+        action === 'schedule' ? `${form.scheduledDate} ${form.scheduledTime}` : undefined,
     };
 
     if (editingAnnouncement) {
@@ -269,22 +272,25 @@ export function AnnouncementsManager() {
   const inputClass = `w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-gray-500' : 'border-gray-300 bg-white text-gray-900'}`;
   const modalBg = isDark ? 'bg-[#1e293b] border border-white/10' : 'bg-white';
 
-
   return (
     <div className="max-w-7xl mx-auto space-y-6">
       {/* Communication Hub Tabs */}
-      <div className={`flex items-center gap-1 p-1 rounded-xl overflow-x-auto ${isDark ? 'bg-white/5' : 'bg-gray-100'}`}>
-        {([
-          { key: 'announcements', label: 'Announcements', icon: Megaphone },
-          { key: 'chats', label: 'Course Chats', icon: MessageSquare },
-          { key: 'messages', label: 'Direct Messages', icon: Users },
-        ] as const).map((tab) => (
+      <div
+        className={`flex items-center gap-1 p-1 rounded-xl overflow-x-auto ${isDark ? 'bg-white/5' : 'bg-gray-100'}`}
+      >
+        {(
+          [
+            { key: 'announcements', label: 'Announcements', icon: Megaphone },
+            { key: 'chats', label: 'Course Chats', icon: MessageSquare },
+            { key: 'messages', label: 'Direct Messages', icon: Users },
+          ] as const
+        ).map((tab) => (
           <button
             key={tab.key}
             onClick={() => setActiveCommTab(tab.key)}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap flex-1 justify-center ${
               activeCommTab === tab.key
-                ? 'bg-indigo-600 text-white shadow-sm'
+                ? 'text-white shadow-sm'
                 : isDark
                   ? 'text-gray-400 hover:text-white hover:bg-white/5'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-white'
@@ -306,7 +312,8 @@ export function AnnouncementsManager() {
           <p className={`mb-6 ${textSecondary}`}>Create your first announcement</p>
           <button
             onClick={openCreate}
-            className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+            className="flex items-center gap-2 px-5 py-2.5 text-white rounded-lg transition-colors"
+            style={{ backgroundColor: primaryHex }}
           >
             <Plus size={18} /> New Announcement
           </button>
@@ -315,258 +322,268 @@ export function AnnouncementsManager() {
 
       {/* Announcements Tab - Content */}
       {activeCommTab === 'announcements' && announcements.length > 0 && (
-      <>
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className={`text-2xl font-bold flex items-center gap-2 ${textPrimary}`}>
-            <Megaphone size={28} className="text-indigo-600" />
-            {t('announcements') !== 'announcements' ? t('announcements') : 'Announcements'}
-          </h1>
-          <p className={`mt-1 ${textSecondary}`}>Create and manage course announcements</p>
-        </div>
-        <button
-          onClick={openCreate}
-          className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
-        >
-          <Plus size={18} /> New Announcement
-        </button>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          { label: 'Total Announcements', value: counts.all, icon: Megaphone, color: 'indigo' },
-          { label: 'Published', value: counts.published, icon: CheckCircle, color: 'green' },
-          { label: 'Scheduled', value: counts.scheduled, icon: Clock, color: 'amber' },
-          { label: 'Drafts', value: counts.draft, icon: FileEdit, color: 'gray' },
-        ].map((stat) => (
-          <div key={stat.label} className={cardClass}>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className={`text-sm ${textSecondary}`}>{stat.label}</p>
-                <p className={`text-2xl font-bold mt-1 ${textPrimary}`}>{stat.value}</p>
-              </div>
-              <div
-                className={`p-2.5 rounded-lg ${
-                  stat.color === 'indigo'
-                    ? isDark
-                      ? 'bg-indigo-500/20'
-                      : 'bg-indigo-50'
-                    : stat.color === 'green'
-                      ? isDark
-                        ? 'bg-green-500/20'
-                        : 'bg-green-50'
-                      : stat.color === 'amber'
-                        ? isDark
-                          ? 'bg-amber-500/20'
-                          : 'bg-amber-50'
-                        : isDark
-                          ? 'bg-white/10'
-                          : 'bg-gray-100'
-                }`}
-              >
-                <stat.icon
-                  size={22}
-                  className={
-                    stat.color === 'indigo'
-                      ? 'text-indigo-500'
-                      : stat.color === 'green'
-                        ? 'text-green-500'
-                        : stat.color === 'amber'
-                          ? 'text-amber-500'
-                          : textSecondary
-                  }
-                />
-              </div>
+        <>
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h1 className={`text-2xl font-bold flex items-center gap-2 ${textPrimary}`}>
+                <Megaphone size={28} className="text-indigo-600" />
+                {t('announcements') !== 'announcements' ? t('announcements') : 'Announcements'}
+              </h1>
+              <p className={`mt-1 ${textSecondary}`}>Create and manage course announcements</p>
             </div>
+            <button
+              onClick={openCreate}
+              className="flex items-center gap-2 px-5 py-2.5 text-white rounded-lg transition-colors font-medium"
+              style={{ backgroundColor: primaryHex }}
+            >
+              <Plus size={18} /> New Announcement
+            </button>
           </div>
-        ))}
-      </div>
 
-      {/* Filter Chips */}
-      <div className="flex flex-wrap items-center gap-2">
-        {(
-          [
-            { key: 'all', label: 'All' },
-            { key: 'published', label: 'Published' },
-            { key: 'scheduled', label: 'Scheduled' },
-            { key: 'draft', label: 'Drafts' },
-          ] as const
-        ).map((f) => (
-          <button
-            key={f.key}
-            onClick={() => setFilter(f.key)}
-            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
-              filter === f.key
-                ? 'bg-indigo-600 text-white'
-                : isDark
-                  ? 'bg-white/5 text-gray-300 hover:bg-white/10'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
-          >
-            {f.label} ({counts[f.key]})
-          </button>
-        ))}
-      </div>
-
-      {/* Search */}
-      <div className="relative">
-        <Search size={18} className={`absolute left-3 top-1/2 -translate-y-1/2 ${textSecondary}`} />
-        <input
-          type="text"
-          placeholder="Search announcements..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className={`${inputClass} pl-10`}
-        />
-      </div>
-
-      {/* Announcements List */}
-      <div className="space-y-4">
-        {filtered.length === 0 ? (
-          <div className={`${cardClass} text-center py-12`}>
-            <Megaphone size={40} className={`mx-auto mb-3 ${textSecondary}`} />
-            <p className={textPrimary}>No announcements found</p>
-            <p className={`text-sm ${textSecondary}`}>Try adjusting your search or filters</p>
-          </div>
-        ) : (
-          filtered.map((a) => (
-            <div key={a.id} className={`${cardClass} relative`}>
-              <div className="flex flex-col sm:flex-row sm:items-start gap-4">
-                <div className="flex-1 min-w-0">
-                  {/* Status & Priority */}
-                  <div className="flex items-center gap-2 mb-2">
-                    {statusBadge(a.status)}
-                    {a.attachments.length > 0 && (
-                      <span className={`inline-flex items-center gap-1 text-xs ${textSecondary}`}>
-                        <Paperclip size={12} /> {a.attachments.length}
-                      </span>
-                    )}
-                    <span
-                      className={`ml-auto text-xs ${textSecondary}`}
-                    >
-                      {a.daysAgo !== undefined ? `${a.daysAgo} days ago` : ''}
-                    </span>
+          {/* Stats Cards */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              { label: 'Total Announcements', value: counts.all, icon: Megaphone, color: 'indigo' },
+              { label: 'Published', value: counts.published, icon: CheckCircle, color: 'green' },
+              { label: 'Scheduled', value: counts.scheduled, icon: Clock, color: 'amber' },
+              { label: 'Drafts', value: counts.draft, icon: FileEdit, color: 'gray' },
+            ].map((stat) => (
+              <div key={stat.label} className={cardClass}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className={`text-sm ${textSecondary}`}>{stat.label}</p>
+                    <p className={`text-2xl font-bold mt-1 ${textPrimary}`}>{stat.value}</p>
                   </div>
-
-                  {/* Title */}
-                  <h3 className={`text-lg font-semibold flex items-center gap-2 ${textPrimary}`}>
-                    {a.priority === 'high' && (
-                      <span className="w-2 h-2 rounded-full bg-red-500 flex-shrink-0" />
-                    )}
-                    {a.title}
-                  </h3>
-
-                  {/* Content Preview */}
-                  <p className={`mt-1 text-sm line-clamp-2 ${textSecondary}`}>{a.content}</p>
-
-                  {/* Meta Row */}
-                  <div className="flex flex-wrap items-center gap-3 mt-3 text-sm">
-                    <span
-                      className={`px-2 py-0.5 rounded text-xs font-medium ${
-                        isDark ? 'bg-indigo-500/20 text-indigo-400' : 'bg-indigo-50 text-indigo-700'
-                      }`}
-                    >
-                      {a.course}
-                    </span>
-                    <span className={textSecondary}>
-                      {a.audience} · {a.totalRecipients} total
-                    </span>
-
-                    {a.status === 'published' && (
-                      <div className="flex items-center gap-2">
-                        <div
-                          className={`w-24 h-1.5 rounded-full overflow-hidden ${
-                            isDark ? 'bg-white/10' : 'bg-gray-200'
-                          }`}
-                        >
-                          <div
-                            className="h-full bg-green-500 rounded-full"
-                            style={{
-                              width: `${Math.round((a.reads / a.totalRecipients) * 100)}%`,
-                            }}
-                          />
-                        </div>
-                        <span className={`text-xs ${textSecondary}`}>
-                          {a.reads}/{a.totalRecipients} read (
-                          {Math.round((a.reads / a.totalRecipients) * 100)}%)
-                        </span>
-                      </div>
-                    )}
-
-                    {a.status === 'scheduled' && a.scheduledFor && (
-                      <span className="text-xs text-amber-500 font-medium">
-                        Scheduled: {a.scheduledFor}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Actions */}
-                <div className="relative flex-shrink-0">
-                  <button
-                    onClick={() => setOpenMenuId(openMenuId === a.id ? null : a.id)}
-                    className={`p-1.5 rounded-lg transition-colors ${
-                      isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'
+                  <div
+                    className={`p-2.5 rounded-lg ${
+                      stat.color === 'indigo'
+                        ? isDark
+                          ? 'bg-indigo-500/20'
+                          : 'bg-indigo-50'
+                        : stat.color === 'green'
+                          ? isDark
+                            ? 'bg-green-500/20'
+                            : 'bg-green-50'
+                          : stat.color === 'amber'
+                            ? isDark
+                              ? 'bg-amber-500/20'
+                              : 'bg-amber-50'
+                            : isDark
+                              ? 'bg-white/10'
+                              : 'bg-gray-100'
                     }`}
                   >
-                    <MoreVertical size={18} className={textSecondary} />
-                  </button>
-                  {openMenuId === a.id && (
-                    <div
-                      className={`absolute right-0 top-10 z-20 w-44 rounded-lg border shadow-lg py-1 ${
-                        isDark ? 'bg-[#1e293b] border-white/10' : 'bg-white border-gray-200'
-                      }`}
-                    >
-                      <button
-                        onClick={() => openEdit(a)}
-                        className={`w-full flex items-center gap-2 px-4 py-2 text-sm ${
-                          isDark ? 'hover:bg-white/5 text-gray-300' : 'hover:bg-gray-50 text-gray-700'
-                        }`}
-                      >
-                        <Edit3 size={14} /> Edit
-                      </button>
-                      {a.status === 'draft' && (
-                        <button
-                          onClick={() => handlePublish(a)}
-                          className={`w-full flex items-center gap-2 px-4 py-2 text-sm ${
-                            isDark
-                              ? 'hover:bg-white/5 text-gray-300'
-                              : 'hover:bg-gray-50 text-gray-700'
-                          }`}
-                        >
-                          <Send size={14} /> Publish
-                        </button>
-                      )}
-                      {a.status === 'published' && (
-                        <button
-                          onClick={() => openAnalytics(a)}
-                          className={`w-full flex items-center gap-2 px-4 py-2 text-sm ${
-                            isDark
-                              ? 'hover:bg-white/5 text-gray-300'
-                              : 'hover:bg-gray-50 text-gray-700'
-                          }`}
-                        >
-                          <Eye size={14} /> View Analytics
-                        </button>
-                      )}
-                      <button
-                        onClick={() => confirmDelete(a)}
-                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10"
-                      >
-                        <Trash2 size={14} /> Delete
-                      </button>
-                    </div>
-                  )}
+                    <stat.icon
+                      size={22}
+                      className={
+                        stat.color === 'indigo'
+                          ? 'text-indigo-500'
+                          : stat.color === 'green'
+                            ? 'text-green-500'
+                            : stat.color === 'amber'
+                              ? 'text-amber-500'
+                              : textSecondary
+                      }
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
-          ))
-        )}
-      </div>
+            ))}
+          </div>
 
-      </>
+          {/* Filter Chips */}
+          <div className="flex flex-wrap items-center gap-2">
+            {(
+              [
+                { key: 'all', label: 'All' },
+                { key: 'published', label: 'Published' },
+                { key: 'scheduled', label: 'Scheduled' },
+                { key: 'draft', label: 'Drafts' },
+              ] as const
+            ).map((f) => (
+              <button
+                key={f.key}
+                onClick={() => setFilter(f.key)}
+                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                  filter === f.key
+                    ? 'text-white'
+                    : isDark
+                      ? 'bg-white/5 text-gray-300 hover:bg-white/10'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+                style={filter === f.key ? { backgroundColor: primaryHex } : undefined}
+              >
+                {f.label} ({counts[f.key]})
+              </button>
+            ))}
+          </div>
+
+          {/* Search */}
+          <div className="relative">
+            <Search
+              size={18}
+              className={`absolute left-3 top-1/2 -translate-y-1/2 ${textSecondary}`}
+            />
+            <input
+              type="text"
+              placeholder="Search announcements..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className={`${inputClass} pl-10`}
+            />
+          </div>
+
+          {/* Announcements List */}
+          <div className="space-y-4">
+            {filtered.length === 0 ? (
+              <div className={`${cardClass} text-center py-12`}>
+                <Megaphone size={40} className={`mx-auto mb-3 ${textSecondary}`} />
+                <p className={textPrimary}>No announcements found</p>
+                <p className={`text-sm ${textSecondary}`}>Try adjusting your search or filters</p>
+              </div>
+            ) : (
+              filtered.map((a) => (
+                <div key={a.id} className={`${cardClass} relative`}>
+                  <div className="flex flex-col sm:flex-row sm:items-start gap-4">
+                    <div className="flex-1 min-w-0">
+                      {/* Status & Priority */}
+                      <div className="flex items-center gap-2 mb-2">
+                        {statusBadge(a.status)}
+                        {a.attachments.length > 0 && (
+                          <span
+                            className={`inline-flex items-center gap-1 text-xs ${textSecondary}`}
+                          >
+                            <Paperclip size={12} /> {a.attachments.length}
+                          </span>
+                        )}
+                        <span className={`ml-auto text-xs ${textSecondary}`}>
+                          {a.daysAgo !== undefined ? `${a.daysAgo} days ago` : ''}
+                        </span>
+                      </div>
+
+                      {/* Title */}
+                      <h3
+                        className={`text-lg font-semibold flex items-center gap-2 ${textPrimary}`}
+                      >
+                        {a.priority === 'high' && (
+                          <span className="w-2 h-2 rounded-full bg-red-500 flex-shrink-0" />
+                        )}
+                        {a.title}
+                      </h3>
+
+                      {/* Content Preview */}
+                      <p className={`mt-1 text-sm line-clamp-2 ${textSecondary}`}>{a.content}</p>
+
+                      {/* Meta Row */}
+                      <div className="flex flex-wrap items-center gap-3 mt-3 text-sm">
+                        <span
+                          className={`px-2 py-0.5 rounded text-xs font-medium ${
+                            isDark
+                              ? 'bg-indigo-500/20 text-indigo-400'
+                              : 'bg-indigo-50 text-indigo-700'
+                          }`}
+                        >
+                          {a.course}
+                        </span>
+                        <span className={textSecondary}>
+                          {a.audience} · {a.totalRecipients} total
+                        </span>
+
+                        {a.status === 'published' && (
+                          <div className="flex items-center gap-2">
+                            <div
+                              className={`w-24 h-1.5 rounded-full overflow-hidden ${
+                                isDark ? 'bg-white/10' : 'bg-gray-200'
+                              }`}
+                            >
+                              <div
+                                className="h-full bg-green-500 rounded-full"
+                                style={{
+                                  width: `${Math.round((a.reads / a.totalRecipients) * 100)}%`,
+                                }}
+                              />
+                            </div>
+                            <span className={`text-xs ${textSecondary}`}>
+                              {a.reads}/{a.totalRecipients} read (
+                              {Math.round((a.reads / a.totalRecipients) * 100)}%)
+                            </span>
+                          </div>
+                        )}
+
+                        {a.status === 'scheduled' && a.scheduledFor && (
+                          <span className="text-xs text-amber-500 font-medium">
+                            Scheduled: {a.scheduledFor}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="relative flex-shrink-0">
+                      <button
+                        onClick={() => setOpenMenuId(openMenuId === a.id ? null : a.id)}
+                        className={`p-1.5 rounded-lg transition-colors ${
+                          isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'
+                        }`}
+                      >
+                        <MoreVertical size={18} className={textSecondary} />
+                      </button>
+                      {openMenuId === a.id && (
+                        <div
+                          className={`absolute right-0 top-10 z-20 w-44 rounded-lg border shadow-lg py-1 ${
+                            isDark ? 'bg-[#1e293b] border-white/10' : 'bg-white border-gray-200'
+                          }`}
+                        >
+                          <button
+                            onClick={() => openEdit(a)}
+                            className={`w-full flex items-center gap-2 px-4 py-2 text-sm ${
+                              isDark
+                                ? 'hover:bg-white/5 text-gray-300'
+                                : 'hover:bg-gray-50 text-gray-700'
+                            }`}
+                          >
+                            <Edit3 size={14} /> Edit
+                          </button>
+                          {a.status === 'draft' && (
+                            <button
+                              onClick={() => handlePublish(a)}
+                              className={`w-full flex items-center gap-2 px-4 py-2 text-sm ${
+                                isDark
+                                  ? 'hover:bg-white/5 text-gray-300'
+                                  : 'hover:bg-gray-50 text-gray-700'
+                              }`}
+                            >
+                              <Send size={14} /> Publish
+                            </button>
+                          )}
+                          {a.status === 'published' && (
+                            <button
+                              onClick={() => openAnalytics(a)}
+                              className={`w-full flex items-center gap-2 px-4 py-2 text-sm ${
+                                isDark
+                                  ? 'hover:bg-white/5 text-gray-300'
+                                  : 'hover:bg-gray-50 text-gray-700'
+                              }`}
+                            >
+                              <Eye size={14} /> View Analytics
+                            </button>
+                          )}
+                          <button
+                            onClick={() => confirmDelete(a)}
+                            className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10"
+                          >
+                            <Trash2 size={14} /> Delete
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </>
       )}
 
       {/* Course Chats Tab */}
@@ -576,12 +593,7 @@ export function AnnouncementsManager() {
             <MessageSquare size={22} className="text-indigo-500" />
             <h2 className={`text-lg font-semibold ${textPrimary}`}>Course Chats</h2>
           </div>
-          <MessagingChat
-            height="600px"
-            showVideoCall={true}
-            showVoiceCall={true}
-            isDark={isDark}
-          />
+          <MessagingChat height="600px" showVideoCall={true} showVoiceCall={true} isDark={isDark} />
         </div>
       )}
 
@@ -605,7 +617,9 @@ export function AnnouncementsManager() {
       {/* Create/Edit Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className={`rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto ${modalBg}`}>
+          <div
+            className={`rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto ${modalBg}`}
+          >
             <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-white/10">
               <h2 className={`text-xl font-semibold ${textPrimary}`}>
                 {editingAnnouncement ? 'Edit Announcement' : 'New Announcement'}
@@ -653,7 +667,9 @@ export function AnnouncementsManager() {
               {/* Course & Audience */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className={`block text-sm font-medium mb-1.5 ${textPrimary}`}>Course</label>
+                  <label className={`block text-sm font-medium mb-1.5 ${textPrimary}`}>
+                    Course
+                  </label>
                   <select
                     value={form.course}
                     onChange={(e) => setForm((f) => ({ ...f, course: e.target.value }))}
@@ -665,7 +681,9 @@ export function AnnouncementsManager() {
                   </select>
                 </div>
                 <div>
-                  <label className={`block text-sm font-medium mb-1.5 ${textPrimary}`}>Audience</label>
+                  <label className={`block text-sm font-medium mb-1.5 ${textPrimary}`}>
+                    Audience
+                  </label>
                   <select
                     value={form.audience}
                     onChange={(e) => setForm((f) => ({ ...f, audience: e.target.value }))}
@@ -679,7 +697,9 @@ export function AnnouncementsManager() {
 
               {/* Priority */}
               <div>
-                <label className={`block text-sm font-medium mb-1.5 ${textPrimary}`}>Priority</label>
+                <label className={`block text-sm font-medium mb-1.5 ${textPrimary}`}>
+                  Priority
+                </label>
                 <select
                   value={form.priority}
                   onChange={(e) =>
@@ -694,7 +714,9 @@ export function AnnouncementsManager() {
 
               {/* Attachments */}
               <div>
-                <label className={`block text-sm font-medium mb-1.5 ${textPrimary}`}>Attachments</label>
+                <label className={`block text-sm font-medium mb-1.5 ${textPrimary}`}>
+                  Attachments
+                </label>
                 {form.attachments.length > 0 && (
                   <div className="space-y-2 mb-2">
                     {form.attachments.map((file, idx) => (
@@ -737,7 +759,11 @@ export function AnnouncementsManager() {
                       setForm((f) => ({ ...f, publishImmediately: !f.publishImmediately }))
                     }
                     className={`relative w-11 h-6 rounded-full transition-colors ${
-                      form.publishImmediately ? 'bg-indigo-600' : isDark ? 'bg-white/20' : 'bg-gray-300'
+                      form.publishImmediately
+                        ? 'bg-indigo-600'
+                        : isDark
+                          ? 'bg-white/20'
+                          : 'bg-gray-300'
                     }`}
                   >
                     <div
@@ -756,7 +782,9 @@ export function AnnouncementsManager() {
               {!form.publishImmediately && (
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className={`block text-sm font-medium mb-1.5 ${textPrimary}`}>Date</label>
+                    <label className={`block text-sm font-medium mb-1.5 ${textPrimary}`}>
+                      Date
+                    </label>
                     <input
                       type="date"
                       value={form.scheduledDate}
@@ -765,7 +793,9 @@ export function AnnouncementsManager() {
                     />
                   </div>
                   <div>
-                    <label className={`block text-sm font-medium mb-1.5 ${textPrimary}`}>Time</label>
+                    <label className={`block text-sm font-medium mb-1.5 ${textPrimary}`}>
+                      Time
+                    </label>
                     <input
                       type="time"
                       value={form.scheduledTime}
@@ -785,7 +815,9 @@ export function AnnouncementsManager() {
                   setEditingAnnouncement(null);
                 }}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  isDark ? 'bg-white/5 text-gray-300 hover:bg-white/10' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  isDark
+                    ? 'bg-white/5 text-gray-300 hover:bg-white/10'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
                 Cancel
@@ -794,7 +826,9 @@ export function AnnouncementsManager() {
                 onClick={() => handleSave('draft')}
                 disabled={!form.title.trim()}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 ${
-                  isDark ? 'bg-white/10 text-white hover:bg-white/20' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  isDark
+                    ? 'bg-white/10 text-white hover:bg-white/20'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                 }`}
               >
                 Save Draft
@@ -844,7 +878,9 @@ export function AnnouncementsManager() {
               <div className="grid grid-cols-2 gap-4">
                 <div className={cardClass}>
                   <p className={`text-sm ${textSecondary}`}>Total Views</p>
-                  <p className={`text-2xl font-bold ${textPrimary}`}>{analyticsAnnouncement.reads}</p>
+                  <p className={`text-2xl font-bold ${textPrimary}`}>
+                    {analyticsAnnouncement.reads}
+                  </p>
                 </div>
                 <div className={cardClass}>
                   <p className={`text-sm ${textSecondary}`}>Read Rate</p>
@@ -899,7 +935,9 @@ export function AnnouncementsManager() {
               {/* AI Insight */}
               <div
                 className={`rounded-lg p-4 flex items-start gap-3 ${
-                  isDark ? 'bg-indigo-500/10 border border-indigo-500/20' : 'bg-indigo-50 border border-indigo-100'
+                  isDark
+                    ? 'bg-indigo-500/10 border border-indigo-500/20'
+                    : 'bg-indigo-50 border border-indigo-100'
                 }`}
               >
                 <Sparkles size={18} className="text-indigo-500 flex-shrink-0 mt-0.5" />
@@ -917,7 +955,9 @@ export function AnnouncementsManager() {
               <button
                 onClick={() => setShowAnalyticsModal(false)}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  isDark ? 'bg-white/5 text-gray-300 hover:bg-white/10' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  isDark
+                    ? 'bg-white/5 text-gray-300 hover:bg-white/10'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
                 Close
@@ -938,9 +978,7 @@ export function AnnouncementsManager() {
               <h3 className={`text-lg font-semibold mb-2 ${textPrimary}`}>
                 Delete this announcement?
               </h3>
-              <p className={`text-sm mb-1 ${textSecondary}`}>
-                This action cannot be undone.
-              </p>
+              <p className={`text-sm mb-1 ${textSecondary}`}>This action cannot be undone.</p>
               <p className={`text-sm font-medium ${textPrimary}`}>{deletingAnnouncement.title}</p>
             </div>
             <div className="flex gap-3 p-6 pt-0">
@@ -950,7 +988,9 @@ export function AnnouncementsManager() {
                   setDeletingAnnouncement(null);
                 }}
                 className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  isDark ? 'bg-white/5 text-gray-300 hover:bg-white/10' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  isDark
+                    ? 'bg-white/5 text-gray-300 hover:bg-white/10'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
                 Cancel

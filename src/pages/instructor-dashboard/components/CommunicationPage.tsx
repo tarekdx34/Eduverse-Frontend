@@ -13,9 +13,11 @@ import {
 import { CustomDropdown } from './CustomDropdown';
 import { MessagingChat, ScheduledAnnouncement } from '../../../components/shared';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useTheme } from '../contexts/ThemeContext';
 
 export function CommunicationPage() {
   const { t, isRTL } = useLanguage();
+  const { primaryHex = '#3b82f6' } = useTheme() as any;
   const [activeTab, setActiveTab] = useState<'announcements' | 'chats' | 'messages'>(
     'announcements'
   );
@@ -67,7 +69,7 @@ export function CommunicationPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div>
@@ -80,30 +82,35 @@ export function CommunicationPage() {
           <button
             onClick={() => setActiveTab('announcements')}
             className={`px-4 py-2 font-medium text-sm transition-colors ${
-              activeTab === 'announcements'
-                ? 'text-indigo-600 border-b-2 border-indigo-600'
-                : 'text-gray-600 hover:text-gray-900'
+              activeTab === 'announcements' ? 'border-b-2' : 'text-gray-600 hover:text-gray-900'
             }`}
+            style={
+              activeTab === 'announcements'
+                ? { color: primaryHex, borderColor: primaryHex }
+                : undefined
+            }
           >
             {t('announcements')}
           </button>
           <button
             onClick={() => setActiveTab('chats')}
             className={`px-4 py-2 font-medium text-sm transition-colors ${
-              activeTab === 'chats'
-                ? 'text-indigo-600 border-b-2 border-indigo-600'
-                : 'text-gray-600 hover:text-gray-900'
+              activeTab === 'chats' ? 'border-b-2' : 'text-gray-600 hover:text-gray-900'
             }`}
+            style={
+              activeTab === 'chats' ? { color: primaryHex, borderColor: primaryHex } : undefined
+            }
           >
             {t('courseChats')}
           </button>
           <button
             onClick={() => setActiveTab('messages')}
             className={`px-4 py-2 font-medium text-sm transition-colors ${
-              activeTab === 'messages'
-                ? 'text-indigo-600 border-b-2 border-indigo-600'
-                : 'text-gray-600 hover:text-gray-900'
+              activeTab === 'messages' ? 'border-b-2' : 'text-gray-600 hover:text-gray-900'
             }`}
+            style={
+              activeTab === 'messages' ? { color: primaryHex, borderColor: primaryHex } : undefined
+            }
           >
             {t('directMessages')}
           </button>
@@ -139,7 +146,8 @@ export function CommunicationPage() {
               </div>
               <button
                 onClick={() => setShowScheduleModal(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                className="flex items-center gap-2 px-4 py-2 text-white rounded-lg transition-colors"
+                style={{ backgroundColor: primaryHex }}
               >
                 <Plus size={18} />
                 {t('createAnnouncement')}
@@ -214,25 +222,32 @@ export function CommunicationPage() {
         )}
 
         {/* AI Communication Assistant */}
-        <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl p-6 border border-purple-200 shadow-sm">
+        <div className="rounded-xl p-6 border bg-white border-gray-200">
           <div className="flex items-center gap-2 mb-4">
-            <Sparkles className="text-purple-600" size={24} />
+            <Sparkles style={{ color: primaryHex }} size={24} />
             <h3 className="text-lg font-semibold text-gray-900">{t('aiCommunicationAssistant')}</h3>
           </div>
           <p className="text-sm text-gray-600 mb-4">{t('aiCommunicationDescription')}</p>
           <div className="flex gap-3">
             <button
               onClick={() => setShowScheduleModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm"
+              className="flex items-center gap-2 px-4 py-2 text-white rounded-lg transition-colors text-sm"
+              style={{ backgroundColor: primaryHex }}
             >
               <FileText size={16} />
               {t('generateAnnouncement')}
             </button>
-            <button className="flex items-center gap-2 px-4 py-2 bg-white border border-purple-200 text-purple-700 rounded-lg hover:bg-purple-50 transition-colors text-sm">
+            <button
+              className="flex items-center gap-2 px-4 py-2 bg-white border rounded-lg transition-colors text-sm"
+              style={{ borderColor: primaryHex + '40', color: primaryHex }}
+            >
               <MessageSquare size={16} />
               {t('summarizeChat')}
             </button>
-            <button className="flex items-center gap-2 px-4 py-2 bg-white border border-purple-200 text-purple-700 rounded-lg hover:bg-purple-50 transition-colors text-sm">
+            <button
+              className="flex items-center gap-2 px-4 py-2 bg-white border rounded-lg transition-colors text-sm"
+              style={{ borderColor: primaryHex + '40', color: primaryHex }}
+            >
               <Sparkles size={16} />
               {t('suggestReply')}
             </button>
