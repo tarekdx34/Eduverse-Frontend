@@ -250,7 +250,7 @@ export function Gamification() {
               </h3>
             </div>
             <div className="p-4">
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {badges.map((badge) => (
                   <div
                     key={badge.id}
@@ -331,7 +331,7 @@ export function Gamification() {
               </button>
             </div>
             <div className="p-4">
-              <div className="grid grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 {[
                   { name: 'Profile Badge', cost: 500, icon: '🎖️' },
                   { name: 'Custom Theme', cost: 1000, icon: '🎨' },
@@ -340,7 +340,7 @@ export function Gamification() {
                 ].map((reward, idx) => (
                   <div key={idx} className={`p-4 border ${isDark ? 'border-white/5' : 'border-slate-100'} rounded-xl text-center hover:border-amber-300 hover:bg-amber-50 transition-all cursor-pointer`}>
                     <div className="text-4xl mb-2">{reward.icon}</div>
-                    <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'} mb-1`}>{reward.name}</p>
+                    <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'} mb-1 break-words`}>{reward.name}</p>
                     <p className="text-sm font-bold text-amber-600">{reward.cost} pts</p>
                   </div>
                 ))}
@@ -354,7 +354,7 @@ export function Gamification() {
       {activeTab === 'achievements' && (
         <div className="space-y-4">
           {/* Category Filter */}
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             {['all', 'academic', 'engagement', 'streak', 'social'].map((cat) => (
               <button
                 key={cat}

@@ -6,50 +6,204 @@ export const ADMIN_INFO = {
   role: 'Super Admin',
 };
 
-// Dashboard Stats
-export const DASHBOARD_STATS = {
-  totalUsers: 5420,
-  activeUsers: 4280,
-  totalCourses: 256,
-  activeCourses: 198,
-  totalDepartments: 12,
-  systemUptime: '99.9%',
-  pendingRequests: 23,
-  storageUsed: '2.4 TB',
-  aiRequestsToday: 1250,
+// Admin Department - each admin is scoped to their department
+export const ADMIN_DEPARTMENT = 'Computer Science and Engineering';
+
+// ============================================================
+// 9 Engineering Departments — each with 6 professors, 8 TAs, ~150 students
+// ============================================================
+const DEPT_NAMES = [
+  'Computer Science and Engineering', 'Electrical Engineering', 'Mechanical Engineering',
+  'Civil Engineering', 'Architecture Engineering', 'Communication Engineering',
+  'Biomedical Engineering', 'Mechatronics Engineering', 'Industrial Engineering',
+] as const;
+
+const DEPT_CODES = ['CSE', 'EE', 'ME', 'CE', 'ARC', 'COMM', 'BME', 'MTE', 'IE'] as const;
+
+const PROFESSOR_NAMES: Record<string, string[]> = {
+  'Computer Science and Engineering': ['Dr. Ahmed Fathy', 'Dr. Sarah Martinez', 'Dr. Khaled Mostafa', 'Dr. Nadia Hassan', 'Dr. Youssef Kamal', 'Dr. Rania Mahmoud'],
+  'Electrical Engineering': ['Dr. Tarek Nour', 'Dr. Heba Salem', 'Dr. Amr Zaki', 'Dr. Samira El-Din', 'Dr. Wael Abdel-Aziz', 'Dr. Dina Rashad'],
+  'Mechanical Engineering': ['Dr. Hassan Morsi', 'Dr. Mona El-Sayed', 'Dr. Ibrahim Farag', 'Dr. Laila Sobhy', 'Dr. Ashraf Helal', 'Dr. Noha Adel'],
+  'Civil Engineering': ['Dr. Mohamed Nasser', 'Dr. Eman Khalil', 'Dr. Ali Abdallah', 'Dr. Hoda Fikry', 'Dr. Sherif Gamal', 'Dr. Yasmin Saleh'],
+  'Architecture Engineering': ['Dr. Amir Youssef', 'Dr. Dalia Hafez', 'Dr. Kareem Tawfik', 'Dr. Salma Barakat', 'Dr. Hazem Lotfy', 'Dr. Mervat Said'],
+  'Communication Engineering': ['Dr. Omar Shalaby', 'Dr. Fatma Ragab', 'Dr. Waleed Hamed', 'Dr. Neveen Attia', 'Dr. Bassem Rizk', 'Dr. Ghada Taha'],
+  'Biomedical Engineering': ['Dr. Hossam Darwish', 'Dr. Reem Farouk', 'Dr. Mahmoud Anwar', 'Dr. Azza Moussa', 'Dr. Ehab Selim', 'Dr. Sahar Osman'],
+  'Mechatronics Engineering': ['Dr. Karim Shaker', 'Dr. Abeer Nagib', 'Dr. Tamer Fouad', 'Dr. Hanan Abdel-Rahim', 'Dr. Mostafa Hendy', 'Dr. Iman Lotfy'],
+  'Industrial Engineering': ['Dr. Adel Mansour', 'Dr. Suzan Mahfouz', 'Dr. Hesham Badr', 'Dr. Manal Refaat', 'Dr. Sameh Gaber', 'Dr. Naglaa Yehia'],
 };
 
-// Users Data
-export const USERS = [
-  { id: 1, name: 'Ahmed Hassan', email: 'ahmed.hassan@eduverse.edu', role: 'student', status: 'active', lastActive: '2026-02-03 10:30', department: 'Computer Science' },
-  { id: 2, name: 'Dr. Sarah Martinez', email: 'sarah.martinez@eduverse.edu', role: 'instructor', status: 'active', lastActive: '2026-02-03 09:15', department: 'Computer Science' },
-  { id: 3, name: 'Mohamed Ali', email: 'mohamed.ali@eduverse.edu', role: 'ta', status: 'active', lastActive: '2026-02-02 18:45', department: 'Engineering' },
-  { id: 4, name: 'Fatima Khalil', email: 'fatima.khalil@eduverse.edu', role: 'student', status: 'inactive', lastActive: '2026-01-28 14:20', department: 'Business' },
-  { id: 5, name: 'Dr. John Smith', email: 'john.smith@eduverse.edu', role: 'instructor', status: 'active', lastActive: '2026-02-03 11:00', department: 'Mathematics' },
-  { id: 6, name: 'Layla Ahmed', email: 'layla.ahmed@eduverse.edu', role: 'student', status: 'suspended', lastActive: '2026-01-15 09:30', department: 'Arts' },
-  { id: 7, name: 'Omar Ibrahim', email: 'omar.ibrahim@eduverse.edu', role: 'admin', status: 'active', lastActive: '2026-02-03 08:00', department: 'IT' },
-  { id: 8, name: 'Nora Hassan', email: 'nora.hassan@eduverse.edu', role: 'student', status: 'active', lastActive: '2026-02-03 10:45', department: 'Science' },
+const TA_NAMES: Record<string, string[]> = {
+  'Computer Science and Engineering': ['Eng. Mohamed Ali', 'Eng. Nour Ibrahim', 'Eng. Yara Tarek', 'Eng. Omar Hossam', 'Eng. Salma Adel', 'Eng. Karim Wael', 'Eng. Hana Sherif', 'Eng. Ali Khaled'],
+  'Electrical Engineering': ['Eng. Rana Samir', 'Eng. Taha Mostafa', 'Eng. Dina Ashraf', 'Eng. Ahmed Reda', 'Eng. Maha Fouad', 'Eng. Seif Gamal', 'Eng. Lina Hassan', 'Eng. Ziad Nabil'],
+  'Mechanical Engineering': ['Eng. Nada Emad', 'Eng. Sami Youssef', 'Eng. Farida Adel', 'Eng. Kareem Ramzy', 'Eng. Aya Magdy', 'Eng. Hazem Wael', 'Eng. Mariam Tamer', 'Eng. Bassem Lotfy'],
+  'Civil Engineering': ['Eng. Hala Samy', 'Eng. Amr Khaled', 'Eng. Yasmine Fathy', 'Eng. Tarek Adel', 'Eng. Rania Saeed', 'Eng. Islam Nour', 'Eng. Dalia Ahmed', 'Eng. Mahmoud Hassan'],
+  'Architecture Engineering': ['Eng. Sara Kamal', 'Eng. Khaled Tawfik', 'Eng. Lama Barakat', 'Eng. Youssef Sherif', 'Eng. Nermeen Said', 'Eng. Fady Hafez', 'Eng. Jana Lotfy', 'Eng. Wael Mervat'],
+  'Communication Engineering': ['Eng. Amira Shalaby', 'Eng. Hamed Waleed', 'Eng. Shaimaa Ragab', 'Eng. Bassem Taha', 'Eng. Noura Rizk', 'Eng. Sherif Attia', 'Eng. Reem Hamed', 'Eng. Karim Fatma'],
+  'Biomedical Engineering': ['Eng. Layla Darwish', 'Eng. Ahmad Farouk', 'Eng. Mona Anwar', 'Eng. Hossam Selim', 'Eng. Doaa Moussa', 'Eng. Ehab Osman', 'Eng. Rana Sahar', 'Eng. Tamer Reem'],
+  'Mechatronics Engineering': ['Eng. Nadine Shaker', 'Eng. Omar Fouad', 'Eng. Salwa Nagib', 'Eng. Yehia Hendy', 'Eng. Abeer Abdel-Rahim', 'Eng. Mostafa Iman', 'Eng. Hagar Lotfy', 'Eng. Kamal Tamer'],
+  'Industrial Engineering': ['Eng. Fatma Mansour', 'Eng. Hesham Mahfouz', 'Eng. Manal Badr', 'Eng. Sameh Refaat', 'Eng. Naglaa Gaber', 'Eng. Adel Yehia', 'Eng. Suzan Sameh', 'Eng. Gaber Manal'],
+};
+
+// Generate all users
+let userId = 1;
+const generatedUsers: { id: number; name: string; email: string; role: string; status: string; lastActive: string; department: string }[] = [];
+DEPT_NAMES.forEach((dept, deptIdx) => {
+  generatedUsers.push({ id: userId++, name: `Admin - ${dept.split(' ')[0]}`, email: `admin.${DEPT_CODES[deptIdx].toLowerCase()}@eduverse.edu`, role: 'admin', status: 'active', lastActive: '2026-02-03 08:00', department: dept });
+  PROFESSOR_NAMES[dept].forEach(name => {
+    generatedUsers.push({ id: userId++, name, email: `${name.replace('Dr. ', '').toLowerCase().replace(/ /g, '.')}@eduverse.edu`, role: 'instructor', status: 'active', lastActive: '2026-02-03 09:00', department: dept });
+  });
+  TA_NAMES[dept].forEach(name => {
+    generatedUsers.push({ id: userId++, name, email: `${name.replace('Eng. ', '').toLowerCase().replace(/ /g, '.')}@eduverse.edu`, role: 'ta', status: 'active', lastActive: '2026-02-03 10:00', department: dept });
+  });
+  for (let s = 1; s <= 10; s++) {
+    generatedUsers.push({ id: userId++, name: `Student ${DEPT_CODES[deptIdx]}-${s}`, email: `student${s}.${DEPT_CODES[deptIdx].toLowerCase()}@eduverse.edu`, role: 'student', status: 'active', lastActive: '2026-02-03 11:00', department: dept });
+  }
+});
+export const USERS = generatedUsers;
+
+// Courses (6 per department with proper prerequisite chains)
+const COURSE_TEMPLATES: Record<string, { code: string; name: string; credits: number; prereqs: string[] }[]> = {
+  'Computer Science and Engineering': [
+    { code: 'CSE101', name: 'Introduction to Programming', credits: 3, prereqs: [] },
+    { code: 'CSE201', name: 'Data Structures & Algorithms', credits: 4, prereqs: ['CSE101'] },
+    { code: 'CSE202', name: 'Object-Oriented Programming', credits: 3, prereqs: ['CSE101'] },
+    { code: 'CSE301', name: 'Database Systems', credits: 3, prereqs: ['CSE201'] },
+    { code: 'CSE302', name: 'Operating Systems', credits: 3, prereqs: ['CSE201'] },
+    { code: 'CSE401', name: 'Software Engineering', credits: 3, prereqs: ['CSE301', 'CSE302'] },
+  ],
+  'Electrical Engineering': [
+    { code: 'EE101', name: 'Circuit Analysis', credits: 3, prereqs: [] },
+    { code: 'EE201', name: 'Electronics I', credits: 4, prereqs: ['EE101'] },
+    { code: 'EE202', name: 'Signals & Systems', credits: 3, prereqs: ['EE101'] },
+    { code: 'EE301', name: 'Power Systems', credits: 3, prereqs: ['EE201'] },
+    { code: 'EE302', name: 'Control Systems', credits: 3, prereqs: ['EE202'] },
+    { code: 'EE401', name: 'VLSI Design', credits: 3, prereqs: ['EE301'] },
+  ],
+  'Mechanical Engineering': [
+    { code: 'ME101', name: 'Engineering Mechanics', credits: 3, prereqs: [] },
+    { code: 'ME201', name: 'Thermodynamics', credits: 4, prereqs: ['ME101'] },
+    { code: 'ME202', name: 'Fluid Mechanics', credits: 3, prereqs: ['ME101'] },
+    { code: 'ME301', name: 'Heat Transfer', credits: 3, prereqs: ['ME201'] },
+    { code: 'ME302', name: 'Machine Design', credits: 3, prereqs: ['ME202'] },
+    { code: 'ME401', name: 'Manufacturing Processes', credits: 3, prereqs: ['ME301', 'ME302'] },
+  ],
+  'Civil Engineering': [
+    { code: 'CE101', name: 'Engineering Drawing', credits: 3, prereqs: [] },
+    { code: 'CE201', name: 'Structural Analysis', credits: 4, prereqs: ['CE101'] },
+    { code: 'CE202', name: 'Soil Mechanics', credits: 3, prereqs: ['CE101'] },
+    { code: 'CE301', name: 'Reinforced Concrete', credits: 3, prereqs: ['CE201'] },
+    { code: 'CE302', name: 'Foundation Engineering', credits: 3, prereqs: ['CE202'] },
+    { code: 'CE401', name: 'Construction Management', credits: 3, prereqs: ['CE301'] },
+  ],
+  'Architecture Engineering': [
+    { code: 'ARC101', name: 'Architectural Design I', credits: 3, prereqs: [] },
+    { code: 'ARC201', name: 'Architectural Design II', credits: 4, prereqs: ['ARC101'] },
+    { code: 'ARC202', name: 'History of Architecture', credits: 3, prereqs: [] },
+    { code: 'ARC301', name: 'Urban Planning', credits: 3, prereqs: ['ARC201'] },
+    { code: 'ARC302', name: 'Building Technology', credits: 3, prereqs: ['ARC201'] },
+    { code: 'ARC401', name: 'Sustainable Design', credits: 3, prereqs: ['ARC301'] },
+  ],
+  'Communication Engineering': [
+    { code: 'COMM101', name: 'Intro to Communication', credits: 3, prereqs: [] },
+    { code: 'COMM201', name: 'Digital Communication', credits: 4, prereqs: ['COMM101'] },
+    { code: 'COMM202', name: 'Electromagnetic Waves', credits: 3, prereqs: ['COMM101'] },
+    { code: 'COMM301', name: 'Wireless Networks', credits: 3, prereqs: ['COMM201'] },
+    { code: 'COMM302', name: 'Antenna Design', credits: 3, prereqs: ['COMM202'] },
+    { code: 'COMM401', name: 'Optical Communication', credits: 3, prereqs: ['COMM301'] },
+  ],
+  'Biomedical Engineering': [
+    { code: 'BME101', name: 'Intro to Biomedical Eng.', credits: 3, prereqs: [] },
+    { code: 'BME201', name: 'Biomechanics', credits: 4, prereqs: ['BME101'] },
+    { code: 'BME202', name: 'Medical Imaging', credits: 3, prereqs: ['BME101'] },
+    { code: 'BME301', name: 'Biomedical Signals', credits: 3, prereqs: ['BME201'] },
+    { code: 'BME302', name: 'Clinical Engineering', credits: 3, prereqs: ['BME202'] },
+    { code: 'BME401', name: 'Rehabilitation Engineering', credits: 3, prereqs: ['BME301'] },
+  ],
+  'Mechatronics Engineering': [
+    { code: 'MTE101', name: 'Intro to Mechatronics', credits: 3, prereqs: [] },
+    { code: 'MTE201', name: 'Sensors & Actuators', credits: 4, prereqs: ['MTE101'] },
+    { code: 'MTE202', name: 'Embedded Systems', credits: 3, prereqs: ['MTE101'] },
+    { code: 'MTE301', name: 'Robotics', credits: 3, prereqs: ['MTE201', 'MTE202'] },
+    { code: 'MTE302', name: 'PLC Programming', credits: 3, prereqs: ['MTE201'] },
+    { code: 'MTE401', name: 'Autonomous Systems', credits: 3, prereqs: ['MTE301'] },
+  ],
+  'Industrial Engineering': [
+    { code: 'IE101', name: 'Industrial Eng. Fundamentals', credits: 3, prereqs: [] },
+    { code: 'IE201', name: 'Operations Research', credits: 4, prereqs: ['IE101'] },
+    { code: 'IE202', name: 'Quality Control', credits: 3, prereqs: ['IE101'] },
+    { code: 'IE301', name: 'Supply Chain Management', credits: 3, prereqs: ['IE201'] },
+    { code: 'IE302', name: 'Production Planning', credits: 3, prereqs: ['IE202'] },
+    { code: 'IE401', name: 'Lean Manufacturing', credits: 3, prereqs: ['IE301', 'IE302'] },
+  ],
+};
+
+let courseId = 1;
+const generatedCourses: any[] = [];
+DEPT_NAMES.forEach((dept) => {
+  const profs = generatedUsers.filter(u => u.role === 'instructor' && u.department === dept);
+  const tas = generatedUsers.filter(u => u.role === 'ta' && u.department === dept);
+  COURSE_TEMPLATES[dept].forEach((tmpl, i) => {
+    generatedCourses.push({
+      id: courseId++, code: tmpl.code, name: tmpl.name, department: dept, semester: 'Fall 2025',
+      credits: tmpl.credits, enrolled: Math.floor(Math.random() * 100) + 50, capacity: 150, status: 'active',
+      instructor: profs[i % profs.length].name, instructorId: profs[i % profs.length].id,
+      taIds: [tas[i % tas.length].id, tas[(i + 1) % tas.length].id], prerequisites: tmpl.prereqs,
+    });
+  });
+});
+export const COURSES = generatedCourses;
+
+// Departments (9 engineering)
+export const DEPARTMENTS = DEPT_NAMES.map((name, i) => ({
+  id: i + 1, name, faculty: 'Engineering', head: PROFESSOR_NAMES[name][0],
+  courses: 6, students: 150, instructors: 6, tas: 8, budget: `$${(2 + Math.random() * 2).toFixed(1)}M`,
+}));
+
+// Schedules (CSE + EE sample data)
+export const SCHEDULES = (() => {
+  const s: any[] = []; let sid = 1;
+  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday'];
+  const rooms = ['Hall A-101', 'Hall A-102', 'Hall B-201', 'Lab C-101', 'Lab C-102', 'Hall D-301'];
+  ['Computer Science and Engineering', 'Electrical Engineering'].forEach(dept => {
+    const dc = generatedCourses.filter(c => c.department === dept);
+    const pr = generatedUsers.filter(u => u.role === 'instructor' && u.department === dept);
+    const ta = generatedUsers.filter(u => u.role === 'ta' && u.department === dept);
+    dc.forEach((c, i) => {
+      s.push({ id: sid++, courseId: c.id, courseCode: c.code, courseName: c.name, instructor: pr[i % pr.length].name, instructorId: pr[i % pr.length].id, day: days[i % days.length], startTime: `${String(9 + (i % 4)).padStart(2, '0')}:00`, endTime: `${String(10 + (i % 4)).padStart(2, '0')}:30`, room: rooms[i % rooms.length], type: 'lecture' as const, department: dept });
+      s.push({ id: sid++, courseId: c.id, courseCode: c.code, courseName: c.name, instructor: ta[i % ta.length].name, instructorId: ta[i % ta.length].id, day: days[(i + 2) % days.length], startTime: `${String(11 + (i % 3)).padStart(2, '0')}:00`, endTime: `${String(12 + (i % 3)).padStart(2, '0')}:30`, room: rooms[(i + 3) % rooms.length], type: (i % 2 === 0 ? 'lab' : 'section') as const, department: dept });
+    });
+  });
+  return s;
+})();
+
+// Enrollment Periods — ONE period per department per semester (students register for all courses they want)
+export const ENROLLMENT_PERIODS = [
+  { id: 1, department: 'Computer Science and Engineering', semester: 'Fall 2025', startDate: '2025-08-15', endDate: '2025-08-30', totalStudents: 150, registeredStudents: 142, status: 'closed' as const, description: 'Fall 2025 course registration window' },
+  { id: 2, department: 'Electrical Engineering', semester: 'Fall 2025', startDate: '2025-08-15', endDate: '2025-08-30', totalStudents: 150, registeredStudents: 138, status: 'closed' as const, description: 'Fall 2025 course registration window' },
+  { id: 3, department: 'Computer Science and Engineering', semester: 'Spring 2026', startDate: '2026-02-01', endDate: '2026-02-28', totalStudents: 150, registeredStudents: 67, status: 'active' as const, description: 'Spring 2026 — students select their courses (prerequisites enforced)' },
+  { id: 4, department: 'Electrical Engineering', semester: 'Spring 2026', startDate: '2026-02-01', endDate: '2026-02-28', totalStudents: 150, registeredStudents: 54, status: 'active' as const, description: 'Spring 2026 — students select their courses (prerequisites enforced)' },
+  { id: 5, department: 'Mechanical Engineering', semester: 'Spring 2026', startDate: '2026-03-01', endDate: '2026-03-15', totalStudents: 150, registeredStudents: 0, status: 'upcoming' as const, description: 'Spring 2026 registration — opens soon' },
 ];
 
-// Courses Data
-export const COURSES = [
-  { id: 1, code: 'CS101', name: 'Introduction to Programming', department: 'Computer Science', semester: 'Fall 2025', credits: 3, enrolled: 120, capacity: 150, status: 'active', instructor: 'Dr. Sarah Martinez' },
-  { id: 2, code: 'CS202', name: 'Data Structures', department: 'Computer Science', semester: 'Fall 2025', credits: 4, enrolled: 100, capacity: 120, status: 'active', instructor: 'Dr. Sarah Martinez' },
-  { id: 3, code: 'MATH101', name: 'Calculus I', department: 'Mathematics', semester: 'Fall 2025', credits: 3, enrolled: 200, capacity: 250, status: 'active', instructor: 'Dr. John Smith' },
-  { id: 4, code: 'ENG201', name: 'Thermodynamics', department: 'Engineering', semester: 'Fall 2025', credits: 4, enrolled: 80, capacity: 100, status: 'active', instructor: 'Dr. Ahmed Fathy' },
-  { id: 5, code: 'BUS101', name: 'Business Fundamentals', department: 'Business', semester: 'Fall 2025', credits: 3, enrolled: 150, capacity: 200, status: 'active', instructor: 'Dr. Mona Saeed' },
-  { id: 6, code: 'ART150', name: 'Digital Art', department: 'Arts', semester: 'Spring 2025', credits: 2, enrolled: 45, capacity: 50, status: 'archived', instructor: 'Prof. Amir Youssef' },
-];
+// Exam Schedules
+export const EXAM_SCHEDULES = (() => {
+  const e: any[] = []; let eid = 1;
+  const rooms = ['Exam Hall 1', 'Exam Hall 2', 'Exam Hall 3', 'Exam Hall 4'];
+  ['Computer Science and Engineering', 'Electrical Engineering'].forEach(dept => {
+    generatedCourses.filter(c => c.department === dept).forEach((c, i) => {
+      e.push({ id: eid++, courseId: c.id, courseCode: c.code, courseName: c.name, examType: 'midterm' as const, date: `2025-10-${String(20 + i).padStart(2, '0')}`, startTime: '09:00', endTime: '11:00', room: rooms[i % rooms.length], duration: 120, department: dept });
+      e.push({ id: eid++, courseId: c.id, courseCode: c.code, courseName: c.name, examType: 'final' as const, date: `2026-01-${String(10 + i).padStart(2, '0')}`, startTime: '09:00', endTime: '12:00', room: rooms[i % rooms.length], duration: 180, department: dept });
+    });
+  });
+  return e;
+})();
 
-// Departments Data
-export const DEPARTMENTS = [
-  { id: 1, name: 'Computer Science', faculty: 'Engineering', head: 'Dr. Ahmed Fathy', courses: 24, students: 850, instructors: 18, budget: '$2.5M' },
-  { id: 2, name: 'Mathematics', faculty: 'Science', head: 'Dr. John Smith', courses: 18, students: 620, instructors: 14, budget: '$1.8M' },
-  { id: 3, name: 'Engineering', faculty: 'Engineering', head: 'Dr. Mohamed Nasser', courses: 32, students: 1200, instructors: 25, budget: '$4.2M' },
-  { id: 4, name: 'Business', faculty: 'Commerce', head: 'Dr. Mona Saeed', courses: 20, students: 980, instructors: 16, budget: '$2.1M' },
-  { id: 5, name: 'Arts', faculty: 'Humanities', head: 'Prof. Amir Youssef', courses: 15, students: 420, instructors: 10, budget: '$1.2M' },
-  { id: 6, name: 'Science', faculty: 'Science', head: 'Dr. Hala Kamal', courses: 22, students: 750, instructors: 20, budget: '$2.8M' },
-];
+// Dashboard Stats
+export const DASHBOARD_STATS = {
+  totalUsers: USERS.length, activeUsers: USERS.filter(u => u.status === 'active').length,
+  totalCourses: COURSES.length, activeCourses: COURSES.filter(c => c.status === 'active').length,
+  totalDepartments: 9, systemUptime: '99.9%', pendingRequests: 23, storageUsed: '2.4 TB', aiRequestsToday: 1250,
+};
 
 // Academic Calendar Events
 export const CALENDAR_EVENTS = [

@@ -7,11 +7,16 @@ import {
   Database,
   Activity,
   Shield,
-  Brain,
   Building2,
   MessageCircle,
   User,
   Menu,
+  Bell,
+  Cloud,
+  Bug,
+  Users,
+  HeadphonesIcon,
+  Lock,
 } from 'lucide-react';
 import {
   DashboardOverview,
@@ -20,9 +25,16 @@ import {
   DatabasePage,
   MonitoringPage,
   SecurityPage,
-  AIManagementPage,
   MultiCampusPage,
+  AlertsManagementPage,
+  CloudServicesPage,
+  ErrorLogsPage,
 } from './components';
+import { UserManagementPage } from './components/UserManagementPage';
+import { RoleManagementPage } from './components/RoleManagementPage';
+import { BackupCenterPage } from './components/BackupCenterPage';
+import { FeedbackSupportPage } from './components/FeedbackSupportPage';
+import { SecurityLogsPage } from './components/SecurityLogsPage';
 import { DashboardHeader, DashboardSidebar, MessagingChat } from '../../components/shared';
 import { DashboardProfileTab } from '../../components/shared/DashboardProfileTab';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
@@ -34,7 +46,6 @@ import {
   DATABASE_BACKUPS,
   SECURITY_EVENTS,
   SSL_CERTIFICATES,
-  AI_MODELS,
   CAMPUSES,
   SYSTEM_SETTINGS,
   BRANDING_SETTINGS,
@@ -44,25 +55,39 @@ import {
 
 type TabKey =
   | 'dashboard'
+  | 'users'
+  | 'roles'
   | 'config'
   | 'integrations'
   | 'database'
   | 'monitoring'
   | 'security'
-  | 'ai'
+  | 'security-logs'
+  | 'backup'
   | 'campus'
+  | 'alerts'
+  | 'cloud'
+  | 'error-logs'
+  | 'feedback'
   | 'chat'
   | 'profile';
 
 const TABS: { key: TabKey; label: string; labelAr: string; icon: any }[] = [
   { key: 'dashboard', label: 'Dashboard', labelAr: 'لوحة التحكم', icon: LayoutGrid },
+  { key: 'users', label: 'User Management', labelAr: 'إدارة المستخدمين', icon: Users },
+  { key: 'roles', label: 'Role Management', labelAr: 'إدارة الأدوار', icon: Shield },
   { key: 'config', label: 'System Config', labelAr: 'إعدادات النظام', icon: Settings },
   { key: 'integrations', label: 'Integrations & APIs', labelAr: 'التكاملات', icon: Wifi },
   { key: 'database', label: 'Database', labelAr: 'قاعدة البيانات', icon: Database },
   { key: 'monitoring', label: 'Monitoring', labelAr: 'المراقبة', icon: Activity },
   { key: 'security', label: 'Security', labelAr: 'الأمان', icon: Shield },
-  { key: 'ai', label: 'AI Management', labelAr: 'إدارة الذكاء الاصطناعي', icon: Brain },
+  { key: 'security-logs', label: 'Security Logs', labelAr: 'سجلات الأمان', icon: Lock },
+  { key: 'backup', label: 'Backup Center', labelAr: 'مركز النسخ الاحتياطي', icon: Database },
   { key: 'campus', label: 'Multi-Campus', labelAr: 'متعدد الحرم', icon: Building2 },
+  { key: 'alerts', label: 'Alerts', labelAr: 'التنبيهات', icon: Bell },
+  { key: 'cloud', label: 'Cloud Services', labelAr: 'الخدمات السحابية', icon: Cloud },
+  { key: 'error-logs', label: 'Error Logs', labelAr: 'سجلات الأخطاء', icon: Bug },
+  { key: 'feedback', label: 'Feedback & Support', labelAr: 'الملاحظات والدعم', icon: HeadphonesIcon },
   { key: 'chat', label: 'Chat', labelAr: 'الدردشة', icon: MessageCircle },
   { key: 'profile', label: 'Profile', labelAr: 'الملف الشخصي', icon: User },
 ];
@@ -81,7 +106,6 @@ function ITAdminDashboardContent() {
   const [backups, setBackups] = useState(DATABASE_BACKUPS);
   const [securityEvents] = useState(SECURITY_EVENTS);
   const [sslCertificates, setSslCertificates] = useState(SSL_CERTIFICATES);
-  const [aiModels, setAiModels] = useState(AI_MODELS);
   const [campuses, setCampuses] = useState(CAMPUSES);
   const [systemSettings, setSystemSettings] = useState(SYSTEM_SETTINGS);
   const [brandingSettings, setBrandingSettings] = useState(BRANDING_SETTINGS);
@@ -162,17 +186,6 @@ function ITAdminDashboardContent() {
 
   const handleExportLogs = () => {
     alert('Exporting security logs...');
-  };
-
-  // AI handlers
-  const handleToggleAIModel = (id: number, enabled: boolean) => {
-    setAiModels(aiModels.map(m =>
-      m.id === id ? { ...m, status: enabled ? 'active' : 'inactive' } : m
-    ));
-  };
-
-  const handleUpdateAIModelSettings = (id: number, settings: any) => {
-    console.log('Update AI model settings:', id, settings);
   };
 
   // Campus handlers
@@ -269,6 +282,12 @@ function ITAdminDashboardContent() {
             />
           )}
 
+          {/* User Management (moved from Admin) */}
+          {activeTab === 'users' && <UserManagementPage />}
+
+          {/* Role Management (moved from Admin) */}
+          {activeTab === 'roles' && <RoleManagementPage />}
+
           {/* System Configuration */}
           {activeTab === 'config' && (
             <SystemConfigPage
@@ -319,15 +338,6 @@ function ITAdminDashboardContent() {
             />
           )}
 
-          {/* AI Management */}
-          {activeTab === 'ai' && (
-            <AIManagementPage
-              aiModels={aiModels}
-              onToggleModel={handleToggleAIModel}
-              onUpdateModelSettings={handleUpdateAIModelSettings}
-            />
-          )}
-
           {/* Multi-Campus */}
           {activeTab === 'campus' && (
             <MultiCampusPage
@@ -338,6 +348,24 @@ function ITAdminDashboardContent() {
             />
           )}
 
+          {/* Alerts Management */}
+          {activeTab === 'alerts' && <AlertsManagementPage />}
+
+          {/* Cloud Services */}
+          {activeTab === 'cloud' && <CloudServicesPage />}
+
+          {/* Error Logs */}
+          {activeTab === 'error-logs' && <ErrorLogsPage />}
+
+          {/* Security Logs (moved from Admin) */}
+          {activeTab === 'security-logs' && <SecurityLogsPage />}
+
+          {/* Backup Center (moved from Admin) */}
+          {activeTab === 'backup' && <BackupCenterPage />}
+
+          {/* Feedback & Support (moved from Admin) */}
+          {activeTab === 'feedback' && <FeedbackSupportPage />}
+
           {/* Chat */}
           {activeTab === 'chat' && (
             <MessagingChat
@@ -345,6 +373,7 @@ function ITAdminDashboardContent() {
               currentUserName="IT Administrator"
               showVideoCall={true}
               showVoiceCall={true}
+              isDark={isDark}
             />
           )}
 

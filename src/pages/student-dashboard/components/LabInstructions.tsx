@@ -546,7 +546,7 @@ export function LabInstructions() {
       </div>
 
       {/* Lab Sessions List */}
-      <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {filteredLabs.map((lab) => (
           <div
             key={lab.id}

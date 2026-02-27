@@ -1,7 +1,8 @@
-import { Download, Filter, Search } from 'lucide-react';
+import { Download, Filter, Search, Target } from 'lucide-react';
 import { useState } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { GradeAnalysis } from './GradeAnalysis';
 
 interface GradeRecord {
   code: string;
@@ -361,6 +362,7 @@ export default function GradesTranscript({
 }: GradesTranscriptProps) {
   const { t, isRTL } = useLanguage();
   const { isDark } = useTheme();
+  const [activeView, setActiveView] = useState<'grades' | 'analysis'>('grades');
 
   return (
     <div className="space-y-6" dir={isRTL ? 'rtl' : 'ltr'}>
@@ -370,44 +372,117 @@ export default function GradesTranscript({
         <p className={isDark ? 'text-slate-500' : 'text-slate-600'}>{t('academicRecord')}</p>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard
-          label={t('cumulativeGPA')}
-          value={cumulativeGPA}
-          subtext={`${t('outOf')} 4.00`}
-          color="bg-[#7C3AED]/10"
-          isDark={isDark}
-        />
-        <StatCard
-          label={t('semesterGPA')}
-          value={currentSemesterGPA}
-          subtext={isRTL ? '+0.12 من الفصل السابق' : '+0.12 from last semester'}
-          color="bg-green-100"
-          isDark={isDark}
-        />
-        <StatCard
-          label={t('creditHours')}
-          value={totalCredits}
-          subtext={isRTL ? 'من 144 مطلوبة' : 'Out of 144 required'}
-          color="bg-purple-100"
-          isDark={isDark}
-        />
-        <StatCard
-          label={t('rank')}
-          value={classRank}
-          subtext={isRTL ? 'من 450 طالب' : 'Out of 450 students'}
-          color="bg-orange-100"
-          isDark={isDark}
-        />
+      {/* View Toggle */}
+      <div className="flex gap-2 mb-6">
+        <button
+          onClick={() => setActiveView('grades')}
+          className={`px-5 py-2 rounded-full text-sm font-medium transition-colors ${
+            activeView === 'grades'
+              ? 'bg-purple-600 text-white'
+              : isDark
+                ? 'bg-white/5 text-slate-400 hover:bg-white/10'
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+          }`}
+        >
+          Grades
+        </button>
+        <button
+          onClick={() => setActiveView('analysis')}
+          className={`px-5 py-2 rounded-full text-sm font-medium transition-colors ${
+            activeView === 'analysis'
+              ? 'bg-purple-600 text-white'
+              : isDark
+                ? 'bg-white/5 text-slate-400 hover:bg-white/10'
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+          }`}
+        >
+          Grade Analysis
+        </button>
       </div>
 
-      {/* Grade Tables by Semester */}
-      <div className="space-y-6">
-        {semesters.map((semester) => (
-          <GradeTable key={semester.semester} semester={semester} courses={semester.courses} isDark={isDark} />
-        ))}
-      </div>
+      {activeView === 'grades' ? (
+        <>
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <StatCard
+              label={t('cumulativeGPA')}
+              value={cumulativeGPA}
+              subtext={`${t('outOf')} 4.00`}
+              color="bg-[#7C3AED]/10"
+              isDark={isDark}
+            />
+            <StatCard
+              label={t('semesterGPA')}
+              value={currentSemesterGPA}
+              subtext={isRTL ? '+0.12 من الفصل السابق' : '+0.12 from last semester'}
+              color="bg-green-100"
+              isDark={isDark}
+            />
+            <StatCard
+              label={t('creditHours')}
+              value={totalCredits}
+              subtext={isRTL ? 'من 144 مطلوبة' : 'Out of 144 required'}
+              color="bg-purple-100"
+              isDark={isDark}
+            />
+            <StatCard
+              label={t('rank')}
+              value={classRank}
+              subtext={isRTL ? 'من 450 طالب' : 'Out of 450 students'}
+              color="bg-orange-100"
+              isDark={isDark}
+            />
+          </div>
+
+          {/* Export as PDF */}
+          <div className="flex justify-end">
+            <button
+              onClick={() => window.print()}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+                isDark
+                  ? 'bg-white/5 text-slate-400 hover:bg-white/10 border border-white/10'
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'
+              }`}
+            >
+              <Download size={16} />
+              <span className="text-sm font-medium">Export as PDF</span>
+            </button>
+          </div>
+
+          {/* Grade Tables by Semester */}
+          <div className="space-y-6">
+            {semesters.map((semester) => (
+              <GradeTable key={semester.semester} semester={semester} courses={semester.courses} isDark={isDark} />
+            ))}
+          </div>
+        </>
+      ) : (
+        <>
+          {/* Action Buttons */}
+          <div className="flex justify-end gap-3">
+            <button
+              onClick={() => window.print()}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+                isDark
+                  ? 'bg-white/5 text-slate-400 hover:bg-white/10 border border-white/10'
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'
+              }`}
+            >
+              <Download size={16} />
+              <span className="text-sm font-medium">Export as PDF</span>
+            </button>
+            <button
+              className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+            >
+              <Target size={16} />
+              <span className="text-sm font-medium">Set Study Goals</span>
+            </button>
+          </div>
+
+          {/* Grade Analysis Component */}
+          <GradeAnalysis />
+        </>
+      )}
     </div>
   );
 }

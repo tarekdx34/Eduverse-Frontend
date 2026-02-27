@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Plus,
   Search,
@@ -81,6 +82,7 @@ export function CoursesPage({
   const [selectedCourseId, setSelectedCourseId] = useState<number | null>(null);
   const { isDark } = useTheme();
   const { t, isRTL } = useLanguage();
+  const navigate = useNavigate();
 
   // If viewing course detail, show that instead
   if (selectedCourseId !== null) {
@@ -119,7 +121,7 @@ export function CoursesPage({
   };
 
   return (
-    <div className="flex gap-6">
+    <div className="flex flex-col lg:flex-row gap-6">
       {/* Main Content */}
       <div className="flex-1 space-y-6">
         {/* Header */}
@@ -131,7 +133,7 @@ export function CoursesPage({
         </div>
 
         {/* Filters Bar */}
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-4">
           {/* Semester Filter */}
           <CustomDropdown
             label={t('semesterLabel')}
@@ -222,7 +224,10 @@ export function CoursesPage({
 
                 {/* Open Course Button */}
                 <button
-                  onClick={() => setSelectedCourseId(course.id)}
+                  onClick={() => {
+                    setSelectedCourseId(course.id);
+                    navigate(`/instructordashboard/courses/${course.id}`);
+                  }}
                   className={`w-full flex items-center justify-center gap-2 text-sm font-medium py-2 rounded-lg transition-colors ${isDark ? "text-indigo-400 hover:text-indigo-300 hover:bg-white/10" : "text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"}`}
                 >
                   {t('openCourse')}
@@ -248,7 +253,7 @@ export function CoursesPage({
       </div>
 
       {/* AI Tools Sidebar */}
-      <div className="w-80 space-y-4">
+      <div className="w-full lg:w-80 space-y-4">
         <div className={`rounded-xl p-6 border shadow-sm ${isDark ? "bg-white/5 border-white/10" : "bg-white border-gray-200"}`}>
           <div className="flex items-center gap-3 mb-4">
             <div className={`p-3 rounded-xl ${isDark ? "bg-purple-500/20" : "bg-purple-100"}`}>

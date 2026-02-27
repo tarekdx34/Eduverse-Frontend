@@ -325,7 +325,7 @@ export function AttendancePage() {
                     </div>
                   </div>
                   <button onClick={() => setSelectedFile(null)} className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-red-500/20' : 'hover:bg-red-100'}`}>
-                    <X className="text-red-600" size={20} />
+                    <X className={isDark ? 'text-red-400' : 'text-red-600'} size={20} />
                   </button>
                 </div>
               </div>
@@ -611,7 +611,7 @@ export function AttendancePage() {
                             <span className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{session.totalDetected}</span>/{session.totalStudents} {t('detected')}
                           </span>
                         </div>
-                        <div className={`font-semibold ${parseFloat(rate) >= 80 ? 'text-green-600' : parseFloat(rate) >= 60 ? 'text-yellow-600' : 'text-red-600'}`}>
+                        <div className={`font-semibold ${parseFloat(rate) >= 80 ? (isDark ? 'text-green-400' : 'text-green-600') : parseFloat(rate) >= 60 ? (isDark ? 'text-yellow-400' : 'text-yellow-600') : (isDark ? 'text-red-400' : 'text-red-600')}`}>
                           {rate}% {t('attendance').toLowerCase()}
                         </div>
                       </div>

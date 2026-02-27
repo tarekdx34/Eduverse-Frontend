@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Send, Plus, Paperclip, Smile, Phone, Video } from 'lucide-react';
+import { Send, Plus, Paperclip, Smile, Phone, Video, ArrowLeft } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 
 interface Message {
@@ -163,6 +163,7 @@ export function MessagingChat() {
   const [selectedConversation, setSelectedConversation] = useState<string>('1');
   const [messageInput, setMessageInput] = useState('');
   const [messages, setMessages] = useState<Message[]>(MESSAGES);
+  const [showChatOnMobile, setShowChatOnMobile] = useState(false);
 
   const currentConversation = CONVERSATIONS.find((c) => c.id === selectedConversation);
 
@@ -184,11 +185,11 @@ export function MessagingChat() {
   };
 
   return (
-    <div className="glass rounded-[2.5rem] p-6 mb-6 col-span-2 flex gap-6" style={{ height: '600px' }}>
+    <div className={`flex gap-0 ${isDark ? 'bg-card-dark' : 'bg-white'} rounded-2xl overflow-hidden border ${isDark ? 'border-white/10' : 'border-slate-200'}`} style={{ height: 'calc(100vh - 200px)', minHeight: '500px' }}>
       {/* Conversations List */}
-      <div className={`w-96 glass rounded-[2.5rem] flex flex-col`}>
+      <div className={`w-80 flex flex-col border-r ${isDark ? 'border-white/10' : 'border-slate-200'} ${showChatOnMobile ? 'hidden lg:flex' : 'flex w-full lg:w-80'}`}>
         {/* Header */}
-        <div className={`border-b ${isDark ? 'border-white/5' : 'border-slate-100'} p-4`}>
+        <div className={`border-b ${isDark ? 'border-white/10' : 'border-slate-200'} p-4`}>
           <div className="flex items-center justify-between mb-4">
             <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>Messages</h3>
             <button className={`p-2 ${isDark ? 'hover:bg-white/5' : 'hover:bg-white'} rounded-lg transition-colors`}>
@@ -212,7 +213,10 @@ export function MessagingChat() {
           {CONVERSATIONS.map((conversation) => (
             <button
               key={conversation.id}
-              onClick={() => setSelectedConversation(conversation.id)}
+              onClick={() => {
+                setSelectedConversation(conversation.id);
+                setShowChatOnMobile(true);
+              }}
               className={`w-full p-4 border-l-4 transition-colors text-left ${
                 selectedConversation === conversation.id
                   ? 'bg-[#7C3AED]/10 border-l-[#7C3AED]'
@@ -256,10 +260,16 @@ export function MessagingChat() {
 
       {/* Chat Area */}
       {currentConversation && (
-        <div className="flex-1 flex flex-col glass rounded-[2.5rem]">
+        <div className={`flex-1 flex flex-col ${showChatOnMobile ? 'flex' : 'hidden lg:flex'}`}>
           {/* Header */}
-          <div className={`border-b ${isDark ? 'border-white/5 bg-card-dark' : 'border-slate-100 bg-white'} p-4 rounded-t-lg flex items-center justify-between`}>
+          <div className={`border-b ${isDark ? 'border-white/10' : 'border-slate-200'} p-4 flex items-center justify-between`}>
             <div className="flex items-center gap-3">
+              <button
+                onClick={() => setShowChatOnMobile(false)}
+                className={`lg:hidden p-2 ${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'} rounded-lg transition-colors`}
+              >
+                <ArrowLeft size={20} className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`} />
+              </button>
               <div
                 className="w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold"
                 style={{ backgroundColor: currentConversation.color }}
@@ -326,7 +336,7 @@ export function MessagingChat() {
           </div>
 
           {/* Message Input */}
-          <div className={`border-t ${isDark ? 'border-white/5 bg-card-dark' : 'border-slate-100 bg-white'} p-4 rounded-b-lg`}>
+          <div className={`border-t ${isDark ? 'border-white/10' : 'border-slate-200'} p-4`}>
             <div className="flex gap-2 mb-2">
               <button className={`p-2 ${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'} rounded-lg transition-colors`}>
                 <Plus size={20} className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`} />

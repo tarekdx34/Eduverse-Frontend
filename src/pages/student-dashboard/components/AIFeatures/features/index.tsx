@@ -4,7 +4,6 @@ import { QuizContent } from './QuizContent';
 import { FeedbackContent } from './FeedbackContent';
 import { ChatbotContent } from './ChatbotContent';
 import { VoiceContent } from './VoiceContent';
-import { RecommendationContent } from './RecommendationContent';
 import { ImageToTextContent } from './ImageToTextContent';
 import { FlashcardsContent } from './FlashcardsContent';
 
@@ -30,8 +29,6 @@ export function FeatureContent({
       return <ChatbotContent />;
     case 'voice':
       return <VoiceContent />;
-    case 'recommendation':
-      return <RecommendationContent />;
     case 'image-to-text':
       return <ImageToTextContent />;
     case 'flashcards':

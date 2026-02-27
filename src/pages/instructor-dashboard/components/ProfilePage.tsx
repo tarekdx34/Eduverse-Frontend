@@ -15,6 +15,7 @@ import {
   Bell,
   Globe,
 } from 'lucide-react';
+import { useTheme } from '../contexts/ThemeContext';
 
 type InstructorProfile = {
   name: string;
@@ -30,7 +31,6 @@ type InstructorProfile = {
     institution: string;
     year: string;
   }[];
-  achievements: string[];
   joinDate: string;
 };
 
@@ -39,6 +39,7 @@ type ProfilePageProps = {
 };
 
 export function ProfilePage({ instructor }: ProfilePageProps) {
+  const { isDark } = useTheme();
   const [isEditing, setIsEditing] = useState(false);
   const [profile, setProfile] = useState<InstructorProfile>(instructor);
   const [editedProfile, setEditedProfile] = useState<InstructorProfile>(instructor);
@@ -53,13 +54,24 @@ export function ProfilePage({ instructor }: ProfilePageProps) {
     setIsEditing(false);
   };
 
+  const cardClass = `rounded-xl border p-6 shadow-sm ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`;
+  const headingClass = `text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`;
+  const subHeadingClass = `text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`;
+  const labelClass = `flex items-center gap-2 text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2`;
+  const valueClass = isDark ? 'text-gray-100' : 'text-gray-900';
+  const mutedClass = isDark ? 'text-gray-400' : 'text-gray-500';
+  const secondaryClass = isDark ? 'text-gray-300' : 'text-gray-600';
+  const inputClass = `w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? 'bg-white/10 border-white/20 text-white placeholder-gray-400' : 'border-gray-300'}`;
+  const borderClass = isDark ? 'border-white/10' : 'border-gray-200';
+  const borderSubtleClass = isDark ? 'border-white/5' : 'border-gray-100';
+
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Profile</h2>
-          <p className="text-sm text-gray-500 mt-1">
+          <h2 className={headingClass}>Profile</h2>
+          <p className={`text-sm ${mutedClass} mt-1`}>
             Manage your account information and preferences
           </p>
         </div>
@@ -76,7 +88,7 @@ export function ProfilePage({ instructor }: ProfilePageProps) {
           <div className="flex gap-2">
             <button
               onClick={handleCancel}
-              className="flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              className={`flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors ${isDark ? 'border-white/20 text-gray-300 hover:bg-white/10' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}
             >
               <X size={18} />
               Cancel
@@ -94,8 +106,8 @@ export function ProfilePage({ instructor }: ProfilePageProps) {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column - Profile Card */}
-        <div className="lg:col-span-1">
-          <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+        <div className="lg:col-span-1 flex justify-center lg:justify-start">
+          <div className={`${cardClass} w-full max-w-sm lg:max-w-none`}>
             {/* Avatar */}
             <div className="relative w-32 h-32 mx-auto mb-4">
               <div className="w-full h-full rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-4xl font-bold">
@@ -112,43 +124,43 @@ export function ProfilePage({ instructor }: ProfilePageProps) {
             </div>
 
             <div className="text-center mb-6">
-              <h3 className="text-xl font-bold text-gray-900">{profile.name}</h3>
-              <p className="text-sm text-gray-500">{profile.department}</p>
-              <div className="mt-2 inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+              <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{profile.name}</h3>
+              <p className={`text-sm ${mutedClass}`}>{profile.department}</p>
+              <div className={`mt-2 inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${isDark ? 'bg-green-500/20 text-green-400' : 'bg-green-100 text-green-700'}`}>
                 <div className="w-2 h-2 bg-green-500 rounded-full" />
                 Active
               </div>
             </div>
 
             {/* Quick Stats */}
-            <div className="space-y-3 pt-6 border-t border-gray-200">
+            <div className={`space-y-3 pt-6 border-t ${borderClass}`}>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Member Since</span>
-                <span className="text-sm font-semibold text-gray-900">{profile.joinDate}</span>
+                <span className={`text-sm ${secondaryClass}`}>Member Since</span>
+                <span className={`text-sm font-semibold ${valueClass}`}>{profile.joinDate}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Sections Teaching</span>
-                <span className="text-sm font-semibold text-gray-900">3</span>
+                <span className={`text-sm ${secondaryClass}`}>Sections Teaching</span>
+                <span className={`text-sm font-semibold ${valueClass}`}>3</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Total Students</span>
-                <span className="text-sm font-semibold text-gray-900">310</span>
+                <span className={`text-sm ${secondaryClass}`}>Total Students</span>
+                <span className={`text-sm font-semibold ${valueClass}`}>310</span>
               </div>
             </div>
 
             {/* Quick Actions */}
-            <div className="mt-6 pt-6 border-t border-gray-200 space-y-2">
-              <button className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 rounded-lg transition-colors">
-                <Lock size={18} className="text-gray-600" />
-                <span className="text-sm font-medium text-gray-700">Change Password</span>
+            <div className={`mt-6 pt-6 border-t ${borderClass} space-y-2`}>
+              <button className={`w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg transition-colors ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-50'}`}>
+                <Lock size={18} className={secondaryClass} />
+                <span className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Change Password</span>
               </button>
-              <button className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 rounded-lg transition-colors">
-                <Bell size={18} className="text-gray-600" />
-                <span className="text-sm font-medium text-gray-700">Notification Settings</span>
+              <button className={`w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg transition-colors ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-50'}`}>
+                <Bell size={18} className={secondaryClass} />
+                <span className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Notification Settings</span>
               </button>
-              <button className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 rounded-lg transition-colors">
-                <Globe size={18} className="text-gray-600" />
-                <span className="text-sm font-medium text-gray-700">Language & Region</span>
+              <button className={`w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg transition-colors ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-50'}`}>
+                <Globe size={18} className={secondaryClass} />
+                <span className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Language & Region</span>
               </button>
             </div>
           </div>
@@ -157,12 +169,12 @@ export function ProfilePage({ instructor }: ProfilePageProps) {
         {/* Right Column - Details */}
         <div className="lg:col-span-2 space-y-6">
           {/* Personal Information */}
-          <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-            <h3 className="text-lg font-semibold text-gray-900 mb-6">Personal Information</h3>
+          <div className={cardClass}>
+            <h3 className={`${subHeadingClass} mb-6`}>Personal Information</h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+                <label className={labelClass}>
                   <User size={16} />
                   Full Name
                 </label>
@@ -171,15 +183,15 @@ export function ProfilePage({ instructor }: ProfilePageProps) {
                     type="text"
                     value={editedProfile.name}
                     onChange={(e) => setEditedProfile({ ...editedProfile, name: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className={inputClass}
                   />
                 ) : (
-                  <p className="text-gray-900">{profile.name}</p>
+                  <p className={valueClass}>{profile.name}</p>
                 )}
               </div>
 
               <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+                <label className={labelClass}>
                   <Mail size={16} />
                   Email Address
                 </label>
@@ -188,15 +200,15 @@ export function ProfilePage({ instructor }: ProfilePageProps) {
                     type="email"
                     value={editedProfile.email}
                     onChange={(e) => setEditedProfile({ ...editedProfile, email: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className={inputClass}
                   />
                 ) : (
-                  <p className="text-gray-900">{profile.email}</p>
+                  <p className={valueClass}>{profile.email}</p>
                 )}
               </div>
 
               <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+                <label className={labelClass}>
                   <Phone size={16} />
                   Phone Number
                 </label>
@@ -205,15 +217,15 @@ export function ProfilePage({ instructor }: ProfilePageProps) {
                     type="tel"
                     value={editedProfile.phone}
                     onChange={(e) => setEditedProfile({ ...editedProfile, phone: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className={inputClass}
                   />
                 ) : (
-                  <p className="text-gray-900">{profile.phone}</p>
+                  <p className={valueClass}>{profile.phone}</p>
                 )}
               </div>
 
               <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+                <label className={labelClass}>
                   <Briefcase size={16} />
                   Department
                 </label>
@@ -224,15 +236,15 @@ export function ProfilePage({ instructor }: ProfilePageProps) {
                     onChange={(e) =>
                       setEditedProfile({ ...editedProfile, department: e.target.value })
                     }
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className={inputClass}
                   />
                 ) : (
-                  <p className="text-gray-900">{profile.department}</p>
+                  <p className={valueClass}>{profile.department}</p>
                 )}
               </div>
 
               <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+                <label className={labelClass}>
                   <MapPin size={16} />
                   Office Location
                 </label>
@@ -241,15 +253,15 @@ export function ProfilePage({ instructor }: ProfilePageProps) {
                     type="text"
                     value={editedProfile.office}
                     onChange={(e) => setEditedProfile({ ...editedProfile, office: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className={inputClass}
                   />
                 ) : (
-                  <p className="text-gray-900">{profile.office}</p>
+                  <p className={valueClass}>{profile.office}</p>
                 )}
               </div>
 
               <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+                <label className={labelClass}>
                   <Calendar size={16} />
                   Office Hours
                 </label>
@@ -260,42 +272,42 @@ export function ProfilePage({ instructor }: ProfilePageProps) {
                     onChange={(e) =>
                       setEditedProfile({ ...editedProfile, officeHours: e.target.value })
                     }
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className={inputClass}
                   />
                 ) : (
-                  <p className="text-gray-900">{profile.officeHours}</p>
+                  <p className={valueClass}>{profile.officeHours}</p>
                 )}
               </div>
             </div>
 
             <div className="mt-6">
-              <label className="text-sm font-medium text-gray-700 mb-2 block">Bio</label>
+              <label className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2 block`}>Bio</label>
               {isEditing ? (
                 <textarea
                   value={editedProfile.bio}
                   onChange={(e) => setEditedProfile({ ...editedProfile, bio: e.target.value })}
                   rows={4}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className={inputClass}
                 />
               ) : (
-                <p className="text-gray-700">{profile.bio}</p>
+                <p className={isDark ? 'text-gray-300' : 'text-gray-700'}>{profile.bio}</p>
               )}
             </div>
           </div>
 
           {/* Education */}
-          <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-            <h3 className="text-lg font-semibold text-gray-900 mb-6">Education</h3>
+          <div className={cardClass}>
+            <h3 className={`${subHeadingClass} mb-6`}>Education</h3>
             <div className="space-y-4">
               {profile.education.map((edu, index) => (
-                <div key={index} className="flex gap-4 pb-4 border-b border-gray-100 last:border-0">
-                  <div className="flex-shrink-0 w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center">
+                <div key={index} className={`flex gap-4 pb-4 border-b ${borderSubtleClass} last:border-0`}>
+                  <div className={`flex-shrink-0 w-12 h-12 rounded-lg flex items-center justify-center ${isDark ? 'bg-indigo-500/20' : 'bg-indigo-100'}`}>
                     <Award size={24} className="text-indigo-600" />
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-semibold text-gray-900">{edu.degree}</h4>
-                    <p className="text-sm text-gray-600">{edu.institution}</p>
-                    <p className="text-xs text-gray-500 mt-1">{edu.year}</p>
+                    <h4 className={`font-semibold ${valueClass}`}>{edu.degree}</h4>
+                    <p className={`text-sm ${secondaryClass}`}>{edu.institution}</p>
+                    <p className={`text-xs ${mutedClass} mt-1`}>{edu.year}</p>
                   </div>
                 </div>
               ))}
@@ -303,31 +315,18 @@ export function ProfilePage({ instructor }: ProfilePageProps) {
           </div>
 
           {/* Specialization */}
-          <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Areas of Specialization</h3>
+          <div className={cardClass}>
+            <h3 className={`${subHeadingClass} mb-4`}>Areas of Specialization</h3>
             <div className="flex flex-wrap gap-2">
               {profile.specialization.map((spec, index) => (
                 <span
                   key={index}
-                  className="px-4 py-2 bg-indigo-50 text-indigo-700 rounded-full text-sm font-medium"
+                  className={`px-4 py-2 rounded-full text-sm font-medium ${isDark ? 'bg-indigo-500/20 text-indigo-300' : 'bg-indigo-50 text-indigo-700'}`}
                 >
                   {spec}
                 </span>
               ))}
             </div>
-          </div>
-
-          {/* Achievements */}
-          <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Achievements & Awards</h3>
-            <ul className="space-y-3">
-              {profile.achievements.map((achievement, index) => (
-                <li key={index} className="flex items-start gap-3">
-                  <div className="flex-shrink-0 w-2 h-2 bg-indigo-600 rounded-full mt-2" />
-                  <span className="text-gray-700">{achievement}</span>
-                </li>
-              ))}
-            </ul>
           </div>
         </div>
       </div>

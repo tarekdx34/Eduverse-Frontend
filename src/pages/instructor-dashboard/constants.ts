@@ -460,12 +460,6 @@ export const INSTRUCTOR_PROFILE = {
     { degree: 'M.S. in Computer Science', institution: 'MIT', year: '2004' },
     { degree: 'B.S. in Computer Engineering', institution: 'UC Berkeley', year: '2002' },
   ],
-  achievements: [
-    'Best Teacher Award 2023',
-    'Published 25+ research papers in top-tier conferences',
-    'Developed innovative curriculum for CS fundamentals',
-    'Mentored 50+ undergraduate research projects',
-  ],
   joinDate: 'September 2010',
 };
 

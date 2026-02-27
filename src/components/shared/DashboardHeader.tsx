@@ -212,11 +212,31 @@ export function DashboardHeader({
         className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10"
         role="banner"
       >
-        <div className="flex-1 max-w-md w-full z-50">
-          <GlobalSearch isDark={isDark} placeholder={t.search} userRole={searchRole as any} />
+        {/* Awab Changes: Integrated Tarek's polished search bar with CMD+K shortcut */}
+        <div
+          className={`relative group flex items-center rounded-2xl px-4 py-2 w-96 max-w-full focus-within:ring-2 transition-all ${
+            isDark ? 'bg-white/5 border border-white/10' : 'glass'
+          }`}
+          style={{ '--tw-ring-color': `${accentColor}50` } as React.CSSProperties}
+        >
+          <span className="material-symbols-rounded text-slate-400 text-xl mr-2">search</span>
+          <input
+            onClick={() => setShowSearch && setShowSearch(true)}
+            className={`bg-transparent border-none focus:ring-0 text-sm w-full cursor-pointer ${isDark ? 'placeholder:text-slate-400' : 'placeholder:text-slate-500'}`}
+            placeholder={t.search}
+            type="text"
+            readOnly
+            aria-label="Search"
+          />
+          <span
+            className={`hidden md:block text-[10px] font-bold px-2 py-1 rounded-lg ${isDark ? 'bg-white/10 text-slate-500' : 'bg-slate-200 text-slate-500'}`}
+          >
+            ⌘K
+          </span>
         </div>
+        {/* End of Tarek's Search Bar UI */}
         {/* Actions */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 md:gap-4 justify-end w-full md:w-auto">
           {/* Notification */}
           <div className="relative" ref={notificationRef}>
             <button
