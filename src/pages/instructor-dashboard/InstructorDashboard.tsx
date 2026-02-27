@@ -551,12 +551,8 @@ function InstructorDashboardContent() {
           />
         )}
 
-<<<<<<< HEAD
         {/* Labs */}
         {activeTab === 'labs' && <LabsPage />}
-=======
-          {/* Labs - Removed for instructor */}
->>>>>>> origin/finalize
 
         {/* Quizzes */}
         {activeTab === 'quizzes' && <QuizzesPage />}
