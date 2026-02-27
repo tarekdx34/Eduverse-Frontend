@@ -14,8 +14,10 @@ import {
   MessageSquare,
   MessagesSquare,
   Menu,
-  Bell,
   Megaphone,
+  Bell,
+  Beaker,
+  UserCheck,
 } from 'lucide-react';
 import {
   StatsCard,
