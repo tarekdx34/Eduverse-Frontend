@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   LayoutGrid,
@@ -6,6 +6,7 @@ import {
   Beaker,
   FileText,
   Users,
+  MessageCircle,
   ClipboardCheck,
   Calendar,
   Megaphone,
@@ -13,12 +14,6 @@ import {
   MessagesSquare,
   User,
   Menu,
-  BarChart3,
-  Clock,
-  Bell,
-  Brain,
-  FolderOpen,
-  HelpCircle,
 } from 'lucide-react';
 import {
   ModernDashboard,
@@ -26,17 +21,12 @@ import {
   LabsPage,
   GradingPage,
   StudentPerformancePage,
+  CommunicationPage,
   AttendancePage,
   SchedulePage,
   AnnouncementsPage,
   DiscussionPage,
-  AnalyticsPage,
-  OfficeHoursPage,
-  NotificationsPage,
-  AIAssistantPage,
-  LabResourcesPage,
 } from './components';
-import { QuizzesPage } from './components/QuizzesPage';
 import { DashboardHeader, DashboardSidebar, MessagingChat } from '../../components/shared';
 import { DashboardProfileTab } from '../../components/shared/DashboardProfileTab';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
@@ -51,45 +41,20 @@ import {
   STUDENT_PERFORMANCE,
 } from './constants';
 
-type TabKey =
-  | 'dashboard'
-  | 'courses'
-  | 'labs'
-  | 'quizzes'
-  | 'grading'
-  | 'students'
-  | 'attendance'
-  | 'schedule'
-  | 'announcements'
-  | 'discussion'
-  | 'chat'
-  | 'profile'
-  | 'analytics'
-  | 'office-hours'
-  | 'notifications'
-  | 'ai-assistant'
-  | 'lab-resources';
+type TabKey = 'dashboard' | 'courses' | 'labs' | 'grading' | 'students' | 'attendance' | 'schedule' | 'announcements' | 'discussion' | 'communication' | 'chat' | 'profile';
 
 const TABS: { key: TabKey; label: string; icon: any; group: string }[] = [
   { key: 'dashboard', label: 'Dashboard', icon: LayoutGrid, group: 'Overview' },
-  // Tarek Changes: Added Analytics to Overview
-  { key: 'analytics', label: 'Analytics', icon: BarChart3, group: 'Overview' },
   { key: 'courses', label: 'Courses', icon: BookOpen, group: 'Teaching' },
   { key: 'labs', label: 'Labs', icon: Beaker, group: 'Teaching' },
-  // Tarek Changes: Added Quizzes & Lab Resources
-  { key: 'quizzes', label: 'Quizzes', icon: HelpCircle, group: 'Teaching' },
-  { key: 'lab-resources', label: 'Lab Resources', icon: FolderOpen, group: 'Teaching' },
   { key: 'grading', label: 'Grading', icon: FileText, group: 'Teaching' },
   { key: 'students', label: 'Students', icon: Users, group: 'Students' },
   { key: 'attendance', label: 'Attendance', icon: ClipboardCheck, group: 'Students' },
   { key: 'schedule', label: 'Schedule', icon: Calendar, group: 'Schedule' },
-  { key: 'office-hours', label: 'Office Hours', icon: Clock, group: 'Schedule' },
   { key: 'announcements', label: 'Announcements', icon: Megaphone, group: 'Schedule' },
-  // Tarek Changes: Added Notifications & AI Assistant
-  { key: 'notifications', label: 'Notifications', icon: Bell, group: 'Communication' },
   { key: 'discussion', label: 'Discussion', icon: MessagesSquare, group: 'Communication' },
+  { key: 'communication', label: 'Communication', icon: MessageCircle, group: 'Communication' },
   { key: 'chat', label: 'Chat', icon: MessageSquare, group: 'Communication' },
-  { key: 'ai-assistant', label: 'AI Assistant', icon: Brain, group: 'Tools' },
   { key: 'profile', label: 'Profile', icon: User, group: 'Account' },
 ];
 
@@ -106,8 +71,50 @@ function TADashboardContent() {
   // Get all submissions from all labs
   const allSubmissions = Object.values(SUBMISSIONS).flat();
 
+  // Mock messages and questions for communication
+  const mockMessages = [
+    {
+      id: 'msg1',
+      from: 'Dr. Jane Smith',
+      subject: 'Lab 1 Grading Reminder',
+      message: 'Please complete grading for Lab 1 by end of week.',
+      timestamp: '2025-02-20T10:00:00',
+      read: false,
+    },
+    {
+      id: 'msg2',
+      from: 'Mohamed Ali',
+      subject: 'Question about Lab 2',
+      message: 'I have a question about exercise 3 in Lab 2.',
+      timestamp: '2025-02-21T14:30:00',
+      read: false,
+    },
+  ];
+
+  const mockQuestions = [
+    {
+      id: 'q1',
+      studentName: 'Fatima Ahmed',
+      course: 'CS101',
+      lab: 'Lab 1',
+      question: 'How do I submit multiple files for the lab assignment?',
+      timestamp: '2025-02-20T10:30:00',
+      status: 'new' as const,
+    },
+    {
+      id: 'q2',
+      studentName: 'Omar Hassan',
+      course: 'CS202',
+      lab: 'Lab 1',
+      question: 'Can you explain the linked list implementation?',
+      timestamp: '2025-02-19T15:20:00',
+      status: 'answered' as const,
+      answer: 'A linked list is a data structure where each element points to the next...',
+    },
+  ];
+
   // Map tabs for translation
-  const translatedTabs = TABS.map((tab) => ({
+  const translatedTabs = TABS.map(tab => ({
     id: tab.key,
     label: t(tab.key) || tab.label,
     icon: tab.icon,
@@ -129,6 +136,7 @@ function TADashboardContent() {
 
   const handleViewCourse = (courseId: string) => {
     setSelectedCourseId(courseId);
+    handleTabChange('labs');
   };
 
   const handleViewLab = (labId: string) => {
@@ -156,15 +164,7 @@ function TADashboardContent() {
         accentColor="#2563EB"
         isMobileOpen={sidebarOpen}
         onMobileClose={() => setSidebarOpen(false)}
-        groupOrder={[
-          'Overview',
-          'Teaching',
-          'Students',
-          'Schedule',
-          'Communication',
-          'Tools',
-          'Account',
-        ]}
+        groupOrder={['Overview', 'Teaching', 'Students', 'Schedule', 'Communication', 'Account']}
       />
 
       {/* Main Content */}
@@ -224,16 +224,15 @@ function TADashboardContent() {
           />
         )}
 
-        {/* Quizzes Tab */}
-        {activeTab === 'quizzes' && <QuizzesPage />}
-
         {/* Grading Tab */}
         {activeTab === 'grading' && (
           <GradingPage submissions={allSubmissions} onGrade={handleGrade} />
         )}
 
         {/* Students Tab */}
-        {activeTab === 'students' && <StudentPerformancePage students={STUDENT_PERFORMANCE} />}
+        {activeTab === 'students' && (
+          <StudentPerformancePage students={STUDENT_PERFORMANCE} />
+        )}
 
         {/* Attendance Tab */}
         {activeTab === 'attendance' && <AttendancePage />}
@@ -247,7 +246,10 @@ function TADashboardContent() {
         {/* Discussion Tab */}
         {activeTab === 'discussion' && <DiscussionPage userRole="ta" userName="Ahmed Hassan" />}
 
-        {/* Communication Tab — Removed (merged into Announcements) */}
+        {/* Communication Tab */}
+        {activeTab === 'communication' && (
+          <CommunicationPage messages={mockMessages} questions={mockQuestions} />
+        )}
 
         {/* Chat Tab */}
         {activeTab === 'chat' && (
@@ -256,7 +258,6 @@ function TADashboardContent() {
             currentUserName="Ahmed Hassan"
             showVideoCall={true}
             showVoiceCall={true}
-            isDark={isDark}
           />
         )}
 
@@ -275,32 +276,11 @@ function TADashboardContent() {
               address: 'Cairo, Egypt',
               dateOfBirth: '1998-11-10',
               bio: 'Graduate teaching assistant pursuing M.Sc. in Computer Science. Assisting in programming and data structures courses while conducting research in distributed systems.',
-              interests: [
-                'Distributed Systems',
-                'Cloud Computing',
-                'Data Structures',
-                'Algorithms',
-                'Teaching Pedagogy',
-              ],
+              interests: ['Distributed Systems', 'Cloud Computing', 'Data Structures', 'Algorithms', 'Teaching Pedagogy'],
               skills: ['Java', 'Python', 'C++', 'Docker', 'Kubernetes', 'Linux'],
             }}
           />
         )}
-
-        {/* Analytics Tab */}
-        {activeTab === 'analytics' && <AnalyticsPage />}
-
-        {/* Office Hours Tab */}
-        {activeTab === 'office-hours' && <OfficeHoursPage />}
-
-        {/* Notifications Tab */}
-        {activeTab === 'notifications' && <NotificationsPage />}
-
-        {/* AI Assistant Tab */}
-        {activeTab === 'ai-assistant' && <AIAssistantPage />}
-
-        {/* Lab Resources Tab */}
-        {activeTab === 'lab-resources' && <LabResourcesPage />}
       </main>
     </div>
   );
