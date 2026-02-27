@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Users, TrendingUp, TrendingDown, CheckCircle, AlertCircle } from 'lucide-react';
+import { Users, TrendingUp, TrendingDown, CheckCircle, AlertCircle, Search, AlertTriangle, Sparkles, Filter, Clock, StickyNote, X } from 'lucide-react';
 import {
   LineChart,
   Line,
@@ -37,8 +37,80 @@ export function StudentPerformancePage({ students }: StudentPerformancePageProps
   const { isDark } = useTheme();
   const { t } = useLanguage();
   const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [courseFilter, setCourseFilter] = useState('');
+  const [studentNotes, setStudentNotes] = useState<Record<string, string>>({});
+  const [noteModalStudentId, setNoteModalStudentId] = useState<string | null>(null);
+  const [noteText, setNoteText] = useState('');
 
   const student = selectedStudent ? students.find((s) => s.studentId === selectedStudent) : null;
+
+  // Stats calculations
+  const totalStudents = students.length;
+  const averageGrade = totalStudents > 0 ? Math.round(students.reduce((sum, s) => sum + s.overallAverage, 0) / totalStudents) : 0;
+  const atRiskStudents = students.filter((s) => s.overallAverage < 70).length;
+  const avgAttendance = totalStudents > 0 ? Math.round(students.reduce((sum, s) => sum + s.overallAttendance, 0) / totalStudents) : 0;
+
+  // Unique courses for filter
+  const allCourses = Array.from(new Set(students.flatMap((s) => s.courses.map((c) => c.courseName))));
+
+  // Filtered students
+  const filteredStudents = students.filter((s) => {
+    const matchesSearch = s.studentName.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCourse = !courseFilter || s.courses.some((c) => c.courseName === courseFilter);
+    return matchesSearch && matchesCourse;
+  });
+
+  // Risk level helper
+  const getRiskLevel = (average: number) => {
+    if (average >= 80) return { border: 'border-l-green-500', label: '', color: '' };
+    if (average >= 70) return { border: 'border-l-yellow-500', label: 'Warning', color: isDark ? 'bg-yellow-500/20 text-yellow-400' : 'bg-yellow-50 text-yellow-700' };
+    return { border: 'border-l-red-500', label: 'At Risk', color: isDark ? 'bg-red-500/20 text-red-400' : 'bg-red-50 text-red-700' };
+  };
+
+  // AI Insights generator
+  const getAIInsights = (s: StudentPerformance) => {
+    const insights: { message: string; type: 'warning' | 'danger' | 'success' | 'info' }[] = [];
+    if (s.overallAttendance < 80) {
+      insights.push({ message: '⚠️ Attendance is below average. Consider reaching out.', type: 'warning' });
+    }
+    s.courses.forEach((c) => {
+      if (c.averageGrade < 70) {
+        insights.push({ message: `📉 Struggling in ${c.courseName}. May need additional support.`, type: 'danger' });
+      }
+    });
+    const totalLate = s.courses.reduce((sum, c) => sum + c.lateSubmissions, 0);
+    if (totalLate > 2) {
+      insights.push({ message: '⏰ Multiple late submissions detected. Time management support recommended.', type: 'warning' });
+    }
+    if (s.overallAverage > 85) {
+      insights.push({ message: '🌟 Strong performer! Consider for peer tutoring.', type: 'success' });
+    }
+    if (insights.length === 0) {
+      insights.push({ message: '✅ Student is performing within expected parameters.', type: 'info' });
+    }
+    return insights;
+  };
+
+  const insightStyles = {
+    warning: isDark ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-300' : 'bg-yellow-50 border-yellow-200 text-yellow-800',
+    danger: isDark ? 'bg-red-500/10 border-red-500/30 text-red-300' : 'bg-red-50 border-red-200 text-red-800',
+    success: isDark ? 'bg-green-500/10 border-green-500/30 text-green-300' : 'bg-green-50 border-green-200 text-green-800',
+    info: isDark ? 'bg-blue-500/10 border-blue-500/30 text-blue-300' : 'bg-blue-50 border-blue-200 text-blue-800',
+  };
+
+  const openNoteModal = (studentId: string) => {
+    setNoteModalStudentId(studentId);
+    setNoteText(studentNotes[studentId] || '');
+  };
+
+  const saveNote = () => {
+    if (noteModalStudentId) {
+      setStudentNotes((prev) => ({ ...prev, [noteModalStudentId]: noteText }));
+      setNoteModalStudentId(null);
+      setNoteText('');
+    }
+  };
 
   const chartData = student
     ? student.courses.map((course) => ({
@@ -58,34 +130,116 @@ export function StudentPerformancePage({ students }: StudentPerformancePageProps
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('studentPerformance')}</h2>
-        <p className={`${isDark ? 'text-slate-400' : 'text-gray-600'} mt-1`}>{t('monitorPerformance')}</p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div>
+          <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('studentPerformance')}</h2>
+          <p className={`${isDark ? 'text-slate-400' : 'text-gray-600'} mt-1`}>{t('monitorPerformance')}</p>
+        </div>
+      </div>
+
+      {/* Stats Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} border rounded-lg p-4`}>
+          <div className="flex items-center gap-3 mb-2">
+            <Users className="w-5 h-5 text-blue-500" />
+            <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>Total Students</span>
+          </div>
+          <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{totalStudents}</p>
+        </div>
+        <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} border rounded-lg p-4`}>
+          <div className="flex items-center gap-3 mb-2">
+            <TrendingUp className="w-5 h-5 text-green-500" />
+            <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>Average Grade</span>
+          </div>
+          <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{averageGrade}%</p>
+        </div>
+        <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} border rounded-lg p-4`}>
+          <div className="flex items-center gap-3 mb-2">
+            <AlertCircle className="w-5 h-5 text-red-500" />
+            <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>At-Risk Students</span>
+          </div>
+          <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{atRiskStudents}</p>
+        </div>
+        <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} border rounded-lg p-4`}>
+          <div className="flex items-center gap-3 mb-2">
+            <CheckCircle className="w-5 h-5 text-yellow-500" />
+            <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>Avg Attendance</span>
+          </div>
+          <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{avgAttendance}%</p>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Students List */}
         <div className={`lg:col-span-1 ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} border rounded-lg p-6`}>
           <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'} mb-4`}>{t('students')}</h3>
+          {/* Search Bar */}
+          <div className="relative mb-3">
+            <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? 'text-slate-400' : 'text-gray-400'}`} />
+            <input
+              type="text"
+              placeholder="Search students..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className={`w-full pl-9 pr-3 py-2 rounded-lg border text-sm ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-slate-500' : 'border-gray-300 bg-white text-gray-900 placeholder-gray-400'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
+            />
+          </div>
+          {/* Course Filter */}
+          <div className="relative mb-4">
+            <Filter className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? 'text-slate-400' : 'text-gray-400'}`} />
+            <select
+              value={courseFilter}
+              onChange={(e) => setCourseFilter(e.target.value)}
+              className={`w-full pl-9 pr-3 py-2 rounded-lg border text-sm ${isDark ? 'bg-white/5 border-white/10 text-white' : 'border-gray-300 bg-white text-gray-900'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
+            >
+              <option value="">All Courses</option>
+              {allCourses.map((course) => (
+                <option key={course} value={course}>{course}</option>
+              ))}
+            </select>
+          </div>
           <div className="space-y-2">
-            {students.map((student) => {
+            {filteredStudents.map((student) => {
               const status = getPerformanceStatus(student.overallAverage);
+              const risk = getRiskLevel(student.overallAverage);
               return (
                 <button
                   key={student.studentId}
                   onClick={() => setSelectedStudent(student.studentId)}
-                  className={`w-full text-left p-3 rounded-lg border transition-colors ${
+                  className={`w-full text-left p-3 rounded-lg border border-l-4 ${risk.border} transition-colors ${
                     selectedStudent === student.studentId
-                      ? isDark ? 'border-blue-500 bg-blue-500/20' : 'border-blue-500 bg-blue-50'
+                      ? isDark ? 'border-blue-500 border-l-blue-500 bg-blue-500/20' : 'border-blue-500 border-l-blue-500 bg-blue-50'
                       : isDark ? 'border-white/10 hover:bg-white/5' : 'border-gray-200 hover:bg-gray-50'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <span className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{student.studentName}</span>
-                    <span className={`text-xs font-medium px-2 py-1 rounded ${status.bg} ${status.color}`}>
-                      {status.label}
-                    </span>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className={`font-medium truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>{student.studentName}</span>
+                      <button
+                        type="button"
+                        title="Add Note"
+                        onClick={(e) => { e.stopPropagation(); openNoteModal(student.studentId); }}
+                        className={`shrink-0 p-1 rounded hover:bg-opacity-20 ${isDark ? 'text-slate-400 hover:text-yellow-400 hover:bg-yellow-500' : 'text-gray-400 hover:text-yellow-600 hover:bg-yellow-100'}`}
+                      >
+                        <StickyNote className="w-4 h-4" />
+                      </button>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      {risk.label && (
+                        <span className={`text-xs font-medium px-2 py-0.5 rounded ${risk.color}`}>
+                          {risk.label}
+                        </span>
+                      )}
+                      <span className={`text-xs font-medium px-2 py-1 rounded ${status.bg} ${status.color}`}>
+                        {status.label}
+                      </span>
+                    </div>
                   </div>
+                  {studentNotes[student.studentId] && (
+                    <p className={`text-xs italic mb-2 truncate ${isDark ? 'text-yellow-400/80' : 'text-yellow-700'}`}>
+                      📝 {studentNotes[student.studentId]}
+                    </p>
+                  )}
                   <div className={`flex items-center gap-4 text-xs ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
                     <span>{t('avg')}: {student.overallAverage}%</span>
                     <span>{t('attendance')}: {student.overallAttendance}%</span>
@@ -161,6 +315,21 @@ export function StudentPerformancePage({ students }: StudentPerformancePageProps
                   ))}
                 </div>
               </div>
+
+              {/* AI Insights Panel */}
+              <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} border rounded-lg p-6`}>
+                <div className="flex items-center gap-3 mb-4">
+                  <Sparkles className="w-5 h-5 text-purple-500" />
+                  <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>AI Insights</h3>
+                </div>
+                <div className="space-y-3">
+                  {getAIInsights(student).map((insight, index) => (
+                    <div key={index} className={`border rounded-lg p-3 text-sm ${insightStyles[insight.type]}`}>
+                      {insight.message}
+                    </div>
+                  ))}
+                </div>
+              </div>
             </>
           ) : (
             <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} border rounded-lg p-12 text-center`}>
@@ -170,6 +339,46 @@ export function StudentPerformancePage({ students }: StudentPerformancePageProps
           )}
         </div>
       </div>
+
+      {/* Note Modal */}
+      {noteModalStudentId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className={`w-full max-w-md rounded-lg border p-6 ${isDark ? 'bg-slate-800 border-white/10' : 'bg-white border-gray-200'}`}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                Add Note
+              </h3>
+              <button
+                onClick={() => { setNoteModalStudentId(null); setNoteText(''); }}
+                className={`p-1 rounded ${isDark ? 'text-slate-400 hover:text-white' : 'text-gray-400 hover:text-gray-600'}`}
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <textarea
+              value={noteText}
+              onChange={(e) => setNoteText(e.target.value)}
+              rows={4}
+              placeholder="Write a note about this student..."
+              className={`w-full rounded-lg border p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-slate-500' : 'border-gray-300 bg-white text-gray-900 placeholder-gray-400'}`}
+            />
+            <div className="flex justify-end gap-2 mt-4">
+              <button
+                onClick={() => { setNoteModalStudentId(null); setNoteText(''); }}
+                className={`px-4 py-2 text-sm rounded-lg border ${isDark ? 'border-white/10 text-slate-300 hover:bg-white/5' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={saveNote}
+                className="px-4 py-2 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700"
+              >
+                Save Note
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -29,6 +29,7 @@ import {
   Info
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface SettingsState {
   theme: 'light' | 'dark' | 'system';
@@ -181,6 +182,7 @@ const translations = {
 
 export function SettingsPreferences() {
   const { isDark, toggleTheme } = useTheme();
+  const { language: globalLanguage, setLanguage: setGlobalLanguage } = useLanguage();
   const [settings, setSettings] = useState<SettingsState>({
     theme: 'light',
     language: 'en',
@@ -354,7 +356,7 @@ export function SettingsPreferences() {
                   <label className={`block text-sm font-medium mb-3 ${isDark ? 'text-slate-400' : 'text-slate-700'}`}>{t.language}</label>
                   <div className="grid grid-cols-2 gap-3">
                     <button
-                      onClick={() => updateSettings('language', 'en')}
+                      onClick={() => { updateSettings('language', 'en'); setGlobalLanguage('en'); }}
                       className={`flex items-center justify-center gap-3 p-4 rounded-xl border-2 transition-all ${
                         settings.language === 'en'
                           ? 'border-[#7C3AED] bg-[#7C3AED]/10'
@@ -370,7 +372,7 @@ export function SettingsPreferences() {
                       {settings.language === 'en' && <Check className="w-4 h-4 text-[#7C3AED]" />}
                     </button>
                     <button
-                      onClick={() => updateSettings('language', 'ar')}
+                      onClick={() => { updateSettings('language', 'ar'); setGlobalLanguage('ar'); }}
                       className={`flex items-center justify-center gap-3 p-4 rounded-xl border-2 transition-all ${
                         settings.language === 'ar'
                           ? 'border-[#7C3AED] bg-[#7C3AED]/10'

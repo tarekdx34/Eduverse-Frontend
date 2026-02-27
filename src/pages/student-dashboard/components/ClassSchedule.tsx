@@ -1,5 +1,6 @@
 import { ChevronLeft, ChevronRight, Calendar, Clock, MapPin, User } from 'lucide-react';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -272,7 +273,9 @@ const upcomingClasses = [
 export default function ClassSchedule() {
   const { t, isRTL, language } = useLanguage();
   const { isDark } = useTheme();
+  const navigate = useNavigate();
   const [currentWeek, setCurrentWeek] = useState('Week of Dec 4 - Dec 10, 2025');
+  const [scheduleType, setScheduleType] = useState<'daily' | 'weekly' | 'monthly'>('weekly');
   const weekDays = language === 'ar' ? weekDaysAr : weekDaysEn;
 
   const getClassesForDay = (day: string) => {
@@ -303,6 +306,16 @@ export default function ClassSchedule() {
                 <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{isRTL ? 'أسبوع 4 - 10 ديسمبر 2025' : currentWeek}</p>
               </div>
               <div className="flex items-center gap-2">
+                <div className="flex gap-1 bg-slate-100 dark:bg-white/5 rounded-lg p-1">
+                  {(['daily', 'weekly', 'monthly'] as const).map(type => (
+                    <button key={type} onClick={() => setScheduleType(type)}
+                      className={`px-3 py-1.5 rounded-md text-sm font-medium capitalize transition-all ${
+                        scheduleType === type
+                          ? 'bg-[#7C3AED] text-white shadow-sm'
+                          : isDark ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-800'
+                      }`}>{type}</button>
+                  ))}
+                </div>
                 <button className={`p-2 border-2 rounded-lg transition-all ${isDark ? 'border-white/10 hover:bg-white/5' : 'border-slate-100 hover:bg-slate-50'}`}>
                   <ChevronLeft className={`w-5 h-5 ${isDark ? 'text-slate-500' : 'text-slate-600'}`} />
                 </button>
@@ -329,7 +342,7 @@ export default function ClassSchedule() {
             </div>
 
             {/* Time Slots */}
-            <div className="overflow-y-auto max-h-[600px]">
+            <div className="overflow-y-auto max-h-[600px] scrollbar-thin scrollbar-thumb-[#7C3AED]/30 scrollbar-track-transparent">
               {timeSlots.map((time, timeIndex) => (
                 <div key={time} className={`grid grid-cols-8 min-w-[700px] border-b last:border-b-0 transition-colors ${isDark ? 'border-white/5 hover:bg-white/5/30' : 'border-slate-100 hover:bg-slate-50/50'}`}>
                   <div className={`p-3 border-r ${isDark ? 'border-white/5 bg-white/[0.03]' : 'border-slate-100 bg-background-light/50'}`}>
@@ -342,6 +355,7 @@ export default function ClassSchedule() {
                         {dayClasses.map((classItem) => (
                           <div
                             key={classItem.id}
+                            onClick={() => navigate(`/studentdashboard/myclass/${classItem.code}`)}
                             className={`${isDark ? 'bg-white/5' : classItem.bgLight} border-l-4 ${classItem.borderColor} rounded-lg p-2.5 mb-1 hover:shadow-md transition-all cursor-pointer group`}
                           >
                             <p className={`text-xs font-bold ${classItem.textColor} mb-1 group-hover:opacity-80`}>

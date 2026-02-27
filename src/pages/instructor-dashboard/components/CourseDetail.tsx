@@ -6,27 +6,19 @@ import {
   Calendar,
   FileText,
   BookOpen,
-  BarChart3,
   MessageSquare,
   Sparkles,
   Video,
   Download,
-  Upload,
   CheckCircle,
   Bell,
-  Settings,
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import {
   FileUploadDropzone,
-  CourseRegistrationPeriod,
-  CourseFeatureToggle,
   AutoGradingSystem,
-  TACollaboration,
-  RegistrationPeriod,
   Submission,
-  TAUser,
 } from '../../../components/shared';
 
 type Course = {
@@ -56,6 +48,10 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
   const { isDark } = useTheme();
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('overview');
+  const [selectedLecture, setSelectedLecture] = useState('');
+  const [showAssignmentForm, setShowAssignmentForm] = useState(false);
+  const [assignmentForm, setAssignmentForm] = useState({ title: '', description: '', dueDate: '', type: 'written' });
+  const [gradingSubTab, setGradingSubTab] = useState<'manual' | 'auto'>('manual');
 
   // Get actual course data
   const course = courses.find((c) => c.id === courseId);
@@ -73,11 +69,10 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
     );
   }
 
-  const instructor = {
-    name: 'Prof. Sarah Martinez',
-    department: 'Computer Science Dept.',
-    avatar: 'SM',
-  };
+  const lectures = [1, 2, 3, 4].map((week) => ({
+    id: `${week}.1`,
+    label: `Lecture ${week}.1 - Introduction`,
+  }));
 
   const tabs = [
     { id: 'overview', label: t('dashboard'), icon: BookOpen },
@@ -86,27 +81,7 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
     { id: 'assignments', label: t('assignments'), icon: FileText },
     { id: 'grading', label: t('grading'), icon: CheckCircle },
     { id: 'students', label: t('students'), icon: Users },
-    { id: 'registration', label: t('registrationPeriod'), icon: Calendar },
-    { id: 'settings', label: t('settings'), icon: Settings },
-    { id: 'analytics', label: t('analytics'), icon: BarChart3 },
     { id: 'announcements', label: t('announcements'), icon: MessageSquare },
-    { id: 'ai-tools', label: t('aiTools'), icon: Sparkles },
-  ];
-
-  // Sample data for new components
-  const sampleRegistrationPeriods: RegistrationPeriod[] = [
-    {
-      id: '1',
-      courseId: String(course.id),
-      courseName: course.courseName,
-      startDate: new Date('2025-05-01T08:00:00'),
-      endDate: new Date('2025-05-15T23:59:00'),
-      capacity: course.capacity,
-      enrolled: course.enrolled,
-      waitlistEnabled: true,
-      waitlistCapacity: 10,
-      isActive: true,
-    },
   ];
 
   const sampleSubmissions: Submission[] = [
@@ -139,68 +114,32 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
     },
   ];
 
-  const sampleTAs: TAUser[] = [
-    {
-      id: 'ta-1',
-      name: 'Alex Johnson',
-      email: 'alex.johnson@edu.com',
-      assignedCourses: [String(course.id)],
-      permissions: [
-        { id: 'grade-assignments', name: 'Grade Assignments', description: 'Grade assignments', category: 'grading' },
-        { id: 'upload-materials', name: 'Upload Materials', description: 'Upload materials', category: 'content' },
-      ],
-      status: 'active',
-    },
-  ];
-
   return (
     <div className={`min-h-screen ${isDark ? 'bg-transparent' : 'bg-gray-50'}`}>
-      {/* Header */}
+      {/* Course Title */}
       <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} border-b`}>
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <button
-                onClick={onBack}
-                className={`p-2 ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'} rounded-lg transition-colors`}
-              >
-                <ArrowLeft size={20} className={isDark ? 'text-slate-400' : 'text-gray-600'} />
-              </button>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-semibold">
-                  E
-                </div>
-                <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>EduVerse</span>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <div className="text-right">
-                <div className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{instructor.name}</div>
-                <div className={`text-xs ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>{instructor.department}</div>
-              </div>
-              <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center text-white font-semibold">
-                {instructor.avatar}
-              </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+            <button
+              onClick={onBack}
+              className={`p-2 self-start ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'} rounded-lg transition-colors`}
+            >
+              <ArrowLeft size={20} className={isDark ? 'text-slate-400' : 'text-gray-600'} />
+            </button>
+            <div>
+              <h1 className={`text-2xl sm:text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'} mb-1`}>{course.courseName}</h1>
+              <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                Manage lectures, assignments, materials, students, and announcements.
+              </p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Course Title */}
+      {/* Tabs */}
       <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} border-b`}>
-        <div className="max-w-7xl mx-auto px-6 py-6">
-          <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'} mb-2`}>{course.courseName}</h1>
-          <p className={isDark ? 'text-slate-400' : 'text-gray-600'}>
-            Manage lectures, assignments, materials, students, analytics, and announcements.
-          </p>
-        </div>
-      </div>
-
-      {/* Tabs - Fixed scrollbar issue */}
-      <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} border-b`}>
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex items-center gap-6 -mb-px">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="flex items-center gap-4 sm:gap-6 -mb-px overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
             {tabs.map((tab) => (
               <button
                 key={tab.id}
@@ -220,7 +159,7 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
       </div>
 
       {/* Content */}
-      <div className="max-w-7xl mx-auto px-6 py-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
         {/* Overview Tab */}
         {activeTab === 'overview' && (
           <>
@@ -361,6 +300,25 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
           <div className="space-y-6">
             <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}>
               <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'} mb-4`}>{t('uploadMaterials')}</h3>
+              <div className="mb-4">
+                <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>
+                  Select Lecture
+                </label>
+                <select
+                  value={selectedLecture}
+                  onChange={(e) => setSelectedLecture(e.target.value)}
+                  className={`w-full px-3 py-2 rounded-lg border text-sm ${
+                    isDark
+                      ? 'bg-white/5 border-white/10 text-white'
+                      : 'bg-white border-gray-300 text-gray-900'
+                  } focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                >
+                  <option value="">-- Select a lecture --</option>
+                  {lectures.map((lec) => (
+                    <option key={lec.id} value={lec.id}>{lec.label}</option>
+                  ))}
+                </select>
+              </div>
               <FileUploadDropzone
                 onFilesUploaded={(files) => console.log('Uploaded:', files)}
                 acceptedTypes={['application/pdf', 'image/*', 'video/*', '.doc', '.docx', '.ppt', '.pptx']}
@@ -398,13 +356,76 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
         {activeTab === 'assignments' && (
           <div className="space-y-6">
             {/* Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('assignments')}</h2>
-              <button className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm">
+              <button
+                onClick={() => setShowAssignmentForm(!showAssignmentForm)}
+                className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm"
+              >
                 <FileText size={16} />
-                Create New Assignment
+                {showAssignmentForm ? 'Cancel' : 'Create New Assignment'}
               </button>
             </div>
+
+            {/* Assignment Creation Form */}
+            {showAssignmentForm && (
+              <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm space-y-4`}>
+                <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>New Assignment</h3>
+                <div>
+                  <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>Title</label>
+                  <input
+                    type="text"
+                    value={assignmentForm.title}
+                    onChange={(e) => setAssignmentForm({ ...assignmentForm, title: e.target.value })}
+                    placeholder="Assignment title"
+                    className={`w-full px-3 py-2 rounded-lg border text-sm ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-slate-500' : 'bg-white border-gray-300 text-gray-900'} focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                  />
+                </div>
+                <div>
+                  <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>Description</label>
+                  <textarea
+                    value={assignmentForm.description}
+                    onChange={(e) => setAssignmentForm({ ...assignmentForm, description: e.target.value })}
+                    placeholder="Assignment description"
+                    rows={3}
+                    className={`w-full px-3 py-2 rounded-lg border text-sm ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-slate-500' : 'bg-white border-gray-300 text-gray-900'} focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                  />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>Due Date</label>
+                    <input
+                      type="date"
+                      value={assignmentForm.dueDate}
+                      onChange={(e) => setAssignmentForm({ ...assignmentForm, dueDate: e.target.value })}
+                      className={`w-full px-3 py-2 rounded-lg border text-sm ${isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                    />
+                  </div>
+                  <div>
+                    <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>Type</label>
+                    <select
+                      value={assignmentForm.type}
+                      onChange={(e) => setAssignmentForm({ ...assignmentForm, type: e.target.value })}
+                      className={`w-full px-3 py-2 rounded-lg border text-sm ${isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                    >
+                      <option value="written">Written / Upload</option>
+                      <option value="mcq">MCQ (Auto-Graded)</option>
+                      <option value="project">Project</option>
+                    </select>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    alert(`Assignment "${assignmentForm.title}" created successfully!`);
+                    setAssignmentForm({ title: '', description: '', dueDate: '', type: 'written' });
+                    setShowAssignmentForm(false);
+                  }}
+                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
+                >
+                  Create Assignment
+                </button>
+              </div>
+            )}
 
             {/* Assignment Cards */}
             <div className="space-y-4">
@@ -453,9 +474,9 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                   key={index}
                   className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}
                 >
-                  <div className="flex items-start justify-between mb-4">
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-4 gap-2">
                     <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
                         <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{assignment.title}</h3>
                         <span
                           className={`px-2 py-1 rounded-full text-xs font-medium ${assignment.subjectColor}`}
@@ -494,14 +515,23 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                       {assignment.status}
                     </span>
                   </div>
-                  <div className={`flex items-center gap-2 pt-4 border-t ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
-                    <button className={`flex items-center gap-2 px-3 py-2 text-sm ${isDark ? 'text-slate-400 hover:bg-white/10' : 'text-gray-700 hover:bg-gray-50'} rounded-lg transition-colors`}>
+                  <div className={`flex flex-wrap items-center gap-2 pt-4 border-t ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
+                    <button
+                      onClick={() => alert(`Viewing submissions for "${assignment.title}"`)}
+                      className={`flex items-center gap-2 px-3 py-2 text-sm ${isDark ? 'text-slate-400 hover:bg-white/10' : 'text-gray-700 hover:bg-gray-50'} rounded-lg transition-colors`}
+                    >
                       View Submissions
                     </button>
-                    <button className={`flex items-center gap-2 px-3 py-2 text-sm ${isDark ? 'text-slate-400 hover:bg-white/10' : 'text-gray-700 hover:bg-gray-50'} rounded-lg transition-colors`}>
+                    <button
+                      onClick={() => alert(`Editing "${assignment.title}"`)}
+                      className={`flex items-center gap-2 px-3 py-2 text-sm ${isDark ? 'text-slate-400 hover:bg-white/10' : 'text-gray-700 hover:bg-gray-50'} rounded-lg transition-colors`}
+                    >
                       Edit
                     </button>
-                    <button className={`flex items-center gap-2 px-3 py-2 text-sm ${isDark ? 'text-slate-400 hover:bg-white/10' : 'text-gray-700 hover:bg-gray-50'} rounded-lg transition-colors`}>
+                    <button
+                      onClick={() => alert(`Opening manual grading for "${assignment.title}"`)}
+                      className={`flex items-center gap-2 px-3 py-2 text-sm ${isDark ? 'text-slate-400 hover:bg-white/10' : 'text-gray-700 hover:bg-gray-50'} rounded-lg transition-colors`}
+                    >
                       Grade Manually
                     </button>
                     <button className="flex items-center gap-2 px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
@@ -517,6 +547,109 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* Grading Tab */}
+        {activeTab === 'grading' && (
+          <div className="space-y-6">
+            {/* Sub-tabs */}
+            <div className={`flex gap-2 border-b ${isDark ? 'border-white/10' : 'border-gray-200'} pb-2`}>
+              <button
+                onClick={() => setGradingSubTab('manual')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  gradingSubTab === 'manual'
+                    ? 'bg-indigo-600 text-white'
+                    : isDark ? 'text-slate-400 hover:bg-white/10' : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                Manual Grading
+              </button>
+              <button
+                onClick={() => setGradingSubTab('auto')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  gradingSubTab === 'auto'
+                    ? 'bg-indigo-600 text-white'
+                    : isDark ? 'text-slate-400 hover:bg-white/10' : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                Auto-Graded Results
+              </button>
+            </div>
+
+            {gradingSubTab === 'manual' && (
+              <div className="space-y-4">
+                <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                  Written and uploaded assignments that require manual review and grading.
+                </p>
+                {sampleSubmissions.map((sub) => (
+                  <div key={sub.id} className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-4 sm:p-6 border shadow-sm`}>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+                      <div>
+                        <h4 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{sub.studentName}</h4>
+                        <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>{sub.studentId} • {sub.assignmentTitle}</p>
+                      </div>
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        sub.status === 'graded' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+                      }`}>
+                        {sub.status === 'graded' ? `Graded: ${sub.grade}` : 'Pending Review'}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        onClick={() => alert(`Viewing submission from ${sub.studentName}`)}
+                        className="px-3 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                      >
+                        View & Grade
+                      </button>
+                      {sub.fileUrl && (
+                        <button
+                          onClick={() => alert(`Downloading ${sub.fileName}`)}
+                          className={`flex items-center gap-1 px-3 py-2 text-sm rounded-lg transition-colors ${isDark ? 'text-slate-300 hover:bg-white/10' : 'text-gray-700 hover:bg-gray-100'}`}
+                        >
+                          <Download size={14} /> {sub.fileName}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {gradingSubTab === 'auto' && (
+              <div className="space-y-4">
+                <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                  MCQ assignments are auto-graded. Results are displayed below (view only).
+                </p>
+                <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl border shadow-sm overflow-x-auto`}>
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className={isDark ? 'border-b border-white/10' : 'border-b border-gray-200'}>
+                        <th className={`text-left p-4 font-medium ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>Student</th>
+                        <th className={`text-left p-4 font-medium ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>Quiz</th>
+                        <th className={`text-left p-4 font-medium ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>Score</th>
+                        <th className={`text-left p-4 font-medium ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>Grade</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[
+                        { student: 'Ahmed Hassan', quiz: 'Midterm MCQ', score: '92/100', grade: 'A' },
+                        { student: 'Sara Mohamed', quiz: 'Midterm MCQ', score: '85/100', grade: 'B+' },
+                        { student: 'Omar Ali', quiz: 'Midterm MCQ', score: '78/100', grade: 'B' },
+                        { student: 'Layla Ibrahim', quiz: 'Midterm MCQ', score: '95/100', grade: 'A+' },
+                      ].map((row, i) => (
+                        <tr key={i} className={isDark ? 'border-b border-white/5' : 'border-b border-gray-100'}>
+                          <td className={`p-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>{row.student}</td>
+                          <td className={`p-4 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>{row.quiz}</td>
+                          <td className={`p-4 font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{row.score}</td>
+                          <td className="p-4"><span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">{row.grade}</span></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -548,29 +681,6 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
           </div>
         )}
 
-        {/* Analytics Tab */}
-        {activeTab === 'analytics' && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}>
-                <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'} mb-2`}>Average Grade</div>
-                <div className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{course.averageGrade}%</div>
-                <div className="text-sm text-green-600 mt-2">↑ 3% from last month</div>
-              </div>
-              <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}>
-                <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'} mb-2`}>Attendance Rate</div>
-                <div className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{course.attendanceRate}%</div>
-                <div className="text-sm text-green-600 mt-2">↑ 2% from last month</div>
-              </div>
-              <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}>
-                <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'} mb-2`}>Completion Rate</div>
-                <div className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>89%</div>
-                <div className="text-sm text-green-600 mt-2">↑ 5% from last month</div>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Announcements Tab */}
         {activeTab === 'announcements' && (
           <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}>
@@ -594,81 +704,6 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                   <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>{announcement.content}</div>
                 </div>
               ))}
-            </div>
-          </div>
-        )}
-
-        {/* Grading Tab */}
-        {activeTab === 'grading' && (
-          <AutoGradingSystem
-            submissions={sampleSubmissions}
-            onGradeUpdate={(id, updates) => console.log('Grade updated:', id, updates)}
-            onBulkAutoGrade={async () => {
-              await new Promise(resolve => setTimeout(resolve, 2000));
-              console.log('Bulk auto-grade completed');
-            }}
-          />
-        )}
-
-        {/* Registration Tab */}
-        {activeTab === 'registration' && (
-          <div className="space-y-6">
-            <CourseRegistrationPeriod
-              registrationPeriods={sampleRegistrationPeriods}
-              onUpdatePeriod={(id, updates) => console.log('Period updated:', id, updates)}
-              onCreatePeriod={(courseId, data) => console.log('Period created:', courseId, data)}
-              courses={[{ id: String(course.id), name: course.courseName }]}
-            />
-            
-            <TACollaboration
-              tas={sampleTAs}
-              courses={[{ id: String(course.id), name: course.courseName }]}
-              onAddTA={(email, courses, permissions) => console.log('TA added:', email)}
-              onUpdateTA={(id, updates) => console.log('TA updated:', id, updates)}
-              onRemoveTA={(id) => console.log('TA removed:', id)}
-            />
-          </div>
-        )}
-
-        {/* Settings Tab */}
-        {activeTab === 'settings' && (
-          <CourseFeatureToggle
-            courseId={String(course.id)}
-            courseName={course.courseName}
-            onFeaturesChange={(features) => console.log('Features changed:', features)}
-          />
-        )}
-
-        {/* AI Tools Tab */}
-        {activeTab === 'ai-tools' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}>
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-3 bg-purple-100 rounded-xl">
-                  <Sparkles className="text-purple-600" size={24} />
-                </div>
-                <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Generate Quiz</h3>
-              </div>
-              <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'} mb-4`}>
-                Automatically generate quizzes based on course materials
-              </p>
-              <button className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm">
-                Generate Quiz
-              </button>
-            </div>
-            <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}>
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-3 bg-indigo-100 rounded-xl">
-                  <BarChart3 className="text-indigo-600" size={24} />
-                </div>
-                <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Analyze Performance</h3>
-              </div>
-              <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'} mb-4`}>
-                Get AI-powered insights on student performance
-              </p>
-              <button className="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm">
-                Analyze Course
-              </button>
             </div>
           </div>
         )}

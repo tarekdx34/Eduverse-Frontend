@@ -20,12 +20,6 @@ interface Course {
 
 interface ClassTabProps {
   courses?: Course[];
-  stats?: {
-    totalCourses: number;
-    completed: number;
-    inProgress: number;
-    totalCredits: number;
-  };
   onViewCourse?: (courseId: string) => void;
 }
 
@@ -122,26 +116,7 @@ const defaultCourses: Course[] = [
   },
 ];
 
-const defaultStats = {
-  totalCourses: 6,
-  completed: 1,
-  inProgress: 5,
-  totalCredits: 20,
-};
-
-const StatCard = ({ label, value, icon: Icon, color, isDark }: any) => (
-  <div className={`glass rounded-[2.5rem] p-6`}>
-    <div className="flex items-start gap-3 mb-4">
-      <div className={`p-2 rounded-lg ${color}`}>
-        <Icon className="w-5 h-5" />
-      </div>
-    </div>
-    <div className={`text-sm mb-2 ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{label}</div>
-    <div className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{value}</div>
-  </div>
-);
-
-const CourseCard = ({
+const CourseCard= ({
   course,
   onViewCourse,
   isDark,
@@ -152,15 +127,15 @@ const CourseCard = ({
   isDark: boolean;
   t: (key: string) => string;
 }) => (
-  <div className={`glass rounded-[2.5rem] overflow-hidden hover:shadow-lg transition-shadow`}>
+  <div className={`${isDark ? 'bg-card-dark border border-white/5' : 'glass'} rounded-[2.5rem] overflow-hidden hover:shadow-lg transition-shadow`}>
     {/* Color bar */}
     <div className="h-2" style={{ backgroundColor: course.progressColor }} />
 
     {/* Course header */}
     <div className="p-6">
       <div className="flex justify-between items-start mb-4">
-        <div className="flex-1">
-          <h3 className={`font-semibold mb-1 ${isDark ? 'text-white' : 'text-slate-800'}`}>{course.title}</h3>
+        <div className="flex-1 min-w-0">
+          <h3 className={`font-semibold mb-1 break-words ${isDark ? 'text-white' : 'text-slate-800'}`}>{course.title}</h3>
           <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{course.courseCode}</p>
         </div>
         <button className={`transition-colors ${isDark ? 'text-slate-500 hover:text-slate-400' : 'text-slate-500 hover:text-slate-600'}`}>
@@ -221,14 +196,16 @@ const CourseCard = ({
       </div>
 
       {/* Buttons */}
-      <div className="flex gap-2">
+      <div className="flex gap-2 flex-wrap">
         <button
           onClick={() => onViewCourse?.(course.id)}
-          className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+          className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-lg transition-colors min-w-0"
         >
           {t('viewCourse')}
         </button>
-        <button className={`flex-1 border font-medium py-2 px-4 rounded-lg transition-colors ${
+        <button
+          onClick={() => onViewCourse?.(course.id)}
+          className={`flex-1 border font-medium py-2 px-4 rounded-lg transition-colors min-w-0 ${
           isDark 
             ? 'border-white/10 hover:bg-white/5 text-slate-400' 
             : 'border-slate-100 hover:bg-slate-50 text-slate-700'
@@ -242,7 +219,6 @@ const CourseCard = ({
 
 export default function ClassTab({
   courses = defaultCourses,
-  stats = defaultStats,
   onViewCourse,
 }: ClassTabProps) {
   const { isDark } = useTheme();
@@ -250,38 +226,6 @@ export default function ClassTab({
 
   return (
     <div className="space-y-6">
-      {/* Stats Overview */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard
-          label={t('totalCourses')}
-          value={stats.totalCourses}
-          icon={() => <BookOpen className="w-5 h-5" />}
-          color="bg-[#7C3AED]/10"
-          isDark={isDark}
-        />
-        <StatCard
-          label={t('completed')}
-          value={stats.completed}
-          icon={() => <div className="w-5 h-5">✓</div>}
-          color="bg-green-100"
-          isDark={isDark}
-        />
-        <StatCard
-          label={t('inProgress')}
-          value={stats.inProgress}
-          icon={() => <Clock className="w-5 h-5" />}
-          color="bg-orange-100"
-          isDark={isDark}
-        />
-        <StatCard
-          label={t('totalCredits')}
-          value={stats.totalCredits}
-          icon={() => <Users className="w-5 h-5" />}
-          color="bg-purple-100"
-          isDark={isDark}
-        />
-      </div>
-
       {/* Enrolled Courses Section */}
       <div>
         <div className="mb-4">

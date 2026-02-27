@@ -33,3 +33,7 @@ export { AIToolsPage } from './AIToolsPage';
 export { CommunicationPage } from './CommunicationPage';
 export { DiscussionPage } from './DiscussionPage';
 export { SettingsPage } from './SettingsPage';
+export { UploadMaterialsPage } from './UploadMaterialsPage';
+export { NotificationsPage } from './NotificationsPage';
+export { AnnouncementsManager } from './AnnouncementsManager';
+export { GlobalSearchPage } from './GlobalSearchPage';

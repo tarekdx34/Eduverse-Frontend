@@ -82,7 +82,7 @@ export function DashboardProfileTab({
           <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white via-transparent to-transparent" />
         </div>
 
-        <div className="px-8 -mt-20 relative z-10 flex flex-col md:flex-row items-end gap-6">
+        <div className="px-8 -mt-20 relative z-10 flex flex-col md:flex-row items-start md:items-end gap-6">
           {/* Avatar */}
           <div className="relative">
             <div
@@ -126,7 +126,7 @@ export function DashboardProfileTab({
 
           {/* Action Buttons */}
           <div className="pb-4 flex gap-3">
-            <button className="px-6 py-3 bg-white/20 backdrop-blur-md border border-white/30 text-white font-bold rounded-2xl hover:bg-white/30 transition-all flex items-center gap-2">
+            <button className={`px-6 py-3 backdrop-blur-md border font-bold rounded-2xl transition-all flex items-center gap-2 ${isDark ? 'bg-white/20 border-white/30 text-white hover:bg-white/30' : 'bg-white/80 border-slate-200 text-[#7C3AED] hover:bg-white'}`}>
               <Download className="w-4 h-4" />
               Download CV
             </button>
@@ -250,9 +250,9 @@ export function DashboardProfileTab({
       </div>
 
       {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+      <div className={`grid grid-cols-1 ${((data.badges && data.badges.length > 0) || (data.achievements && data.achievements.length > 0)) ? 'lg:grid-cols-12' : ''} gap-10`}>
         {/* Left Column */}
-        <div className="lg:col-span-5 space-y-10">
+        <div className={`${((data.badges && data.badges.length > 0) || (data.achievements && data.achievements.length > 0)) ? 'lg:col-span-5' : ''} space-y-10`}>
           {/* Personal Information */}
           <div className={`${cardClass} p-8 rounded-[2.5rem]`}>
             <h3 className={`text-2xl font-bold mb-6 flex items-center gap-3 ${valueClass}`}>
@@ -419,7 +419,8 @@ export function DashboardProfileTab({
           )}
         </div>
 
-        {/* Right Column - Badges & Achievements */}
+        {/* Right Column - Badges & Achievements (only shown if data is passed) */}
+        {((data.badges && data.badges.length > 0) || (data.achievements && data.achievements.length > 0)) && (
         <div className="lg:col-span-7">
           <div className={`${cardClass} p-8 rounded-[2.5rem] h-full`}>
             <div className="flex justify-between items-center mb-10">
@@ -513,6 +514,7 @@ export function DashboardProfileTab({
             </div>
           </div>
         </div>
+        )}
       </div>
     </div>
   );

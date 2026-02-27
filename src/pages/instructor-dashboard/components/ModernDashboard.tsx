@@ -1,21 +1,20 @@
 import React, { useState } from 'react';
 import {
-  Calendar,
   Users,
   FileText,
-  BookOpen,
   ArrowRight,
   Sparkles,
-  GraduationCap,
-  Bell,
   TrendingUp,
+  MapPin,
   Clock,
+  // Tarek and Awab: Merged icons
   Upload,
   CheckSquare,
   Headphones,
   BarChart2,
   Zap,
   Database,
+  GraduationCap,
 } from 'lucide-react';
 import {
   BarChart,
@@ -220,9 +219,6 @@ export function ModernDashboard({
     },
   ];
 
-  const totalStudents = sections.reduce((sum, s) => sum + s.enrolled, 0);
-  const activeCourses = sections.length;
-
   const performanceData = [
     { course: 'Calc I', value: 85 },
     { course: 'Physics', value: 78 },
@@ -253,7 +249,7 @@ export function ModernDashboard({
 
   return (
     <div className="space-y-6">
-      {/* ── Metric Cards ── */}
+      {/* Awab Changes: Integrated Metric Cards from v2 with Tarek's layout below */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Active Courses */}
         <div className={`rounded-3xl p-6 relative transition-colors ${statCardClass}`}>
@@ -270,7 +266,7 @@ export function ModernDashboard({
           <div
             className={`text-4xl font-bold mb-1 tracking-tight ${isDark ? 'text-white' : 'text-slate-800'}`}
           >
-            {activeCourses}
+            {stats.activeCourses || 4}
           </div>
           <div className={`text-sm font-medium ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
             {t('activeCourses')}
@@ -292,7 +288,7 @@ export function ModernDashboard({
           <div
             className={`text-4xl font-bold mb-1 tracking-tight ${isDark ? 'text-white' : 'text-slate-800'}`}
           >
-            42
+            {stats.pendingGrading || 42}
           </div>
           <div className={`text-sm font-medium ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
             {t('pendingGrading')}
@@ -314,14 +310,13 @@ export function ModernDashboard({
           <div
             className={`text-4xl font-bold mb-1 tracking-tight ${isDark ? 'text-white' : 'text-slate-800'}`}
           >
-            {totalStudents}
+            {stats.totalStudents || 156}
           </div>
           <div className={`text-sm font-medium ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
             {t('totalStudents')}
           </div>
         </div>
       </div>
-
       {/* ── Evy — AI Teaching Assistant ── */}
       <div
         className={`rounded-3xl p-6 relative overflow-hidden transition-all ${
@@ -588,6 +583,7 @@ export function ModernDashboard({
                   const dateObj = cls.date ? new Date(cls.date) : new Date();
                   const month = dateObj.toLocaleString('en', { month: 'short' }).toUpperCase();
                   const day = dateObj.getDate();
+<<<<<<< HEAD
                   const colors = th.colors;
                   return (
                     <div
@@ -599,6 +595,14 @@ export function ModernDashboard({
                       <div
                         className={`w-12 h-12 rounded-xl flex flex-col items-center justify-center text-white text-xs font-bold ${colors[index % colors.length]}`}
                       >
+=======
+                  const timeStr = cls.time || cls.startTime || dateObj.toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' });
+                  const location = cls.room || cls.location || 'TBD';
+                  const colors = ['bg-violet-500', 'bg-blue-500', 'bg-emerald-500', 'bg-amber-500'];
+                  return (
+                    <div key={index} className={`flex items-start gap-3 p-3 rounded-2xl transition-colors ${isDark ? 'hover:bg-white/5' : 'hover:bg-gray-50'}`}>
+                      <div className={`w-12 h-12 rounded-xl flex flex-col items-center justify-center text-white text-xs font-bold shrink-0 ${colors[index % colors.length]}`}>
+>>>>>>> origin/finalize
                         <span className="text-[10px] leading-none opacity-80">{month}</span>
                         <span className="text-base leading-tight">{day}</span>
                       </div>
@@ -608,11 +612,22 @@ export function ModernDashboard({
                         >
                           {cls.title || cls.name}
                         </h4>
+<<<<<<< HEAD
                         <p
                           className={`text-xs mt-0.5 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}
                         >
                           {cls.time || cls.startTime}
                         </p>
+=======
+                        <div className={`flex items-center gap-1 text-xs mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                          <Clock size={12} />
+                          <span>{timeStr}</span>
+                        </div>
+                        <div className={`flex items-center gap-1 text-xs mt-0.5 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                          <MapPin size={12} />
+                          <span className="truncate">{location}</span>
+                        </div>
+>>>>>>> origin/finalize
                       </div>
                     </div>
                   );
@@ -625,6 +640,7 @@ export function ModernDashboard({
             </div>
           </div>
 
+<<<<<<< HEAD
           {/* Quick Actions */}
           <div
             className={`rounded-[2.5rem] p-6 ${isDark ? 'bg-card-dark border border-white/5' : `bg-white border border-slate-200 shadow-sm`}`}
@@ -655,6 +671,8 @@ export function ModernDashboard({
             </div>
           </div>
 
+=======
+>>>>>>> origin/finalize
           {/* Recent Activity */}
           <div className={`rounded-[2.5rem] p-6 ${cardClass}`}>
             <h3 className={`text-base font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>

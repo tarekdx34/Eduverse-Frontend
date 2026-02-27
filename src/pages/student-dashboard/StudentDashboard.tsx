@@ -16,9 +16,9 @@ import {
   Bell,
   Users,
   Beaker,
-  PieChart,
   Settings,
   User,
+  ClipboardCheck,
 } from 'lucide-react';
 import {
   StatsCard,
@@ -39,8 +39,8 @@ import {
   NotificationCenter,
   CourseCommunity,
   LabInstructions,
-  ProgressAnalytics,
   SettingsPreferences,
+  QuizTaking,
 } from './components';
 import { DashboardHeader, DashboardSidebar } from '../../components/shared';
 import { DashboardProfileTab } from '../../components/shared/DashboardProfileTab';
@@ -59,9 +59,9 @@ const tabTranslationKeys: Record<string, string> = {
   labs: 'labSessions',
   grades: 'grades',
   attendance: 'attendance',
-  analytics: 'analytics',
   todo: 'todoList',
   ai: 'aiFeatures',
+  quizzes: 'quizzes',
   gamification: 'achievements',
   notifications: 'notifications',
   payments: 'payments',
@@ -101,9 +101,9 @@ function StudentDashboardContent() {
     { id: 'labs', label: 'Lab Sessions', icon: Beaker },
     { id: 'grades', label: 'Grades', icon: FileText },
     { id: 'attendance', label: 'Attendance', icon: BarChart3 },
-    { id: 'analytics', label: 'Analytics', icon: PieChart },
     { id: 'todo', label: 'Todo List', icon: ListChecks },
     { id: 'ai', label: 'AI Features', icon: Sparkles },
+    { id: 'quizzes', label: 'Quiz Center', icon: ClipboardCheck },
     { id: 'gamification', label: 'Achievements', icon: Trophy },
     { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'payments', label: 'Payments', icon: CreditCard },
@@ -254,9 +254,9 @@ function StudentDashboardContent() {
               {activeTab === 'labs' && <LabInstructions />}
               {activeTab === 'calendar' && <AcademicCalendar />}
               {activeTab === 'ai' && <AIFeatures />}
+              {activeTab === 'quizzes' && <QuizTaking />}
               {activeTab === 'grades' && <GradesTranscript />}
               {activeTab === 'attendance' && <AttendanceOverview />}
-              {activeTab === 'analytics' && <ProgressAnalytics />}
               {activeTab === 'todo' && <SmartTodoReminder />}
               {activeTab === 'gamification' && <Gamification />}
               {activeTab === 'notifications' && <NotificationCenter />}
