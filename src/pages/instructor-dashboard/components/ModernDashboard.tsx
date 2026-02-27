@@ -7,6 +7,7 @@ import {
   TrendingUp,
   MapPin,
   Clock,
+  BookOpen,
   // Tarek and Awab: Merged icons
   Upload,
   CheckSquare,
