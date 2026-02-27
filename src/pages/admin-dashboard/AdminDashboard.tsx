@@ -48,10 +48,8 @@ type TabKey =
 
 const TABS: { key: TabKey; label: string; labelAr: string; icon: any }[] = [
   { key: 'dashboard', label: 'Dashboard', labelAr: 'لوحة التحكم', icon: LayoutGrid },
-  // Tarek Changes: Refactored to Student Management
   { key: 'students', label: 'Student Management', labelAr: 'إدارة الطلاب', icon: GraduationCap },
   { key: 'courses', label: 'Course Management', labelAr: 'إدارة المقررات', icon: BookOpen },
-  // Tarek Changes: Added Periods & Scheduling
   {
     key: 'periods',
     label: 'Periods & Scheduling',

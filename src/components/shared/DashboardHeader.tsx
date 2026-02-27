@@ -212,7 +212,6 @@ export function DashboardHeader({
         className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10"
         role="banner"
       >
-        {/* Awab Changes: Integrated Tarek's polished search bar with CMD+K shortcut */}
         <div
           className={`relative group flex items-center rounded-2xl px-4 py-2 w-96 max-w-full focus-within:ring-2 transition-all ${
             isDark ? 'bg-white/5 border border-white/10' : 'glass'

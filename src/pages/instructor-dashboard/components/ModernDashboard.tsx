@@ -8,7 +8,6 @@ import {
   MapPin,
   Clock,
   BookOpen,
-  // Tarek and Awab: Merged icons
   Upload,
   CheckSquare,
   Headphones,
@@ -250,7 +249,6 @@ export function ModernDashboard({
 
   return (
     <div className="space-y-6">
-      {/* Awab Changes: Integrated Metric Cards from v2 with Tarek's layout below */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Active Courses */}
         <div className={`rounded-3xl p-6 relative transition-colors ${statCardClass}`}>

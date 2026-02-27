@@ -102,7 +102,6 @@ const TABS: { key: TabKey; label: string; labelAr: string; icon: any; group: str
     group: 'Overview',
   },
   { key: 'courses', label: 'Courses', labelAr: 'المقررات', icon: BookOpen, group: 'Teaching' },
-  // Awab Changes: Kept 'labs' and 'waitlist' from v2
   { key: 'labs', label: 'Labs', labelAr: 'المعامل', icon: Beaker, group: 'Teaching' },
   {
     key: 'quizzes',
@@ -136,7 +135,6 @@ const TABS: { key: TabKey; label: string; labelAr: string; icon: any; group: str
     icon: BarChart3,
     group: 'Students',
   },
-  // Tarek Changes: Added announcements and notifications
   {
     key: 'announcements',
     label: 'Announcements',
@@ -625,7 +623,6 @@ function InstructorDashboardContent() {
                 ))}
               </select>
             </div>
-            {/* Awab Changes: Kept section summary and improved roster table from finalize */}
             <SelectedSectionSummary section={selectedSection as any} />
             <RosterTable
               data={currentRoster}
@@ -634,7 +631,6 @@ function InstructorDashboardContent() {
                 setEditingStudent(student);
                 setIsEditOpen(true);
               }}
-              // Note: onToggleStatus from v2 was replaced by more comprehensive roster management in finalize
             />
           </div>
         )}

@@ -72,11 +72,9 @@ type TabKey =
 
 const TABS: { key: TabKey; label: string; icon: any; group: string }[] = [
   { key: 'dashboard', label: 'Dashboard', icon: LayoutGrid, group: 'Overview' },
-  // Tarek Changes: Added Analytics to Overview
   { key: 'analytics', label: 'Analytics', icon: BarChart3, group: 'Overview' },
   { key: 'courses', label: 'Courses', icon: BookOpen, group: 'Teaching' },
   { key: 'labs', label: 'Labs', icon: Beaker, group: 'Teaching' },
-  // Tarek Changes: Added Quizzes & Lab Resources
   { key: 'quizzes', label: 'Quizzes', icon: HelpCircle, group: 'Teaching' },
   { key: 'lab-resources', label: 'Lab Resources', icon: FolderOpen, group: 'Teaching' },
   { key: 'grading', label: 'Grading', icon: FileText, group: 'Teaching' },
@@ -85,7 +83,6 @@ const TABS: { key: TabKey; label: string; icon: any; group: string }[] = [
   { key: 'schedule', label: 'Schedule', icon: Calendar, group: 'Schedule' },
   { key: 'office-hours', label: 'Office Hours', icon: Clock, group: 'Schedule' },
   { key: 'announcements', label: 'Announcements', icon: Megaphone, group: 'Schedule' },
-  // Tarek Changes: Added Notifications & AI Assistant
   { key: 'notifications', label: 'Notifications', icon: Bell, group: 'Communication' },
   { key: 'discussion', label: 'Discussion', icon: MessagesSquare, group: 'Communication' },
   { key: 'chat', label: 'Chat', icon: MessageSquare, group: 'Communication' },
