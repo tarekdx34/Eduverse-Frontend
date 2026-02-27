@@ -17,7 +17,8 @@ import {
   Server,
   ExternalLink,
   Sparkles,
-  PenTool
+  PenTool,
+  Zap,
 } from 'lucide-react';
 
 const AWAB_PAGES = [
@@ -93,6 +94,51 @@ const AWAB_PAGES = [
     description: 'Old: Search input was surrounded by focus rings and heavy drop shadows. Avatar had purple hover glows.\nNew: Stripped out completely to zero box shadows. Sleek border outline and flat hover variants to maintain an ultimate minimal aesthetic aligned with everything else.',
     icon: Sparkles
   }
+];
+
+const TAREK_PAGES = [
+  {
+    path: '/tadashboard',
+    label: 'TA Dashboard — New Tabs',
+    description: 'Added: Quizzes, Analytics, Office Hours, Notifications, AI Assistant, Lab Resources tabs',
+    icon: Zap
+  },
+  {
+    path: '/tadashboard',
+    label: 'TA — Removed Communication',
+    description: 'Removed CommunicationPage and merged functionality into Discussion/Chat',
+    icon: Zap
+  },
+  {
+    path: '/studentdashboard',
+    label: 'Student — Quiz Center',
+    description: 'Added Quiz Center tab with full QuizTaking component (selection, active quiz, results)',
+    icon: Zap
+  },
+  {
+    path: '/admindashboard',
+    label: 'Admin — Student Management',
+    description: 'Renamed User Management → Student Management with new StudentManagementPage component',
+    icon: Zap
+  },
+  {
+    path: '/admindashboard',
+    label: 'Admin — Periods & Scheduling',
+    description: 'Added Periods & Scheduling tab and Prerequisites Management',
+    icon: Zap
+  },
+  {
+    path: '/instructordashboard',
+    label: 'Shared — Dark Mode Improvements',
+    description: 'AIQuestionEditor and MessagingChat now have explicit isDark props and improved dark mode styling',
+    icon: Zap
+  },
+  {
+    path: '/instructordashboard',
+    label: 'Shared — CMD+K Global Search',
+    description: 'DashboardHeader refactored with CMD+K shortcut for Global Search',
+    icon: Zap
+  },
 ];
 
 const PAGES = [
@@ -206,6 +252,44 @@ export function QuickNavigateModal() {
           ) : (
             <div className="text-xs text-center p-3 rounded-lg border border-dashed border-border text-muted-foreground bg-muted/10">
               No pages added yet. Add them to AWAB_PAGES in QuickNavigateModal.jsx
+            </div>
+          )}
+
+          <div className="my-2 border-t border-border" />
+
+          <h3 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-1">
+            <Zap className="h-4 w-4 text-amber-500" />
+            Tarek changes
+          </h3>
+          <p className="text-xs text-muted-foreground mb-2">Track what Tarek added in the finalize branch.</p>
+
+          {TAREK_PAGES.length > 0 ? (
+            TAREK_PAGES.map((page, idx) => {
+              const Icon = page.icon;
+              return (
+              <button
+                key={`tarek-${idx}`}
+                type="button"
+                onClick={() => handleNavigate(page.path)}
+                className="flex items-start gap-3 w-full px-4 py-3 rounded-lg border border-amber-500/20 bg-amber-500/5 hover:bg-amber-500/10 transition-colors text-left"
+              >
+                <div className="flex h-9 w-9 items-center justify-center rounded-md bg-amber-500/10 shrink-0">
+                  <Icon className="h-4 w-4 text-amber-500" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className="font-medium text-foreground block">{page.label}</span>
+                  {page.description ? (
+                    <p className="text-xs text-amber-600/80 mt-1 whitespace-pre-line">{page.description}</p>
+                  ) : (
+                    <p className="text-xs text-muted-foreground truncate">{page.path}</p>
+                  )}
+                </div>
+                <ExternalLink className="h-4 w-4 text-amber-500/70 shrink-0 mt-1" />
+              </button>
+            )})
+          ) : (
+            <div className="text-xs text-center p-3 rounded-lg border border-dashed border-border text-muted-foreground bg-muted/10">
+              No pages added yet. Add them to TAREK_PAGES in QuickNavigateModal.jsx
             </div>
           )}
 

@@ -102,7 +102,6 @@ function StudentDashboardContent() {
     { id: 'attendance', label: 'Attendance', icon: BarChart3 },
     { id: 'todo', label: 'Todo List', icon: ListChecks },
     { id: 'ai', label: 'AI Features', icon: Sparkles },
-    // Tarek Changes: Added Quiz Center
     { id: 'quizzes', label: 'Quiz Center', icon: ClipboardCheck },
     { id: 'gamification', label: 'Achievements', icon: Trophy },
     { id: 'notifications', label: 'Notifications', icon: Bell },
