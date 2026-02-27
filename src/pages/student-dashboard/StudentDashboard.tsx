@@ -69,7 +69,6 @@ const tabTranslationKeys: Record<string, string> = {
   settings: 'settings',
 };
 
-
 function StudentDashboardContent() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -103,6 +102,7 @@ function StudentDashboardContent() {
     { id: 'attendance', label: 'Attendance', icon: BarChart3 },
     { id: 'todo', label: 'Todo List', icon: ListChecks },
     { id: 'ai', label: 'AI Features', icon: Sparkles },
+    // Tarek Changes: Added Quiz Center
     { id: 'quizzes', label: 'Quiz Center', icon: ClipboardCheck },
     { id: 'gamification', label: 'Achievements', icon: Trophy },
     { id: 'notifications', label: 'Notifications', icon: Bell },
@@ -152,7 +152,10 @@ function StudentDashboardContent() {
     >
       {/* Sidebar */}
       <DashboardSidebar
-        tabs={tabs.map(tab => ({ ...tab, label: t(tabTranslationKeys[tab.id] || tab.id) || tab.label }))}
+        tabs={tabs.map((tab) => ({
+          ...tab,
+          label: t(tabTranslationKeys[tab.id] || tab.id) || tab.label,
+        }))}
         activeTab={activeTab}
         onTabChange={handleTabChange}
         onLogout={() => navigate('/login')}
@@ -174,7 +177,12 @@ function StudentDashboardContent() {
           aria-label="Open navigation menu"
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 6h16M4 12h16M4 18h16"
+            />
           </svg>
         </button>
 
@@ -285,20 +293,74 @@ function StudentDashboardContent() {
                     enrollmentDate: '2021-09-01',
                     expectedGraduation: '2025-06-15',
                     studentId: 'STU-2021-0456',
-                    interests: ['Artificial Intelligence', 'Web Development', 'Data Science', 'Cloud Computing', 'Cybersecurity'],
+                    interests: [
+                      'Artificial Intelligence',
+                      'Web Development',
+                      'Data Science',
+                      'Cloud Computing',
+                      'Cybersecurity',
+                    ],
                     skills: ['Python', 'TypeScript', 'React', 'Node.js', 'TensorFlow', 'SQL'],
                     badges: [
-                      { name: 'Dean\'s List', description: 'GPA above 3.5', icon: 'school', color: '#7C3AED', unlocked: true },
-                      { name: 'Code Master', description: '100+ commits', icon: 'code', color: '#3B82F6', unlocked: true },
-                      { name: 'Team Player', description: '10 group projects', icon: 'groups', color: '#10B981', unlocked: true },
-                      { name: 'Early Bird', description: '95% attendance', icon: 'schedule', color: '#F59E0B', unlocked: true },
-                      { name: 'Researcher', description: 'Published paper', icon: 'science', color: '#EC4899', unlocked: false },
-                      { name: 'Mentor', description: 'Helped 50 peers', icon: 'volunteer_activism', color: '#6366F1', unlocked: false },
+                      {
+                        name: "Dean's List",
+                        description: 'GPA above 3.5',
+                        icon: 'school',
+                        color: '#7C3AED',
+                        unlocked: true,
+                      },
+                      {
+                        name: 'Code Master',
+                        description: '100+ commits',
+                        icon: 'code',
+                        color: '#3B82F6',
+                        unlocked: true,
+                      },
+                      {
+                        name: 'Team Player',
+                        description: '10 group projects',
+                        icon: 'groups',
+                        color: '#10B981',
+                        unlocked: true,
+                      },
+                      {
+                        name: 'Early Bird',
+                        description: '95% attendance',
+                        icon: 'schedule',
+                        color: '#F59E0B',
+                        unlocked: true,
+                      },
+                      {
+                        name: 'Researcher',
+                        description: 'Published paper',
+                        icon: 'science',
+                        color: '#EC4899',
+                        unlocked: false,
+                      },
+                      {
+                        name: 'Mentor',
+                        description: 'Helped 50 peers',
+                        icon: 'volunteer_activism',
+                        color: '#6366F1',
+                        unlocked: false,
+                      },
                     ],
                     achievements: [
-                      { title: 'Dean\'s Honor Roll', description: 'Fall 2023 Semester', emoji: '🏆' },
-                      { title: 'Hackathon Winner', description: 'University Tech Fest 2023', emoji: '🥇' },
-                      { title: 'Best Project Award', description: 'Software Engineering Course', emoji: '⭐' },
+                      {
+                        title: "Dean's Honor Roll",
+                        description: 'Fall 2023 Semester',
+                        emoji: '🏆',
+                      },
+                      {
+                        title: 'Hackathon Winner',
+                        description: 'University Tech Fest 2023',
+                        emoji: '🥇',
+                      },
+                      {
+                        title: 'Best Project Award',
+                        description: 'Software Engineering Course',
+                        emoji: '⭐',
+                      },
                     ],
                   }}
                 />

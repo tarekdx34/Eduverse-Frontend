@@ -1,0 +1,597 @@
+diff --git a/src/pages/admin-dashboard/AdminDashboard.tsx b/src/pages/admin-dashboard/AdminDashboard.tsx
+index e50b547..b04e36d 100644
+--- a/src/pages/admin-dashboard/AdminDashboard.tsx
++++ b/src/pages/admin-dashboard/AdminDashboard.tsx
+@@ -1,30 +1,23 @@
+ import { useEffect, useState } from 'react';
+-import { useLocation, useNavigate, useParams } from 'react-router-dom';
++import { useNavigate, useParams } from 'react-router-dom';
+ import {
+   LayoutGrid,
+-  Users,
+   BookOpen,
+-  Building2,
+   Calendar,
+-  BarChart3,
+   MessageSquare,
+-  HeadphonesIcon,
+-  Settings,
+-  LogOut,
+   MessageCircle,
+   User,
+   Menu,
++  ClipboardList,
++  GraduationCap,
+ } from 'lucide-react';
+ import {
+   DashboardOverview,
+-  UserManagementPage,
+   CourseManagementPage,
+-  DepartmentManagementPage,
+   AcademicCalendarPage,
+-  AnalyticsReportsPage,
+   CommunicationPage,
+-  FeedbackSupportPage,
+-  SystemConfigPage,
++  EnrollmentPeriodPage,
++  PrerequisitesManagementPage,
+ } from './components';
+ import { DashboardHeader, DashboardSidebar, MessagingChat } from '../../components/shared';
+ import { DashboardProfileTab } from '../../components/shared/DashboardProfileTab';
+@@ -34,47 +27,38 @@ import {
+   DASHBOARD_STATS,
+   USERS,
+   COURSES,
+-  DEPARTMENTS,
+   CALENDAR_EVENTS,
+   ANALYTICS,
+   NOTIFICATION_TEMPLATES,
+-  SUPPORT_TICKETS,
+-  AUDIT_LOGS,
+-  GAMIFICATION_SETTINGS,
+-  API_INTEGRATIONS,
+   RECENT_ACTIVITY,
++  ADMIN_DEPARTMENT,
++  ENROLLMENT_PERIODS,
+ } from './constants';
++import { StudentManagementPage } from './components/StudentManagementPage';
+ 
+ type TabKey =
+   | 'dashboard'
+-  | 'users'
++  | 'students'
+   | 'courses'
+-  | 'departments'
++  | 'periods'
+   | 'calendar'
+-  | 'analytics'
+   | 'communication'
+   | 'chat'
+-  | 'feedback'
+-  | 'config'
+   | 'profile';
+ 
+ const TABS: { key: TabKey; label: string; labelAr: string; icon: any }[] = [
+   { key: 'dashboard', label: 'Dashboard', labelAr: '???????? ????????????', icon: LayoutGrid },
+-  { key: 'users', label: 'User Management', labelAr: '?????????? ????????????????????', icon: Users },
++  { key: 'students', label: 'Student Management', labelAr: '?????????? ????????????', icon: GraduationCap },
+   { key: 'courses', label: 'Course Management', labelAr: '?????????? ????????????????', icon: BookOpen },
+-  { key: 'departments', label: 'Departments', labelAr: '??????????????', icon: Building2 },
++  { key: 'periods', label: 'Periods & Scheduling', labelAr: '?????????????? ????????????????', icon: ClipboardList },
+   { key: 'calendar', label: 'Academic Calendar', labelAr: '?????????????? ??????????????????', icon: Calendar },
+-  { key: 'analytics', label: 'Analytics & Reports', labelAr: '?????????????????? ??????????????????', icon: BarChart3 },
+   { key: 'communication', label: 'Communication', labelAr: '??????????????', icon: MessageSquare },
+   { key: 'chat', label: 'Chat', labelAr: '??????????????', icon: MessageCircle },
+-  { key: 'feedback', label: 'Feedback & Support', labelAr: '?????????????????? ????????????', icon: HeadphonesIcon },
+-  { key: 'config', label: 'System Config', labelAr: '?????????????? ????????????', icon: Settings },
+   { key: 'profile', label: 'Profile', labelAr: '?????????? ????????????', icon: User },
+ ];
+ 
+ function AdminDashboardContent() {
+   const navigate = useNavigate();
+-  const location = useLocation();
+   const params = useParams();
+   const [activeTab, setActiveTab] = useState<TabKey>('dashboard');
+   const [sidebarOpen, setSidebarOpen] = useState(false);
+@@ -82,13 +66,10 @@ function AdminDashboardContent() {
+   const { language, setLanguage, isRTL, t } = useLanguage();
+ 
+   // State for data management
+-  const [usersData, setUsersData] = useState(USERS);
+   const [coursesData, setCoursesData] = useState(COURSES);
+-  const [departmentsData, setDepartmentsData] = useState(DEPARTMENTS);
+   const [calendarEvents, setCalendarEvents] = useState(CALENDAR_EVENTS);
+   const [templates, setTemplates] = useState(NOTIFICATION_TEMPLATES);
+-  const [tickets, setTickets] = useState(SUPPORT_TICKETS);
+-  const [gamification, setGamification] = useState(GAMIFICATION_SETTINGS);
++  const [enrollmentPeriodsData, setEnrollmentPeriodsData] = useState(ENROLLMENT_PERIODS);
+ 
+   // Sync tab from URL
+   useEffect(() => {
+@@ -112,24 +93,6 @@ function AdminDashboardContent() {
+     label: language === 'ar' ? tab.labelAr : tab.label
+   }));
+ 
+-  // User management handlers
+-  const handleAddUser = (user: any) => {
+-    const newUser = {
+-      id: Math.max(...usersData.map(u => u.id)) + 1,
+-      ...user,
+-      lastActive: new Date().toISOString().slice(0, 16).replace('T', ' '),
+-    };
+-    setUsersData([...usersData, newUser]);
+-  };
+-
+-  const handleEditUser = (id: number, user: any) => {
+-    setUsersData(usersData.map(u => u.id === id ? { ...u, ...user } : u));
+-  };
+-
+-  const handleDeleteUser = (id: number) => {
+-    setUsersData(usersData.filter(u => u.id !== id));
+-  };
+-
+   // Course management handlers
+   const handleAddCourse = (course: any) => {
+     const newCourse = {
+@@ -149,26 +112,6 @@ function AdminDashboardContent() {
+     setCoursesData(coursesData.filter(c => c.id !== id));
+   };
+ 
+-  // Department management handlers
+-  const handleAddDepartment = (department: any) => {
+-    const newDept = {
+-      id: Math.max(...departmentsData.map(d => d.id)) + 1,
+-      ...department,
+-      courses: 0,
+-      students: 0,
+-      instructors: 0,
+-    };
+-    setDepartmentsData([...departmentsData, newDept]);
+-  };
+-
+-  const handleEditDepartment = (id: number, department: any) => {
+-    setDepartmentsData(departmentsData.map(d => d.id === id ? { ...d, ...department } : d));
+-  };
+-
+-  const handleDeleteDepartment = (id: number) => {
+-    setDepartmentsData(departmentsData.filter(d => d.id !== id));
+-  };
+-
+   // Calendar event handlers
+   const handleAddEvent = (event: any) => {
+     const newEvent = {
+@@ -187,6 +130,23 @@ function AdminDashboardContent() {
+     setCalendarEvents(calendarEvents.filter(e => e.id !== id));
+   };
+ 
++  // Enrollment period handlers
++  const handleAddEnrollmentPeriod = (period: any) => {
++    const newPeriod = {
++      id: Math.max(0, ...enrollmentPeriodsData.map(p => p.id)) + 1,
++      ...period,
++    };
++    setEnrollmentPeriodsData([...enrollmentPeriodsData, newPeriod]);
++  };
++
++  const handleEditEnrollmentPeriod = (id: number, period: any) => {
++    setEnrollmentPeriodsData(enrollmentPeriodsData.map(p => p.id === id ? { ...p, ...period } : p));
++  };
++
++  const handleDeleteEnrollmentPeriod = (id: number) => {
++    setEnrollmentPeriodsData(enrollmentPeriodsData.filter(p => p.id !== id));
++  };
++
+   const getEventColor = (type: string) => {
+     switch (type) {
+       case 'semesterStart': return '#10b981';
+@@ -221,36 +181,6 @@ function AdminDashboardContent() {
+     alert('Broadcast sent successfully!');
+   };
+ 
+-  // Ticket handlers
+-  const handleUpdateTicket = (id: number, status: string) => {
+-    setTickets(tickets.map(t => t.id === id ? { ...t, status } : t));
+-  };
+-
+-  const handleReplyTicket = (id: number, message: string) => {
+-    console.log('Replying to ticket:', id, message);
+-    alert('Reply sent successfully!');
+-  };
+-
+-  // System config handlers
+-  const handleUpdateGamification = (settings: any) => {
+-    setGamification(settings);
+-    alert('Gamification settings updated!');
+-  };
+-
+-  const handleToggleIntegration = (id: number, enabled: boolean) => {
+-    console.log('Toggle integration:', id, enabled);
+-  };
+-
+-  const handleSyncIntegration = (id: number) => {
+-    console.log('Sync integration:', id);
+-    alert('Sync started!');
+-  };
+-
+-  const handleExport = (format: string) => {
+-    console.log('Exporting as:', format);
+-    alert(`Exporting report as ${format.toUpperCase()}...`);
+-  };
+-
+   const handleLogout = () => {
+     navigate('/login');
+   };
+@@ -285,8 +215,8 @@ function AdminDashboardContent() {
+           <Menu className="w-6 h-6" />
+         </button>
+         <DashboardHeader
+-          userName="System Administrator"
+-          userRole="Super Admin"
++          userName="Department Head"
++          userRole="Admin"
+           isDark={isDark}
+           isRTL={isRTL}
+           accentColor="#E11D48"
+@@ -317,33 +247,30 @@ function AdminDashboardContent() {
+             />
+           )}
+ 
+-          {/* User Management */}
+-          {activeTab === 'users' && (
+-            <UserManagementPage
+-              users={usersData}
+-              onAddUser={handleAddUser}
+-              onEditUser={handleEditUser}
+-              onDeleteUser={handleDeleteUser}
+-            />
+-          )}
++          {/* Student Management */}
++          {activeTab === 'students' && <StudentManagementPage />}
+ 
+           {/* Course Management */}
+           {activeTab === 'courses' && (
+             <CourseManagementPage
+               courses={coursesData}
++              users={USERS}
++              adminDepartment={ADMIN_DEPARTMENT}
+               onAddCourse={handleAddCourse}
+               onEditCourse={handleEditCourse}
+               onDeleteCourse={handleDeleteCourse}
+             />
+           )}
+ 
+-          {/* Department Management */}
+-          {activeTab === 'departments' && (
+-            <DepartmentManagementPage
+-              departments={departmentsData}
+-              onAddDepartment={handleAddDepartment}
+-              onEditDepartment={handleEditDepartment}
+-              onDeleteDepartment={handleDeleteDepartment}
++          {/* Periods & Scheduling */}
++          {activeTab === 'periods' && (
++            <EnrollmentPeriodPage
++              enrollmentPeriods={enrollmentPeriodsData}
++              courses={coursesData}
++              adminDepartment={ADMIN_DEPARTMENT}
++              onAddPeriod={handleAddEnrollmentPeriod}
++              onEditPeriod={handleEditEnrollmentPeriod}
++              onDeletePeriod={handleDeleteEnrollmentPeriod}
+             />
+           )}
+ 
+@@ -357,14 +284,6 @@ function AdminDashboardContent() {
+             />
+           )}
+ 
+-          {/* Analytics & Reports */}
+-          {activeTab === 'analytics' && (
+-            <AnalyticsReportsPage
+-              analytics={ANALYTICS}
+-              onExport={handleExport}
+-            />
+-          )}
+-
+           {/* Communication */}
+           {activeTab === 'communication' && (
+             <CommunicationPage
+@@ -383,27 +302,7 @@ function AdminDashboardContent() {
+               currentUserName="Administrator"
+               showVideoCall={true}
+               showVoiceCall={true}
+-            />
+-          )}
+-
+-          {/* Feedback & Support */}
+-          {activeTab === 'feedback' && (
+-            <FeedbackSupportPage
+-              tickets={tickets}
+-              onUpdateTicket={handleUpdateTicket}
+-              onReplyTicket={handleReplyTicket}
+-            />
+-          )}
+-
+-          {/* System Configuration */}
+-          {activeTab === 'config' && (
+-            <SystemConfigPage
+-              auditLogs={AUDIT_LOGS}
+-              gamificationSettings={gamification}
+-              apiIntegrations={API_INTEGRATIONS}
+-              onUpdateGamification={handleUpdateGamification}
+-              onToggleIntegration={handleToggleIntegration}
+-              onSyncIntegration={handleSyncIntegration}
++              isDark={isDark}
+             />
+           )}
+ 
+@@ -414,15 +313,15 @@ function AdminDashboardContent() {
+               accentColor="#E11D48"
+               bannerGradient="from-rose-500 to-orange-500"
+               profileData={{
+-                fullName: 'System Administrator',
+-                role: 'Super Admin',
+-                department: 'Administration',
+-                email: 'admin@university.edu',
++                fullName: 'Dr. Ahmad Khalil',
++                role: 'Department Head',
++                department: ADMIN_DEPARTMENT,
++                email: 'a.khalil@university.edu',
+                 phone: '+1 (555) 100-0001',
+-                address: 'Admin Building, Suite 100',
+-                dateOfBirth: '1980-01-15',
+-                bio: 'University System Administrator responsible for managing all academic and administrative operations. Overseeing user management, course administration, and system configuration.',
+-                specialization: ['System Administration', 'User Management', 'Academic Operations', 'Data Analytics', 'Policy Management'],
++                address: 'Faculty Building, Office 312',
++                dateOfBirth: '1975-03-20',
++                bio: 'Department Head for Computer Science and Engineering. Responsible for managing department courses, faculty assignments, student enrollment, and academic scheduling.',
++                specialization: ['Academic Administration', 'Course Management', 'Student Affairs', 'Faculty Coordination', 'Enrollment Management'],
+               }}
+             />
+           )}
+diff --git a/src/pages/student-dashboard/StudentDashboard.tsx b/src/pages/student-dashboard/StudentDashboard.tsx
+index 338e480..7d925b8 100644
+--- a/src/pages/student-dashboard/StudentDashboard.tsx
++++ b/src/pages/student-dashboard/StudentDashboard.tsx
+@@ -16,9 +16,9 @@ import {
+   Bell,
+   Users,
+   Beaker,
+-  PieChart,
+   Settings,
+   User,
++  ClipboardCheck,
+ } from 'lucide-react';
+ import {
+   StatsCard,
+@@ -39,8 +39,8 @@ import {
+   NotificationCenter,
+   CourseCommunity,
+   LabInstructions,
+-  ProgressAnalytics,
+   SettingsPreferences,
++  QuizTaking,
+ } from './components';
+ import { DashboardHeader, DashboardSidebar } from '../../components/shared';
+ import { DashboardProfileTab } from '../../components/shared/DashboardProfileTab';
+@@ -59,9 +59,9 @@ const tabTranslationKeys: Record<string, string> = {
+   labs: 'labSessions',
+   grades: 'grades',
+   attendance: 'attendance',
+-  analytics: 'analytics',
+   todo: 'todoList',
+   ai: 'aiFeatures',
++  quizzes: 'quizzes',
+   gamification: 'achievements',
+   notifications: 'notifications',
+   payments: 'payments',
+@@ -101,9 +101,9 @@ function StudentDashboardContent() {
+     { id: 'labs', label: 'Lab Sessions', icon: Beaker },
+     { id: 'grades', label: 'Grades', icon: FileText },
+     { id: 'attendance', label: 'Attendance', icon: BarChart3 },
+-    { id: 'analytics', label: 'Analytics', icon: PieChart },
+     { id: 'todo', label: 'Todo List', icon: ListChecks },
+     { id: 'ai', label: 'AI Features', icon: Sparkles },
++    { id: 'quizzes', label: 'Quiz Center', icon: ClipboardCheck },
+     { id: 'gamification', label: 'Achievements', icon: Trophy },
+     { id: 'notifications', label: 'Notifications', icon: Bell },
+     { id: 'payments', label: 'Payments', icon: CreditCard },
+@@ -254,9 +254,9 @@ function StudentDashboardContent() {
+               {activeTab === 'labs' && <LabInstructions />}
+               {activeTab === 'calendar' && <AcademicCalendar />}
+               {activeTab === 'ai' && <AIFeatures />}
++              {activeTab === 'quizzes' && <QuizTaking />}
+               {activeTab === 'grades' && <GradesTranscript />}
+               {activeTab === 'attendance' && <AttendanceOverview />}
+-              {activeTab === 'analytics' && <ProgressAnalytics />}
+               {activeTab === 'todo' && <SmartTodoReminder />}
+               {activeTab === 'gamification' && <Gamification />}
+               {activeTab === 'notifications' && <NotificationCenter />}
+diff --git a/src/pages/ta-dashboard/TADashboard.tsx b/src/pages/ta-dashboard/TADashboard.tsx
+index 6f0bc29..5155961 100644
+--- a/src/pages/ta-dashboard/TADashboard.tsx
++++ b/src/pages/ta-dashboard/TADashboard.tsx
+@@ -6,7 +6,6 @@ import {
+   Beaker,
+   FileText,
+   Users,
+-  MessageCircle,
+   ClipboardCheck,
+   Calendar,
+   Megaphone,
+@@ -14,6 +13,12 @@ import {
+   MessagesSquare,
+   User,
+   Menu,
++  BarChart3,
++  Clock,
++  Bell,
++  Brain,
++  FolderOpen,
++  HelpCircle,
+ } from 'lucide-react';
+ import {
+   ModernDashboard,
+@@ -21,12 +26,17 @@ import {
+   LabsPage,
+   GradingPage,
+   StudentPerformancePage,
+-  CommunicationPage,
+   AttendancePage,
+   SchedulePage,
+   AnnouncementsPage,
+   DiscussionPage,
++  AnalyticsPage,
++  OfficeHoursPage,
++  NotificationsPage,
++  AIAssistantPage,
++  LabResourcesPage,
+ } from './components';
++import { QuizzesPage } from './components/QuizzesPage';
+ import { DashboardHeader, DashboardSidebar, MessagingChat } from '../../components/shared';
+ import { DashboardProfileTab } from '../../components/shared/DashboardProfileTab';
+ import { ThemeProvider, useTheme } from './contexts/ThemeContext';
+@@ -41,20 +51,25 @@ import {
+   STUDENT_PERFORMANCE,
+ } from './constants';
+ 
+-type TabKey = 'dashboard' | 'courses' | 'labs' | 'grading' | 'students' | 'attendance' | 'schedule' | 'announcements' | 'discussion' | 'communication' | 'chat' | 'profile';
++type TabKey = 'dashboard' | 'courses' | 'labs' | 'quizzes' | 'grading' | 'students' | 'attendance' | 'schedule' | 'announcements' | 'discussion' | 'chat' | 'profile' | 'analytics' | 'office-hours' | 'notifications' | 'ai-assistant' | 'lab-resources';
+ 
+ const TABS: { key: TabKey; label: string; icon: any; group: string }[] = [
+   { key: 'dashboard', label: 'Dashboard', icon: LayoutGrid, group: 'Overview' },
++  { key: 'analytics', label: 'Analytics', icon: BarChart3, group: 'Overview' },
+   { key: 'courses', label: 'Courses', icon: BookOpen, group: 'Teaching' },
+   { key: 'labs', label: 'Labs', icon: Beaker, group: 'Teaching' },
++  { key: 'quizzes', label: 'Quizzes', icon: HelpCircle, group: 'Teaching' },
++  { key: 'lab-resources', label: 'Lab Resources', icon: FolderOpen, group: 'Teaching' },
+   { key: 'grading', label: 'Grading', icon: FileText, group: 'Teaching' },
+   { key: 'students', label: 'Students', icon: Users, group: 'Students' },
+   { key: 'attendance', label: 'Attendance', icon: ClipboardCheck, group: 'Students' },
+   { key: 'schedule', label: 'Schedule', icon: Calendar, group: 'Schedule' },
++  { key: 'office-hours', label: 'Office Hours', icon: Clock, group: 'Schedule' },
+   { key: 'announcements', label: 'Announcements', icon: Megaphone, group: 'Schedule' },
++  { key: 'notifications', label: 'Notifications', icon: Bell, group: 'Communication' },
+   { key: 'discussion', label: 'Discussion', icon: MessagesSquare, group: 'Communication' },
+-  { key: 'communication', label: 'Communication', icon: MessageCircle, group: 'Communication' },
+   { key: 'chat', label: 'Chat', icon: MessageSquare, group: 'Communication' },
++  { key: 'ai-assistant', label: 'AI Assistant', icon: Brain, group: 'Tools' },
+   { key: 'profile', label: 'Profile', icon: User, group: 'Account' },
+ ];
+ 
+@@ -71,48 +86,6 @@ function TADashboardContent() {
+   // Get all submissions from all labs
+   const allSubmissions = Object.values(SUBMISSIONS).flat();
+ 
+-  // Mock messages and questions for communication
+-  const mockMessages = [
+-    {
+-      id: 'msg1',
+-      from: 'Dr. Jane Smith',
+-      subject: 'Lab 1 Grading Reminder',
+-      message: 'Please complete grading for Lab 1 by end of week.',
+-      timestamp: '2025-02-20T10:00:00',
+-      read: false,
+-    },
+-    {
+-      id: 'msg2',
+-      from: 'Mohamed Ali',
+-      subject: 'Question about Lab 2',
+-      message: 'I have a question about exercise 3 in Lab 2.',
+-      timestamp: '2025-02-21T14:30:00',
+-      read: false,
+-    },
+-  ];
+-
+-  const mockQuestions = [
+-    {
+-      id: 'q1',
+-      studentName: 'Fatima Ahmed',
+-      course: 'CS101',
+-      lab: 'Lab 1',
+-      question: 'How do I submit multiple files for the lab assignment?',
+-      timestamp: '2025-02-20T10:30:00',
+-      status: 'new' as const,
+-    },
+-    {
+-      id: 'q2',
+-      studentName: 'Omar Hassan',
+-      course: 'CS202',
+-      lab: 'Lab 1',
+-      question: 'Can you explain the linked list implementation?',
+-      timestamp: '2025-02-19T15:20:00',
+-      status: 'answered' as const,
+-      answer: 'A linked list is a data structure where each element points to the next...',
+-    },
+-  ];
+-
+   // Map tabs for translation
+   const translatedTabs = TABS.map(tab => ({
+     id: tab.key,
+@@ -136,7 +109,6 @@ function TADashboardContent() {
+ 
+   const handleViewCourse = (courseId: string) => {
+     setSelectedCourseId(courseId);
+-    handleTabChange('labs');
+   };
+ 
+   const handleViewLab = (labId: string) => {
+@@ -164,7 +136,7 @@ function TADashboardContent() {
+         accentColor="#2563EB"
+         isMobileOpen={sidebarOpen}
+         onMobileClose={() => setSidebarOpen(false)}
+-        groupOrder={['Overview', 'Teaching', 'Students', 'Schedule', 'Communication', 'Account']}
++        groupOrder={['Overview', 'Teaching', 'Students', 'Schedule', 'Communication', 'Tools', 'Account']}
+       />
+ 
+       {/* Main Content */}
+@@ -224,6 +196,9 @@ function TADashboardContent() {
+           />
+         )}
+ 
++        {/* Quizzes Tab */}
++        {activeTab === 'quizzes' && <QuizzesPage />}
++
+         {/* Grading Tab */}
+         {activeTab === 'grading' && (
+           <GradingPage submissions={allSubmissions} onGrade={handleGrade} />
+@@ -246,10 +221,7 @@ function TADashboardContent() {
+         {/* Discussion Tab */}
+         {activeTab === 'discussion' && <DiscussionPage userRole="ta" userName="Ahmed Hassan" />}
+ 
+-        {/* Communication Tab */}
+-        {activeTab === 'communication' && (
+-          <CommunicationPage messages={mockMessages} questions={mockQuestions} />
+-        )}
++        {/* Communication Tab ??? Removed (merged into Announcements) */}
+ 
+         {/* Chat Tab */}
+         {activeTab === 'chat' && (
+@@ -258,6 +230,7 @@ function TADashboardContent() {
+             currentUserName="Ahmed Hassan"
+             showVideoCall={true}
+             showVoiceCall={true}
++            isDark={isDark}
+           />
+         )}
+ 
+@@ -281,6 +254,21 @@ function TADashboardContent() {
+             }}
+           />
+         )}
++
++        {/* Analytics Tab */}
++        {activeTab === 'analytics' && <AnalyticsPage />}
++
++        {/* Office Hours Tab */}
++        {activeTab === 'office-hours' && <OfficeHoursPage />}
++
++        {/* Notifications Tab */}
++        {activeTab === 'notifications' && <NotificationsPage />}
++
++        {/* AI Assistant Tab */}
++        {activeTab === 'ai-assistant' && <AIAssistantPage />}
++
++        {/* Lab Resources Tab */}
++        {activeTab === 'lab-resources' && <LabResourcesPage />}
+       </main>
+     </div>
+   );
