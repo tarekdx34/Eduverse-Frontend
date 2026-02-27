@@ -583,26 +583,20 @@ export function ModernDashboard({
                   const dateObj = cls.date ? new Date(cls.date) : new Date();
                   const month = dateObj.toLocaleString('en', { month: 'short' }).toUpperCase();
                   const day = dateObj.getDate();
-<<<<<<< HEAD
+                  const timeStr =
+                    cls.time ||
+                    cls.startTime ||
+                    dateObj.toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' });
+                  const location = cls.room || cls.location || 'TBD';
                   const colors = th.colors;
                   return (
                     <div
                       key={index}
-                      className={`flex items-center gap-3 p-3 rounded-2xl transition-colors ${
-                        isDark ? 'hover:bg-white/5' : th.hover50
-                      }`}
+                      className={`flex items-start gap-3 p-3 rounded-2xl transition-colors ${isDark ? 'hover:bg-white/5' : th.hover50}`}
                     >
                       <div
-                        className={`w-12 h-12 rounded-xl flex flex-col items-center justify-center text-white text-xs font-bold ${colors[index % colors.length]}`}
+                        className={`w-12 h-12 rounded-xl flex flex-col items-center justify-center text-white text-xs font-bold shrink-0 ${colors[index % colors.length]}`}
                       >
-=======
-                  const timeStr = cls.time || cls.startTime || dateObj.toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' });
-                  const location = cls.room || cls.location || 'TBD';
-                  const colors = ['bg-violet-500', 'bg-blue-500', 'bg-emerald-500', 'bg-amber-500'];
-                  return (
-                    <div key={index} className={`flex items-start gap-3 p-3 rounded-2xl transition-colors ${isDark ? 'hover:bg-white/5' : 'hover:bg-gray-50'}`}>
-                      <div className={`w-12 h-12 rounded-xl flex flex-col items-center justify-center text-white text-xs font-bold shrink-0 ${colors[index % colors.length]}`}>
->>>>>>> origin/finalize
                         <span className="text-[10px] leading-none opacity-80">{month}</span>
                         <span className="text-base leading-tight">{day}</span>
                       </div>
@@ -612,22 +606,18 @@ export function ModernDashboard({
                         >
                           {cls.title || cls.name}
                         </h4>
-<<<<<<< HEAD
-                        <p
-                          className={`text-xs mt-0.5 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}
+                        <div
+                          className={`flex items-center gap-1 text-xs mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}
                         >
-                          {cls.time || cls.startTime}
-                        </p>
-=======
-                        <div className={`flex items-center gap-1 text-xs mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                           <Clock size={12} />
                           <span>{timeStr}</span>
                         </div>
-                        <div className={`flex items-center gap-1 text-xs mt-0.5 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                        <div
+                          className={`flex items-center gap-1 text-xs mt-0.5 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}
+                        >
                           <MapPin size={12} />
                           <span className="truncate">{location}</span>
                         </div>
->>>>>>> origin/finalize
                       </div>
                     </div>
                   );
@@ -640,7 +630,6 @@ export function ModernDashboard({
             </div>
           </div>
 
-<<<<<<< HEAD
           {/* Quick Actions */}
           <div
             className={`rounded-[2.5rem] p-6 ${isDark ? 'bg-card-dark border border-white/5' : `bg-white border border-slate-200 shadow-sm`}`}
@@ -670,9 +659,6 @@ export function ModernDashboard({
               ))}
             </div>
           </div>
-
-=======
->>>>>>> origin/finalize
           {/* Recent Activity */}
           <div className={`rounded-[2.5rem] p-6 ${cardClass}`}>
             <h3 className={`text-base font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
