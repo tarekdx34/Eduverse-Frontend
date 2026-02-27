@@ -761,8 +761,8 @@ function InstructorDashboardContent() {
         {activeTab === 'profile' && (
           <DashboardProfileTab
             isDark={isDark}
-            accentColor="#4F46E5"
-            bannerGradient="from-indigo-500 to-purple-500"
+            accentColor={primaryHex || '#3b82f6'}
+            bannerGradient="unused"
             profileData={{
               fullName: 'Prof. Sarah Martinez',
               role: 'Instructor',
@@ -982,8 +982,8 @@ function InstructorDashboardContent() {
         {activeTab === 'profile' && (
           <DashboardProfileTab
             isDark={isDark}
-            accentColor="#4F46E5"
-            bannerGradient="from-indigo-500 to-purple-500"
+            accentColor={primaryHex || '#3b82f6'}
+            bannerGradient="unused"
             profileData={{
               fullName: 'Prof. Sarah Martinez',
               role: 'Instructor',

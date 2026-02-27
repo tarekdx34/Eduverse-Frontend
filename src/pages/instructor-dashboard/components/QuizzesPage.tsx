@@ -71,7 +71,7 @@ const courseLectures: Record<string, string[]> = {
 
 export function QuizzesPage() {
   const { t, isRTL } = useLanguage();
-  const { isDark } = useTheme();
+  const { isDark, primaryHex = '#3b82f6' } = useTheme() as any;
 
   const [quizzes, setQuizzes] = useState<QuizData[]>([
     {
@@ -175,7 +175,12 @@ export function QuizzesPage() {
       title: formData.title,
       subject: formData.course,
       subjectColor: courseColorMap[formData.course] || 'bg-blue-100 text-blue-700',
-      date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }),
+      date: new Date().toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+      }),
       questions: formData.questions.length,
       attempted: 0,
       total: 52,
@@ -266,32 +271,34 @@ export function QuizzesPage() {
   const inputCls = isDark
     ? 'bg-white/5 border-white/10 text-white placeholder-slate-500 focus:ring-indigo-500'
     : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-indigo-500';
-  const btnSecCls = isDark
-    ? 'text-slate-300 hover:bg-white/10'
-    : 'text-gray-700 hover:bg-gray-50';
+  const btnSecCls = isDark ? 'text-slate-300 hover:bg-white/10' : 'text-gray-700 hover:bg-gray-50';
   const overlayBg = 'fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4';
   const modalCls = `relative w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl p-6 shadow-xl border ${cardCls} ${isDark ? 'bg-gray-900' : 'bg-white'}`;
 
   return (
-    <div className={`min-h-screen p-4 sm:p-6 ${isDark ? 'bg-transparent' : 'bg-gray-50'}`}>
+    <div className="p-4 sm:p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className={`text-2xl sm:text-3xl font-bold ${headingCls}`}>{t('quizzesManagement')}</h1>
+            <h1 className={`text-2xl sm:text-3xl font-bold ${headingCls}`}>
+              {t('quizzesManagement')}
+            </h1>
             <p className={`${subCls} mt-1`}>{t('quizzesDescription')}</p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             <button
               onClick={() => setShowAIModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-purple-500 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 text-white rounded-lg transition-colors"
+              style={{ backgroundColor: primaryHex }}
             >
               <Sparkles size={20} />
               {t('generateWithAI') || 'AI Generate Quiz'}
             </button>
             <button
               onClick={openCreateForm}
-              className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-500 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 text-white rounded-lg transition-colors"
+              style={{ backgroundColor: primaryHex }}
             >
               <ClipboardList size={20} />
               {t('createNewQuiz')}
@@ -342,7 +349,9 @@ export function QuizzesPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex flex-wrap items-center gap-3 mb-2">
                     <h3 className={`text-lg font-semibold truncate ${headingCls}`}>{quiz.title}</h3>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${quiz.subjectColor}`}>
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${quiz.subjectColor}`}
+                    >
                       {quiz.subject}
                     </span>
                   </div>
@@ -352,7 +361,10 @@ export function QuizzesPage() {
                   </div>
                   <div className="flex flex-wrap items-center gap-4 sm:gap-6">
                     <div className="flex items-center gap-2 text-sm">
-                      <ClipboardList size={16} className={isDark ? 'text-slate-500' : 'text-gray-400'} />
+                      <ClipboardList
+                        size={16}
+                        className={isDark ? 'text-slate-500' : 'text-gray-400'}
+                      />
                       <span className={`${headingCls} font-medium`}>{quiz.questions}</span>
                       <span className={subCls}>{t('questions')}</span>
                     </div>
@@ -363,20 +375,28 @@ export function QuizzesPage() {
                       </span>
                       <span className={subCls}>{t('attempted')}</span>
                     </div>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${quiz.difficultyColor}`}>
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${quiz.difficultyColor}`}
+                    >
                       {quiz.difficulty}
                     </span>
                     <div className="flex items-center gap-2 text-sm">
                       <Clock size={16} className={isDark ? 'text-slate-500' : 'text-gray-400'} />
-                      <span className={subCls}>{quiz.duration} {t('minDuration')}</span>
+                      <span className={subCls}>
+                        {quiz.duration} {t('minDuration')}
+                      </span>
                     </div>
                   </div>
                 </div>
-                <span className={`px-3 py-1 rounded-full text-xs font-medium self-start ${quiz.statusColor}`}>
+                <span
+                  className={`px-3 py-1 rounded-full text-xs font-medium self-start ${quiz.statusColor}`}
+                >
                   {quiz.status}
                 </span>
               </div>
-              <div className={`flex flex-wrap items-center gap-2 pt-4 border-t ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
+              <div
+                className={`flex flex-wrap items-center gap-2 pt-4 border-t ${isDark ? 'border-white/10' : 'border-gray-200'}`}
+              >
                 <button
                   onClick={() => setViewAttemptsIndex(viewAttemptsIndex === index ? null : index)}
                   className={`flex items-center gap-2 px-3 py-2 text-sm ${btnSecCls} focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-500 rounded-lg transition-colors`}
@@ -431,9 +451,16 @@ export function QuizzesPage() {
                       </thead>
                       <tbody>
                         {mockAttempts.map((a, i) => (
-                          <tr key={i} className={`border-t ${isDark ? 'border-white/10' : 'border-gray-100'}`}>
+                          <tr
+                            key={i}
+                            className={`border-t ${isDark ? 'border-white/10' : 'border-gray-100'}`}
+                          >
                             <td className={`py-2 ${headingCls}`}>{a.name}</td>
-                            <td className={`py-2 ${a.score >= 90 ? 'text-green-500' : a.score >= 70 ? 'text-yellow-500' : 'text-red-500'} font-medium`}>{a.score}%</td>
+                            <td
+                              className={`py-2 ${a.score >= 90 ? 'text-green-500' : a.score >= 70 ? 'text-yellow-500' : 'text-red-500'} font-medium`}
+                            >
+                              {a.score}%
+                            </td>
                             <td className={`py-2 ${subCls}`}>{a.time}</td>
                             <td className={`py-2 ${subCls}`}>{a.date}</td>
                           </tr>
@@ -456,7 +483,10 @@ export function QuizzesPage() {
               <h2 className={`text-xl font-bold ${headingCls}`}>
                 {editingIndex !== null ? t('editQuiz') : t('createNewQuiz')}
               </h2>
-              <button onClick={() => setShowCreateQuiz(false)} className={`p-1 rounded-lg ${btnSecCls}`}>
+              <button
+                onClick={() => setShowCreateQuiz(false)}
+                className={`p-1 rounded-lg ${btnSecCls}`}
+              >
                 <X size={20} />
               </button>
             </div>
@@ -512,13 +542,18 @@ export function QuizzesPage() {
 
             {/* Questions */}
             <div className="space-y-4 mb-6">
-              <h3 className={`text-lg font-semibold ${headingCls}`}>{t('questions') || 'Questions'} ({formData.questions.length})</h3>
+              <h3 className={`text-lg font-semibold ${headingCls}`}>
+                {t('questions') || 'Questions'} ({formData.questions.length})
+              </h3>
               {formData.questions.map((q, qIdx) => (
                 <div key={q.id} className={`p-4 rounded-lg border ${cardCls}`}>
                   <div className="flex items-start justify-between gap-2 mb-3">
                     <span className={`text-sm font-medium ${subCls}`}>Question {qIdx + 1}</span>
                     {formData.questions.length > 1 && (
-                      <button onClick={() => removeQuestion(q.id)} className="text-red-500 hover:text-red-700 p-1">
+                      <button
+                        onClick={() => removeQuestion(q.id)}
+                        className="text-red-500 hover:text-red-700 p-1"
+                      >
                         <Trash2 size={16} />
                       </button>
                     )}
@@ -575,7 +610,8 @@ export function QuizzesPage() {
               </button>
               <button
                 onClick={saveQuiz}
-                className="px-6 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                className="px-6 py-2 text-sm text-white rounded-lg transition-colors"
+                style={{ backgroundColor: primaryHex }}
               >
                 {editingIndex !== null ? 'Update Quiz' : 'Save Quiz'}
               </button>
@@ -593,7 +629,10 @@ export function QuizzesPage() {
                 <Sparkles size={20} className="text-purple-500" />
                 AI Generate Quiz
               </h2>
-              <button onClick={() => setShowAIModal(false)} className={`p-1 rounded-lg ${btnSecCls}`}>
+              <button
+                onClick={() => setShowAIModal(false)}
+                className={`p-1 rounded-lg ${btnSecCls}`}
+              >
                 <X size={20} />
               </button>
             </div>
@@ -603,22 +642,34 @@ export function QuizzesPage() {
                 <label className={`block text-sm font-medium mb-1 ${subCls}`}>Course</label>
                 <select
                   value={aiCourse}
-                  onChange={(e) => { setAiCourse(e.target.value); setAiLectures([]); }}
+                  onChange={(e) => {
+                    setAiCourse(e.target.value);
+                    setAiLectures([]);
+                  }}
                   className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${inputCls}`}
                 >
                   <option value="">Select course</option>
                   {Object.keys(courseLectures).map((c) => (
-                    <option key={c} value={c}>{c}</option>
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
                   ))}
                 </select>
               </div>
 
               {aiCourse && (
                 <div>
-                  <label className={`block text-sm font-medium mb-1 ${subCls}`}>Lectures / Materials</label>
-                  <div className={`p-3 border rounded-lg space-y-2 ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
+                  <label className={`block text-sm font-medium mb-1 ${subCls}`}>
+                    Lectures / Materials
+                  </label>
+                  <div
+                    className={`p-3 border rounded-lg space-y-2 ${isDark ? 'border-white/10' : 'border-gray-200'}`}
+                  >
                     {courseLectures[aiCourse]?.map((lec) => (
-                      <label key={lec} className={`flex items-center gap-2 text-sm cursor-pointer ${headingCls}`}>
+                      <label
+                        key={lec}
+                        className={`flex items-center gap-2 text-sm cursor-pointer ${headingCls}`}
+                      >
                         <input
                           type="checkbox"
                           checked={aiLectures.includes(lec)}
@@ -638,7 +689,9 @@ export function QuizzesPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className={`block text-sm font-medium mb-1 ${subCls}`}>Number of Questions</label>
+                  <label className={`block text-sm font-medium mb-1 ${subCls}`}>
+                    Number of Questions
+                  </label>
                   <input
                     type="number"
                     min={1}
@@ -673,7 +726,8 @@ export function QuizzesPage() {
               <button
                 onClick={handleAIGenerate}
                 disabled={!aiCourse || aiLectures.length === 0 || aiGenerating}
-                className="flex items-center gap-2 px-6 py-2 text-sm bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 px-6 py-2 text-sm text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ backgroundColor: primaryHex }}
               >
                 {aiGenerating ? (
                   <>

@@ -10,6 +10,10 @@ import {
   Sparkles,
   FileText,
   BarChart3,
+  GraduationCap,
+  Cpu,
+  Atom,
+  CircuitBoard,
 } from 'lucide-react';
 import { CustomDropdown } from './CustomDropdown';
 import { CourseDetail } from './CourseDetail';
@@ -54,15 +58,8 @@ type CoursesPageProps = {
   onViewCourse: (id: number) => void;
 };
 
-// Course background images/gradients
-const courseBackgrounds = [
-  'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', // Purple - Calculus
-  'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', // Pink - Physics
-  'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', // Blue - CS
-  'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)', // Green - Digital Logic
-];
-
-const courseEmojis = ['📐', '⚛️', '💻', '🔌'];
+// Course Lucide icons (replacing emojis)
+const courseIcons = [GraduationCap, Atom, Cpu, CircuitBoard];
 
 export function CoursesPage({
   courses,
@@ -80,7 +77,7 @@ export function CoursesPage({
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
   const [activeMenu, setActiveMenu] = useState<number | null>(null);
   const [selectedCourseId, setSelectedCourseId] = useState<number | null>(null);
-  const { isDark } = useTheme();
+  const { isDark, primaryHex = '#3b82f6' } = useTheme() as any;
   const { t, isRTL } = useLanguage();
   const navigate = useNavigate();
 
@@ -125,9 +122,11 @@ export function CoursesPage({
       {/* Main Content */}
       <div className="flex-1 space-y-6">
         {/* Header */}
-        <div className={`rounded-xl p-6 border ${isDark ? 'bg-gradient-to-r from-indigo-900/50 to-purple-900/50 border-indigo-800' : 'bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-100'}`}>
-          <h2 className={`text-2xl font-bold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('myCourses')}</h2>
-          <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+        <div>
+          <h2 className={`text-2xl font-bold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+            {t('myCourses')}
+          </h2>
+          <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
             {t('courseManagement')}
           </p>
         </div>
@@ -180,7 +179,7 @@ export function CoursesPage({
               placeholder={t('searchCourses')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? "border-white/10 bg-white/5 text-white placeholder-gray-500" : "border-gray-300 bg-white text-gray-900"}`}
+              className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? 'border-white/10 bg-white/5 text-white placeholder-gray-500' : 'border-gray-300 bg-white text-gray-900'}`}
             />
           </div>
         </div>
@@ -190,36 +189,49 @@ export function CoursesPage({
           {filteredCourses.map((course, index) => (
             <div
               key={course.id}
-              className={`rounded-xl border overflow-hidden shadow-sm hover:shadow-md transition-all ${isDark ? "bg-white/5 border-white/10" : "bg-white border-gray-200"}`}
+              className={`rounded-xl border overflow-hidden hover:shadow-sm transition-all ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}
             >
-              {/* Course Image/Background */}
+              {/* Course Icon Header */}
               <div
-                className="h-40 flex items-center justify-center text-7xl relative"
-                style={{
-                  background: courseBackgrounds[index % courseBackgrounds.length],
-                  opacity: 0.85,
-                }}
+                className={`h-32 flex items-center justify-center ${isDark ? 'bg-white/5' : 'bg-slate-50'}`}
               >
-                <span className="opacity-30">{courseEmojis[index % courseEmojis.length]}</span>
+                {React.createElement(courseIcons[index % courseIcons.length], {
+                  size: 48,
+                  className: isDark ? 'text-slate-500' : 'text-slate-300',
+                })}
               </div>
 
               {/* Course Info */}
               <div className="p-5">
-                <h3 className={`font-semibold mb-3 text-base truncate ${isDark ? "text-white" : "text-gray-900"}`}>{course.courseName}</h3>
+                <h3
+                  className={`font-semibold mb-3 text-base truncate ${isDark ? 'text-white' : 'text-gray-900'}`}
+                >
+                  {course.courseName}
+                </h3>
 
                 {/* Course Type */}
-                <div className={`text-sm mb-3 ${isDark ? "text-slate-400" : "text-gray-600"}`}>{t('lectureAndLab')}</div>
+                <div className={`text-sm mb-3 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                  {t('lectureAndLab')}
+                </div>
 
                 {/* Stats */}
-                <div className={`flex items-center gap-2 text-sm mb-2 ${isDark ? "text-slate-400" : "text-gray-600"}`}>
+                <div
+                  className={`flex items-center gap-2 text-sm mb-2 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}
+                >
                   <Users size={14} />
-                  <span>{course.enrolled} {t('students')}</span>
+                  <span>
+                    {course.enrolled} {t('students')}
+                  </span>
                 </div>
 
                 {/* Next Lecture */}
-                <div className={`flex items-center gap-2 text-sm mb-4 ${isDark ? "text-slate-400" : "text-gray-600"}`}>
+                <div
+                  className={`flex items-center gap-2 text-sm mb-4 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}
+                >
                   <Clock size={14} />
-                  <span>{t('nextLecture')} — {course.schedule.split(' ')[0]}, 9:00 AM</span>
+                  <span>
+                    {t('nextLecture')} — {course.schedule.split(' ')[0]}, 9:00 AM
+                  </span>
                 </div>
 
                 {/* Open Course Button */}
@@ -228,7 +240,8 @@ export function CoursesPage({
                     setSelectedCourseId(course.id);
                     navigate(`/instructordashboard/courses/${course.id}`);
                   }}
-                  className={`w-full flex items-center justify-center gap-2 text-sm font-medium py-2 rounded-lg transition-colors ${isDark ? "text-indigo-400 hover:text-indigo-300 hover:bg-white/10" : "text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"}`}
+                  className={`w-full flex items-center justify-center gap-2 text-sm font-medium py-2 rounded-lg transition-colors ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-50'}`}
+                  style={{ color: primaryHex }}
                 >
                   {t('openCourse')}
                   <ArrowRight size={14} />
@@ -242,8 +255,10 @@ export function CoursesPage({
         {filteredCourses.length === 0 && (
           <div className="text-center py-12">
             <BookOpen size={48} className="mx-auto text-gray-400 mb-4" />
-            <h3 className={`text-lg font-semibold mb-2 ${isDark ? "text-white" : "text-gray-900"}`}>{t('noCoursesFound')}</h3>
-            <p className={`mb-4 ${isDark ? "text-slate-400" : "text-gray-500"}`}>
+            <h3 className={`text-lg font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              {t('noCoursesFound')}
+            </h3>
+            <p className={`mb-4 ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
               {searchTerm || statusFilter !== 'all' || semesterFilter !== 'all'
                 ? t('tryAdjustingFilters')
                 : t('createFirstCourse')}
@@ -254,33 +269,45 @@ export function CoursesPage({
 
       {/* AI Tools Sidebar */}
       <div className="w-full lg:w-80 space-y-4">
-        <div className={`rounded-xl p-6 border shadow-sm ${isDark ? "bg-white/5 border-white/10" : "bg-white border-gray-200"}`}>
+        <div
+          className={`rounded-xl p-6 border shadow-sm ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}
+        >
           <div className="flex items-center gap-3 mb-4">
-            <div className={`p-3 rounded-xl ${isDark ? "bg-purple-500/20" : "bg-purple-100"}`}>
-              <Sparkles className="text-purple-600" size={24} />
+            <div className={`p-3 rounded-xl ${isDark ? 'bg-indigo-500/20' : 'bg-indigo-50'}`}>
+              <Sparkles className="text-indigo-600" size={24} />
             </div>
-            <h3 className={`font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>{t('aiToolsForTeaching')}</h3>
+            <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              {t('aiToolsForTeaching')}
+            </h3>
           </div>
-          <p className={`text-sm mb-6 ${isDark ? "text-slate-400" : "text-gray-600"}`}>
+          <p className={`text-sm mb-6 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
             {t('aiToolsDescription')}
           </p>
 
           <div className="space-y-3">
-            <button className={`w-full flex items-center gap-3 p-4 rounded-lg transition-colors text-left ${isDark ? "bg-purple-500/10 hover:bg-purple-500/20" : "bg-purple-50 hover:bg-purple-100"}`}>
-              <div className={`p-2 rounded-lg ${isDark ? "bg-purple-500/20" : "bg-purple-100"}`}>
-                <FileText className="text-purple-600" size={20} />
+            <button
+              className={`w-full flex items-center gap-3 p-4 rounded-lg transition-colors text-left ${isDark ? 'bg-indigo-500/10 hover:bg-indigo-500/20' : 'bg-indigo-50 hover:bg-indigo-100'}`}
+            >
+              <div className={`p-2 rounded-lg ${isDark ? 'bg-indigo-500/20' : 'bg-indigo-100'}`}>
+                <FileText className="text-indigo-600" size={20} />
               </div>
               <div className="flex-1">
-                <div className={`text-sm font-medium ${isDark ? "text-white" : "text-gray-900"}`}>{t('createQuiz')}</div>
+                <div className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  {t('createQuiz')}
+                </div>
               </div>
             </button>
 
-            <button className={`w-full flex items-center gap-3 p-4 rounded-lg transition-colors text-left ${isDark ? "bg-indigo-500/10 hover:bg-indigo-500/20" : "bg-indigo-50 hover:bg-indigo-100"}`}>
-              <div className={`p-2 rounded-lg ${isDark ? "bg-indigo-500/20" : "bg-indigo-100"}`}>
+            <button
+              className={`w-full flex items-center gap-3 p-4 rounded-lg transition-colors text-left ${isDark ? 'bg-indigo-500/10 hover:bg-indigo-500/20' : 'bg-indigo-50 hover:bg-indigo-100'}`}
+            >
+              <div className={`p-2 rounded-lg ${isDark ? 'bg-indigo-500/20' : 'bg-indigo-100'}`}>
                 <BarChart3 className="text-indigo-600" size={20} />
               </div>
               <div className="flex-1">
-                <div className={`text-sm font-medium ${isDark ? "text-white" : "text-gray-900"}`}>{t('analyzeCourse')}</div>
+                <div className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  {t('analyzeCourse')}
+                </div>
               </div>
             </button>
           </div>
@@ -320,10 +347,10 @@ function CourseModal({
   onClose: () => void;
   onSave: (data: CourseFormData) => void;
 }) {
-  const { isDark } = useTheme();
+  const { isDark, primaryHex = '#3b82f6' } = useTheme() as any;
   const { t } = useLanguage();
-  const labelClass = `block text-sm font-medium mb-2 ${isDark ? "text-slate-300" : "text-gray-700"}`;
-  const inputClass = `w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? "border-white/10 bg-white/5 text-white placeholder-gray-500" : "border-gray-300 bg-white text-gray-900"}`;
+  const labelClass = `block text-sm font-medium mb-2 ${isDark ? 'text-slate-300' : 'text-gray-700'}`;
+  const inputClass = `w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? 'border-white/10 bg-white/5 text-white placeholder-gray-500' : 'border-gray-300 bg-white text-gray-900'}`;
 
   const [formData, setFormData] = useState<CourseFormData>({
     courseCode: course?.courseCode || '',
@@ -344,9 +371,13 @@ function CourseModal({
 
   return (
     <div className="fixed inset-0 bg-black/10 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className={`rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto ${isDark ? "bg-[#1e293b] border border-white/10" : "bg-white"}`}>
-        <div className={`sticky top-0 border-b p-6 ${isDark ? "bg-[#1e293b] border-white/10" : "bg-white border-gray-200"}`}>
-          <h2 className={`text-xl font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>
+      <div
+        className={`rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto ${isDark ? 'bg-[#1e293b] border border-white/10' : 'bg-white'}`}
+      >
+        <div
+          className={`sticky top-0 border-b p-6 ${isDark ? 'bg-[#1e293b] border-white/10' : 'bg-white border-gray-200'}`}
+        >
+          <h2 className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
             {course ? t('editCourse') : t('createNewCourse')}
           </h2>
         </div>
@@ -469,7 +500,7 @@ function CourseModal({
             <button
               type="button"
               onClick={onClose}
-              className={`flex-1 px-4 py-2 border rounded-lg transition-colors ${isDark ? "border-white/10 text-slate-300 hover:bg-white/10" : "border-gray-300 text-gray-700 hover:bg-gray-50"}`}
+              className={`flex-1 px-4 py-2 border rounded-lg transition-colors ${isDark ? 'border-white/10 text-slate-300 hover:bg-white/10' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}
             >
               {t('cancel')}
             </button>

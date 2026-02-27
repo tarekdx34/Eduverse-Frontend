@@ -39,7 +39,7 @@ type ProfilePageProps = {
 };
 
 export function ProfilePage({ instructor }: ProfilePageProps) {
-  const { isDark } = useTheme();
+  const { isDark, primaryHex = '#3b82f6' } = useTheme() as any;
   const [isEditing, setIsEditing] = useState(false);
   const [profile, setProfile] = useState<InstructorProfile>(instructor);
   const [editedProfile, setEditedProfile] = useState<InstructorProfile>(instructor);
@@ -79,7 +79,8 @@ export function ProfilePage({ instructor }: ProfilePageProps) {
         {!isEditing ? (
           <button
             onClick={() => setIsEditing(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 text-white rounded-lg transition-colors"
+            style={{ backgroundColor: primaryHex }}
           >
             <Edit2 size={18} />
             Edit Profile
@@ -95,7 +96,8 @@ export function ProfilePage({ instructor }: ProfilePageProps) {
             </button>
             <button
               onClick={handleSave}
-              className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 text-white rounded-lg transition-colors"
+              style={{ backgroundColor: primaryHex }}
             >
               <Save size={18} />
               Save Changes
@@ -110,23 +112,33 @@ export function ProfilePage({ instructor }: ProfilePageProps) {
           <div className={`${cardClass} w-full max-w-sm lg:max-w-none`}>
             {/* Avatar */}
             <div className="relative w-32 h-32 mx-auto mb-4">
-              <div className="w-full h-full rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-4xl font-bold">
+              <div
+                className="w-full h-full rounded-full flex items-center justify-center text-white text-4xl font-bold"
+                style={{ backgroundColor: primaryHex }}
+              >
                 {profile.name
                   .split(' ')
                   .map((n) => n[0])
                   .join('')}
               </div>
               {isEditing && (
-                <button className="absolute bottom-0 right-0 w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center text-white hover:bg-indigo-700 transition-colors">
+                <button
+                  className="absolute bottom-0 right-0 w-10 h-10 rounded-full flex items-center justify-center text-white transition-colors"
+                  style={{ backgroundColor: primaryHex }}
+                >
                   <Camera size={18} />
                 </button>
               )}
             </div>
 
             <div className="text-center mb-6">
-              <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{profile.name}</h3>
+              <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                {profile.name}
+              </h3>
               <p className={`text-sm ${mutedClass}`}>{profile.department}</p>
-              <div className={`mt-2 inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${isDark ? 'bg-green-500/20 text-green-400' : 'bg-green-100 text-green-700'}`}>
+              <div
+                className={`mt-2 inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${isDark ? 'bg-green-500/20 text-green-400' : 'bg-green-100 text-green-700'}`}
+              >
                 <div className="w-2 h-2 bg-green-500 rounded-full" />
                 Active
               </div>
@@ -150,17 +162,35 @@ export function ProfilePage({ instructor }: ProfilePageProps) {
 
             {/* Quick Actions */}
             <div className={`mt-6 pt-6 border-t ${borderClass} space-y-2`}>
-              <button className={`w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg transition-colors ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-50'}`}>
+              <button
+                className={`w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg transition-colors ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-50'}`}
+              >
                 <Lock size={18} className={secondaryClass} />
-                <span className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Change Password</span>
+                <span
+                  className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}
+                >
+                  Change Password
+                </span>
               </button>
-              <button className={`w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg transition-colors ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-50'}`}>
+              <button
+                className={`w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg transition-colors ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-50'}`}
+              >
                 <Bell size={18} className={secondaryClass} />
-                <span className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Notification Settings</span>
+                <span
+                  className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}
+                >
+                  Notification Settings
+                </span>
               </button>
-              <button className={`w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg transition-colors ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-50'}`}>
+              <button
+                className={`w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg transition-colors ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-50'}`}
+              >
                 <Globe size={18} className={secondaryClass} />
-                <span className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Language & Region</span>
+                <span
+                  className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}
+                >
+                  Language & Region
+                </span>
               </button>
             </div>
           </div>
@@ -281,7 +311,11 @@ export function ProfilePage({ instructor }: ProfilePageProps) {
             </div>
 
             <div className="mt-6">
-              <label className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2 block`}>Bio</label>
+              <label
+                className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2 block`}
+              >
+                Bio
+              </label>
               {isEditing ? (
                 <textarea
                   value={editedProfile.bio}
@@ -300,9 +334,15 @@ export function ProfilePage({ instructor }: ProfilePageProps) {
             <h3 className={`${subHeadingClass} mb-6`}>Education</h3>
             <div className="space-y-4">
               {profile.education.map((edu, index) => (
-                <div key={index} className={`flex gap-4 pb-4 border-b ${borderSubtleClass} last:border-0`}>
-                  <div className={`flex-shrink-0 w-12 h-12 rounded-lg flex items-center justify-center ${isDark ? 'bg-indigo-500/20' : 'bg-indigo-100'}`}>
-                    <Award size={24} className="text-indigo-600" />
+                <div
+                  key={index}
+                  className={`flex gap-4 pb-4 border-b ${borderSubtleClass} last:border-0`}
+                >
+                  <div
+                    className={`flex-shrink-0 w-12 h-12 rounded-lg flex items-center justify-center`}
+                    style={{ backgroundColor: primaryHex + '20' }}
+                  >
+                    <Award size={24} style={{ color: primaryHex }} />
                   </div>
                   <div className="flex-1">
                     <h4 className={`font-semibold ${valueClass}`}>{edu.degree}</h4>
@@ -321,7 +361,8 @@ export function ProfilePage({ instructor }: ProfilePageProps) {
               {profile.specialization.map((spec, index) => (
                 <span
                   key={index}
-                  className={`px-4 py-2 rounded-full text-sm font-medium ${isDark ? 'bg-indigo-500/20 text-indigo-300' : 'bg-indigo-50 text-indigo-700'}`}
+                  className={`px-4 py-2 rounded-full text-sm font-medium`}
+                  style={{ backgroundColor: primaryHex + '15', color: primaryHex }}
                 >
                   {spec}
                 </span>

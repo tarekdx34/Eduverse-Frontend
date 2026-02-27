@@ -60,7 +60,7 @@ const courseComparisonData = [
 
 export function AnalyticsPage() {
   const [showExportModal, setShowExportModal] = useState(false);
-  const { isDark } = useTheme();
+  const { isDark, primaryHex = '#3b82f6' } = useTheme() as any;
   const { t, isRTL } = useLanguage();
 
   // Sample export data
@@ -78,19 +78,22 @@ export function AnalyticsPage() {
   };
 
   return (
-    <div className={`min-h-screen p-6 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
+    <div className="p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('analytics')}</h1>
+            <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              {t('analytics')}
+            </h1>
             <p className={`mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
               {t('courseAnalytics')}
             </p>
           </div>
           <button
             onClick={() => setShowExportModal(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-500 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 text-white rounded-lg transition-colors"
+            style={{ backgroundColor: primaryHex }}
           >
             <Download size={18} />
             {t('exportReport')}
@@ -134,21 +137,47 @@ export function AnalyticsPage() {
         {/* Top Row - Performance and Engagement */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
           {/* Course Performance Overview */}
-          <div className={`rounded-xl p-6 border shadow-sm ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}>
+          <div
+            className={`rounded-xl p-6 border shadow-sm ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}
+          >
             <div className="mb-4">
-              <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('coursePerformanceOverview')}</h3>
+              <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                {t('coursePerformanceOverview')}
+              </h3>
               <div className="flex items-center gap-2 mt-1">
-                <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>{t('averageGradeLabel')}</span>
-                <span className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>82%</span>
+                <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                  {t('averageGradeLabel')}
+                </span>
+                <span
+                  className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}
+                >
+                  82%
+                </span>
                 <span className="text-xs text-green-600">↑ +5.8% this month</span>
               </div>
             </div>
             <ResponsiveContainer width="100%" height={200}>
               <LineChart data={performanceData}>
                 <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#374151' : '#f0f0f0'} />
-                <XAxis dataKey="week" tick={{ fontSize: 12, fill: isDark ? '#9ca3af' : '#6b7280' }} />
-                <YAxis tick={{ fontSize: 12, fill: isDark ? '#9ca3af' : '#6b7280' }} domain={[70, 100]} />
-                <Tooltip contentStyle={isDark ? { backgroundColor: '#1f2937', border: '1px solid #374151', color: '#f9fafb' } : undefined} />
+                <XAxis
+                  dataKey="week"
+                  tick={{ fontSize: 12, fill: isDark ? '#9ca3af' : '#6b7280' }}
+                />
+                <YAxis
+                  tick={{ fontSize: 12, fill: isDark ? '#9ca3af' : '#6b7280' }}
+                  domain={[70, 100]}
+                />
+                <Tooltip
+                  contentStyle={
+                    isDark
+                      ? {
+                          backgroundColor: '#1f2937',
+                          border: '1px solid #374151',
+                          color: '#f9fafb',
+                        }
+                      : undefined
+                  }
+                />
                 <Line
                   type="monotone"
                   dataKey="grade"
@@ -161,20 +190,46 @@ export function AnalyticsPage() {
           </div>
 
           {/* Engagement Analytics */}
-          <div className={`rounded-xl p-6 border shadow-sm ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}>
+          <div
+            className={`rounded-xl p-6 border shadow-sm ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}
+          >
             <div className="mb-4">
-              <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('engagementAnalytics')}</h3>
+              <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                {t('engagementAnalytics')}
+              </h3>
               <div className="flex items-center gap-2 mt-1">
-                <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>{t('engagementRateLabel')}</span>
-                <span className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>76%</span>
+                <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                  {t('engagementRateLabel')}
+                </span>
+                <span
+                  className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}
+                >
+                  76%
+                </span>
               </div>
             </div>
             <ResponsiveContainer width="100%" height={200}>
               <LineChart data={engagementData}>
                 <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#374151' : '#f0f0f0'} />
-                <XAxis dataKey="week" tick={{ fontSize: 12, fill: isDark ? '#9ca3af' : '#6b7280' }} />
-                <YAxis tick={{ fontSize: 12, fill: isDark ? '#9ca3af' : '#6b7280' }} domain={[60, 100]} />
-                <Tooltip contentStyle={isDark ? { backgroundColor: '#1f2937', border: '1px solid #374151', color: '#f9fafb' } : undefined} />
+                <XAxis
+                  dataKey="week"
+                  tick={{ fontSize: 12, fill: isDark ? '#9ca3af' : '#6b7280' }}
+                />
+                <YAxis
+                  tick={{ fontSize: 12, fill: isDark ? '#9ca3af' : '#6b7280' }}
+                  domain={[60, 100]}
+                />
+                <Tooltip
+                  contentStyle={
+                    isDark
+                      ? {
+                          backgroundColor: '#1f2937',
+                          border: '1px solid #374151',
+                          color: '#f9fafb',
+                        }
+                      : undefined
+                  }
+                />
                 <Legend />
                 <Line
                   type="monotone"
@@ -199,36 +254,64 @@ export function AnalyticsPage() {
         {/* Middle Row - Attendance, Low Performance, Students at Risk */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
           {/* Attendance Overview */}
-          <div className={`rounded-xl p-6 border shadow-sm ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}>
+          <div
+            className={`rounded-xl p-6 border shadow-sm ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}
+          >
             <div className="flex items-center gap-2 mb-4">
               <div className={`p-2 rounded-lg ${isDark ? 'bg-green-500/20' : 'bg-green-100'}`}>
                 <Users className="text-green-600" size={20} />
               </div>
               <div>
-                <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('attendanceOverview')}</h3>
-                <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>88% {t('average')}</p>
+                <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  {t('attendanceOverview')}
+                </h3>
+                <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                  88% {t('average')}
+                </p>
               </div>
             </div>
             <ResponsiveContainer width="100%" height={180}>
               <BarChart data={attendanceData}>
                 <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#374151' : '#f0f0f0'} />
-                <XAxis dataKey="name" tick={{ fontSize: 11, fill: isDark ? '#9ca3af' : '#6b7280' }} />
-                <YAxis tick={{ fontSize: 11, fill: isDark ? '#9ca3af' : '#6b7280' }} domain={[0, 100]} />
-                <Tooltip contentStyle={isDark ? { backgroundColor: '#1f2937', border: '1px solid #374151', color: '#f9fafb' } : undefined} />
+                <XAxis
+                  dataKey="name"
+                  tick={{ fontSize: 11, fill: isDark ? '#9ca3af' : '#6b7280' }}
+                />
+                <YAxis
+                  tick={{ fontSize: 11, fill: isDark ? '#9ca3af' : '#6b7280' }}
+                  domain={[0, 100]}
+                />
+                <Tooltip
+                  contentStyle={
+                    isDark
+                      ? {
+                          backgroundColor: '#1f2937',
+                          border: '1px solid #374151',
+                          color: '#f9fafb',
+                        }
+                      : undefined
+                  }
+                />
                 <Bar dataKey="value" fill="#10b981" radius={[8, 8, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
 
           {/* Low-Performance Topics */}
-          <div className={`rounded-xl p-6 border shadow-sm ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}>
+          <div
+            className={`rounded-xl p-6 border shadow-sm ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}
+          >
             <div className="flex items-center gap-2 mb-4">
               <div className={`p-2 rounded-lg ${isDark ? 'bg-orange-500/20' : 'bg-orange-100'}`}>
                 <AlertTriangle className="text-orange-600" size={20} />
               </div>
               <div>
-                <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('lowPerformanceTopics')}</h3>
-                <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>4 {t('detected')}</p>
+                <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  {t('lowPerformanceTopics')}
+                </h3>
+                <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                  4 {t('detected')}
+                </p>
               </div>
             </div>
             <div className="space-y-3">
@@ -240,10 +323,14 @@ export function AnalyticsPage() {
               ].map((item, index) => (
                 <div key={index}>
                   <div className="flex items-center justify-between mb-1">
-                    <span className={`text-sm ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>{item.topic}</span>
+                    <span className={`text-sm ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>
+                      {item.topic}
+                    </span>
                     <span className="text-sm font-semibold text-orange-600">{item.score}</span>
                   </div>
-                  <div className={`w-full rounded-full h-2 ${isDark ? 'bg-gray-700' : 'bg-gray-200'}`}>
+                  <div
+                    className={`w-full rounded-full h-2 ${isDark ? 'bg-gray-700' : 'bg-gray-200'}`}
+                  >
                     <div
                       className="bg-orange-500 h-2 rounded-full"
                       style={{ width: `${item.score}%` }}
@@ -255,14 +342,20 @@ export function AnalyticsPage() {
           </div>
 
           {/* Students at Risk */}
-          <div className={`rounded-xl p-6 border shadow-sm ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}>
+          <div
+            className={`rounded-xl p-6 border shadow-sm ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}
+          >
             <div className="flex items-center gap-2 mb-4">
               <div className={`p-2 rounded-lg ${isDark ? 'bg-red-500/20' : 'bg-red-100'}`}>
                 <AlertTriangle className="text-red-600" size={20} />
               </div>
               <div>
-                <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('atRiskStudents')}</h3>
-                <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>5 {t('flaggedStudents')}</p>
+                <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  {t('atRiskStudents')}
+                </h3>
+                <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                  5 {t('flaggedStudents')}
+                </p>
               </div>
             </div>
             <div className="space-y-3">
@@ -287,17 +380,29 @@ export function AnalyticsPage() {
                       .join('')}
                   </div>
                   <div className="flex-1">
-                    <div className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{student.name}</div>
-                    <div className={`text-xs ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>{student.issue}</div>
+                    <div
+                      className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}
+                    >
+                      {student.name}
+                    </div>
+                    <div className={`text-xs ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                      {student.issue}
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
-            <div className={`mt-4 pt-4 border-t flex gap-2 ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
-              <button className={`flex-1 text-sm py-2 rounded-lg transition-colors ${isDark ? 'text-slate-300 hover:bg-white/10' : 'text-gray-700 hover:bg-gray-50'}`}>
+            <div
+              className={`mt-4 pt-4 border-t flex gap-2 ${isDark ? 'border-white/10' : 'border-gray-200'}`}
+            >
+              <button
+                className={`flex-1 text-sm py-2 rounded-lg transition-colors ${isDark ? 'text-slate-300 hover:bg-white/10' : 'text-gray-700 hover:bg-gray-50'}`}
+              >
                 {t('viewAll')}
               </button>
-              <button className={`flex-1 text-sm py-2 rounded-lg transition-colors ${isDark ? 'text-indigo-400 bg-indigo-500/20 hover:bg-indigo-500/30' : 'text-indigo-600 bg-indigo-50 hover:bg-indigo-100'}`}>
+              <button
+                className={`flex-1 text-sm py-2 rounded-lg transition-colors ${isDark ? 'text-indigo-400 bg-indigo-500/20 hover:bg-indigo-500/30' : 'text-indigo-600 bg-indigo-50 hover:bg-indigo-100'}`}
+              >
                 {t('message')}
               </button>
             </div>
@@ -305,38 +410,70 @@ export function AnalyticsPage() {
         </div>
 
         {/* Course Comparison */}
-        <div className={`rounded-xl p-6 border shadow-sm ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}>
-          <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('courseComparison')}</h3>
-          <p className={`text-sm mb-4 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>{t('avgCompletionRateByCourse')}</p>
+        <div
+          className={`rounded-xl p-6 border shadow-sm ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}
+        >
+          <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+            {t('courseComparison')}
+          </h3>
+          <p className={`text-sm mb-4 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+            {t('avgCompletionRateByCourse')}
+          </p>
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={courseComparisonData}>
               <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#374151' : '#f0f0f0'} />
-              <XAxis dataKey="course" tick={{ fontSize: 12, fill: isDark ? '#9ca3af' : '#6b7280' }} />
-              <YAxis tick={{ fontSize: 12, fill: isDark ? '#9ca3af' : '#6b7280' }} domain={[0, 100]} />
-              <Tooltip contentStyle={isDark ? { backgroundColor: '#1f2937', border: '1px solid #374151', color: '#f9fafb' } : undefined} />
+              <XAxis
+                dataKey="course"
+                tick={{ fontSize: 12, fill: isDark ? '#9ca3af' : '#6b7280' }}
+              />
+              <YAxis
+                tick={{ fontSize: 12, fill: isDark ? '#9ca3af' : '#6b7280' }}
+                domain={[0, 100]}
+              />
+              <Tooltip
+                contentStyle={
+                  isDark
+                    ? { backgroundColor: '#1f2937', border: '1px solid #374151', color: '#f9fafb' }
+                    : undefined
+                }
+              />
               <Bar dataKey="value" fill="#8b5cf6" radius={[8, 8, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
 
         {/* AI Insights */}
-        <div className={`bg-gradient-to-br rounded-xl p-6 border shadow-sm ${isDark ? 'from-purple-900/30 to-indigo-900/30 border-purple-500/30' : 'from-purple-50 to-indigo-50 border-purple-200'}`}>
+        <div
+          className={`rounded-xl p-6 border ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}
+        >
           <div className="flex items-center gap-2 mb-4">
             <Sparkles className="text-purple-600" size={24} />
-            <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('aiInsightsPoweredByEvy')}</h3>
+            <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              {t('aiInsightsPoweredByEvy')}
+            </h3>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
             <div className={`rounded-lg p-4 ${isDark ? 'bg-white/10' : 'bg-white'}`}>
               <div className="flex items-center gap-2 mb-2">
                 <TrendingUp className="text-green-600" size={16} />
-                <span className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('performanceImprovement')}</span>
+                <span
+                  className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}
+                >
+                  {t('performanceImprovement')}
+                </span>
               </div>
-              <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>Your students improved by 6% this month.</p>
+              <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                Your students improved by 6% this month.
+              </p>
             </div>
             <div className={`rounded-lg p-4 ${isDark ? 'bg-white/10' : 'bg-white'}`}>
               <div className="flex items-center gap-2 mb-2">
                 <AlertTriangle className="text-orange-600" size={16} />
-                <span className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('strugglingTopic')}</span>
+                <span
+                  className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}
+                >
+                  {t('strugglingTopic')}
+                </span>
               </div>
               <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
                 56% of students struggle with derivative applications.
@@ -345,7 +482,11 @@ export function AnalyticsPage() {
             <div className={`rounded-lg p-4 ${isDark ? 'bg-white/10' : 'bg-white'}`}>
               <div className="flex items-center gap-2 mb-2">
                 <Target className="text-blue-600" size={16} />
-                <span className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('recommendation')}</span>
+                <span
+                  className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}
+                >
+                  {t('recommendation')}
+                </span>
               </div>
               <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
                 Recommend 3 extra practice sessions this week.
@@ -353,18 +494,29 @@ export function AnalyticsPage() {
             </div>
             <div className={`rounded-lg p-4 ${isDark ? 'bg-white/10' : 'bg-white'}`}>
               <div className="flex items-center gap-2 mb-2">
-                <BookOpen className="text-purple-600" size={16} />
-                <span className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('generateTeachingPlan')}</span>
+                <BookOpen className="text-indigo-600" size={16} />
+                <span
+                  className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}
+                >
+                  {t('generateTeachingPlan')}
+                </span>
               </div>
-              <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>{t('letAiCreatePlan')}</p>
+              <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                {t('letAiCreatePlan')}
+              </p>
             </div>
           </div>
           <div className="flex gap-3">
-            <button className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm">
+            <button
+              className="flex items-center gap-2 px-4 py-2 text-white rounded-lg transition-colors text-sm"
+              style={{ backgroundColor: primaryHex }}
+            >
               <Sparkles size={16} />
               {t('generateTeachingPlan')}
             </button>
-            <button className={`flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors text-sm ${isDark ? 'bg-white/10 border-purple-500/30 text-purple-300 hover:bg-white/20' : 'bg-white border-purple-200 text-purple-700 hover:bg-purple-50'}`}>
+            <button
+              className={`flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors text-sm ${isDark ? 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'}`}
+            >
               <MessageSquare size={16} />
               {t('sendFeedbackToStudents')}
             </button>
@@ -373,14 +525,15 @@ export function AnalyticsPage() {
 
         {/* Export Modal */}
         {showExportModal && (
-          <div className={`fixed inset-0 flex items-center justify-center z-50 p-4 ${isDark ? 'bg-black/70' : 'bg-black/50'}`}>
+          <div
+            className={`fixed inset-0 flex items-center justify-center z-50 p-4 ${isDark ? 'bg-black/70' : 'bg-black/50'}`}
+          >
             <div className="relative">
               <button
                 onClick={() => setShowExportModal(false)}
                 className={`absolute -top-2 -right-2 p-2 rounded-full shadow-lg z-10 ${isDark ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-white hover:bg-gray-100'}`}
               >
-                <span className="sr-only">Close</span>
-                ×
+                <span className="sr-only">Close</span>×
               </button>
               <ExportReports
                 data={exportData}

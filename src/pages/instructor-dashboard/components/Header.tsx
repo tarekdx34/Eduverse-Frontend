@@ -63,27 +63,37 @@ export function Header({ userName = 'Prof. Sarah Martinez', onProfileClick }: He
 
   return (
     <>
-      <div className={`fixed top-0 ${isRTL ? 'left-0' : 'right-0'} flex items-center justify-end gap-4 ${isRTL ? 'pl-6' : 'pr-6'} py-3 bg-transparent z-40 pointer-events-none`}>
+      <div
+        className={`fixed top-0 ${isRTL ? 'left-0' : 'right-0'} flex items-center justify-end gap-4 ${isRTL ? 'pl-6' : 'pr-6'} py-3 bg-transparent z-40 pointer-events-none`}
+      >
         {/* Search */}
-        <button 
+        <button
           onClick={() => setShowSearch(true)}
           className={`relative w-64 pointer-events-auto flex items-center gap-2 px-3 py-2 border rounded-lg text-sm transition-colors ${
-            isDark 
-              ? 'border-gray-600 text-gray-300 bg-gray-800 hover:border-gray-500' 
+            isDark
+              ? 'border-gray-600 text-gray-300 bg-gray-800 hover:border-gray-500'
               : 'border-gray-200 text-gray-500 bg-white hover:border-gray-300'
           }`}
         >
           <Search size={16} className={isDark ? 'text-gray-400' : 'text-gray-400'} />
           <span className="flex-1 text-left">{t('search')}</span>
-          <kbd className={`px-1.5 py-0.5 text-xs rounded ${isDark ? 'bg-gray-700 text-gray-400' : 'bg-gray-100 text-gray-500'}`}>⌘K</kbd>
+          <kbd
+            className={`px-1.5 py-0.5 text-xs rounded ${isDark ? 'bg-gray-700 text-gray-400' : 'bg-gray-100 text-gray-500'}`}
+          >
+            ⌘K
+          </kbd>
         </button>
 
         {/* Notification */}
-        <button className={`relative p-2 rounded-lg transition-colors pointer-events-auto ${
-          isDark ? 'hover:bg-gray-700 bg-gray-800' : 'hover:bg-gray-100 bg-white'
-        }`}>
+        <button
+          className={`relative p-2 rounded-lg transition-colors pointer-events-auto ${
+            isDark ? 'hover:bg-gray-700 bg-gray-800' : 'hover:bg-gray-100 bg-white'
+          }`}
+        >
           <Bell size={20} className={isDark ? 'text-gray-300' : 'text-gray-600'} />
-          <div className={`absolute top-1 ${isRTL ? 'left-1' : 'right-1'} w-2 h-2 bg-red-500 rounded-full`} />
+          <div
+            className={`absolute top-1 ${isRTL ? 'left-1' : 'right-1'} w-2 h-2 bg-red-500 rounded-full`}
+          />
         </button>
 
         {/* Profile Dropdown */}
@@ -92,32 +102,47 @@ export function Header({ userName = 'Prof. Sarah Martinez', onProfileClick }: He
             onClick={() => setShowDropdown(!showDropdown)}
             className={`rounded-lg p-1 transition-colors ${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}`}
           >
-            <div className="w-9 h-9 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full cursor-pointer hover:opacity-80 transition-opacity flex items-center justify-center text-white text-sm font-semibold">
+            <div
+              className="w-9 h-9 rounded-full cursor-pointer hover:opacity-80 transition-opacity flex items-center justify-center text-white text-sm font-semibold"
+              style={{ backgroundColor: accentColor || '#3b82f6' }}
+            >
               SM
             </div>
           </button>
 
           {showDropdown && (
-            <div className={`absolute ${isRTL ? 'left-0' : 'right-0'} mt-2 w-64 rounded-xl shadow-lg border py-2 z-50 ${
-              isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-            }`}>
+            <div
+              className={`absolute ${isRTL ? 'left-0' : 'right-0'} mt-2 w-64 rounded-xl shadow-lg border py-2 z-50 ${
+                isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+              }`}
+            >
               {/* User Info */}
-              <div className={`px-4 py-3 border-b ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
-                <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{userName}</p>
-                <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Instructor</p>
+              <div
+                className={`px-4 py-3 border-b ${isDark ? 'border-gray-700' : 'border-gray-100'}`}
+              >
+                <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  {userName}
+                </p>
+                <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                  Instructor
+                </p>
               </div>
 
               {/* Language Selection */}
-              <div className={`px-4 py-2 border-b ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
-                <p className={`text-xs mb-2 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{t('language')}</p>
+              <div
+                className={`px-4 py-2 border-b ${isDark ? 'border-gray-700' : 'border-gray-100'}`}
+              >
+                <p className={`text-xs mb-2 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                  {t('language')}
+                </p>
                 <div className="flex gap-2">
                   <button
                     onClick={() => handleLanguageChange('en')}
                     className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
                       language === 'en'
                         ? 'bg-indigo-100 text-indigo-700 border border-indigo-200'
-                        : isDark 
-                          ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' 
+                        : isDark
+                          ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                           : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
                     }`}
                   >
@@ -129,8 +154,8 @@ export function Header({ userName = 'Prof. Sarah Martinez', onProfileClick }: He
                     className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
                       language === 'ar'
                         ? 'bg-indigo-100 text-indigo-700 border border-indigo-200'
-                        : isDark 
-                          ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' 
+                        : isDark
+                          ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                           : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
                     }`}
                   >
@@ -141,7 +166,9 @@ export function Header({ userName = 'Prof. Sarah Martinez', onProfileClick }: He
               </div>
 
               {/* Dark Mode Toggle */}
-              <div className={`px-4 py-3 border-b ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
+              <div
+                className={`px-4 py-3 border-b ${isDark ? 'border-gray-700' : 'border-gray-100'}`}
+              >
                 <button
                   onClick={toggleTheme}
                   className={`w-full flex items-center justify-between rounded-lg px-3 py-2 transition-colors ${
@@ -181,7 +208,9 @@ export function Header({ userName = 'Prof. Sarah Martinez', onProfileClick }: He
                   }`}
                 >
                   <User className={`w-4 h-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`} />
-                  <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('viewProfile')}</span>
+                  <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                    {t('viewProfile')}
+                  </span>
                 </button>
                 <button
                   onClick={handleLogout}
@@ -199,9 +228,9 @@ export function Header({ userName = 'Prof. Sarah Martinez', onProfileClick }: He
       </div>
 
       {/* Global Search Modal */}
-      <GlobalSearch 
-        isOpen={showSearch} 
-        onClose={() => setShowSearch(false)} 
+      <GlobalSearch
+        isOpen={showSearch}
+        onClose={() => setShowSearch(false)}
         userRole="instructor"
       />
     </>

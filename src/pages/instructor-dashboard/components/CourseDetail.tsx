@@ -15,11 +15,7 @@ import {
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
-import {
-  FileUploadDropzone,
-  AutoGradingSystem,
-  Submission,
-} from '../../../components/shared';
+import { FileUploadDropzone, AutoGradingSystem, Submission } from '../../../components/shared';
 
 type Course = {
   id: number;
@@ -50,7 +46,12 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedLecture, setSelectedLecture] = useState('');
   const [showAssignmentForm, setShowAssignmentForm] = useState(false);
-  const [assignmentForm, setAssignmentForm] = useState({ title: '', description: '', dueDate: '', type: 'written' });
+  const [assignmentForm, setAssignmentForm] = useState({
+    title: '',
+    description: '',
+    dueDate: '',
+    type: 'written',
+  });
   const [gradingSubTab, setGradingSubTab] = useState<'manual' | 'auto'>('manual');
 
   // Get actual course data
@@ -58,9 +59,11 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
 
   if (!course) {
     return (
-      <div className={`min-h-screen ${isDark ? 'bg-transparent' : 'bg-gray-50'} flex items-center justify-center`}>
+      <div className={`flex items-center justify-center`}>
         <div className="text-center">
-          <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'} mb-2`}>{t('courseNotFound')}</h2>
+          <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'} mb-2`}>
+            {t('courseNotFound')}
+          </h2>
           <button onClick={onBack} className="text-indigo-600 hover:text-indigo-700 font-medium">
             {t('backToCourses')}
           </button>
@@ -115,9 +118,11 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
   ];
 
   return (
-    <div className={`min-h-screen ${isDark ? 'bg-transparent' : 'bg-gray-50'}`}>
+    <div>
       {/* Course Title */}
-      <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} border-b`}>
+      <div
+        className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} border-b`}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
           <div className="flex flex-col sm:flex-row sm:items-center gap-3">
             <button
@@ -127,7 +132,11 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
               <ArrowLeft size={20} className={isDark ? 'text-slate-400' : 'text-gray-600'} />
             </button>
             <div>
-              <h1 className={`text-2xl sm:text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'} mb-1`}>{course.courseName}</h1>
+              <h1
+                className={`text-2xl sm:text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'} mb-1`}
+              >
+                {course.courseName}
+              </h1>
               <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
                 Manage lectures, assignments, materials, students, and announcements.
               </p>
@@ -137,9 +146,14 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
       </div>
 
       {/* Tabs */}
-      <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} border-b`}>
+      <div
+        className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} border-b`}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="flex items-center gap-4 sm:gap-6 -mb-px overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+          <div
+            className="flex items-center gap-4 sm:gap-6 -mb-px overflow-x-auto scrollbar-hide"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          >
             {tabs.map((tab) => (
               <button
                 key={tab.id}
@@ -165,25 +179,43 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
           <>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Course Summary */}
-              <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}>
+              <div
+                className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}
+              >
                 <div className="flex items-center gap-3 mb-6">
                   <div className="p-2 bg-blue-100 rounded-lg">
                     <Users className="text-blue-600" size={20} />
                   </div>
-                  <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('courseDetails')}</h3>
+                  <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    {t('courseDetails')}
+                  </h3>
                 </div>
 
                 <div className="space-y-4">
                   <div>
-                    <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'} mb-1`}>Students</div>
-                    <div className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{course.enrolled}</div>
+                    <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'} mb-1`}>
+                      Students
+                    </div>
+                    <div
+                      className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}
+                    >
+                      {course.enrolled}
+                    </div>
                   </div>
                   <div>
-                    <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'} mb-1`}>Average Grade</div>
-                    <div className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{course.averageGrade}%</div>
+                    <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'} mb-1`}>
+                      Average Grade
+                    </div>
+                    <div
+                      className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}
+                    >
+                      {course.averageGrade}%
+                    </div>
                   </div>
                   <div>
-                    <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'} mb-1`}>Engagement</div>
+                    <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'} mb-1`}>
+                      Engagement
+                    </div>
                     <div className="text-2xl font-bold text-green-600">
                       {course.attendanceRate}%
                     </div>
@@ -192,44 +224,72 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
               </div>
 
               {/* Upcoming Events */}
-              <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}>
+              <div
+                className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}
+              >
                 <div className="flex items-center gap-3 mb-6">
                   <div className="p-2 bg-purple-100 rounded-lg">
                     <Calendar className="text-purple-600" size={20} />
                   </div>
-                  <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('upcomingDeadlines')}</h3>
+                  <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    {t('upcomingDeadlines')}
+                  </h3>
                 </div>
 
                 <div className="space-y-3">
-                  <div className={`flex items-center justify-between p-3 ${isDark ? 'bg-transparent' : 'bg-gray-50'} rounded-lg`}>
-                    <span className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>Lecture</span>
-                    <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>May 12</span>
+                  <div
+                    className={`flex items-center justify-between p-3 ${isDark ? 'bg-transparent' : 'bg-gray-50'} rounded-lg`}
+                  >
+                    <span className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                      Lecture
+                    </span>
+                    <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                      May 12
+                    </span>
                   </div>
-                  <div className={`flex items-center justify-between p-3 ${isDark ? 'bg-transparent' : 'bg-gray-50'} rounded-lg`}>
-                    <span className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>Quiz</span>
-                    <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>May 13</span>
+                  <div
+                    className={`flex items-center justify-between p-3 ${isDark ? 'bg-transparent' : 'bg-gray-50'} rounded-lg`}
+                  >
+                    <span className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                      Quiz
+                    </span>
+                    <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                      May 13
+                    </span>
                   </div>
-                  <div className={`flex items-center justify-between p-3 ${isDark ? 'bg-transparent' : 'bg-gray-50'} rounded-lg`}>
-                    <span className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>Office Hour</span>
-                    <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>May 14</span>
+                  <div
+                    className={`flex items-center justify-between p-3 ${isDark ? 'bg-transparent' : 'bg-gray-50'} rounded-lg`}
+                  >
+                    <span className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                      Office Hour
+                    </span>
+                    <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                      May 14
+                    </span>
                   </div>
                 </div>
               </div>
 
               {/* AI Insights */}
-              <div className={`${isDark ? 'bg-gradient-to-br from-green-500/10 to-emerald-500/10 border-green-500/20' : 'bg-gradient-to-br from-green-50 to-emerald-50 border-green-200'} rounded-xl p-6 border shadow-sm`}>
+              <div
+                className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border`}
+              >
                 <div className="flex items-center gap-3 mb-6">
                   <div className="p-2 bg-green-100 rounded-lg">
                     <TrendingUp className="text-green-600" size={20} />
                   </div>
-                  <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('aiInsights')}</h3>
+                  <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    {t('aiInsights')}
+                  </h3>
                 </div>
 
                 <div className="space-y-4">
                   <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-700'}`}>
                     Students struggled with {course.courseName.split(' ')[0]} concepts last week.
                   </div>
-                  <div className={`text-sm font-medium ${isDark ? 'text-green-300' : 'text-green-700'}`}>
+                  <div
+                    className={`text-sm font-medium ${isDark ? 'text-green-300' : 'text-green-700'}`}
+                  >
                     Engagement improved by 5%
                   </div>
                   <button className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium">
@@ -241,29 +301,63 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
             </div>
 
             {/* Recent Activity */}
-            <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm mt-6`}>
-              <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'} mb-6`}>{t('recentActivity')}</h3>
+            <div
+              className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm mt-6`}
+            >
+              <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'} mb-6`}>
+                {t('recentActivity')}
+              </h3>
               <div className="space-y-4">
-                <div className={`flex items-center gap-4 p-4 ${isDark ? 'bg-transparent' : 'bg-gray-50'} rounded-lg`}>
-                  <div className={`px-3 py-1 rounded-full text-xs font-medium ${isDark ? 'bg-blue-500/20 text-blue-300' : 'bg-blue-100 text-blue-700'}`}>
+                <div
+                  className={`flex items-center gap-4 p-4 ${isDark ? 'bg-transparent' : 'bg-gray-50'} rounded-lg`}
+                >
+                  <div
+                    className={`px-3 py-1 rounded-full text-xs font-medium ${isDark ? 'bg-blue-500/20 text-blue-300' : 'bg-blue-100 text-blue-700'}`}
+                  >
                     New assignment submitted
                   </div>
-                  <span className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>John Smith</span>
-                  <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-500'} ml-auto`}>2 hours ago</span>
+                  <span className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    John Smith
+                  </span>
+                  <span
+                    className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-500'} ml-auto`}
+                  >
+                    2 hours ago
+                  </span>
                 </div>
-                <div className={`flex items-center gap-4 p-4 ${isDark ? 'bg-transparent' : 'bg-gray-50'} rounded-lg`}>
-                  <div className={`px-3 py-1 rounded-full text-xs font-medium ${isDark ? 'bg-purple-500/20 text-purple-300' : 'bg-purple-100 text-purple-700'}`}>
+                <div
+                  className={`flex items-center gap-4 p-4 ${isDark ? 'bg-transparent' : 'bg-gray-50'} rounded-lg`}
+                >
+                  <div
+                    className={`px-3 py-1 rounded-full text-xs font-medium ${isDark ? 'bg-purple-500/20 text-purple-300' : 'bg-purple-100 text-purple-700'}`}
+                  >
                     Quiz completed
                   </div>
-                  <span className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>15 students</span>
-                  <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-500'} ml-auto`}>4 hours ago</span>
+                  <span className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    15 students
+                  </span>
+                  <span
+                    className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-500'} ml-auto`}
+                  >
+                    4 hours ago
+                  </span>
                 </div>
-                <div className={`flex items-center gap-4 p-4 ${isDark ? 'bg-transparent' : 'bg-gray-50'} rounded-lg`}>
-                  <div className={`px-3 py-1 rounded-full text-xs font-medium ${isDark ? 'bg-green-500/20 text-green-300' : 'bg-green-100 text-green-700'}`}>
+                <div
+                  className={`flex items-center gap-4 p-4 ${isDark ? 'bg-transparent' : 'bg-gray-50'} rounded-lg`}
+                >
+                  <div
+                    className={`px-3 py-1 rounded-full text-xs font-medium ${isDark ? 'bg-green-500/20 text-green-300' : 'bg-green-100 text-green-700'}`}
+                  >
                     Material uploaded
                   </div>
-                  <span className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>Prof. Martinez</span>
-                  <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-500'} ml-auto`}>Yesterday</span>
+                  <span className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    Prof. Martinez
+                  </span>
+                  <span
+                    className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-500'} ml-auto`}
+                  >
+                    Yesterday
+                  </span>
                 </div>
               </div>
             </div>
@@ -274,17 +368,26 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
         {activeTab === 'lectures' && (
           <div className="space-y-4">
             {[1, 2, 3, 4].map((week) => (
-              <div key={week} className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}>
-                <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'} mb-4`}>Week {week}</h3>
+              <div
+                key={week}
+                className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}
+              >
+                <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'} mb-4`}>
+                  Week {week}
+                </h3>
                 <div className="space-y-3">
-                  <div className={`flex items-center justify-between p-4 ${isDark ? 'bg-transparent hover:bg-white/10' : 'bg-gray-50 hover:bg-gray-100'} rounded-lg transition-colors cursor-pointer`}>
+                  <div
+                    className={`flex items-center justify-between p-4 ${isDark ? 'bg-transparent hover:bg-white/10' : 'bg-gray-50 hover:bg-gray-100'} rounded-lg transition-colors cursor-pointer`}
+                  >
                     <div className="flex items-center gap-3">
                       <Video size={20} className="text-indigo-600" />
                       <div>
                         <div className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
                           Lecture {week}.1 - Introduction
                         </div>
-                        <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>{course.schedule}</div>
+                        <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                          {course.schedule}
+                        </div>
                       </div>
                     </div>
                     <CheckCircle size={20} className="text-green-600" />
@@ -298,10 +401,16 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
         {/* Materials Tab */}
         {activeTab === 'materials' && (
           <div className="space-y-6">
-            <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}>
-              <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'} mb-4`}>{t('uploadMaterials')}</h3>
+            <div
+              className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}
+            >
+              <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'} mb-4`}>
+                {t('uploadMaterials')}
+              </h3>
               <div className="mb-4">
-                <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>
+                <label
+                  className={`block text-sm font-medium mb-2 ${isDark ? 'text-slate-300' : 'text-gray-700'}`}
+                >
                   Select Lecture
                 </label>
                 <select
@@ -315,38 +424,60 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                 >
                   <option value="">-- Select a lecture --</option>
                   {lectures.map((lec) => (
-                    <option key={lec.id} value={lec.id}>{lec.label}</option>
+                    <option key={lec.id} value={lec.id}>
+                      {lec.label}
+                    </option>
                   ))}
                 </select>
               </div>
               <FileUploadDropzone
                 onFilesUploaded={(files) => console.log('Uploaded:', files)}
-                acceptedTypes={['application/pdf', 'image/*', 'video/*', '.doc', '.docx', '.ppt', '.pptx']}
+                acceptedTypes={[
+                  'application/pdf',
+                  'image/*',
+                  'video/*',
+                  '.doc',
+                  '.docx',
+                  '.ppt',
+                  '.pptx',
+                ]}
                 maxFiles={10}
                 maxSizeInMB={50}
                 showPreview={true}
               />
             </div>
 
-            <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}>
-              <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'} mb-4`}>{t('courseMaterials')}</h3>
+            <div
+              className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}
+            >
+              <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'} mb-4`}>
+                {t('courseMaterials')}
+              </h3>
               <div className="space-y-3">
-                {['Syllabus.pdf', 'Lecture Notes - Week 1.pdf', 'Assignment Guidelines.pdf', 'Lab Manual.pdf', 'Formula Sheet.pdf'].map(
-                  (file, index) => (
-                    <div
-                      key={index}
-                      className={`flex items-center justify-between p-4 ${isDark ? 'bg-transparent hover:bg-white/10' : 'bg-gray-50 hover:bg-gray-100'} rounded-lg transition-colors`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <FileText size={20} className={isDark ? 'text-slate-400' : 'text-gray-600'} />
-                        <span className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>{file}</span>
-                      </div>
-                      <button className={`p-2 ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-200'} rounded-lg transition-colors`}>
-                        <Download size={16} className={isDark ? 'text-slate-400' : 'text-gray-600'} />
-                      </button>
+                {[
+                  'Syllabus.pdf',
+                  'Lecture Notes - Week 1.pdf',
+                  'Assignment Guidelines.pdf',
+                  'Lab Manual.pdf',
+                  'Formula Sheet.pdf',
+                ].map((file, index) => (
+                  <div
+                    key={index}
+                    className={`flex items-center justify-between p-4 ${isDark ? 'bg-transparent hover:bg-white/10' : 'bg-gray-50 hover:bg-gray-100'} rounded-lg transition-colors`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <FileText size={20} className={isDark ? 'text-slate-400' : 'text-gray-600'} />
+                      <span className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                        {file}
+                      </span>
                     </div>
-                  )
-                )}
+                    <button
+                      className={`p-2 ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-200'} rounded-lg transition-colors`}
+                    >
+                      <Download size={16} className={isDark ? 'text-slate-400' : 'text-gray-600'} />
+                    </button>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -357,7 +488,9 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
           <div className="space-y-6">
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('assignments')}</h2>
+              <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                {t('assignments')}
+              </h2>
               <button
                 onClick={() => setShowAssignmentForm(!showAssignmentForm)}
                 className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm"
@@ -369,23 +502,39 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
 
             {/* Assignment Creation Form */}
             {showAssignmentForm && (
-              <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm space-y-4`}>
-                <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>New Assignment</h3>
+              <div
+                className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm space-y-4`}
+              >
+                <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  New Assignment
+                </h3>
                 <div>
-                  <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>Title</label>
+                  <label
+                    className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-300' : 'text-gray-700'}`}
+                  >
+                    Title
+                  </label>
                   <input
                     type="text"
                     value={assignmentForm.title}
-                    onChange={(e) => setAssignmentForm({ ...assignmentForm, title: e.target.value })}
+                    onChange={(e) =>
+                      setAssignmentForm({ ...assignmentForm, title: e.target.value })
+                    }
                     placeholder="Assignment title"
                     className={`w-full px-3 py-2 rounded-lg border text-sm ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-slate-500' : 'bg-white border-gray-300 text-gray-900'} focus:outline-none focus:ring-2 focus:ring-indigo-500`}
                   />
                 </div>
                 <div>
-                  <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>Description</label>
+                  <label
+                    className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-300' : 'text-gray-700'}`}
+                  >
+                    Description
+                  </label>
                   <textarea
                     value={assignmentForm.description}
-                    onChange={(e) => setAssignmentForm({ ...assignmentForm, description: e.target.value })}
+                    onChange={(e) =>
+                      setAssignmentForm({ ...assignmentForm, description: e.target.value })
+                    }
                     placeholder="Assignment description"
                     rows={3}
                     className={`w-full px-3 py-2 rounded-lg border text-sm ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-slate-500' : 'bg-white border-gray-300 text-gray-900'} focus:outline-none focus:ring-2 focus:ring-indigo-500`}
@@ -393,19 +542,31 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>Due Date</label>
+                    <label
+                      className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-300' : 'text-gray-700'}`}
+                    >
+                      Due Date
+                    </label>
                     <input
                       type="date"
                       value={assignmentForm.dueDate}
-                      onChange={(e) => setAssignmentForm({ ...assignmentForm, dueDate: e.target.value })}
+                      onChange={(e) =>
+                        setAssignmentForm({ ...assignmentForm, dueDate: e.target.value })
+                      }
                       className={`w-full px-3 py-2 rounded-lg border text-sm ${isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:outline-none focus:ring-2 focus:ring-indigo-500`}
                     />
                   </div>
                   <div>
-                    <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>Type</label>
+                    <label
+                      className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-300' : 'text-gray-700'}`}
+                    >
+                      Type
+                    </label>
                     <select
                       value={assignmentForm.type}
-                      onChange={(e) => setAssignmentForm({ ...assignmentForm, type: e.target.value })}
+                      onChange={(e) =>
+                        setAssignmentForm({ ...assignmentForm, type: e.target.value })
+                      }
                       className={`w-full px-3 py-2 rounded-lg border text-sm ${isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:outline-none focus:ring-2 focus:ring-indigo-500`}
                     >
                       <option value="written">Written / Upload</option>
@@ -477,14 +638,20 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                   <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-4 gap-2">
                     <div className="flex-1">
                       <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
-                        <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{assignment.title}</h3>
+                        <h3
+                          className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}
+                        >
+                          {assignment.title}
+                        </h3>
                         <span
                           className={`px-2 py-1 rounded-full text-xs font-medium ${assignment.subjectColor}`}
                         >
                           {assignment.subject}
                         </span>
                       </div>
-                      <div className={`flex items-center gap-4 text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'} mb-3`}>
+                      <div
+                        className={`flex items-center gap-4 text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'} mb-3`}
+                      >
                         <div className="flex items-center gap-1">
                           <Calendar size={14} />
                           <span>{assignment.dueDate}</span>
@@ -496,7 +663,9 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                           </span>
                         </div>
                       </div>
-                      <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'} mb-4`}>{assignment.description}</p>
+                      <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'} mb-4`}>
+                        {assignment.description}
+                      </p>
                       <div className="flex items-center gap-2">
                         {assignment.files.map((file, fileIndex) => (
                           <div
@@ -515,7 +684,9 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                       {assignment.status}
                     </span>
                   </div>
-                  <div className={`flex flex-wrap items-center gap-2 pt-4 border-t ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
+                  <div
+                    className={`flex flex-wrap items-center gap-2 pt-4 border-t ${isDark ? 'border-white/10' : 'border-gray-200'}`}
+                  >
                     <button
                       onClick={() => alert(`Viewing submissions for "${assignment.title}"`)}
                       className={`flex items-center gap-2 px-3 py-2 text-sm ${isDark ? 'text-slate-400 hover:bg-white/10' : 'text-gray-700 hover:bg-gray-50'} rounded-lg transition-colors`}
@@ -554,13 +725,17 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
         {activeTab === 'grading' && (
           <div className="space-y-6">
             {/* Sub-tabs */}
-            <div className={`flex gap-2 border-b ${isDark ? 'border-white/10' : 'border-gray-200'} pb-2`}>
+            <div
+              className={`flex gap-2 border-b ${isDark ? 'border-white/10' : 'border-gray-200'} pb-2`}
+            >
               <button
                 onClick={() => setGradingSubTab('manual')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   gradingSubTab === 'manual'
                     ? 'bg-indigo-600 text-white'
-                    : isDark ? 'text-slate-400 hover:bg-white/10' : 'text-gray-600 hover:bg-gray-100'
+                    : isDark
+                      ? 'text-slate-400 hover:bg-white/10'
+                      : 'text-gray-600 hover:bg-gray-100'
                 }`}
               >
                 Manual Grading
@@ -570,7 +745,9 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   gradingSubTab === 'auto'
                     ? 'bg-indigo-600 text-white'
-                    : isDark ? 'text-slate-400 hover:bg-white/10' : 'text-gray-600 hover:bg-gray-100'
+                    : isDark
+                      ? 'text-slate-400 hover:bg-white/10'
+                      : 'text-gray-600 hover:bg-gray-100'
                 }`}
               >
                 Auto-Graded Results
@@ -583,15 +760,26 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                   Written and uploaded assignments that require manual review and grading.
                 </p>
                 {sampleSubmissions.map((sub) => (
-                  <div key={sub.id} className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-4 sm:p-6 border shadow-sm`}>
+                  <div
+                    key={sub.id}
+                    className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-4 sm:p-6 border shadow-sm`}
+                  >
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
                       <div>
-                        <h4 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{sub.studentName}</h4>
-                        <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>{sub.studentId} • {sub.assignmentTitle}</p>
+                        <h4 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                          {sub.studentName}
+                        </h4>
+                        <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                          {sub.studentId} • {sub.assignmentTitle}
+                        </p>
                       </div>
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        sub.status === 'graded' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
-                      }`}>
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-medium ${
+                          sub.status === 'graded'
+                            ? 'bg-green-100 text-green-700'
+                            : 'bg-yellow-100 text-yellow-700'
+                        }`}
+                      >
                         {sub.status === 'graded' ? `Graded: ${sub.grade}` : 'Pending Review'}
                       </span>
                     </div>
@@ -621,28 +809,80 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                 <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
                   MCQ assignments are auto-graded. Results are displayed below (view only).
                 </p>
-                <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl border shadow-sm overflow-x-auto`}>
+                <div
+                  className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl border shadow-sm overflow-x-auto`}
+                >
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className={isDark ? 'border-b border-white/10' : 'border-b border-gray-200'}>
-                        <th className={`text-left p-4 font-medium ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>Student</th>
-                        <th className={`text-left p-4 font-medium ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>Quiz</th>
-                        <th className={`text-left p-4 font-medium ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>Score</th>
-                        <th className={`text-left p-4 font-medium ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>Grade</th>
+                      <tr
+                        className={isDark ? 'border-b border-white/10' : 'border-b border-gray-200'}
+                      >
+                        <th
+                          className={`text-left p-4 font-medium ${isDark ? 'text-slate-300' : 'text-gray-700'}`}
+                        >
+                          Student
+                        </th>
+                        <th
+                          className={`text-left p-4 font-medium ${isDark ? 'text-slate-300' : 'text-gray-700'}`}
+                        >
+                          Quiz
+                        </th>
+                        <th
+                          className={`text-left p-4 font-medium ${isDark ? 'text-slate-300' : 'text-gray-700'}`}
+                        >
+                          Score
+                        </th>
+                        <th
+                          className={`text-left p-4 font-medium ${isDark ? 'text-slate-300' : 'text-gray-700'}`}
+                        >
+                          Grade
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
                       {[
-                        { student: 'Ahmed Hassan', quiz: 'Midterm MCQ', score: '92/100', grade: 'A' },
-                        { student: 'Sara Mohamed', quiz: 'Midterm MCQ', score: '85/100', grade: 'B+' },
+                        {
+                          student: 'Ahmed Hassan',
+                          quiz: 'Midterm MCQ',
+                          score: '92/100',
+                          grade: 'A',
+                        },
+                        {
+                          student: 'Sara Mohamed',
+                          quiz: 'Midterm MCQ',
+                          score: '85/100',
+                          grade: 'B+',
+                        },
                         { student: 'Omar Ali', quiz: 'Midterm MCQ', score: '78/100', grade: 'B' },
-                        { student: 'Layla Ibrahim', quiz: 'Midterm MCQ', score: '95/100', grade: 'A+' },
+                        {
+                          student: 'Layla Ibrahim',
+                          quiz: 'Midterm MCQ',
+                          score: '95/100',
+                          grade: 'A+',
+                        },
                       ].map((row, i) => (
-                        <tr key={i} className={isDark ? 'border-b border-white/5' : 'border-b border-gray-100'}>
-                          <td className={`p-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>{row.student}</td>
-                          <td className={`p-4 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>{row.quiz}</td>
-                          <td className={`p-4 font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{row.score}</td>
-                          <td className="p-4"><span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">{row.grade}</span></td>
+                        <tr
+                          key={i}
+                          className={
+                            isDark ? 'border-b border-white/5' : 'border-b border-gray-100'
+                          }
+                        >
+                          <td className={`p-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                            {row.student}
+                          </td>
+                          <td className={`p-4 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                            {row.quiz}
+                          </td>
+                          <td
+                            className={`p-4 font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}
+                          >
+                            {row.score}
+                          </td>
+                          <td className="p-4">
+                            <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                              {row.grade}
+                            </span>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -655,7 +895,9 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
 
         {/* Students Tab */}
         {activeTab === 'students' && (
-          <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}>
+          <div
+            className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}
+          >
             <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'} mb-6`}>
               Enrolled Students ({course.enrolled})
             </h3>
@@ -670,11 +912,17 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                       {String.fromCharCode(65 + index)}
                     </div>
                     <div>
-                      <div className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>Student {index + 1}</div>
-                      <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>student{index + 1}@edu.com</div>
+                      <div className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                        Student {index + 1}
+                      </div>
+                      <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                        student{index + 1}@edu.com
+                      </div>
                     </div>
                   </div>
-                  <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>Grade: A-</div>
+                  <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                    Grade: A-
+                  </div>
                 </div>
               ))}
             </div>
@@ -683,9 +931,13 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
 
         {/* Announcements Tab */}
         {activeTab === 'announcements' && (
-          <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}>
+          <div
+            className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}
+          >
             <div className="flex items-center justify-between mb-6">
-              <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('announcements')}</h3>
+              <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                {t('announcements')}
+              </h3>
               <button className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm">
                 <Bell size={16} />
                 New Announcement
@@ -696,12 +948,21 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                 { title: 'Midterm Schedule', date: 'May 10', content: 'Midterm exam on June 1st' },
                 { title: 'Office Hours Update', date: 'May 8', content: 'New office hours posted' },
               ].map((announcement, index) => (
-                <div key={index} className={`p-4 ${isDark ? 'bg-transparent' : 'bg-gray-50'} rounded-lg`}>
+                <div
+                  key={index}
+                  className={`p-4 ${isDark ? 'bg-transparent' : 'bg-gray-50'} rounded-lg`}
+                >
                   <div className="flex items-center justify-between mb-2">
-                    <div className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{announcement.title}</div>
-                    <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>{announcement.date}</div>
+                    <div className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                      {announcement.title}
+                    </div>
+                    <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                      {announcement.date}
+                    </div>
                   </div>
-                  <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>{announcement.content}</div>
+                  <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                    {announcement.content}
+                  </div>
                 </div>
               ))}
             </div>
