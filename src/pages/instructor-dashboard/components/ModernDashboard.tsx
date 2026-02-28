@@ -249,73 +249,6 @@ export function ModernDashboard({
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Active Courses */}
-        <div className={`rounded-3xl p-6 relative transition-colors ${statCardClass}`}>
-          <div className="flex items-start justify-between mb-4">
-            <div className={`p-3 rounded-2xl ${isDark ? th.bg10 : th.bg50}`}>
-              <BookOpen className={th.text500} size={22} />
-            </div>
-            <span
-              className={`px-3 py-1 rounded-full text-xs font-semibold ${th.bg10} ${th.text600} ${th.darkText400}`}
-            >
-              {t('newBadge')}
-            </span>
-          </div>
-          <div
-            className={`text-4xl font-bold mb-1 tracking-tight ${isDark ? 'text-white' : 'text-slate-800'}`}
-          >
-            {stats.activeCourses || 4}
-          </div>
-          <div className={`text-sm font-medium ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-            {t('activeCourses')}
-          </div>
-        </div>
-
-        {/* Pending Grading */}
-        <div className={`rounded-3xl p-6 relative transition-colors ${statCardClass}`}>
-          <div className="flex items-start justify-between mb-4">
-            <div className={`p-3 rounded-2xl ${isDark ? th.bg10 : th.bg50}`}>
-              <FileText className={th.text500} size={22} />
-            </div>
-            <span
-              className={`px-3 py-1 rounded-full text-xs font-semibold ${th.bg10} ${th.text600} ${th.darkText400}`}
-            >
-              {t('highPriority')}
-            </span>
-          </div>
-          <div
-            className={`text-4xl font-bold mb-1 tracking-tight ${isDark ? 'text-white' : 'text-slate-800'}`}
-          >
-            {stats.pendingGrading || 42}
-          </div>
-          <div className={`text-sm font-medium ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-            {t('pendingGrading')}
-          </div>
-        </div>
-
-        {/* Total Students */}
-        <div className={`rounded-3xl p-6 relative transition-colors ${statCardClass}`}>
-          <div className="flex items-start justify-between mb-4">
-            <div className={`p-3 rounded-2xl ${isDark ? th.bg10 : th.bg50}`}>
-              <Users className={th.text500} size={22} />
-            </div>
-            <span
-              className={`px-3 py-1 rounded-full text-xs font-semibold ${isDark ? 'bg-white/5 text-slate-400' : 'bg-slate-100 text-slate-500'}`}
-            >
-              {t('total')}
-            </span>
-          </div>
-          <div
-            className={`text-4xl font-bold mb-1 tracking-tight ${isDark ? 'text-white' : 'text-slate-800'}`}
-          >
-            {stats.totalStudents || 156}
-          </div>
-          <div className={`text-sm font-medium ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-            {t('totalStudents')}
-          </div>
-        </div>
-      </div>
       {/* ── Evy — AI Teaching Assistant ── */}
       <div
         className={`rounded-3xl p-6 relative overflow-hidden transition-all ${
@@ -503,70 +436,6 @@ export function ModernDashboard({
             </ResponsiveContainer>
           </div>
 
-          {/* Course Cards */}
-          <div>
-            <h3 className={`text-lg font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              {t('myCourses')}
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {courses.map((course) => (
-                <div
-                  key={course.id}
-                  className={`rounded-[2rem] overflow-hidden transition-all cursor-pointer ${
-                    isDark
-                      ? 'bg-card-dark border border-white/5 hover:border-white/20'
-                      : `bg-white border border-slate-200 drop-shadow-sm hover:border-${primaryColor}-300 hover:shadow-md`
-                  }`}
-                >
-                  {/* Gradient header */}
-                  <div
-                    className="h-28 flex items-center justify-center relative overflow-hidden"
-                    style={{ background: course.background }}
-                  >
-                    <course.icon
-                      size={48}
-                      className="text-white opacity-40 mix-blend-overlay drop-shadow-md"
-                    />
-                  </div>
-                  {/* Color bar */}
-                  <div className="h-1" style={{ backgroundColor: course.color }} />
-                  {/* Info */}
-                  <div className="p-5">
-                    <h4
-                      className={`font-semibold text-sm mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}
-                    >
-                      {course.name}
-                    </h4>
-                    <div className="flex items-center justify-between mb-3">
-                      <div
-                        className={`flex items-center gap-1.5 text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}
-                      >
-                        <Users size={13} />
-                        <span>
-                          {course.students} {t('students')}
-                        </span>
-                      </div>
-                      <div
-                        className={`flex items-center gap-1.5 text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}
-                      >
-                        <FileText size={13} />
-                        <span>
-                          {course.assignments} {t('assignments')}
-                        </span>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => onNavigate('courses')}
-                      className={`w-full flex items-center justify-center gap-2 text-xs font-semibold ${th.text500} ${th.hover600} transition-colors`}
-                    >
-                      {t('viewCourse')}
-                      <ArrowRight size={14} />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
 
         {/* Right Column — 4 cols */}
@@ -576,29 +445,15 @@ export function ModernDashboard({
             <h3 className={`text-base font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
               {t('upcomingTeaching')}
             </h3>
-            <div className="space-y-3">
+            <div className="space-y-2">
               {upcomingClasses.length > 0 ? (
                 upcomingClasses.slice(0, 4).map((cls: any, index: number) => {
-                  const dateObj = cls.date ? new Date(cls.date) : new Date();
-                  const month = dateObj.toLocaleString('en', { month: 'short' }).toUpperCase();
-                  const day = dateObj.getDate();
-                  const timeStr =
-                    cls.time ||
-                    cls.startTime ||
-                    dateObj.toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' });
                   const location = cls.room || cls.location || 'TBD';
-                  const colors = th.colors;
                   return (
                     <div
                       key={index}
-                      className={`flex items-start gap-3 p-3 rounded-2xl transition-colors ${isDark ? 'hover:bg-white/5' : th.hover50}`}
+                      className={`p-3 rounded-xl transition-colors ${isDark ? 'hover:bg-white/5' : th.hover50}`}
                     >
-                      <div
-                        className={`w-12 h-12 rounded-xl flex flex-col items-center justify-center text-white text-xs font-bold shrink-0 ${colors[index % colors.length]}`}
-                      >
-                        <span className="text-[10px] leading-none opacity-80">{month}</span>
-                        <span className="text-base leading-tight">{day}</span>
-                      </div>
                       <div className="flex-1 min-w-0">
                         <h4
                           className={`font-medium text-sm truncate ${isDark ? 'text-white' : 'text-gray-900'}`}
@@ -606,13 +461,7 @@ export function ModernDashboard({
                           {cls.title || cls.name}
                         </h4>
                         <div
-                          className={`flex items-center gap-1 text-xs mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}
-                        >
-                          <Clock size={12} />
-                          <span>{timeStr}</span>
-                        </div>
-                        <div
-                          className={`flex items-center gap-1 text-xs mt-0.5 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}
+                          className={`flex items-center gap-1 text-xs mt-1 ${isDark ? 'text-gray-500' : 'text-gray-500'}`}
                         >
                           <MapPin size={12} />
                           <span className="truncate">{location}</span>
@@ -629,35 +478,6 @@ export function ModernDashboard({
             </div>
           </div>
 
-          {/* Quick Actions */}
-          <div
-            className={`rounded-[2.5rem] p-6 ${isDark ? 'bg-card-dark border border-white/5' : `bg-white border border-slate-200 shadow-sm`}`}
-          >
-            <h3 className={`text-base font-bold mb-4 ${isDark ? 'text-white' : 'text-slate-800'}`}>
-              {t('quickActions')}
-            </h3>
-            <div className="grid grid-cols-2 gap-3">
-              {[
-                { label: t('officeHours'), icon: Clock, action: () => onNavigate('calendar') },
-                { label: t('materials'), icon: Upload, action: () => onNavigate('courses') },
-                { label: t('addTask'), icon: CheckSquare, action: () => onNavigate('grades') },
-                { label: t('helpDesk'), icon: Headphones, action: () => onNavigate('messages') },
-              ].map((item, i) => (
-                <button
-                  key={i}
-                  onClick={item.action}
-                  className={`flex flex-col items-center gap-2 p-4 rounded-2xl text-xs font-medium transition-all ${
-                    isDark
-                      ? 'bg-white/5 text-gray-300 hover:bg-white/10'
-                      : `${th.bg50} ${th.text600} ${th.hover50} border border-transparent hover:border-${primaryColor}-200`
-                  }`}
-                >
-                  <item.icon size={20} />
-                  {item.label}
-                </button>
-              ))}
-            </div>
-          </div>
           {/* Recent Activity */}
           <div className={`rounded-[2.5rem] p-6 ${cardClass}`}>
             <h3 className={`text-base font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>

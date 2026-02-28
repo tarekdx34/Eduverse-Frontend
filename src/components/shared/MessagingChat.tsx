@@ -1,5 +1,20 @@
-import { useState, useRef, useEffect } from 'react';
-import { Send, Plus, Paperclip, Smile, Phone, Video, Search, X, Image, File, Mic, MicOff, ArrowLeft } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  Send,
+  Plus,
+  Paperclip,
+  Smile,
+  Phone,
+  Video,
+  Search,
+  X,
+  Image,
+  File,
+  Mic,
+  MicOff,
+  ArrowLeft,
+} from 'lucide-react';
+import { useTheme } from '../../pages/instructor-dashboard/contexts/ThemeContext';
 
 export interface Message {
   id: string;
@@ -83,7 +98,7 @@ const DEFAULT_MESSAGES: Message[] = [
     sender: 'Prof. Sarah Johnson',
     senderInitials: 'SJ',
     senderColor: '#4f39f6',
-    text: 'Hello! I hope you\'re doing well. I wanted to discuss your recent submission.',
+    text: "Hello! I hope you're doing well. I wanted to discuss your recent submission.",
     timestamp: 'Friday 2:20 PM',
     isCurrentUser: false,
   },
@@ -92,7 +107,7 @@ const DEFAULT_MESSAGES: Message[] = [
     sender: 'You',
     senderInitials: 'You',
     senderColor: '#4f39f6',
-    text: 'Hi Professor! Yes, I\'d love to hear your feedback.',
+    text: "Hi Professor! Yes, I'd love to hear your feedback.",
     timestamp: 'Friday 2:22 PM',
     isCurrentUser: true,
     status: 'read',
@@ -122,7 +137,9 @@ export function MessagingChat({
   height = '600px',
   isDark = false,
 }: MessagingChatProps) {
-  const [selectedConversation, setSelectedConversation] = useState<string>(conversations[0]?.id || '');
+  const [selectedConversation, setSelectedConversation] = useState<string>(
+    conversations[0]?.id || ''
+  );
   const [messageInput, setMessageInput] = useState('');
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [searchTerm, setSearchTerm] = useState('');
@@ -131,6 +148,7 @@ export function MessagingChat({
   const [showChatOnMobile, setShowChatOnMobile] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { primaryHex = '#4f46e5' } = useTheme() as any;
 
   const currentConversation = conversations.find((c) => c.id === selectedConversation);
 
@@ -219,132 +237,54 @@ export function MessagingChat({
 
   return (
     <div
-      className={`${isDark ? 'bg-gray-800 border-white/10' : 'bg-white border-gray-200'} rounded-lg border flex ${className}`}
+      className={`${isDark ? 'bg-gray-800 border-white/10' : 'bg-white border-gray-200'} rounded-xl border shadow-sm flex flex-col md:flex-row overflow-hidden ${className}`}
       style={{ height }}
     >
-      {/* Conversations List */}
-      <div className={`${showChatOnMobile ? 'hidden lg:flex' : 'flex'} w-full lg:w-80 ${isDark ? 'bg-gray-900 border-white/10' : 'bg-gray-50 border-gray-200'} border-r flex-col`}>
-        {/* Header */}
-        <div className={`${isDark ? 'border-white/10' : 'border-gray-200'} border-b p-4`}>
-          <div className="flex items-center justify-between mb-4">
-            <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Messages</h3>
-            <button
-              onClick={onStartNewConversation}
-              className={`p-2 ${isDark ? 'hover:bg-white/10' : 'hover:bg-white'} rounded-lg transition-colors`}
-              title="New conversation"
-            >
-              <Plus size={20} className={isDark ? 'text-slate-400' : 'text-gray-600'} />
-            </button>
-          </div>
-          <div className="relative">
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search conversations..."
-              className={`w-full px-3 py-2 pl-10 border rounded-lg text-sm focus:outline-none focus:border-indigo-600 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500' : 'border-gray-200 text-gray-600'}`}
-            />
-            <Search className={`absolute left-3 top-2.5 w-4 h-4 ${isDark ? 'text-slate-500' : 'text-gray-400'}`} />
-            {searchTerm && (
-              <button
-                onClick={() => setSearchTerm('')}
-                className="absolute right-3 top-2.5"
-              >
-                <X className={`w-4 h-4 ${isDark ? 'text-slate-500' : 'text-gray-400'}`} />
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Conversations */}
-        <div className="flex-1 overflow-y-auto">
-          {filteredConversations.map((conversation) => (
-            <button
-              key={conversation.id}
-              onClick={() => handleConversationSelect(conversation.id)}
-              className={`w-full p-4 border-l-4 transition-colors text-left ${
-                selectedConversation === conversation.id
-                  ? `${isDark ? 'bg-indigo-900/30' : 'bg-indigo-50'} border-l-indigo-600`
-                  : `border-l-transparent ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`
-              }`}
-            >
-              <div className="flex items-start gap-3">
-                <div className="relative">
-                  <div
-                    className="w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold shadow-md"
-                    style={{ backgroundColor: conversation.color }}
-                  >
-                    {conversation.initials}
-                  </div>
-                  {conversation.isOnline && (
-                    <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full" />
-                  )}
-                </div>
-
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between gap-2">
-                    <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'} truncate`}>{conversation.name}</p>
-                    <span className={`text-xs ${isDark ? 'text-slate-400' : 'text-gray-500'} flex-shrink-0`}>{conversation.timestamp}</span>
-                  </div>
-                  <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'} truncate`}>{conversation.lastMessage}</p>
-                </div>
-
-                {conversation.unreadCount > 0 && (
-                  <div className="bg-indigo-600 text-white text-xs font-semibold rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0">
-                    {conversation.unreadCount}
-                  </div>
-                )}
-              </div>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Chat Area */}
-      {currentConversation ? (
-        <div className={`${showChatOnMobile ? 'flex' : 'hidden lg:flex'} flex-1 flex-col`}>
-          {/* Header */}
-          <div className={`${isDark ? 'border-white/10' : 'border-gray-200'} border-b p-4 flex items-center justify-between`}>
+      {/* Full Screen Chat View */}
+      {selectedConversation && showChatOnMobile ? (
+        <>
+          {/* Chat Header */}
+          <div
+            className={`${isDark ? 'border-white/10 bg-gray-900' : 'border-gray-200 bg-white'} border-b p-4 flex items-center justify-between`}
+          >
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setShowChatOnMobile(false)}
-                className={`p-2 rounded-lg transition-colors lg:hidden ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`}
+                className={`p-2 ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'} rounded-lg transition-colors`}
               >
                 <ArrowLeft size={20} className={isDark ? 'text-slate-400' : 'text-gray-600'} />
               </button>
-              <div
-                className="w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold"
-                style={{ backgroundColor: currentConversation.color }}
-              >
-                {currentConversation.initials}
-              </div>
-              <div>
-                <p className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{currentConversation.name}</p>
-                {currentConversation.role && (
-                  <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>{currentConversation.role}</p>
-                )}
-                {currentConversation.isOnline && !currentConversation.role && (
-                  <p className="text-xs text-green-600">Online</p>
-                )}
-              </div>
+              {currentConversation && (
+                <div>
+                  <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    {currentConversation.name}
+                  </h3>
+                  <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
+                    {currentConversation.isOnline ? '🟢 Online' : 'Offline'}
+                  </p>
+                </div>
+              )}
             </div>
-
-            <div className="flex gap-2">
+            <div className="flex items-center gap-2">
               {showVoiceCall && (
-                <button className={`p-2 ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'} rounded-lg transition-colors`}>
+                <button
+                  className={`p-2 ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'} rounded-lg transition-colors`}
+                >
                   <Phone size={20} className={isDark ? 'text-slate-400' : 'text-gray-600'} />
                 </button>
               )}
               {showVideoCall && (
-                <button className={`p-2 ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'} rounded-lg transition-colors`}>
+                <button
+                  className={`p-2 ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'} rounded-lg transition-colors`}
+                >
                   <Video size={20} className={isDark ? 'text-slate-400' : 'text-gray-600'} />
                 </button>
               )}
             </div>
           </div>
 
-          {/* Messages */}
-          <div className={`flex-1 overflow-y-auto p-6 space-y-4 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
+          {/* Messages Area */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {messages.map((message) => (
               <div
                 key={message.id}
@@ -359,7 +299,13 @@ export function MessagingChat({
                   </div>
                 )}
 
-                <div className={message.isCurrentUser ? 'flex flex-col items-end gap-1' : 'flex flex-col items-start gap-1'}>
+                <div
+                  className={
+                    message.isCurrentUser
+                      ? 'flex flex-col items-end gap-1'
+                      : 'flex flex-col items-start gap-1'
+                  }
+                >
                   {message.image && (
                     <img
                       src={message.image}
@@ -368,30 +314,45 @@ export function MessagingChat({
                     />
                   )}
                   {message.file && (
-                    <div className={`px-4 py-3 rounded-2xl ${isDark ? 'bg-white/10 border-white/10' : 'bg-white border-gray-200'} border flex items-center gap-3`}>
+                    <div
+                      className={`px-4 py-3 rounded-2xl ${isDark ? 'bg-white/10 border-white/10' : 'bg-white border-gray-200'} border flex items-center gap-3`}
+                    >
                       <File size={24} className={isDark ? 'text-slate-400' : 'text-gray-500'} />
                       <div>
-                        <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{message.file.name}</p>
-                        <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>{message.file.size}</p>
+                        <p
+                          className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}
+                        >
+                          {message.file.name}
+                        </p>
+                        <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
+                          {message.file.size}
+                        </p>
                       </div>
                     </div>
                   )}
                   {message.text && (
                     <div
-                      className={`px-4 py-3 rounded-2xl max-w-xs ${
+                      className={`px-4 py-3 max-w-xs ${
                         message.isCurrentUser
-                          ? 'bg-indigo-600 text-white rounded-br-sm'
-                          : `${isDark ? 'bg-white/10 text-white border-white/10' : 'bg-white text-gray-900 border-gray-200'} border rounded-tl-sm`
-                      }`}
+                          ? 'text-white rounded-2xl rounded-br-sm'
+                          : `${isDark ? 'bg-white/10 text-white border-white/10' : 'bg-white text-gray-900 border-gray-200'} border rounded-2xl rounded-tl-sm`
+                      } shadow-sm`}
+                      style={message.isCurrentUser ? { backgroundColor: primaryHex } : undefined}
                     >
                       <p className="text-sm">{message.text}</p>
                     </div>
                   )}
                   <div className="flex items-center gap-1">
-                    <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>{message.timestamp}</p>
+                    <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
+                      {message.timestamp}
+                    </p>
                     {message.isCurrentUser && message.status && (
                       <span className={`text-xs ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>
-                        {message.status === 'read' ? '✓✓' : message.status === 'delivered' ? '✓✓' : '✓'}
+                        {message.status === 'read'
+                          ? '✓✓'
+                          : message.status === 'delivered'
+                            ? '✓✓'
+                            : '✓'}
                       </span>
                     )}
                   </div>
@@ -403,24 +364,6 @@ export function MessagingChat({
 
           {/* Message Input */}
           <div className={`${isDark ? 'border-white/10' : 'border-gray-200'} border-t p-4`}>
-            {/* Emoji Picker */}
-            {showEmojiPicker && (
-              <div className={`mb-2 p-2 ${isDark ? 'bg-white/10' : 'bg-gray-100'} rounded-lg flex gap-2`}>
-                {emojis.map((emoji) => (
-                  <button
-                    key={emoji}
-                    onClick={() => {
-                      setMessageInput((prev) => prev + emoji);
-                      setShowEmojiPicker(false);
-                    }}
-                    className="text-xl hover:scale-125 transition-transform"
-                  >
-                    {emoji}
-                  </button>
-                ))}
-              </div>
-            )}
-
             <div className="flex gap-2">
               <input
                 ref={fileInputRef}
@@ -435,17 +378,6 @@ export function MessagingChat({
               >
                 <Paperclip size={20} className={isDark ? 'text-slate-400' : 'text-gray-600'} />
               </button>
-              <button
-                onClick={() => setIsRecording(!isRecording)}
-                className={`p-2 rounded-lg transition-colors ${isRecording ? 'bg-red-100' : `${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`}`}
-                title="Voice message"
-              >
-                {isRecording ? (
-                  <MicOff size={20} className="text-red-600" />
-                ) : (
-                  <Mic size={20} className={isDark ? 'text-slate-400' : 'text-gray-600'} />
-                )}
-              </button>
               <input
                 type="text"
                 value={messageInput}
@@ -455,34 +387,346 @@ export function MessagingChat({
                 className={`flex-1 px-4 py-2 border rounded-lg text-sm focus:outline-none focus:border-indigo-600 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500' : 'border-gray-200'}`}
               />
               <button
-                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                className={`p-2 ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'} rounded-lg transition-colors`}
-                title="Add emoji"
-              >
-                <Smile size={20} className={isDark ? 'text-slate-400' : 'text-gray-600'} />
-              </button>
-              <button
                 onClick={handleSendMessage}
                 disabled={!messageInput.trim()}
-                className={`p-2 bg-indigo-600 hover:bg-indigo-700 ${isDark ? 'disabled:bg-gray-600' : 'disabled:bg-gray-300'} text-white rounded-lg transition-colors`}
+                className={`p-2 text-white rounded-lg transition-colors ${!messageInput.trim() ? (isDark ? 'bg-gray-600 cursor-not-allowed' : 'bg-gray-300 cursor-not-allowed') : 'hover:opacity-90'}`}
+                style={messageInput.trim() ? { backgroundColor: primaryHex } : undefined}
               >
                 <Send size={20} />
               </button>
             </div>
-            <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-gray-500'} text-center mt-2`}>
-              Press Enter to send, Shift + Enter for new line
-            </p>
           </div>
-        </div>
+        </>
       ) : (
-        <div className={`${showChatOnMobile ? 'flex' : 'hidden lg:flex'} flex-1 items-center justify-center ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
-          <div className="text-center">
-            <div className={`w-16 h-16 ${isDark ? 'bg-white/10' : 'bg-gray-200'} rounded-full flex items-center justify-center mx-auto mb-4`}>
-              <Send size={24} className={isDark ? 'text-slate-500' : 'text-gray-400'} />
+        <>
+          {/* Conversations List */}
+          <div
+            className={`w-full md:w-80 flex-shrink-0 flex flex-col border-r ${isDark ? 'bg-gray-900/50 border-white/10' : 'bg-gray-50 border-gray-200'}`}
+          >
+            {/* Header */}
+            <div className={`${isDark ? 'border-white/10' : 'border-gray-200'} border-b p-4`}>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  Messages
+                </h3>
+                <button
+                  onClick={onStartNewConversation}
+                  className={`p-2 ${isDark ? 'hover:bg-white/10' : 'hover:bg-white'} rounded-lg transition-colors`}
+                  title="New conversation"
+                >
+                  <Plus size={20} className={isDark ? 'text-slate-400' : 'text-gray-600'} />
+                </button>
+              </div>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Search conversations..."
+                  className={`w-full px-3 py-2 pl-10 border rounded-lg text-sm focus:outline-none focus:border-indigo-600 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500' : 'border-gray-200 text-gray-600'}`}
+                />
+                <Search
+                  className={`absolute left-3 top-2.5 w-4 h-4 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}
+                />
+                {searchTerm && (
+                  <button onClick={() => setSearchTerm('')} className="absolute right-3 top-2.5">
+                    <X className={`w-4 h-4 ${isDark ? 'text-slate-500' : 'text-gray-400'}`} />
+                  </button>
+                )}
+              </div>
             </div>
-            <p className={isDark ? 'text-slate-400' : 'text-gray-600'}>Select a conversation to start messaging</p>
+
+            {/* Conversations */}
+            <div className="flex-1 overflow-y-auto">
+              {filteredConversations.map((conversation) => (
+                <button
+                  key={conversation.id}
+                  onClick={() => handleConversationSelect(conversation.id)}
+                  className={`w-full p-4 border-l-4 transition-colors text-left ${
+                    selectedConversation === conversation.id
+                      ? `${isDark ? 'bg-indigo-900/30' : 'bg-indigo-50'} border-l-indigo-600`
+                      : `border-l-transparent ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="relative">
+                      <div
+                        className="w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold shadow-md"
+                        style={{ backgroundColor: conversation.color }}
+                      >
+                        {conversation.initials}
+                      </div>
+                      {conversation.isOnline && (
+                        <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full" />
+                      )}
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2">
+                        <p
+                          className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'} truncate`}
+                        >
+                          {conversation.name}
+                        </p>
+                        <span
+                          className={`text-xs ${isDark ? 'text-slate-400' : 'text-gray-500'} flex-shrink-0`}
+                        >
+                          {conversation.timestamp}
+                        </span>
+                      </div>
+                      <p
+                        className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'} truncate`}
+                      >
+                        {conversation.lastMessage}
+                      </p>
+                    </div>
+
+                    {conversation.unreadCount > 0 && (
+                      <div className="bg-indigo-600 text-white text-xs font-semibold rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0">
+                        {conversation.unreadCount}
+                      </div>
+                    )}
+                  </div>
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+
+          {/* Chat Area - Desktop only if a conversation is selected, or hidden on mobile unless selected */}
+          {currentConversation ? (
+            <div
+              className={`${showChatOnMobile ? 'hidden md:flex' : 'hidden lg:flex'} flex-1 flex-col ${isDark ? 'bg-gray-800' : 'bg-white'}`}
+            >
+              {/* Header */}
+              <div
+                className={`${isDark ? 'border-white/10' : 'border-gray-200'} border-b p-4 flex items-center justify-between`}
+              >
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setShowChatOnMobile(false)}
+                    className={`p-2 rounded-lg transition-colors lg:hidden ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`}
+                  >
+                    <ArrowLeft size={20} className={isDark ? 'text-slate-400' : 'text-gray-600'} />
+                  </button>
+                  <div
+                    className="w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold"
+                    style={{ backgroundColor: currentConversation.color }}
+                  >
+                    {currentConversation.initials}
+                  </div>
+                  <div>
+                    <p className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                      {currentConversation.name}
+                    </p>
+                    {currentConversation.role && (
+                      <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                        {currentConversation.role}
+                      </p>
+                    )}
+                    {currentConversation.isOnline && !currentConversation.role && (
+                      <p className="text-xs text-green-600">Online</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  {showVoiceCall && (
+                    <button
+                      className={`p-2 ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'} rounded-lg transition-colors`}
+                    >
+                      <Phone size={20} className={isDark ? 'text-slate-400' : 'text-gray-600'} />
+                    </button>
+                  )}
+                  {showVideoCall && (
+                    <button
+                      className={`p-2 ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'} rounded-lg transition-colors`}
+                    >
+                      <Video size={20} className={isDark ? 'text-slate-400' : 'text-gray-600'} />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Messages */}
+              <div
+                className={`flex-1 overflow-y-auto p-6 space-y-4 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}
+              >
+                {messages.map((message) => (
+                  <div
+                    key={message.id}
+                    className={`flex gap-3 ${message.isCurrentUser ? 'justify-end' : 'justify-start'}`}
+                  >
+                    {!message.isCurrentUser && (
+                      <div
+                        className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-semibold flex-shrink-0 shadow-md"
+                        style={{ backgroundColor: message.senderColor }}
+                      >
+                        {message.senderInitials}
+                      </div>
+                    )}
+
+                    <div
+                      className={
+                        message.isCurrentUser
+                          ? 'flex flex-col items-end gap-1'
+                          : 'flex flex-col items-start gap-1'
+                      }
+                    >
+                      {message.image && (
+                        <img
+                          src={message.image}
+                          alt="shared"
+                          className="max-w-xs rounded-lg shadow-md"
+                        />
+                      )}
+                      {message.file && (
+                        <div
+                          className={`px-4 py-3 rounded-2xl ${isDark ? 'bg-white/10 border-white/10' : 'bg-white border-gray-200'} border flex items-center gap-3`}
+                        >
+                          <File size={24} className={isDark ? 'text-slate-400' : 'text-gray-500'} />
+                          <div>
+                            <p
+                              className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}
+                            >
+                              {message.file.name}
+                            </p>
+                            <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
+                              {message.file.size}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                      {message.text && (
+                        <div
+                          className={`px-4 py-3 rounded-2xl max-w-xs ${
+                            message.isCurrentUser
+                              ? 'text-white rounded-br-sm'
+                              : `${isDark ? 'bg-white/10 text-white border-white/10' : 'bg-white text-gray-900 border-gray-200'} border rounded-tl-sm`
+                          }`}
+                          style={
+                            message.isCurrentUser ? { backgroundColor: primaryHex } : undefined
+                          }
+                        >
+                          <p className="text-sm">{message.text}</p>
+                        </div>
+                      )}
+                      <div className="flex items-center gap-1">
+                        <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
+                          {message.timestamp}
+                        </p>
+                        {message.isCurrentUser && message.status && (
+                          <span
+                            className={`text-xs ${isDark ? 'text-slate-500' : 'text-gray-400'}`}
+                          >
+                            {message.status === 'read'
+                              ? '✓✓'
+                              : message.status === 'delivered'
+                                ? '✓✓'
+                                : '✓'}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                <div ref={messagesEndRef} />
+              </div>
+
+              {/* Message Input */}
+              <div className={`${isDark ? 'border-white/10' : 'border-gray-200'} border-t p-4`}>
+                {/* Emoji Picker */}
+                {showEmojiPicker && (
+                  <div
+                    className={`mb-2 p-2 ${isDark ? 'bg-white/10' : 'bg-gray-100'} rounded-lg flex gap-2`}
+                  >
+                    {emojis.map((emoji) => (
+                      <button
+                        key={emoji}
+                        onClick={() => {
+                          setMessageInput((prev) => prev + emoji);
+                          setShowEmojiPicker(false);
+                        }}
+                        className="text-xl hover:scale-125 transition-transform"
+                      >
+                        {emoji}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                <div className="flex gap-2">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                  />
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className={`p-2 ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'} rounded-lg transition-colors`}
+                    title="Attach file"
+                  >
+                    <Paperclip size={20} className={isDark ? 'text-slate-400' : 'text-gray-600'} />
+                  </button>
+                  <button
+                    onClick={() => setIsRecording(!isRecording)}
+                    className={`p-2 rounded-lg transition-colors ${isRecording ? 'bg-red-100' : `${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`}`}
+                    title="Voice message"
+                  >
+                    {isRecording ? (
+                      <MicOff size={20} className="text-red-600" />
+                    ) : (
+                      <Mic size={20} className={isDark ? 'text-slate-400' : 'text-gray-600'} />
+                    )}
+                  </button>
+                  <input
+                    type="text"
+                    value={messageInput}
+                    onChange={(e) => setMessageInput(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    placeholder="Type a message..."
+                    className={`flex-1 px-4 py-2 border rounded-lg text-sm focus:outline-none focus:border-indigo-600 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500' : 'border-gray-200'}`}
+                  />
+                  <button
+                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                    className={`p-2 ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'} rounded-lg transition-colors`}
+                    title="Add emoji"
+                  >
+                    <Smile size={20} className={isDark ? 'text-slate-400' : 'text-gray-600'} />
+                  </button>
+                  <button
+                    onClick={handleSendMessage}
+                    disabled={!messageInput.trim()}
+                    className={`p-2 text-white rounded-lg transition-colors ${!messageInput.trim() ? (isDark ? 'bg-gray-600 cursor-not-allowed' : 'bg-gray-300 cursor-not-allowed') : 'hover:opacity-90'}`}
+                    style={messageInput.trim() ? { backgroundColor: primaryHex } : undefined}
+                  >
+                    <Send size={20} />
+                  </button>
+                </div>
+                <p
+                  className={`text-xs ${isDark ? 'text-slate-400' : 'text-gray-500'} text-center mt-2`}
+                >
+                  Press Enter to send, Shift + Enter for new line
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div
+              className={`${showChatOnMobile ? 'hidden md:flex' : 'hidden lg:flex'} flex-1 items-center justify-center ${isDark ? 'bg-gray-800' : 'bg-white'}`}
+            >
+              <div className="text-center">
+                <div
+                  className={`w-16 h-16 ${isDark ? 'bg-white/10' : 'bg-gray-200'} rounded-full flex items-center justify-center mx-auto mb-4`}
+                >
+                  <Send size={24} className={isDark ? 'text-slate-500' : 'text-gray-400'} />
+                </div>
+                <p className={isDark ? 'text-slate-400' : 'text-gray-600'}>
+                  Select a conversation to start messaging
+                </p>
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

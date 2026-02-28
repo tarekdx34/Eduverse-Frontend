@@ -20,9 +20,11 @@ import { useTheme } from '../contexts/ThemeContext';
 
 interface QuizQuestion {
   id: number;
+  type: 'mcq' | 'checkbox' | 'text';
   text: string;
   options: string[];
-  correctOption: number;
+  correctOption: number; // for mcq
+  correctOptions: number[]; // for checkbox
 }
 
 interface QuizFormData {
@@ -50,9 +52,11 @@ interface QuizData {
 
 const defaultQuestion = (): QuizQuestion => ({
   id: Date.now(),
+  type: 'mcq',
   text: '',
   options: ['', '', '', ''],
   correctOption: 0,
+  correctOptions: [],
 });
 
 const defaultFormData = (): QuizFormData => ({
@@ -145,9 +149,11 @@ export function QuizzesPage() {
     const quiz = quizzes[index];
     const questions: QuizQuestion[] = Array.from({ length: quiz.questions }, (_, i) => ({
       id: Date.now() + i,
+      type: 'mcq',
       text: `Sample question ${i + 1} for ${quiz.title}`,
       options: ['Option A', 'Option B', 'Option C', 'Option D'],
       correctOption: 0,
+      correctOptions: [],
     }));
     setFormData({
       title: quiz.title,
@@ -224,9 +230,11 @@ export function QuizzesPage() {
     setTimeout(() => {
       const generated: QuizQuestion[] = Array.from({ length: aiNumQuestions }, (_, i) => ({
         id: Date.now() + i,
+        type: i % 3 === 0 ? 'text' : i % 2 === 0 ? 'checkbox' : 'mcq',
         text: `[AI] ${aiCourse} — Question ${i + 1}: What is the key concept covered in ${aiLectures[i % aiLectures.length] || 'the selected lectures'}?`,
         options: ['Correct answer', 'Distractor A', 'Distractor B', 'Distractor C'],
         correctOption: 0,
+        correctOptions: [0, 1],
       }));
       setFormData({
         title: `AI Quiz — ${aiCourse}`,
@@ -547,12 +555,23 @@ export function QuizzesPage() {
               </h3>
               {formData.questions.map((q, qIdx) => (
                 <div key={q.id} className={`p-4 rounded-lg border ${cardCls}`}>
-                  <div className="flex items-start justify-between gap-2 mb-3">
-                    <span className={`text-sm font-medium ${subCls}`}>Question {qIdx + 1}</span>
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-3">
+                    <div className="flex items-center gap-3">
+                      <span className={`text-sm font-semibold ${subCls}`}>Question {qIdx + 1}</span>
+                      <select
+                        value={q.type}
+                        onChange={(e) => updateQuestion(q.id, 'type', e.target.value)}
+                        className={`px-2 py-1 border rounded-md text-xs focus:outline-none focus:ring-1 ${inputCls}`}
+                      >
+                        <option value="mcq">Multiple Choice</option>
+                        <option value="checkbox">Checkboxes</option>
+                        <option value="text">Short Answer (Text)</option>
+                      </select>
+                    </div>
                     {formData.questions.length > 1 && (
                       <button
                         onClick={() => removeQuestion(q.id)}
-                        className="text-red-500 hover:text-red-700 p-1"
+                        className="text-red-500 hover:text-red-700 p-1 self-end sm:self-auto"
                       >
                         <Trash2 size={16} />
                       </button>
@@ -565,30 +584,70 @@ export function QuizzesPage() {
                     rows={2}
                     className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 mb-3 resize-none ${inputCls}`}
                   />
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {q.options.map((opt, oIdx) => (
-                      <label key={oIdx} className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="radio"
-                          name={`correct-${q.id}`}
-                          checked={q.correctOption === oIdx}
-                          onChange={() => updateQuestion(q.id, 'correctOption', oIdx)}
-                          className="accent-indigo-600"
-                        />
-                        <input
-                          type="text"
-                          value={opt}
-                          onChange={(e) => {
-                            const newOpts = [...q.options];
-                            newOpts[oIdx] = e.target.value;
-                            updateQuestion(q.id, 'options', newOpts);
-                          }}
-                          placeholder={`Option ${String.fromCharCode(65 + oIdx)}`}
-                          className={`flex-1 px-3 py-1.5 border rounded-lg text-sm focus:outline-none focus:ring-2 ${inputCls}`}
-                        />
-                      </label>
-                    ))}
-                  </div>
+
+                  {q.type === 'text' && (
+                    <div className="p-3 bg-gray-50 dark:bg-white/5 border border-dashed border-gray-300 dark:border-white/20 rounded-lg">
+                      <p className={`text-sm italic ${subCls}`}>
+                        Students will provide a free-text answer for this question.
+                      </p>
+                    </div>
+                  )}
+
+                  {(q.type === 'mcq' || q.type === 'checkbox') && (
+                    <div className="space-y-3">
+                      {q.options.map((opt, oIdx) => (
+                        <div key={oIdx} className="flex items-center gap-2">
+                          {q.type === 'mcq' ? (
+                            <input
+                              type="radio"
+                              name={`correct-${q.id}`}
+                              checked={q.correctOption === oIdx}
+                              onChange={() => updateQuestion(q.id, 'correctOption', oIdx)}
+                              className="accent-indigo-600 mt-1"
+                            />
+                          ) : (
+                            <input
+                              type="checkbox"
+                              checked={q.correctOptions.includes(oIdx)}
+                              onChange={(e) => {
+                                const newOpts = e.target.checked
+                                  ? [...q.correctOptions, oIdx]
+                                  : q.correctOptions.filter((i) => i !== oIdx);
+                                updateQuestion(q.id, 'correctOptions', newOpts);
+                              }}
+                              className="accent-indigo-600 mt-1"
+                            />
+                          )}
+                          <input
+                            type="text"
+                            value={opt}
+                            onChange={(e) => {
+                              const newOpts = [...q.options];
+                              newOpts[oIdx] = e.target.value;
+                              updateQuestion(q.id, 'options', newOpts);
+                            }}
+                            placeholder={`Option ${String.fromCharCode(65 + oIdx)}`}
+                            className={`flex-1 px-3 py-1.5 border rounded-lg text-sm focus:outline-none focus:ring-2 ${inputCls}`}
+                          />
+                          <button
+                            onClick={() => {
+                              const newOpts = q.options.filter((_, i) => i !== oIdx);
+                              updateQuestion(q.id, 'options', newOpts);
+                            }}
+                            className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      ))}
+                      <button
+                        onClick={() => updateQuestion(q.id, 'options', [...q.options, ''])}
+                        className="text-sm text-indigo-600 dark:text-indigo-400 hover:underline font-medium ml-6"
+                      >
+                        + Add Option
+                      </button>
+                    </div>
+                  )}
                 </div>
               ))}
               <button

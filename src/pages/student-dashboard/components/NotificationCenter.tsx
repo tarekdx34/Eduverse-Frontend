@@ -441,28 +441,28 @@ export function NotificationCenter() {
           ) : (
             <>
               {/* Urgent Alerts */}
-              <div className="glass rounded-[2.5rem] overflow-hidden">
-                <div className={`${isDark ? 'bg-gradient-to-r from-red-900/40 to-orange-900/40 border-b border-red-800' : 'bg-gradient-to-r from-red-50 to-orange-50 border-b border-red-200'} p-4`}>
+              <div className={`rounded-[2.5rem] overflow-hidden ${isDark ? 'bg-card-dark border border-white/5' : 'glass'}`}>
+                <div className={`${isDark ? 'bg-gradient-to-r from-red-900/40 to-orange-900/40 border-b border-red-800/50' : 'bg-gradient-to-r from-red-50 to-orange-50 border-b border-red-200'} p-4`}>
                   <h3 className={`font-semibold ${isDark ? 'text-red-400' : 'text-red-900'} flex items-center gap-2`}>
-                    <AlertTriangle className="w-5 h-5 text-red-500" />
+                    <AlertTriangle className={`w-5 h-5 ${isDark ? 'text-red-400' : 'text-red-500'}`} />
                     Urgent Alerts
                   </h3>
                 </div>
                 <div className="p-4 space-y-3">
                   {notificationList.filter(n => n.priority === 'urgent' || n.priority === 'high').slice(0, 3).map((alert) => (
-                    <div key={alert.id} className={`p-3 ${isDark ? 'bg-red-900/30 border border-red-800' : 'bg-red-50 border border-red-200'} rounded-lg`}>
+                    <div key={alert.id} className={`p-3 ${isDark ? 'bg-red-900/20 border border-red-800/50' : 'bg-red-50 border border-red-200'} rounded-lg`}>
                       <div className="flex items-start gap-2">
-                        <AlertTriangle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
+                        <AlertTriangle className={`w-4 h-4 mt-0.5 flex-shrink-0 ${isDark ? 'text-red-400' : 'text-red-500'}`} />
                         <div>
-                          <p className={`text-sm font-medium ${isDark ? 'text-red-400' : 'text-red-900'}`}>{alert.title}</p>
-                          <p className={`text-xs ${isDark ? 'text-red-500' : 'text-red-700'} mt-1`}>{alert.timestamp}</p>
+                          <p className={`text-sm font-medium ${isDark ? 'text-red-300' : 'text-red-900'}`}>{alert.title}</p>
+                          <p className={`text-xs ${isDark ? 'text-red-400/70' : 'text-red-700'} mt-1`}>{alert.timestamp}</p>
                         </div>
                       </div>
                     </div>
                   ))}
                   {notificationList.filter(n => n.priority === 'urgent' || n.priority === 'high').length === 0 && (
                     <div className="text-center py-4">
-                      <CheckCircle className="w-8 h-8 text-green-500 mx-auto mb-2" />
+                      <CheckCircle className={`w-8 h-8 mx-auto mb-2 ${isDark ? 'text-green-400' : 'text-green-500'}`} />
                       <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>No urgent alerts</p>
                     </div>
                   )}

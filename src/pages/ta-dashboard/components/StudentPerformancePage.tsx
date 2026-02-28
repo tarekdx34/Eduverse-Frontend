@@ -31,11 +31,16 @@ type StudentPerformance = {
 
 type StudentPerformancePageProps = {
   students: StudentPerformance[];
+  readOnly?: boolean;
+  assignedCourseNames?: string[];
 };
 
-export function StudentPerformancePage({ students }: StudentPerformancePageProps) {
+export function StudentPerformancePage({ students, readOnly = false, assignedCourseNames = [] }: StudentPerformancePageProps) {
   const { isDark } = useTheme();
   const { t } = useLanguage();
+  const visibleStudents = assignedCourseNames.length
+    ? students.filter((student) => student.courses.some((course) => assignedCourseNames.includes(course.courseName)))
+    : students;
   const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [courseFilter, setCourseFilter] = useState('');
@@ -43,19 +48,19 @@ export function StudentPerformancePage({ students }: StudentPerformancePageProps
   const [noteModalStudentId, setNoteModalStudentId] = useState<string | null>(null);
   const [noteText, setNoteText] = useState('');
 
-  const student = selectedStudent ? students.find((s) => s.studentId === selectedStudent) : null;
+  const student = selectedStudent ? visibleStudents.find((s) => s.studentId === selectedStudent) : null;
 
   // Stats calculations
-  const totalStudents = students.length;
-  const averageGrade = totalStudents > 0 ? Math.round(students.reduce((sum, s) => sum + s.overallAverage, 0) / totalStudents) : 0;
-  const atRiskStudents = students.filter((s) => s.overallAverage < 70).length;
-  const avgAttendance = totalStudents > 0 ? Math.round(students.reduce((sum, s) => sum + s.overallAttendance, 0) / totalStudents) : 0;
+  const totalStudents = visibleStudents.length;
+  const averageGrade = totalStudents > 0 ? Math.round(visibleStudents.reduce((sum, s) => sum + s.overallAverage, 0) / totalStudents) : 0;
+  const atRiskStudents = visibleStudents.filter((s) => s.overallAverage < 70).length;
+  const avgAttendance = totalStudents > 0 ? Math.round(visibleStudents.reduce((sum, s) => sum + s.overallAttendance, 0) / totalStudents) : 0;
 
   // Unique courses for filter
-  const allCourses = Array.from(new Set(students.flatMap((s) => s.courses.map((c) => c.courseName))));
+  const allCourses = Array.from(new Set(visibleStudents.flatMap((s) => s.courses.map((c) => c.courseName))));
 
   // Filtered students
-  const filteredStudents = students.filter((s) => {
+  const filteredStudents = visibleStudents.filter((s) => {
     const matchesSearch = s.studentName.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCourse = !courseFilter || s.courses.some((c) => c.courseName === courseFilter);
     return matchesSearch && matchesCourse;
@@ -135,6 +140,11 @@ export function StudentPerformancePage({ students }: StudentPerformancePageProps
           <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('studentPerformance')}</h2>
           <p className={`${isDark ? 'text-slate-400' : 'text-gray-600'} mt-1`}>{t('monitorPerformance')}</p>
         </div>
+        {readOnly && (
+          <span className={`text-xs px-2 py-1 rounded-full ${isDark ? 'bg-emerald-500/20 text-emerald-300' : 'bg-emerald-100 text-emerald-700'}`}>
+            Read-only assigned students
+          </span>
+        )}
       </div>
 
       {/* Stats Grid */}
@@ -181,7 +191,7 @@ export function StudentPerformancePage({ students }: StudentPerformancePageProps
               placeholder="Search students..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className={`w-full pl-9 pr-3 py-2 rounded-lg border text-sm ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-slate-500' : 'border-gray-300 bg-white text-gray-900 placeholder-gray-400'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
+              className={`w-full pl-9 pr-3 py-2 rounded-lg border text-sm ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-gray-400' : 'border-gray-300 bg-white text-gray-900 placeholder-gray-500'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
             />
           </div>
           {/* Course Filter */}
@@ -215,14 +225,16 @@ export function StudentPerformancePage({ students }: StudentPerformancePageProps
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2 min-w-0">
                       <span className={`font-medium truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>{student.studentName}</span>
-                      <button
-                        type="button"
-                        title="Add Note"
-                        onClick={(e) => { e.stopPropagation(); openNoteModal(student.studentId); }}
-                        className={`shrink-0 p-1 rounded hover:bg-opacity-20 ${isDark ? 'text-slate-400 hover:text-yellow-400 hover:bg-yellow-500' : 'text-gray-400 hover:text-yellow-600 hover:bg-yellow-100'}`}
-                      >
-                        <StickyNote className="w-4 h-4" />
-                      </button>
+                      {!readOnly && (
+                        <button
+                          type="button"
+                          title="Add Note"
+                          onClick={(e) => { e.stopPropagation(); openNoteModal(student.studentId); }}
+                          className={`shrink-0 p-1 rounded hover:bg-opacity-20 ${isDark ? 'text-slate-400 hover:text-yellow-400 hover:bg-yellow-500' : 'text-gray-400 hover:text-yellow-600 hover:bg-yellow-100'}`}
+                        >
+                          <StickyNote className="w-4 h-4" />
+                        </button>
+                      )}
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
                       {risk.label && (
@@ -235,7 +247,7 @@ export function StudentPerformancePage({ students }: StudentPerformancePageProps
                       </span>
                     </div>
                   </div>
-                  {studentNotes[student.studentId] && (
+                  {!readOnly && studentNotes[student.studentId] && (
                     <p className={`text-xs italic mb-2 truncate ${isDark ? 'text-yellow-400/80' : 'text-yellow-700'}`}>
                       📝 {studentNotes[student.studentId]}
                     </p>
@@ -341,7 +353,7 @@ export function StudentPerformancePage({ students }: StudentPerformancePageProps
       </div>
 
       {/* Note Modal */}
-      {noteModalStudentId && (
+      {!readOnly && noteModalStudentId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className={`w-full max-w-md rounded-lg border p-6 ${isDark ? 'bg-slate-800 border-white/10' : 'bg-white border-gray-200'}`}>
             <div className="flex items-center justify-between mb-4">

@@ -117,7 +117,8 @@ const translations: Record<Language, Record<string, string>> = {
 
     // AttendancePage
     aiPoweredAttendance: 'AI-Powered Attendance',
-    uploadPhotoDescription: 'Upload a photo of your lab/class and AI will detect and mark attendance automatically',
+    uploadPhotoDescription:
+      'Upload a photo of your lab/class and AI will detect and mark attendance automatically',
     uploadPhoto: 'Upload Photo',
     results: 'Results',
     history: 'History',
@@ -435,14 +436,14 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<Language>(() => {
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('eduverse-ta-language');
+      const saved = localStorage.getItem('eduverse-language');
       return (saved as Language) || 'en';
     }
     return 'en';
   });
 
   useEffect(() => {
-    localStorage.setItem('eduverse-ta-language', language);
+    localStorage.setItem('eduverse-language', language);
     document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
     document.documentElement.lang = language;
   }, [language]);

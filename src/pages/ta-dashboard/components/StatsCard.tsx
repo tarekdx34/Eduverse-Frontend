@@ -1,23 +1,83 @@
-import React from 'react';
+import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
-export function StatsCard({ label, value, comparison, isPositive }: { label: string; value: string | number; comparison?: string; isPositive?: boolean }) {
+interface StatsCardProps {
+  label: string;
+  value: string;
+  maxValue?: string;
+  comparison: string;
+  isPositive: boolean;
+}
+
+// Color themes for each card type — matches Student dashboard style
+const cardThemes: Record<string, { glow: string; gradient: string }> = {
+  'Total Courses': {
+    glow: 'bg-blue-500/10 group-hover:bg-blue-500/20',
+    gradient: 'from-blue-500 to-cyan-500',
+  },
+  'Active Labs': {
+    glow: 'bg-emerald-500/10 group-hover:bg-emerald-500/20',
+    gradient: 'from-emerald-500 to-teal-500',
+  },
+  'Pending Submissions': {
+    glow: 'bg-amber-500/10 group-hover:bg-amber-500/20',
+    gradient: 'from-amber-500 to-orange-500',
+  },
+  'Avg Performance': {
+    glow: 'bg-purple-500/10 group-hover:bg-purple-500/20',
+    gradient: 'from-purple-500 to-pink-500',
+  },
+};
+
+export function StatsCard({ label, value, maxValue, comparison, isPositive }: StatsCardProps) {
+  const { isDark } = useTheme();
+
+  const theme = cardThemes[label] || cardThemes['Total Courses'];
+
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
-      <div className="flex items-start justify-between mb-4">
-        <div>
-          <p className="text-sm text-gray-600 mb-2">{label}</p>
-          <div className="flex items-baseline gap-1">
-            <span className="text-3xl font-bold text-gray-900">{value}</span>
-          </div>
-        </div>
-        <div className="w-5 h-5 text-gray-400 cursor-pointer hover:text-gray-600 text-center">⋯</div>
+    <div
+      className={`p-8 rounded-[2.5rem] relative overflow-hidden group hover:scale-[1.02] transition-all duration-300 cursor-default ${
+        isDark ? 'bg-card-dark border border-white/5' : 'glass'
+      }`}
+    >
+      {/* Decorative glow */}
+      <div
+        className={`absolute -right-16 -top-16 w-32 h-32 ${theme.glow} rounded-full blur-3xl transition-colors`}
+      ></div>
+
+      <p
+        className={`text-sm font-medium mb-2 ${isDark ? 'uppercase tracking-wider text-slate-400' : 'text-slate-500'}`}
+      >
+        {label}
+      </p>
+
+      <div className="flex items-baseline gap-2 mb-0">
+        <h2
+          className={`text-5xl font-black mb-0 tracking-tighter ${isDark ? 'text-white' : 'text-slate-800'}`}
+        >
+          {value}
+          {maxValue && (
+            <span
+              className={`text-2xl font-normal ${isDark ? 'text-slate-600' : 'text-slate-300'}`}
+            >
+              /{maxValue}
+            </span>
+          )}
+        </h2>
       </div>
-      {comparison && (
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-gray-600">Compared To Last Term</p>
-          <div className={`px-3 py-2 rounded text-sm font-medium ${isPositive ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>{comparison}</div>
-        </div>
-      )}
+
+      <div className="mt-6 flex items-center gap-2">
+        <span
+          className={`flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-lg ${
+            isPositive ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'
+          }`}
+        >
+          <span className="material-symbols-rounded text-sm">
+            {isPositive ? 'trending_up' : 'trending_down'}
+          </span>
+          {comparison}
+        </span>
+      </div>
     </div>
   );
 }

@@ -40,7 +40,7 @@ export function Header({ title, ta, onProfileClick }: HeaderProps) {
 
   const handleLanguageChange = (lang: 'en' | 'ar') => {
     setLanguageState(lang);
-    localStorage.setItem('eduverse-ta-language', lang);
+    localStorage.setItem('eduverse-language', lang);
     document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
     document.documentElement.lang = lang;
   };
@@ -55,15 +55,24 @@ export function Header({ title, ta, onProfileClick }: HeaderProps) {
     if (onProfileClick) onProfileClick();
   };
 
-  const initials = ta.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+  const initials = ta.name
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
 
   return (
-    <header className={`border-b p-6 flex items-center justify-between ${isDark ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'}`}>
+    <header
+      className={`border-b p-6 flex items-center justify-between ${isDark ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'}`}
+    >
       <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{title}</h1>
 
       <div className="flex items-center gap-4">
         {/* Notification Bell */}
-        <button className={`relative p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}>
+        <button
+          className={`relative p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
+        >
           <Bell size={20} className={isDark ? 'text-gray-300' : 'text-gray-600'} />
           <div className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
         </button>
@@ -79,23 +88,37 @@ export function Header({ title, ta, onProfileClick }: HeaderProps) {
             </div>
             <div className={`text-sm text-left ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
               <div className="font-semibold">{ta.name}</div>
-              <div className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{ta.email}</div>
+              <div className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                {ta.email}
+              </div>
             </div>
           </button>
 
           {showDropdown && (
-            <div className={`absolute right-0 mt-2 w-64 rounded-xl shadow-lg border py-2 z-50 ${
-              isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-            }`}>
+            <div
+              className={`absolute right-0 mt-2 w-64 rounded-xl shadow-lg border py-2 z-50 ${
+                isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+              }`}
+            >
               {/* User Info */}
-              <div className={`px-4 py-3 border-b ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
-                <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{ta.name}</p>
-                <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Teaching Assistant</p>
+              <div
+                className={`px-4 py-3 border-b ${isDark ? 'border-gray-700' : 'border-gray-100'}`}
+              >
+                <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  {ta.name}
+                </p>
+                <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                  Teaching Assistant
+                </p>
               </div>
 
               {/* Language Selection */}
-              <div className={`px-4 py-2 border-b ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
-                <p className={`text-xs mb-2 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Language</p>
+              <div
+                className={`px-4 py-2 border-b ${isDark ? 'border-gray-700' : 'border-gray-100'}`}
+              >
+                <p className={`text-xs mb-2 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                  Language
+                </p>
                 <div className="flex gap-2">
                   <button
                     onClick={() => handleLanguageChange('en')}
@@ -127,7 +150,9 @@ export function Header({ title, ta, onProfileClick }: HeaderProps) {
               </div>
 
               {/* Dark Mode Toggle */}
-              <div className={`px-4 py-3 border-b ${isDark ? 'border-gray-700' : 'border-gray-100'}`}>
+              <div
+                className={`px-4 py-3 border-b ${isDark ? 'border-gray-700' : 'border-gray-100'}`}
+              >
                 <button
                   onClick={toggleTheme}
                   className={`w-full flex items-center justify-between rounded-lg px-3 py-2 transition-colors ${
@@ -144,10 +169,14 @@ export function Header({ title, ta, onProfileClick }: HeaderProps) {
                       {isDark ? 'Dark Mode' : 'Light Mode'}
                     </span>
                   </div>
-                  <div className={`w-10 h-5 rounded-full transition-colors ${isDark ? 'bg-blue-600' : 'bg-gray-300'}`}>
-                    <div className={`w-4 h-4 bg-white rounded-full shadow-sm transition-transform duration-200 mt-0.5 ${
-                      isDark ? 'translate-x-5 ml-0.5' : 'translate-x-0.5'
-                    }`} />
+                  <div
+                    className={`w-10 h-5 rounded-full transition-colors ${isDark ? 'bg-blue-600' : 'bg-gray-300'}`}
+                  >
+                    <div
+                      className={`w-4 h-4 bg-white rounded-full shadow-sm transition-transform duration-200 mt-0.5 ${
+                        isDark ? 'translate-x-5 ml-0.5' : 'translate-x-0.5'
+                      }`}
+                    />
                   </div>
                 </button>
               </div>
@@ -161,7 +190,9 @@ export function Header({ title, ta, onProfileClick }: HeaderProps) {
                   }`}
                 >
                   <User className={`w-4 h-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`} />
-                  <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>View Profile</span>
+                  <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                    View Profile
+                  </span>
                 </button>
                 <button
                   onClick={handleLogout}

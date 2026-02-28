@@ -16,6 +16,7 @@ import {
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { FileUploadDropzone, AutoGradingSystem, Submission } from '../../../components/shared';
+import { RosterTable } from './RosterTable';
 
 type Course = {
   id: number;
@@ -52,7 +53,67 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
     dueDate: '',
     type: 'written',
   });
+  const [editingAssignmentIndex, setEditingAssignmentIndex] = useState<number | null>(null);
   const [gradingSubTab, setGradingSubTab] = useState<'manual' | 'auto'>('manual');
+
+  // Materials state
+  const [showMaterialModal, setShowMaterialModal] = useState(false);
+  const [materialForm, setMaterialForm] = useState({
+    title: '',
+    lectureId: '',
+  });
+  const [courseMaterials, setCourseMaterials] = useState<
+    Array<{ id: string; title: string; lectureId: string; type: string; date: string }>
+  >([
+    {
+      id: 'm1',
+      title: 'Syllabus.pdf',
+      lectureId: '1.1',
+      type: 'pdf',
+      date: 'May 10',
+    },
+  ]);
+
+  const [courseAssignments, setCourseAssignments] = useState([
+    {
+      title: 'Assignment 03 — Derivatives Practice',
+      subject: 'Calculus I',
+      subjectColor: 'bg-blue-100 text-blue-700',
+      dueDate: 'Due May 15, 2025',
+      submitted: 32,
+      total: 52,
+      description:
+        'Complete problems 1-20 on derivatives, including chain rule and implicit differentiation.',
+      files: ['Problem-Set.pdf', 'Formula-Sheet.pdf'],
+      status: 'Published',
+      statusColor: 'bg-green-100 text-green-700',
+    },
+    {
+      title: 'Lab Report 02 — Projectile Motion',
+      subject: 'Physics I',
+      subjectColor: 'bg-purple-100 text-purple-700',
+      dueDate: 'Due May 14, 2025',
+      submitted: 28,
+      total: 43,
+      description:
+        'Analyze projectile motion data collected during lab session and write a comprehensive report.',
+      files: ['Lab-Instructions.pdf'],
+      status: 'Published',
+      statusColor: 'bg-green-100 text-green-700',
+    },
+    {
+      title: 'Programming Assignment 04 — Sorting Algorithms',
+      subject: 'Intro to Computer Science',
+      subjectColor: 'bg-emerald-100 text-emerald-700',
+      dueDate: 'Due May 20, 2025',
+      submitted: 0,
+      total: 48,
+      description: 'Implement and compare quicksort, mergesort, and heapsort algorithms.',
+      files: ['Starter-Code.zip', 'Requirements.pdf'],
+      status: 'Draft',
+      statusColor: 'bg-yellow-100 text-yellow-700',
+    },
+  ]);
 
   // Get actual course data
   const course = courses.find((c) => c.id === courseId);
@@ -80,42 +141,149 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
   const tabs = [
     { id: 'overview', label: t('dashboard'), icon: BookOpen },
     { id: 'lectures', label: t('lectures'), icon: Video },
-    { id: 'materials', label: t('materials'), icon: FileText },
     { id: 'assignments', label: t('assignments'), icon: FileText },
     { id: 'grading', label: t('grading'), icon: CheckCircle },
     { id: 'students', label: t('students'), icon: Users },
     { id: 'announcements', label: t('announcements'), icon: MessageSquare },
   ];
 
-  const sampleSubmissions: Submission[] = [
+  const [sampleSubmissions, setSampleSubmissions] = useState([
     {
       id: '1',
       studentId: 'stu-1',
       studentName: 'John Smith',
-      studentEmail: 'john.smith@edu.com',
+      assignmentTitle: 'Assignment 03 — Derivatives Practice',
+      type: 'written',
       submittedAt: new Date('2025-05-10T14:30:00'),
-      answers: [
-        {
-          questionId: 'q1',
-          questionText: 'What is the derivative of x²?',
-          answer: '2x',
-          correctAnswer: '2x',
-          autoScore: 2,
-          maxScore: 2,
-        },
-        {
-          questionId: 'q2',
-          questionText: 'Explain the chain rule.',
-          answer: 'The chain rule is used for composite functions...',
-          maxScore: 5,
-          needsReview: true,
-        },
-      ],
-      totalScore: 2,
-      maxTotalScore: 7,
-      status: 'auto-graded',
+      totalScore: 0,
+      maxTotalScore: 100,
+      status: 'pending review',
+      fileName: 'JohnSmith_Assignment3.pdf',
+      fileUrl: '#',
+      grade: '',
     },
-  ];
+    {
+      id: '2',
+      studentId: 'stu-2',
+      studentName: 'Emily Chen',
+      assignmentTitle: 'Assignment 03 — Derivatives Practice',
+      type: 'written',
+      submittedAt: new Date('2025-05-10T15:15:00'),
+      totalScore: 92,
+      maxTotalScore: 100,
+      status: 'graded',
+      fileName: 'EmilyChen_Derivatives.pdf',
+      fileUrl: '#',
+      grade: '92',
+    },
+  ]);
+
+  const handleInlineGrade = (id: string, newGrade: string) => {
+    setSampleSubmissions((prev) =>
+      prev.map((sub) => (sub.id === id ? { ...sub, grade: newGrade } : sub))
+    );
+  };
+
+  const saveInlineGrade = (id: string) => {
+    setSampleSubmissions((prev) =>
+      prev.map((sub) =>
+        sub.id === id ? { ...sub, status: 'graded', totalScore: Number(sub.grade) || 0 } : sub
+      )
+    );
+  };
+
+  const handleSaveAssignment = () => {
+    if (
+      !assignmentForm.title.trim() ||
+      !assignmentForm.description.trim() ||
+      !assignmentForm.dueDate
+    ) {
+      return;
+    }
+
+    const formattedDueDate = `Due ${new Date(assignmentForm.dueDate).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    })}`;
+
+    if (editingAssignmentIndex !== null) {
+      setCourseAssignments((prev) =>
+        prev.map((assignment, index) =>
+          index === editingAssignmentIndex
+            ? {
+                ...assignment,
+                title: assignmentForm.title,
+                description: assignmentForm.description,
+                dueDate: formattedDueDate,
+              }
+            : assignment
+        )
+      );
+    } else {
+      setCourseAssignments((prev) => [
+        ...prev,
+        {
+          title: assignmentForm.title,
+          subject: course.courseName,
+          subjectColor: 'bg-indigo-100 text-indigo-700',
+          dueDate: formattedDueDate,
+          submitted: 0,
+          total: course.enrolled,
+          description: assignmentForm.description,
+          files: ['Instructions.pdf'],
+          status: 'Draft',
+          statusColor: 'bg-yellow-100 text-yellow-700',
+        },
+      ]);
+    }
+
+    setAssignmentForm({ title: '', description: '', dueDate: '', type: 'written' });
+    setEditingAssignmentIndex(null);
+    setShowAssignmentForm(false);
+  };
+
+  const handleEditAssignment = (index: number) => {
+    const assignment = courseAssignments[index];
+    setAssignmentForm({
+      title: assignment.title,
+      description: assignment.description,
+      dueDate: '',
+      type: 'written',
+    });
+    setEditingAssignmentIndex(index);
+    setShowAssignmentForm(true);
+  };
+
+  const handlePublishAssignment = (index: number) => {
+    setCourseAssignments((prev) =>
+      prev.map((assignment, idx) =>
+        idx === index
+          ? {
+              ...assignment,
+              status: 'Published',
+              statusColor: 'bg-green-100 text-green-700',
+            }
+          : assignment
+      )
+    );
+  };
+
+  const handleSaveMaterial = () => {
+    if (!materialForm.title.trim() || !materialForm.lectureId) return;
+
+    const newMaterial = {
+      id: `m${Date.now()}`,
+      title: materialForm.title,
+      lectureId: materialForm.lectureId,
+      type: materialForm.title.split('.').pop() || 'pdf',
+      date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+    };
+
+    setCourseMaterials([...courseMaterials, newMaterial]);
+    setMaterialForm({ title: '', lectureId: '' });
+    setShowMaterialModal(false);
+  };
 
   return (
     <div>
@@ -151,7 +319,7 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div
-            className="flex items-center gap-4 sm:gap-6 -mb-px overflow-x-auto scrollbar-hide"
+            className="flex min-w-max items-center gap-4 sm:gap-6 -mb-px overflow-x-auto scrollbar-hide"
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           >
             {tabs.map((tab) => (
@@ -366,119 +534,86 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
 
         {/* Lectures Tab */}
         {activeTab === 'lectures' && (
-          <div className="space-y-4">
-            {[1, 2, 3, 4].map((week) => (
-              <div
-                key={week}
-                className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}
-              >
-                <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'} mb-4`}>
-                  Week {week}
-                </h3>
-                <div className="space-y-3">
-                  <div
-                    className={`flex items-center justify-between p-4 ${isDark ? 'bg-transparent hover:bg-white/10' : 'bg-gray-50 hover:bg-gray-100'} rounded-lg transition-colors cursor-pointer`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <Video size={20} className="text-indigo-600" />
-                      <div>
-                        <div className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                          Lecture {week}.1 - Introduction
-                        </div>
-                        <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-                          {course.schedule}
-                        </div>
-                      </div>
-                    </div>
-                    <CheckCircle size={20} className="text-green-600" />
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Materials Tab */}
-        {activeTab === 'materials' && (
           <div className="space-y-6">
-            <div
-              className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}
-            >
-              <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'} mb-4`}>
-                {t('uploadMaterials')}
-              </h3>
-              <div className="mb-4">
-                <label
-                  className={`block text-sm font-medium mb-2 ${isDark ? 'text-slate-300' : 'text-gray-700'}`}
-                >
-                  Select Lecture
-                </label>
-                <select
-                  value={selectedLecture}
-                  onChange={(e) => setSelectedLecture(e.target.value)}
-                  className={`w-full px-3 py-2 rounded-lg border text-sm ${
-                    isDark
-                      ? 'bg-white/5 border-white/10 text-white'
-                      : 'bg-white border-gray-300 text-gray-900'
-                  } focus:outline-none focus:ring-2 focus:ring-indigo-500`}
-                >
-                  <option value="">-- Select a lecture --</option>
-                  {lectures.map((lec) => (
-                    <option key={lec.id} value={lec.id}>
-                      {lec.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <FileUploadDropzone
-                onFilesUploaded={(files) => console.log('Uploaded:', files)}
-                acceptedTypes={[
-                  'application/pdf',
-                  'image/*',
-                  'video/*',
-                  '.doc',
-                  '.docx',
-                  '.ppt',
-                  '.pptx',
-                ]}
-                maxFiles={10}
-                maxSizeInMB={50}
-                showPreview={true}
-              />
+            <div className="flex justify-between items-center mb-4">
+              <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                {t('lectures')}
+              </h2>
+              <button
+                onClick={() => setShowMaterialModal(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
+              >
+                <Plus size={16} />
+                Upload Material
+              </button>
             </div>
 
-            <div
-              className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}
-            >
-              <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'} mb-4`}>
-                {t('courseMaterials')}
-              </h3>
-              <div className="space-y-3">
-                {[
-                  'Syllabus.pdf',
-                  'Lecture Notes - Week 1.pdf',
-                  'Assignment Guidelines.pdf',
-                  'Lab Manual.pdf',
-                  'Formula Sheet.pdf',
-                ].map((file, index) => (
+            <div className="space-y-4">
+              {[1, 2, 3, 4].map((week) => {
+                const weekLectureId = `${week}.1`;
+                const weekMaterials = courseMaterials.filter((m) => m.lectureId === weekLectureId);
+
+                return (
                   <div
-                    key={index}
-                    className={`flex items-center justify-between p-4 ${isDark ? 'bg-transparent hover:bg-white/10' : 'bg-gray-50 hover:bg-gray-100'} rounded-lg transition-colors`}
+                    key={week}
+                    className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}
                   >
-                    <div className="flex items-center gap-3">
-                      <FileText size={20} className={isDark ? 'text-slate-400' : 'text-gray-600'} />
-                      <span className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                        {file}
-                      </span>
+                    <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'} mb-4`}>
+                      Week {week}
+                    </h3>
+                    <div className="space-y-3">
+                      <div
+                        className={`flex items-center justify-between p-4 ${isDark ? 'bg-transparent hover:bg-white/10' : 'bg-gray-50 hover:bg-gray-100'} rounded-lg transition-colors cursor-pointer`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Video size={20} className="text-indigo-600" />
+                          <div>
+                            <div
+                              className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}
+                            >
+                              Lecture {week}.1 - Introduction
+                            </div>
+                            <div
+                              className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}
+                            >
+                              {course.schedule}
+                            </div>
+                          </div>
+                        </div>
+                        <CheckCircle size={20} className="text-green-600" />
+                      </div>
+
+                      {weekMaterials.length > 0 && (
+                        <div className="mt-4 space-y-2 pl-4 border-l-2 border-indigo-100 dark:border-indigo-900/30 ml-4">
+                          <h4
+                            className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-500' : 'text-gray-500'} mb-2`}
+                          >
+                            Materials
+                          </h4>
+                          {weekMaterials.map((material) => (
+                            <div
+                              key={material.id}
+                              className={`flex items-center justify-between p-3 rounded-lg ${isDark ? 'bg-white/5' : 'bg-white border text-gray-700'} text-sm`}
+                            >
+                              <div className="flex items-center gap-2">
+                                <FileText size={16} className="text-indigo-500" />
+                                <span className={isDark ? 'text-slate-200' : ''}>
+                                  {material.title}
+                                </span>
+                              </div>
+                              <span
+                                className={`text-xs ${isDark ? 'text-slate-400' : 'text-gray-500'}`}
+                              >
+                                {material.date}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                    <button
-                      className={`p-2 ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-200'} rounded-lg transition-colors`}
-                    >
-                      <Download size={16} className={isDark ? 'text-slate-400' : 'text-gray-600'} />
-                    </button>
                   </div>
-                ))}
-              </div>
+                );
+              })}
             </div>
           </div>
         )}
@@ -576,61 +711,17 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                   </div>
                 </div>
                 <button
-                  onClick={() => {
-                    alert(`Assignment "${assignmentForm.title}" created successfully!`);
-                    setAssignmentForm({ title: '', description: '', dueDate: '', type: 'written' });
-                    setShowAssignmentForm(false);
-                  }}
+                  onClick={handleSaveAssignment}
                   className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
                 >
-                  Create Assignment
+                  {editingAssignmentIndex !== null ? 'Save Assignment' : 'Create Assignment'}
                 </button>
               </div>
             )}
 
             {/* Assignment Cards */}
             <div className="space-y-4">
-              {[
-                {
-                  title: 'Assignment 03 — Derivatives Practice',
-                  subject: 'Calculus I',
-                  subjectColor: 'bg-blue-100 text-blue-700',
-                  dueDate: 'Due May 15, 2025',
-                  submitted: 32,
-                  total: 52,
-                  description:
-                    'Complete problems 1-20 on derivatives, including chain rule and implicit differentiation.',
-                  files: ['Problem-Set.pdf', 'Formula-Sheet.pdf'],
-                  status: 'Published',
-                  statusColor: 'bg-green-100 text-green-700',
-                },
-                {
-                  title: 'Lab Report 02 — Projectile Motion',
-                  subject: 'Physics I',
-                  subjectColor: 'bg-purple-100 text-purple-700',
-                  dueDate: 'Due May 14, 2025',
-                  submitted: 28,
-                  total: 43,
-                  description:
-                    'Analyze projectile motion data collected during lab session and write a comprehensive report.',
-                  files: ['Lab-Instructions.pdf'],
-                  status: 'Published',
-                  statusColor: 'bg-green-100 text-green-700',
-                },
-                {
-                  title: 'Programming Assignment 04 — Sorting Algorithms',
-                  subject: 'Intro to Computer Science',
-                  subjectColor: 'bg-emerald-100 text-emerald-700',
-                  dueDate: 'Due May 20, 2025',
-                  submitted: 0,
-                  total: 48,
-                  description:
-                    'Implement and compare quicksort, mergesort, and heapsort algorithms.',
-                  files: ['Starter-Code.zip', 'Requirements.pdf'],
-                  status: 'Draft',
-                  statusColor: 'bg-yellow-100 text-yellow-700',
-                },
-              ].map((assignment, index) => (
+              {courseAssignments.map((assignment, index) => (
                 <div
                   key={index}
                   className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}
@@ -688,29 +779,44 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                     className={`flex flex-wrap items-center gap-2 pt-4 border-t ${isDark ? 'border-white/10' : 'border-gray-200'}`}
                   >
                     <button
-                      onClick={() => alert(`Viewing submissions for "${assignment.title}"`)}
+                      onClick={() => {
+                        setActiveTab('grading');
+                        setGradingSubTab('manual');
+                      }}
                       className={`flex items-center gap-2 px-3 py-2 text-sm ${isDark ? 'text-slate-400 hover:bg-white/10' : 'text-gray-700 hover:bg-gray-50'} rounded-lg transition-colors`}
                     >
                       View Submissions
                     </button>
                     <button
-                      onClick={() => alert(`Editing "${assignment.title}"`)}
+                      onClick={() => handleEditAssignment(index)}
                       className={`flex items-center gap-2 px-3 py-2 text-sm ${isDark ? 'text-slate-400 hover:bg-white/10' : 'text-gray-700 hover:bg-gray-50'} rounded-lg transition-colors`}
                     >
                       Edit
                     </button>
                     <button
-                      onClick={() => alert(`Opening manual grading for "${assignment.title}"`)}
+                      onClick={() => {
+                        setActiveTab('grading');
+                        setGradingSubTab('manual');
+                      }}
                       className={`flex items-center gap-2 px-3 py-2 text-sm ${isDark ? 'text-slate-400 hover:bg-white/10' : 'text-gray-700 hover:bg-gray-50'} rounded-lg transition-colors`}
                     >
                       Grade Manually
                     </button>
-                    <button className="flex items-center gap-2 px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
+                    <button
+                      onClick={() => {
+                        setActiveTab('grading');
+                        setGradingSubTab('auto');
+                      }}
+                      className="flex items-center gap-2 px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                    >
                       <Sparkles size={16} />
                       AI Auto-Grading
                     </button>
                     {assignment.status === 'Draft' && (
-                      <button className="flex items-center gap-2 px-3 py-2 text-sm text-green-600 hover:bg-green-50 rounded-lg transition-colors ml-auto">
+                      <button
+                        onClick={() => handlePublishAssignment(index)}
+                        className="flex items-center gap-2 px-3 py-2 text-sm text-green-600 hover:bg-green-50 rounded-lg transition-colors ml-auto"
+                      >
                         Publish
                       </button>
                     )}
@@ -759,48 +865,75 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                 <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
                   Written and uploaded assignments that require manual review and grading.
                 </p>
-                {sampleSubmissions.map((sub) => (
-                  <div
-                    key={sub.id}
-                    className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-4 sm:p-6 border shadow-sm`}
-                  >
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
-                      <div>
-                        <h4 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                          {sub.studentName}
-                        </h4>
-                        <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-                          {sub.studentId} • {sub.assignmentTitle}
-                        </p>
-                      </div>
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs font-medium ${
-                          sub.status === 'graded'
-                            ? 'bg-green-100 text-green-700'
-                            : 'bg-yellow-100 text-yellow-700'
-                        }`}
-                      >
-                        {sub.status === 'graded' ? `Graded: ${sub.grade}` : 'Pending Review'}
-                      </span>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      <button
-                        onClick={() => alert(`Viewing submission from ${sub.studentName}`)}
-                        className="px-3 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
-                      >
-                        View & Grade
-                      </button>
-                      {sub.fileUrl && (
-                        <button
-                          onClick={() => alert(`Downloading ${sub.fileName}`)}
-                          className={`flex items-center gap-1 px-3 py-2 text-sm rounded-lg transition-colors ${isDark ? 'text-slate-300 hover:bg-white/10' : 'text-gray-700 hover:bg-gray-100'}`}
+                {sampleSubmissions
+                  .filter((s) => s.type === 'written')
+                  .map((sub) => (
+                    <div
+                      key={sub.id}
+                      className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-4 sm:p-6 border shadow-sm`}
+                    >
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+                        <div>
+                          <h4
+                            className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}
+                          >
+                            {sub.studentName}
+                          </h4>
+                          <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                            {sub.studentId} • {sub.assignmentTitle}
+                          </p>
+                        </div>
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-medium ${
+                            sub.status === 'graded'
+                              ? 'bg-green-100 text-green-700'
+                              : 'bg-yellow-100 text-yellow-700'
+                          }`}
                         >
-                          <Download size={14} /> {sub.fileName}
-                        </button>
-                      )}
+                          {sub.status === 'graded'
+                            ? `Graded: ${sub.grade}/${sub.maxTotalScore}`
+                            : 'Pending Review'}
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap items-center justify-between gap-4 mt-4">
+                        <div className="flex gap-2">
+                          {sub.fileUrl && (
+                            <button
+                              onClick={() => alert(`Downloading ${sub.fileName}`)}
+                              className={`flex items-center gap-1 px-3 py-2 text-sm rounded-lg transition-colors ${isDark ? 'bg-white/5 text-slate-300 hover:bg-white/10' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                            >
+                              <Download size={14} /> {sub.fileName}
+                            </button>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <label
+                            className={`text-sm font-medium ${isDark ? 'text-slate-300' : 'text-gray-700'}`}
+                          >
+                            Score:
+                          </label>
+                          <input
+                            type="number"
+                            value={sub.grade}
+                            onChange={(e) => handleInlineGrade(sub.id, e.target.value)}
+                            placeholder="e.g. 85"
+                            className={`w-20 px-3 py-1.5 text-sm rounded-lg border focus:outline-none focus:ring-2 ${isDark ? 'bg-white/5 border-white/10 text-white focus:ring-indigo-500' : 'bg-white border-gray-300 text-gray-900 focus:ring-indigo-500'}`}
+                          />
+                          <span
+                            className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-500'} mr-2`}
+                          >
+                            / {sub.maxTotalScore}
+                          </span>
+                          <button
+                            onClick={() => saveInlineGrade(sub.id)}
+                            className="px-4 py-1.5 text-sm font-medium bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                          >
+                            Save Grade
+                          </button>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
               </div>
             )}
 
@@ -898,34 +1031,21 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
           <div
             className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}
           >
-            <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'} mb-6`}>
-              Enrolled Students ({course.enrolled})
-            </h3>
-            <div className="space-y-2">
-              {Array.from({ length: Math.min(10, course.enrolled) }).map((_, index) => (
-                <div
-                  key={index}
-                  className={`flex items-center justify-between p-4 ${isDark ? 'bg-transparent' : 'bg-gray-50'} rounded-lg`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 font-semibold">
-                      {String.fromCharCode(65 + index)}
-                    </div>
-                    <div>
-                      <div className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                        Student {index + 1}
-                      </div>
-                      <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-                        student{index + 1}@edu.com
-                      </div>
-                    </div>
-                  </div>
-                  <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-                    Grade: A-
-                  </div>
-                </div>
-              ))}
-            </div>
+            <RosterTable
+              data={Array.from({ length: Math.min(10, course.enrolled) }).map((_, index) => ({
+                id: index + 1,
+                name: `Student ${index + 1}`,
+                email: `student${index + 1}@edu.com`,
+                status: 'Enrolled',
+                grades: {
+                  assignments: `${80 + Math.floor(Math.random() * 20)}%`,
+                  quizzes: `${75 + Math.floor(Math.random() * 25)}%`,
+                  midterm: `${85 + Math.floor(Math.random() * 15)}%`,
+                  final: '-',
+                  total: 'A-',
+                },
+              }))}
+            />
           </div>
         )}
 
@@ -969,6 +1089,72 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
           </div>
         )}
       </div>
+
+      {/* Upload Material Modal */}
+      {showMaterialModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div
+            className={`w-full max-w-md rounded-2xl p-6 shadow-xl border ${isDark ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'}`}
+          >
+            <h3 className={`text-lg font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              Upload Material
+            </h3>
+
+            <div className="space-y-4 mb-6">
+              <div>
+                <label
+                  className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-300' : 'text-gray-700'}`}
+                >
+                  File / Title
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Chapter_1_Slides.pdf"
+                  value={materialForm.title}
+                  onChange={(e) => setMaterialForm({ ...materialForm, title: e.target.value })}
+                  className={`w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-slate-500 focus:ring-indigo-500' : 'bg-white border-gray-300 text-gray-900 focus:ring-indigo-500'}`}
+                />
+              </div>
+
+              <div>
+                <label
+                  className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-300' : 'text-gray-700'}`}
+                >
+                  Target Lecture / Week
+                </label>
+                <select
+                  value={materialForm.lectureId}
+                  onChange={(e) => setMaterialForm({ ...materialForm, lectureId: e.target.value })}
+                  className={`w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2 ${isDark ? 'bg-white/5 border-white/10 text-white focus:ring-indigo-500' : 'bg-white border-gray-300 text-gray-900 focus:ring-indigo-500'}`}
+                >
+                  <option value="">Select a lecture...</option>
+                  {lectures.map((lec) => (
+                    <option key={lec.id} value={lec.id}>
+                      {lec.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowMaterialModal(false)}
+                className={`px-4 py-2 text-sm rounded-lg border ${isDark ? 'border-white/10 text-slate-300 hover:bg-white/10' : 'border-gray-300 text-gray-700 hover:bg-gray-50'} transition-colors`}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveMaterial}
+                disabled={!materialForm.title.trim() || !materialForm.lectureId}
+                className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Upload
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

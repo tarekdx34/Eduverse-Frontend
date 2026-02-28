@@ -36,8 +36,6 @@ interface ProfileData {
   specialization?: string[];
   skills?: string[];
   interests?: string[];
-  achievements?: { title: string; description: string; emoji: string }[];
-  badges?: { name: string; description: string; icon: string; color: string; unlocked: boolean }[];
 }
 
 interface DashboardProfileTabProps {
@@ -76,9 +74,9 @@ export function DashboardProfileTab({
     <div className="space-y-6">
       {/* Header Card */}
       <div className={`${cardClass} p-6 rounded-2xl`}>
-        <div className="flex flex-col sm:flex-row items-center gap-6">
+        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
           {/* Avatar */}
-          <div className="relative">
+          <div className="relative flex-shrink-0">
             <div
               className="w-24 h-24 rounded-full flex items-center justify-center text-white text-3xl font-bold"
               style={{ backgroundColor: accentColor }}
@@ -106,9 +104,9 @@ export function DashboardProfileTab({
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
             <button
-              className={`px-4 py-2 border font-medium rounded-lg transition-colors flex items-center gap-2 text-sm ${isDark ? 'border-white/10 text-gray-300 hover:bg-white/10' : 'border-gray-200 text-gray-700 hover:bg-gray-50'}`}
+              className={`px-4 py-2 border font-medium rounded-lg transition-colors flex items-center justify-center gap-2 text-sm ${isDark ? 'border-white/10 text-slate-300 hover:bg-white/10 hover:text-white' : 'border-gray-200 text-gray-700 hover:bg-gray-50'}`}
             >
               <Download className="w-4 h-4" />
               Download CV
@@ -235,13 +233,9 @@ export function DashboardProfileTab({
       </div>
 
       {/* Main Content Grid */}
-      <div
-        className={`grid grid-cols-1 ${(data.badges && data.badges.length > 0) || (data.achievements && data.achievements.length > 0) ? 'lg:grid-cols-12' : ''} gap-10`}
-      >
-        {/* Left Column */}
-        <div
-          className={`${(data.badges && data.badges.length > 0) || (data.achievements && data.achievements.length > 0) ? 'lg:col-span-5' : ''} space-y-10`}
-        >
+      <div className="grid grid-cols-1 gap-10">
+        {/* Main Content */}
+        <div className="space-y-10">
           {/* Personal Information */}
           <div className={`${cardClass} p-8 rounded-[2.5rem]`}>
             <h3 className={`text-2xl font-bold mb-6 flex items-center gap-3 ${valueClass}`}>
@@ -423,107 +417,6 @@ export function DashboardProfileTab({
           )}
         </div>
 
-        {/* Right Column - Badges & Achievements (only shown if data is passed) */}
-        {((data.badges && data.badges.length > 0) ||
-          (data.achievements && data.achievements.length > 0)) && (
-          <div className="lg:col-span-7">
-            <div className={`${cardClass} p-8 rounded-[2.5rem] h-full`}>
-              <div className="flex justify-between items-center mb-10">
-                <h3 className={`text-2xl font-bold flex items-center gap-3 ${valueClass}`}>
-                  <span className="material-symbols-rounded" style={{ color: accentColor }}>
-                    military_tech
-                  </span>
-                  Badges & Achievements
-                </h3>
-                <button
-                  className="font-bold hover:underline text-sm"
-                  style={{ color: accentColor }}
-                >
-                  View All
-                </button>
-              </div>
-
-              {/* Badges Grid */}
-              {data.badges && data.badges.length > 0 && (
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 mb-12">
-                  {data.badges.map((badge, idx) => (
-                    <div
-                      key={idx}
-                      className={`flex flex-col items-center p-6 rounded-3xl border group hover:scale-105 transition-all ${
-                        !badge.unlocked ? 'opacity-40 grayscale' : ''
-                      } ${
-                        isDark
-                          ? 'bg-slate-800/50 border-slate-700/50'
-                          : 'bg-slate-50 border-slate-100'
-                      }`}
-                    >
-                      <div
-                        className="w-20 h-20 rounded-full flex items-center justify-center mb-4"
-                        style={{
-                          backgroundColor: badge.unlocked ? `${badge.color}20` : undefined,
-                          color: badge.unlocked ? badge.color : undefined,
-                        }}
-                      >
-                        <span className="material-symbols-rounded text-5xl">{badge.icon}</span>
-                      </div>
-                      <p className={`font-bold text-center ${valueClass}`}>{badge.name}</p>
-                      <p className={`text-xs mt-1 ${labelClass}`}>{badge.description}</p>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Achievements List */}
-              {data.achievements && data.achievements.length > 0 && (
-                <div className="space-y-4 mb-12">
-                  <h4 className={`text-lg font-bold ${valueClass}`}>Awards</h4>
-                  {data.achievements.map((achievement, idx) => (
-                    <div
-                      key={idx}
-                      className={`rounded-xl p-4 border ${
-                        isDark
-                          ? 'bg-amber-500/10 border-amber-500/20'
-                          : 'bg-gradient-to-r from-amber-50 to-yellow-50 border-amber-100'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className="text-2xl">{achievement.emoji}</span>
-                        <div>
-                          <h4 className={`text-sm font-bold ${valueClass}`}>{achievement.title}</h4>
-                          <p className={`text-xs ${labelClass}`}>{achievement.description}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Next Milestone CTA */}
-              <div
-                className="p-8 rounded-3xl text-white relative overflow-hidden group"
-                style={{
-                  backgroundImage: `linear-gradient(135deg, ${accentColor}, #6366F1)`,
-                }}
-              >
-                <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full blur-3xl group-hover:bg-white/20 transition-all" />
-                <div className="relative z-10">
-                  <h4 className="text-xl font-extrabold mb-2">Next Milestone</h4>
-                  <p className="text-white/80 mb-6 max-w-md">
-                    Keep up the great work! Complete your current goals to unlock the next
-                    achievement level.
-                  </p>
-                  <div className="w-full bg-white/20 h-2.5 rounded-full mb-2 overflow-hidden">
-                    <div className="bg-white h-full rounded-full" style={{ width: '75%' }} />
-                  </div>
-                  <div className="flex justify-between text-sm font-bold">
-                    <span>75% Progress</span>
-                    <span>18 / 24 Tasks</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

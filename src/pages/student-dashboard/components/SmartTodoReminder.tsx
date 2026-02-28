@@ -1,10 +1,23 @@
-import { CheckCircle, Circle, Calendar, Clock, Hash, Plus, Trash2, Bookmark, AlertCircle } from 'lucide-react';
+import {
+  CheckCircle,
+  Circle,
+  Calendar,
+  Clock,
+  Hash,
+  Plus,
+  Trash2,
+  Bookmark,
+  AlertCircle,
+  Flag,
+  MinusCircle,
+} from 'lucide-react';
 import { useState } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { assignments } from './Assignments';
 
 interface Todo {
-  id: number;
+  id: number | string;
   title: string;
   description: string;
   dueDate: string;
@@ -16,7 +29,22 @@ interface Todo {
 }
 
 export function SmartTodoReminder() {
+  const assignmentTodos: Todo[] = assignments
+    .filter((a) => a.status === 'pending' || a.status === 'in-progress')
+    .map((a) => ({
+      id: `assign-${a.id}`,
+      title: a.title,
+      description: a.course,
+      dueDate: a.dueDate,
+      dueTime: a.dueTime,
+      priority: a.priority as 'high' | 'medium' | 'low',
+      category: 'Assignment',
+      isCompleted: false,
+      tags: [a.courseCode, a.type],
+    }));
+
   const [todos, setTodos] = useState<Todo[]>([
+    ...assignmentTodos,
     {
       id: 1,
       title: 'Complete CS201 Assignment',
@@ -26,7 +54,7 @@ export function SmartTodoReminder() {
       priority: 'high',
       category: 'Academic',
       isCompleted: false,
-      tags: ['Assignment', 'CS201']
+      tags: ['Assignment', 'CS201'],
     },
     {
       id: 2,
@@ -37,7 +65,7 @@ export function SmartTodoReminder() {
       priority: 'high',
       category: 'Academic',
       isCompleted: false,
-      tags: ['Exam', 'CS220']
+      tags: ['Exam', 'CS220'],
     },
     {
       id: 3,
@@ -48,7 +76,7 @@ export function SmartTodoReminder() {
       priority: 'medium',
       category: 'Financial',
       isCompleted: false,
-      tags: ['Important', 'Deadline']
+      tags: ['Important', 'Deadline'],
     },
     {
       id: 4,
@@ -59,7 +87,7 @@ export function SmartTodoReminder() {
       priority: 'low',
       category: 'Events',
       isCompleted: true,
-      tags: ['Club', 'Meeting']
+      tags: ['Club', 'Meeting'],
     },
     {
       id: 5,
@@ -70,7 +98,7 @@ export function SmartTodoReminder() {
       priority: 'high',
       category: 'Academic',
       isCompleted: false,
-      tags: ['Presentation', 'CS305']
+      tags: ['Presentation', 'CS305'],
     },
     {
       id: 6,
@@ -81,7 +109,7 @@ export function SmartTodoReminder() {
       priority: 'medium',
       category: 'Academic',
       isCompleted: false,
-      tags: ['Lab', 'CS150']
+      tags: ['Lab', 'CS150'],
     },
     {
       id: 7,
@@ -92,7 +120,7 @@ export function SmartTodoReminder() {
       priority: 'high',
       category: 'Financial',
       isCompleted: false,
-      tags: ['Payment', 'Important']
+      tags: ['Payment', 'Important'],
     },
     {
       id: 8,
@@ -103,21 +131,21 @@ export function SmartTodoReminder() {
       priority: 'medium',
       category: 'Academic',
       isCompleted: false,
-      tags: ['Office Hours', 'CS201']
-    }
+      tags: ['Office Hours', 'CS201'],
+    },
   ]);
 
   const [filter, setFilter] = useState<'all' | 'pending' | 'completed'>('all');
   const [priorityFilter, setPriorityFilter] = useState<'all' | 'high' | 'medium' | 'low'>('all');
 
-  const toggleTodo = (id: number) => {
-    setTodos(todos.map(todo =>
-      todo.id === id ? { ...todo, isCompleted: !todo.isCompleted } : todo
-    ));
+  const toggleTodo = (id: number | string) => {
+    setTodos(
+      todos.map((todo) => (todo.id === id ? { ...todo, isCompleted: !todo.isCompleted } : todo))
+    );
   };
 
-  const deleteTodo = (id: number) => {
-    setTodos(todos.filter(todo => todo.id !== id));
+  const deleteTodo = (id: number | string) => {
+    setTodos(todos.filter((todo) => todo.id !== id));
   };
 
   const getPriorityColor = (priority: string) => {
@@ -138,9 +166,9 @@ export function SmartTodoReminder() {
       case 'high':
         return <AlertCircle className="w-4 h-4" />;
       case 'medium':
-        return <Bookmark className="w-4 h-4" />;
+        return <Flag className="w-4 h-4" />;
       case 'low':
-        return <Circle className="w-4 h-4" />;
+        return <MinusCircle className="w-4 h-4" />;
       default:
         return null;
     }
@@ -165,12 +193,12 @@ export function SmartTodoReminder() {
   };
 
   const filteredTodos = todos
-    .filter(todo => {
+    .filter((todo) => {
       if (filter === 'pending') return !todo.isCompleted;
       if (filter === 'completed') return todo.isCompleted;
       return true;
     })
-    .filter(todo => {
+    .filter((todo) => {
       if (priorityFilter === 'all') return true;
       return todo.priority === priorityFilter;
     })
@@ -180,34 +208,47 @@ export function SmartTodoReminder() {
       }
       const priorityOrder = { high: 0, medium: 1, low: 2 };
       if (a.priority !== b.priority) {
-        return priorityOrder[a.priority as keyof typeof priorityOrder] - priorityOrder[b.priority as keyof typeof priorityOrder];
+        return (
+          priorityOrder[a.priority as keyof typeof priorityOrder] -
+          priorityOrder[b.priority as keyof typeof priorityOrder]
+        );
       }
       return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
     });
 
-  const pendingCount = todos.filter(t => !t.isCompleted).length;
-  const completedCount = todos.filter(t => t.isCompleted).length;
-  const highPriorityCount = todos.filter(t => !t.isCompleted && t.priority === 'high').length;
-  const dueTodayCount = todos.filter(t => !t.isCompleted && getDaysUntilDue(t.dueDate) === 0).length;
+  const pendingCount = todos.filter((t) => !t.isCompleted).length;
+  const completedCount = todos.filter((t) => t.isCompleted).length;
+  const highPriorityCount = todos.filter((t) => !t.isCompleted && t.priority === 'high').length;
+  const dueTodayCount = todos.filter(
+    (t) => !t.isCompleted && getDaysUntilDue(t.dueDate) === 0
+  ).length;
   const { t, isRTL } = useLanguage();
   const { isDark } = useTheme();
 
   const getPriorityText = (priority: string) => {
     switch (priority) {
-      case 'high': return t('high');
-      case 'medium': return t('medium');
-      case 'low': return t('low');
-      default: return priority;
+      case 'high':
+        return t('high');
+      case 'medium':
+        return t('medium');
+      case 'low':
+        return t('low');
+      default:
+        return priority;
     }
   };
 
   const getPriorityColorDark = (priority: string) => {
     if (isDark) {
       switch (priority) {
-        case 'high': return 'bg-red-900/50 text-red-400 border-red-700';
-        case 'medium': return 'bg-orange-900/50 text-orange-400 border-orange-700';
-        case 'low': return 'bg-blue-900/50 text-blue-400 border-blue-700';
-        default: return 'bg-white/5 text-slate-500 border-white/10';
+        case 'high':
+          return 'bg-red-900/50 text-red-400 border-red-700';
+        case 'medium':
+          return 'bg-orange-900/50 text-orange-400 border-orange-700';
+        case 'low':
+          return 'bg-blue-900/50 text-blue-400 border-blue-700';
+        default:
+          return 'bg-white/5 text-slate-500 border-white/10';
       }
     }
     return getPriorityColor(priority);
@@ -217,51 +258,89 @@ export function SmartTodoReminder() {
     <div className="p-6" dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Header Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div className={`rounded-[2.5rem] p-6 ${isDark ? 'bg-card-dark border border-white/5' : 'glass'}`}>
+        <div
+          className={`rounded-[2.5rem] p-6 ${isDark ? 'bg-card-dark border border-white/5' : 'glass'}`}
+        >
           <div className="flex items-center gap-3 mb-2">
-            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isDark ? 'bg-[#7C3AED]/20' : 'bg-[#7C3AED]/10'}`}>
+            <div
+              className={`w-10 h-10 rounded-lg flex items-center justify-center ${isDark ? 'bg-[#7C3AED]/20' : 'bg-[#7C3AED]/10'}`}
+            >
               <Circle className={`w-5 h-5 ${isDark ? 'text-[#7C3AED]/70' : 'text-[#7C3AED]'}`} />
             </div>
-            <span className={`text-sm font-medium ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{t('pending')}</span>
+            <span className={`text-sm font-medium ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
+              {t('pending')}
+            </span>
           </div>
-          <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{pendingCount}</p>
+          <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>
+            {pendingCount}
+          </p>
         </div>
 
-        <div className={`rounded-[2.5rem] p-6 ${isDark ? 'bg-card-dark border border-white/5' : 'glass'}`}>
+        <div
+          className={`rounded-[2.5rem] p-6 ${isDark ? 'bg-card-dark border border-white/5' : 'glass'}`}
+        >
           <div className="flex items-center gap-3 mb-2">
-            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isDark ? 'bg-green-900/50' : 'bg-green-100'}`}>
+            <div
+              className={`w-10 h-10 rounded-lg flex items-center justify-center ${isDark ? 'bg-green-900/50' : 'bg-green-100'}`}
+            >
               <CheckCircle className={`w-5 h-5 ${isDark ? 'text-green-400' : 'text-green-600'}`} />
             </div>
-            <span className={`text-sm font-medium ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{t('completed')}</span>
+            <span className={`text-sm font-medium ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
+              {t('completed')}
+            </span>
           </div>
-          <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{completedCount}</p>
+          <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>
+            {completedCount}
+          </p>
         </div>
 
-        <div className={`rounded-[2.5rem] p-6 ${isDark ? 'bg-card-dark border border-white/5' : 'glass'}`}>
+        <div
+          className={`rounded-[2.5rem] p-6 ${isDark ? 'bg-card-dark border border-white/5' : 'glass'}`}
+        >
           <div className="flex items-center gap-3 mb-2">
-            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isDark ? 'bg-red-900/50' : 'bg-red-100'}`}>
+            <div
+              className={`w-10 h-10 rounded-lg flex items-center justify-center ${isDark ? 'bg-red-900/50' : 'bg-red-100'}`}
+            >
               <AlertCircle className={`w-5 h-5 ${isDark ? 'text-red-400' : 'text-red-600'}`} />
             </div>
-            <span className={`text-sm font-medium ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{t('high')} {t('priority')}</span>
+            <span className={`text-sm font-medium ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
+              {t('high')} {t('priority')}
+            </span>
           </div>
-          <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{highPriorityCount}</p>
+          <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>
+            {highPriorityCount}
+          </p>
         </div>
 
-        <div className={`rounded-[2.5rem] p-6 ${isDark ? 'bg-card-dark border border-white/5' : 'glass'}`}>
+        <div
+          className={`rounded-[2.5rem] p-6 ${isDark ? 'bg-card-dark border border-white/5' : 'glass'}`}
+        >
           <div className="flex items-center gap-3 mb-2">
-            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isDark ? 'bg-orange-900/50' : 'bg-orange-100'}`}>
+            <div
+              className={`w-10 h-10 rounded-lg flex items-center justify-center ${isDark ? 'bg-orange-900/50' : 'bg-orange-100'}`}
+            >
               <Calendar className={`w-5 h-5 ${isDark ? 'text-orange-400' : 'text-orange-600'}`} />
             </div>
-            <span className={`text-sm font-medium ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{isRTL ? 'مستحق اليوم' : 'Due Today'}</span>
+            <span className={`text-sm font-medium ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
+              {isRTL ? 'مستحق اليوم' : 'Due Today'}
+            </span>
           </div>
-          <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{dueTodayCount}</p>
+          <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>
+            {dueTodayCount}
+          </p>
         </div>
       </div>
 
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className={`font-semibold text-xl mb-1 ${isDark ? 'text-white' : 'text-slate-800'}`}>{t('smartTodo')}</h2>
-          <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>{isRTL ? 'ابق منظماً مع إدارة المهام الذكية' : 'Stay organized with AI-powered task management'}</p>
+          <h2 className={`font-semibold text-xl mb-1 ${isDark ? 'text-white' : 'text-slate-800'}`}>
+            {t('smartTodo')}
+          </h2>
+          <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>
+            {isRTL
+              ? 'ابق منظماً مع إدارة المهام الذكية'
+              : 'Stay organized with AI-powered task management'}
+          </p>
         </div>
         <button className="flex items-center gap-2 px-4 py-2 bg-[#7C3AED] text-white rounded-lg hover:bg-[#6D28D9] transition-colors font-medium">
           <Plus className="w-5 h-5" />
@@ -270,10 +349,14 @@ export function SmartTodoReminder() {
       </div>
 
       {/* Filters */}
-      <div className={`rounded-[2.5rem] p-4 mb-6 ${isDark ? 'bg-card-dark border border-white/5' : 'glass'}`}>
+      <div
+        className={`rounded-[2.5rem] p-4 mb-6 ${isDark ? 'bg-card-dark border border-white/5' : 'glass'}`}
+      >
         <div className="flex items-center gap-4 flex-wrap">
           <div className="flex items-center gap-2">
-            <span className={`text-sm font-medium ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{t('status')}:</span>
+            <span className={`text-sm font-medium ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
+              {t('status')}:
+            </span>
             <div className="flex gap-2">
               {(['all', 'pending', 'completed'] as const).map((f) => (
                 <button
@@ -282,7 +365,9 @@ export function SmartTodoReminder() {
                   className={`px-3 py-1.5 rounded-lg text-sm capitalize font-medium transition-colors ${
                     filter === f
                       ? 'bg-[#7C3AED]/10 text-[#7C3AED] border border-[#7C3AED]/20'
-                      : isDark ? 'bg-white/5 text-slate-400 hover:bg-white/10' : 'bg-slate-50 text-slate-700 hover:bg-slate-200'
+                      : isDark
+                        ? 'bg-white/5 text-slate-400 hover:bg-white/10'
+                        : 'bg-slate-50 text-slate-700 hover:bg-slate-200'
                   }`}
                 >
                   {f === 'all' ? t('all') : f === 'pending' ? t('pending') : t('completed')}
@@ -291,7 +376,9 @@ export function SmartTodoReminder() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <span className={`text-sm font-medium ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{t('priority')}:</span>
+            <span className={`text-sm font-medium ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
+              {t('priority')}:
+            </span>
             <div className="flex gap-2">
               {(['all', 'high', 'medium', 'low'] as const).map((p) => (
                 <button
@@ -300,7 +387,9 @@ export function SmartTodoReminder() {
                   className={`px-3 py-1.5 rounded-lg text-sm capitalize font-medium transition-colors ${
                     priorityFilter === p
                       ? 'bg-[#7C3AED]/10 text-[#7C3AED] border border-[#7C3AED]/20'
-                      : isDark ? 'bg-white/5 text-slate-400 hover:bg-white/10' : 'bg-slate-50 text-slate-700 hover:bg-slate-200'
+                      : isDark
+                        ? 'bg-white/5 text-slate-400 hover:bg-white/10'
+                        : 'bg-slate-50 text-slate-700 hover:bg-slate-200'
                   }`}
                 >
                   {p === 'all' ? t('all') : getPriorityText(p)}
@@ -317,9 +406,13 @@ export function SmartTodoReminder() {
           <div
             key={todo.id}
             className={`rounded-[2.5rem] p-5 hover:shadow-lg transition-all ${
-              isDark 
-                ? todo.isCompleted ? 'bg-white/5 border border-white/5 opacity-65' : 'bg-card-dark border border-white/5'
-                : todo.isCompleted ? 'opacity-65 glass' : 'glass'
+              isDark
+                ? todo.isCompleted
+                  ? 'bg-white/5 border border-white/5 opacity-65'
+                  : 'bg-card-dark border border-white/5'
+                : todo.isCompleted
+                  ? 'opacity-65 glass'
+                  : 'glass'
             }`}
           >
             <div className="flex items-start gap-4">
@@ -330,7 +423,9 @@ export function SmartTodoReminder() {
                 {todo.isCompleted ? (
                   <CheckCircle className="w-6 h-6 text-green-600" />
                 ) : (
-                  <Circle className={`w-6 h-6 hover:text-[#7C3AED] ${isDark ? 'text-slate-500' : 'text-slate-500'}`} />
+                  <Circle
+                    className={`w-6 h-6 hover:text-[#7C3AED] ${isDark ? 'text-slate-500' : 'text-slate-500'}`}
+                  />
                 )}
               </button>
 
@@ -339,14 +434,18 @@ export function SmartTodoReminder() {
                   <div className="flex-1">
                     <h3
                       className={`font-semibold mb-1 ${
-                        todo.isCompleted 
-                          ? 'line-through text-slate-500' 
-                          : isDark ? 'text-white' : 'text-slate-800'
+                        todo.isCompleted
+                          ? 'line-through text-slate-500'
+                          : isDark
+                            ? 'text-white'
+                            : 'text-slate-800'
                       }`}
                     >
                       {todo.title}
                     </h3>
-                    <p className={`text-sm mb-3 ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{todo.description}</p>
+                    <p className={`text-sm mb-3 ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
+                      {todo.description}
+                    </p>
                   </div>
                   <button
                     onClick={() => deleteTodo(todo.id)}
@@ -366,7 +465,9 @@ export function SmartTodoReminder() {
                     {todo.priority} priority
                   </span>
 
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${isDark ? 'bg-white/5 text-slate-400' : 'bg-slate-50 text-slate-700'}`}>
+                  <span
+                    className={`px-3 py-1 rounded-full text-xs font-medium ${isDark ? 'bg-white/5 text-slate-400' : 'bg-slate-50 text-slate-700'}`}
+                  >
                     {todo.category}
                   </span>
 
@@ -380,23 +481,29 @@ export function SmartTodoReminder() {
                     {new Date(todo.dueDate).toLocaleDateString()}
                   </span>
 
-                  <span className={`flex items-center gap-1.5 text-xs ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
+                  <span
+                    className={`flex items-center gap-1.5 text-xs ${isDark ? 'text-slate-500' : 'text-slate-600'}`}
+                  >
                     <Clock className="w-3.5 h-3.5" />
                     {todo.dueTime}
                   </span>
 
                   {!todo.isCompleted && getDaysUntilDue(todo.dueDate) >= 0 && (
-                    <span className={`text-xs font-medium ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
+                    <span
+                      className={`text-xs font-medium ${isDark ? 'text-slate-500' : 'text-slate-600'}`}
+                    >
                       {getDaysUntilDue(todo.dueDate) === 0
                         ? '🔴 Due today'
                         : getDaysUntilDue(todo.dueDate) === 1
-                        ? '🟠 Due tomorrow'
-                        : `⏱️ ${getDaysUntilDue(todo.dueDate)} days left`}
+                          ? '🟠 Due tomorrow'
+                          : `⏱️ ${getDaysUntilDue(todo.dueDate)} days left`}
                     </span>
                   )}
 
                   {!todo.isCompleted && getDaysUntilDue(todo.dueDate) < 0 && (
-                    <span className={`px-2 py-1 rounded font-medium text-xs ${isDark ? 'bg-red-900/50 text-red-400' : 'bg-red-100 text-red-700'}`}>
+                    <span
+                      className={`px-2 py-1 rounded font-medium text-xs ${isDark ? 'bg-red-900/50 text-red-400' : 'bg-red-100 text-red-700'}`}
+                    >
                       ⚠️ Overdue by {Math.abs(getDaysUntilDue(todo.dueDate))} days
                     </span>
                   )}
@@ -420,9 +527,15 @@ export function SmartTodoReminder() {
       </div>
 
       {filteredTodos.length === 0 && (
-        <div className={`text-center py-12 rounded-[2.5rem] ${isDark ? 'bg-card-dark border border-white/5' : 'glass'}`}>
-          <Circle className={`w-16 h-16 mx-auto mb-4 ${isDark ? 'text-slate-600' : 'text-slate-400'}`} />
-          <h3 className={`font-semibold mb-2 ${isDark ? 'text-white' : 'text-slate-800'}`}>No tasks found</h3>
+        <div
+          className={`text-center py-12 rounded-[2.5rem] ${isDark ? 'bg-card-dark border border-white/5' : 'glass'}`}
+        >
+          <Circle
+            className={`w-16 h-16 mx-auto mb-4 ${isDark ? 'text-slate-600' : 'text-slate-400'}`}
+          />
+          <h3 className={`font-semibold mb-2 ${isDark ? 'text-white' : 'text-slate-800'}`}>
+            No tasks found
+          </h3>
           <p className={`mb-4 ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
             {filter === 'completed'
               ? "You haven't completed any tasks yet"

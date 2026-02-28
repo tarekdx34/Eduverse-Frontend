@@ -1,5 +1,18 @@
-import { ArrowLeft, Star, Users, Clock, Tag, Globe, ChevronDown, Play, File, MessageSquare } from 'lucide-react';
+import {
+  ArrowLeft,
+  Star,
+  Users,
+  Clock,
+  Tag,
+  Globe,
+  ChevronDown,
+  Play,
+  File,
+  MessageSquare,
+  Sparkles,
+} from 'lucide-react';
 import { useState } from 'react';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface Lesson {
   id: string;
@@ -25,6 +38,7 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
   const [activeTab, setActiveTab] = useState('overview');
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [selectedLesson, setSelectedLesson] = useState<string | null>(null);
+  const { isDark } = useTheme();
 
   const courseData = {
     id: '1',
@@ -48,9 +62,27 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
       title: 'Course Introduction',
       lessons: [
         { id: '1-1', title: 'Welcome to the Course', duration: 12, type: 'video', completed: true },
-        { id: '1-2', title: 'Course Overview & Objectives', duration: 8, type: 'video', completed: true },
-        { id: '1-3', title: 'How to Use This Platform', duration: 15, type: 'video', completed: false },
-        { id: '1-4', title: 'Resources & Materials', duration: 5, type: 'resource', completed: false },
+        {
+          id: '1-2',
+          title: 'Course Overview & Objectives',
+          duration: 8,
+          type: 'video',
+          completed: true,
+        },
+        {
+          id: '1-3',
+          title: 'How to Use This Platform',
+          duration: 15,
+          type: 'video',
+          completed: false,
+        },
+        {
+          id: '1-4',
+          title: 'Resources & Materials',
+          duration: 5,
+          type: 'resource',
+          completed: false,
+        },
       ],
       duration: 60,
     },
@@ -58,14 +90,50 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
       id: '2',
       title: 'Core Concepts',
       lessons: [
-        { id: '2-1', title: 'Fundamental Principles', duration: 25, type: 'video', completed: false },
-        { id: '2-2', title: 'Basic Data Structures', duration: 30, type: 'video', completed: false },
+        {
+          id: '2-1',
+          title: 'Fundamental Principles',
+          duration: 25,
+          type: 'video',
+          completed: false,
+        },
+        {
+          id: '2-2',
+          title: 'Basic Data Structures',
+          duration: 30,
+          type: 'video',
+          completed: false,
+        },
         { id: '2-3', title: 'Algorithm Basics', duration: 35, type: 'video', completed: false },
         { id: '2-4', title: 'Core Concepts Quiz', duration: 10, type: 'quiz', completed: false },
-        { id: '2-5', title: 'Practice Exercises', duration: 20, type: 'resource', completed: false },
-        { id: '2-6', title: 'Discussion: Key Takeaways', duration: 15, type: 'resource', completed: false },
-        { id: '2-7', title: 'Real-World Applications', duration: 25, type: 'video', completed: false },
-        { id: '2-8', title: 'Case Studies & Examples', duration: 30, type: 'resource', completed: false },
+        {
+          id: '2-5',
+          title: 'Practice Exercises',
+          duration: 20,
+          type: 'resource',
+          completed: false,
+        },
+        {
+          id: '2-6',
+          title: 'Discussion: Key Takeaways',
+          duration: 15,
+          type: 'resource',
+          completed: false,
+        },
+        {
+          id: '2-7',
+          title: 'Real-World Applications',
+          duration: 25,
+          type: 'video',
+          completed: false,
+        },
+        {
+          id: '2-8',
+          title: 'Case Studies & Examples',
+          duration: 30,
+          type: 'resource',
+          completed: false,
+        },
       ],
       duration: 180,
     },
@@ -73,12 +141,42 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
       id: '3',
       title: 'Advanced Topics',
       lessons: [
-        { id: '3-1', title: 'Advanced Concepts Part 1', duration: 40, type: 'video', completed: false },
-        { id: '3-2', title: 'Advanced Concepts Part 2', duration: 35, type: 'video', completed: false },
-        { id: '3-3', title: 'Optimization Techniques', duration: 30, type: 'video', completed: false },
+        {
+          id: '3-1',
+          title: 'Advanced Concepts Part 1',
+          duration: 40,
+          type: 'video',
+          completed: false,
+        },
+        {
+          id: '3-2',
+          title: 'Advanced Concepts Part 2',
+          duration: 35,
+          type: 'video',
+          completed: false,
+        },
+        {
+          id: '3-3',
+          title: 'Optimization Techniques',
+          duration: 30,
+          type: 'video',
+          completed: false,
+        },
         { id: '3-4', title: 'Advanced Quiz', duration: 15, type: 'quiz', completed: false },
-        { id: '3-5', title: 'Capstone Project Instructions', duration: 20, type: 'resource', completed: false },
-        { id: '3-6', title: 'Peer Review Guidelines', duration: 10, type: 'resource', completed: false },
+        {
+          id: '3-5',
+          title: 'Capstone Project Instructions',
+          duration: 20,
+          type: 'resource',
+          completed: false,
+        },
+        {
+          id: '3-6',
+          title: 'Peer Review Guidelines',
+          duration: 10,
+          type: 'resource',
+          completed: false,
+        },
       ],
       duration: 140,
     },
@@ -87,7 +185,13 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
       title: 'Final Project & Assessment',
       lessons: [
         { id: '4-1', title: 'Project Overview', duration: 15, type: 'video', completed: false },
-        { id: '4-2', title: 'Requirements & Rubric', duration: 12, type: 'resource', completed: false },
+        {
+          id: '4-2',
+          title: 'Requirements & Rubric',
+          duration: 12,
+          type: 'resource',
+          completed: false,
+        },
         { id: '4-3', title: 'Final Assessment', duration: 60, type: 'quiz', completed: false },
       ],
       duration: 90,
@@ -95,12 +199,14 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
   ];
 
   return (
-    <div className="bg-white rounded-lg">
+    <div className={`rounded-lg ${isDark ? 'bg-slate-900 border border-white/10' : 'bg-white'}`}>
       {/* Header with back button */}
-      <div className="bg-white border-b border-gray-200 p-6">
+      <div
+        className={`border-b p-4 sm:p-6 ${isDark ? 'bg-slate-900 border-white/10' : 'bg-white border-gray-200'}`}
+      >
         <button
           onClick={onBack}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4 transition-colors"
+          className={`flex items-center gap-2 mb-4 transition-colors ${isDark ? 'text-slate-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}
         >
           <ArrowLeft size={20} />
           <span>Back to My Classes</span>
@@ -108,11 +214,19 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
 
         {/* Course Title and Meta */}
         <div className="mb-4">
-          <h1 className="text-3xl font-semibold text-gray-900 mb-4">{courseData.title}</h1>
-          <div className="flex flex-wrap gap-8 text-sm text-gray-600">
+          <h1
+            className={`text-2xl sm:text-3xl font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}
+          >
+            {courseData.title}
+          </h1>
+          <div
+            className={`flex flex-wrap gap-4 sm:gap-8 text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}
+          >
             <div className="flex items-center gap-2">
               <Star size={16} className="text-yellow-400" fill="currentColor" />
-              <span className="font-semibold text-gray-900">{courseData.rating}</span>
+              <span className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                {courseData.rating}
+              </span>
               <span>({courseData.reviewCount.toLocaleString()} ratings)</span>
             </div>
             <div className="flex items-center gap-2">
@@ -136,18 +250,29 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
       </div>
 
       {/* Main Content */}
-      <div className="flex gap-6 p-6">
+      <div className="flex flex-col xl:flex-row gap-4 sm:gap-6 p-4 sm:p-6">
         {/* Left Content Area */}
         <div className="flex-1">
           {/* Course Preview Video */}
-          <div className="bg-white border border-gray-200 rounded-lg overflow-hidden mb-6 h-96">
+          <div
+            className={`border rounded-lg overflow-hidden mb-6 h-64 sm:h-80 xl:h-96 ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}
+          >
             <div className="relative h-full">
               <img
                 src={courseData.coursePreviewImage}
                 alt="Course Preview"
                 className="w-full h-full object-cover opacity-70"
               />
-              <button className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-full p-4 shadow-lg hover:shadow-xl transition-shadow">
+              {/* AI Notes Button */}
+              <button
+                className={`absolute top-4 right-4 ${isDark ? 'bg-[#7C3AED]/90' : 'bg-[#7C3AED]'} hover:bg-[#6D28D9] text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium shadow-lg backdrop-blur-sm transition-all transform hover:scale-105 z-10`}
+              >
+                <Sparkles size={16} />
+                Generate AI Notes
+              </button>
+              <button
+                className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rounded-full p-4 shadow-lg hover:shadow-xl transition-shadow ${isDark ? 'bg-slate-800' : 'bg-white'}`}
+              >
                 <svg className="w-8 h-8 text-indigo-600" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M8 5v14l11-7z" />
                 </svg>
@@ -156,8 +281,8 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
           </div>
 
           {/* Tabs */}
-          <div className="border-b border-gray-200 mb-6">
-            <div className="flex gap-8">
+          <div className={`border-b mb-6 ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
+            <div className="flex gap-4 sm:gap-8 overflow-x-auto">
               {['overview', 'notes', 'announcements', 'reviews'].map((tab) => (
                 <button
                   key={tab}
@@ -165,7 +290,9 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
                   className={`py-4 px-2 font-medium text-sm transition-colors relative capitalize ${
                     activeTab === tab
                       ? 'text-indigo-600 border-b-2 border-indigo-600'
-                      : 'text-gray-600 hover:text-gray-900'
+                      : isDark
+                        ? 'text-slate-400 hover:text-white'
+                        : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
                   {tab}
@@ -185,7 +312,9 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
                     <h3 className="font-semibold text-gray-900">Skill Level</h3>
                   </div>
                   <p className="text-2xl font-semibold text-indigo-600 mb-2">All Levels</p>
-                  <p className="text-sm text-gray-600">Suitable for beginners to advanced learners</p>
+                  <p className="text-sm text-gray-600">
+                    Suitable for beginners to advanced learners
+                  </p>
                 </div>
 
                 <div className="border border-green-100 rounded-lg p-6 bg-green-50">
@@ -218,12 +347,15 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
 
               {/* About Section */}
               <div>
-                <h3 className="font-semibold text-gray-900 mb-3">About This Course</h3>
-                <p className="text-gray-600 leading-relaxed">
-                  This comprehensive course covers all the essential topics you need to master Introduction to Computer
-                  Science. You'll learn from industry experts through hands-on projects and real-world examples. Whether
-                  you're a beginner or looking to advance your skills, this course provides the perfect blend of theory
-                  and practice.
+                <h3 className={`font-semibold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  About This Course
+                </h3>
+                <p className={`${isDark ? 'text-slate-400' : 'text-gray-600'} leading-relaxed`}>
+                  This comprehensive course covers all the essential topics you need to master
+                  Introduction to Computer Science. You'll learn from industry experts through
+                  hands-on projects and real-world examples. Whether you're a beginner or looking to
+                  advance your skills, this course provides the perfect blend of theory and
+                  practice.
                 </p>
               </div>
 
@@ -269,15 +401,19 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
             </div>
           )}
 
-          {activeTab === 'notes' && <div className="text-gray-600">Course notes section coming soon</div>}
+          {activeTab === 'notes' && (
+            <div className="text-gray-600">Course notes section coming soon</div>
+          )}
           {activeTab === 'announcements' && (
             <div className="text-gray-600">Announcements section coming soon</div>
           )}
-          {activeTab === 'reviews' && <div className="text-gray-600">Reviews section coming soon</div>}
+          {activeTab === 'reviews' && (
+            <div className="text-gray-600">Reviews section coming soon</div>
+          )}
         </div>
 
         {/* Right Sidebar */}
-        <div className="w-96">
+        <div className="w-full xl:w-96">
           {/* Progress Card */}
           <div className="bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-100 rounded-lg p-6 mb-6">
             <h3 className="font-semibold text-gray-900 mb-4">Course Content</h3>
@@ -301,10 +437,15 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
           {/* Course Sections */}
           <div className="space-y-3">
             {courseSections.map((section) => (
-              <div key={section.id} className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow">
+              <div
+                key={section.id}
+                className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow"
+              >
                 {/* Section Header */}
                 <button
-                  onClick={() => setExpandedSection(expandedSection === section.id ? null : section.id)}
+                  onClick={() =>
+                    setExpandedSection(expandedSection === section.id ? null : section.id)
+                  }
                   className="w-full p-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
                 >
                   <div className="flex items-center gap-3 flex-1 text-left">
@@ -323,7 +464,12 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
                   </div>
                   <div className="text-gray-400">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 5l7 7-7 7"
+                      />
                     </svg>
                   </div>
                 </button>
@@ -362,7 +508,9 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
 
                           {/* Lesson Info */}
                           <div className="flex-1 min-w-0">
-                            <p className={`text-sm font-medium truncate ${lesson.completed ? 'text-gray-600' : 'text-gray-900'}`}>
+                            <p
+                              className={`text-sm font-medium truncate ${lesson.completed ? 'text-gray-600' : 'text-gray-900'}`}
+                            >
                               {lesson.title}
                             </p>
                             <p className="text-xs text-gray-500">{lesson.duration} min</p>
