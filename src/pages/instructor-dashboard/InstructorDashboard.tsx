@@ -6,7 +6,6 @@ import {
   Users,
   FileText,
   CheckSquare,
-  BarChart3,
   Calendar,
   User,
   ClipboardList,
@@ -16,35 +15,28 @@ import {
   Menu,
   Megaphone,
   Bell,
-  Beaker,
-  UserCheck,
 } from 'lucide-react';
 import {
   StatsCard,
   GradesTable,
   RosterTable,
-  WaitlistTable,
   AssignmentsList,
   AttendanceTable,
-  ReportsAnalytics,
-  MessagesPanel,
-  SelectedSectionSummary,
-  StudentEditModal,
+  AttendanceModal,
   AssignmentModal,
   GradeModal,
-  AttendanceModal,
+  StudentEditModal,
   MessageModal,
   ConfirmDialog,
   ProfilePage,
   ModernDashboard,
   CoursesPage,
-  LabsPage,
   QuizzesPage,
   SchedulePage,
-  AnalyticsPage,
   DiscussionPage,
   NotificationsPage,
   AnnouncementsManager,
+  SelectedSectionSummary,
 } from './components';
 import { AIAttendanceContainer } from './components/ai-features/attendance';
 import { MessagingChat, DashboardHeader, DashboardSidebar } from '../../components/shared';
@@ -56,12 +48,10 @@ import {
   SECTIONS,
   COURSES,
   ROSTERS,
-  WAITLISTS,
   DASHBOARD_STATS,
   GRADES,
   ASSIGNMENTS,
   ATTENDANCE,
-  MESSAGES,
   ANALYTICS,
   INSTRUCTOR_PROFILE,
   UPCOMING_CLASSES,
@@ -71,7 +61,6 @@ import {
 import type { AssignmentItem } from './components/AssignmentsList';
 import type { GradeEntry } from './components/GradesTable';
 import type { AttendanceSession } from './components/AttendanceTable';
-import type { Message } from './components/MessagesPanel';
 import type { AssignmentFormData } from './components/AssignmentModal';
 import type { GradeFormData } from './components/GradeModal';
 import type { AttendanceFormData } from './components/AttendanceModal';
@@ -85,7 +74,6 @@ type TabKey =
   | 'assignments'
   | 'quizzes'
   | 'schedule'
-  | 'analytics'
   | 'attendance'
   | 'discussion'
   | 'chat'
@@ -102,7 +90,6 @@ const TABS: { key: TabKey; label: string; labelAr: string; icon: any; group: str
     group: 'Overview',
   },
   { key: 'courses', label: 'Courses', labelAr: 'المقررات', icon: BookOpen, group: 'Teaching' },
-  { key: 'labs', label: 'Labs', labelAr: 'المعامل', icon: Beaker, group: 'Teaching' },
   {
     key: 'quizzes',
     label: 'Quizzes',
@@ -119,22 +106,8 @@ const TABS: { key: TabKey; label: string; labelAr: string; icon: any; group: str
   },
   { key: 'schedule', label: 'Schedule', labelAr: 'الجدول', icon: CalendarDays, group: 'Teaching' },
   { key: 'roster', label: 'Roster', labelAr: 'قائمة الطلاب', icon: Users, group: 'Students' },
-  {
-    key: 'waitlist',
-    label: 'Waitlist',
-    labelAr: 'قائمة الانتظار',
-    icon: UserCheck,
-    group: 'Students',
-  },
   { key: 'grades', label: 'Grades', labelAr: 'الدرجات', icon: FileText, group: 'Students' },
   { key: 'attendance', label: 'Attendance', labelAr: 'الحضور', icon: Calendar, group: 'Students' },
-  {
-    key: 'analytics',
-    label: 'Analytics',
-    labelAr: 'التحليلات',
-    icon: BarChart3,
-    group: 'Students',
-  },
   {
     key: 'announcements',
     label: 'Announcements',
@@ -162,7 +135,6 @@ const TABS: { key: TabKey; label: string; labelAr: string; icon: any; group: str
 
 function InstructorDashboardContent() {
   const navigate = useNavigate();
-  const location = useLocation();
   const params = useParams();
   const [activeTab, setActiveTab] = useState<TabKey>('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -206,16 +178,16 @@ function InstructorDashboardContent() {
   const [editingAttendance, setEditingAttendance] = useState<AttendanceFormData | null>(null);
   const [isAttendanceModalOpen, setIsAttendanceModalOpen] = useState(false);
   const [attendanceToDelete, setAttendanceToDelete] = useState<number | null>(null);
-
-  // State for messages
-  const [messagesData, setMessagesData] = useState<Message[]>(MESSAGES);
+  // State for messages (dummy state since replaced by Announcements/Chat)
   const [editingMessage, setEditingMessage] = useState<MessageFormData | null>(null);
   const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
-  const [messageMode, setMessageMode] = useState<'compose' | 'reply' | 'view'>('compose');
   const [messageToDelete, setMessageToDelete] = useState<number | null>(null);
+  const [messageMode, setMessageMode] = useState<'create' | 'edit' | 'reply'>('create');
 
   // State for courses
   const [coursesData, setCoursesData] = useState(COURSES);
+  const selectedCourseIdFromRoute =
+    params.tab === 'courses' && params.id ? Number(params.id) : null;
 
   // Sync tab from URL
   useEffect(() => {
@@ -258,7 +230,6 @@ function InstructorDashboardContent() {
     activeSectionId && rosterOverrides[activeSectionId]
       ? rosterOverrides[activeSectionId]!
       : currentRosterBase;
-  const currentWaitlist = activeSectionId ? WAITLISTS[activeSectionId] || [] : [];
   const selectedSection = activeSectionId
     ? SECTIONS.find((s) => String(s.sectionId) === activeSectionId) || null
     : null;
@@ -395,49 +366,12 @@ function InstructorDashboardContent() {
     setAttendanceToDelete(null);
   };
 
-  // Message handlers
-  const handleComposeMessage = () => {
-    setEditingMessage(null);
-    setMessageMode('compose');
-    setIsMessageModalOpen(true);
-  };
-
-  const handleReplyMessage = (message: Message) => {
-    setEditingMessage(message);
-    setMessageMode('reply');
-    setIsMessageModalOpen(true);
-  };
-
-  const handleViewMessage = (message: Message) => {
-    setEditingMessage(message);
-    setMessageMode('view');
-    setIsMessageModalOpen(true);
-  };
-
+  // Message handlers (dummy handlers to fix undefined references)
   const handleSaveMessage = (data: MessageFormData) => {
-    if (data.id) {
-      // Edit existing (not used in current implementation)
-      const updated = messagesData.map((m) => (m.id === data.id ? { ...data, id: data.id } : m));
-      setMessagesData(updated);
-    } else {
-      // Create new
-      const newId = Math.max(...messagesData.map((m) => m.id), 0) + 1;
-      const newMessage: Message = { ...data, id: newId };
-      setMessagesData([newMessage, ...messagesData]);
-    }
-
     setIsMessageModalOpen(false);
   };
 
-  const handleDeleteMessage = (id: number) => {
-    setMessageToDelete(id);
-  };
-
   const confirmDeleteMessage = () => {
-    if (!messageToDelete) return;
-
-    const updated = messagesData.filter((m) => m.id !== messageToDelete);
-    setMessagesData(updated);
     setMessageToDelete(null);
   };
 
@@ -491,8 +425,7 @@ function InstructorDashboardContent() {
   };
 
   const handleViewCourse = (id: number) => {
-    // Navigate to course details or open settings modal
-    console.log('View course:', id);
+    navigate(`/instructordashboard/courses/${id}`);
   };
 
   // Translate tabs based on language
@@ -589,11 +522,9 @@ function InstructorDashboardContent() {
             onDeleteCourse={handleDeleteCourse}
             onDuplicateCourse={handleDuplicateCourse}
             onViewCourse={handleViewCourse}
+            selectedCourseId={selectedCourseIdFromRoute}
           />
         )}
-
-        {/* Labs */}
-        {activeTab === 'labs' && <LabsPage />}
 
         {/* Quizzes */}
         {activeTab === 'quizzes' && <QuizzesPage />}
@@ -668,9 +599,6 @@ function InstructorDashboardContent() {
           </div>
         )}
 
-        {/* Analytics */}
-        {activeTab === 'analytics' && <AnalyticsPage />}
-
         {/* Attendance */}
         {activeTab === 'attendance' && (
           <div className="space-y-6">
@@ -734,92 +662,6 @@ function InstructorDashboardContent() {
                 />
               </div>
             )}
-          </div>
-        )}
-
-        {/* Discussion */}
-        {activeTab === 'discussion' && <DiscussionPage />}
-
-        {/* Chat */}
-        {activeTab === 'chat' && (
-          <MessagingChat
-            height="calc(100vh - 160px)"
-            currentUserName="Dr. Jane Smith"
-            showVideoCall={true}
-            showVoiceCall={true}
-            isDark={isDark}
-          />
-        )}
-
-        {/* Notifications */}
-        {activeTab === 'notifications' && <NotificationsPage />}
-
-        {/* Announcements */}
-        {activeTab === 'announcements' && <AnnouncementsManager />}
-
-        {/* Profile */}
-        {activeTab === 'profile' && (
-          <DashboardProfileTab
-            isDark={isDark}
-            accentColor={primaryHex || '#3b82f6'}
-            bannerGradient="unused"
-            profileData={{
-              fullName: 'Prof. Sarah Martinez',
-              role: 'Instructor',
-              department: 'Computer Science',
-              email: 'sarah.martinez@university.edu',
-              phone: '+1 (555) 234-5678',
-              address: 'Building A, Room 302',
-              dateOfBirth: '1985-03-22',
-              bio: 'Associate Professor of Computer Science with 12+ years of experience in teaching and research. Specializing in artificial intelligence, machine learning, and software engineering.',
-              office: 'Room A-302',
-              officeHours: 'Mon & Wed 2:00 PM - 4:00 PM',
-              specialization: [
-                'Artificial Intelligence',
-                'Machine Learning',
-                'Software Engineering',
-                'Data Mining',
-                'Neural Networks',
-              ],
-              skills: ['Python', 'TensorFlow', 'PyTorch', 'R', 'MATLAB', 'Java'],
-            }}
-          />
-        )}
-
-        {/* Waitlist */}
-        {activeTab === 'waitlist' && (
-          <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <label className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-                Select Section
-              </label>
-              <select
-                className={`border rounded-md px-3 py-2 ${isDark ? 'bg-white/5 border-white/10 text-slate-200' : 'bg-white border-gray-300 text-gray-900'}`}
-                value={activeSectionId || String(SECTIONS[0].sectionId)}
-                onChange={(e) => setActiveSectionId(e.target.value)}
-              >
-                <option value="" disabled>
-                  Choose a section
-                </option>
-                {sectionOptions.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <SelectedSectionSummary section={selectedSection as any} />
-            <WaitlistTable
-              data={currentWaitlist}
-              onApprove={(id) => {
-                console.log('Approve student:', id);
-                // Add logic to approve and move to roster
-              }}
-              onReject={(id) => {
-                console.log('Reject student:', id);
-                // Add logic to reject waitlist request
-              }}
-            />
           </div>
         )}
 
@@ -854,155 +696,50 @@ function InstructorDashboardContent() {
           </div>
         )}
 
-        {/* Assignments */}
-        {activeTab === 'assignments' && (
-          <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <label className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-                Select Section
-              </label>
-              <select
-                className={`border rounded-md px-3 py-2 ${isDark ? 'bg-white/5 border-white/10 text-slate-200' : 'bg-white border-gray-300 text-gray-900'}`}
-                value={activeSectionId || String(SECTIONS[0].sectionId)}
-                onChange={(e) => setActiveSectionId(e.target.value)}
-              >
-                <option value="" disabled>
-                  Choose a section
-                </option>
-                {sectionOptions.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <SelectedSectionSummary section={selectedSection as any} />
-            <AssignmentsList
-              data={activeSectionId ? assignmentsData[activeSectionId] || [] : []}
-              onEdit={handleEditAssignment}
-              onDelete={handleDeleteAssignment}
-              onCreate={handleCreateAssignment}
-              onStatusChange={handleAssignmentStatusChange}
-            />
-          </div>
-        )}
+        {/* Announcements */}
+        {activeTab === 'announcements' && <AnnouncementsManager />}
 
-        {/* Analytics */}
-        {activeTab === 'analytics' && <AnalyticsPage />}
-
-        {/* AI Tools */}
-        {activeTab === 'ai-tools' && <AIToolsPage />}
-
-        {/* Attendance */}
-        {activeTab === 'attendance' && (
-          <div className="space-y-6">
-            <div className="flex items-center gap-3">
-              <label className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-                Select Section
-              </label>
-              <select
-                className={`border rounded-md px-3 py-2 ${isDark ? 'bg-white/5 border-white/10 text-slate-200' : 'bg-white border-gray-300 text-gray-900'}`}
-                value={activeSectionId || String(SECTIONS[0].sectionId)}
-                onChange={(e) => setActiveSectionId(e.target.value)}
-              >
-                <option value="" disabled>
-                  Choose a section
-                </option>
-                {sectionOptions.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <SelectedSectionSummary section={selectedSection as any} />
-
-            {/* Content Area */}
-            {attendanceMode === 'ai' ? (
-              <div
-                className={`rounded-xl border shadow-sm p-6 ${isDark ? 'bg-card-dark border-white/10' : 'bg-white border-gray-200'}`}
-              >
-                <div className="flex items-center justify-between mb-6">
-                  <h3
-                    className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}
-                  >
-                    AI Attendance
-                  </h3>
-                  <button
-                    onClick={() => setAttendanceMode('manual')}
-                    className={`text-sm ${isDark ? 'text-slate-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}
-                  >
-                    ← Back to Manual Attendance
-                  </button>
-                </div>
-                <AIAttendanceContainer
-                  courseSection={selectedSection?.courseCode || 'Unknown Section'}
-                />
-              </div>
-            ) : (
-              <div
-                className={`rounded-xl border shadow-sm p-6 ${isDark ? 'bg-card-dark border-white/10' : 'bg-white border-gray-200'}`}
-              >
-                <h3
-                  className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}
-                >
-                  Manual Attendance
-                </h3>
-                <AttendanceTable
-                  sessions={activeSectionId ? attendanceData[activeSectionId] || [] : []}
-                  onCreate={handleCreateAttendance}
-                  onEdit={handleEditAttendance}
-                  onDelete={handleDeleteAttendance}
-                />
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Communication */}
-        {activeTab === 'communication' && <CommunicationPage />}
+        {/* Notifications */}
+        {activeTab === 'notifications' && <NotificationsPage />}
 
         {/* Discussion */}
-        {activeTab === 'discussion' && <DiscussionPage />}
+        {activeTab === 'discussion' && (
+          <DiscussionPage userRole="instructor" userName="Prof. Sarah Martinez" />
+        )}
 
         {/* Chat */}
         {activeTab === 'chat' && (
           <MessagingChat
             height="calc(100vh - 160px)"
-            currentUserName="Dr. Jane Smith"
+            currentUserName="Prof. Sarah Martinez"
             showVideoCall={true}
             showVoiceCall={true}
+            isDark={isDark}
           />
         )}
-
-        {/* Settings */}
-        {activeTab === 'settings' && <SettingsPage />}
 
         {/* Profile */}
         {activeTab === 'profile' && (
           <DashboardProfileTab
             isDark={isDark}
-            accentColor={primaryHex || '#3b82f6'}
-            bannerGradient="unused"
+            accentColor={primaryHex || '#4F46E5'}
+            bannerGradient="from-indigo-500 to-purple-500"
             profileData={{
               fullName: 'Prof. Sarah Martinez',
               role: 'Instructor',
               department: 'Computer Science',
               email: 'sarah.martinez@university.edu',
-              phone: '+1 (555) 234-5678',
-              address: 'Building A, Room 302',
+              phone: '+20 100 987 6543',
+              address: 'Cairo, Egypt',
               dateOfBirth: '1985-03-22',
-              bio: 'Associate Professor of Computer Science with 12+ years of experience in teaching and research. Specializing in artificial intelligence, machine learning, and software engineering.',
-              office: 'Room A-302',
-              officeHours: 'Mon & Wed 2:00 PM - 4:00 PM',
-              specialization: [
-                'Artificial Intelligence',
-                'Machine Learning',
+              bio: 'Associate Professor of Computer Science with 12+ years of teaching experience. Specializes in software engineering, algorithms, and distributed systems.',
+              interests: [
                 'Software Engineering',
-                'Data Mining',
-                'Neural Networks',
+                'Distributed Systems',
+                'Machine Learning',
+                'Higher Education',
               ],
-              skills: ['Python', 'TensorFlow', 'PyTorch', 'R', 'MATLAB', 'Java'],
+              skills: ['Java', 'Python', 'C++', 'Research', 'Curriculum Design'],
             }}
           />
         )}

@@ -19,7 +19,7 @@ import {
   GraduationCap,
   Award,
   Info,
-  CheckCircle
+  CheckCircle,
 } from 'lucide-react';
 
 interface Course {
@@ -63,9 +63,10 @@ const availableCourses: Course[] = [
     department: 'Computer Science',
     level: 'Advanced',
     prerequisites: ['CS201', 'MATH301'],
-    description: 'Introduction to machine learning algorithms, neural networks, and deep learning concepts.',
+    description:
+      'Introduction to machine learning algorithms, neural networks, and deep learning concepts.',
     rating: 4.8,
-    status: 'open'
+    status: 'open',
   },
   {
     id: '2',
@@ -82,7 +83,7 @@ const availableCourses: Course[] = [
     prerequisites: ['CS305'],
     description: 'Cloud infrastructure, containerization, CI/CD pipelines, and DevOps practices.',
     rating: 4.6,
-    status: 'waitlist'
+    status: 'waitlist',
   },
   {
     id: '3',
@@ -99,7 +100,7 @@ const availableCourses: Course[] = [
     prerequisites: ['CS201'],
     description: 'Network security, cryptography, ethical hacking, and security protocols.',
     rating: 4.9,
-    status: 'closed'
+    status: 'closed',
   },
   {
     id: '4',
@@ -116,7 +117,7 @@ const availableCourses: Course[] = [
     prerequisites: ['MATH201', 'CS150'],
     description: '3D graphics programming, OpenGL, shaders, and rendering techniques.',
     rating: 4.5,
-    status: 'open'
+    status: 'open',
   },
   {
     id: '5',
@@ -133,7 +134,7 @@ const availableCourses: Course[] = [
     prerequisites: ['MATH201'],
     description: 'Matrix operations, eigenvalues, SVD, and applications in data science.',
     rating: 4.7,
-    status: 'open'
+    status: 'open',
   },
   {
     id: '6',
@@ -150,8 +151,8 @@ const availableCourses: Course[] = [
     prerequisites: ['CS401', 'MATH301'],
     description: 'Text processing, sentiment analysis, transformers, and language models.',
     rating: 4.8,
-    status: 'open'
-  }
+    status: 'open',
+  },
 ];
 
 export function CourseRegistration() {
@@ -161,9 +162,24 @@ export function CourseRegistration() {
   const [selectedDepartment, setSelectedDepartment] = useState('all');
   const [selectedLevel, setSelectedLevel] = useState('all');
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [showPrereqsFor, setShowPrereqsFor] = useState<string | null>(null);
   const [registeredCourses, setRegisteredCourses] = useState<RegisteredCourse[]>([
-    { id: 'r1', code: 'CS101', title: 'Introduction to Computer Science', credits: 3, schedule: 'Mon, Wed, Fri 8:30 AM', status: 'registered' },
-    { id: 'r2', code: 'CS201', title: 'Data Structures & Algorithms', credits: 4, schedule: 'Tue, Thu 10:00 AM', status: 'registered' },
+    {
+      id: 'r1',
+      code: 'CS101',
+      title: 'Introduction to Computer Science',
+      credits: 3,
+      schedule: 'Mon, Wed, Fri 8:30 AM',
+      status: 'registered',
+    },
+    {
+      id: 'r2',
+      code: 'CS201',
+      title: 'Data Structures & Algorithms',
+      credits: 4,
+      schedule: 'Tue, Thu 10:00 AM',
+      status: 'registered',
+    },
   ]);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [courseToRegister, setCourseToRegister] = useState<Course | null>(null);
@@ -171,11 +187,13 @@ export function CourseRegistration() {
   const totalCredits = registeredCourses.reduce((sum, c) => sum + c.credits, 0);
   const maxCredits = 21;
 
-  const filteredCourses = availableCourses.filter(course => {
-    const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         course.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         course.instructor.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesDepartment = selectedDepartment === 'all' || course.department === selectedDepartment;
+  const filteredCourses = availableCourses.filter((course) => {
+    const matchesSearch =
+      course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      course.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      course.instructor.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesDepartment =
+      selectedDepartment === 'all' || course.department === selectedDepartment;
     const matchesLevel = selectedLevel === 'all' || course.level === selectedLevel;
     return matchesSearch && matchesDepartment && matchesLevel;
   });
@@ -187,23 +205,23 @@ export function CourseRegistration() {
 
   const confirmRegistration = () => {
     if (!courseToRegister) return;
-    
+
     const newCourse: RegisteredCourse = {
       id: `r${Date.now()}`,
       code: courseToRegister.code,
       title: courseToRegister.title,
       credits: courseToRegister.credits,
       schedule: courseToRegister.schedule,
-      status: courseToRegister.status === 'waitlist' ? 'waitlist' : 'registered'
+      status: courseToRegister.status === 'waitlist' ? 'waitlist' : 'registered',
     };
-    
+
     setRegisteredCourses([...registeredCourses, newCourse]);
     setShowConfirmModal(false);
     setCourseToRegister(null);
   };
 
   const handleDrop = (courseId: string) => {
-    setRegisteredCourses(registeredCourses.filter(c => c.id !== courseId));
+    setRegisteredCourses(registeredCourses.filter((c) => c.id !== courseId));
   };
 
   const getStatusBadge = (status: string) => {
@@ -220,7 +238,7 @@ export function CourseRegistration() {
   };
 
   const isAlreadyRegistered = (courseCode: string) => {
-    return registeredCourses.some(c => c.code === courseCode);
+    return registeredCourses.some((c) => c.code === courseCode);
   };
 
   return (
@@ -229,17 +247,21 @@ export function CourseRegistration() {
       <div className="bg-gradient-to-br from-[#7C3AED] via-purple-600 to-pink-600 rounded-2xl p-8 text-white shadow-xl">
         <div className="flex items-center gap-3 mb-3">
           <GraduationCap className="w-8 h-8" />
-          <span className="text-sm bg-white/20 px-3 py-1 rounded-full">{t('springRegistration')}</span>
+          <span className="text-sm bg-white/20 px-3 py-1 rounded-full">
+            {t('springRegistration')}
+          </span>
         </div>
         <h1 className="text-3xl font-bold mb-2">{t('courseRegistration')}</h1>
         <p className="text-purple-100 text-lg">{t('browseCourses')}</p>
-        
+
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
           <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
             <p className="text-sm text-purple-200 mb-1">{t('creditsEnrolled')}</p>
-            <p className="text-2xl font-bold">{totalCredits} / {maxCredits}</p>
+            <p className="text-2xl font-bold">
+              {totalCredits} / {maxCredits}
+            </p>
             <div className="mt-2 w-full bg-white/20 rounded-full h-2">
-              <div 
+              <div
                 className="bg-white h-2 rounded-full transition-all"
                 style={{ width: `${(totalCredits / maxCredits) * 100}%` }}
               />
@@ -247,11 +269,15 @@ export function CourseRegistration() {
           </div>
           <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
             <p className="text-sm text-purple-200 mb-1">{t('coursesRegistered')}</p>
-            <p className="text-2xl font-bold">{registeredCourses.filter(c => c.status === 'registered').length}</p>
+            <p className="text-2xl font-bold">
+              {registeredCourses.filter((c) => c.status === 'registered').length}
+            </p>
           </div>
           <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
             <p className="text-sm text-purple-200 mb-1">{t('onWaitlist')}</p>
-            <p className="text-2xl font-bold">{registeredCourses.filter(c => c.status === 'waitlist').length}</p>
+            <p className="text-2xl font-bold">
+              {registeredCourses.filter((c) => c.status === 'waitlist').length}
+            </p>
           </div>
         </div>
       </div>
@@ -269,7 +295,7 @@ export function CourseRegistration() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder={t('searchCoursePlaceholder')}
-                  className={`w-full pl-10 pr-4 py-2.5 ${isDark ? 'bg-white/5 border-white/10 text-white' : 'border-slate-100'} border-2 rounded-lg focus:outline-none focus:border-[#7C3AED] transition-all`}
+                  className={`w-full pl-10 pr-4 py-2.5 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-gray-400' : 'border-slate-100 text-gray-900 placeholder-gray-500'} border-2 rounded-lg focus:outline-none focus:border-[#7C3AED] transition-all`}
                 />
               </div>
             </div>
@@ -277,7 +303,7 @@ export function CourseRegistration() {
               <select
                 value={selectedDepartment}
                 onChange={(e) => setSelectedDepartment(e.target.value)}
-                className={`px-4 py-2 ${isDark ? 'bg-slate-800 border-white/10 text-white' : 'border-slate-100'} border-2 rounded-lg focus:outline-none focus:border-[#7C3AED] transition-all`}
+                className={`px-4 py-2 ${isDark ? 'bg-gray-800 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'} border-2 rounded-lg focus:outline-none focus:border-[#7C3AED] transition-all`}
               >
                 <option value="all">{t('allDepartments')}</option>
                 <option value="Computer Science">{t('computerScience')}</option>
@@ -287,7 +313,7 @@ export function CourseRegistration() {
               <select
                 value={selectedLevel}
                 onChange={(e) => setSelectedLevel(e.target.value)}
-                className={`px-4 py-2 ${isDark ? 'bg-slate-800 border-white/10 text-white' : 'border-slate-100'} border-2 rounded-lg focus:outline-none focus:border-[#7C3AED] transition-all`}
+                className={`px-4 py-2 ${isDark ? 'bg-gray-800 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'} border-2 rounded-lg focus:outline-none focus:border-[#7C3AED] transition-all`}
               >
                 <option value="all">{t('allLevels')}</option>
                 <option value="Beginner">{t('beginner')}</option>
@@ -303,7 +329,9 @@ export function CourseRegistration() {
               <div
                 key={course.id}
                 className={`${isDark ? 'bg-card-dark' : 'bg-white'} rounded-xl border-2 p-5 transition-all hover:shadow-lg cursor-pointer ${
-                  selectedCourse?.id === course.id ? 'border-[#7C3AED] shadow-md' : `${isDark ? 'border-white/5' : 'border-slate-100'}`
+                  selectedCourse?.id === course.id
+                    ? 'border-[#7C3AED] shadow-md'
+                    : `${isDark ? 'border-white/5' : 'border-slate-100'}`
                 }`}
                 onClick={() => setSelectedCourse(course)}
               >
@@ -311,26 +339,46 @@ export function CourseRegistration() {
                   <div>
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-sm font-bold text-[#7C3AED]">{course.code}</span>
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${getStatusBadge(course.status)}`}>
-                        {course.status === 'open' ? t('open') : course.status === 'waitlist' ? t('waitlist') : t('closed')}
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-xs font-medium border ${getStatusBadge(course.status)}`}
+                      >
+                        {course.status === 'open'
+                          ? t('open')
+                          : course.status === 'waitlist'
+                            ? t('waitlist')
+                            : t('closed')}
                       </span>
-                      <span className={`px-2 py-0.5 ${isDark ? 'bg-white/5 text-slate-400' : 'bg-slate-50 text-slate-600'} rounded-full text-xs`}>
+                      <span
+                        className={`px-2 py-0.5 ${isDark ? 'bg-white/5 text-slate-400' : 'bg-slate-50 text-slate-600'} rounded-full text-xs`}
+                      >
                         {course.level}
                       </span>
                     </div>
-                    <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>{course.title}</h3>
-                    <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{course.instructor}</p>
+                    <h3
+                      className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}
+                    >
+                      {course.title}
+                    </h3>
+                    <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                      {course.instructor}
+                    </p>
                   </div>
                   <div className="text-right">
                     <div className="flex items-center gap-1 text-amber-500 mb-1">
                       <Star className="w-4 h-4 fill-current" />
                       <span className="text-sm font-medium">{course.rating}</span>
                     </div>
-                    <span className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{course.credits} CR</span>
+                    <span
+                      className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}
+                    >
+                      {course.credits} CR
+                    </span>
                   </div>
                 </div>
 
-                <div className={`grid grid-cols-3 gap-4 text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'} mb-4`}>
+                <div
+                  className={`grid grid-cols-3 gap-4 text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'} mb-4`}
+                >
                   <div className="flex items-center gap-2">
                     <Clock className="w-4 h-4 text-slate-500" />
                     <span>{course.schedule.split(' ').slice(0, 2).join(' ')}</span>
@@ -341,17 +389,65 @@ export function CourseRegistration() {
                   </div>
                   <div className="flex items-center gap-2">
                     <Users className="w-4 h-4 text-slate-500" />
-                    <span>{course.enrolled}/{course.capacity} {t('enrolled2')}</span>
+                    <span>
+                      {course.enrolled}/{course.capacity} {t('enrolled2')}
+                    </span>
                   </div>
                 </div>
 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     {course.prerequisites.length > 0 && (
-                      <span className="text-xs text-slate-500 flex items-center gap-1">
-                        <Info className="w-3 h-3" />
-                        {t('prerequisites')}: {course.prerequisites.join(', ')}
-                      </span>
+                      <div className="relative">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowPrereqsFor(showPrereqsFor === course.id ? null : course.id);
+                          }}
+                          className={`text-xs px-2 py-1 rounded-md flex items-center gap-1 transition-colors ${
+                            isDark
+                              ? 'bg-[#7C3AED]/20 hover:bg-[#7C3AED]/30 text-[#A78BFA]'
+                              : 'bg-[#7C3AED]/10 hover:bg-[#7C3AED]/20 text-[#6D28D9]'
+                          }`}
+                        >
+                          <Info className="w-3 h-3" />
+                          {t('prerequisites')}
+                        </button>
+                        {showPrereqsFor === course.id && (
+                          <div
+                            className={`absolute bottom-full left-0 mb-2 p-2 rounded-lg shadow-lg text-xs z-10 w-max border ${
+                              isDark
+                                ? 'bg-gray-800 border-white/10 text-white'
+                                : 'bg-white border-gray-200 text-gray-800'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="font-semibold opacity-70">
+                                {t('requiredCourses') || 'Required Courses'}:
+                              </span>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setShowPrereqsFor(null);
+                                }}
+                                className="p-0.5 hover:bg-gray-500/20 rounded"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </div>
+                            <div className="flex flex-wrap gap-1">
+                              {course.prerequisites.map((prereq) => (
+                                <span
+                                  key={prereq}
+                                  className={`px-2 py-0.5 rounded text-[10px] font-medium ${isDark ? 'bg-white/10' : 'bg-gray-100'}`}
+                                >
+                                  {prereq}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     )}
                   </div>
                   {isAlreadyRegistered(course.code) ? (
@@ -360,7 +456,9 @@ export function CourseRegistration() {
                       {t('registered')}
                     </span>
                   ) : course.status === 'closed' ? (
-                    <span className={`px-4 py-2 ${isDark ? 'bg-white/5' : 'bg-slate-50'} text-slate-500 rounded-lg text-sm font-medium cursor-not-allowed`}>
+                    <span
+                      className={`px-4 py-2 ${isDark ? 'bg-white/5' : 'bg-slate-50'} text-slate-500 rounded-lg text-sm font-medium cursor-not-allowed`}
+                    >
                       {t('closed')}
                     </span>
                   ) : (
@@ -385,18 +483,26 @@ export function CourseRegistration() {
         <div className="space-y-4">
           {/* Current Schedule */}
           <div className="glass rounded-[2.5rem] overflow-hidden">
-            <div className={`${isDark ? 'bg-white/5 border-b border-white/5' : 'bg-gradient-to-r from-background-light to-white border-b border-slate-100'} p-4`}>
-              <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'} flex items-center gap-2`}>
+            <div
+              className={`${isDark ? 'bg-white/5 border-b border-white/5' : 'bg-gradient-to-r from-background-light to-white border-b border-slate-100'} p-4`}
+            >
+              <h3
+                className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'} flex items-center gap-2`}
+              >
                 <Calendar className="w-5 h-5 text-[#7C3AED]" />
                 {t('mySchedule')}
               </h3>
-              <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'} mt-1`}>{registeredCourses.length} {t('coursesCredits')} • {totalCredits} {t('credits')}</p>
+              <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'} mt-1`}>
+                {registeredCourses.length} {t('coursesCredits')} • {totalCredits} {t('credits')}
+              </p>
             </div>
             <div className="p-4 space-y-3">
               {registeredCourses.length === 0 ? (
                 <div className="text-center py-8">
                   <BookOpen className="w-12 h-12 text-slate-400 mx-auto mb-3" />
-                  <p className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{t('noCourses')}</p>
+                  <p className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                    {t('noCourses')}
+                  </p>
                   <p className="text-sm text-slate-500">{t('browseToAdd')}</p>
                 </div>
               ) : (
@@ -415,9 +521,17 @@ export function CourseRegistration() {
                             </span>
                           )}
                         </div>
-                        <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'}`}>{course.title}</p>
+                        <p
+                          className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'}`}
+                        >
+                          {course.title}
+                        </p>
                       </div>
-                      <span className={`text-sm font-bold ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{course.credits} CR</span>
+                      <span
+                        className={`text-sm font-bold ${isDark ? 'text-slate-400' : 'text-slate-600'}`}
+                      >
+                        {course.credits} CR
+                      </span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-slate-500">{course.schedule}</span>
@@ -438,40 +552,77 @@ export function CourseRegistration() {
           {/* Course Details */}
           {selectedCourse && (
             <div className="glass rounded-[2.5rem] overflow-hidden">
-              <div className={`${isDark ? 'bg-white/5 border-b border-white/5' : 'bg-gradient-to-r from-background-light to-white border-b border-slate-100'} p-4`}>
-                <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>{t('courseDetails')}</h3>
+              <div
+                className={`${isDark ? 'bg-white/5 border-b border-white/5' : 'bg-gradient-to-r from-background-light to-white border-b border-slate-100'} p-4`}
+              >
+                <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                  {t('courseDetails')}
+                </h3>
               </div>
               <div className="p-4">
                 <div className="mb-4">
                   <span className="text-sm font-bold text-[#7C3AED]">{selectedCourse.code}</span>
-                  <h4 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>{selectedCourse.title}</h4>
-                  <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{selectedCourse.instructor}</p>
+                  <h4
+                    className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}
+                  >
+                    {selectedCourse.title}
+                  </h4>
+                  <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                    {selectedCourse.instructor}
+                  </p>
                 </div>
-                <p className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-700'} mb-4`}>{selectedCourse.description}</p>
+                <p className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-700'} mb-4`}>
+                  {selectedCourse.description}
+                </p>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{t('schedule')}</span>
-                    <span className={`${isDark ? 'text-white' : 'text-slate-800'} font-medium`}>{selectedCourse.schedule}</span>
+                    <span className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                      {t('schedule')}
+                    </span>
+                    <span className={`${isDark ? 'text-white' : 'text-slate-800'} font-medium`}>
+                      {selectedCourse.schedule}
+                    </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{t('room')}</span>
-                    <span className={`${isDark ? 'text-white' : 'text-slate-800'} font-medium`}>{selectedCourse.room}</span>
+                    <span className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                      {t('room')}
+                    </span>
+                    <span className={`${isDark ? 'text-white' : 'text-slate-800'} font-medium`}>
+                      {selectedCourse.room}
+                    </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{t('credits')}</span>
-                    <span className={`${isDark ? 'text-white' : 'text-slate-800'} font-medium`}>{selectedCourse.credits}</span>
+                    <span className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                      {t('credits')}
+                    </span>
+                    <span className={`${isDark ? 'text-white' : 'text-slate-800'} font-medium`}>
+                      {selectedCourse.credits}
+                    </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{t('capacity')}</span>
-                    <span className={`${isDark ? 'text-white' : 'text-slate-800'} font-medium`}>{selectedCourse.enrolled}/{selectedCourse.capacity}</span>
+                    <span className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                      {t('capacity')}
+                    </span>
+                    <span className={`${isDark ? 'text-white' : 'text-slate-800'} font-medium`}>
+                      {selectedCourse.enrolled}/{selectedCourse.capacity}
+                    </span>
                   </div>
                 </div>
                 {selectedCourse.prerequisites.length > 0 && (
-                  <div className={`mt-4 pt-4 border-t ${isDark ? 'border-white/5' : 'border-slate-100'}`}>
-                    <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'} mb-2`}>{t('prerequisites')}</p>
+                  <div
+                    className={`mt-4 pt-4 border-t ${isDark ? 'border-white/5' : 'border-slate-100'}`}
+                  >
+                    <p
+                      className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'} mb-2`}
+                    >
+                      {t('prerequisites')}
+                    </p>
                     <div className="flex flex-wrap gap-2">
                       {selectedCourse.prerequisites.map((prereq, idx) => (
-                        <span key={idx} className={`px-2 py-1 ${isDark ? 'bg-white/5 text-slate-300' : 'bg-slate-50 text-slate-700'} rounded text-xs`}>
+                        <span
+                          key={idx}
+                          className={`px-2 py-1 ${isDark ? 'bg-white/5 text-slate-300' : 'bg-slate-50 text-slate-700'} rounded text-xs`}
+                        >
                           {prereq}
                         </span>
                       ))}
@@ -479,18 +630,32 @@ export function CourseRegistration() {
                   </div>
                 )}
                 {/* What You Will Learn */}
-                <div className={`mt-4 pt-4 border-t ${isDark ? 'border-white/5' : 'border-slate-100'}`}>
-                  <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'} mb-2`}>{t('whatYouWillLearn') || 'What You Will Learn'}</p>
+                <div
+                  className={`mt-4 pt-4 border-t ${isDark ? 'border-white/5' : 'border-slate-100'}`}
+                >
+                  <p
+                    className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'} mb-2`}
+                  >
+                    {t('whatYouWillLearn') || 'What You Will Learn'}
+                  </p>
                   <ul className="space-y-2">
-                    <li className={`flex items-start gap-2 text-sm ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                    <li
+                      className={`flex items-start gap-2 text-sm ${isDark ? 'text-slate-300' : 'text-slate-700'}`}
+                    >
                       <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                      <span>Core concepts and fundamentals of {selectedCourse.title.toLowerCase()}</span>
+                      <span>
+                        Core concepts and fundamentals of {selectedCourse.title.toLowerCase()}
+                      </span>
                     </li>
-                    <li className={`flex items-start gap-2 text-sm ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                    <li
+                      className={`flex items-start gap-2 text-sm ${isDark ? 'text-slate-300' : 'text-slate-700'}`}
+                    >
                       <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
                       <span>Practical hands-on experience with real-world applications</span>
                     </li>
-                    <li className={`flex items-start gap-2 text-sm ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                    <li
+                      className={`flex items-start gap-2 text-sm ${isDark ? 'text-slate-300' : 'text-slate-700'}`}
+                    >
                       <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
                       <span>Industry-standard tools and best practices</span>
                     </li>
@@ -505,33 +670,50 @@ export function CourseRegistration() {
       {/* Registration Confirmation Modal */}
       {showConfirmModal && courseToRegister && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className={`${isDark ? 'bg-card-dark' : 'bg-white'} rounded-2xl p-8 max-w-md w-full shadow-2xl`}>
+          <div
+            className={`${isDark ? 'bg-card-dark' : 'bg-white'} rounded-2xl p-8 max-w-md w-full shadow-2xl`}
+          >
             <div className="w-16 h-16 bg-[#7C3AED]/10 rounded-full flex items-center justify-center mx-auto mb-4">
               <BookOpen className="w-8 h-8 text-[#7C3AED]" />
             </div>
-            <h2 className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-slate-800'} text-center mb-2`}>
-              {courseToRegister.status === 'waitlist' ? t('joinWaitlistQuestion') : t('confirmRegistration')}
+            <h2
+              className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-slate-800'} text-center mb-2`}
+            >
+              {courseToRegister.status === 'waitlist'
+                ? t('joinWaitlistQuestion')
+                : t('confirmRegistration')}
             </h2>
             <p className={`${isDark ? 'text-slate-400' : 'text-slate-600'} text-center mb-4`}>
-              {courseToRegister.status === 'waitlist' 
+              {courseToRegister.status === 'waitlist'
                 ? `${t('waitlistConfirmText')} ${courseToRegister.code} - ${courseToRegister.title}`
-                : `${t('registerConfirmText')} ${courseToRegister.code} - ${courseToRegister.title}`
-              }
+                : `${t('registerConfirmText')} ${courseToRegister.code} - ${courseToRegister.title}`}
             </p>
-            
+
             <div className={`${isDark ? 'bg-white/5' : 'bg-background-light'} rounded-lg p-4 mb-6`}>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{t('credits')}</span>
-                  <span className={`${isDark ? 'text-white' : 'text-slate-800'} font-medium`}>{courseToRegister.credits}</span>
+                  <span className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                    {t('credits')}
+                  </span>
+                  <span className={`${isDark ? 'text-white' : 'text-slate-800'} font-medium`}>
+                    {courseToRegister.credits}
+                  </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{t('schedule')}</span>
-                  <span className={`${isDark ? 'text-white' : 'text-slate-800'} font-medium`}>{courseToRegister.schedule}</span>
+                  <span className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                    {t('schedule')}
+                  </span>
+                  <span className={`${isDark ? 'text-white' : 'text-slate-800'} font-medium`}>
+                    {courseToRegister.schedule}
+                  </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{t('instructor')}</span>
-                  <span className={`${isDark ? 'text-white' : 'text-slate-800'} font-medium`}>{courseToRegister.instructor}</span>
+                  <span className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                    {t('instructor')}
+                  </span>
+                  <span className={`${isDark ? 'text-white' : 'text-slate-800'} font-medium`}>
+                    {courseToRegister.instructor}
+                  </span>
                 </div>
               </div>
             </div>
@@ -542,9 +724,7 @@ export function CourseRegistration() {
                   <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0" />
                   <div>
                     <p className="text-amber-900 text-sm font-medium">{t('creditLimitWarning')}</p>
-                    <p className="text-amber-700 text-xs">
-                      {t('creditLimitText')}
-                    </p>
+                    <p className="text-amber-700 text-xs">{t('creditLimitText')}</p>
                   </div>
                 </div>
               </div>

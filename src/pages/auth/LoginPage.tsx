@@ -58,7 +58,7 @@ const login = () => {
                 className="flex items-center space-x-2 flex-shrink-0 cursor-pointer"
                 onClick={handleLogo}
               >
-                <span className="text-xl sm:text-2xl tracking-tight">
+                <span className="text-xl sm:text-2xl tracking-tight font-bold text-gray-900 dark:text-white">
                   {isArabic ? 'إيدوفيرس' : 'Eduverse'}
                 </span>
               </button>{' '}
@@ -66,7 +66,9 @@ const login = () => {
 
             {/* Title */}
             <div className="text-center mb-8">
-              <h1 className="text-xl sm:text-2xl font-semibold text-foreground mb-2">Sign in with email</h1>
+              <h1 className="text-xl sm:text-2xl font-semibold text-foreground mb-2">
+                Sign in with email
+              </h1>
               <p className="text-muted-foreground text-sm">
                 Access your Eduverse account to manage your learning journey.
               </p>
@@ -86,7 +88,7 @@ const login = () => {
                   placeholder="Email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10 h-12 bg-card border-border/50 rounded-xl"
+                  className="pl-10 h-12 bg-white dark:bg-card border border-gray-300 dark:border-border/50 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-slate-400 rounded-xl"
                   required
                 />
               </div>
@@ -98,7 +100,7 @@ const login = () => {
                   placeholder="Password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10 pr-10 h-12 bg-card border-border/50 rounded-xl"
+                  className="pl-10 pr-10 h-12 bg-white dark:bg-card border border-gray-300 dark:border-border/50 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-slate-400 rounded-xl"
                   required
                 />
                 <button
@@ -131,17 +133,19 @@ const login = () => {
             {/* Divider */}
             <div className="relative my-6">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-border/50 border-dashed" />
+                <div className="w-full border-t border-gray-300 dark:border-border/50 border-dashed" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-transparent text-muted-foreground dark:text-gray-400">Or sign in with</span>
+                <span className="px-4 bg-white dark:bg-gradient-to-b dark:from-[hsl(220,20%,14%)]/90 dark:to-[hsl(220,20%,10%)]/95 text-gray-600 dark:text-gray-400">
+                  Or sign in with
+                </span>
               </div>
             </div>
 
             {/* Outlook Sign In */}
             <button
               onClick={handleOutlookSignIn}
-              className="w-full h-12 rounded-xl border border-border/50 bg-card hover:bg-secondary/50 dark:bg-white/5 dark:hover:bg-white/10 dark:border-white/10 transition-colors flex items-center justify-center gap-3"
+              className="w-full h-12 rounded-xl border border-gray-300 dark:border-white/10 bg-white hover:bg-gray-50 dark:bg-white/5 dark:hover:bg-white/10 transition-colors flex items-center justify-center gap-3"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
                 <path

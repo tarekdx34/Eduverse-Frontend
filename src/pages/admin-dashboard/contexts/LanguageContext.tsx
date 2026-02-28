@@ -169,7 +169,8 @@ const translations: Record<Language, Record<string, string>> = {
     allOperational: 'All systems operational',
     viewDetails: 'View Details',
     platformHealthDashboard: 'Platform Health Dashboard',
-    monitorPerformance: 'Monitor real-time system performance, user activity, and AI feature usage across the platform.',
+    monitorPerformance:
+      'Monitor real-time system performance, user activity, and AI feature usage across the platform.',
     userGrowthTrend: 'User Growth Trend',
     userDistribution: 'User Distribution',
     sendBroadcast: 'Send Broadcast',
@@ -572,7 +573,8 @@ const translations: Record<Language, Record<string, string>> = {
     allOperational: 'كل شيء يعمل',
     viewDetails: 'عرض التفاصيل',
     platformHealthDashboard: 'لوحة صحة المنصة',
-    monitorPerformance: 'مراقبة أداء النظام في الوقت الفعلي ونشاط المستخدمين واستخدام ميزات الذكاء الاصطناعي عبر المنصة.',
+    monitorPerformance:
+      'مراقبة أداء النظام في الوقت الفعلي ونشاط المستخدمين واستخدام ميزات الذكاء الاصطناعي عبر المنصة.',
     userGrowthTrend: 'اتجاه نمو المستخدمين',
     userDistribution: 'توزيع المستخدمين',
     sendBroadcast: 'إرسال بث',
@@ -823,7 +825,7 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<Language>(() => {
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('eduverse-admin-language');
+      const saved = localStorage.getItem('eduverse-language');
       return (saved as Language) || 'en';
     }
     return 'en';
@@ -836,7 +838,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
   const setLanguage = (lang: Language) => {
     setLanguageState(lang);
-    localStorage.setItem('eduverse-admin-language', lang);
+    localStorage.setItem('eduverse-language', lang);
   };
 
   const t = (key: string): string => {

@@ -366,7 +366,8 @@ const translations: Record<Language, Record<string, string>> = {
     expiring: 'قيد الانتهاء',
     expired: 'منتهي',
     // AI Management
-    aiManagementDescription: 'إدارة إعدادات نماذج الذكاء الاصطناعي ومراقبة الاستخدام وتحسين التكاليف',
+    aiManagementDescription:
+      'إدارة إعدادات نماذج الذكاء الاصطناعي ومراقبة الاستخدام وتحسين التكاليف',
     activeModels: 'النماذج النشطة',
     totalRequests: 'إجمالي الطلبات',
     avgCostPerRequest: 'متوسط التكلفة/الطلب',
@@ -403,7 +404,7 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<Language>(() => {
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('eduverse-it-admin-language');
+      const saved = localStorage.getItem('eduverse-language');
       return (saved as Language) || 'en';
     }
     return 'en';
@@ -416,7 +417,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
   const setLanguage = (lang: Language) => {
     setLanguageState(lang);
-    localStorage.setItem('eduverse-it-admin-language', lang);
+    localStorage.setItem('eduverse-language', lang);
   };
 
   const t = (key: string): string => {

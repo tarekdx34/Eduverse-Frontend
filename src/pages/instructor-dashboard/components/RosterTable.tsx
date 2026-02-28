@@ -1,32 +1,43 @@
 import React, { useState } from 'react';
-import { Search, Edit2, Trash2, ArrowUpDown, Mail, StickyNote, ChevronDown, ChevronUp, X } from 'lucide-react';
+import {
+  Search,
+  Edit2,
+  Trash2,
+  ArrowUpDown,
+  Mail,
+  StickyNote,
+  ChevronDown,
+  ChevronUp,
+  X,
+} from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
-import { GradesTable, type GradeEntry } from './GradesTable';
 
 export type RosterEntry = {
   id: number;
   name: string;
   email: string;
   status: string;
-  grade?: string;
+  grades?: {
+    assignments: string;
+    quizzes: string;
+    midterm: string;
+    final: string;
+    total: string;
+  };
 };
 
 type RosterTableProps = {
   data: RosterEntry[];
-  grades?: GradeEntry[];
-  onEdit: (student: RosterEntry) => void;
-  onDelete?: (id: number) => void;
 };
 
-export function RosterTable({ data, grades = [], onEdit, onDelete }: RosterTableProps) {
+export function RosterTable({ data }: RosterTableProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortField, setSortField] = useState<'name' | 'email' | 'status'>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [notes, setNotes] = useState<Record<number, string>>({});
   const [noteStudentId, setNoteStudentId] = useState<number | null>(null);
   const [noteText, setNoteText] = useState('');
-  const [showDetailedGrades, setShowDetailedGrades] = useState(false);
   const { isDark } = useTheme();
   const { t } = useLanguage();
 
@@ -52,11 +63,6 @@ export function RosterTable({ data, grades = [], onEdit, onDelete }: RosterTable
     }
   };
 
-  const getStudentGrade = (studentName: string): string => {
-    const match = grades.find((g) => g.student.toLowerCase() === studentName.toLowerCase());
-    return match ? match.grade : '-';
-  };
-
   const enrolledStudents = data.filter((s) => s.status.toLowerCase() === 'enrolled');
 
   const filteredAndSortedData = enrolledStudents
@@ -80,9 +86,13 @@ export function RosterTable({ data, grades = [], onEdit, onDelete }: RosterTable
     });
 
   return (
-    <div className={`rounded-lg border p-4 md:p-6 shadow-sm ${isDark ? 'bg-card-dark border-white/10' : 'bg-white border-gray-200'}`}>
+    <div
+      className={`rounded-lg border p-4 md:p-6 shadow-sm ${isDark ? 'bg-card-dark border-white/10' : 'bg-white border-gray-200'}`}
+    >
       <div className="mb-4">
-        <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('enrolledStudents')}</h3>
+        <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          {t('enrolledStudents')}
+        </h3>
       </div>
 
       <div className="mb-4 relative w-full">
@@ -96,7 +106,9 @@ export function RosterTable({ data, grades = [], onEdit, onDelete }: RosterTable
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-            isDark ? 'bg-white/5 border-white/10 text-slate-200 placeholder:text-slate-500' : 'bg-white border-gray-300 text-gray-900'
+            isDark
+              ? 'bg-white/5 border-white/10 text-slate-200 placeholder:text-slate-500'
+              : 'bg-white border-gray-300 text-gray-900'
           }`}
         />
       </div>
@@ -123,68 +135,84 @@ export function RosterTable({ data, grades = [], onEdit, onDelete }: RosterTable
                   <ArrowUpDown size={14} />
                 </button>
               </th>
-              <th className="p-3 text-left font-semibold">{t('grade')}</th>
-              <th className="p-3 text-left font-semibold">{t('actions')}</th>
+              <th className="p-3 text-left font-semibold">Assignments</th>
+              <th className="p-3 text-left font-semibold">Quizzes</th>
+              <th className="p-3 text-left font-semibold">Midterm</th>
+              <th className="p-3 text-left font-semibold">Total Grade</th>
+              <th className="p-3 text-left font-semibold text-right">Notes</th>
             </tr>
           </thead>
           <tbody>
             {filteredAndSortedData.slice(0, 100).map((student) => (
-              <tr key={student.id} className={`border-t transition-colors ${isDark ? 'border-white/5 hover:bg-white/5' : 'hover:bg-gray-50'}`}>
+              <tr
+                key={student.id}
+                className={`border-t transition-colors ${isDark ? 'border-white/5 hover:bg-white/5' : 'hover:bg-gray-50'}`}
+              >
                 <td className="p-3">
-                  <div className={`font-medium ${isDark ? 'text-slate-200' : 'text-gray-900'}`}>{student.name}</div>
+                  <div className={`font-medium ${isDark ? 'text-slate-200' : 'text-gray-900'}`}>
+                    {student.name}
+                  </div>
                   {notes[student.id] && (
-                    <div className={`text-xs mt-1 italic ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
+                    <div
+                      className={`text-xs mt-1 italic ${isDark ? 'text-slate-400' : 'text-gray-500'}`}
+                    >
                       📝 {notes[student.id]}
                     </div>
                   )}
                 </td>
                 <td className="p-3 hidden md:table-cell">
-                  <div className={`flex items-center gap-2 text-xs ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                  <div
+                    className={`flex items-center gap-2 text-xs ${isDark ? 'text-slate-400' : 'text-gray-600'}`}
+                  >
                     <Mail size={14} className={isDark ? 'text-slate-500' : 'text-gray-400'} />
                     {student.email}
                   </div>
                 </td>
                 <td className="p-3">
-                  <span className={`font-medium ${isDark ? 'text-slate-200' : 'text-gray-900'}`}>
-                    {student.grade || getStudentGrade(student.name)}
+                  <span className={`text-sm ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>
+                    {student.grades?.assignments || '-'}
                   </span>
                 </td>
                 <td className="p-3">
-                  <div className="flex gap-1 md:gap-2">
-                    <button
-                      onClick={() => onEdit(student)}
-                      className="p-1 md:p-1.5 text-indigo-600 hover:bg-indigo-50 rounded transition-colors"
-                      title="Edit Student"
-                    >
-                      <Edit2 size={14} className="md:w-4 md:h-4" />
-                    </button>
-                    <button
-                      onClick={() => openNoteModal(student.id)}
-                      className={`p-1 md:p-1.5 rounded transition-colors ${
-                        notes[student.id]
-                          ? 'text-amber-600 hover:bg-amber-50'
-                          : isDark ? 'text-slate-400 hover:bg-white/10' : 'text-gray-500 hover:bg-gray-100'
-                      }`}
-                      title="Add Note"
-                    >
-                      <StickyNote size={14} className="md:w-4 md:h-4" />
-                    </button>
-                    {onDelete && (
-                      <button
-                        onClick={() => onDelete(student.id)}
-                        className="p-1 md:p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
-                        title="Remove Student"
-                      >
-                        <Trash2 size={14} className="md:w-4 md:h-4" />
-                      </button>
-                    )}
-                  </div>
+                  <span className={`text-sm ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>
+                    {student.grades?.quizzes || '-'}
+                  </span>
+                </td>
+                <td className="p-3">
+                  <span className={`text-sm ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>
+                    {student.grades?.midterm || '-'}
+                  </span>
+                </td>
+                <td className="p-3">
+                  <span
+                    className={`font-medium px-2 py-1 rounded-full text-xs ${isDark ? 'bg-indigo-500/20 text-indigo-300' : 'bg-indigo-100 text-indigo-700'}`}
+                  >
+                    {student.grades?.total || '-'}
+                  </span>
+                </td>
+                <td className="p-3 text-right">
+                  <button
+                    onClick={() => openNoteModal(student.id)}
+                    className={`p-1.5 rounded-lg transition-colors inline-block ${
+                      notes[student.id]
+                        ? 'text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-500/10'
+                        : isDark
+                          ? 'text-slate-400 hover:bg-white/10'
+                          : 'text-gray-500 hover:bg-gray-100'
+                    }`}
+                    title={notes[student.id] ? 'Edit Note' : 'Add Note'}
+                  >
+                    <StickyNote size={16} />
+                  </button>
                 </td>
               </tr>
             ))}
             {filteredAndSortedData.length === 0 && (
               <tr>
-                <td className={`p-6 text-center ${isDark ? 'text-slate-500' : 'text-gray-500'}`} colSpan={4}>
+                <td
+                  className={`p-6 text-center ${isDark ? 'text-slate-500' : 'text-gray-500'}`}
+                  colSpan={4}
+                >
                   {searchTerm ? t('noStudentsMatch') : t('noStudentsEnrolled')}
                 </td>
               </tr>
@@ -192,7 +220,9 @@ export function RosterTable({ data, grades = [], onEdit, onDelete }: RosterTable
           </tbody>
         </table>
         {filteredAndSortedData.length > 100 && (
-          <div className={`mt-4 text-sm text-center ${isDark ? 'text-slate-500' : 'text-gray-500'}`}>
+          <div
+            className={`mt-4 text-sm text-center ${isDark ? 'text-slate-500' : 'text-gray-500'}`}
+          >
             {t('showingFirst100')} {filteredAndSortedData.length} {t('results')}
           </div>
         )}
@@ -201,13 +231,18 @@ export function RosterTable({ data, grades = [], onEdit, onDelete }: RosterTable
       {/* Add Note Modal */}
       {noteStudentId !== null && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className={`rounded-lg border p-5 w-full max-w-md mx-4 shadow-xl ${isDark ? 'bg-gray-800 border-white/10' : 'bg-white border-gray-200'}`}>
+          <div
+            className={`rounded-lg border p-5 w-full max-w-md mx-4 shadow-xl ${isDark ? 'bg-gray-800 border-white/10' : 'bg-white border-gray-200'}`}
+          >
             <div className="flex items-center justify-between mb-3">
               <h4 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
                 {t('addNote') || 'Add Note'}
               </h4>
               <button
-                onClick={() => { setNoteStudentId(null); setNoteText(''); }}
+                onClick={() => {
+                  setNoteStudentId(null);
+                  setNoteText('');
+                }}
                 className={`p-1 rounded hover:bg-gray-100 ${isDark ? 'text-slate-400 hover:bg-white/10' : 'text-gray-500'}`}
               >
                 <X size={18} />
@@ -219,12 +254,17 @@ export function RosterTable({ data, grades = [], onEdit, onDelete }: RosterTable
               placeholder="Type a note about this student..."
               rows={4}
               className={`w-full p-3 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none ${
-                isDark ? 'bg-white/5 border-white/10 text-slate-200 placeholder:text-slate-500' : 'bg-white border-gray-300 text-gray-900'
+                isDark
+                  ? 'bg-white/5 border-white/10 text-slate-200 placeholder:text-slate-500'
+                  : 'bg-white border-gray-300 text-gray-900'
               }`}
             />
             <div className="flex justify-end gap-2 mt-3">
               <button
-                onClick={() => { setNoteStudentId(null); setNoteText(''); }}
+                onClick={() => {
+                  setNoteStudentId(null);
+                  setNoteText('');
+                }}
                 className={`px-4 py-2 text-sm rounded-lg transition-colors ${
                   isDark ? 'text-slate-300 hover:bg-white/10' : 'text-gray-700 hover:bg-gray-100'
                 }`}
@@ -239,28 +279,6 @@ export function RosterTable({ data, grades = [], onEdit, onDelete }: RosterTable
               </button>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Collapsible Detailed Grades Section */}
-      {grades.length > 0 && (
-        <div className={`mt-6 border-t pt-4 ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
-          <button
-            onClick={() => setShowDetailedGrades(!showDetailedGrades)}
-            className={`flex items-center gap-2 text-sm font-semibold mb-3 transition-colors ${
-              isDark ? 'text-slate-300 hover:text-white' : 'text-gray-700 hover:text-gray-900'
-            }`}
-          >
-            {showDetailedGrades ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-            {t('detailedGrades') || 'Detailed Grades'}
-          </button>
-          {showDetailedGrades && (
-            <GradesTable
-              data={grades}
-              onEdit={() => {}}
-              onDelete={() => {}}
-            />
-          )}
         </div>
       )}
     </div>

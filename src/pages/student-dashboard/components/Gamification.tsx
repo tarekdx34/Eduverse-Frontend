@@ -441,56 +441,56 @@ export function Gamification() {
             {leaderboard.map((entry, idx) => (
               <div
                 key={entry.rank}
-                className={`flex items-center gap-4 p-4 transition-all ${
+                className={`flex items-center gap-2 sm:gap-4 p-3 sm:p-4 transition-all min-w-0 ${
                   entry.isCurrentUser ? 'bg-amber-50' : `${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'}`
                 }`}
               >
                 {/* Rank */}
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
+                <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex-shrink-0 flex items-center justify-center font-bold text-xs sm:text-base ${
                   entry.rank === 1 ? 'bg-gradient-to-br from-yellow-400 to-amber-500 text-white' :
                   entry.rank === 2 ? 'bg-gradient-to-br from-slate-300 to-slate-400 text-white' :
                   entry.rank === 3 ? 'bg-gradient-to-br from-orange-400 to-orange-600 text-white' :
                   'bg-slate-50 text-slate-600'
                 }`}>
                   {entry.rank <= 3 ? (
-                    <Crown className="w-5 h-5" />
+                    <Crown className="w-4 h-4 sm:w-5 sm:h-5" />
                   ) : (
                     entry.rank
                   )}
                 </div>
 
                 {/* Avatar */}
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold ${
+                <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex-shrink-0 flex items-center justify-center text-white text-xs sm:text-sm font-semibold ${
                   entry.isCurrentUser ? 'bg-gradient-to-br from-[#7C3AED] to-purple-600' : 'bg-gradient-to-br from-slate-400 to-slate-500'
                 }`}>
                   {entry.avatar}
                 </div>
 
                 {/* Info */}
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <p className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>{entry.name}</p>
+                    <p className={`font-semibold text-sm sm:text-base truncate ${isDark ? 'text-white' : 'text-slate-800'}`}>{entry.name}</p>
                     {entry.isCurrentUser && (
-                      <span className="px-2 py-0.5 bg-[#7C3AED]/10 text-[#7C3AED] rounded text-xs font-medium">You</span>
+                      <span className="px-2 py-0.5 bg-[#7C3AED]/10 text-[#7C3AED] rounded text-xs font-medium flex-shrink-0">You</span>
                     )}
                   </div>
-                  <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Level {entry.level}</p>
+                  <p className={`text-xs sm:text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Level {entry.level}</p>
                 </div>
 
-                {/* Points */}
-                <div className="text-right">
-                  <p className={`font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{entry.points.toLocaleString()}</p>
+                {/* Points - hidden on small screens */}
+                <div className="text-right flex-shrink-0 hidden sm:block">
+                  <p className={`font-bold text-sm ${isDark ? 'text-white' : 'text-slate-800'}`}>{entry.points.toLocaleString()}</p>
                   <p className="text-xs text-slate-500">points</p>
                 </div>
 
                 {/* Change Indicator */}
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex-shrink-0 flex items-center justify-center ${
                   entry.change === 'up' ? 'bg-green-100 text-green-600' :
                   entry.change === 'down' ? 'bg-red-100 text-red-600' :
                   'bg-slate-50 text-slate-500'
                 }`}>
-                  {entry.change === 'up' && <TrendingUp className="w-4 h-4" />}
-                  {entry.change === 'down' && <TrendingUp className="w-4 h-4 rotate-180" />}
+                  {entry.change === 'up' && <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4" />}
+                  {entry.change === 'down' && <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 rotate-180" />}
                   {entry.change === 'same' && <span className="text-xs">—</span>}
                 </div>
               </div>

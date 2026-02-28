@@ -39,7 +39,8 @@ const translations: Record<Language, Record<string, string>> = {
     // Dashboard Overview
     welcomeBack: 'Welcome back',
     instructorDashboard: 'Instructor Dashboard',
-    overviewDescription: 'Manage your courses, track student performance, and access AI teaching tools.',
+    overviewDescription:
+      'Manage your courses, track student performance, and access AI teaching tools.',
     todaySchedule: "Today's Schedule",
     upcomingDeadlines: 'Upcoming Deadlines',
     quickStats: 'Quick Stats',
@@ -278,7 +279,8 @@ const translations: Record<Language, Record<string, string>> = {
     highPriority: 'High Priority',
     total: 'Total',
     evyAiTeachingAssistant: 'Evy — AI Teaching Assistant',
-    evyAssistantQuote: 'Professor, I\'ve drafted feedback for the Advanced Calculus submissions and flagged 3 students who might need a follow-up session.',
+    evyAssistantQuote:
+      "Professor, I've drafted feedback for the Advanced Calculus submissions and flagged 3 students who might need a follow-up session.",
     reviewInsights: 'Review Insights',
     dismiss: 'Dismiss',
     coursePerformance: 'Course Performance',
@@ -293,7 +295,8 @@ const translations: Record<Language, Record<string, string>> = {
 
     // Labs
     labsManagement: 'Labs Management',
-    labsDescription: 'Create labs, manage submissions, track attendance, and use AI to assist lab evaluation.',
+    labsDescription:
+      'Create labs, manage submissions, track attendance, and use AI to assist lab evaluation.',
     createNewLab: 'Create New Lab',
     searchLabs: 'Search labs...',
     viewSubmissions: 'View Submissions',
@@ -306,7 +309,8 @@ const translations: Record<Language, Record<string, string>> = {
 
     // Quizzes
     quizzesManagement: 'Quizzes Management',
-    quizzesDescription: 'Create quizzes, manage attempts, auto-generate questions, and review student performance.',
+    quizzesDescription:
+      'Create quizzes, manage attempts, auto-generate questions, and review student performance.',
     createNewQuiz: 'Create New Quiz',
     searchQuizzes: 'Search quizzes...',
     questions: 'Questions',
@@ -322,7 +326,8 @@ const translations: Record<Language, Record<string, string>> = {
 
     // Schedule
     teachingSchedule: 'Teaching Schedule',
-    scheduleDescription: 'View lectures, labs, office hours, quizzes, and deadlines in one smart calendar.',
+    scheduleDescription:
+      'View lectures, labs, office hours, quizzes, and deadlines in one smart calendar.',
     month: 'Month',
     week: 'Week',
     day: 'Day',
@@ -331,7 +336,8 @@ const translations: Record<Language, Record<string, string>> = {
     today: 'Today',
     upcomingTeachingEvents: 'Upcoming Teaching Events',
     evySchedulingAssistant: 'Evy - Smart Scheduling Assistant',
-    scheduleAssistantDescription: 'Automatically detect conflicts and suggest optimal teaching times.',
+    scheduleAssistantDescription:
+      'Automatically detect conflicts and suggest optimal teaching times.',
     detectConflicts: 'Detect Conflicts',
     optimizeSchedule: 'Optimize Schedule',
     thisWeek: 'This Week',
@@ -364,18 +370,21 @@ const translations: Record<Language, Record<string, string>> = {
 
     // AI Tools extras
     aiTeachingToolbox: 'AI Teaching Toolbox',
-    aiToolboxDescription: 'Use AI to enhance teaching, grade automatically, generate quizzes, create materials, and detect student issues.',
+    aiToolboxDescription:
+      'Use AI to enhance teaching, grade automatically, generate quizzes, create materials, and detect student issues.',
     quizGenerator: 'Quiz Generator',
     quizGeneratorDescription: 'Generate MCQs, True/False, and short-answer questions.',
     difficultyLevel: 'Difficulty Level',
     fromLectureFile: 'From Lecture File',
     autoGradingEvy: 'Auto-Grading (Evy)',
-    autoGradingDescription: 'Automatically grade submissions, detect plagiarism, and create feedback.',
+    autoGradingDescription:
+      'Automatically grade submissions, detect plagiarism, and create feedback.',
     autoGradeAll: 'Auto-Grade All',
     generateFeedback: 'Generate Feedback',
     analyzeSubmissions: 'Analyze Submissions',
     materialsGenerator: 'Materials Generator',
-    materialsGeneratorDescription: 'Upload a file or type a topic to generate slides, summaries, and explanations.',
+    materialsGeneratorDescription:
+      'Upload a file or type a topic to generate slides, summaries, and explanations.',
     enterTopic: 'Enter topic...',
     uploadMaterial: 'Upload Material',
     generateSlides: 'Generate Slides',
@@ -386,23 +395,27 @@ const translations: Record<Language, Record<string, string>> = {
     sendTips: 'Send Tips',
     imageToTextOCR: 'Image to Text (OCR)',
     smartTeachingPlan: 'Smart Teaching Plan',
-    smartTeachingPlanDescription: 'Generate a personalized weekly teaching plan based on analytics.',
+    smartTeachingPlanDescription:
+      'Generate a personalized weekly teaching plan based on analytics.',
     generatePlan: 'Generate Plan',
     aiQuestionEditor: 'AI Question Editor',
 
     // Communication extras
-    communicationDescription: 'Manage announcements, interact with course chats, and message students easily.',
+    communicationDescription:
+      'Manage announcements, interact with course chats, and message students easily.',
     searchAnnouncements: 'Search announcements...',
     sendNotification: 'Send Notification',
     aiCommunicationAssistant: 'AI Communication Assistant — Powered by Evy',
-    aiCommunicationDescription: 'Let AI draft announcements, summarize long chats, and suggest responses to save you time.',
+    aiCommunicationDescription:
+      'Let AI draft announcements, summarize long chats, and suggest responses to save you time.',
     generateAnnouncement: 'Generate Announcement',
     summarizeChat: 'Summarize Chat',
     suggestReply: 'Suggest Reply',
 
     // Settings
     profileSettings: 'Profile & Settings',
-    profileSettingsDescription: 'Manage your personal information, account preferences, teaching preferences, and security settings.',
+    profileSettingsDescription:
+      'Manage your personal information, account preferences, teaching preferences, and security settings.',
     profileInformation: 'Profile Information',
     updateProfileDescription: 'Update your personal details and profile photo',
     changePhoto: 'Change Photo',
@@ -412,7 +425,8 @@ const translations: Record<Language, Record<string, string>> = {
     department: 'Department',
     officeLocationLabel: 'Office Location',
     bioDescription: 'Bio / Short Description',
-    bioPlaceholder: 'Tell students about yourself, your research interests, and teaching philosophy...',
+    bioPlaceholder:
+      'Tell students about yourself, your research interests, and teaching philosophy...',
     saveChanges: 'Save Changes',
     accountSettings: 'Account Settings',
     accountSettingsDescription: 'Manage security, notifications, and preferences',
@@ -455,7 +469,8 @@ const translations: Record<Language, Record<string, string>> = {
     deactivateDescription: 'Temporarily disable your account. You can reactivate it anytime.',
     deactivate: 'Deactivate',
     deleteAccount: 'Delete Account',
-    deleteAccountDescription: 'Permanently delete your account and all associated data. This cannot be undone.',
+    deleteAccountDescription:
+      'Permanently delete your account and all associated data. This cannot be undone.',
 
     // Assignments extras
     searchAssignments: 'Search assignments...',
@@ -552,7 +567,8 @@ const translations: Record<Language, Record<string, string>> = {
     // Dashboard Overview
     welcomeBack: 'مرحباً بعودتك',
     instructorDashboard: 'لوحة تحكم المحاضر',
-    overviewDescription: 'إدارة مقرراتك، تتبع أداء الطلاب، والوصول إلى أدوات التدريس بالذكاء الاصطناعي.',
+    overviewDescription:
+      'إدارة مقرراتك، تتبع أداء الطلاب، والوصول إلى أدوات التدريس بالذكاء الاصطناعي.',
     todaySchedule: 'جدول اليوم',
     upcomingDeadlines: 'المواعيد النهائية القادمة',
     quickStats: 'إحصائيات سريعة',
@@ -788,7 +804,8 @@ const translations: Record<Language, Record<string, string>> = {
     highPriority: 'أولوية عالية',
     total: 'الإجمالي',
     evyAiTeachingAssistant: 'إيفي — مساعد التدريس الذكي',
-    evyAssistantQuote: 'أستاذ، لقد أعددت ملاحظات لتسليمات حساب التفاضل المتقدم وحددت 3 طلاب قد يحتاجون لجلسة متابعة.',
+    evyAssistantQuote:
+      'أستاذ، لقد أعددت ملاحظات لتسليمات حساب التفاضل المتقدم وحددت 3 طلاب قد يحتاجون لجلسة متابعة.',
     reviewInsights: 'مراجعة التحليلات',
     dismiss: 'تجاهل',
     coursePerformance: 'أداء المقرر',
@@ -803,7 +820,8 @@ const translations: Record<Language, Record<string, string>> = {
 
     // Labs
     labsManagement: 'إدارة المعامل',
-    labsDescription: 'إنشاء المعامل، إدارة التسليمات، تتبع الحضور، واستخدام الذكاء الاصطناعي لتقييم المعامل.',
+    labsDescription:
+      'إنشاء المعامل، إدارة التسليمات، تتبع الحضور، واستخدام الذكاء الاصطناعي لتقييم المعامل.',
     createNewLab: 'إنشاء معمل جديد',
     searchLabs: 'البحث في المعامل...',
     viewSubmissions: 'عرض التسليمات',
@@ -816,7 +834,8 @@ const translations: Record<Language, Record<string, string>> = {
 
     // Quizzes
     quizzesManagement: 'إدارة الاختبارات',
-    quizzesDescription: 'إنشاء الاختبارات، إدارة المحاولات، توليد الأسئلة تلقائياً، ومراجعة أداء الطلاب.',
+    quizzesDescription:
+      'إنشاء الاختبارات، إدارة المحاولات، توليد الأسئلة تلقائياً، ومراجعة أداء الطلاب.',
     createNewQuiz: 'إنشاء اختبار جديد',
     searchQuizzes: 'البحث في الاختبارات...',
     questions: 'الأسئلة',
@@ -832,7 +851,8 @@ const translations: Record<Language, Record<string, string>> = {
 
     // Schedule
     teachingSchedule: 'جدول التدريس',
-    scheduleDescription: 'عرض المحاضرات والمعامل وساعات المكتب والاختبارات والمواعيد النهائية في تقويم ذكي واحد.',
+    scheduleDescription:
+      'عرض المحاضرات والمعامل وساعات المكتب والاختبارات والمواعيد النهائية في تقويم ذكي واحد.',
     month: 'شهر',
     week: 'أسبوع',
     day: 'يوم',
@@ -874,7 +894,8 @@ const translations: Record<Language, Record<string, string>> = {
 
     // AI Tools extras
     aiTeachingToolbox: 'صندوق أدوات التدريس الذكي',
-    aiToolboxDescription: 'استخدم الذكاء الاصطناعي لتعزيز التدريس والتصحيح التلقائي وتوليد الاختبارات وإنشاء المواد واكتشاف مشاكل الطلاب.',
+    aiToolboxDescription:
+      'استخدم الذكاء الاصطناعي لتعزيز التدريس والتصحيح التلقائي وتوليد الاختبارات وإنشاء المواد واكتشاف مشاكل الطلاب.',
     quizGenerator: 'مولد الاختبارات',
     quizGeneratorDescription: 'توليد أسئلة اختيار من متعدد وصح/خطأ وإجابة قصيرة.',
     difficultyLevel: 'مستوى الصعوبة',
@@ -905,14 +926,16 @@ const translations: Record<Language, Record<string, string>> = {
     searchAnnouncements: 'البحث في الإعلانات...',
     sendNotification: 'إرسال إشعار',
     aiCommunicationAssistant: 'مساعد التواصل الذكي — مدعوم من إيفي',
-    aiCommunicationDescription: 'دع الذكاء الاصطناعي يصوغ الإعلانات ويلخص المحادثات الطويلة ويقترح الردود لتوفير وقتك.',
+    aiCommunicationDescription:
+      'دع الذكاء الاصطناعي يصوغ الإعلانات ويلخص المحادثات الطويلة ويقترح الردود لتوفير وقتك.',
     generateAnnouncement: 'إنشاء إعلان',
     summarizeChat: 'تلخيص المحادثة',
     suggestReply: 'اقتراح رد',
 
     // Settings
     profileSettings: 'الملف الشخصي والإعدادات',
-    profileSettingsDescription: 'إدارة معلوماتك الشخصية وتفضيلات الحساب وتفضيلات التدريس وإعدادات الأمان.',
+    profileSettingsDescription:
+      'إدارة معلوماتك الشخصية وتفضيلات الحساب وتفضيلات التدريس وإعدادات الأمان.',
     profileInformation: 'المعلومات الشخصية',
     updateProfileDescription: 'تحديث بياناتك الشخصية وصورة الملف الشخصي',
     changePhoto: 'تغيير الصورة',
@@ -1041,7 +1064,7 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<Language>(() => {
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('eduverse-instructor-language');
+      const saved = localStorage.getItem('eduverse-language');
       return (saved as Language) || 'en';
     }
     return 'en';
@@ -1054,7 +1077,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
   const setLanguage = (lang: Language) => {
     setLanguageState(lang);
-    localStorage.setItem('eduverse-instructor-language', lang);
+    localStorage.setItem('eduverse-language', lang);
     document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
     document.documentElement.lang = lang;
   };

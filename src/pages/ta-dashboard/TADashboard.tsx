@@ -6,7 +6,6 @@ import {
   Beaker,
   FileText,
   Users,
-  ClipboardCheck,
   Calendar,
   Megaphone,
   MessageSquare,
@@ -14,7 +13,6 @@ import {
   User,
   Menu,
   BarChart3,
-  Clock,
   Bell,
   Brain,
   FolderOpen,
@@ -26,12 +24,10 @@ import {
   LabsPage,
   GradingPage,
   StudentPerformancePage,
-  AttendancePage,
   SchedulePage,
   AnnouncementsPage,
   DiscussionPage,
   AnalyticsPage,
-  OfficeHoursPage,
   NotificationsPage,
   AIAssistantPage,
   LabResourcesPage,
@@ -58,14 +54,12 @@ type TabKey =
   | 'quizzes'
   | 'grading'
   | 'students'
-  | 'attendance'
   | 'schedule'
   | 'announcements'
   | 'discussion'
   | 'chat'
   | 'profile'
   | 'analytics'
-  | 'office-hours'
   | 'notifications'
   | 'ai-assistant'
   | 'lab-resources';
@@ -79,9 +73,7 @@ const TABS: { key: TabKey; label: string; icon: any; group: string }[] = [
   { key: 'lab-resources', label: 'Lab Resources', icon: FolderOpen, group: 'Teaching' },
   { key: 'grading', label: 'Grading', icon: FileText, group: 'Teaching' },
   { key: 'students', label: 'Students', icon: Users, group: 'Students' },
-  { key: 'attendance', label: 'Attendance', icon: ClipboardCheck, group: 'Students' },
   { key: 'schedule', label: 'Schedule', icon: Calendar, group: 'Schedule' },
-  { key: 'office-hours', label: 'Office Hours', icon: Clock, group: 'Schedule' },
   { key: 'announcements', label: 'Announcements', icon: Megaphone, group: 'Schedule' },
   { key: 'notifications', label: 'Notifications', icon: Bell, group: 'Communication' },
   { key: 'discussion', label: 'Discussion', icon: MessagesSquare, group: 'Communication' },
@@ -230,10 +222,13 @@ function TADashboardContent() {
         )}
 
         {/* Students Tab */}
-        {activeTab === 'students' && <StudentPerformancePage students={STUDENT_PERFORMANCE} />}
-
-        {/* Attendance Tab */}
-        {activeTab === 'attendance' && <AttendancePage />}
+        {activeTab === 'students' && (
+          <StudentPerformancePage
+            students={STUDENT_PERFORMANCE}
+            readOnly
+            assignedCourseNames={ASSIGNED_COURSES.map((course) => course.name)}
+          />
+        )}
 
         {/* Schedule Tab */}
         {activeTab === 'schedule' && <SchedulePage />}
@@ -286,9 +281,6 @@ function TADashboardContent() {
 
         {/* Analytics Tab */}
         {activeTab === 'analytics' && <AnalyticsPage />}
-
-        {/* Office Hours Tab */}
-        {activeTab === 'office-hours' && <OfficeHoursPage />}
 
         {/* Notifications Tab */}
         {activeTab === 'notifications' && <NotificationsPage />}

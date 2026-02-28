@@ -108,7 +108,7 @@ export function AnnouncementsPage() {
     <div className="space-y-6">
       {/* Communication Hub Tabs */}
       <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} border rounded-lg p-2 overflow-x-auto`}>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex gap-2 min-w-max sm:min-w-0 sm:flex-wrap">
           {commTabs.map((tab) => (
             <button
               key={tab.id}
@@ -161,7 +161,7 @@ export function AnnouncementsPage() {
 
           {/* New Announcement Form */}
           {showForm && (
-            <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} border rounded-lg p-6`}>
+            <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} border rounded-lg p-4 sm:p-6`}>
               <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'} mb-4`}>{t('createAnnouncement')}</h3>
               <div className="space-y-4">
                 <div>

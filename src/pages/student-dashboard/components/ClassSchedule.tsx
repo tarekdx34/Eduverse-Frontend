@@ -276,6 +276,7 @@ export default function ClassSchedule() {
   const navigate = useNavigate();
   const [currentWeek, setCurrentWeek] = useState('Week of Dec 4 - Dec 10, 2025');
   const [scheduleType, setScheduleType] = useState<'daily' | 'weekly' | 'monthly'>('weekly');
+  const [currentDayIndex, setCurrentDayIndex] = useState(0); // For daily view navigation
   const weekDays = language === 'ar' ? weekDaysAr : weekDaysEn;
 
   const getClassesForDay = (day: string) => {
@@ -293,6 +294,18 @@ export default function ClassSchedule() {
     return classes.filter(c => c.day === lookupDay);
   };
 
+  const handlePrevious = () => {
+    if (scheduleType === 'daily') {
+      setCurrentDayIndex((prev) => (prev > 0 ? prev - 1 : weekDays.length - 1));
+    }
+  };
+
+  const handleNext = () => {
+    if (scheduleType === 'daily') {
+      setCurrentDayIndex((prev) => (prev < weekDays.length - 1 ? prev + 1 : 0));
+    }
+  };
+
   return (
     <div className="space-y-8" dir={isRTL ? 'rtl' : 'ltr'}>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-8">
@@ -302,8 +315,14 @@ export default function ClassSchedule() {
           <div className={`rounded-[2.5rem] p-6 mb-6 ${isDark ? 'bg-card-dark border border-white/5' : 'glass'}`}>
             <div className="flex items-center justify-between">
               <div>
-                <h2 className={`text-lg font-semibold mb-1 ${isDark ? 'text-white' : 'text-slate-800'}`}>{t('weeklySchedule')}</h2>
-                <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{isRTL ? 'أسبوع 4 - 10 ديسمبر 2025' : currentWeek}</p>
+                <h2 className={`text-lg font-semibold mb-1 ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                  {scheduleType === 'daily' && (isRTL ? 'الجدول اليومي' : 'Daily Schedule')}
+                  {scheduleType === 'weekly' && t('weeklySchedule')}
+                  {scheduleType === 'monthly' && (isRTL ? 'الجدول الشهري' : 'Monthly Schedule')}
+                </h2>
+                <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
+                  {scheduleType === 'daily' ? weekDays[currentDayIndex] : (isRTL ? 'أسبوع 4 - 10 ديسمبر 2025' : currentWeek)}
+                </p>
               </div>
               <div className="flex items-center gap-2">
                 <div className="flex gap-1 bg-slate-100 dark:bg-white/5 rounded-lg p-1">
@@ -316,10 +335,10 @@ export default function ClassSchedule() {
                       }`}>{type}</button>
                   ))}
                 </div>
-                <button className={`p-2 border-2 rounded-lg transition-all ${isDark ? 'border-white/10 hover:bg-white/5' : 'border-slate-100 hover:bg-slate-50'}`}>
+                <button onClick={handlePrevious} className={`p-2 border-2 rounded-lg transition-all ${isDark ? 'border-white/10 hover:bg-white/5' : 'border-slate-100 hover:bg-slate-50'}`}>
                   <ChevronLeft className={`w-5 h-5 ${isDark ? 'text-slate-500' : 'text-slate-600'}`} />
                 </button>
-                <button className={`p-2 border-2 rounded-lg transition-all ${isDark ? 'border-white/10 hover:bg-white/5' : 'border-slate-100 hover:bg-slate-50'}`}>
+                <button onClick={handleNext} className={`p-2 border-2 rounded-lg transition-all ${isDark ? 'border-white/10 hover:bg-white/5' : 'border-slate-100 hover:bg-slate-50'}`}>
                   <ChevronRight className={`w-5 h-5 ${isDark ? 'text-slate-500' : 'text-slate-600'}`} />
                 </button>
               </div>
@@ -329,50 +348,161 @@ export default function ClassSchedule() {
           {/* Calendar Grid */}
           <div className={`rounded-[2.5rem] overflow-hidden ${isDark ? 'bg-card-dark border border-white/5' : 'glass'}`}>
            <div className="overflow-x-auto">
-            {/* Week Days Header */}
-            <div className={`grid grid-cols-8 min-w-[700px] border-b ${isDark ? 'border-white/5' : 'border-slate-100'}`}>
-              <div className={`p-4 border-r ${isDark ? 'border-white/5 bg-white/5' : 'border-slate-100 bg-gradient-to-b from-background-light to-white'}`}>
-                <span className={`text-sm font-semibold ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{t('time')}</span>
-              </div>
-              {weekDays.map((day) => (
-                <div key={day} className={`p-4 border-r last:border-r-0 text-center ${isDark ? 'border-white/5 bg-white/5' : 'border-slate-100 bg-gradient-to-b from-background-light to-white'}`}>
-                  <span className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>{language === 'ar' ? day : day.substring(0, 3)}</span>
-                </div>
-              ))}
-            </div>
-
-            {/* Time Slots */}
-            <div className="overflow-y-auto max-h-[600px] scrollbar-thin scrollbar-thumb-[#7C3AED]/30 scrollbar-track-transparent">
-              {timeSlots.map((time, timeIndex) => (
-                <div key={time} className={`grid grid-cols-8 min-w-[700px] border-b last:border-b-0 transition-colors ${isDark ? 'border-white/5 hover:bg-white/5/30' : 'border-slate-100 hover:bg-slate-50/50'}`}>
-                  <div className={`p-3 border-r ${isDark ? 'border-white/5 bg-white/[0.03]' : 'border-slate-100 bg-background-light/50'}`}>
-                    <span className={`text-xs font-medium ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{time}</span>
+            {/* WEEKLY VIEW */}
+            {scheduleType === 'weekly' && (
+              <>
+                {/* Week Days Header */}
+                <div className={`grid grid-cols-8 min-w-[700px] border-b ${isDark ? 'border-white/5' : 'border-slate-100'}`}>
+                  <div className={`p-4 border-r ${isDark ? 'border-white/5 bg-white/5' : 'border-slate-100 bg-gradient-to-b from-background-light to-white'}`}>
+                    <span className={`text-sm font-semibold ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{t('time')}</span>
                   </div>
-                  {weekDays.map((day) => {
-                    const dayClasses = getClassesForDay(day).filter(c => c.startTime === time);
-                    return (
-                      <div key={`${day}-${time}`} className={`p-2 border-r last:border-r-0 min-h-[80px] relative ${isDark ? 'border-white/5' : 'border-slate-100'}`}>
-                        {dayClasses.map((classItem) => (
-                          <div
-                            key={classItem.id}
-                            onClick={() => navigate(`/studentdashboard/myclass/${classItem.code}`)}
-                            className={`${isDark ? 'bg-white/5' : classItem.bgLight} border-l-4 ${classItem.borderColor} rounded-lg p-2.5 mb-1 hover:shadow-md transition-all cursor-pointer group`}
-                          >
-                            <p className={`text-xs font-bold ${classItem.textColor} mb-1 group-hover:opacity-80`}>
-                              {classItem.code}
-                            </p>
-                            <p className={`text-xs font-semibold mb-0.5 line-clamp-1 ${isDark ? 'text-white' : 'text-slate-800'}`}>
-                              {classItem.name}
-                            </p>
-                            <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{classItem.room}</p>
+                  {weekDays.map((day) => (
+                    <div key={day} className={`p-4 border-r last:border-r-0 text-center ${isDark ? 'border-white/5 bg-white/5' : 'border-slate-100 bg-gradient-to-b from-background-light to-white'}`}>
+                      <span className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>{language === 'ar' ? day : day.substring(0, 3)}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Time Slots */}
+                <div className="overflow-y-auto max-h-[600px] scrollbar-thin scrollbar-thumb-[#7C3AED]/30 scrollbar-track-transparent">
+                  {timeSlots.map((time) => (
+                    <div key={time} className={`grid grid-cols-8 min-w-[700px] border-b last:border-b-0 transition-colors ${isDark ? 'border-white/5 hover:bg-white/5/30' : 'border-slate-100 hover:bg-slate-50/50'}`}>
+                      <div className={`p-3 border-r ${isDark ? 'border-white/5 bg-white/[0.03]' : 'border-slate-100 bg-background-light/50'}`}>
+                        <span className={`text-xs font-medium ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{time}</span>
+                      </div>
+                      {weekDays.map((day) => {
+                        const dayClasses = getClassesForDay(day).filter(c => c.startTime === time);
+                        return (
+                          <div key={`${day}-${time}`} className={`p-2 border-r last:border-r-0 min-h-[80px] relative ${isDark ? 'border-white/5' : 'border-slate-100'}`}>
+                            {dayClasses.map((classItem) => (
+                              <div
+                                key={classItem.id}
+                                onClick={() => navigate(`/studentdashboard/myclass/${classItem.code}`)}
+                                className={`${isDark ? 'bg-white/5' : classItem.bgLight} border-l-4 ${classItem.borderColor} rounded-lg p-2.5 mb-1 hover:shadow-md transition-all cursor-pointer group`}
+                              >
+                                <p className={`text-xs font-bold ${classItem.textColor} mb-1 group-hover:opacity-80`}>
+                                  {classItem.code}
+                                </p>
+                                <p className={`text-xs font-semibold mb-0.5 line-clamp-1 ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                                  {classItem.name}
+                                </p>
+                                <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{classItem.room}</p>
+                              </div>
+                            ))}
                           </div>
-                        ))}
+                        );
+                      })}
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {/* DAILY VIEW */}
+            {scheduleType === 'daily' && (
+              <div className="min-h-[600px] p-6">
+                <div className="space-y-4">
+                  {timeSlots.map((time) => {
+                    const dayClasses = getClassesForDay(weekDays[currentDayIndex]).filter(c => c.startTime === time);
+                    if (dayClasses.length === 0) return null;
+                    
+                    return (
+                      <div key={time} className={`flex gap-4 ${isDark ? 'border-white/5' : 'border-slate-100'}`}>
+                        <div className="w-24 flex-shrink-0">
+                          <span className={`text-sm font-medium ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{time}</span>
+                        </div>
+                        <div className="flex-1 space-y-3">
+                          {dayClasses.map((classItem) => (
+                            <div
+                              key={classItem.id}
+                              onClick={() => navigate(`/studentdashboard/myclass/${classItem.code}`)}
+                              className={`${isDark ? 'bg-white/5 border-white/10' : classItem.bgLight} border-l-4 ${classItem.borderColor} rounded-xl p-4 hover:shadow-lg transition-all cursor-pointer group`}
+                            >
+                              <div className="flex items-start justify-between mb-2">
+                                <div>
+                                  <p className={`text-sm font-bold ${classItem.textColor} mb-1`}>{classItem.code}</p>
+                                  <p className={`text-base font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>{classItem.name}</p>
+                                </div>
+                                <span className={`text-xs px-2 py-1 rounded ${isDark ? 'bg-white/10 text-slate-400' : 'bg-slate-100 text-slate-600'}`}>
+                                  {classItem.startTime} - {classItem.endTime}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-4 mt-3">
+                                <div className={`flex items-center gap-1.5 text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                                  <MapPin className="w-4 h-4" />
+                                  <span>{classItem.room}</span>
+                                </div>
+                                <div className={`flex items-center gap-1.5 text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                                  <User className="w-4 h-4" />
+                                  <span>{classItem.instructor}</span>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {getClassesForDay(weekDays[currentDayIndex]).length === 0 && (
+                    <div className={`text-center py-20 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                      <Calendar className="w-16 h-16 mx-auto mb-4 opacity-30" />
+                      <p className="text-lg font-medium">{isRTL ? 'لا توجد محاضرات اليوم' : 'No classes scheduled today'}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* MONTHLY VIEW */}
+            {scheduleType === 'monthly' && (
+              <div className="p-6">
+                {/* Month Days Grid */}
+                <div className={`grid grid-cols-7 gap-2 mb-4 border-b pb-4 ${isDark ? 'border-white/5' : 'border-slate-100'}`}>
+                  {weekDays.map((day) => (
+                    <div key={day} className="text-center">
+                      <span className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                        {language === 'ar' ? day : day.substring(0, 3)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                {/* Calendar Days */}
+                <div className="grid grid-cols-7 gap-2">
+                  {Array.from({ length: 35 }, (_, i) => {
+                    const dayOfMonth = i + 1;
+                    const dayIndex = i % 7;
+                    const dayClasses = getClassesForDay(weekDays[dayIndex]);
+                    
+                    return (
+                      <div
+                        key={i}
+                        className={`min-h-[100px] p-3 rounded-lg border ${isDark ? 'border-white/5 bg-white/[0.02] hover:bg-white/5' : 'border-slate-100 bg-slate-50/50 hover:bg-slate-100'} transition-colors`}
+                      >
+                        <div className={`text-xs font-semibold mb-2 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                          {dayOfMonth <= 31 ? dayOfMonth : ''}
+                        </div>
+                        <div className="space-y-1">
+                          {dayClasses.slice(0, 2).map((classItem) => (
+                            <div
+                              key={classItem.id}
+                              onClick={() => navigate(`/studentdashboard/myclass/${classItem.code}`)}
+                              className={`text-[10px] px-1.5 py-1 rounded cursor-pointer ${isDark ? 'bg-white/5 hover:bg-white/10' : classItem.bgLight} border-l-2 ${classItem.borderColor}`}
+                            >
+                              <p className={`font-bold ${classItem.textColor} truncate`}>{classItem.code}</p>
+                            </div>
+                          ))}
+                          {dayClasses.length > 2 && (
+                            <div className={`text-[10px] px-1.5 py-0.5 ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
+                              +{dayClasses.length - 2} more
+                            </div>
+                          )}
+                        </div>
                       </div>
                     );
                   })}
                 </div>
-              ))}
-            </div>
+              </div>
+            )}
            </div>
           </div>
         </div>

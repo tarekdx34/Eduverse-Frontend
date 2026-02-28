@@ -56,6 +56,7 @@ type CoursesPageProps = {
   onDeleteCourse: (id: number) => void;
   onDuplicateCourse: (id: number) => void;
   onViewCourse: (id: number) => void;
+  selectedCourseId?: number | null;
 };
 
 // Course Lucide icons (replacing emojis)
@@ -68,6 +69,7 @@ export function CoursesPage({
   onDeleteCourse,
   onDuplicateCourse,
   onViewCourse,
+  selectedCourseId,
 }: CoursesPageProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'archived'>('all');
@@ -76,7 +78,6 @@ export function CoursesPage({
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
   const [activeMenu, setActiveMenu] = useState<number | null>(null);
-  const [selectedCourseId, setSelectedCourseId] = useState<number | null>(null);
   const { isDark, primaryHex = '#3b82f6' } = useTheme() as any;
   const { t, isRTL } = useLanguage();
   const navigate = useNavigate();
@@ -86,7 +87,7 @@ export function CoursesPage({
     return (
       <CourseDetail
         courseId={selectedCourseId}
-        onBack={() => setSelectedCourseId(null)}
+        onBack={() => navigate('/instructordashboard/courses')}
         courses={courses}
       />
     );
@@ -132,7 +133,7 @@ export function CoursesPage({
         </div>
 
         {/* Filters Bar */}
-        <div className="flex flex-wrap items-center gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
           {/* Semester Filter */}
           <CustomDropdown
             label={t('semesterLabel')}
@@ -142,6 +143,7 @@ export function CoursesPage({
               ...semesters.map((sem) => ({ value: sem, label: sem })),
             ]}
             onChange={setSemesterFilter}
+            className="w-full"
           />
 
           {/* Status Filter */}
@@ -154,6 +156,7 @@ export function CoursesPage({
               { value: 'archived', label: t('archived') },
             ]}
             onChange={(val) => setStatusFilter(val as any)}
+            className="w-full"
           />
 
           {/* Sort By */}
@@ -166,10 +169,11 @@ export function CoursesPage({
               { value: 'enrolled', label: t('students') },
             ]}
             onChange={setSortBy}
+            className="w-full"
           />
 
           {/* Search */}
-          <div className="flex-1 relative">
+          <div className="w-full relative sm:col-span-2 xl:col-span-1">
             <Search
               className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
               size={18}
@@ -185,7 +189,7 @@ export function CoursesPage({
         </div>
 
         {/* Course Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-4 sm:gap-6">
           {filteredCourses.map((course, index) => (
             <div
               key={course.id}
@@ -236,10 +240,7 @@ export function CoursesPage({
 
                 {/* Open Course Button */}
                 <button
-                  onClick={() => {
-                    setSelectedCourseId(course.id);
-                    navigate(`/instructordashboard/courses/${course.id}`);
-                  }}
+                  onClick={() => onViewCourse(course.id)}
                   className={`w-full flex items-center justify-center gap-2 text-sm font-medium py-2 rounded-lg transition-colors ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-50'}`}
                   style={{ color: primaryHex }}
                 >

@@ -221,7 +221,7 @@ export function DashboardHeader({
           <span className="material-symbols-rounded text-slate-400 text-xl mr-2">search</span>
           <input
             onClick={() => setShowSearch && setShowSearch(true)}
-            className={`bg-transparent border-none focus:ring-0 text-sm w-full cursor-pointer ${isDark ? 'placeholder:text-slate-400' : 'placeholder:text-slate-500'}`}
+            className={`bg-transparent border-none focus:ring-0 text-sm w-full cursor-pointer ${isDark ? 'placeholder:text-slate-500 text-white' : 'placeholder:text-slate-400 text-slate-900'}`}
             placeholder={t.search}
             type="text"
             readOnly

@@ -158,8 +158,8 @@ export function GlobalSearchPage() {
   const textClass = isDark ? 'text-white' : 'text-gray-900';
   const subTextClass = isDark ? 'text-gray-400' : 'text-gray-500';
   const inputClass = isDark
-    ? 'bg-white/5 border-white/10 text-white placeholder-gray-500'
-    : 'border-gray-300 bg-white text-gray-900 placeholder-gray-400';
+    ? 'bg-white/5 border-white/10 text-white placeholder-gray-400'
+    : 'border-gray-300 bg-white text-gray-900 placeholder-gray-500';
 
   const showInitial = !searchQuery.trim();
   const showNoResults = hasSearched && !isSearching && displayResults.length === 0 && searchQuery.trim();

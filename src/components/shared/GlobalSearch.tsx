@@ -406,7 +406,7 @@ export function GlobalSearch({
             onKeyDown={handleInputKeyDown}
             onFocus={() => setIsOpen(true)}
             placeholder={placeholder}
-            className={`bg-transparent border-none focus:outline-none focus:ring-0 text-sm w-full placeholder:text-slate-400 font-medium ${isDark ? 'text-white' : 'text-slate-800'}`}
+            className={`bg-transparent border-none focus:outline-none focus:ring-0 text-sm w-full font-medium ${isDark ? 'text-white placeholder:text-gray-400' : 'text-slate-800 placeholder:text-gray-500'}`}
           />
         </div>
 
