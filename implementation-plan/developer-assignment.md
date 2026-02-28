@@ -15,6 +15,108 @@ This document outlines how all backend implementation work is distributed across
 3. Tasks & Reminders is separated from Gamification and done earlier
 4. All modules follow the standard NestJS pattern: Entities → DTOs → Services → Controllers → Tests
 
+### Localization Requirements (Arabic + English)
+
+The database uses a **centralized translation pattern** via these tables:
+- `content_translations` — stores entity-level translations (courses, assignments, quizzes, announcements, etc.)
+- `localization_strings` — UI string translations (dashboard labels, menu items, etc.)
+- `language_preferences` — per-user language settings
+
+#### How Localization Works in APIs:
+
+1. **Request Header**: All API endpoints accept `Accept-Language: ar` or `Accept-Language: en` header (default: `en`)
+
+2. **Entities with Translatable Content** (must support Arabic + English):
+   | Entity | Translatable Fields |
+   |--------|-------------------|
+   | Courses | `name`, `description` |
+   | Assignments | `title`, `description`, `instructions` |
+   | Quizzes | `title`, `description` |
+   | Quiz Questions | `question_text`, `options` |
+   | Announcements | `title`, `content` |
+   | Course Materials | `title`, `description` |
+   | Labs | `title`, `description` |
+   | Lab Instructions | `content` |
+   | Notifications | `title`, `message` |
+   | Calendar Events | `title`, `description` |
+   | Achievements | `name`, `description` |
+   | Badges | `name`, `description` |
+   | Forum Categories | `name`, `description` |
+   | System Settings (branding) | `site_name`, `tagline` |
+   | Support Tickets | Category labels |
+
+3. **Implementation Pattern** (for every module):
+   ```typescript
+   // In each service, inject TranslationService
+   @Injectable()
+   export class AssignmentsService {
+     constructor(
+       private translationService: TranslationService,
+     ) {}
+
+     async findAll(lang: string = 'en') {
+       const assignments = await this.repo.find();
+       // Merge translations if lang !== 'en'
+       if (lang !== 'en') {
+         return this.translationService.applyTranslations(
+           assignments, 'assignment', lang
+         );
+       }
+       return assignments;
+     }
+   }
+
+   // Controller reads Accept-Language header
+   @Get()
+   findAll(@Headers('accept-language') lang: string = 'en') {
+     return this.service.findAll(lang);
+   }
+   ```
+
+4. **Translation CRUD Endpoints** (part of Localization Module - Sprint 5, Dev A):
+   | Method | Endpoint | Description | Roles |
+   |--------|----------|-------------|-------|
+   | GET | `/api/translations/:entityType/:entityId` | Get translations for entity | ALL |
+   | POST | `/api/translations` | Add translation | INSTRUCTOR, ADMIN |
+   | PUT | `/api/translations/:id` | Update translation | INSTRUCTOR, ADMIN |
+   | DELETE | `/api/translations/:id` | Delete translation | ADMIN |
+   | GET | `/api/localization/strings` | Get UI strings for language | ALL |
+   | POST | `/api/localization/strings` | Add/update UI string | ADMIN |
+   | GET | `/api/localization/languages` | List supported languages | ALL |
+
+5. **Response Format** (when Arabic is requested):
+   ```json
+   {
+     "id": 1,
+     "title": "الواجب الأول",          // Arabic title
+     "title_original": "First Assignment", // Original English
+     "description": "وصف الواجب",
+     "dueDate": "2025-03-15"
+   }
+   ```
+
+6. **Entities that DON'T need translation** (data-only, no user-facing text):
+   - Grades (numeric)
+   - Attendance records (status enum)
+   - Enrollments (references)
+   - Files (binary data)
+   - Payments (numeric)
+   - Security logs (system data)
+   - Analytics (numeric data)
+
+7. **Shared TranslationService** (built in Sprint 5 Localization Module, but **the interface should be defined in Sprint 1** so modules can prepare):
+   ```typescript
+   // Create this interface early in Sprint 1
+   // src/common/interfaces/translation.interface.ts
+   export interface ITranslationService {
+     applyTranslations<T>(entities: T[], entityType: string, lang: string): Promise<T[]>;
+     getTranslation(entityType: string, entityId: number, field: string, lang: string): Promise<string>;
+     setTranslation(entityType: string, entityId: number, field: string, lang: string, value: string): Promise<void>;
+   }
+   ```
+
+> **Action Item for Sprint 1**: Define the `ITranslationService` interface and create a simple pass-through implementation. The full implementation comes in Sprint 5 with the Localization module. All modules should accept `Accept-Language` header from day one.
+
 ---
 
 ## Sprint Overview
@@ -165,6 +267,10 @@ This document outlines how all backend implementation work is distributed across
   | POST | `/api/attendance/photos` | Upload attendance photo (for AI) | INSTRUCTOR, TA |
   | GET | `/api/attendance/report/:sectionId` | Attendance report for section | INSTRUCTOR, TA |
   | PATCH | `/api/attendance/sessions/:id/close` | Close attendance session | INSTRUCTOR, TA |
+  | POST | `/api/attendance/import-excel` | **Import attendance from Excel file** | INSTRUCTOR, TA |
+  | GET | `/api/attendance/export-excel/:sessionId` | **Export attendance session to Excel** | INSTRUCTOR, TA |
+  | POST | `/api/attendance/ai-photo` | **Send photo to AI microservice for face recognition** | INSTRUCTOR, TA |
+  | GET | `/api/attendance/ai-photo/:processingId` | **Get AI processing result** | INSTRUCTOR, TA |
 
 - **Business Logic**:
   - Attendance status: PRESENT, ABSENT, LATE, EXCUSED
@@ -172,7 +278,37 @@ This document outlines how all backend implementation work is distributed across
   - Calculate attendance percentage per student per course
   - Generate attendance reports (per course, per student, per date range)
   - Support QR code / location-based attendance (future integration point)
-  - AI photo attendance processing integration point
+  - **Excel Import/Export** (requires `exceljs` npm package):
+    - Upload `.xlsx` file with columns: `student_id`, `status` (PRESENT/ABSENT/LATE/EXCUSED)
+    - Validate student IDs exist and are enrolled in the course
+    - Return validation errors for invalid entries
+    - Export attendance records for a session to `.xlsx`
+  - **AI Photo Attendance Integration** (external microservice):
+    - Instructor uploads a class photo via `POST /api/attendance/ai-photo`
+    - Backend forwards photo to AI microservice (separate service, URL configurable via system settings)
+    - AI microservice returns Excel file with recognized student IDs
+    - Backend parses the returned Excel and auto-marks attendance
+    - Flow: `Upload Photo → AI Microservice → Excel Response → Parse → Mark Attendance`
+    - Processing is async: returns a `processingId`, poll for results
+    - AI microservice endpoint is configurable: `AI_ATTENDANCE_SERVICE_URL` env variable
+
+- **AI Attendance Integration Detail**:
+  ```typescript
+  // Flow for POST /api/attendance/ai-photo
+  // 1. Receive photo file from instructor
+  // 2. Send to AI microservice: POST {AI_ATTENDANCE_SERVICE_URL}/process-photo
+  //    Body: multipart/form-data { photo: File, sectionId: number }
+  // 3. AI returns: { processingId: string, status: 'processing' }
+  // 4. Poll: GET {AI_ATTENDANCE_SERVICE_URL}/result/{processingId}
+  //    Returns: Excel file with student_id column of attended students
+  // 5. Parse Excel → mark those students as PRESENT
+  // 6. Students NOT in Excel → mark as ABSENT
+  ```
+
+- **NPM Dependencies to Add**:
+  ```bash
+  npm install exceljs   # For Excel import/export
+  ```
 
 - **Files to Create**:
   ```
@@ -187,16 +323,20 @@ This document outlines how all backend implementation work is distributed across
   │   ├── mark-attendance.dto.ts
   │   ├── batch-attendance.dto.ts
   │   ├── attendance-query.dto.ts
-  │   └── attendance-summary.dto.ts
+  │   ├── attendance-summary.dto.ts
+  │   └── import-attendance.dto.ts       // Excel import validation
   ├── enums/
   │   └── attendance-status.enum.ts
   ├── controllers/
   │   └── attendance.controller.ts
   ├── services/
-  │   └── attendance.service.ts
+  │   ├── attendance.service.ts
+  │   ├── attendance-excel.service.ts    // Excel import/export logic
+  │   └── attendance-ai.service.ts       // AI microservice integration
   └── exceptions/
       ├── session-not-found.exception.ts
-      └── session-closed.exception.ts
+      ├── session-closed.exception.ts
+      └── invalid-excel-format.exception.ts
   ```
 
 #### Quizzes Module
@@ -533,6 +673,41 @@ This document outlines how all backend implementation work is distributed across
   - Version tracking via Files module
   - Visibility control (visible/hidden from students)
   - Download tracking for analytics
+  - **Video Upload via YouTube Module**:
+    - When material type is `video`, use existing YouTube module to upload
+    - Flow: `Instructor uploads video → YouTube Module uploads to YouTube (unlisted) → Returns video URL + video ID → Store as course material with YouTube embed URL`
+    - Store `youtube_video_id` and `youtube_url` in material record
+    - Frontend displays video using YouTube iframe embed: `https://www.youtube.com/embed/{videoId}`
+    - Video metadata (title, description) synced between material and YouTube
+  
+  ```typescript
+  // Video upload flow in MaterialsService
+  async uploadVideoMaterial(courseId: number, file: Express.Multer.File, dto: CreateMaterialDto) {
+    // 1. Upload to YouTube via existing YouTubeService
+    const youtubeResult = await this.youtubeService.uploadVideo(file, {
+      title: dto.title,
+      description: dto.description,
+      tags: [courseName, 'lecture'],
+    });
+    
+    // 2. Create material record with YouTube data
+    return this.materialsRepo.save({
+      courseId,
+      title: dto.title,
+      type: MaterialType.VIDEO,
+      youtubeVideoId: youtubeResult.videoId,
+      youtubeUrl: youtubeResult.videoUrl,
+      embedUrl: `https://www.youtube.com/embed/${youtubeResult.videoId}`,
+      ...dto,
+    });
+  }
+  ```
+
+- **Additional Video Endpoints**:
+  | Method | Endpoint | Description | Roles |
+  |--------|----------|-------------|-------|
+  | POST | `/api/courses/:courseId/materials/video` | Upload video material (via YouTube) | INSTRUCTOR, TA |
+  | GET | `/api/materials/:id/embed` | Get YouTube embed URL/iframe | ALL |
 
 ---
 

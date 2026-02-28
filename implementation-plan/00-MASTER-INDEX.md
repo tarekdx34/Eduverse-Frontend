@@ -124,3 +124,11 @@ interface PaginatedResponse<T> {
 // Paginated
 { data: T[], meta: { total, page, limit, totalPages } }
 ```
+
+### Localization (Arabic + English)
+- All user-facing content supports **Arabic (ar)** and **English (en)**
+- Uses centralized `content_translations` table (not separate columns)
+- API endpoints accept `Accept-Language` header (`ar` or `en`, default: `en`)
+- Entities with translatable fields: courses, assignments, quizzes, announcements, materials, labs, notifications, calendar events
+- Non-translatable entities: grades, attendance records, enrollments, files, payments, logs, analytics
+- See [Developer Assignment](./developer-assignment.md) for full localization implementation pattern
