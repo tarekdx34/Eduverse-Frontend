@@ -37,3 +37,4 @@ export { UploadMaterialsPage } from './UploadMaterialsPage';
 export { NotificationsPage } from './NotificationsPage';
 export { AnnouncementsManager } from './AnnouncementsManager';
 export { GlobalSearchPage } from './GlobalSearchPage';
+export { AIAttendanceModal } from './AIAttendanceModal';

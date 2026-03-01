@@ -176,7 +176,7 @@ export function LabsPage({ labs, onViewLab }: LabsPageProps) {
                       </div>
                       {lab.submissionCount - lab.gradedCount > 0 && (
                         <div className="text-xs text-orange-600 mt-1">
-                          {lab.submissionCount - lab.gradedCount} {t('pending').toLowerCase()}
+                          {lab.submissionCount - lab.gradedCount} {t('pending')}
                         </div>
                       )}
                     </div>

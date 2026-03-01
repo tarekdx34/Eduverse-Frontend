@@ -21,6 +21,7 @@ import {
   Info,
   CheckCircle,
 } from 'lucide-react';
+import { CustomDropdown } from '../../../components/shared';
 
 interface Course {
   id: string;
@@ -299,27 +300,37 @@ export function CourseRegistration() {
                 />
               </div>
             </div>
-            <div className="flex gap-3">
-              <select
-                value={selectedDepartment}
-                onChange={(e) => setSelectedDepartment(e.target.value)}
-                className={`px-4 py-2 ${isDark ? 'bg-gray-800 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'} border-2 rounded-lg focus:outline-none focus:border-[#7C3AED] transition-all`}
-              >
-                <option value="all">{t('allDepartments')}</option>
-                <option value="Computer Science">{t('computerScience')}</option>
-                <option value="Mathematics">{t('mathematics')}</option>
-                <option value="Physics">{t('physics')}</option>
-              </select>
-              <select
-                value={selectedLevel}
-                onChange={(e) => setSelectedLevel(e.target.value)}
-                className={`px-4 py-2 ${isDark ? 'bg-gray-800 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'} border-2 rounded-lg focus:outline-none focus:border-[#7C3AED] transition-all`}
-              >
-                <option value="all">{t('allLevels')}</option>
-                <option value="Beginner">{t('beginner')}</option>
-                <option value="Intermediate">{t('intermediate')}</option>
-                <option value="Advanced">{t('advanced')}</option>
-              </select>
+            <div className="flex gap-4">
+              <div className="flex-1">
+                <CustomDropdown
+                  label={t('department') || 'Department'}
+                  options={[
+                    { value: 'all', label: t('allDepartments') },
+                    { value: 'Computer Science', label: t('computerScience') },
+                    { value: 'Mathematics', label: t('mathematics') },
+                    { value: 'Physics', label: t('physics') },
+                  ]}
+                  value={selectedDepartment}
+                  onChange={setSelectedDepartment}
+                  isDark={isDark}
+                  accentColor="#7C3AED"
+                />
+              </div>
+              <div className="flex-1">
+                <CustomDropdown
+                  label={t('level') || 'Level'}
+                  options={[
+                    { value: 'all', label: t('allLevels') },
+                    { value: 'Beginner', label: t('beginner') },
+                    { value: 'Intermediate', label: t('intermediate') },
+                    { value: 'Advanced', label: t('advanced') },
+                  ]}
+                  value={selectedLevel}
+                  onChange={setSelectedLevel}
+                  isDark={isDark}
+                  accentColor="#7C3AED"
+                />
+              </div>
             </div>
           </div>
 

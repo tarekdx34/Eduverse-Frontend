@@ -242,7 +242,7 @@ export function AnalyticsPage() {
                 <Line
                   type="monotone"
                   dataKey="assignments"
-                  stroke="#8b5cf6"
+                  stroke="#3b82f6"
                   strokeWidth={2}
                   name="Assignments"
                 />
@@ -365,7 +365,7 @@ export function AnalyticsPage() {
                   issue: 'Low attendance, low grade',
                   color: 'bg-blue-500',
                 },
-                { name: 'Sarah Lee', issue: 'Missing assignments', color: 'bg-purple-500' },
+                { name: 'Sarah Lee', issue: 'Missing assignments', color: 'bg-indigo-500' },
                 { name: 'Alex Kim', issue: 'Low engagement', color: 'bg-green-500' },
                 { name: 'Tom Wilson', issue: 'Failing quizzes', color: 'bg-orange-500' },
                 { name: 'Lisa Chen', issue: 'Lab absences', color: 'bg-pink-500' },
@@ -437,7 +437,7 @@ export function AnalyticsPage() {
                     : undefined
                 }
               />
-              <Bar dataKey="value" fill="#8b5cf6" radius={[8, 8, 0, 0]} />
+              <Bar dataKey="value" fill="#3b82f6" radius={[8, 8, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -447,7 +447,7 @@ export function AnalyticsPage() {
           className={`rounded-xl p-6 border ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}
         >
           <div className="flex items-center gap-2 mb-4">
-            <Sparkles className="text-purple-600" size={24} />
+            <Sparkles className="text-indigo-600" size={24} />
             <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
               {t('aiInsightsPoweredByEvy')}
             </h3>

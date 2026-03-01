@@ -36,7 +36,7 @@ export function CommunicationPage() {
     {
       title: 'Extra Office Hours Added',
       course: 'Physics I',
-      courseColor: 'bg-purple-100 text-purple-700',
+      courseColor: 'bg-indigo-100 text-indigo-700',
       date: 'May 13, 2025',
       content:
         'Extra office hours added this Thursday from 3-5 PM in Room 204 to help with midterm preparation.',

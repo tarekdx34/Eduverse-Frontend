@@ -42,8 +42,8 @@ export function AIAttendanceHistory({ sessions, onViewDetails }: AIAttendanceHis
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-3 mb-6">
-        <div className={`p-3 rounded-lg ${isDark ? 'bg-purple-500/10' : 'bg-purple-100'}`}>
-          <History className={isDark ? 'text-purple-400' : 'text-purple-600'} size={24} />
+        <div className={`p-3 rounded-lg ${isDark ? 'bg-indigo-500/10' : 'bg-indigo-100'}`}>
+          <History className={isDark ? 'text-indigo-400' : 'text-indigo-600'} size={24} />
         </div>
         <div>
           <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>

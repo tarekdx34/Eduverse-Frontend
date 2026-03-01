@@ -13,6 +13,9 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
+const normalizePrimaryColor = (color: string | null | undefined) =>
+  color === 'violet' ? 'blue' : color || 'blue';
+
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>(() => {
     if (typeof window !== 'undefined') {
@@ -24,17 +27,18 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   const [primaryColor, setPrimaryColorState] = useState<string>(() => {
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('eduverse-primary-color') || 'blue';
+      return normalizePrimaryColor(localStorage.getItem('eduverse-primary-color'));
     }
     return 'blue';
   });
 
   const setPrimaryColor = (color: string) => {
-    setPrimaryColorState(color);
+    const nextColor = normalizePrimaryColor(color);
+    setPrimaryColorState(nextColor);
     if (typeof window !== 'undefined') {
-      localStorage.setItem('eduverse-primary-color', color);
+      localStorage.setItem('eduverse-primary-color', nextColor);
       // Dispatch a custom event to sync across components easily if they don't subscribe to this specific ThemeContext instance
-      window.dispatchEvent(new CustomEvent('eduverse-color-change', { detail: color }));
+      window.dispatchEvent(new CustomEvent('eduverse-color-change', { detail: nextColor }));
     }
   };
 
@@ -50,7 +54,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   // Sync color from other dashboards via custom event
   useEffect(() => {
     const handleColorChange = (e: any) => {
-      setPrimaryColorState(e.detail);
+      setPrimaryColorState(normalizePrimaryColor(e.detail));
     };
     window.addEventListener('eduverse-color-change', handleColorChange);
     return () => window.removeEventListener('eduverse-color-change', handleColorChange);
@@ -65,7 +69,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const hexMap: Record<string, string> = {
     blue: '#3b82f6',
     emerald: '#10b981',
-    violet: '#8b5cf6',
+    violet: '#3b82f6',
     rose: '#f43f5e',
     amber: '#f59e0b',
   };

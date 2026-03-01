@@ -85,7 +85,7 @@ const TABS: { key: TabKey; label: string; icon: any; group: string }[] = [
 function TADashboardContent() {
   const navigate = useNavigate();
   const params = useParams();
-  const { isDark, toggleTheme } = useTheme();
+  const { isDark, toggleTheme, primaryHex, primaryColor, setPrimaryColor } = useTheme() as any;
   const { language, isRTL, setLanguage, t } = useLanguage();
   const [activeTab, setActiveTab] = useState<TabKey>('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -130,7 +130,7 @@ function TADashboardContent() {
 
   return (
     <div
-      className={`flex min-h-screen ${isRTL ? 'flex-row-reverse' : ''} ${isDark ? 'bg-background-dark' : 'bg-background-light'} text-slate-800 dark:text-slate-100 transition-colors duration-300`}
+      className={`flex min-h-screen ${isRTL ? 'flex-row-reverse' : ''} ${isDark ? 'bg-slate-950' : 'bg-slate-50'} text-slate-800 dark:text-slate-100 transition-colors duration-300`}
       style={{ fontFamily: "'Montserrat', sans-serif" }}
       dir={isRTL ? 'rtl' : 'ltr'}
     >
@@ -142,7 +142,7 @@ function TADashboardContent() {
         onLogout={() => navigate('/login')}
         isDark={isDark}
         isRTL={isRTL}
-        accentColor="#2563EB"
+        accentColor={primaryHex || '#3b82f6'}
         isMobileOpen={sidebarOpen}
         onMobileClose={() => setSidebarOpen(false)}
         groupOrder={[
@@ -158,25 +158,26 @@ function TADashboardContent() {
 
       {/* Main Content */}
       <main className={`flex-1 ${isRTL ? 'lg:mr-64' : 'lg:ml-64'} p-4 lg:p-10`}>
-        {/* Mobile menu toggle */}
-        <button
-          onClick={() => setSidebarOpen(true)}
-          className={`lg:hidden mb-4 p-2 rounded-xl transition-colors ${isDark ? 'bg-white/5 hover:bg-white/10 text-slate-400' : 'bg-white border border-slate-200 hover:bg-slate-50 text-slate-600'}`}
-          aria-label="Open navigation menu"
-        >
-          <Menu className="w-6 h-6" />
-        </button>
         <DashboardHeader
           userName="Ahmed Hassan"
           userRole="Teaching Assistant"
           isDark={isDark}
           isRTL={isRTL}
-          accentColor="#2563EB"
+          accentColor={primaryHex || '#2563EB'}
           avatarGradient="from-blue-500 to-cyan-500"
           language={language}
           onToggleTheme={toggleTheme}
           onSetLanguage={setLanguage}
           onProfileClick={() => handleTabChange('profile')}
+          onMenuClick={() => setSidebarOpen(true)}
+          primaryColor={primaryColor}
+          onSetPrimaryColor={setPrimaryColor}
+          availableColors={[
+            { id: 'blue', colorClass: 'bg-blue-500', hex: '#3b82f6' },
+            { id: 'emerald', colorClass: 'bg-emerald-500', hex: '#10b981' },
+            { id: 'rose', colorClass: 'bg-rose-500', hex: '#f43f5e' },
+            { id: 'amber', colorClass: 'bg-amber-500', hex: '#f59e0b' },
+          ]}
           translations={{
             search: t('search') || 'Search...',
             language: t('language'),

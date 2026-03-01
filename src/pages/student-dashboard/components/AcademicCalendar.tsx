@@ -1,6 +1,7 @@
 import { ChevronLeft, ChevronRight, Calendar, Clock, MapPin, Filter, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
+import { CustomDropdown } from '../../../components/shared';
 
 interface CalendarEvent {
   id: string;
@@ -46,14 +47,44 @@ const defaultEvents: CalendarEvent[] = [
   { id: '1', date: 1, title: '', type: 'exam', color: 'bg-blue-100' },
   { id: '2', date: 2, title: '', type: 'exam', color: 'bg-blue-100' },
   { id: '3', date: 3, title: '', type: 'exam', color: 'bg-blue-100' },
-  { id: '4', date: 4, title: 'Study Group - Data Structures', type: 'event', color: 'bg-green-100' },
+  {
+    id: '4',
+    date: 4,
+    title: 'Study Group - Data Structures',
+    type: 'event',
+    color: 'bg-green-100',
+  },
   { id: '5', date: 5, title: 'Final Exam - Database Systems', type: 'exam', color: 'bg-red-100' },
   { id: '6', date: 6, title: 'Midterm Exam - Web Development', type: 'exam', color: 'bg-red-100' },
-  { id: '6b', date: 6, title: 'Algorithm Analysis Report Due', type: 'assignment', color: 'bg-yellow-100' },
-  { id: '8', date: 8, title: 'Mobile App Prototype Due', type: 'assignment', color: 'bg-yellow-100' },
-  { id: '10', date: 10, title: 'Database Design Project Due', type: 'assignment', color: 'bg-yellow-100' },
+  {
+    id: '6b',
+    date: 6,
+    title: 'Algorithm Analysis Report Due',
+    type: 'assignment',
+    color: 'bg-yellow-100',
+  },
+  {
+    id: '8',
+    date: 8,
+    title: 'Mobile App Prototype Due',
+    type: 'assignment',
+    color: 'bg-yellow-100',
+  },
+  {
+    id: '10',
+    date: 10,
+    title: 'Database Design Project Due',
+    type: 'assignment',
+    color: 'bg-yellow-100',
+  },
   { id: '12', date: 12, title: 'CS Department Seminar', type: 'event', color: 'bg-green-100' },
-  { id: '15', date: 15, title: 'Registration Deadline - Spring 2026', type: 'deadline', color: 'bg-purple-100' },
+  {
+    id: '15',
+    date: 15,
+    title: 'Registration Deadline - Spring 2026',
+    type: 'deadline',
+    color: 'bg-purple-100',
+  },
   { id: '18', date: 18, title: 'Career Fair', type: 'event', color: 'bg-green-100' },
   { id: '20', date: 20, title: 'Winter Break Begins', type: 'holiday', color: 'bg-orange-100' },
 ];
@@ -130,7 +161,9 @@ const StatCard = ({
     <div className="flex justify-between items-start gap-4">
       <div>
         <p className={`text-sm mb-2 ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{label}</p>
-        <p className={`text-4xl font-bold mb-3 ${isDark ? 'text-white' : 'text-slate-800'}`}>{value}</p>
+        <p className={`text-4xl font-bold mb-3 ${isDark ? 'text-white' : 'text-slate-800'}`}>
+          {value}
+        </p>
         <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>{subtext}</p>
       </div>
       <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${color}`}>
@@ -141,28 +174,42 @@ const StatCard = ({
 );
 
 const UpcomingEventCard = ({ event, isDark }: { event: UpcomingEvent; isDark: boolean }) => (
-  <div className={`border-l-4 border-l-blue-500 rounded-lg p-4 mb-4 ${isDark ? 'bg-card-dark' : 'bg-white'}`}>
+  <div
+    className={`border-l-4 border-l-blue-500 rounded-lg p-4 mb-4 ${isDark ? 'bg-card-dark' : 'bg-white'}`}
+  >
     <div className="flex justify-between items-start gap-4 mb-3">
       <div>
-        <h4 className={`font-semibold mb-1 ${isDark ? 'text-white' : 'text-slate-800'}`}>{event.title}</h4>
-        <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{event.description}</p>
+        <h4 className={`font-semibold mb-1 ${isDark ? 'text-white' : 'text-slate-800'}`}>
+          {event.title}
+        </h4>
+        <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
+          {event.description}
+        </p>
       </div>
-      <span className={`text-xs font-semibold px-3 py-1 rounded whitespace-nowrap ${getEventBadgeColor(event.type)}`}>
+      <span
+        className={`text-xs font-semibold px-3 py-1 rounded whitespace-nowrap ${getEventBadgeColor(event.type)}`}
+      >
         {event.type}
       </span>
     </div>
 
     <div className="space-y-2">
-      <div className={`flex items-center gap-3 text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
+      <div
+        className={`flex items-center gap-3 text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}
+      >
         <Calendar size={12} />
         <span>{event.date}</span>
       </div>
-      <div className={`flex items-center gap-3 text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
+      <div
+        className={`flex items-center gap-3 text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}
+      >
         <Clock size={12} />
         <span>{event.time}</span>
       </div>
       {event.location && (
-        <div className={`flex items-center gap-3 text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
+        <div
+          className={`flex items-center gap-3 text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}
+        >
           <MapPin size={12} />
           <span>{event.location}</span>
         </div>
@@ -171,7 +218,17 @@ const UpcomingEventCard = ({ event, isDark }: { event: UpcomingEvent; isDark: bo
   </div>
 );
 
-const CalendarGrid = ({ events, month, year, isDark }: { events: CalendarEvent[]; month: number; year: number; isDark: boolean }) => {
+const CalendarGrid = ({
+  events,
+  month,
+  year,
+  isDark,
+}: {
+  events: CalendarEvent[];
+  month: number;
+  year: number;
+  isDark: boolean;
+}) => {
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const firstDay = new Date(year, month, 1).getDay();
 
@@ -206,13 +263,21 @@ const CalendarGrid = ({ events, month, year, isDark }: { events: CalendarEvent[]
   return (
     <div className={`glass rounded-[2.5rem] p-6`}>
       {/* Header */}
-      <div className={`flex justify-between items-center mb-6 pb-6 border-b ${isDark ? 'border-white/5' : 'border-slate-100'}`}>
-        <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{monthNames[month]} {year}</h2>
+      <div
+        className={`flex justify-between items-center mb-6 pb-6 border-b ${isDark ? 'border-white/5' : 'border-slate-100'}`}
+      >
+        <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>
+          {monthNames[month]} {year}
+        </h2>
         <div className="flex gap-2">
-          <button className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-white/5 text-slate-400' : 'hover:bg-slate-50'}`}>
+          <button
+            className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-white/5 text-slate-400' : 'hover:bg-slate-50'}`}
+          >
             <ChevronLeft size={20} />
           </button>
-          <button className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-white/5 text-slate-400' : 'hover:bg-slate-50'}`}>
+          <button
+            className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-white/5 text-slate-400' : 'hover:bg-slate-50'}`}
+          >
             <ChevronRight size={20} />
           </button>
         </div>
@@ -221,7 +286,10 @@ const CalendarGrid = ({ events, month, year, isDark }: { events: CalendarEvent[]
       {/* Day headers */}
       <div className="grid grid-cols-7 gap-2 mb-4">
         {days.map((day) => (
-          <div key={day} className={`text-center font-semibold text-sm py-3 ${isDark ? 'text-slate-400' : 'text-slate-700'}`}>
+          <div
+            key={day}
+            className={`text-center font-semibold text-sm py-3 ${isDark ? 'text-slate-400' : 'text-slate-700'}`}
+          >
             {day}
           </div>
         ))}
@@ -236,7 +304,9 @@ const CalendarGrid = ({ events, month, year, isDark }: { events: CalendarEvent[]
           >
             {day && (
               <>
-                <p className={`font-semibold mb-2 ${isDark ? 'text-white' : 'text-slate-800'}`}>{day}</p>
+                <p className={`font-semibold mb-2 ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                  {day}
+                </p>
                 {dayEvents[day]?.map((event) => (
                   <div
                     key={event.id}
@@ -254,8 +324,12 @@ const CalendarGrid = ({ events, month, year, isDark }: { events: CalendarEvent[]
 
       {/* Legend */}
       <div className={`mt-6 pt-6 border-t ${isDark ? 'border-white/5' : 'border-slate-100'}`}>
-        <p className={`text-sm font-semibold mb-3 ${isDark ? 'text-white' : 'text-slate-800'}`}>Legend:</p>
-        <div className={`grid grid-cols-3 gap-4 text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+        <p className={`text-sm font-semibold mb-3 ${isDark ? 'text-white' : 'text-slate-800'}`}>
+          Legend:
+        </p>
+        <div
+          className={`grid grid-cols-3 gap-4 text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}
+        >
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 bg-red-100 rounded"></div>
             <span className="text-slate-600">Exam</span>
@@ -296,11 +370,41 @@ export default function AcademicCalendar({
     <div className="space-y-6">
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-        <StatCard label="Total Events" value={stats.totalEvents} subtext="This month" color={isDark ? 'bg-blue-900/50' : 'bg-blue-100'} isDark={isDark} />
-        <StatCard label="Exams" value={stats.exams} subtext="Scheduled" color={isDark ? 'bg-red-900/50' : 'bg-red-100'} isDark={isDark} />
-        <StatCard label="Assignments" value={stats.assignments} subtext="Due dates" color={isDark ? 'bg-yellow-900/50' : 'bg-yellow-100'} isDark={isDark} />
-        <StatCard label="Events" value={stats.events} subtext="Campus activities" color={isDark ? 'bg-green-900/50' : 'bg-green-100'} isDark={isDark} />
-        <StatCard label="Deadlines" value={stats.deadlines} subtext="Important dates" color={isDark ? 'bg-purple-900/50' : 'bg-purple-100'} isDark={isDark} />
+        <StatCard
+          label="Total Events"
+          value={stats.totalEvents}
+          subtext="This month"
+          color={isDark ? 'bg-blue-900/50' : 'bg-blue-100'}
+          isDark={isDark}
+        />
+        <StatCard
+          label="Exams"
+          value={stats.exams}
+          subtext="Scheduled"
+          color={isDark ? 'bg-red-900/50' : 'bg-red-100'}
+          isDark={isDark}
+        />
+        <StatCard
+          label="Assignments"
+          value={stats.assignments}
+          subtext="Due dates"
+          color={isDark ? 'bg-yellow-900/50' : 'bg-yellow-100'}
+          isDark={isDark}
+        />
+        <StatCard
+          label="Events"
+          value={stats.events}
+          subtext="Campus activities"
+          color={isDark ? 'bg-green-900/50' : 'bg-green-100'}
+          isDark={isDark}
+        />
+        <StatCard
+          label="Deadlines"
+          value={stats.deadlines}
+          subtext="Important dates"
+          color={isDark ? 'bg-purple-900/50' : 'bg-purple-100'}
+          isDark={isDark}
+        />
       </div>
 
       {/* Main content */}
@@ -315,27 +419,35 @@ export default function AcademicCalendar({
           {/* Header */}
           <div className="flex justify-between items-start">
             <div>
-              <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>Upcoming Events</h3>
-              <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>Next scheduled events</p>
+              <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                Upcoming Events
+              </h3>
+              <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
+                Next scheduled events
+              </p>
             </div>
-            <button className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'}`}>
+            <button
+              className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'}`}
+            >
               <Plus size={20} className={isDark ? 'text-slate-500' : 'text-slate-600'} />
             </button>
           </div>
 
           {/* Filter */}
-          <select
+          <CustomDropdown
+            options={[
+              { value: 'All Categories', label: 'All Categories' },
+              { value: 'Exams', label: 'Exams' },
+              { value: 'Assignments', label: 'Assignments' },
+              { value: 'Holidays', label: 'Holidays' },
+              { value: 'Events', label: 'Events' },
+              { value: 'Deadlines', label: 'Deadlines' },
+            ]}
             value={filterCategory}
-            onChange={(e) => setFilterCategory(e.target.value)}
-            className={`w-full px-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-white/5 border-white/10 text-white' : 'border-slate-100'}`}
-          >
-            <option>All Categories</option>
-            <option>Exams</option>
-            <option>Assignments</option>
-            <option>Holidays</option>
-            <option>Events</option>
-            <option>Deadlines</option>
-          </select>
+            onChange={setFilterCategory}
+            isDark={isDark}
+            accentColor="#7C3AED"
+          />
 
           {/* Upcoming events list */}
           <div className="space-y-3 max-h-96 overflow-y-auto">

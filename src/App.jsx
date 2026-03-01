@@ -22,8 +22,36 @@ const PageTitle = ({ title, children }) => {
 };
 
 const PageFallback = () => (
-  <div className="flex items-center justify-center h-screen">
-    <Loader2 className="h-8 w-8 animate-spin" />
+  <div className="flex items-center justify-center h-screen bg-slate-50">
+    <div className="flex flex-col items-center gap-6">
+      <div className="relative h-16 w-16">
+        {/* Outer pulse ring */}
+        <div className="absolute inset-0 rounded-full bg-blue-500/10 animate-pulse scale-125"></div>
+        
+        {/* Main spinning arc */}
+        <div className="absolute inset-0 rounded-full border-[3px] border-transparent border-t-blue-600 border-r-blue-600 animate-spin"></div>
+        
+        {/* Static background circle */}
+        <div className="absolute inset-0 rounded-full border-[3px] border-blue-50"></div>
+        
+        {/* Inner core circle */}
+        <div className="absolute inset-4 rounded-full bg-white shadow-sm flex items-center justify-center">
+          <div className="h-2 w-2 rounded-full bg-blue-600 animate-pulse"></div>
+        </div>
+      </div>
+      
+      <div className="flex flex-col items-center gap-1">
+        <span className="text-sm font-semibold text-slate-700 tracking-tight">Eduverse</span>
+        <div className="flex items-center gap-1">
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] ml-[0.2em]">Loading</span>
+          <span className="flex gap-0.5 pt-0.5">
+            <span className="w-1 h-1 bg-blue-400 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+            <span className="w-1 h-1 bg-blue-400 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+            <span className="w-1 h-1 bg-blue-400 rounded-full animate-bounce"></span>
+          </span>
+        </div>
+      </div>
+    </div>
   </div>
 );
 

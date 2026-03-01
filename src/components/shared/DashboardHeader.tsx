@@ -13,6 +13,7 @@ import {
   Info,
   X,
   Search,
+  Menu,
 } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -96,6 +97,7 @@ interface DashboardHeaderProps {
     viewProfile?: string;
     logout?: string;
   };
+  onMenuClick?: () => void;
 }
 
 export function DashboardHeader({
@@ -103,8 +105,8 @@ export function DashboardHeader({
   userRole,
   isDark,
   isRTL = false,
-  accentColor = '#7C3AED',
-  avatarGradient = 'from-[#7C3AED] to-[#ec4899]',
+  accentColor = '#3b82f6',
+  avatarGradient = 'from-[#3b82f6] to-[#06b6d4]',
   language = 'en',
   onToggleTheme,
   onSetLanguage,
@@ -115,6 +117,7 @@ export function DashboardHeader({
   onSetPrimaryColor,
   availableColors,
   translations = {},
+  onMenuClick,
 }: DashboardHeaderProps) {
   const [showDropdown, setShowDropdown] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -156,19 +159,22 @@ export function DashboardHeader({
   const getNotificationColor = (type: string) => {
     switch (type) {
       case 'deadline':
-        return 'text-red-500 bg-red-100';
+        return { className: 'text-red-500 bg-red-100' };
       case 'grade':
-        return 'text-green-500 bg-green-100';
+        return { className: 'text-green-500 bg-green-100' };
       case 'announcement':
-        return 'text-blue-500 bg-blue-100';
+        return { className: 'text-blue-500 bg-blue-100' };
       case 'achievement':
-        return 'text-amber-500 bg-amber-100';
+        return { className: 'text-amber-500 bg-amber-100' };
       case 'message':
-        return 'text-purple-500 bg-purple-100';
+        return {
+          className: '',
+          style: { color: accentColor, backgroundColor: `${accentColor}1A` } as React.CSSProperties,
+        };
       case 'warning':
-        return 'text-orange-500 bg-orange-100';
+        return { className: 'text-orange-500 bg-orange-100' };
       default:
-        return 'text-slate-500 bg-slate-100';
+        return { className: 'text-slate-500 bg-slate-100' };
     }
   };
   const navigate = useNavigate();
@@ -212,26 +218,49 @@ export function DashboardHeader({
         className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10"
         role="banner"
       >
-        <div
-          className={`relative group flex items-center rounded-2xl px-4 py-2 w-96 max-w-full focus-within:ring-2 transition-all ${
-            isDark ? 'bg-white/5 border border-white/10' : 'glass'
-          }`}
-          style={{ '--tw-ring-color': `${accentColor}50` } as React.CSSProperties}
-        >
-          <span className="material-symbols-rounded text-slate-400 text-xl mr-2">search</span>
-          <input
-            onClick={() => setShowSearch && setShowSearch(true)}
-            className={`bg-transparent border-none focus:ring-0 text-sm w-full cursor-pointer ${isDark ? 'placeholder:text-slate-500 text-white' : 'placeholder:text-slate-400 text-slate-900'}`}
-            placeholder={t.search}
-            type="text"
-            readOnly
-            aria-label="Search"
-          />
-          <span
-            className={`hidden md:block text-[10px] font-bold px-2 py-1 rounded-lg ${isDark ? 'bg-white/10 text-slate-500' : 'bg-slate-200 text-slate-500'}`}
+        <div className="flex items-center gap-4 w-full md:w-auto">
+          {onMenuClick && (
+            <button
+              onClick={onMenuClick}
+              className={`lg:hidden p-2.5 rounded-xl transition-all ${
+                isDark
+                  ? 'bg-white/5 hover:bg-white/10 text-slate-400 border border-white/10'
+                  : 'bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 shadow-sm'
+              }`}
+              aria-label="Open navigation menu"
+            >
+              <Menu className="w-6 h-6" />
+            </button>
+          )}
+
+          <div
+            className={`relative group flex items-center rounded-2xl px-4 py-2.5 flex-1 md:w-96 max-w-full focus-within:ring-2 transition-all ${
+              isDark
+                ? 'bg-white/5 border border-white/10'
+                : 'bg-white border border-slate-200 shadow-sm'
+            }`}
+            style={{ '--tw-ring-color': `${accentColor}40` } as React.CSSProperties}
           >
-            ⌘K
-          </span>
+            <Search className={`w-4 h-4 mr-3 ${isDark ? 'text-slate-500' : 'text-slate-400'}`} />
+            <input
+              className={`bg-transparent border-none focus:ring-0 text-sm w-full cursor-pointer outline-none ${
+                isDark
+                  ? 'placeholder:text-slate-500 text-white'
+                  : 'placeholder:text-slate-400 text-slate-900'
+              }`}
+              placeholder={t.search}
+              type="text"
+              readOnly
+              aria-label="Search"
+            />
+            <span
+              className={`hidden md:block text-[10px] font-bold px-2 py-1 rounded-lg ${
+                isDark ? 'bg-white/10 text-slate-500' : 'bg-slate-100 text-slate-500'
+              }`}
+            >
+              ⌘K
+            </span>
+          </div>
         </div>
         {/* End of Tarek's Search Bar UI */}
         {/* Actions */}
@@ -302,6 +331,9 @@ export function DashboardHeader({
                     </div>
                   ) : (
                     notificationList.map((notification) => (
+                      (() => {
+                        const notificationTone = getNotificationColor(notification.type);
+                        return (
                       <div
                         key={notification.id}
                         className={`px-4 py-3 flex items-start gap-3 transition-colors cursor-pointer ${
@@ -310,7 +342,8 @@ export function DashboardHeader({
                         onClick={() => markAsRead(notification.id)}
                       >
                         <div
-                          className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${getNotificationColor(notification.type)}`}
+                          className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${notificationTone.className}`}
+                          style={notificationTone.style}
                         >
                           {getNotificationIcon(notification.type)}
                         </div>
@@ -352,6 +385,8 @@ export function DashboardHeader({
                           </button>
                         )}
                       </div>
+                        );
+                      })()
                     ))
                   )}
                 </div>

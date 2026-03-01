@@ -17,7 +17,7 @@ export function MetricCard({
   value,
   icon,
   trend,
-  gradient = 'from-indigo-500 to-purple-600',
+  gradient = 'from-indigo-500 to-blue-600',
 }: MetricCardProps) {
   return (
     <div className="relative overflow-hidden rounded-xl bg-white border border-gray-200 p-6 shadow-sm hover:shadow-md transition-all">

@@ -158,7 +158,11 @@ const MESSAGES: Message[] = [
   },
 ];
 
-export function MessagingChat() {
+interface MessagingChatProps {
+  height?: string;
+}
+
+export function MessagingChat({ height = '100vh' }: MessagingChatProps) {
   const { isDark } = useTheme();
   const [selectedConversation, setSelectedConversation] = useState<string>('1');
   const [messageInput, setMessageInput] = useState('');
@@ -176,7 +180,11 @@ export function MessagingChat() {
       senderInitials: 'You',
       senderColor: '#4f39f6',
       text: messageInput,
-      timestamp: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
+      timestamp: new Date().toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
+      }),
       isCurrentUser: true,
     };
 
@@ -185,26 +193,20 @@ export function MessagingChat() {
   };
 
   return (
-    <div className={`flex gap-0 ${isDark ? 'bg-card-dark' : 'bg-white'} rounded-2xl overflow-hidden border ${isDark ? 'border-white/10' : 'border-slate-200'}`} style={{ height: 'calc(100vh - 200px)', minHeight: '500px' }}>
+    <div
+      className={`flex flex-col md:flex-row w-full ${isDark ? 'bg-card-dark' : 'bg-white'} overflow-hidden rounded-none border-0`}
+      style={{ height, minHeight: height }}
+    >
       {/* Conversations List */}
-      <div className={`w-80 flex flex-col border-r ${isDark ? 'border-white/10' : 'border-slate-200'} ${showChatOnMobile ? 'hidden lg:flex' : 'flex w-full lg:w-80'}`}>
+      <div
+        className={`w-80 flex flex-col border-r ${isDark ? 'border-white/10' : 'border-slate-200'} ${showChatOnMobile ? 'hidden lg:flex' : 'flex w-full lg:w-80'}`}
+      >
         {/* Header */}
         <div className={`border-b ${isDark ? 'border-white/10' : 'border-slate-200'} p-4`}>
           <div className="flex items-center justify-between mb-4">
-            <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>Messages</h3>
-            <button className={`p-2 ${isDark ? 'hover:bg-white/5' : 'hover:bg-white'} rounded-lg transition-colors`}>
-              <Plus size={20} className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`} />
-            </button>
-          </div>
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search conversations..."
-              className={`w-full px-3 py-2 pl-10 ${isDark ? 'bg-white/5 border-white/10 text-white' : 'border-slate-100'} border rounded-lg text-sm focus:outline-none focus:border-purple-600`}
-            />
-            <svg className="absolute left-3 top-2.5 w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
+            <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>
+              Messages
+            </h3>
           </div>
         </div>
 
@@ -240,10 +242,14 @@ export function MessagingChat() {
                 {/* Content */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">
-                    <p className={`font-medium ${isDark ? 'text-white' : 'text-slate-800'}`}>{conversation.name}</p>
+                    <p className={`font-medium ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                      {conversation.name}
+                    </p>
                     <span className="text-xs text-slate-500">{conversation.timestamp}</span>
                   </div>
-                  <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'} truncate`}>{conversation.lastMessage}</p>
+                  <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'} truncate`}>
+                    {conversation.lastMessage}
+                  </p>
                 </div>
 
                 {/* Unread Badge */}
@@ -262,13 +268,18 @@ export function MessagingChat() {
       {currentConversation && (
         <div className={`flex-1 flex flex-col ${showChatOnMobile ? 'flex' : 'hidden lg:flex'}`}>
           {/* Header */}
-          <div className={`border-b ${isDark ? 'border-white/10' : 'border-slate-200'} p-4 flex items-center justify-between`}>
+          <div
+            className={`border-b ${isDark ? 'border-white/10' : 'border-slate-200'} p-4 flex items-center justify-between`}
+          >
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setShowChatOnMobile(false)}
                 className={`lg:hidden p-2 ${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'} rounded-lg transition-colors`}
               >
-                <ArrowLeft size={20} className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`} />
+                <ArrowLeft
+                  size={20}
+                  className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}
+                />
               </button>
               <div
                 className="w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold"
@@ -277,31 +288,28 @@ export function MessagingChat() {
                 {currentConversation.initials}
               </div>
               <div>
-                <p className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>{currentConversation.name}</p>
-                {currentConversation.role && <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{currentConversation.role}</p>}
+                <p className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                  {currentConversation.name}
+                </p>
+                {currentConversation.role && (
+                  <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                    {currentConversation.role}
+                  </p>
+                )}
               </div>
             </div>
 
             {/* Actions */}
-            <div className="flex gap-2">
-              <button className={`p-2 ${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'} rounded-lg transition-colors`}>
-                <Phone size={20} className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`} />
-              </button>
-              <button className={`p-2 ${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'} rounded-lg transition-colors`}>
-                <Video size={20} className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`} />
-              </button>
-              <button className={`p-2 ${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'} rounded-lg transition-colors`}>
-                <svg className={`w-5 h-5 ${isDark ? 'text-slate-400' : 'text-slate-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
-                </svg>
-              </button>
-            </div>
+            <div className="flex gap-2"></div>
           </div>
 
           {/* Messages */}
           <div className="flex-1 overflow-y-auto p-6 space-y-6">
             {messages.map((message, index) => (
-              <div key={message.id} className={`flex gap-3 ${message.isCurrentUser ? 'justify-end' : 'justify-start'}`}>
+              <div
+                key={message.id}
+                className={`flex gap-3 ${message.isCurrentUser ? 'justify-end' : 'justify-start'}`}
+              >
                 {!message.isCurrentUser && (
                   <div
                     className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-semibold flex-shrink-0 shadow-md"
@@ -311,7 +319,13 @@ export function MessagingChat() {
                   </div>
                 )}
 
-                <div className={message.isCurrentUser ? 'flex flex-col items-end gap-1' : 'flex flex-col items-start gap-1'}>
+                <div
+                  className={
+                    message.isCurrentUser
+                      ? 'flex flex-col items-end gap-1'
+                      : 'flex flex-col items-start gap-1'
+                  }
+                >
                   {message.image ? (
                     <img
                       src={message.image}
@@ -338,11 +352,18 @@ export function MessagingChat() {
           {/* Message Input */}
           <div className={`border-t ${isDark ? 'border-white/10' : 'border-slate-200'} p-4`}>
             <div className="flex gap-2 mb-2">
-              <button className={`p-2 ${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'} rounded-lg transition-colors`}>
+              <button
+                className={`p-2 ${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'} rounded-lg transition-colors`}
+              >
                 <Plus size={20} className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`} />
               </button>
-              <button className={`p-2 ${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'} rounded-lg transition-colors`}>
-                <Paperclip size={20} className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`} />
+              <button
+                className={`p-2 ${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'} rounded-lg transition-colors`}
+              >
+                <Paperclip
+                  size={20}
+                  className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}
+                />
               </button>
               <input
                 type="text"
@@ -352,7 +373,9 @@ export function MessagingChat() {
                 placeholder="Type a message..."
                 className={`flex-1 px-4 py-2 ${isDark ? 'bg-white/5 border-white/10 text-white' : 'border-slate-100'} border rounded-lg text-sm focus:outline-none focus:border-[#7C3AED]`}
               />
-              <button className={`p-2 ${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'} rounded-lg transition-colors`}>
+              <button
+                className={`p-2 ${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'} rounded-lg transition-colors`}
+              >
                 <Smile size={20} className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`} />
               </button>
               <button
@@ -362,7 +385,9 @@ export function MessagingChat() {
                 <Send size={20} />
               </button>
             </div>
-            <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-600'} text-center`}>Press Enter to send, Shift + Enter for new line</p>
+            <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-600'} text-center`}>
+              Press Enter to send, Shift + Enter for new line
+            </p>
           </div>
         </div>
       )}

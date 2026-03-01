@@ -247,20 +247,26 @@ export function SchedulePage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('schedule')}</h2>
-          <p className={`mt-1 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>{t('viewScheduleDescription')}</p>
+          <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+            {t('schedule')}
+          </h2>
+          <p className={`mt-1 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+            {t('viewScheduleDescription')}
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={openAddModal}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+            className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
           >
             <Plus className="w-4 h-4" />
             Add Event
           </button>
-          <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} border rounded-lg p-1 flex gap-1`}>
+          <div
+            className={`border rounded-lg p-1 flex gap-1 ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}
+          >
             {viewBtn('month', 'Month')}
             {viewBtn('week', t('week'))}
             {viewBtn('day', 'Day')}
@@ -270,7 +276,7 @@ export function SchedulePage() {
       </div>
 
       {/* Navigation Header */}
-      <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} border rounded-lg p-4`}>
+      <div className={`border rounded-lg p-4 ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}>
         <div className="flex items-center justify-between">
           <button
             onClick={() => view === 'day' ? navigateDay(-1) : undefined}
@@ -297,7 +303,7 @@ export function SchedulePage() {
       {/* Schedule Views */}
       {view === 'month' ? (
         /* Month Grid View */
-        <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} border rounded-lg overflow-hidden`}>
+        <div className={`border rounded-lg overflow-hidden ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}>
           <div className={`grid grid-cols-7 ${isDark ? 'divide-white/10' : 'divide-gray-200'} divide-x`}>
             {monthWeekdays.map((wd) => (
               <div key={wd} className={`p-2 text-center text-xs font-semibold ${isDark ? 'bg-white/5 text-slate-400 border-b border-white/10' : 'bg-gray-50 text-gray-500 border-b border-gray-200'}`}>

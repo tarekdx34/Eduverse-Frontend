@@ -52,6 +52,11 @@ interface MessagingChatProps {
   onStartNewConversation?: () => void;
   showVideoCall?: boolean;
   showVoiceCall?: boolean;
+  showCalls?: boolean;
+  showSearch?: boolean;
+  showVoiceMessage?: boolean;
+  showEmojiPicker?: boolean;
+  showNewConversation?: boolean;
   className?: string;
   height?: string;
   isDark?: boolean;
@@ -133,6 +138,11 @@ export function MessagingChat({
   onStartNewConversation,
   showVideoCall = true,
   showVoiceCall = true,
+  showCalls = true,
+  showSearch = true,
+  showVoiceMessage = true,
+  showEmojiPicker = true,
+  showNewConversation = true,
   className = '',
   height = '600px',
   isDark = false,
@@ -144,7 +154,7 @@ export function MessagingChat({
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [searchTerm, setSearchTerm] = useState('');
   const [isRecording, setIsRecording] = useState(false);
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [isPickerOpen, setIsPickerOpen] = useState(false);
   const [showChatOnMobile, setShowChatOnMobile] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -266,14 +276,14 @@ export function MessagingChat({
               )}
             </div>
             <div className="flex items-center gap-2">
-              {showVoiceCall && (
+              {showVoiceCall && showCalls && (
                 <button
                   className={`p-2 ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'} rounded-lg transition-colors`}
                 >
                   <Phone size={20} className={isDark ? 'text-slate-400' : 'text-gray-600'} />
                 </button>
               )}
-              {showVideoCall && (
+              {showVideoCall && showCalls && (
                 <button
                   className={`p-2 ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'} rounded-lg transition-colors`}
                 >
@@ -409,31 +419,35 @@ export function MessagingChat({
                 <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
                   Messages
                 </h3>
-                <button
-                  onClick={onStartNewConversation}
-                  className={`p-2 ${isDark ? 'hover:bg-white/10' : 'hover:bg-white'} rounded-lg transition-colors`}
-                  title="New conversation"
-                >
-                  <Plus size={20} className={isDark ? 'text-slate-400' : 'text-gray-600'} />
-                </button>
-              </div>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Search conversations..."
-                  className={`w-full px-3 py-2 pl-10 border rounded-lg text-sm focus:outline-none focus:border-indigo-600 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500' : 'border-gray-200 text-gray-600'}`}
-                />
-                <Search
-                  className={`absolute left-3 top-2.5 w-4 h-4 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}
-                />
-                {searchTerm && (
-                  <button onClick={() => setSearchTerm('')} className="absolute right-3 top-2.5">
-                    <X className={`w-4 h-4 ${isDark ? 'text-slate-500' : 'text-gray-400'}`} />
+                {showNewConversation && (
+                  <button
+                    onClick={onStartNewConversation}
+                    className={`p-2 ${isDark ? 'hover:bg-white/10' : 'hover:bg-white'} rounded-lg transition-colors`}
+                    title="New conversation"
+                  >
+                    <Plus size={20} className={isDark ? 'text-slate-400' : 'text-gray-600'} />
                   </button>
                 )}
               </div>
+              {showSearch && (
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Search conversations..."
+                    className={`w-full px-3 py-2 pl-10 border rounded-lg text-sm focus:outline-none focus:border-indigo-600 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500' : 'border-gray-200 text-gray-600'}`}
+                  />
+                  <Search
+                    className={`absolute left-3 top-2.5 w-4 h-4 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}
+                  />
+                  {searchTerm && (
+                    <button onClick={() => setSearchTerm('')} className="absolute right-3 top-2.5">
+                      <X className={`w-4 h-4 ${isDark ? 'text-slate-500' : 'text-gray-400'}`} />
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Conversations */}
@@ -530,14 +544,14 @@ export function MessagingChat({
                 </div>
 
                 <div className="flex gap-2">
-                  {showVoiceCall && (
+                  {showVoiceCall && showCalls && (
                     <button
                       className={`p-2 ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'} rounded-lg transition-colors`}
                     >
                       <Phone size={20} className={isDark ? 'text-slate-400' : 'text-gray-600'} />
                     </button>
                   )}
-                  {showVideoCall && (
+                  {showVideoCall && showCalls && (
                     <button
                       className={`p-2 ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'} rounded-lg transition-colors`}
                     >
@@ -635,7 +649,7 @@ export function MessagingChat({
               {/* Message Input */}
               <div className={`${isDark ? 'border-white/10' : 'border-gray-200'} border-t p-4`}>
                 {/* Emoji Picker */}
-                {showEmojiPicker && (
+                {isPickerOpen && (
                   <div
                     className={`mb-2 p-2 ${isDark ? 'bg-white/10' : 'bg-gray-100'} rounded-lg flex gap-2`}
                   >
@@ -644,7 +658,7 @@ export function MessagingChat({
                         key={emoji}
                         onClick={() => {
                           setMessageInput((prev) => prev + emoji);
-                          setShowEmojiPicker(false);
+                          setIsPickerOpen(false);
                         }}
                         className="text-xl hover:scale-125 transition-transform"
                       >
@@ -668,17 +682,19 @@ export function MessagingChat({
                   >
                     <Paperclip size={20} className={isDark ? 'text-slate-400' : 'text-gray-600'} />
                   </button>
-                  <button
-                    onClick={() => setIsRecording(!isRecording)}
-                    className={`p-2 rounded-lg transition-colors ${isRecording ? 'bg-red-100' : `${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`}`}
-                    title="Voice message"
-                  >
-                    {isRecording ? (
-                      <MicOff size={20} className="text-red-600" />
-                    ) : (
-                      <Mic size={20} className={isDark ? 'text-slate-400' : 'text-gray-600'} />
-                    )}
-                  </button>
+                  {showVoiceMessage && (
+                    <button
+                      onClick={() => setIsRecording(!isRecording)}
+                      className={`p-2 rounded-lg transition-colors ${isRecording ? 'bg-red-100' : `${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`}`}
+                      title="Voice message"
+                    >
+                      {isRecording ? (
+                        <MicOff size={20} className="text-red-600" />
+                      ) : (
+                        <Mic size={20} className={isDark ? 'text-slate-400' : 'text-gray-600'} />
+                      )}
+                    </button>
+                  )}
                   <input
                     type="text"
                     value={messageInput}
@@ -687,13 +703,15 @@ export function MessagingChat({
                     placeholder="Type a message..."
                     className={`flex-1 px-4 py-2 border rounded-lg text-sm focus:outline-none focus:border-indigo-600 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500' : 'border-gray-200'}`}
                   />
-                  <button
-                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                    className={`p-2 ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'} rounded-lg transition-colors`}
-                    title="Add emoji"
-                  >
-                    <Smile size={20} className={isDark ? 'text-slate-400' : 'text-gray-600'} />
-                  </button>
+                  {showEmojiPicker && (
+                    <button
+                      onClick={() => setIsPickerOpen(!isPickerOpen)}
+                      className={`p-2 ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'} rounded-lg transition-colors`}
+                      title="Add emoji"
+                    >
+                      <Smile size={20} className={isDark ? 'text-slate-400' : 'text-gray-600'} />
+                    </button>
+                  )}
                   <button
                     onClick={handleSendMessage}
                     disabled={!messageInput.trim()}

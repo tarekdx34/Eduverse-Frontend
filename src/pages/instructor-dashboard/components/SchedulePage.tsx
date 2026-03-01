@@ -76,8 +76,8 @@ const initialEvents: CalendarEvent[] = [
     startTime: '11:30',
     endTime: '12:30',
     location: 'Hall A',
-    color: 'text-purple-700',
-    bgColor: 'bg-purple-100',
+    color: '',
+    bgColor: '',
   },
   {
     id: 5,
@@ -142,7 +142,7 @@ const TYPE_COLORS: Record<string, { color: string; bgColor: string }> = {
   meeting: { color: 'text-amber-700', bgColor: 'bg-amber-100' },
   deadline: { color: 'text-red-700', bgColor: 'bg-red-100' },
   grading: { color: 'text-cyan-700', bgColor: 'bg-cyan-100' },
-  exam: { color: 'text-purple-700', bgColor: 'bg-purple-100' },
+  exam: { color: '', bgColor: '' },
 };
 
 const HOURS = Array.from({ length: 13 }, (_, i) => i + 8); // 8AM-8PM
@@ -346,6 +346,17 @@ export function SchedulePage() {
     ? 'bg-gray-700 border-gray-600 text-white'
     : 'bg-white border-gray-300 text-gray-900';
 
+  const getEventStyle = (event: CalendarEvent): React.CSSProperties | undefined => {
+    if (event.type !== 'exam') return undefined;
+    return {
+      backgroundColor: isDark ? `${primaryHex}26` : `${primaryHex}1A`,
+      color: primaryHex,
+    };
+  };
+
+  const getEventClasses = (event: CalendarEvent) =>
+    event.type === 'exam' ? '' : `${event.bgColor} ${event.color}`;
+
   // ── Month View ─────────────────────────────────────────────────────────────
   const renderMonthView = () => {
     const year = currentDate.getFullYear();
@@ -391,7 +402,7 @@ export function SchedulePage() {
                 }}
                 className={`relative p-2 min-h-[70px] rounded-lg text-left transition-colors ${
                   isToday
-                    ? 'bg-indigo-600 text-white'
+                    ? 'text-white'
                     : isCurrentMonth
                       ? isDark
                         ? 'hover:bg-gray-700'
@@ -400,6 +411,7 @@ export function SchedulePage() {
                         ? 'opacity-40'
                         : 'opacity-40'
                 } ${slotBorder} border`}
+                style={isToday ? { backgroundColor: primaryHex } : undefined}
               >
                 <span
                   className={`text-sm font-medium ${isToday ? 'text-white' : isCurrentMonth ? headerText : timeText}`}
@@ -409,7 +421,11 @@ export function SchedulePage() {
                 {dayEvents.length > 0 && (
                   <div className="flex gap-1 mt-1 flex-wrap">
                     {dayEvents.slice(0, 3).map((ev) => (
-                      <span key={ev.id} className={`w-2 h-2 rounded-full ${ev.bgColor}`} />
+                      <span
+                        key={ev.id}
+                        className={`w-2 h-2 rounded-full ${ev.type === 'exam' ? '' : ev.bgColor}`}
+                        style={ev.type === 'exam' ? { backgroundColor: primaryHex } : undefined}
+                      />
                     ))}
                     {dayEvents.length > 3 && (
                       <span className={`text-[10px] ${isToday ? 'text-white/80' : timeText}`}>
@@ -442,7 +458,8 @@ export function SchedulePage() {
           {weekDays.map((day) => (
             <div
               key={day.toISOString()}
-              className={`text-xs font-medium ${isSameDay(day, today) ? 'text-indigo-600 font-bold' : dayHeaderText}`}
+              className={`text-xs font-medium ${isSameDay(day, today) ? 'font-bold' : dayHeaderText}`}
+              style={isSameDay(day, today) ? { color: primaryHex } : undefined}
             >
               {DAY_NAMES[day.getDay()]} {MONTH_NAMES[day.getMonth()].slice(0, 3)} {day.getDate()}
             </div>
@@ -470,7 +487,8 @@ export function SchedulePage() {
                   {slotEvents.map((ev) => (
                     <div
                       key={ev.id}
-                      className={`${ev.bgColor} ${ev.color} p-2 rounded text-xs cursor-pointer mb-1`}
+                      className={`${getEventClasses(ev)} p-2 rounded text-xs cursor-pointer mb-1`}
+                      style={getEventStyle(ev)}
                       onClick={(e) => {
                         e.stopPropagation();
                         setShowEventDetails(ev);
@@ -519,7 +537,8 @@ export function SchedulePage() {
                 {slotEvents.map((ev) => (
                   <div
                     key={ev.id}
-                    className={`${ev.bgColor} ${ev.color} p-3 rounded-lg text-sm cursor-pointer`}
+                    className={`${getEventClasses(ev)} p-3 rounded-lg text-sm cursor-pointer`}
+                    style={getEventStyle(ev)}
                     onClick={(e) => {
                       e.stopPropagation();
                       setShowEventDetails(ev);
@@ -565,7 +584,8 @@ export function SchedulePage() {
             <div>
               <h3 className={`text-lg font-semibold ${headerText}`}>{ev.title}</h3>
               <span
-                className={`inline-block px-2 py-0.5 rounded text-xs font-medium mt-1 ${ev.bgColor} ${ev.color}`}
+                className={`inline-block px-2 py-0.5 rounded text-xs font-medium mt-1 ${getEventClasses(ev)}`}
+                style={getEventStyle(ev)}
               >
                 {ev.type}
               </span>
@@ -598,7 +618,8 @@ export function SchedulePage() {
           <div className="flex gap-2 mt-6">
             <button
               onClick={() => openEditModal(ev)}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm"
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2 text-white rounded-lg transition-colors text-sm"
+              style={{ backgroundColor: primaryHex }}
             >
               <Edit3 size={14} /> Edit
             </button>
@@ -727,7 +748,8 @@ export function SchedulePage() {
             <button
               onClick={saveEvent}
               disabled={!formData.title || !formData.date}
-              className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 px-4 py-2 text-white rounded-lg transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ backgroundColor: primaryHex }}
             >
               {editingEvent ? 'Save Changes' : 'Create Event'}
             </button>
@@ -774,49 +796,56 @@ export function SchedulePage() {
           </div>
           <button
             onClick={() => openCreateModal()}
-            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm"
+            className="flex items-center gap-2 px-4 py-2 text-white rounded-lg transition-colors text-sm"
+            style={{ backgroundColor: primaryHex }}
           >
             <Plus size={16} /> Add Event
           </button>
         </div>
 
         {/* View toggles and filters */}
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-3">
-            <div className={`flex items-center gap-2 ${toggleBg} rounded-lg p-1`}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 items-end">
+          <div className="sm:col-span-2 lg:col-span-1">
+            <div className={`flex items-center gap-1 ${toggleBg} rounded-xl p-1 w-full sm:w-fit`}>
               {(['month', 'week', 'day'] as const).map((mode) => (
                 <button
                   key={mode}
                   onClick={() => setViewMode(mode)}
-                  className={`px-4 py-2 text-sm rounded-md transition-colors ${viewMode === mode ? 'text-white' : toggleInactive}`}
+                  className={`flex-1 sm:flex-none px-4 py-2 text-sm rounded-lg transition-all ${viewMode === mode ? 'text-white shadow-sm' : toggleInactive}`}
                   style={viewMode === mode ? { backgroundColor: primaryHex } : undefined}
                 >
                   {t(mode)}
                 </button>
               ))}
             </div>
-            <CustomDropdown
-              label={t('courseLabel')}
-              value={courseFilter}
-              options={courseOptions}
-              onChange={setCourseFilter}
-            />
-            <CustomDropdown
-              label={t('eventTypeLabel')}
-              value={typeFilter}
-              options={[
-                { value: 'all', label: t('allEvents') },
-                { value: 'lecture', label: t('lectures') },
-                { value: 'lab', label: t('labs') },
-                { value: 'exam', label: 'Exams' },
-                { value: 'meeting', label: 'Meetings' },
-                { value: 'officeHours', label: t('officeHours') },
-                { value: 'deadline', label: 'Deadlines' },
-                { value: 'grading', label: 'Grading' },
-              ]}
-              onChange={setTypeFilter}
-            />
           </div>
+
+          <CustomDropdown
+            label={t('courseLabel')}
+            value={courseFilter}
+            options={courseOptions}
+            onChange={setCourseFilter}
+            stackLabel
+            fullWidth
+          />
+
+          <CustomDropdown
+            label={t('eventTypeLabel')}
+            value={typeFilter}
+            options={[
+              { value: 'all', label: t('allEvents') },
+              { value: 'lecture', label: t('lectures') },
+              { value: 'lab', label: t('labs') },
+              { value: 'exam', label: 'Exams' },
+              { value: 'meeting', label: 'Meetings' },
+              { value: 'officeHours', label: t('officeHours') },
+              { value: 'deadline', label: 'Deadlines' },
+              { value: 'grading', label: 'Grading' },
+            ]}
+            onChange={setTypeFilter}
+            stackLabel
+            fullWidth
+          />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -842,7 +871,8 @@ export function SchedulePage() {
               </div>
               <button
                 onClick={goToToday}
-                className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+                className="text-sm font-medium"
+                style={{ color: primaryHex }}
               >
                 {t('today')}
               </button>
@@ -861,7 +891,8 @@ export function SchedulePage() {
                 {upcomingEvents.map((event) => (
                   <div
                     key={event.id}
-                    className={`p-3 rounded-lg ${event.bgColor} ${event.color} cursor-pointer`}
+                    className={`p-3 rounded-lg ${getEventClasses(event)} cursor-pointer`}
+                    style={getEventStyle(event)}
                     onClick={() => setShowEventDetails(event)}
                   >
                     <div className="font-medium text-sm">{event.title}</div>

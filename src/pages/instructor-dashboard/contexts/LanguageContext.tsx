@@ -14,7 +14,7 @@ const translations: Record<Language, Record<string, string>> = {
   en: {
     // Header
     search: 'Search...',
-    searchPlaceholder: 'Search courses, students, materials...',
+    searchPlaceholder: 'Search Courses, Students, Materials...',
     notifications: 'Notifications',
     language: 'Language',
     english: 'English',
@@ -51,7 +51,7 @@ const translations: Record<Language, Record<string, string>> = {
     activeCourses: 'Active Courses',
     avgAttendance: 'Avg Attendance',
     pendingGrading: 'Pending Grading',
-    assignmentsToGrade: 'assignments to grade',
+    assignmentsToGrade: 'Assignments to Grade',
 
     // Courses
     myCourses: 'My Courses',
@@ -138,7 +138,7 @@ const translations: Record<Language, Record<string, string>> = {
     directMessages: 'Direct Messages',
     courseChats: 'Course Chats',
     sendMessage: 'Send Message',
-    typeMessage: 'Type a message...',
+    typeMessage: 'Type a Message...',
     messageStudents: 'Message Students',
     messageTA: 'Message TA',
 
@@ -236,7 +236,7 @@ const translations: Record<Language, Record<string, string>> = {
     notes: 'Notes',
     resources: 'Resources',
     uploadFile: 'Upload File',
-    dragAndDrop: 'Drag and drop files here',
+    dragAndDrop: 'Drag and Drop Files Here',
     supportedFormats: 'Supported formats: PDF, DOC, PPT, MP4, Images',
     fileUploaded: 'File uploaded successfully',
 
@@ -298,7 +298,7 @@ const translations: Record<Language, Record<string, string>> = {
     labsDescription:
       'Create labs, manage submissions, track attendance, and use AI to assist lab evaluation.',
     createNewLab: 'Create New Lab',
-    searchLabs: 'Search labs...',
+    searchLabs: 'Search Labs...',
     viewSubmissions: 'View Submissions',
     editLab: 'Edit Lab',
     uploadInstructions: 'Upload Instructions',
@@ -312,10 +312,10 @@ const translations: Record<Language, Record<string, string>> = {
     quizzesDescription:
       'Create quizzes, manage attempts, auto-generate questions, and review student performance.',
     createNewQuiz: 'Create New Quiz',
-    searchQuizzes: 'Search quizzes...',
+    searchQuizzes: 'Search Quizzes...',
     questions: 'Questions',
     attempted: 'Attempted',
-    minDuration: 'min Duration',
+    minDuration: 'Min Duration',
     viewAttempts: 'View Attempts',
     editQuiz: 'Edit Quiz',
     generateWithAI: 'Generate with AI',
@@ -356,7 +356,7 @@ const translations: Record<Language, Record<string, string>> = {
     average: 'Average',
     lowPerformanceTopics: 'Low-Performance Topics',
     detected: 'Detected',
-    flaggedStudents: 'flagged students',
+    flaggedStudents: 'Flagged Students',
     message: 'Message',
     courseComparison: 'Course Comparison',
     avgCompletionRateByCourse: 'Average Completion Rate by Course',
@@ -385,7 +385,7 @@ const translations: Record<Language, Record<string, string>> = {
     materialsGenerator: 'Materials Generator',
     materialsGeneratorDescription:
       'Upload a file or type a topic to generate slides, summaries, and explanations.',
-    enterTopic: 'Enter topic...',
+    enterTopic: 'Enter Topic...',
     uploadMaterial: 'Upload Material',
     generateSlides: 'Generate Slides',
     generateSummary: 'Generate Summary',
@@ -403,7 +403,7 @@ const translations: Record<Language, Record<string, string>> = {
     // Communication extras
     communicationDescription:
       'Manage announcements, interact with course chats, and message students easily.',
-    searchAnnouncements: 'Search announcements...',
+    searchAnnouncements: 'Search Announcements...',
     sendNotification: 'Send Notification',
     aiCommunicationAssistant: 'AI Communication Assistant — Powered by Evy',
     aiCommunicationDescription:
@@ -472,8 +472,27 @@ const translations: Record<Language, Record<string, string>> = {
     deleteAccountDescription:
       'Permanently delete your account and all associated data. This cannot be undone.',
 
+    // Discussion extras
+    discussionForum: 'Discussion Forum',
+    respondToQuestions: 'Respond to Questions',
+    searchDiscussionsPlaceholder: 'Search Discussions...',
+    replies: 'Replies',
+    views: 'Views',
+    ta: 'TA',
+    instructorRole: 'Instructor',
+    studentRole: 'Student',
+    pin: 'Pin',
+    unpin: 'Unpin',
+    closeThread: 'Close Thread',
+    answered: 'Answered',
+    markAsAnswer: 'Mark as Answer',
+    acceptedAnswer: 'Accepted Answer',
+    writeReplyPlaceholder: 'Write a Reply...',
+    reply: 'Reply',
+    noDiscussionsFound: 'No discussions found.',
+
     // Assignments extras
-    searchAssignments: 'Search assignments...',
+    searchAssignments: 'Search Assignments...',
     allStatus: 'All Status',
     draft: 'Draft',
     open: 'Open',
@@ -486,16 +505,16 @@ const translations: Record<Language, Record<string, string>> = {
     // Roster extras
     enrolledStudents: 'Enrolled Students',
     addStudent: 'Add Student',
-    searchStudentsPlaceholder: 'Search by name, email, or status...',
+    searchStudentsPlaceholder: 'Search by Name, Email, or Status...',
     toggleStatus: 'Toggle Status',
     noStudentsMatch: 'No students match your search.',
     noStudentsEnrolled: 'No students enrolled.',
-    showingFirst100: 'Showing first 100 of',
-    results: 'results',
+    showingFirst100: 'Showing First 100 of',
+    results: 'Results',
 
     // Waitlist extras
-    waitingForEnrollment: 'waiting for enrollment',
-    searchWaitlistPlaceholder: 'Search by name, email, or date...',
+    waitingForEnrollment: 'Waiting for Enrollment',
+    searchWaitlistPlaceholder: 'Search by Name, Email, or Date...',
     requestedDate: 'Requested Date',
     priority: 'Priority',
     approve: 'Approve',
@@ -504,7 +523,7 @@ const translations: Record<Language, Record<string, string>> = {
 
     // Grades extras
     grades: 'Grades',
-    searchGradesPlaceholder: 'Search by student, assignment, or email...',
+    searchGradesPlaceholder: 'Search by Student, Assignment, or Email...',
     student: 'Student',
     assignment: 'Assignment',
     noGradesMatch: 'No grades match your search.',
@@ -512,7 +531,7 @@ const translations: Record<Language, Record<string, string>> = {
 
     // Attendance extras
     addRecord: 'Add Record',
-    searchByDate: 'Search by date...',
+    searchByDate: 'Search by Date...',
     attendancePercent: 'Attendance %',
     noAttendanceMatch: 'No attendance records match your search.',
     noAttendanceRecords: 'No attendance records.',
@@ -521,7 +540,7 @@ const translations: Record<Language, Record<string, string>> = {
     semesterLabel: 'Semester:',
     statusLabel: 'Status:',
     sortByLabel: 'Sort By:',
-    searchCourses: 'Search courses...',
+    searchCourses: 'Search Courses...',
     lectureAndLab: 'Lecture + Lab',
     nextLecture: 'Next Lecture',
     openCourse: 'Open Course',
@@ -538,6 +557,8 @@ const translations: Record<Language, Record<string, string>> = {
     // CourseDetail extras
     courseNotFound: 'Course not found',
     backToCourses: '← Back to Courses',
+    overview: 'Overview',
+    detailedGrades: 'Detailed Grades',
   },
   ar: {
     // Header
@@ -1035,6 +1056,25 @@ const translations: Record<Language, Record<string, string>> = {
     noAttendanceMatch: 'لا توجد سجلات حضور مطابقة للبحث.',
     noAttendanceRecords: 'لا توجد سجلات حضور.',
 
+    // Discussion extras
+    discussionForum: 'منتدى المناقشة',
+    respondToQuestions: 'الرد على الأسئلة',
+    searchDiscussionsPlaceholder: 'بحث في المناقشات...',
+    replies: 'ردود',
+    views: 'مشاهدات',
+    ta: 'معيد',
+    instructorRole: 'محاضر',
+    studentRole: 'طالب',
+    pin: 'تثبيت',
+    unpin: 'إلغاء التثبيت',
+    closeThread: 'إغلاق المحادثة',
+    answered: 'تمت الإجابة',
+    markAsAnswer: 'تحديد كإجابة',
+    acceptedAnswer: 'إجابة معتمدة',
+    writeReplyPlaceholder: 'اكتب رداً...',
+    reply: 'رد',
+    noDiscussionsFound: 'لا توجد مناقشات.',
+
     // CoursesPage extras
     semesterLabel: 'الفصل:',
     statusLabel: 'الحالة:',
@@ -1056,6 +1096,8 @@ const translations: Record<Language, Record<string, string>> = {
     // CourseDetail extras
     courseNotFound: 'المقرر غير موجود',
     backToCourses: '→ العودة إلى المقررات',
+    overview: 'نظرة عامة',
+    detailedGrades: 'الدرجات التفصيلية',
   },
 };
 

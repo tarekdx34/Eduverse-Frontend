@@ -10,6 +10,7 @@ import {
   Check,
   CheckCheck,
 } from 'lucide-react';
+import { useTheme } from '../contexts/ThemeContext';
 
 export type Message = {
   id: number;
@@ -194,6 +195,7 @@ export function MessagesPanel({
   onView,
   onDelete,
 }: MessagesPanelProps) {
+  const { primaryHex = '#3b82f6' } = useTheme() as any;
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(
     MOCK_CONVERSATIONS[0]
@@ -285,8 +287,9 @@ export function MessagesPanel({
               <div className="relative flex-shrink-0">
                 <div
                   className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold ${
-                    conv.role === 'Admin' ? 'bg-purple-500' : 'bg-indigo-500'
+                    conv.role === 'Admin' ? '' : 'bg-indigo-500'
                   }`}
+                  style={conv.role === 'Admin' ? { backgroundColor: primaryHex } : undefined}
                 >
                   {conv.avatar}
                 </div>
@@ -330,8 +333,11 @@ export function MessagesPanel({
               </button>
               <div
                 className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold ${
-                  selectedConversation.role === 'Admin' ? 'bg-purple-500' : 'bg-indigo-500'
+                  selectedConversation.role === 'Admin' ? '' : 'bg-indigo-500'
                 }`}
+                style={
+                  selectedConversation.role === 'Admin' ? { backgroundColor: primaryHex } : undefined
+                }
               >
                 {selectedConversation.avatar}
               </div>

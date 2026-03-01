@@ -38,7 +38,7 @@ export function AIAttendanceUpload({
   if (isProcessing) {
     return (
       <AIProcessingAnimation
-        message="Detecting faces and marking attendance..."
+        message="Backend AI is analyzing student faces and verifying IDs..."
         duration={5000}
         showNote={true}
       />
@@ -48,14 +48,17 @@ export function AIAttendanceUpload({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
-        <div className="p-3 bg-indigo-100 rounded-lg">
-          <Camera className="text-indigo-600" size={24} />
+      <div className="flex items-center gap-4 mb-8">
+        <div className="p-4 bg-indigo-600 rounded-2xl shadow-lg shadow-indigo-200 dark:shadow-none">
+          <Camera className="text-white" size={28} />
         </div>
         <div>
-          <h3 className="text-lg font-semibold text-gray-900">AI-Powered Attendance</h3>
-          <p className="text-sm text-gray-500">
-            Upload a class photo to automatically mark attendance
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+            AI Facial Recognition Attendance
+          </h3>
+          <p className="text-sm text-gray-500 dark:text-slate-400">
+            Upload a class photo. Our backend AI will detect student faces and verify their
+            identities.
           </p>
         </div>
       </div>
