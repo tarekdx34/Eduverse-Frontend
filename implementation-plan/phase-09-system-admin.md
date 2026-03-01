@@ -118,8 +118,8 @@ export class AuditLog {
 5. **Retention**: Keep security logs for 90 days, audit logs for 1 year.
 
 ### Frontend Components Using This Module
-- **Admin**: SecurityLogsPage.tsx
-- **IT Admin**: SecurityPage.tsx, SecurityLogsPage.tsx
+- ~~**Admin**: SecurityLogsPage.tsx~~ *(Not in Admin sidebar — deleted)*
+- **IT Admin**: SecurityPage.tsx, SecurityLogsPage.tsx *(active as `security` and `security-logs` tabs)*
 
 ---
 
@@ -167,8 +167,8 @@ export class AuditLog {
 5. **Integration Health**: Periodically check integration health status.
 
 ### Frontend Components Using This Module
-- **Admin**: SettingsHubPage.tsx, SystemConfigPage.tsx
-- **IT Admin**: SystemConfigPage.tsx, IntegrationsPage.tsx
+- ~~**Admin**: SettingsHubPage.tsx, SystemConfigPage.tsx~~ *(Not in Admin sidebar — deleted)*
+- **IT Admin**: SystemConfigPage.tsx, IntegrationsPage.tsx *(active as `config` and `integrations` tabs)*
 
 ---
 
@@ -245,8 +245,8 @@ export class AuditLog {
 6. **Database Stats**: Query MySQL for database size, table sizes, active connections.
 
 ### Frontend Components Using This Module
-- **Admin**: BackupCenterPage.tsx
-- **IT Admin**: BackupCenterPage.tsx, DatabasePage.tsx
+- ~~**Admin**: BackupCenterPage.tsx~~ *(Not in Admin sidebar — deleted)*
+- **IT Admin**: BackupCenterPage.tsx, DatabasePage.tsx *(active as `backup` and `database` tabs)*
 
 ---
 

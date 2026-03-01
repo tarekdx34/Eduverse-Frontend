@@ -414,7 +414,7 @@ export class Rubric {
 - **Instructor**: GradesTable.tsx, GradeModal.tsx, CourseDetail.tsx
 - **Student**: GradesTranscript.tsx, GradeAnalysis.tsx, GpaChart.tsx
 - **TA**: GradingPage.tsx
-- **Admin**: AnalyticsReportsPage.tsx
+- ~~**Admin**: AnalyticsReportsPage.tsx~~ *(Not in Admin sidebar — deleted)*
 
 ---
 
@@ -551,8 +551,8 @@ export class AttendanceRecord {
 ### Frontend Components Using This Module
 - **Instructor**: AttendanceTable.tsx, AttendanceModal.tsx
 - **Student**: AttendanceOverview.tsx
-- **TA**: AttendancePage.tsx
-- **Admin**: AttendanceManagementPage.tsx
+- ~~**TA**: AttendancePage.tsx~~ *(Removed from TA sidebar — task T7; attendance now integrated into course tab per T4)*
+- ~~**Admin**: AttendanceManagementPage.tsx~~ *(Not in Admin sidebar — deleted)*
 
 ---
 
@@ -860,7 +860,7 @@ export class Lab {
 | GET | `/api/labs/:id/attendance` | Get lab attendance | INSTRUCTOR, TA |
 
 ### Frontend Components Using This Module
-- **Instructor**: LabsPage.tsx
+- ~~**Instructor**: LabsPage.tsx~~ *(Removed from Instructor sidebar — task I11)*
 - **Student**: LabInstructions.tsx
 - **TA**: LabsPage.tsx, LabResourcesPage.tsx
 

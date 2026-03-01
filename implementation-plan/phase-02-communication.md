@@ -127,7 +127,10 @@ interface QueryNotificationsDto {
 4. **Filtering**: By type, priority, read status, date range.
 
 ### Frontend Components Using This Module
-- **All Dashboards**: NotificationsPage.tsx, NotificationCenter.tsx, AdminNotificationsPage.tsx
+- **Instructor**: NotificationsPage.tsx
+- **Student**: NotificationCenter.tsx
+- **TA**: NotificationsPage.tsx
+- ~~**Admin**: AdminNotificationsPage.tsx~~ *(Not in Admin sidebar — deleted)*
 
 ---
 
@@ -246,9 +249,10 @@ export class MessageParticipant {
 5. **Soft Delete**: Users can delete messages from their view without affecting others.
 
 ### Frontend Components Using This Module
-- **Instructor**: CommunicationPage.tsx, MessagesPanel.tsx, MessageModal.tsx
-- **Student**: MessagingChat.tsx
-- **TA**: CommunicationPage.tsx
+- **All Dashboards**: MessagingChat.tsx *(shared Chat tab active in all 5 dashboards)*
+- **Admin**: CommunicationPage.tsx *(active in Admin sidebar as `communication` tab)*
+- ~~**Instructor**: CommunicationPage.tsx~~ *(Not in Instructor sidebar — deleted; Chat tab used instead)*
+- ~~**TA**: CommunicationPage.tsx~~ *(Removed from TA sidebar — task T11; Chat tab used instead)*
 
 ---
 
@@ -281,9 +285,9 @@ Can extend the Message entity or create a separate one. Recommended: Use message
 5. **Priority**: Support priority levels for sorting.
 
 ### Frontend Components Using This Module
-- **Instructor**: AnnouncementsManager.tsx, CommunicationPage.tsx
+- **Instructor**: AnnouncementsManager.tsx
 - **TA**: AnnouncementsPage.tsx
-- **Admin**: AdminNotificationsPage.tsx
+- ~~**Admin**: AdminNotificationsPage.tsx~~ *(Not in Admin sidebar — deleted)*
 
 ---
 

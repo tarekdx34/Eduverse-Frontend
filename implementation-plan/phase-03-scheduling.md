@@ -227,7 +227,8 @@ interface QueryScheduleDto {
 - **Instructor**: SchedulePage.tsx
 - **Student**: ClassSchedule.tsx, DailySchedule.tsx, WeeklySchedule.tsx, AcademicCalendar.tsx
 - **TA**: SchedulePage.tsx
-- **Admin**: ScheduleManagementPage.tsx, ExamSchedulePage.tsx, AcademicCalendarPage.tsx
+- **Admin**: AcademicCalendarPage.tsx *(active as `calendar` tab)*
+- ~~**Admin**: ScheduleManagementPage.tsx, ExamSchedulePage.tsx~~ *(Not in Admin sidebar — deleted)*
 
 ---
 
