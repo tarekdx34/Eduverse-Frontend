@@ -356,11 +356,11 @@ export class AiUsageStatistics {
 7. **Cost Management**: Monitor costs. Alert admins when usage exceeds thresholds.
 
 ### Frontend Components Using This Module
-- **Student**: AIFeatures.tsx, AINotes.tsx, AIFeatures/ (subfolder)
-- **Instructor**: AIToolsPage.tsx, ai-features/ (subfolder)
-- **TA**: AIAssistantPage.tsx
-- **Admin**: AIInsightsPage.tsx
-- **IT Admin**: AIManagementPage.tsx
+- **Student**: AIFeatures.tsx, AINotes.tsx, AIFeatures/ (subfolder) *(active as `ai` tab)*
+- **TA**: AIAssistantPage.tsx *(active as `ai-assistant` tab)*
+- ~~**Instructor**: AIToolsPage.tsx, ai-features/ (subfolder)~~ *(Removed from Instructor sidebar — task I10)*
+- ~~**Admin**: AIInsightsPage.tsx~~ *(Not in Admin sidebar — deleted)*
+- ~~**IT Admin**: AIManagementPage.tsx~~ *(Not in IT Admin sidebar — deleted)*
 
 ---
 

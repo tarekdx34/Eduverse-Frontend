@@ -223,10 +223,12 @@ interface QueryAnalyticsDto {
 5. **Export**: Support PDF (with charts), CSV, and Excel formats.
 
 ### Frontend Components Using This Module
-- **Instructor**: AnalyticsPage.tsx, ReportsAnalytics.tsx, PerformanceChart.tsx, TrendChart.tsx, ModernDashboard.tsx
+- **Instructor**: ModernDashboard.tsx *(analytics embedded in dashboard; standalone AnalyticsPage removed — task I10)*
 - **Student**: GradeAnalysis.tsx, GpaChart.tsx
 - **TA**: AnalyticsPage.tsx, StudentPerformancePage.tsx
-- **Admin**: AnalyticsReportsPage.tsx, DashboardOverview.tsx, AIInsightsPage.tsx
+- ~~**Instructor**: AnalyticsPage.tsx, ReportsAnalytics.tsx, PerformanceChart.tsx, TrendChart.tsx~~ *(Removed from Instructor sidebar — task I10)*
+- ~~**Admin**: AnalyticsReportsPage.tsx, AIInsightsPage.tsx~~ *(Not in Admin sidebar — deleted)*
+- **Admin**: DashboardOverview.tsx *(active as `dashboard` tab)*
 
 ---
 
@@ -338,8 +340,9 @@ export class GeneratedReport {
 5. **Cleanup**: Auto-delete generated reports after 30 days.
 
 ### Frontend Components Using This Module
-- **Instructor**: ReportsAnalytics.tsx
-- **Admin**: AnalyticsReportsPage.tsx
+- ~~**Instructor**: ReportsAnalytics.tsx~~ *(Removed from Instructor sidebar — task I10)*
+- ~~**Admin**: AnalyticsReportsPage.tsx~~ *(Not in Admin sidebar — deleted)*
+- **Note**: No dashboard currently has an active standalone Reports tab.
 
 ---
 

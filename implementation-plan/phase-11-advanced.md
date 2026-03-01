@@ -100,17 +100,20 @@ CREATE TABLE office_hour_appointments (
 | Method | Endpoint | Description | Roles |
 |--------|----------|-------------|-------|
 | GET | `/api/office-hours/slots` | List available office hour slots | ALL |
-| POST | `/api/office-hours/slots` | Create office hour slot | INSTRUCTOR, TA |
-| PUT | `/api/office-hours/slots/:id` | Update slot | INSTRUCTOR, TA |
-| DELETE | `/api/office-hours/slots/:id` | Delete slot | INSTRUCTOR, TA |
-| GET | `/api/office-hours/appointments` | List appointments | INSTRUCTOR, TA |
+| POST | `/api/office-hours/slots` | Create office hour slot | INSTRUCTOR, ADMIN, IT_ADMIN |
+| PUT | `/api/office-hours/slots/:id` | Update slot | INSTRUCTOR, ADMIN, IT_ADMIN |
+| DELETE | `/api/office-hours/slots/:id` | Delete slot | INSTRUCTOR, ADMIN, IT_ADMIN |
+| GET | `/api/office-hours/appointments` | List appointments | INSTRUCTOR, ADMIN, IT_ADMIN |
 | POST | `/api/office-hours/appointments` | Book appointment | STUDENT |
-| PATCH | `/api/office-hours/appointments/:id` | Update appointment | STUDENT, INSTRUCTOR |
-| DELETE | `/api/office-hours/appointments/:id` | Cancel appointment | STUDENT, INSTRUCTOR |
+| PATCH | `/api/office-hours/appointments/:id` | Update appointment | STUDENT, INSTRUCTOR, ADMIN, IT_ADMIN |
+| DELETE | `/api/office-hours/appointments/:id` | Cancel appointment | STUDENT, INSTRUCTOR, ADMIN, IT_ADMIN |
 | GET | `/api/office-hours/my-appointments` | Get student's appointments | STUDENT |
 
 ### Frontend Components Using This Module
-- **TA**: OfficeHoursPage.tsx
+- **Instructor**: OfficeHoursPage (to be added to Instructor sidebar)
+- **Admin**: Office Hours management (to be added to Admin sidebar)
+- **IT Admin**: Office Hours oversight (to be added to IT Admin sidebar)
+- ~~**TA**: OfficeHoursPage.tsx~~ *(Removed from TA sidebar — task T8)*
 
 ---
 
@@ -183,9 +186,9 @@ interface SearchDto {
 5. **Scoped Search**: Allow searching within a specific course.
 
 ### Frontend Components Using This Module
-- **Admin**: GlobalSearchPage.tsx
-- **Instructor**: GlobalSearchPage.tsx
-- **Student**: GlobalSearch.tsx
+- ~~**Admin**: GlobalSearchPage.tsx~~ *(Not in Admin sidebar — deleted)*
+- ~~**Instructor**: GlobalSearchPage.tsx~~ *(Removed from Instructor sidebar — task I16)*
+- **Student**: GlobalSearch.tsx *(sub-component, not a standalone sidebar tab)*
 
 ---
 
@@ -255,8 +258,8 @@ interface SearchDto {
 6. **Satisfaction**: Request satisfaction rating after ticket closure.
 
 ### Frontend Components Using This Module
-- **Admin**: FeedbackSupportPage.tsx
-- **IT Admin**: FeedbackSupportPage.tsx
+- ~~**Admin**: FeedbackSupportPage.tsx~~ *(Not in Admin sidebar — deleted)*
+- **IT Admin**: FeedbackSupportPage.tsx ✅ *(Active in IT Admin sidebar as `feedback` tab)*
 
 ---
 

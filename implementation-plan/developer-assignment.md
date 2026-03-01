@@ -971,19 +971,20 @@ The database uses a **centralized translation pattern** via these tables:
 
 #### Office Hours Module
 - **Reference Doc**: [Phase 11 - Section 11.3](./phase-11-advanced.md)
-- **DB Tables**: `calendar_events` (with type=office_hours) or new `office_hours` table
-- **Entities**: OfficeHour, OfficeHourBooking
+- **DB Tables**: `office_hour_slots`, `office_hour_appointments`
+- **Entities**: OfficeHourSlot, OfficeHourAppointment
 - **Key Endpoints**:
   | Method | Endpoint | Description | Roles |
   |--------|----------|-------------|-------|
-  | GET | `/api/office-hours` | List office hours | ALL |
-  | POST | `/api/office-hours` | Create office hour slot | INSTRUCTOR, TA |
-  | PUT | `/api/office-hours/:id` | Update slot | INSTRUCTOR, TA |
-  | DELETE | `/api/office-hours/:id` | Delete slot | INSTRUCTOR, TA |
-  | POST | `/api/office-hours/:id/book` | Book appointment | STUDENT |
-  | DELETE | `/api/office-hours/:id/cancel` | Cancel booking | STUDENT |
-  | GET | `/api/office-hours/my-bookings` | Student's bookings | STUDENT |
-  | GET | `/api/office-hours/my-schedule` | Instructor/TA schedule | INSTRUCTOR, TA |
+  | GET | `/api/office-hours/slots` | List office hour slots | ALL |
+  | POST | `/api/office-hours/slots` | Create office hour slot | INSTRUCTOR, ADMIN, IT_ADMIN |
+  | PUT | `/api/office-hours/slots/:id` | Update slot | INSTRUCTOR, ADMIN, IT_ADMIN |
+  | DELETE | `/api/office-hours/slots/:id` | Delete slot | INSTRUCTOR, ADMIN, IT_ADMIN |
+  | GET | `/api/office-hours/appointments` | List appointments | INSTRUCTOR, ADMIN, IT_ADMIN |
+  | POST | `/api/office-hours/appointments` | Book appointment | STUDENT |
+  | PATCH | `/api/office-hours/appointments/:id` | Update appointment | STUDENT, INSTRUCTOR, ADMIN, IT_ADMIN |
+  | DELETE | `/api/office-hours/appointments/:id` | Cancel appointment | STUDENT, INSTRUCTOR, ADMIN, IT_ADMIN |
+  | GET | `/api/office-hours/my-appointments` | Student's appointments | STUDENT |
 
 #### Peer Review Module
 - **Reference Doc**: [Phase 11 - Section 11.2](./phase-11-advanced.md)
@@ -1171,15 +1172,17 @@ These services should be built as **shared/exported** so other modules can injec
 
 ## Frontend Coverage Verification ✅
 
-All 5 dashboards are fully covered:
+All 5 dashboards are fully covered (sidebar-active components only):
 
-| Dashboard | Components | Coverage |
-|-----------|------------|----------|
-| **Admin** | 26 components | ✅ 100% — All mapped to existing or planned modules |
-| **Instructor** | 40 components | ✅ 100% — All mapped to existing or planned modules |
-| **Student** | 28 components | ✅ 100% — All mapped to existing or planned modules |
-| **IT Admin** | 19 components | ✅ 100% — All mapped to existing or planned modules |
-| **TA** | 20 components | ✅ 100% — All mapped to existing or planned modules |
+| Dashboard | Active Sidebar Tabs | Coverage |
+|-----------|-------------------|----------|
+| **Admin** | 8 tabs | ✅ 100% — All mapped to existing or planned modules |
+| **Instructor** | 13 tabs | ✅ 100% — All mapped to existing or planned modules |
+| **Student** | 17 tabs | ✅ 100% — All mapped to existing or planned modules |
+| **IT Admin** | 15 tabs | ✅ 100% — All mapped to existing or planned modules |
+| **TA** | 15 tabs | ✅ 100% — All mapped to existing or planned modules |
+
+> **Note**: Components that exist as files but are NOT in the sidebar are considered deleted and not counted. See [Dashboard API Mapping](./dashboard-api-mapping.md) for details on which components are active.
 
 ### Already Covered by Existing Backend Modules
 These frontend pages are already served by existing backend modules:

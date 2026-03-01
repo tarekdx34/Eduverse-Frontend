@@ -177,9 +177,12 @@ export class UpdatePreferencesDto {
 6. **Password Policy**: Min 8 chars, at least 1 uppercase, 1 number, 1 special char.
 
 ### Frontend Components Using This Module
-- **Admin**: UserManagementPage.tsx, StudentManagementPage.tsx
-- **IT Admin**: UserManagementPage.tsx
-- **All Dashboards**: ProfilePage.tsx, SettingsPage.tsx, SettingsPreferences.tsx
+- **Admin**: StudentManagementPage.tsx *(active as `students` tab)*
+- ~~**Admin**: UserManagementPage.tsx~~ *(Not in Admin sidebar — deleted; StudentManagementPage used instead)*
+- **IT Admin**: UserManagementPage.tsx *(active as `users` tab)*
+- **All Dashboards**: ProfilePage.tsx / DashboardProfileTab.tsx *(active as `profile` tab)*
+- **Student**: SettingsPreferences.tsx *(active as `settings` tab)*
+- ~~**Instructor**: SettingsPage.tsx~~ *(Removed from Instructor sidebar — task I16)*
 
 ---
 
@@ -237,8 +240,8 @@ interface RolePermissions {
 5. **TA Access Control**: Instructors grant specific permissions to their TAs per course.
 
 ### Frontend Components Using This Module
-- **Admin**: RoleManagementPage.tsx
-- **IT Admin**: RoleManagementPage.tsx
+- ~~**Admin**: RoleManagementPage.tsx~~ *(Not in Admin sidebar — deleted)*
+- **IT Admin**: RoleManagementPage.tsx *(active as `roles` tab)*
 
 ---
 

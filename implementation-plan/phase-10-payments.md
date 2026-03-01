@@ -104,8 +104,8 @@ interface QueryPaymentsDto {
 6. **Subscription Management**: Handle billing cycles, renewals, cancellations.
 
 ### Frontend Components Using This Module
-- **Student**: PaymentHistory.tsx
-- **Admin**: PaymentManagementPage.tsx
+- **Student**: PaymentHistory.tsx *(active as `payments` tab)*
+- ~~**Admin**: PaymentManagementPage.tsx~~ *(Not in Admin sidebar — deleted)*
 
 ---
 

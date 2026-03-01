@@ -4,67 +4,42 @@ This document maps every frontend dashboard component to the backend API endpoin
 
 ---
 
-## Admin Dashboard (26 Components)
+## Admin Dashboard (8 Active Sidebar Tabs)
 
-| Component | Required Backend Module | Key API Endpoints |
-|-----------|------------------------|-------------------|
-| DashboardOverview | Analytics | `GET /api/analytics/dashboard` |
-| UserManagementPage | User Management | `GET/POST/PUT/DELETE /api/users` |
-| CourseManagementPage | Courses (existing) | `GET/POST/PUT/DELETE /api/courses` |
-| DepartmentManagementPage | Campus (existing) | `GET/POST/PUT/DELETE /api/departments` |
-| StudentManagementPage | User Management + Enrollments | `GET /api/users?role=student`, `POST /api/enrollments` |
-| AttendanceManagementPage | Attendance | `GET /api/attendance/summary`, `/api/attendance/trends` |
-| ScheduleManagementPage | Schedule | `GET/POST/PUT/DELETE /api/schedule/events`, `/api/exams` |
-| EnrollmentPeriodPage | Enrollments (existing) | `GET/POST/PUT/DELETE /api/enrollment-periods` |
-| RoleManagementPage | Roles & Permissions | `GET/PUT /api/roles`, `PUT /api/roles/:id/permissions` |
-| AnalyticsReportsPage | Analytics + Reports | `GET /api/analytics/*`, `POST /api/reports/generate` |
-| PaymentManagementPage | Payments | `GET /api/payments/revenue`, `/api/payments/transactions` |
-| SecurityLogsPage | Security & Audit | `GET /api/security/logs`, `/api/audit/logs` |
-| SettingsHubPage | System Settings | `GET/PUT /api/settings` |
-| AcademicCalendarPage | Schedule | `GET /api/calendar/events` |
-| AdminNotificationsPage | Notifications + Announcements | `POST /api/announcements`, `POST /api/notifications/send` |
-| AIInsightsPage | AI | `GET /api/ai/usage-stats` |
-| BackupCenterPage | Backup | `GET/POST /api/backups` |
-| CommunicationPage | Messaging | `GET/POST /api/messages` |
-| ExamSchedulePage | Schedule | `GET/POST /api/exams` |
-| FeedbackSupportPage | Support & Feedback | `GET /api/support/tickets`, `/api/feedback` |
-| GlobalSearchPage | Search | `GET /api/search` |
-| PrerequisitesManagementPage | Courses (existing) | `GET/POST/DELETE /api/courses/:id/prerequisites` |
-| StaffAssignmentPage | Enrollments (existing) | `POST /api/course-instructors`, `/api/course-tas` |
-| SystemConfigPage | System Settings | `GET/PUT /api/settings` |
+> **Note**: 18+ component files exist in the Admin dashboard folder but are NOT active in the sidebar. Per project convention, non-sidebar components are considered deleted and not counted.
+
+| Component | Tab | Required Backend Module | Key API Endpoints |
+|-----------|-----|------------------------|-------------------|
+| DashboardOverview | `dashboard` | Analytics | `GET /api/analytics/dashboard` |
+| StudentManagementPage | `students` | User Management + Enrollments | `GET /api/users?role=student`, `POST /api/enrollments` |
+| CourseManagementPage | `courses` | Courses (existing) | `GET/POST/PUT/DELETE /api/courses` |
+| EnrollmentPeriodPage | `periods` | Enrollments (existing) | `GET/POST/PUT/DELETE /api/enrollment-periods` |
+| AcademicCalendarPage | `calendar` | Schedule | `GET /api/calendar/events` |
+| CommunicationPage | `communication` | Messaging | `GET/POST /api/messages` |
+| MessagingChat | `chat` | Messaging | `GET/POST /api/messages/conversations` |
+| DashboardProfileTab | `profile` | User Management | `GET/PUT /api/users/profile` |
 
 ---
 
-## Instructor Dashboard (40 Components)
+## Instructor Dashboard (13 Active Sidebar Tabs)
 
-| Component | Required Backend Module | Key API Endpoints |
-|-----------|------------------------|-------------------|
-| ModernDashboard | Analytics | `GET /api/analytics/instructor-dashboard` |
-| CoursesPage | Courses (existing) | `GET/POST/PUT/DELETE /api/courses` |
-| CourseDetail | Courses + Materials + Assignments | `GET /api/courses/:id`, `/api/materials`, `/api/assignments` |
-| AssignmentsList | Assignments | `GET/POST/PUT/DELETE /api/assignments` |
-| AssignmentModal | Assignments | `POST/PUT /api/assignments` |
-| GradesTable | Grades | `GET/PUT /api/grades` |
-| GradeModal | Grades | `PUT /api/grades/:id` |
-| AttendanceTable | Attendance | `GET/POST/PUT /api/attendance/sessions`, `/api/attendance/records` |
-| AttendanceModal | Attendance | `POST /api/attendance/sessions/:id/records` |
-| QuizzesPage | Quizzes | `GET/POST/PUT/DELETE /api/quizzes` |
-| LabsPage | Labs | `GET/POST/PUT/DELETE /api/labs` |
-| SchedulePage | Schedule | `GET/POST/PUT/DELETE /api/schedule/events` |
-| AnalyticsPage | Analytics | `GET /api/analytics/performance`, `/engagement`, `/attendance` |
-| AnnouncementsManager | Announcements | `GET/POST/PUT/DELETE /api/announcements` |
-| CommunicationPage | Messaging + Announcements | `GET/POST /api/messages`, `/api/announcements` |
-| UploadMaterialsPage | Course Materials | `POST /api/materials/upload`, `GET /api/materials` |
-| DiscussionPage | Discussions | `GET /api/discussions`, `POST /api/discussions/:id/reply` |
-| ReportsAnalytics | Analytics + Reports | `GET /api/analytics/*`, `POST /api/reports/generate` |
-| SettingsPage | User Management | `GET/PUT /api/users/profile`, `/api/users/preferences` |
-| NotificationsPage | Notifications | `GET /api/notifications`, `PATCH /api/notifications/:id/read` |
-| AIToolsPage | AI | `POST /api/ai/summarize`, `/api/ai/quiz/generate` |
-| ProfilePage | User Management | `GET/PUT /api/users/profile` |
-| GlobalSearchPage | Search | `GET /api/search` |
-| MessagesPanel | Messaging | `GET /api/messages/conversations` |
-| RosterTable | Enrollments (existing) | `GET /api/enrollments?sectionId=X` |
-| WaitlistTable | Enrollments (existing) | `GET /api/enrollments?status=waitlisted` |
+> **Note**: Several components were removed from the sidebar (AnalyticsPage I10, AIToolsPage I10, LabsPage I11, SettingsPage I16, GlobalSearchPage I16, WaitlistTable I16, Materials tab I14, CommunicationPage). Non-sidebar components are considered deleted.
+
+| Component | Tab | Required Backend Module | Key API Endpoints |
+|-----------|-----|------------------------|-------------------|
+| ModernDashboard | `dashboard` | Analytics | `GET /api/analytics/instructor-dashboard` |
+| CoursesPage → CourseDetail | `courses` | Courses (existing) + Assignments + Materials | `GET /api/courses/:id`, `/api/assignments`, `/api/materials` |
+| QuizzesPage | `quizzes` | Quizzes | `GET/POST/PUT/DELETE /api/quizzes` |
+| AssignmentsList + AssignmentModal | `assignments` | Assignments | `GET/POST/PUT/DELETE /api/assignments` |
+| SchedulePage | `schedule` | Schedule | `GET/POST/PUT/DELETE /api/schedule/events` |
+| RosterTable | `roster` | Enrollments (existing) | `GET /api/enrollments?sectionId=X` |
+| GradesTable + GradeModal | `grades` | Grades | `GET/PUT /api/grades` |
+| AttendanceTable + AttendanceModal | `attendance` | Attendance | `GET/POST/PUT /api/attendance/sessions`, `/api/attendance/records` |
+| AnnouncementsManager | `announcements` | Announcements | `GET/POST/PUT/DELETE /api/announcements` |
+| NotificationsPage | `notifications` | Notifications | `GET /api/notifications`, `PATCH /api/notifications/:id/read` |
+| DiscussionPage | `discussion` | Discussions | `GET /api/discussions`, `POST /api/discussions/:id/reply` |
+| MessagingChat | `chat` | Messaging | `GET/POST /api/messages/conversations` |
+| ProfilePage | `profile` | User Management | `GET/PUT /api/users/profile` |
 
 ---
 
@@ -99,50 +74,53 @@ This document maps every frontend dashboard component to the backend API endpoin
 
 ---
 
-## IT Admin Dashboard (19 Components)
+## IT Admin Dashboard (15 Active Sidebar Tabs)
 
-| Component | Required Backend Module | Key API Endpoints |
-|-----------|------------------------|-------------------|
-| DashboardOverview | Monitoring + Analytics | `GET /api/monitoring/health`, `/api/analytics/dashboard` |
-| UserManagementPage | User Management | `GET/POST/PUT/DELETE /api/users` |
-| SecurityPage | Security & Audit | `GET /api/security/logs`, `/api/security/threats` |
-| SecurityLogsPage | Security & Audit | `GET /api/security/logs`, `/api/audit/logs` |
-| MonitoringPage | Monitoring | `GET /api/monitoring/servers`, `/api/monitoring/metrics` |
-| BackupCenterPage | Backup | `GET/POST /api/backups`, `PUT /api/backups/schedule` |
-| SystemConfigPage | System Settings | `GET/PUT /api/settings` |
-| DatabasePage | Backup | `GET /api/database/stats`, `POST /api/backups/integrity-check` |
-| IntegrationsPage | System Settings | `GET/PUT /api/integrations` |
-| AIManagementPage | AI | `GET /api/ai/models`, `GET /api/ai/usage-stats` |
-| MultiCampusPage | Campus (existing) | `GET/POST/PUT/DELETE /api/campuses` |
-| CloudServicesPage | Monitoring | `GET /api/monitoring/servers` (cloud services) |
-| ErrorLogsPage | Monitoring | `GET /api/errors` |
-| RoleManagementPage | Roles & Permissions | `GET/PUT /api/roles` |
-| AlertsManagementPage | Monitoring | `GET /api/monitoring/alerts` |
-| FeedbackSupportPage | Support & Feedback | `GET /api/support/tickets`, `/api/feedback` |
+> **Note**: AIManagementPage exists as a file but is NOT in the IT Admin sidebar — considered deleted.
+
+| Component | Tab | Required Backend Module | Key API Endpoints |
+|-----------|-----|------------------------|-------------------|
+| DashboardOverview | `dashboard` | Monitoring + Analytics | `GET /api/monitoring/health`, `/api/analytics/dashboard` |
+| UserManagementPage | `users` | User Management | `GET/POST/PUT/DELETE /api/users` |
+| RoleManagementPage | `roles` | Roles & Permissions | `GET/PUT /api/roles` |
+| SystemConfigPage | `config` | System Settings | `GET/PUT /api/settings` |
+| IntegrationsPage | `integrations` | System Settings | `GET/PUT /api/integrations` |
+| DatabasePage | `database` | Backup | `GET /api/database/stats`, `POST /api/backups/integrity-check` |
+| MonitoringPage | `monitoring` | Monitoring | `GET /api/monitoring/servers`, `/api/monitoring/metrics` |
+| SecurityPage | `security` | Security & Audit | `GET /api/security/logs`, `/api/security/threats` |
+| SecurityLogsPage | `security-logs` | Security & Audit | `GET /api/security/logs`, `/api/audit/logs` |
+| BackupCenterPage | `backup` | Backup | `GET/POST /api/backups`, `PUT /api/backups/schedule` |
+| MultiCampusPage | `campus` | Campus (existing) | `GET/POST/PUT/DELETE /api/campuses` |
+| AlertsManagementPage | `alerts` | Monitoring | `GET /api/monitoring/alerts` |
+| CloudServicesPage | `cloud` | Monitoring | `GET /api/monitoring/servers` (cloud services) |
+| ErrorLogsPage | `error-logs` | Monitoring | `GET /api/errors` |
+| FeedbackSupportPage | `feedback` | Support & Feedback | `GET /api/support/tickets`, `/api/feedback` |
+| MessagingChat | `chat` | Messaging | `GET/POST /api/messages/conversations` |
+| DashboardProfileTab | `profile` | User Management | `GET/PUT /api/users/profile` |
 
 ---
 
-## TA Dashboard (20 Components)
+## TA Dashboard (15 Active Sidebar Tabs)
 
-| Component | Required Backend Module | Key API Endpoints |
-|-----------|------------------------|-------------------|
-| ModernDashboard | Analytics | `GET /api/analytics/ta-dashboard` |
-| CoursesPage | Courses (existing) | `GET /api/courses` (TA's assigned courses) |
-| GradingPage | Grades + Assignments | `GET /api/assignments/:id/submissions`, `PATCH /:subId/grade` |
-| AttendancePage | Attendance | `GET/POST /api/attendance/sessions`, `/records` |
-| QuizzesPage | Quizzes | `GET/POST/PUT/DELETE /api/quizzes` |
-| LabsPage | Labs | `GET/POST/PUT/DELETE /api/labs` |
-| DiscussionPage | Discussions | `GET /api/discussions`, `POST /api/discussions/:id/reply` |
-| SchedulePage | Schedule | `GET /api/schedule/events` |
-| CommunicationPage | Messaging | `GET/POST /api/messages` |
-| AnalyticsPage | Analytics | `GET /api/analytics/performance`, `/engagement` |
-| OfficeHoursPage | Office Hours | `GET/POST /api/office-hours/slots`, `/appointments` |
-| UploadMaterialsPage | Course Materials | `POST /api/materials/upload`, `GET /api/materials` |
-| NotificationsPage | Notifications | `GET /api/notifications` |
-| AnnouncementsPage | Announcements | `GET/POST /api/announcements` |
-| AIAssistantPage | AI | `POST /api/ai/chatbot/conversations`, `POST /api/ai/grade` |
-| StudentPerformancePage | Analytics | `GET /api/analytics/at-risk-students` |
-| LabResourcesPage | Labs + Materials | `GET /api/labs/:id/instructions`, `/api/materials` |
+> **Note**: Several components were removed from the sidebar (OfficeHoursPage T8, AttendancePage standalone T7 — now inside course tab per T4, CommunicationPage T11, UploadMaterialsPage). Non-sidebar components are considered deleted.
+
+| Component | Tab | Required Backend Module | Key API Endpoints |
+|-----------|-----|------------------------|-------------------|
+| ModernDashboard | `dashboard` | Analytics | `GET /api/analytics/ta-dashboard` |
+| AnalyticsPage + StudentPerformancePage | `analytics` | Analytics | `GET /api/analytics/performance`, `/engagement`, `/at-risk-students` |
+| CoursesPage | `courses` | Courses (existing) | `GET /api/courses` (TA's assigned courses) |
+| LabsPage | `labs` | Labs | `GET/POST/PUT/DELETE /api/labs` |
+| QuizzesPage | `quizzes` | Quizzes | `GET/POST/PUT/DELETE /api/quizzes` |
+| LabResourcesPage | `lab-resources` | Labs + Materials | `GET /api/labs/:id/instructions`, `/api/materials` |
+| GradingPage | `grading` | Grades + Assignments | `GET /api/assignments/:id/submissions`, `PATCH /:subId/grade` |
+| StudentPerformancePage | `students` | Analytics | `GET /api/analytics/at-risk-students` |
+| SchedulePage | `schedule` | Schedule | `GET /api/schedule/events` |
+| AnnouncementsPage | `announcements` | Announcements | `GET/POST /api/announcements` |
+| NotificationsPage | `notifications` | Notifications | `GET /api/notifications` |
+| DiscussionPage | `discussion` | Discussions | `GET /api/discussions`, `POST /api/discussions/:id/reply` |
+| MessagingChat | `chat` | Messaging | `GET/POST /api/messages/conversations` |
+| AIAssistantPage | `ai-assistant` | AI | `POST /api/ai/chatbot/conversations`, `POST /api/ai/grade` |
+| DashboardProfileTab | `profile` | User Management | `GET/PUT /api/users/profile` |
 
 ---
 
@@ -157,29 +135,29 @@ This document maps every frontend dashboard component to the backend API endpoin
 | Files (existing) ✅ | | ✅ | | | ✅ |
 | **Assignments** | ✅ | ✅ | ✅ | | ✅ |
 | **Grades** | ✅ | ✅ | ✅ | | ✅ |
-| **Attendance** | ✅ | ✅ | ✅ | | ✅ |
+| **Attendance** | | ✅ | ✅ | | |
 | **Quizzes** | | ✅ | ✅ | | ✅ |
-| **Labs** | | ✅ | ✅ | | ✅ |
-| **Notifications** | ✅ | ✅ | ✅ | | ✅ |
+| **Labs** | | | ✅ | | ✅ |
+| **Notifications** | | ✅ | ✅ | | ✅ |
 | **Messaging** | ✅ | ✅ | ✅ | | ✅ |
-| **Announcements** | ✅ | ✅ | | | ✅ |
+| **Announcements** | | ✅ | | | ✅ |
 | **Discussions** | | ✅ | ✅ | | ✅ |
 | **Community** | | | ✅ | | |
 | **Schedule** | ✅ | ✅ | ✅ | | ✅ |
 | **Analytics** | ✅ | ✅ | ✅ | | ✅ |
-| **Reports** | ✅ | ✅ | | | |
-| **Course Materials** | | ✅ | | | ✅ |
+| **Reports** | | | | | |
+| **Course Materials** | | | | | ✅ |
 | **User Management** | ✅ | ✅ | ✅ | ✅ | |
-| **Roles & Permissions** | ✅ | | | ✅ | |
+| **Roles & Permissions** | | | | ✅ | |
 | **Gamification** | | | ✅ | | |
 | **Tasks & Reminders** | | | ✅ | | |
-| **AI** | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **Security & Audit** | ✅ | | | ✅ | |
-| **System Settings** | ✅ | | | ✅ | |
+| **AI** | | | ✅ | | ✅ |
+| **Security & Audit** | | | | ✅ | |
+| **System Settings** | | | | ✅ | |
 | **Monitoring** | | | | ✅ | |
-| **Backup** | ✅ | | | ✅ | |
-| **Payments** | ✅ | | ✅ | | |
+| **Backup** | | | | ✅ | |
+| **Payments** | | | ✅ | | |
 | **Certificates** | | | ✅ | | |
-| **Search** | ✅ | ✅ | ✅ | | |
-| **Office Hours** | | | | | ✅ |
-| **Support & Feedback** | ✅ | | | ✅ | |
+| **Search** | | | | | |
+| **Office Hours** | ✅ | ✅ | | ✅ | |
+| **Support & Feedback** | | | | ✅ | |

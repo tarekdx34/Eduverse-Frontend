@@ -172,9 +172,10 @@ interface QueryMaterialsDto {
 7. **Bulk Upload**: Support uploading multiple files at once.
 
 ### Frontend Components Using This Module
-- **Instructor**: UploadMaterialsPage.tsx, CourseDetail.tsx
-- **TA**: UploadMaterialsPage.tsx
-- **Student**: ClassTab.tsx (viewing materials)
+- **Instructor**: CourseDetail.tsx *(materials accessed via course view)*
+- ~~**Instructor**: UploadMaterialsPage.tsx~~ *(Materials tab removed from CourseDetail — task I14)*
+- **TA**: LabResourcesPage.tsx *(active as `lab-resources` tab)*
+- **Student**: ClassTab.tsx *(viewing materials via `myclass` tab)*
 
 ---
 
