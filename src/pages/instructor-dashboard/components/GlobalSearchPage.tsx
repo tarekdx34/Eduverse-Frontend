@@ -33,7 +33,7 @@ interface SearchResult {
 
 const CATEGORIES: { key: Category; label: string; icon: React.ReactNode; color: string }[] = [
   { key: 'all', label: 'All', icon: <Search size={14} />, color: '#6366F1' },
-  { key: 'students', label: 'Students', icon: <Users size={14} />, color: '#8B5CF6' },
+  { key: 'students', label: 'Students', icon: <Users size={14} />, color: '#3B82F6' },
   { key: 'courses', label: 'Courses', icon: <BookOpen size={14} />, color: '#F59E0B' },
   { key: 'assignments', label: 'Assignments', icon: <FileText size={14} />, color: '#EC4899' },
   { key: 'grades', label: 'Grades', icon: <BarChart3 size={14} />, color: '#0EA5E9' },
@@ -42,8 +42,8 @@ const CATEGORIES: { key: Category; label: string; icon: React.ReactNode; color: 
 ];
 
 const MOCK_RESULTS: SearchResult[] = [
-  { title: 'John Smith', subtitle: 'CS 101, CS 201 • john.smith@university.edu', icon: <Users size={18} />, category: 'students', color: '#8B5CF6' },
-  { title: 'Emily Johnson', subtitle: 'CS 101 • emily.j@university.edu', icon: <Users size={18} />, category: 'students', color: '#8B5CF6' },
+  { title: 'John Smith', subtitle: 'CS 101, CS 201 • john.smith@university.edu', icon: <Users size={18} />, category: 'students', color: '#3B82F6' },
+  { title: 'Emily Johnson', subtitle: 'CS 101 • emily.j@university.edu', icon: <Users size={18} />, category: 'students', color: '#3B82F6' },
   { title: 'CS 101 - Introduction to Computer Science', subtitle: '45 students • Fall 2024', icon: <BookOpen size={18} />, category: 'courses', color: '#F59E0B' },
   { title: 'CS 201 - Data Structures', subtitle: '32 students • Fall 2024', icon: <BookOpen size={18} />, category: 'courses', color: '#F59E0B' },
   { title: 'Assignment 3: Linked Lists', subtitle: 'CS 201 • Due: Oct 15, 2024 • 28 submissions', icon: <FileText size={18} />, category: 'assignments', color: '#EC4899' },
@@ -55,7 +55,7 @@ const MOCK_RESULTS: SearchResult[] = [
 ];
 
 const QUICK_ACTIONS = [
-  { title: 'Grade Submissions', icon: <ClipboardCheck size={22} />, color: '#8B5CF6', description: 'Review and grade' },
+  { title: 'Grade Submissions', icon: <ClipboardCheck size={22} />, color: '#3B82F6', description: 'Review and grade' },
   { title: 'Create Assignment', icon: <FilePlus size={22} />, color: '#F59E0B', description: 'New assignment' },
   { title: 'Upload Materials', icon: <Upload size={22} />, color: '#06B6D4', description: 'Add resources' },
   { title: 'Post Announcement', icon: <Megaphone size={22} />, color: '#EC4899', description: 'Notify students' },

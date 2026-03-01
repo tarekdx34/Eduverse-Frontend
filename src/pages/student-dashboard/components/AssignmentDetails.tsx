@@ -1,17 +1,17 @@
-import { 
-  ArrowLeft, 
-  Calendar, 
-  Clock, 
-  FileText, 
-  Download, 
-  Upload, 
+import {
+  ArrowLeft,
+  Calendar,
+  Clock,
+  FileText,
+  Download,
+  Upload,
   Paperclip,
   Send,
   AlertCircle,
   CheckCircle,
   Award,
   X,
-  File
+  File,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -61,18 +61,38 @@ const assignmentData: { [key: number]: any } = {
 - Provide screenshots of successful query executions
 - Document any assumptions made during the design process`,
     rubric: [
-      { criteria: 'ER Diagram Accuracy', points: 20, description: 'Complete and accurate entity-relationship diagram' },
-      { criteria: 'Database Normalization', points: 25, description: 'Proper normalization (3NF or higher)' },
-      { criteria: 'SQL Implementation', points: 30, description: 'Working SQL scripts with no errors' },
-      { criteria: 'Query Efficiency', points: 15, description: 'Optimized queries with appropriate indexes' },
-      { criteria: 'Documentation', points: 10, description: 'Clear and comprehensive documentation' }
+      {
+        criteria: 'ER Diagram Accuracy',
+        points: 20,
+        description: 'Complete and accurate entity-relationship diagram',
+      },
+      {
+        criteria: 'Database Normalization',
+        points: 25,
+        description: 'Proper normalization (3NF or higher)',
+      },
+      {
+        criteria: 'SQL Implementation',
+        points: 30,
+        description: 'Working SQL scripts with no errors',
+      },
+      {
+        criteria: 'Query Efficiency',
+        points: 15,
+        description: 'Optimized queries with appropriate indexes',
+      },
+      {
+        criteria: 'Documentation',
+        points: 10,
+        description: 'Clear and comprehensive documentation',
+      },
     ],
     resources: [
       { name: 'Project Requirements.pdf', size: '245 KB', type: 'pdf' },
       { name: 'Database Schema Template.sql', size: '12 KB', type: 'sql' },
       { name: 'Sample Data.csv', size: '89 KB', type: 'csv' },
-      { name: 'Grading Rubric.pdf', size: '156 KB', type: 'pdf' }
-    ]
+      { name: 'Grading Rubric.pdf', size: '156 KB', type: 'pdf' },
+    ],
   },
   2: {
     id: 2,
@@ -117,14 +137,14 @@ const assignmentData: { [key: number]: any } = {
       { criteria: 'UI/UX Design', points: 30, description: 'Professional and intuitive interface' },
       { criteria: 'Code Quality', points: 35, description: 'Clean, well-organized code' },
       { criteria: 'API Integration', points: 25, description: 'Successful API integration' },
-      { criteria: 'Documentation', points: 20, description: 'Complete documentation and demo' }
+      { criteria: 'Documentation', points: 20, description: 'Complete documentation and demo' },
     ],
     resources: [
       { name: 'Assignment Instructions.pdf', size: '312 KB', type: 'pdf' },
       { name: 'API Documentation.pdf', size: '198 KB', type: 'pdf' },
       { name: 'UI Design Guidelines.pdf', size: '567 KB', type: 'pdf' },
-      { name: 'Sample Code.zip', size: '1.2 MB', type: 'zip' }
-    ]
+      { name: 'Sample Code.zip', size: '1.2 MB', type: 'zip' },
+    ],
   },
   3: {
     id: 3,
@@ -168,13 +188,13 @@ const assignmentData: { [key: number]: any } = {
       { criteria: 'Theoretical Analysis', points: 15, description: 'Accurate complexity analysis' },
       { criteria: 'Implementation', points: 15, description: 'Correct algorithm implementations' },
       { criteria: 'Empirical Testing', points: 10, description: 'Comprehensive performance tests' },
-      { criteria: 'Presentation', points: 10, description: 'Clear writing and visualizations' }
+      { criteria: 'Presentation', points: 10, description: 'Clear writing and visualizations' },
     ],
     resources: [
       { name: 'Assignment Brief.pdf', size: '178 KB', type: 'pdf' },
       { name: 'Algorithm Templates.java', size: '34 KB', type: 'java' },
-      { name: 'Report Template.docx', size: '45 KB', type: 'docx' }
-    ]
+      { name: 'Report Template.docx', size: '45 KB', type: 'docx' },
+    ],
   },
   4: {
     id: 4,
@@ -218,14 +238,14 @@ const assignmentData: { [key: number]: any } = {
       { criteria: 'Completeness', points: 20, description: 'All sections included' },
       { criteria: 'Clarity', points: 20, description: 'Requirements are clear and testable' },
       { criteria: 'Format', points: 15, description: 'Follows IEEE 830 standards' },
-      { criteria: 'Diagrams', points: 20, description: 'Quality use case diagrams' }
+      { criteria: 'Diagrams', points: 20, description: 'Quality use case diagrams' },
     ],
     resources: [
       { name: 'IEEE 830 Template.docx', size: '234 KB', type: 'docx' },
       { name: 'Sample SRS.pdf', size: '456 KB', type: 'pdf' },
-      { name: 'Requirements Checklist.pdf', size: '123 KB', type: 'pdf' }
-    ]
-  }
+      { name: 'Requirements Checklist.pdf', size: '123 KB', type: 'pdf' },
+    ],
+  },
 };
 
 const getDaysUntilDue = (dueDate: string) => {
@@ -239,6 +259,7 @@ const getDaysUntilDue = (dueDate: string) => {
 export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDetailsProps) {
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
   const [showSubmitConfirmation, setShowSubmitConfirmation] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const assignment = assignmentData[assignmentId];
 
@@ -277,8 +298,12 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
   };
 
   const confirmSubmit = () => {
-    alert('Assignment submitted successfully!');
     setShowSubmitConfirmation(false);
+    setShowSuccessModal(true);
+  };
+
+  const handleSuccessClose = () => {
+    setShowSuccessModal(false);
     onBack();
   };
 
@@ -313,11 +338,13 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
               </div>
               <h1 className="text-3xl mb-2 font-bold">{assignment.title}</h1>
               <p className="text-purple-100 text-lg mb-4">{assignment.description}</p>
-              
+
               <div className="flex items-center gap-6 text-sm">
                 <div className="flex items-center gap-2">
                   <div className={`w-3 h-3 rounded-full ${assignment.color}`}></div>
-                  <span>{assignment.courseCode} - {assignment.course}</span>
+                  <span>
+                    {assignment.courseCode} - {assignment.course}
+                  </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Award className="w-4 h-4" />
@@ -325,26 +352,32 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
                 </div>
               </div>
             </div>
-            
+
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 min-w-[200px] border border-white/20">
               <div className="text-center mb-3">
                 <Calendar className="w-6 h-6 mx-auto mb-2" />
                 <p className="text-sm text-purple-100 mb-1">Due Date</p>
                 <p className="text-xl font-semibold">
-                  {new Date(assignment.dueDate).toLocaleDateString('en-US', { 
-                    month: 'short', 
+                  {new Date(assignment.dueDate).toLocaleDateString('en-US', {
+                    month: 'short',
                     day: 'numeric',
-                    year: 'numeric'
+                    year: 'numeric',
                   })}
                 </p>
                 <p className="text-sm text-purple-100">{assignment.dueTime}</p>
               </div>
-              <div className={`text-center p-3 rounded-lg ${
-                daysUntil <= 2 ? 'bg-red-500/30' : 'bg-white/10'
-              }`}>
+              <div
+                className={`text-center p-3 rounded-lg ${
+                  daysUntil <= 2 ? 'bg-red-500/30' : 'bg-white/10'
+                }`}
+              >
                 <Clock className="w-5 h-5 mx-auto mb-1" />
                 <p className={daysUntil <= 2 ? 'text-red-100' : 'text-white'}>
-                  {daysUntil > 0 ? `${daysUntil} days left` : daysUntil === 0 ? 'Due today' : 'Overdue'}
+                  {daysUntil > 0
+                    ? `${daysUntil} days left`
+                    : daysUntil === 0
+                      ? 'Due today'
+                      : 'Overdue'}
                 </p>
               </div>
             </div>
@@ -379,7 +412,10 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
               <div className="p-6">
                 <div className="space-y-4">
                   {assignment.rubric.map((item: any, index: number) => (
-                    <div key={index} className="border border-slate-100 rounded-lg p-4 hover:bg-slate-50 transition-colors">
+                    <div
+                      key={index}
+                      className="border border-slate-100 rounded-lg p-4 hover:bg-slate-50 transition-colors"
+                    >
                       <div className="flex items-start justify-between mb-2">
                         <h3 className="text-slate-800 font-medium">{item.criteria}</h3>
                         <span className="px-3 py-1 bg-[#7C3AED]/10 text-[#7C3AED] rounded-lg text-sm border border-[#7C3AED]/20 font-medium">
@@ -409,30 +445,34 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
                 <label className="inline-flex items-center gap-2 px-6 py-3 bg-[#7C3AED] text-white rounded-lg cursor-pointer hover:bg-[#6D28D9] transition-colors">
                   <Paperclip className="w-4 h-4" />
                   <span>Choose Files</span>
-                  <input
-                    type="file"
-                    multiple
-                    onChange={handleFileAttach}
-                    className="hidden"
-                  />
+                  <input type="file" multiple onChange={handleFileAttach} className="hidden" />
                 </label>
-                <p className="text-slate-500 text-xs mt-3">Supported formats: PDF, DOC, DOCX, ZIP, RAR (Max 50MB each)</p>
+                <p className="text-slate-500 text-xs mt-3">
+                  Supported formats: PDF, DOC, DOCX, ZIP, RAR (Max 50MB each)
+                </p>
               </div>
 
               {/* Attached Files */}
               {attachedFiles.length > 0 && (
                 <div className="mb-6">
-                  <h3 className="text-slate-800 mb-3 font-medium">Attached Files ({attachedFiles.length})</h3>
+                  <h3 className="text-slate-800 mb-3 font-medium">
+                    Attached Files ({attachedFiles.length})
+                  </h3>
                   <div className="space-y-2">
                     {attachedFiles.map((file, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 border border-slate-100 rounded-lg hover:bg-slate-50">
+                      <div
+                        key={index}
+                        className="flex items-center justify-between p-3 border border-slate-100 rounded-lg hover:bg-slate-50"
+                      >
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 bg-[#7C3AED]/10 rounded-lg flex items-center justify-center">
                             <File className="w-5 h-5 text-[#7C3AED]" />
                           </div>
                           <div>
                             <p className="text-slate-800 text-sm font-medium">{file.name}</p>
-                            <p className="text-slate-500 text-xs">{(file.size / 1024).toFixed(2)} KB</p>
+                            <p className="text-slate-500 text-xs">
+                              {(file.size / 1024).toFixed(2)} KB
+                            </p>
                           </div>
                         </div>
                         <button
@@ -456,7 +496,7 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
                 <Send className="w-5 h-5" />
                 <span className="text-lg">Hand In Assignment</span>
               </button>
-              
+
               {attachedFiles.length === 0 && (
                 <p className="text-amber-600 text-sm text-center mt-3 flex items-center justify-center gap-2">
                   <AlertCircle className="w-4 h-4" />
@@ -486,21 +526,31 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
                   {new Date(assignment.dateAssigned).toLocaleDateString('en-US', {
                     month: 'long',
                     day: 'numeric',
-                    year: 'numeric'
+                    year: 'numeric',
                   })}
                 </p>
               </div>
               <div className="border-t border-slate-100 pt-4">
                 <p className="text-slate-600 text-sm mb-1 font-medium">Status</p>
-                <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium ${
-                  assignment.status === 'pending' ? 'bg-red-50 text-red-700 border border-red-200' :
-                  assignment.status === 'in-progress' ? 'bg-amber-50 text-amber-700 border border-amber-200' :
-                  'bg-green-50 text-green-700 border border-green-200'
-                }`}>
-                  {assignment.status === 'pending' ? <AlertCircle className="w-4 h-4" /> :
-                   assignment.status === 'in-progress' ? <Clock className="w-4 h-4" /> :
-                   <CheckCircle className="w-4 h-4" />}
-                  <span className="capitalize">{assignment.status === 'in-progress' ? 'In Progress' : assignment.status}</span>
+                <span
+                  className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium ${
+                    assignment.status === 'pending'
+                      ? 'bg-red-50 text-red-700 border border-red-200'
+                      : assignment.status === 'in-progress'
+                        ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                        : 'bg-green-50 text-green-700 border border-green-200'
+                  }`}
+                >
+                  {assignment.status === 'pending' ? (
+                    <AlertCircle className="w-4 h-4" />
+                  ) : assignment.status === 'in-progress' ? (
+                    <Clock className="w-4 h-4" />
+                  ) : (
+                    <CheckCircle className="w-4 h-4" />
+                  )}
+                  <span className="capitalize">
+                    {assignment.status === 'in-progress' ? 'In Progress' : assignment.status}
+                  </span>
                 </span>
               </div>
               <div className="border-t border-slate-100 pt-4">
@@ -512,7 +562,9 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
                       style={{ width: `${assignment.progress}%` }}
                     ></div>
                   </div>
-                  <p className="text-sm text-slate-800 mt-2 font-medium">{assignment.progress}% Complete</p>
+                  <p className="text-sm text-slate-800 mt-2 font-medium">
+                    {assignment.progress}% Complete
+                  </p>
                 </div>
               </div>
             </div>
@@ -578,7 +630,8 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
             </div>
             <h2 className="text-slate-800 text-center mb-2 font-semibold">Submit Assignment?</h2>
             <p className="text-slate-600 text-center mb-6">
-              Are you sure you want to submit this assignment? You have attached {attachedFiles.length} file(s).
+              Are you sure you want to submit this assignment? You have attached{' '}
+              {attachedFiles.length} file(s).
             </p>
             <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
               <div className="flex gap-3">
@@ -586,7 +639,8 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
                 <div>
                   <p className="text-amber-900 text-sm mb-1 font-medium">Important Note</p>
                   <p className="text-amber-700 text-xs">
-                    Once submitted, you may not be able to modify your submission. Make sure all files are attached.
+                    Once submitted, you may not be able to modify your submission. Make sure all
+                    files are attached.
                   </p>
                 </div>
               </div>
@@ -605,6 +659,26 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
                 Confirm Submit
               </button>
             </div>
+          </div>
+        </div>
+      )}
+      {/* Success Modal */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4 backdrop-blur-sm shadow-2xl">
+          <div className="bg-white rounded-2xl p-8 max-w-sm w-full shadow-2xl text-center animate-in fade-in zoom-in duration-300">
+            <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <CheckCircle className="w-10 h-10 text-emerald-600" />
+            </div>
+            <h2 className="text-2xl font-bold text-slate-800 mb-2">Submitted!</h2>
+            <p className="text-slate-600 mb-8 leading-relaxed">
+              Your assignment has been submitted successfully. Good luck!
+            </p>
+            <button
+              onClick={handleSuccessClose}
+              className="w-full px-6 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-all font-semibold shadow-lg shadow-emerald-200"
+            >
+              Great!
+            </button>
           </div>
         </div>
       )}

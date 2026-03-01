@@ -37,9 +37,14 @@ import {
   NotificationsPage,
   AnnouncementsManager,
   SelectedSectionSummary,
+  AIAttendanceModal,
 } from './components';
-import { AIAttendanceContainer } from './components/ai-features/attendance';
-import { MessagingChat, DashboardHeader, DashboardSidebar } from '../../components/shared';
+import {
+  MessagingChat,
+  DashboardHeader,
+  DashboardSidebar,
+  CustomDropdown,
+} from '../../components/shared';
 import { DashboardProfileTab } from '../../components/shared/DashboardProfileTab';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
@@ -106,7 +111,6 @@ const TABS: { key: TabKey; label: string; labelAr: string; icon: any; group: str
   },
   { key: 'schedule', label: 'Schedule', labelAr: 'الجدول', icon: CalendarDays, group: 'Teaching' },
   { key: 'roster', label: 'Roster', labelAr: 'قائمة الطلاب', icon: Users, group: 'Students' },
-  { key: 'grades', label: 'Grades', labelAr: 'الدرجات', icon: FileText, group: 'Students' },
   { key: 'attendance', label: 'Attendance', labelAr: 'الحضور', icon: Calendar, group: 'Students' },
   {
     key: 'announcements',
@@ -137,9 +141,10 @@ function InstructorDashboardContent() {
   const navigate = useNavigate();
   const params = useParams();
   const [activeTab, setActiveTab] = useState<TabKey>('dashboard');
+  const [rosterSubTab, setRosterSubTab] = useState<'overview' | 'grades'>('overview');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
-  const [attendanceMode, setAttendanceMode] = useState<'manual' | 'ai'>('manual');
+  const [isAIAttendanceModalOpen, setIsAIAttendanceModalOpen] = useState(false);
   const { isDark, toggleTheme, primaryHex, primaryColor, setPrimaryColor } = useTheme() as any;
   const { language, setLanguage, isRTL, t } = useLanguage();
 
@@ -192,6 +197,12 @@ function InstructorDashboardContent() {
   // Sync tab from URL
   useEffect(() => {
     const tabParam = (params.tab as TabKey) || 'dashboard';
+    if (tabParam === 'grades') {
+      setActiveTab('roster');
+      setRosterSubTab('grades');
+      navigate('/instructordashboard/roster', { replace: true });
+      return;
+    }
     if (TABS.some((t) => t.key === tabParam)) {
       setActiveTab(tabParam);
     } else {
@@ -210,7 +221,7 @@ function InstructorDashboardContent() {
   const handleTabChange = (key: TabKey) => {
     setActiveTab(key);
     // reset section on non section-related tabs
-    if (!['roster', 'grades', 'attendance'].includes(key)) {
+    if (!['roster', 'attendance'].includes(key)) {
       setActiveSectionId(null);
     }
     navigate(`/instructordashboard/${key}`);
@@ -461,32 +472,24 @@ function InstructorDashboardContent() {
 
       {/* Main Content */}
       <main className={`flex-1 ${isRTL ? 'lg:mr-64' : 'lg:ml-64'} p-4 lg:p-10`}>
-        {/* Mobile menu toggle */}
-        <button
-          onClick={() => setSidebarOpen(true)}
-          className={`lg:hidden mb-4 p-2 rounded-xl transition-colors ${isDark ? 'bg-white/5 hover:bg-white/10 text-slate-400' : 'bg-white border border-slate-200 hover:bg-slate-50 text-slate-600'}`}
-          aria-label="Open navigation menu"
-        >
-          <Menu className="w-6 h-6" />
-        </button>
         <DashboardHeader
           userName="Prof. Sarah Martinez"
           userRole="Instructor"
           isDark={isDark}
           isRTL={isRTL}
           accentColor={primaryHex || '#4F46E5'}
-          avatarGradient="from-indigo-500 to-purple-500"
+          avatarGradient="from-[#3b82f6] to-[#06b6d4]"
           language={language}
           onToggleTheme={toggleTheme}
           onSetLanguage={setLanguage}
           searchRole="instructor"
           onProfileClick={() => handleTabChange('profile')}
+          onMenuClick={() => setSidebarOpen(true)}
           primaryColor={primaryColor}
           onSetPrimaryColor={setPrimaryColor}
           availableColors={[
             { id: 'blue', colorClass: 'bg-blue-500', hex: '#3b82f6' },
             { id: 'emerald', colorClass: 'bg-emerald-500', hex: '#10b981' },
-            { id: 'violet', colorClass: 'bg-violet-500', hex: '#8b5cf6' },
             { id: 'rose', colorClass: 'bg-rose-500', hex: '#f43f5e' },
             { id: 'amber', colorClass: 'bg-amber-500', hex: '#f59e0b' },
           ]}
@@ -535,58 +538,84 @@ function InstructorDashboardContent() {
         {/* Roster */}
         {activeTab === 'roster' && (
           <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <label className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-                Select Section
-              </label>
-              <select
-                className={`border rounded-md px-3 py-2 ${isDark ? 'bg-white/5 border-white/10 text-slate-200' : 'bg-white border-gray-300 text-gray-900'}`}
+            <div className="max-w-xs mb-6">
+              <CustomDropdown
+                label="Select Section"
+                options={sectionOptions}
                 value={activeSectionId || String(SECTIONS[0].sectionId)}
-                onChange={(e) => setActiveSectionId(e.target.value)}
-              >
-                <option value="" disabled>
-                  Choose a section
-                </option>
-                {sectionOptions.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
+                onChange={setActiveSectionId}
+                isDark={isDark}
+                accentColor={primaryHex}
+              />
             </div>
             <SelectedSectionSummary section={selectedSection as any} />
-            <RosterTable
-              data={currentRoster}
-              grades={activeSectionId ? gradesData[activeSectionId] || [] : []}
-              onEdit={(student) => {
-                setEditingStudent(student);
-                setIsEditOpen(true);
-              }}
-            />
+
+            <div className="flex gap-4 border-b border-gray-200 dark:border-white/10 mb-6">
+              <button
+                onClick={() => setRosterSubTab('overview')}
+                className={`pb-2 px-1 text-sm font-medium transition-colors relative ${
+                  rosterSubTab === 'overview'
+                    ? 'text-indigo-600'
+                    : 'text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200'
+                }`}
+              >
+                {t('overview') || 'Overview'}
+                {rosterSubTab === 'overview' && (
+                  <div
+                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600"
+                    style={{ backgroundColor: primaryHex }}
+                  />
+                )}
+              </button>
+              <button
+                onClick={() => setRosterSubTab('grades')}
+                className={`pb-2 px-1 text-sm font-medium transition-colors relative ${
+                  rosterSubTab === 'grades'
+                    ? 'text-indigo-600'
+                    : 'text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200'
+                }`}
+              >
+                {t('detailedGrades') || 'Detailed Grades'}
+                {rosterSubTab === 'grades' && (
+                  <div
+                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600"
+                    style={{ backgroundColor: primaryHex }}
+                  />
+                )}
+              </button>
+            </div>
+
+            {rosterSubTab === 'overview' ? (
+              <RosterTable
+                data={currentRoster}
+                grades={activeSectionId ? gradesData[activeSectionId] || [] : []}
+                onEdit={(student) => {
+                  setEditingStudent(student);
+                  setIsEditOpen(true);
+                }}
+              />
+            ) : (
+              <GradesTable
+                data={activeSectionId ? gradesData[activeSectionId] || [] : []}
+                onEdit={handleEditGrade}
+                onDelete={handleDeleteGrade}
+              />
+            )}
           </div>
         )}
 
         {/* Assignments */}
         {activeTab === 'assignments' && (
           <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <label className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-                Select Section
-              </label>
-              <select
-                className={`border rounded-md px-3 py-2 ${isDark ? 'bg-white/5 border-white/10 text-slate-200' : 'bg-white border-gray-300 text-gray-900'}`}
+            <div className="max-w-xs mb-6">
+              <CustomDropdown
+                label="Select Section"
+                options={sectionOptions}
                 value={activeSectionId || String(SECTIONS[0].sectionId)}
-                onChange={(e) => setActiveSectionId(e.target.value)}
-              >
-                <option value="" disabled>
-                  Choose a section
-                </option>
-                {sectionOptions.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
+                onChange={setActiveSectionId}
+                isDark={isDark}
+                accentColor={primaryHex}
+              />
             </div>
             <SelectedSectionSummary section={selectedSection as any} />
             <AssignmentsList
@@ -602,97 +631,34 @@ function InstructorDashboardContent() {
         {/* Attendance */}
         {activeTab === 'attendance' && (
           <div className="space-y-6">
-            <div className="flex items-center gap-3">
-              <label className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-                Select Section
-              </label>
-              <select
-                className={`border rounded-md px-3 py-2 ${isDark ? 'bg-white/5 border-white/10 text-slate-200' : 'bg-white border-gray-300 text-gray-900'}`}
+            <div className="max-w-xs mb-6">
+              <CustomDropdown
+                label="Select Section"
+                options={sectionOptions}
                 value={activeSectionId || String(SECTIONS[0].sectionId)}
-                onChange={(e) => setActiveSectionId(e.target.value)}
-              >
-                <option value="" disabled>
-                  Choose a section
-                </option>
-                {sectionOptions.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
+                onChange={setActiveSectionId}
+                isDark={isDark}
+                accentColor={primaryHex}
+              />
             </div>
             <SelectedSectionSummary section={selectedSection as any} />
 
-            {/* Content Area */}
-            {attendanceMode === 'ai' ? (
-              <div
-                className={`rounded-xl border shadow-sm p-6 ${isDark ? 'bg-card-dark border-white/10' : 'bg-white border-gray-200'}`}
+            <div
+              className={`rounded-xl border shadow-sm p-6 ${isDark ? 'bg-card-dark border-white/10' : 'bg-white border-gray-200'}`}
+            >
+              <h3
+                className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}
               >
-                <div className="flex items-center justify-between mb-6">
-                  <h3
-                    className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}
-                  >
-                    AI Attendance
-                  </h3>
-                  <button
-                    onClick={() => setAttendanceMode('manual')}
-                    className={`text-sm ${isDark ? 'text-slate-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}
-                  >
-                    ← Back to Manual Attendance
-                  </button>
-                </div>
-                <AIAttendanceContainer
-                  courseSection={selectedSection?.courseCode || 'Unknown Section'}
-                />
-              </div>
-            ) : (
-              <div
-                className={`rounded-xl border shadow-sm p-6 ${isDark ? 'bg-card-dark border-white/10' : 'bg-white border-gray-200'}`}
-              >
-                <h3
-                  className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}
-                >
-                  Manual Attendance
-                </h3>
-                <AttendanceTable
-                  sessions={activeSectionId ? attendanceData[activeSectionId] || [] : []}
-                  onCreate={handleCreateAttendance}
-                  onEdit={handleEditAttendance}
-                  onDelete={handleDeleteAttendance}
-                />
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Grades */}
-        {activeTab === 'grades' && (
-          <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <label className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-                Select Section
-              </label>
-              <select
-                className={`border rounded-md px-3 py-2 ${isDark ? 'bg-white/5 border-white/10 text-slate-200' : 'bg-white border-gray-300 text-gray-900'}`}
-                value={activeSectionId || String(SECTIONS[0].sectionId)}
-                onChange={(e) => setActiveSectionId(e.target.value)}
-              >
-                <option value="" disabled>
-                  Choose a section
-                </option>
-                {sectionOptions.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
+                {t('attendanceRecords') || 'Attendance Records'}
+              </h3>
+              <AttendanceTable
+                sessions={activeSectionId ? attendanceData[activeSectionId] || [] : []}
+                onCreate={handleCreateAttendance}
+                onEdit={handleEditAttendance}
+                onDelete={handleDeleteAttendance}
+                onSwitchToAI={() => setIsAIAttendanceModalOpen(true)}
+              />
             </div>
-            <SelectedSectionSummary section={selectedSection as any} />
-            <GradesTable
-              data={activeSectionId ? gradesData[activeSectionId] || [] : []}
-              onEdit={handleEditGrade}
-              onDelete={handleDeleteGrade}
-            />
           </div>
         )}
 
@@ -723,7 +689,7 @@ function InstructorDashboardContent() {
           <DashboardProfileTab
             isDark={isDark}
             accentColor={primaryHex || '#4F46E5'}
-            bannerGradient="from-indigo-500 to-purple-500"
+            bannerGradient="from-[#3b82f6] to-[#06b6d4]"
             profileData={{
               fullName: 'Prof. Sarah Martinez',
               role: 'Instructor',
@@ -827,6 +793,12 @@ function InstructorDashboardContent() {
         onCancel={() => setMessageToDelete(null)}
         confirmText="Delete"
         variant="danger"
+      />
+
+      <AIAttendanceModal
+        open={isAIAttendanceModalOpen}
+        onClose={() => setIsAIAttendanceModalOpen(false)}
+        courseSection={selectedSection?.courseCode || 'Unknown Section'}
       />
     </div>
   );

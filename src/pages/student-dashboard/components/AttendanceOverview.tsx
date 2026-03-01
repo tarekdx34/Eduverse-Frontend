@@ -1,5 +1,15 @@
 import { useState } from 'react';
-import { Calendar, Clock, CheckCircle, XCircle, AlertCircle, TrendingUp, Users, BarChart3, ChevronLeft } from 'lucide-react';
+import {
+  Calendar,
+  Clock,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  TrendingUp,
+  Users,
+  BarChart3,
+  ChevronLeft,
+} from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -15,7 +25,7 @@ const attendanceData = [
     percentage: 93.3,
     status: 'excellent',
     color: 'bg-blue-500',
-    lastClass: '2024-12-02'
+    lastClass: '2024-12-02',
   },
   {
     id: 2,
@@ -28,7 +38,7 @@ const attendanceData = [
     percentage: 87.5,
     status: 'good',
     color: 'bg-purple-500',
-    lastClass: '2024-12-01'
+    lastClass: '2024-12-01',
   },
   {
     id: 3,
@@ -41,7 +51,7 @@ const attendanceData = [
     percentage: 97.4,
     status: 'excellent',
     color: 'bg-green-500',
-    lastClass: '2024-12-03'
+    lastClass: '2024-12-03',
   },
   {
     id: 4,
@@ -54,7 +64,7 @@ const attendanceData = [
     percentage: 76.2,
     status: 'warning',
     color: 'bg-orange-500',
-    lastClass: '2024-11-30'
+    lastClass: '2024-11-30',
   },
   {
     id: 5,
@@ -67,7 +77,7 @@ const attendanceData = [
     percentage: 97.7,
     status: 'excellent',
     color: 'bg-pink-500',
-    lastClass: '2024-12-04'
+    lastClass: '2024-12-04',
   },
   {
     id: 6,
@@ -80,8 +90,8 @@ const attendanceData = [
     percentage: 83.3,
     status: 'good',
     color: 'bg-[#7C3AED]/100',
-    lastClass: '2024-12-02'
-  }
+    lastClass: '2024-12-02',
+  },
 ];
 
 const courseDailyRecords: Record<number, { date: string; day: string; status: string }[]> = {
@@ -148,18 +158,45 @@ const courseDailyRecords: Record<number, { date: string; day: string; status: st
 };
 
 const recentAttendance = [
-  { date: '2024-12-04', course: 'Software Engineering Principles', status: 'present', time: '11:00 AM' },
-  { date: '2024-12-03', course: 'Web Development Fundamentals', status: 'present', time: '02:00 PM' },
-  { date: '2024-12-02', course: 'Introduction to Computer Science', status: 'present', time: '08:30 AM' },
-  { date: '2024-12-02', course: 'Mobile Application Development', status: 'late', time: '03:30 PM' },
-  { date: '2024-12-01', course: 'Data Structures & Algorithms', status: 'present', time: '10:00 AM' },
-  { date: '2024-11-30', course: 'Database Management Systems', status: 'absent', time: '01:30 PM' }
+  {
+    date: '2024-12-04',
+    course: 'Software Engineering Principles',
+    status: 'present',
+    time: '11:00 AM',
+  },
+  {
+    date: '2024-12-03',
+    course: 'Web Development Fundamentals',
+    status: 'present',
+    time: '02:00 PM',
+  },
+  {
+    date: '2024-12-02',
+    course: 'Introduction to Computer Science',
+    status: 'present',
+    time: '08:30 AM',
+  },
+  {
+    date: '2024-12-02',
+    course: 'Mobile Application Development',
+    status: 'late',
+    time: '03:30 PM',
+  },
+  {
+    date: '2024-12-01',
+    course: 'Data Structures & Algorithms',
+    status: 'present',
+    time: '10:00 AM',
+  },
+  { date: '2024-11-30', course: 'Database Management Systems', status: 'absent', time: '01:30 PM' },
 ];
 
 export function AttendanceOverview() {
   const { t, isRTL } = useLanguage();
   const { isDark } = useTheme();
-  const [selectedCourse, setSelectedCourse] = useState<typeof attendanceData[number] | null>(null);
+  const [selectedCourse, setSelectedCourse] = useState<(typeof attendanceData)[number] | null>(
+    null
+  );
   const totalClasses = attendanceData.reduce((sum, course) => sum + course.totalClasses, 0);
   const totalAttended = attendanceData.reduce((sum, course) => sum + course.attended, 0);
   const totalAbsent = attendanceData.reduce((sum, course) => sum + course.absent, 0);
@@ -206,10 +243,14 @@ export function AttendanceOverview() {
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'present': return t('present');
-      case 'absent': return t('absent');
-      case 'late': return t('late');
-      default: return status;
+      case 'present':
+        return t('present');
+      case 'absent':
+        return t('absent');
+      case 'late':
+        return t('late');
+      default:
+        return status;
     }
   };
 
@@ -228,10 +269,14 @@ export function AttendanceOverview() {
 
   const getRecordStatusIcon = (status: string) => {
     switch (status) {
-      case 'present': return '✅';
-      case 'absent': return '❌';
-      case 'late': return '⏰';
-      default: return '';
+      case 'present':
+        return <CheckCircle className="w-5 h-5 text-green-500" />;
+      case 'absent':
+        return <XCircle className="w-5 h-5 text-red-500" />;
+      case 'late':
+        return <Clock className="w-5 h-5 text-orange-500" />;
+      default:
+        return null;
     }
   };
 
@@ -243,9 +288,7 @@ export function AttendanceOverview() {
         <button
           onClick={() => setSelectedCourse(null)}
           className={`flex items-center gap-2 text-sm font-medium px-3 py-2 rounded-lg transition-colors ${
-            isDark
-              ? 'text-slate-300 hover:bg-white/10'
-              : 'text-slate-600 hover:bg-slate-100'
+            isDark ? 'text-slate-300 hover:bg-white/10' : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
           <ChevronLeft className="w-4 h-4" />
@@ -268,20 +311,38 @@ export function AttendanceOverview() {
               <div className="flex items-center gap-6">
                 <div className="text-center">
                   <p className={`text-3xl font-bold text-blue-600`}>{selectedCourse.percentage}%</p>
-                  <p className={`text-xs mt-1 ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{t('overallAttendance')}</p>
+                  <p className={`text-xs mt-1 ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
+                    {t('overallAttendance')}
+                  </p>
                 </div>
                 <div className={`grid grid-cols-3 gap-4 text-center`}>
                   <div>
-                    <p className={`text-lg font-bold ${isDark ? 'text-green-400' : 'text-green-700'}`}>{selectedCourse.attended}</p>
-                    <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{t('present')}</p>
+                    <p
+                      className={`text-lg font-bold ${isDark ? 'text-green-400' : 'text-green-700'}`}
+                    >
+                      {selectedCourse.attended}
+                    </p>
+                    <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
+                      {t('present')}
+                    </p>
                   </div>
                   <div>
-                    <p className={`text-lg font-bold ${isDark ? 'text-red-400' : 'text-red-700'}`}>{selectedCourse.absent}</p>
-                    <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{t('absent')}</p>
+                    <p className={`text-lg font-bold ${isDark ? 'text-red-400' : 'text-red-700'}`}>
+                      {selectedCourse.absent}
+                    </p>
+                    <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
+                      {t('absent')}
+                    </p>
                   </div>
                   <div>
-                    <p className={`text-lg font-bold ${isDark ? 'text-orange-400' : 'text-orange-700'}`}>{selectedCourse.late}</p>
-                    <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{t('late')}</p>
+                    <p
+                      className={`text-lg font-bold ${isDark ? 'text-orange-400' : 'text-orange-700'}`}
+                    >
+                      {selectedCourse.late}
+                    </p>
+                    <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
+                      {t('late')}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -304,9 +365,11 @@ export function AttendanceOverview() {
                   } ${idx !== dailyRecords.length - 1 ? (isDark ? 'border-b border-white/5' : 'border-b border-slate-100') : ''}`}
                 >
                   <div className="flex items-center gap-4">
-                    <span className="text-xl">{getRecordStatusIcon(record.status)}</span>
+                    {getRecordStatusIcon(record.status)}
                     <div>
-                      <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                      <p
+                        className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'}`}
+                      >
                         {record.day}
                       </p>
                       <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
@@ -314,7 +377,9 @@ export function AttendanceOverview() {
                       </p>
                     </div>
                   </div>
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${getRecordStatusStyle(record.status)}`}>
+                  <span
+                    className={`px-3 py-1 rounded-full text-xs font-medium ${getRecordStatusStyle(record.status)}`}
+                  >
                     {getStatusText(record.status)}
                   </span>
                 </div>
@@ -334,8 +399,12 @@ export function AttendanceOverview() {
           <BarChart3 size={20} className="text-white" />
         </div>
         <div>
-          <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{t('attendanceOverview')}</h1>
-          <p className={isDark ? 'text-slate-500' : 'text-slate-600'}>{isRTL ? 'تتبع حضورك في جميع المقررات' : 'Track your attendance across all courses'}</p>
+          <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>
+            {t('attendanceOverview')}
+          </h1>
+          <p className={isDark ? 'text-slate-500' : 'text-slate-600'}>
+            {isRTL ? 'تتبع حضورك في جميع المقررات' : 'Track your attendance across all courses'}
+          </p>
         </div>
       </div>
 
@@ -343,14 +412,20 @@ export function AttendanceOverview() {
       <div className={`glass rounded-[2.5rem] p-8 shadow-sm`}>
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           <div>
-            <h2 className={`text-lg font-semibold mb-2 ${isDark ? 'text-white' : 'text-slate-800'}`}>{t('overallAttendance')}</h2>
+            <h2
+              className={`text-lg font-semibold mb-2 ${isDark ? 'text-white' : 'text-slate-800'}`}
+            >
+              {t('overallAttendance')}
+            </h2>
             <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
               {totalAttended} {t('attended')} {t('outOf')} {totalClasses} {t('totalClasses')}
             </p>
           </div>
           <div className="text-center">
             <div className="text-5xl font-bold text-blue-600 mb-3">{overallPercentage}%</div>
-            <div className={`flex flex-col gap-2 text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
+            <div
+              className={`flex flex-col gap-2 text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}
+            >
               <span className="flex items-center justify-center gap-1">
                 <CheckCircle className="w-4 h-4 text-green-600" />
                 {totalAttended} {t('present')}
@@ -372,8 +447,14 @@ export function AttendanceOverview() {
         {/* Course Attendance Details */}
         <div className="lg:col-span-2">
           <div className="mb-6">
-            <h2 className={`text-lg font-semibold mb-2 ${isDark ? 'text-white' : 'text-slate-800'}`}>{t('lectureAttendance')}</h2>
-            <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{isRTL ? 'تفاصيل الحضور حسب المقرر' : 'Detailed attendance breakdown by course'}</p>
+            <h2
+              className={`text-lg font-semibold mb-2 ${isDark ? 'text-white' : 'text-slate-800'}`}
+            >
+              {t('lectureAttendance')}
+            </h2>
+            <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
+              {isRTL ? 'تفاصيل الحضور حسب المقرر' : 'Detailed attendance breakdown by course'}
+            </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -387,8 +468,14 @@ export function AttendanceOverview() {
                 <div className="p-6">
                   <div className="flex items-start justify-between mb-4">
                     <div>
-                      <h3 className={`font-semibold text-base ${isDark ? 'text-white' : 'text-slate-800'}`}>{course.courseName}</h3>
-                      <p className={`text-sm mt-1 ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{course.courseCode}</p>
+                      <h3
+                        className={`font-semibold text-base ${isDark ? 'text-white' : 'text-slate-800'}`}
+                      >
+                        {course.courseName}
+                      </h3>
+                      <p className={`text-sm mt-1 ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
+                        {course.courseCode}
+                      </p>
                     </div>
                     <span
                       className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(
@@ -400,27 +487,57 @@ export function AttendanceOverview() {
                   </div>
 
                   {/* Stats Grid */}
-                  <div className={`grid grid-cols-4 gap-2 mb-4 pb-4 border-b ${isDark ? 'border-white/5' : 'border-slate-100'}`}>
+                  <div
+                    className={`grid grid-cols-4 gap-2 mb-4 pb-4 border-b ${isDark ? 'border-white/5' : 'border-slate-100'}`}
+                  >
                     <div className="text-center">
-                      <p className={`text-xs mb-1 ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{t('totalClasses')}</p>
-                      <p className={`text-base font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{course.totalClasses}</p>
+                      <p className={`text-xs mb-1 ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
+                        {t('totalClasses')}
+                      </p>
+                      <p
+                        className={`text-base font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}
+                      >
+                        {course.totalClasses}
+                      </p>
                     </div>
                     <div className="text-center">
-                      <p className={`text-xs mb-1 ${isDark ? 'text-green-400' : 'text-green-700'}`}>{t('present')}</p>
-                      <p className={`text-base font-bold ${isDark ? 'text-green-400' : 'text-green-900'}`}>{course.attended}</p>
+                      <p className={`text-xs mb-1 ${isDark ? 'text-green-400' : 'text-green-700'}`}>
+                        {t('present')}
+                      </p>
+                      <p
+                        className={`text-base font-bold ${isDark ? 'text-green-400' : 'text-green-900'}`}
+                      >
+                        {course.attended}
+                      </p>
                     </div>
                     <div className="text-center">
-                      <p className={`text-xs mb-1 ${isDark ? 'text-red-400' : 'text-red-700'}`}>{t('absent')}</p>
-                      <p className={`text-base font-bold ${isDark ? 'text-red-400' : 'text-red-900'}`}>{course.absent}</p>
+                      <p className={`text-xs mb-1 ${isDark ? 'text-red-400' : 'text-red-700'}`}>
+                        {t('absent')}
+                      </p>
+                      <p
+                        className={`text-base font-bold ${isDark ? 'text-red-400' : 'text-red-900'}`}
+                      >
+                        {course.absent}
+                      </p>
                     </div>
                     <div className="text-center">
-                      <p className={`text-xs mb-1 ${isDark ? 'text-orange-400' : 'text-orange-700'}`}>{t('late')}</p>
-                      <p className={`text-base font-bold ${isDark ? 'text-orange-400' : 'text-orange-900'}`}>{course.late}</p>
+                      <p
+                        className={`text-xs mb-1 ${isDark ? 'text-orange-400' : 'text-orange-700'}`}
+                      >
+                        {t('late')}
+                      </p>
+                      <p
+                        className={`text-base font-bold ${isDark ? 'text-orange-400' : 'text-orange-900'}`}
+                      >
+                        {course.late}
+                      </p>
                     </div>
                   </div>
 
                   {/* Progress Bar */}
-                  <div className={`w-full rounded-full h-2 mb-4 ${isDark ? 'bg-white/10' : 'bg-slate-200'}`}>
+                  <div
+                    className={`w-full rounded-full h-2 mb-4 ${isDark ? 'bg-white/10' : 'bg-slate-200'}`}
+                  >
                     <div
                       className={`${course.color} h-2 rounded-full transition-all`}
                       style={{ width: `${course.percentage}%` }}
@@ -428,11 +545,15 @@ export function AttendanceOverview() {
                   </div>
 
                   <div className="flex items-center justify-between text-sm">
-                    <span className={`flex items-center gap-1 ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
+                    <span
+                      className={`flex items-center gap-1 ${isDark ? 'text-slate-500' : 'text-slate-600'}`}
+                    >
                       <Calendar className="w-3.5 h-3.5" />
                       {new Date(course.lastClass).toLocaleDateString()}
                     </span>
-                    <span className={`font-medium ${isDark ? 'text-white' : 'text-slate-800'}`}>{course.percentage}%</span>
+                    <span className={`font-medium ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                      {course.percentage}%
+                    </span>
                   </div>
                 </div>
               </div>
@@ -443,32 +564,53 @@ export function AttendanceOverview() {
         {/* Recent Attendance Activity */}
         <div>
           <div className="mb-6">
-            <h2 className={`text-lg font-semibold mb-2 ${isDark ? 'text-white' : 'text-slate-800'}`}>{t('recentActivity')}</h2>
-            <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{isRTL ? 'آخر 6 سجلات حضور' : 'Last 6 attendance records'}</p>
+            <h2
+              className={`text-lg font-semibold mb-2 ${isDark ? 'text-white' : 'text-slate-800'}`}
+            >
+              {t('recentActivity')}
+            </h2>
+            <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
+              {isRTL ? 'آخر 6 سجلات حضور' : 'Last 6 attendance records'}
+            </p>
           </div>
 
           <div className={`glass rounded-[2.5rem] p-6 mb-6`}>
             <div className="space-y-4">
               {recentAttendance.map((record, idx) => (
-                <div key={idx} className={`pb-4 border-b last:border-0 last:pb-0 ${isDark ? 'border-white/5' : 'border-slate-100'}`}>
+                <div
+                  key={idx}
+                  className={`pb-4 border-b last:border-0 last:pb-0 ${isDark ? 'border-white/5' : 'border-slate-100'}`}
+                >
                   <div className="flex items-start gap-3">
                     <div className="mt-0.5">{getAttendanceStatusIcon(record.status)}</div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-1 gap-2">
-                        <p className={`text-sm font-medium truncate ${isDark ? 'text-white' : 'text-slate-800'}`}>{record.course}</p>
+                        <p
+                          className={`text-sm font-medium truncate ${isDark ? 'text-white' : 'text-slate-800'}`}
+                        >
+                          {record.course}
+                        </p>
                         <span
                           className={`px-2 py-0.5 rounded text-xs font-medium flex-shrink-0 whitespace-nowrap ${
                             record.status === 'present'
-                              ? isDark ? 'bg-green-900/50 text-green-400' : 'bg-green-100 text-green-700'
+                              ? isDark
+                                ? 'bg-green-900/50 text-green-400'
+                                : 'bg-green-100 text-green-700'
                               : record.status === 'late'
-                              ? isDark ? 'bg-orange-900/50 text-orange-400' : 'bg-orange-100 text-orange-700'
-                              : isDark ? 'bg-red-900/50 text-red-400' : 'bg-red-100 text-red-700'
+                                ? isDark
+                                  ? 'bg-orange-900/50 text-orange-400'
+                                  : 'bg-orange-100 text-orange-700'
+                                : isDark
+                                  ? 'bg-red-900/50 text-red-400'
+                                  : 'bg-red-100 text-red-700'
                           }`}
                         >
                           {getStatusText(record.status)}
                         </span>
                       </div>
-                      <div className={`flex items-center gap-3 text-xs ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
+                      <div
+                        className={`flex items-center gap-3 text-xs ${isDark ? 'text-slate-500' : 'text-slate-600'}`}
+                      >
                         <Calendar className="w-3.5 h-3.5" />
                         <span>{new Date(record.date).toLocaleDateString()}</span>
                         <Clock className="w-3.5 h-3.5" />
@@ -482,8 +624,12 @@ export function AttendanceOverview() {
           </div>
 
           {/* Attendance Insights */}
-          <div className={`rounded-lg p-6 border ${isDark ? 'bg-blue-900/30 border-blue-800' : 'bg-blue-50 border-blue-200'}`}>
-            <h3 className={`font-semibold mb-3 flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-800'}`}>
+          <div
+            className={`rounded-lg p-6 border ${isDark ? 'bg-blue-900/30 border-blue-800' : 'bg-blue-50 border-blue-200'}`}
+          >
+            <h3
+              className={`font-semibold mb-3 flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-800'}`}
+            >
               <TrendingUp className="w-5 h-5 text-blue-600" />
               Key Insights
             </h3>
@@ -502,7 +648,9 @@ export function AttendanceOverview() {
               </div>
               <div className="flex items-start gap-2">
                 <Users className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                <p className={isDark ? 'text-slate-400' : 'text-slate-700'}>You've been late {totalLate} times this semester</p>
+                <p className={isDark ? 'text-slate-400' : 'text-slate-700'}>
+                  You've been late {totalLate} times this semester
+                </p>
               </div>
             </div>
           </div>

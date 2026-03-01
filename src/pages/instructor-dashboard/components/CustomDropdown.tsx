@@ -14,6 +14,8 @@ type CustomDropdownProps = {
   onChange: (value: string) => void;
   placeholder?: string;
   className?: string;
+  fullWidth?: boolean;
+  stackLabel?: boolean;
 };
 
 export function CustomDropdown({
@@ -23,6 +25,8 @@ export function CustomDropdown({
   onChange,
   placeholder = 'Select...',
   className = '',
+  fullWidth = false,
+  stackLabel = false,
 }: CustomDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -43,19 +47,29 @@ export function CustomDropdown({
   const selectedOption = options.find((opt) => opt.value === value);
 
   return (
-    <div className={`flex items-center gap-2 ${className}`}>
-      {label && <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>{label}</span>}
-      <div className="relative" ref={dropdownRef}>
+    <div
+      className={`flex ${stackLabel ? 'flex-col items-start gap-1.5' : 'items-center gap-2'} ${fullWidth ? 'w-full' : ''} ${className}`}
+    >
+      {label && (
+        <span
+          className={`text-sm whitespace-nowrap ${isDark ? 'text-slate-400' : 'text-gray-600'}`}
+        >
+          {label}
+        </span>
+      )}
+      <div className={`relative ${fullWidth ? 'w-full' : ''}`} ref={dropdownRef}>
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
-          className={`px-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors flex items-center gap-2 min-w-[150px] justify-between ${
+          className={`px-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors flex items-center gap-2 ${fullWidth ? 'w-full' : 'min-w-[180px]'} justify-between ${
             isDark
               ? 'bg-white/5 border-white/10 hover:bg-white/10'
               : 'bg-white border-gray-300 hover:bg-gray-50'
           }`}
         >
-          <span className={isDark ? 'text-slate-200' : 'text-gray-900'}>{selectedOption?.label || placeholder}</span>
+          <span className={`truncate ${isDark ? 'text-slate-200' : 'text-gray-900'}`}>
+            {selectedOption?.label || placeholder}
+          </span>
           <ChevronDown
             size={16}
             className={`transition-transform ${isDark ? 'text-slate-500' : 'text-gray-400'} ${isOpen ? 'rotate-180' : ''}`}
@@ -63,11 +77,11 @@ export function CustomDropdown({
         </button>
 
         {isOpen && (
-          <div className={`absolute top-full left-0 mt-1 w-full border rounded-lg shadow-lg py-1 z-50 max-h-60 overflow-y-auto ${
-            isDark
-              ? 'bg-card-dark border-white/10'
-              : 'bg-white border-gray-200'
-          }`}>
+          <div
+            className={`absolute top-full left-0 mt-1 min-w-full w-max border rounded-lg shadow-lg py-1 z-50 max-h-60 overflow-y-auto ${
+              isDark ? 'bg-card-dark border-white/10' : 'bg-white border-gray-200'
+            }`}
+          >
             {options.map((option) => (
               <button
                 key={option.value}
@@ -87,7 +101,9 @@ export function CustomDropdown({
                 }`}
               >
                 <span>{option.label}</span>
-                {option.value === value && <Check size={16} className={isDark ? 'text-indigo-400' : 'text-indigo-600'} />}
+                {option.value === value && (
+                  <Check size={16} className={isDark ? 'text-indigo-400' : 'text-indigo-600'} />
+                )}
               </button>
             ))}
           </div>

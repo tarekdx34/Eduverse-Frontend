@@ -167,41 +167,30 @@ function StudentDashboardContent() {
 
       {/* Main Content */}
       <main
-        className={`flex-1 transition-all duration-300 ${isRTL ? 'lg:mr-64' : 'lg:ml-64'} p-4 lg:p-10`}
+        className={`flex-1 transition-all duration-300 ${isRTL ? 'lg:mr-64' : 'lg:ml-64'} ${activeTab === 'chat' ? 'p-0' : 'p-4 lg:p-10'}`}
       >
-        {/* Mobile sidebar toggle */}
-        <button
-          onClick={() => setSidebarOpen(true)}
-          className={`lg:hidden mb-4 p-2 rounded-xl transition-colors ${isDark ? 'bg-white/5 hover:bg-white/10 text-slate-400' : 'bg-white border border-slate-200 hover:bg-slate-50 text-slate-600'}`}
-          aria-label="Open navigation menu"
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4 6h16M4 12h16M4 18h16"
+        {/* Header - hide on chat for full-screen experience */}
+        {activeTab !== 'chat' && (
+          <>
+            <DashboardHeader
+              userName="Tarek Mohamed"
+              userRole="CS Junior"
+              isDark={isDark}
+              isRTL={isRTL}
+              accentColor="#7C3AED"
+              avatarGradient="from-[#7C3AED] to-[#ec4899]"
+              language={language}
+              onToggleTheme={toggleTheme}
+              onSetLanguage={setLanguage}
+              onProfileClick={() => handleTabChange('profile')}
+              translations={headerTranslations}
+              onMenuClick={() => setSidebarOpen(true)}
             />
-          </svg>
-        </button>
-
-        {/* Header is now inline */}
-        <DashboardHeader
-          userName="Tarek Mohamed"
-          userRole="CS Junior"
-          isDark={isDark}
-          isRTL={isRTL}
-          accentColor="#7C3AED"
-          avatarGradient="from-[#7C3AED] to-[#ec4899]"
-          language={language}
-          onToggleTheme={toggleTheme}
-          onSetLanguage={setLanguage}
-          onProfileClick={() => handleTabChange('profile')}
-          translations={headerTranslations}
-        />
+          </>
+        )}
 
         {/* Content Area */}
-        <div className="flex-1">
+        <div className={activeTab === 'chat' ? 'h-screen overflow-hidden p-0' : 'flex-1'}>
           {viewingCourseId ? (
             <CourseViewPage courseId={viewingCourseId} onBack={handleBackFromCourse} />
           ) : (
@@ -268,7 +257,9 @@ function StudentDashboardContent() {
               {activeTab === 'gamification' && <Gamification />}
               {activeTab === 'notifications' && <NotificationCenter />}
               {activeTab === 'payments' && <PaymentHistory />}
-              {activeTab === 'chat' && <MessagingChat />}
+              {activeTab === 'chat' && (
+                <MessagingChat height="100vh" isDark={isDark} className="rounded-none border-0" />
+              )}
               {activeTab === 'settings' && <SettingsPreferences />}
               {activeTab === 'profile' && (
                 <DashboardProfileTab

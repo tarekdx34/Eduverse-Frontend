@@ -50,11 +50,11 @@ export function AIProcessingAnimation({
   }, [duration, onComplete]);
 
   return (
-    <div className="flex flex-col items-center justify-center p-12 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl min-h-[400px]">
+    <div className="flex flex-col items-center justify-center p-12 bg-gradient-to-br from-indigo-50 to-blue-50 rounded-xl min-h-[400px]">
       {/* Animated AI Icon */}
       <div className="relative mb-8">
         <div className="absolute inset-0 bg-indigo-400 rounded-full blur-xl opacity-30 animate-pulse"></div>
-        <div className="relative p-6 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full">
+        <div className="relative p-6 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-full">
           <Brain className="text-white animate-pulse" size={48} />
         </div>
 
@@ -114,7 +114,7 @@ export function AIProcessingAnimation({
       {/* Progress Bar */}
       <div className="w-full max-w-md bg-gray-200 rounded-full h-2 overflow-hidden">
         <div
-          className="h-full bg-gradient-to-r from-indigo-500 to-purple-600 transition-all duration-300 ease-out"
+          className="h-full bg-gradient-to-r from-indigo-500 to-blue-600 transition-all duration-300 ease-out"
           style={{ width: `${progress}%` }}
         />
       </div>

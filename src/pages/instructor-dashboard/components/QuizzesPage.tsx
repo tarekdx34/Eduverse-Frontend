@@ -109,7 +109,7 @@ export function QuizzesPage() {
     {
       title: 'Quiz 4 — Kinematics',
       subject: 'Physics I',
-      subjectColor: 'bg-purple-100 text-purple-700',
+      subjectColor: '',
       date: 'May 18, 2:00 PM',
       questions: 15,
       attempted: 0,
@@ -137,6 +137,8 @@ export function QuizzesPage() {
 
   // View attempts state
   const [viewAttemptsIndex, setViewAttemptsIndex] = useState<number | null>(null);
+  // View analysis state
+  const [viewAnalysisIndex, setViewAnalysisIndex] = useState<number | null>(null);
 
   // --- Helpers ---
   const openCreateForm = () => {
@@ -170,7 +172,7 @@ export function QuizzesPage() {
     const courseColorMap: Record<string, string> = {
       'Calculus I': 'bg-blue-100 text-blue-700',
       'Calculus II': 'bg-blue-100 text-blue-700',
-      'Physics I': 'bg-purple-100 text-purple-700',
+      'Physics I': '',
     };
     const diffColorMap: Record<string, string> = {
       Easy: 'bg-green-100 text-green-700',
@@ -258,10 +260,9 @@ export function QuizzesPage() {
     );
   };
 
-  const analyzeResults = (quiz: QuizData) => {
-    alert(
-      `Analysis for "${quiz.title}":\n• Average Score: 78%\n• Highest: 96%\n• Lowest: 42%\n• Median: 80%\n• ${quiz.attempted}/${quiz.total} students attempted`
-    );
+  const analyzeResults = (index: number) => {
+    setViewAnalysisIndex(viewAnalysisIndex === index ? null : index);
+    setViewAttemptsIndex(null);
   };
 
   // Mock attempts data
@@ -282,19 +283,25 @@ export function QuizzesPage() {
   const btnSecCls = isDark ? 'text-slate-300 hover:bg-white/10' : 'text-gray-700 hover:bg-gray-50';
   const overlayBg = 'fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4';
   const modalCls = `relative w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl p-6 shadow-xl border ${cardCls} ${isDark ? 'bg-gray-900' : 'bg-white'}`;
+  const getSubjectStyle = (subjectColor: string): React.CSSProperties | undefined => {
+    if (subjectColor) return undefined;
+    return {
+      backgroundColor: isDark ? `${primaryHex}26` : `${primaryHex}1A`,
+      color: primaryHex,
+    };
+  };
 
   return (
-    <div className="p-4 sm:p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <h1 className={`text-2xl sm:text-3xl font-bold ${headingCls}`}>
-              {t('quizzesManagement')}
-            </h1>
-            <p className={`${subCls} mt-1`}>{t('quizzesDescription')}</p>
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 className={`text-2xl font-bold ${headingCls}`}>
+            {t('quizzesManagement')}
+          </h2>
+          <p className={`${subCls} mt-1 text-sm`}>{t('quizzesDescription')}</p>
+        </div>
+        <div className="flex items-center gap-2 flex-wrap">
             <button
               onClick={() => setShowAIModal(true)}
               className="flex items-center gap-2 px-4 py-2 text-white rounded-lg transition-colors"
@@ -312,10 +319,10 @@ export function QuizzesPage() {
               {t('createNewQuiz')}
             </button>
           </div>
-        </div>
+      </div>
 
-        {/* Filters */}
-        <div className="flex flex-wrap items-center gap-4">
+      {/* Filters */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           <CustomDropdown
             label={t('courseLabel')}
             value="all"
@@ -325,6 +332,8 @@ export function QuizzesPage() {
               { value: 'physics', label: 'Physics I' },
             ]}
             onChange={() => {}}
+            stackLabel
+            fullWidth
           />
           <CustomDropdown
             label={t('statusLabel')}
@@ -335,23 +344,32 @@ export function QuizzesPage() {
               { value: 'closed', label: t('closed') },
             ]}
             onChange={() => {}}
+            stackLabel
+            fullWidth
           />
-          <div className="relative flex-1 min-w-[200px] max-w-md">
-            <Search
-              className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}
-              size={18}
-            />
-            <input
-              type="text"
-              placeholder={t('searchQuizzes')}
-              className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${inputCls}`}
-            />
+          <div className="w-full flex flex-col gap-1.5 sm:col-span-2 lg:col-span-1">
+            <span
+              className={`text-sm font-medium whitespace-nowrap ${isDark ? 'text-slate-400' : 'text-gray-600'}`}
+            >
+              {t('search')}
+            </span>
+            <div className="relative w-full">
+              <Search
+                className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}
+                size={18}
+              />
+              <input
+                type="text"
+                placeholder={t('searchQuizzes')}
+                className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${inputCls}`}
+              />
+            </div>
           </div>
         </div>
 
-        {/* Quiz Cards */}
-        <div className="space-y-4">
-          {quizzes.map((quiz, index) => (
+      {/* Quiz Cards */}
+      <div className="space-y-4">
+        {quizzes.map((quiz, index) => (
             <div key={index} className={`rounded-xl p-4 sm:p-6 border shadow-sm ${cardCls}`}>
               <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-4">
                 <div className="flex-1 min-w-0">
@@ -359,6 +377,7 @@ export function QuizzesPage() {
                     <h3 className={`text-lg font-semibold truncate ${headingCls}`}>{quiz.title}</h3>
                     <span
                       className={`px-2 py-1 rounded-full text-xs font-medium ${quiz.subjectColor}`}
+                      style={getSubjectStyle(quiz.subjectColor)}
                     >
                       {quiz.subject}
                     </span>
@@ -406,7 +425,10 @@ export function QuizzesPage() {
                 className={`flex flex-wrap items-center gap-2 pt-4 border-t ${isDark ? 'border-white/10' : 'border-gray-200'}`}
               >
                 <button
-                  onClick={() => setViewAttemptsIndex(viewAttemptsIndex === index ? null : index)}
+                  onClick={() => {
+                    setViewAttemptsIndex(viewAttemptsIndex === index ? null : index);
+                    setViewAnalysisIndex(null);
+                  }}
                   className={`flex items-center gap-2 px-3 py-2 text-sm ${btnSecCls} focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-500 rounded-lg transition-colors`}
                 >
                   <Eye size={16} />
@@ -427,7 +449,7 @@ export function QuizzesPage() {
                   {t('generateWithAI')}
                 </button>
                 <button
-                  onClick={() => analyzeResults(quiz)}
+                  onClick={() => analyzeResults(index)}
                   className={`flex items-center gap-2 px-3 py-2 text-sm ${btnSecCls} focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-500 rounded-lg transition-colors`}
                 >
                   <BarChart3 size={16} />
@@ -478,10 +500,47 @@ export function QuizzesPage() {
                   </div>
                 </div>
               )}
+
+              {/* Analysis Results Panel */}
+              {viewAnalysisIndex === index && (
+                <div className={`mt-4 p-4 rounded-lg border ${cardCls}`}>
+                  <h4 className={`font-semibold mb-3 ${headingCls}`}>{t('analyzeResults')}</h4>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    <div className="p-3 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800">
+                      <p className={`text-xs ${subCls} mb-1`}>Average Score</p>
+                      <p className={`text-lg font-bold text-indigo-600 dark:text-indigo-400`}>
+                        78%
+                      </p>
+                    </div>
+                    <div className="p-3 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800">
+                      <p className={`text-xs ${subCls} mb-1`}>Highest Score</p>
+                      <p className={`text-lg font-bold text-green-600 dark:text-green-400`}>96%</p>
+                    </div>
+                    <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800">
+                      <p className={`text-xs ${subCls} mb-1`}>Lowest Score</p>
+                      <p className={`text-lg font-bold text-red-600 dark:text-red-400`}>42%</p>
+                    </div>
+                    <div className="p-3 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-100 dark:border-yellow-800">
+                      <p className={`text-xs ${subCls} mb-1`}>Median Score</p>
+                      <p className={`text-lg font-bold text-yellow-600 dark:text-yellow-400`}>
+                        80%
+                      </p>
+                    </div>
+                  </div>
+                  <div
+                    className={`mt-4 pt-4 border-t ${isDark ? 'border-white/10' : 'border-gray-100'}`}
+                  >
+                    <p className={`text-sm ${subCls}`}>
+                      <span className={`font-medium ${headingCls}`}>{quiz.attempted}</span> out of{' '}
+                      <span className={`font-medium ${headingCls}`}>{quiz.total}</span> students
+                      have attempted this quiz.
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           ))}
         </div>
-      </div>
 
       {/* Create / Edit Quiz Modal */}
       {showCreateQuiz && (
@@ -685,7 +744,7 @@ export function QuizzesPage() {
           <div className={`${modalCls} !max-w-lg`}>
             <div className="flex items-center justify-between mb-6">
               <h2 className={`text-xl font-bold ${headingCls} flex items-center gap-2`}>
-                <Sparkles size={20} className="text-purple-500" />
+                <Sparkles size={20} style={{ color: primaryHex }} />
                 AI Generate Quiz
               </h2>
               <button

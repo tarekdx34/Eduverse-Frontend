@@ -174,7 +174,7 @@ export function ReportsAnalytics({ gradeDistribution, enrollmentTrend }: Reports
               title="Assignments Graded"
               value={assignmentsGraded}
               icon={<Award size={24} />}
-              gradient="from-purple-500 to-pink-600"
+              gradient="from-indigo-500 to-pink-600"
             />
             <MetricCard
               title="Attendance Rate"
@@ -257,7 +257,7 @@ export function ReportsAnalytics({ gradeDistribution, enrollmentTrend }: Reports
             <TrendChart
               data={enrollmentTrend}
               title="Student Engagement Over Time"
-              color="#8b5cf6"
+              color="#3b82f6"
             />
 
             {/* Attendance by Section */}

@@ -31,7 +31,7 @@ export function LabsPage() {
         </div>
 
         {/* Filters */}
-        <div className="flex items-center gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <CustomDropdown
             label={t('courseLabel')}
             value="all"
@@ -41,6 +41,8 @@ export function LabsPage() {
               { value: 'chemistry', label: 'Chemistry I' },
             ]}
             onChange={() => {}}
+            stackLabel
+            fullWidth
           />
           <CustomDropdown
             label={t('statusLabel')}
@@ -51,17 +53,26 @@ export function LabsPage() {
               { value: 'graded', label: t('graded') },
             ]}
             onChange={() => {}}
+            stackLabel
+            fullWidth
           />
-          <div className="relative flex-1 max-w-md">
-            <Search
-              className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}
-              size={18}
-            />
-            <input
-              type="text"
-              placeholder={t('searchLabs')}
-              className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500' : 'border-gray-300 bg-white'}`}
-            />
+          <div className="w-full flex flex-col gap-1.5 sm:col-span-2 lg:col-span-1">
+            <span
+              className={`text-sm font-medium whitespace-nowrap ${isDark ? 'text-slate-400' : 'text-gray-600'}`}
+            >
+              {t('search')}
+            </span>
+            <div className="relative w-full">
+              <Search
+                className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}
+                size={18}
+              />
+              <input
+                type="text"
+                placeholder={t('searchLabs')}
+                className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500' : 'border-gray-300 bg-white text-gray-900 placeholder-gray-400'}`}
+              />
+            </div>
           </div>
         </div>
 
@@ -71,9 +82,7 @@ export function LabsPage() {
             {
               title: 'Lab 2 — Electric Fields',
               subject: 'Physics I',
-              subjectColor: isDark
-                ? 'bg-purple-500/20 text-purple-300'
-                : 'bg-purple-100 text-purple-700',
+              subjectColor: '',
               dueDate: 'Due May 14, 2025',
               submitted: 28,
               total: 43,
@@ -134,6 +143,14 @@ export function LabsPage() {
                         </h3>
                         <span
                           className={`px-2 py-1 rounded-full text-xs font-medium ${lab.subjectColor}`}
+                          style={
+                            !lab.subjectColor
+                              ? {
+                                  backgroundColor: isDark ? `${primaryHex}26` : `${primaryHex}1A`,
+                                  color: primaryHex,
+                                }
+                              : undefined
+                          }
                         >
                           {lab.subject}
                         </span>
@@ -197,7 +214,10 @@ export function LabsPage() {
                     >
                       {t('gradeLab')}
                     </button>
-                    <button className="flex items-center gap-2 px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
+                    <button
+                      className="flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors"
+                      style={{ color: primaryHex }}
+                    >
                       <Sparkles size={16} />
                       {t('aiAutoGrading')}
                     </button>

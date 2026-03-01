@@ -99,7 +99,7 @@ export function AIToolsPage() {
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header */}
         <div>
-          <h1 className="text-4xl font-extrabold bg-gradient-to-r from-purple-600 via-indigo-500 to-cyan-400 bg-clip-text text-transparent">
+          <h1 className="text-4xl font-extrabold bg-gradient-to-r from-indigo-600 via-blue-500 to-cyan-400 bg-clip-text text-transparent">
             {t('aiTeachingToolbox')}
           </h1>
           <p className={`mt-2 text-lg ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
@@ -173,8 +173,8 @@ export function AIToolsPage() {
             className={`${cardClass} p-8 rounded-[2.5rem] transition-all duration-300 hover:scale-[1.02]`}
           >
             <div className="flex flex-col items-center text-center mb-6">
-              <div className="w-14 h-14 rounded-full bg-purple-100 dark:bg-purple-900/40 flex items-center justify-center mb-4">
-                <Sparkles className="text-purple-600" size={28} />
+              <div className="w-14 h-14 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center mb-4">
+                <Sparkles className="text-indigo-600" size={28} />
               </div>
               <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
                 {t('autoGradingEvy')}
@@ -185,7 +185,7 @@ export function AIToolsPage() {
             </div>
 
             <div className="space-y-2">
-              <button className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors text-sm font-medium">
+              <button className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors text-sm font-medium">
                 <Sparkles size={16} />
                 {t('autoGradeAll')}
               </button>
@@ -193,7 +193,7 @@ export function AIToolsPage() {
                 className={`w-full flex items-center justify-center gap-2 px-4 py-2 text-sm rounded-xl transition-colors border ${
                   isDark
                     ? 'border-white/10 text-gray-300 hover:bg-white/5'
-                    : 'border-purple-200 text-purple-700 hover:bg-purple-50'
+                    : 'border-indigo-200 text-indigo-700 hover:bg-indigo-50'
                 }`}
               >
                 <FileText size={14} />
@@ -275,8 +275,8 @@ export function AIToolsPage() {
             className={`${cardClass} p-8 rounded-[2.5rem] transition-all duration-300 hover:scale-[1.02]`}
           >
             <div className="flex flex-col items-center text-center mb-6">
-              <div className="w-14 h-14 rounded-full bg-purple-100 dark:bg-purple-900/40 flex items-center justify-center mb-4">
-                <BarChart3 className="text-purple-600" size={28} />
+              <div className="w-14 h-14 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center mb-4">
+                <BarChart3 className="text-indigo-600" size={28} />
               </div>
               <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
                 {t('aiInsights')}
@@ -326,14 +326,14 @@ export function AIToolsPage() {
             </div>
 
             <div className="space-y-2">
-              <button className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors text-sm font-medium">
+              <button className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors text-sm font-medium">
                 {t('viewDetails')}
               </button>
               <button
                 className={`w-full flex items-center justify-center gap-2 px-4 py-2 text-sm rounded-xl transition-colors border ${
                   isDark
                     ? 'border-white/10 text-gray-300 hover:bg-white/5'
-                    : 'border-purple-200 text-purple-700 hover:bg-purple-50'
+                    : 'border-indigo-200 text-indigo-700 hover:bg-indigo-50'
                 }`}
               >
                 <Sparkles size={14} />
@@ -384,8 +384,8 @@ export function AIToolsPage() {
         <div
           className={`p-8 rounded-[2.5rem] transition-all duration-300 hover:scale-[1.01] ${
             isDark
-              ? 'bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900'
-              : 'bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500'
+              ? 'bg-gradient-to-br from-indigo-900 via-blue-900 to-pink-900'
+              : 'bg-gradient-to-br from-indigo-600 via-blue-600 to-pink-500'
           }`}
         >
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
@@ -411,7 +411,7 @@ export function AIToolsPage() {
               </ul>
             </div>
             <div className="shrink-0">
-              <button className="flex items-center gap-2 px-8 py-3 bg-white text-purple-700 rounded-xl font-semibold hover:bg-white/90 transition-colors shadow-lg">
+              <button className="flex items-center gap-2 px-8 py-3 bg-white text-indigo-700 rounded-xl font-semibold hover:bg-white/90 transition-colors shadow-lg">
                 <Sparkles size={18} />
                 {t('generatePlan')}
               </button>
@@ -435,7 +435,7 @@ export function AIToolsPage() {
         {/* Floating AI Chatbot Button */}
         <button
           onClick={() => setShowChatbot(true)}
-          className="fixed bottom-6 right-6 p-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-105 z-40"
+          className="fixed bottom-6 right-6 p-4 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-105 z-40"
         >
           <MessageSquare size={24} />
         </button>

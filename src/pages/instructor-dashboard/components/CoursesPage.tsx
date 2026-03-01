@@ -133,17 +133,18 @@ export function CoursesPage({
         </div>
 
         {/* Filters Bar */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {/* Semester Filter */}
           <CustomDropdown
             label={t('semesterLabel')}
             value={semesterFilter}
             options={[
-              { value: 'all', label: 'Spring 2025' },
+              { value: 'all', label: 'All Semesters' },
               ...semesters.map((sem) => ({ value: sem, label: sem })),
             ]}
             onChange={setSemesterFilter}
-            className="w-full"
+            stackLabel
+            fullWidth
           />
 
           {/* Status Filter */}
@@ -156,7 +157,8 @@ export function CoursesPage({
               { value: 'archived', label: t('archived') },
             ]}
             onChange={(val) => setStatusFilter(val as any)}
-            className="w-full"
+            stackLabel
+            fullWidth
           />
 
           {/* Sort By */}
@@ -169,22 +171,30 @@ export function CoursesPage({
               { value: 'enrolled', label: t('students') },
             ]}
             onChange={setSortBy}
-            className="w-full"
+            stackLabel
+            fullWidth
           />
 
           {/* Search */}
-          <div className="w-full relative sm:col-span-2 xl:col-span-1">
-            <Search
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-              size={18}
-            />
-            <input
-              type="text"
-              placeholder={t('searchCourses')}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? 'border-white/10 bg-white/5 text-white placeholder-gray-500' : 'border-gray-300 bg-white text-gray-900'}`}
-            />
+          <div className="w-full flex flex-col gap-1.5 sm:col-span-2 lg:col-span-1">
+            <span
+              className={`text-sm font-medium whitespace-nowrap ${isDark ? 'text-slate-400' : 'text-gray-600'}`}
+            >
+              {t('search')}
+            </span>
+            <div className="relative w-full">
+              <Search
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                size={18}
+              />
+              <input
+                type="text"
+                placeholder={t('searchCourses')}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? 'border-white/10 bg-white/5 text-white placeholder-gray-500' : 'border-gray-300 bg-white text-gray-900'}`}
+              />
+            </div>
           </div>
         </div>
 

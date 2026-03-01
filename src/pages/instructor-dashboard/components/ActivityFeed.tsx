@@ -26,8 +26,8 @@ const ACTIVITY_CONFIG = {
   },
   attendance: {
     icon: Calendar,
-    color: 'text-purple-600',
-    bgColor: 'bg-purple-100',
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-100',
   },
 };
 

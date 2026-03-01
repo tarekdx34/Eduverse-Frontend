@@ -167,9 +167,9 @@ const typeColors: Record<string, { bg: string; text: string; border: string }> =
     border: 'border-blue-500',
   },
   grading: {
-    bg: 'bg-purple-100 dark:bg-purple-500/20',
-    text: 'text-purple-600 dark:text-purple-400',
-    border: 'border-purple-500',
+    bg: 'bg-indigo-100 dark:bg-indigo-500/20',
+    text: 'text-indigo-600 dark:text-indigo-400',
+    border: 'border-indigo-500',
   },
   message: {
     bg: 'bg-green-100 dark:bg-green-500/20',

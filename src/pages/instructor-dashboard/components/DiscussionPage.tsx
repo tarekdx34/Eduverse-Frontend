@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { CustomDropdown } from './CustomDropdown';
 
 type Reply = {
   id: string;
@@ -308,7 +309,7 @@ export function DiscussionPage({
       case 'instructor':
         return (
           <span
-            className={`px-2 py-0.5 rounded text-xs font-medium ${isDark ? 'bg-purple-900/30 text-purple-400' : 'bg-purple-100 text-purple-700'}`}
+            className={`px-2 py-0.5 rounded text-xs font-medium ${isDark ? 'bg-indigo-900/30 text-indigo-400' : 'bg-indigo-100 text-indigo-700'}`}
           >
             {t('instructorRole')}
           </span>
@@ -381,28 +382,26 @@ export function DiscussionPage({
             />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:flex md:gap-2">
-            <select
+            <CustomDropdown
               value={filterCourse}
-              onChange={(e) => setFilterCourse(e.target.value)}
-              className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none transition-colors ${isDark ? 'bg-gray-800 border-white/10 text-white focus:border-white/30' : 'bg-white border-gray-300 text-gray-900 focus:border-indigo-500'}`}
-            >
-              <option value="all">{t('allCourses')}</option>
-              {courses.map((c) => (
-                <option key={c.code} value={c.code}>
-                  {c.code}
-                </option>
-              ))}
-            </select>
-            <select
+              onChange={setFilterCourse}
+              options={[
+                { value: 'all', label: t('allCourses') },
+                ...courses.map((c) => ({ value: c.code, label: c.code })),
+              ]}
+              className="w-full md:w-auto"
+            />
+            <CustomDropdown
               value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none transition-colors ${isDark ? 'bg-gray-800 border-white/10 text-white focus:border-white/30' : 'bg-white border-gray-300 text-gray-900 focus:border-indigo-500'}`}
-            >
-              <option value="all">{t('allStatus')}</option>
-              <option value="open">{t('open')}</option>
-              <option value="answered">{t('answered')}</option>
-              <option value="closed">{t('closed')}</option>
-            </select>
+              onChange={setFilterStatus}
+              options={[
+                { value: 'all', label: t('allStatus') },
+                { value: 'open', label: t('open') },
+                { value: 'answered', label: t('answered') },
+                { value: 'closed', label: t('closed') },
+              ]}
+              className="w-full md:w-auto"
+            />
           </div>
         </div>
       </div>
@@ -530,8 +529,8 @@ export function DiscussionPage({
                                     : 'bg-blue-100'
                                   : reply.authorRole === 'instructor'
                                     ? isDark
-                                      ? 'bg-purple-900/30'
-                                      : 'bg-purple-100'
+                                      ? 'bg-indigo-900/30'
+                                      : 'bg-indigo-100'
                                     : isDark
                                       ? 'bg-gray-700'
                                       : 'bg-gray-100'
@@ -543,7 +542,7 @@ export function DiscussionPage({
                                   reply.authorRole === 'ta'
                                     ? 'text-blue-600'
                                     : reply.authorRole === 'instructor'
-                                      ? 'text-purple-600'
+                                      ? 'text-indigo-600'
                                       : 'text-gray-600'
                                 }
                               />

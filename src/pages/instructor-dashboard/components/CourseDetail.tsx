@@ -12,11 +12,13 @@ import {
   Download,
   CheckCircle,
   Bell,
+  Plus,
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { FileUploadDropzone, AutoGradingSystem, Submission } from '../../../components/shared';
 import { RosterTable } from './RosterTable';
+import { AssignmentModal, AssignmentFormData } from './AssignmentModal';
 
 type Course = {
   id: number;
@@ -42,17 +44,12 @@ type CourseDetailProps = {
 };
 
 export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
-  const { isDark } = useTheme();
+  const { isDark, primaryHex = '#3b82f6' } = useTheme() as any;
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedLecture, setSelectedLecture] = useState('');
   const [showAssignmentForm, setShowAssignmentForm] = useState(false);
-  const [assignmentForm, setAssignmentForm] = useState({
-    title: '',
-    description: '',
-    dueDate: '',
-    type: 'written',
-  });
+  const [assignmentForm, setAssignmentForm] = useState<AssignmentFormData | null>(null);
   const [editingAssignmentIndex, setEditingAssignmentIndex] = useState<number | null>(null);
   const [gradingSubTab, setGradingSubTab] = useState<'manual' | 'auto'>('manual');
 
@@ -91,7 +88,7 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
     {
       title: 'Lab Report 02 — Projectile Motion',
       subject: 'Physics I',
-      subjectColor: 'bg-purple-100 text-purple-700',
+      subjectColor: '',
       dueDate: 'Due May 14, 2025',
       submitted: 28,
       total: 43,
@@ -117,6 +114,14 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
 
   // Get actual course data
   const course = courses.find((c) => c.id === courseId);
+
+  const getPrimaryBadgeStyle = (colorClass: string): React.CSSProperties | undefined => {
+    if (colorClass) return undefined;
+    return {
+      backgroundColor: isDark ? `${primaryHex}26` : `${primaryHex}1A`,
+      color: primaryHex,
+    };
+  };
 
   if (!course) {
     return (
@@ -192,16 +197,8 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
     );
   };
 
-  const handleSaveAssignment = () => {
-    if (
-      !assignmentForm.title.trim() ||
-      !assignmentForm.description.trim() ||
-      !assignmentForm.dueDate
-    ) {
-      return;
-    }
-
-    const formattedDueDate = `Due ${new Date(assignmentForm.dueDate).toLocaleDateString('en-US', {
+  const handleSaveAssignment = (data: AssignmentFormData) => {
+    const formattedDueDate = `Due ${new Date(data.dueDate).toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
@@ -213,9 +210,14 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
           index === editingAssignmentIndex
             ? {
                 ...assignment,
-                title: assignmentForm.title,
-                description: assignmentForm.description,
+                title: data.title,
+                description: data.description || '',
                 dueDate: formattedDueDate,
+                status: data.status === 'draft' ? 'Draft' : 'Published',
+                statusColor:
+                  data.status === 'draft'
+                    ? 'bg-yellow-100 text-yellow-700'
+                    : 'bg-green-100 text-green-700',
               }
             : assignment
         )
@@ -224,32 +226,48 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
       setCourseAssignments((prev) => [
         ...prev,
         {
-          title: assignmentForm.title,
+          title: data.title,
           subject: course.courseName,
           subjectColor: 'bg-indigo-100 text-indigo-700',
           dueDate: formattedDueDate,
           submitted: 0,
           total: course.enrolled,
-          description: assignmentForm.description,
+          description: data.description || '',
           files: ['Instructions.pdf'],
-          status: 'Draft',
-          statusColor: 'bg-yellow-100 text-yellow-700',
+          status: data.status === 'draft' ? 'Draft' : 'Published',
+          statusColor:
+            data.status === 'draft'
+              ? 'bg-yellow-100 text-yellow-700'
+              : 'bg-green-100 text-green-700',
         },
       ]);
     }
 
-    setAssignmentForm({ title: '', description: '', dueDate: '', type: 'written' });
+    setAssignmentForm(null);
     setEditingAssignmentIndex(null);
     setShowAssignmentForm(false);
   };
 
   const handleEditAssignment = (index: number) => {
     const assignment = courseAssignments[index];
+    let dueDateValue = '';
+    try {
+      const dateStr = assignment.dueDate.replace('Due ', '');
+      const date = new Date(dateStr);
+      if (!isNaN(date.getTime())) {
+        dueDateValue = date.toISOString().split('T')[0];
+      }
+    } catch (e) {
+      console.error('Error parsing date:', e);
+    }
+
     setAssignmentForm({
       title: assignment.title,
       description: assignment.description,
-      dueDate: '',
-      type: 'written',
+      dueDate: dueDateValue,
+      status: assignment.status.toLowerCase() as any,
+      submissions: assignment.submitted,
+      assignmentType: 'assignment',
     });
     setEditingAssignmentIndex(index);
     setShowAssignmentForm(true);
@@ -319,8 +337,8 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div
-            className="flex min-w-max items-center gap-4 sm:gap-6 -mb-px overflow-x-auto scrollbar-hide"
-            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            className="flex items-center gap-4 sm:gap-6 -mb-px overflow-x-auto pb-px"
+            style={{ width: '100%' }}
           >
             {tabs.map((tab) => (
               <button
@@ -396,8 +414,8 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                 className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}
               >
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="p-2 bg-purple-100 rounded-lg">
-                    <Calendar className="text-purple-600" size={20} />
+                  <div className="p-2 rounded-lg" style={{ backgroundColor: `${primaryHex}1A` }}>
+                    <Calendar style={{ color: primaryHex }} size={20} />
                   </div>
                   <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
                     {t('upcomingDeadlines')}
@@ -497,7 +515,11 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                   className={`flex items-center gap-4 p-4 ${isDark ? 'bg-transparent' : 'bg-gray-50'} rounded-lg`}
                 >
                   <div
-                    className={`px-3 py-1 rounded-full text-xs font-medium ${isDark ? 'bg-purple-500/20 text-purple-300' : 'bg-purple-100 text-purple-700'}`}
+                    className={`px-3 py-1 rounded-full text-xs font-medium`}
+                    style={{
+                      backgroundColor: isDark ? `${primaryHex}26` : `${primaryHex}1A`,
+                      color: primaryHex,
+                    }}
                   >
                     Quiz completed
                   </div>
@@ -627,97 +649,25 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                 {t('assignments')}
               </h2>
               <button
-                onClick={() => setShowAssignmentForm(!showAssignmentForm)}
+                onClick={() => {
+                  setAssignmentForm(null);
+                  setEditingAssignmentIndex(null);
+                  setShowAssignmentForm(true);
+                }}
                 className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm"
               >
                 <FileText size={16} />
-                {showAssignmentForm ? 'Cancel' : 'Create New Assignment'}
+                Create New Assignment
               </button>
             </div>
 
             {/* Assignment Creation Form */}
-            {showAssignmentForm && (
-              <div
-                className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm space-y-4`}
-              >
-                <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                  New Assignment
-                </h3>
-                <div>
-                  <label
-                    className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-300' : 'text-gray-700'}`}
-                  >
-                    Title
-                  </label>
-                  <input
-                    type="text"
-                    value={assignmentForm.title}
-                    onChange={(e) =>
-                      setAssignmentForm({ ...assignmentForm, title: e.target.value })
-                    }
-                    placeholder="Assignment title"
-                    className={`w-full px-3 py-2 rounded-lg border text-sm ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-slate-500' : 'bg-white border-gray-300 text-gray-900'} focus:outline-none focus:ring-2 focus:ring-indigo-500`}
-                  />
-                </div>
-                <div>
-                  <label
-                    className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-300' : 'text-gray-700'}`}
-                  >
-                    Description
-                  </label>
-                  <textarea
-                    value={assignmentForm.description}
-                    onChange={(e) =>
-                      setAssignmentForm({ ...assignmentForm, description: e.target.value })
-                    }
-                    placeholder="Assignment description"
-                    rows={3}
-                    className={`w-full px-3 py-2 rounded-lg border text-sm ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-slate-500' : 'bg-white border-gray-300 text-gray-900'} focus:outline-none focus:ring-2 focus:ring-indigo-500`}
-                  />
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label
-                      className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-300' : 'text-gray-700'}`}
-                    >
-                      Due Date
-                    </label>
-                    <input
-                      type="date"
-                      value={assignmentForm.dueDate}
-                      onChange={(e) =>
-                        setAssignmentForm({ ...assignmentForm, dueDate: e.target.value })
-                      }
-                      className={`w-full px-3 py-2 rounded-lg border text-sm ${isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:outline-none focus:ring-2 focus:ring-indigo-500`}
-                    />
-                  </div>
-                  <div>
-                    <label
-                      className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-300' : 'text-gray-700'}`}
-                    >
-                      Type
-                    </label>
-                    <select
-                      value={assignmentForm.type}
-                      onChange={(e) =>
-                        setAssignmentForm({ ...assignmentForm, type: e.target.value })
-                      }
-                      className={`w-full px-3 py-2 rounded-lg border text-sm ${isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:outline-none focus:ring-2 focus:ring-indigo-500`}
-                    >
-                      <option value="written">Written / Upload</option>
-                      <option value="mcq">MCQ (Auto-Graded)</option>
-                      <option value="project">Project</option>
-                    </select>
-                  </div>
-                </div>
-                <button
-                  onClick={handleSaveAssignment}
-                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
-                >
-                  {editingAssignmentIndex !== null ? 'Save Assignment' : 'Create Assignment'}
-                </button>
-              </div>
-            )}
+            <AssignmentModal
+              open={showAssignmentForm}
+              assignment={assignmentForm}
+              onClose={() => setShowAssignmentForm(false)}
+              onSave={handleSaveAssignment}
+            />
 
             {/* Assignment Cards */}
             <div className="space-y-4">
@@ -736,6 +686,7 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                         </h3>
                         <span
                           className={`px-2 py-1 rounded-full text-xs font-medium ${assignment.subjectColor}`}
+                          style={getPrimaryBadgeStyle(assignment.subjectColor)}
                         >
                           {assignment.subject}
                         </span>

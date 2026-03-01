@@ -19,6 +19,7 @@ import { useState } from 'react';
 import AssignmentDetails from './AssignmentDetails';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { CustomDropdown } from '../../../components/shared';
 
 export const assignments = [
   {
@@ -565,15 +566,19 @@ export default function Assignments() {
                 className={`w-full pl-10 pr-4 py-2.5 border-2 rounded-xl focus:outline-none focus:border-[#7C3AED] transition-all ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-slate-500' : 'border-slate-100 focus:ring-4 focus:ring-[#7C3AED]/10'}`}
               />
             </div>
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className={`px-4 py-2.5 border-2 rounded-xl focus:outline-none focus:border-[#7C3AED] transition-all ${isDark ? 'bg-white/5 border-white/10 text-white' : 'border-slate-100'}`}
-            >
-              <option value="all">{t('allStatus')}</option>
-              <option value="submitted">{t('submitted')}</option>
-              <option value="graded">{t('graded')}</option>
-            </select>
+            <div className="w-48">
+              <CustomDropdown
+                options={[
+                  { value: 'all', label: t('allStatus') },
+                  { value: 'submitted', label: t('submitted') },
+                  { value: 'graded', label: t('graded') },
+                ]}
+                value={filterStatus}
+                onChange={setFilterStatus}
+                isDark={isDark}
+                accentColor="#7C3AED"
+              />
+            </div>
           </div>
         </div>
 

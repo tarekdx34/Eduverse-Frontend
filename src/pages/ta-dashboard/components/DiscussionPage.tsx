@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { CustomDropdown } from '../../../components/shared';
 
 type Reply = {
   id: string;
@@ -380,29 +381,33 @@ export function DiscussionPage({
               className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none transition-colors text-sm ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-slate-500 focus:border-white/30' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-indigo-500'}`}
             />
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:flex md:gap-2">
-            <select
-              value={filterCourse}
-              onChange={(e) => setFilterCourse(e.target.value)}
-              className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none transition-colors ${isDark ? 'bg-gray-800 border-white/10 text-white focus:border-white/30' : 'bg-white border-gray-300 text-gray-900 focus:border-indigo-500'}`}
-            >
-              <option value="all">{t('allCourses')}</option>
-              {courses.map((c) => (
-                <option key={c.code} value={c.code}>
-                  {c.code}
-                </option>
-              ))}
-            </select>
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none transition-colors ${isDark ? 'bg-gray-800 border-white/10 text-white focus:border-white/30' : 'bg-white border-gray-300 text-gray-900 focus:border-indigo-500'}`}
-            >
-              <option value="all">{t('allStatus')}</option>
-              <option value="open">{t('open')}</option>
-              <option value="answered">{t('answered')}</option>
-              <option value="closed">{t('closed')}</option>
-            </select>
+          <div className="flex gap-2 min-w-[300px]">
+            <div className="flex-1">
+              <CustomDropdown
+                options={[
+                  { value: 'all', label: t('allCourses') },
+                  ...courses.map((c) => ({ value: c.code, label: c.code })),
+                ]}
+                value={filterCourse}
+                onChange={setFilterCourse}
+                isDark={isDark}
+                accentColor={primaryHex}
+              />
+            </div>
+            <div className="flex-1">
+              <CustomDropdown
+                options={[
+                  { value: 'all', label: t('allStatus') },
+                  { value: 'open', label: t('open') },
+                  { value: 'answered', label: t('answered') },
+                  { value: 'closed', label: t('closed') },
+                ]}
+                value={filterStatus}
+                onChange={setFilterStatus}
+                isDark={isDark}
+                accentColor={primaryHex}
+              />
+            </div>
           </div>
         </div>
       </div>

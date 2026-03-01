@@ -219,14 +219,6 @@ function AdminDashboardContent() {
 
       {/* Main Content */}
       <main className={`flex-1 ${isRTL ? 'lg:mr-64' : 'lg:ml-64'} p-4 lg:p-10`}>
-        {/* Mobile menu toggle */}
-        <button
-          onClick={() => setSidebarOpen(true)}
-          className={`lg:hidden mb-4 p-2 rounded-xl transition-colors ${isDark ? 'bg-white/5 hover:bg-white/10 text-slate-400' : 'bg-white border border-slate-200 hover:bg-slate-50 text-slate-600'}`}
-          aria-label="Open navigation menu"
-        >
-          <Menu className="w-6 h-6" />
-        </button>
         <DashboardHeader
           userName="Department Head"
           userRole="Admin"
@@ -239,6 +231,7 @@ function AdminDashboardContent() {
           onSetLanguage={setLanguage}
           searchRole="admin"
           onProfileClick={() => handleTabChange('profile')}
+          onMenuClick={() => setSidebarOpen(true)}
           translations={{
             search: t('search') || 'Search...',
             language: t('language'),

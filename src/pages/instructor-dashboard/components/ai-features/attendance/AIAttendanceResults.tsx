@@ -66,7 +66,7 @@ export function AIAttendanceResults({
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `attendance_${courseSection.replace(/\s/g, '_')}_${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = `Attendance_ID_Report_${courseSection.replace(/\s/g, '_')}_${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -360,7 +360,7 @@ export function AIAttendanceResults({
           }`}
         >
           <Download size={18} />
-          Export to Excel/CSV
+          Download Excel Report (IDs)
         </button>
         <div className="flex gap-3 w-full sm:w-auto">
           <button

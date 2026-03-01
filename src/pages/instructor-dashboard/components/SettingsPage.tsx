@@ -200,8 +200,8 @@ export function SettingsPage() {
           className={`rounded-xl p-6 border shadow-sm ${isDark ? 'bg-gray-800/50 border-white/10' : 'bg-white border-gray-200'}`}
         >
           <div className="flex items-center gap-3 mb-6">
-            <div className={`p-2 rounded-lg ${isDark ? 'bg-purple-900/30' : 'bg-purple-100'}`}>
-              <Lock className="text-purple-600" size={20} />
+            <div className={`p-2 rounded-lg ${isDark ? 'bg-indigo-900/30' : 'bg-indigo-100'}`}>
+              <Lock className="text-indigo-600" size={20} />
             </div>
             <div>
               <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>

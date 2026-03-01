@@ -53,7 +53,7 @@ export function DashboardSidebar({
   onLogout,
   isDark,
   isRTL = false,
-  accentColor = '#7C3AED',
+  accentColor = '#3b82f6',
   isMobileOpen = false,
   onMobileClose,
   groupOrder,

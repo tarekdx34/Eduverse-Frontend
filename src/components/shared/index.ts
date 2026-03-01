@@ -50,3 +50,4 @@ export type { CourseFeature } from './CourseFeatureToggle';
 // Shared Dashboard Layout
 export { DashboardHeader } from './DashboardHeader';
 export { DashboardSidebar } from './DashboardSidebar';
+export { CustomDropdown } from './CustomDropdown';

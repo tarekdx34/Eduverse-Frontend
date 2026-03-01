@@ -47,8 +47,8 @@ interface DashboardProfileTabProps {
 
 export function DashboardProfileTab({
   isDark,
-  accentColor = '#7C3AED',
-  bannerGradient = 'from-[#7C3AED] to-[#3B82F6]',
+  accentColor = '#3b82f6',
+  bannerGradient = 'from-[#3b82f6] to-[#06b6d4]',
   profileData,
 }: DashboardProfileTabProps) {
   const [isEditing, setIsEditing] = useState(false);
