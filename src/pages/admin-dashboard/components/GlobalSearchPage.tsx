@@ -51,11 +51,12 @@ const categoryBadgeColor: Record<string, string> = {
   users: 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400',
   courses: 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400',
   settings: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400',
-  logs: 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-400',
+  logs: 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400',
 };
 
 export function GlobalSearchPage() {
-  const { isDark } = useTheme();
+  const { isDark, primaryHex } = useTheme() as any;
+  const accentColor = primaryHex || '#3b82f6';
   const { isRTL } = useLanguage();
   const [query, setQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<CategoryKey>('all');
@@ -107,7 +108,7 @@ export function GlobalSearchPage() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search users, courses, settings, reports..."
-          className={`w-full rounded-xl text-lg p-4 ${isRTL ? 'pr-12 pl-10' : 'pl-12 pr-10'} border outline-none transition-colors focus:ring-2 focus:ring-rose-500 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500' : 'bg-white border-gray-200 placeholder-gray-400'}`}
+          className={`w-full rounded-xl text-lg p-4 ${isRTL ? 'pr-12 pl-10' : 'pl-12 pr-10'} border outline-none transition-colors focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500' : 'bg-white border-gray-200 placeholder-gray-400'}`}
         />
         {hasQuery && (
           <button
@@ -131,8 +132,8 @@ export function GlobalSearchPage() {
               className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
                 isActive
                   ? isDark
-                    ? 'bg-rose-500/20 text-rose-400 border-rose-500'
-                    : 'bg-rose-50 text-rose-600 border-rose-500'
+                    ? 'bg-blue-500/20 text-blue-400 border-blue-500'
+                    : 'bg-blue-50 text-blue-600 border-blue-500'
                   : isDark
                     ? 'bg-gray-800 text-gray-400 border-gray-700 hover:border-gray-600'
                     : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
@@ -154,7 +155,7 @@ export function GlobalSearchPage() {
               <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Recent Searches</h3>
               <button
                 onClick={() => setRecentSearches([])}
-                className="text-sm text-rose-500 hover:text-rose-600 font-medium"
+                className="text-sm text-blue-500 hover:text-blue-600 font-medium"
               >
                 Clear All
               </button>
@@ -198,8 +199,8 @@ export function GlobalSearchPage() {
                   onClick={action.action}
                   className={`${cardClass} flex flex-col items-center gap-3 text-center hover:shadow-md transition-shadow cursor-pointer`}
                 >
-                  <div className={`p-3 rounded-xl ${isDark ? 'bg-rose-500/10' : 'bg-rose-50'}`}>
-                    <action.icon className={`w-6 h-6 ${isDark ? 'text-rose-400' : 'text-rose-600'}`} />
+                  <div className={`p-3 rounded-xl ${isDark ? 'bg-blue-500/10' : 'bg-blue-50'}`}>
+                    <action.icon className={`w-6 h-6 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
                   </div>
                   <span className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{action.label}</span>
                 </button>
@@ -210,7 +211,7 @@ export function GlobalSearchPage() {
           {/* Suggestions */}
           <div className={cardClass}>
             <div className="flex items-center gap-2 mb-3">
-              <Sparkles className={`w-4 h-4 ${isDark ? 'text-rose-400' : 'text-rose-500'}`} />
+              <Sparkles className={`w-4 h-4 ${isDark ? 'text-blue-400' : 'text-blue-500'}`} />
               <h3 className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Try searching for:</h3>
             </div>
             <div className="flex flex-wrap gap-2">

@@ -91,24 +91,24 @@ function StudentDashboardContent() {
   }, [courseIdFromUrl]);
 
   const tabs = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutGrid },
-    { id: 'myclass', label: 'My Class', icon: BookOpen },
-    { id: 'registration', label: 'Registration', icon: GraduationCap },
-    { id: 'community', label: 'Community', icon: Users },
-    { id: 'schedule', label: 'Schedule', icon: Calendar },
-    { id: 'assignments', label: 'Assignments', icon: CheckSquare },
-    { id: 'labs', label: 'Lab Sessions', icon: Beaker },
-    { id: 'grades', label: 'Grades', icon: FileText },
-    { id: 'attendance', label: 'Attendance', icon: BarChart3 },
-    { id: 'todo', label: 'Todo List', icon: ListChecks },
-    { id: 'ai', label: 'AI Features', icon: Sparkles },
-    { id: 'quizzes', label: 'Quiz Center', icon: ClipboardCheck },
-    { id: 'gamification', label: 'Achievements', icon: Trophy },
-    { id: 'notifications', label: 'Notifications', icon: Bell },
-    { id: 'payments', label: 'Payments', icon: CreditCard },
-    { id: 'chat', label: 'Chat', icon: MessageCircle },
-    { id: 'settings', label: 'Settings', icon: Settings },
-    { id: 'profile', label: 'Profile', icon: User },
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutGrid, group: 'Overview' },
+    { id: 'myclass', label: 'My Class', icon: BookOpen, group: 'Courses' },
+    { id: 'registration', label: 'Registration', icon: GraduationCap, group: 'Courses' },
+    { id: 'schedule', label: 'Schedule', icon: Calendar, group: 'Courses' },
+    { id: 'assignments', label: 'Assignments', icon: CheckSquare, group: 'Academic' },
+    { id: 'labs', label: 'Lab Sessions', icon: Beaker, group: 'Academic' },
+    { id: 'grades', label: 'Grades', icon: FileText, group: 'Academic' },
+    { id: 'attendance', label: 'Attendance', icon: BarChart3, group: 'Academic' },
+    { id: 'quizzes', label: 'Quiz Center', icon: ClipboardCheck, group: 'Academic' },
+    { id: 'todo', label: 'Todo List', icon: ListChecks, group: 'Tools' },
+    { id: 'ai', label: 'AI Features', icon: Sparkles, group: 'Tools' },
+    { id: 'gamification', label: 'Achievements', icon: Trophy, group: 'Tools' },
+    { id: 'community', label: 'Community', icon: Users, group: 'Communication' },
+    { id: 'notifications', label: 'Notifications', icon: Bell, group: 'Communication' },
+    { id: 'chat', label: 'Chat', icon: MessageCircle, group: 'Communication' },
+    { id: 'payments', label: 'Payments', icon: CreditCard, group: 'Account' },
+    { id: 'settings', label: 'Settings', icon: Settings, group: 'Account' },
+    { id: 'profile', label: 'Profile', icon: User, group: 'Account' },
   ];
 
   // Handle tab navigation - clear course view when navigating to other tabs
@@ -130,7 +130,7 @@ function StudentDashboardContent() {
   };
 
   const { isRTL, language, setLanguage, t } = useLanguage();
-  const { isDark, toggleTheme } = useTheme();
+  const { isDark, toggleTheme, primaryHex, primaryColor, setPrimaryColor } = useTheme() as any;
 
   const headerTranslations = {
     search: t('search') || 'Search...',
@@ -145,8 +145,13 @@ function StudentDashboardContent() {
 
   return (
     <div
-      className={`flex min-h-screen gradient-bg ${isRTL ? 'flex-row-reverse' : ''} ${isDark ? 'bg-background-dark' : 'bg-background-light'} text-slate-800 dark:text-slate-100 transition-colors duration-300`}
-      style={{ fontFamily: "'Montserrat', sans-serif" }}
+      className={`flex min-h-screen ${isRTL ? 'flex-row-reverse' : ''} ${isDark ? 'bg-background-dark' : 'bg-background-light'} text-slate-800 dark:text-slate-100 transition-colors duration-300`}
+      style={
+        {
+          fontFamily: "'Montserrat', sans-serif",
+          '--accent-color': primaryHex || '#3b82f6',
+        } as React.CSSProperties
+      }
       dir={isRTL ? 'rtl' : 'ltr'}
     >
       {/* Sidebar */}
@@ -160,9 +165,10 @@ function StudentDashboardContent() {
         onLogout={() => navigate('/login')}
         isDark={isDark}
         isRTL={isRTL}
-        accentColor="#7C3AED"
+        accentColor={primaryHex || '#3b82f6'}
         isMobileOpen={sidebarOpen}
         onMobileClose={() => setSidebarOpen(false)}
+        groupOrder={['Overview', 'Courses', 'Academic', 'Tools', 'Communication', 'Account']}
       />
 
       {/* Main Content */}
@@ -177,14 +183,23 @@ function StudentDashboardContent() {
               userRole="CS Junior"
               isDark={isDark}
               isRTL={isRTL}
-              accentColor="#7C3AED"
-              avatarGradient="from-[#7C3AED] to-[#ec4899]"
+              accentColor={primaryHex || '#3b82f6'}
+              avatarGradient="from-[#3b82f6] to-[#06b6d4]"
               language={language}
               onToggleTheme={toggleTheme}
               onSetLanguage={setLanguage}
               onProfileClick={() => handleTabChange('profile')}
               translations={headerTranslations}
               onMenuClick={() => setSidebarOpen(true)}
+              searchRole="student"
+              primaryColor={primaryColor}
+              onSetPrimaryColor={setPrimaryColor}
+              availableColors={[
+                { id: 'blue', colorClass: 'bg-blue-500', hex: '#3b82f6' },
+                { id: 'emerald', colorClass: 'bg-emerald-500', hex: '#10b981' },
+                { id: 'rose', colorClass: 'bg-blue-500', hex: '#f43f5e' },
+                { id: 'amber', colorClass: 'bg-amber-500', hex: '#f59e0b' },
+              ]}
             />
           </>
         )}
@@ -264,8 +279,8 @@ function StudentDashboardContent() {
               {activeTab === 'profile' && (
                 <DashboardProfileTab
                   isDark={isDark}
-                  accentColor="#7C3AED"
-                  bannerGradient="from-[#7C3AED] to-[#3B82F6]"
+                  accentColor={primaryHex || '#3b82f6'}
+                  bannerGradient="from-[#3b82f6] to-[#06b6d4]"
                   profileData={{
                     fullName: 'Tarek Mohamed',
                     role: 'CS Junior',
@@ -296,7 +311,7 @@ function StudentDashboardContent() {
                         name: "Dean's List",
                         description: 'GPA above 3.5',
                         icon: 'school',
-                        color: '#7C3AED',
+                        color: accentColor,
                         unlocked: true,
                       },
                       {

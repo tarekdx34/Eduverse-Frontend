@@ -74,7 +74,8 @@ function getWorkloadBarColor(status: StaffStatus) {
 }
 
 export function StaffAssignmentPage() {
-  const { isDark } = useTheme();
+  const { isDark, primaryHex } = useTheme() as any;
+  const accentColor = primaryHex || '#3b82f6';
   const { t } = useLanguage();
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
@@ -133,7 +134,7 @@ export function StaffAssignmentPage() {
           </div>
           <button
             onClick={() => openAssignModal()}
-            className="flex items-center gap-2 px-4 py-2 bg-rose-600 text-white rounded-lg hover:bg-rose-700 transition-colors"
+            className="flex items-center gap-2 px-4 py-2  text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
             <UserPlus size={18} />
             Assign Staff
@@ -150,7 +151,7 @@ export function StaffAssignmentPage() {
               onClick={() => setActiveFilter(f.key)}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 activeFilter === f.key
-                  ? 'bg-rose-600 text-white'
+                  ? ''
                   : isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
@@ -172,7 +173,7 @@ export function StaffAssignmentPage() {
               <div className="flex items-start justify-between mb-4">
                 <div>
                   <div className="flex items-center gap-2">
-                    <BookOpen size={18} className="text-rose-500" />
+                    <BookOpen size={18} className="text-blue-500" />
                     <span className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{course.code}</span>
                   </div>
                   <h3 className={`text-lg font-semibold mt-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{course.name}</h3>
@@ -198,7 +199,7 @@ export function StaffAssignmentPage() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => openAssignModal(course.id)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-600 text-white text-sm rounded-lg hover:bg-rose-700 transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-1.5  text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
                 >
                   <UserPlus size={14} />
                   Assign
@@ -283,7 +284,7 @@ export function StaffAssignmentPage() {
       {/* AI Suggestions Panel */}
       <div className={`rounded-xl border shadow-sm p-6 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
         <div className="flex items-center gap-2 mb-4">
-          <Sparkles size={20} className="text-rose-500" />
+          <Sparkles size={20} className="text-blue-500" />
           <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>AI Suggestions</h2>
         </div>
         {visibleSuggestions.length === 0 ? (
@@ -373,7 +374,7 @@ export function StaffAssignmentPage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 text-sm font-medium bg-rose-600 text-white rounded-lg hover:bg-rose-700 transition-colors"
+                  className="px-4 py-2 text-sm font-medium  text-white rounded-lg hover:bg-blue-700 transition-colors"
                 >
                   Save
                 </button>

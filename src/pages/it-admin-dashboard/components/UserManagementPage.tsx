@@ -28,11 +28,11 @@ function getRoleBadgeClasses(role: string, isDark: boolean): string {
     case 'Instructor':
       return isDark ? 'bg-blue-500/20 text-blue-300' : 'bg-blue-100 text-blue-700';
     case 'Student':
-      return isDark ? 'bg-purple-500/20 text-purple-300' : 'bg-purple-100 text-purple-700';
+      return isDark ? 'bg-blue-500/20 text-blue-300' : 'bg-blue-100 text-blue-700';
     case 'TA':
       return isDark ? 'bg-amber-500/20 text-amber-300' : 'bg-amber-100 text-amber-700';
     case 'Admin':
-      return isDark ? 'bg-cyan-500/20 text-cyan-300' : 'bg-cyan-100 text-cyan-700';
+      return isDark ? 'bg-blue-500/20 text-blue-300' : 'bg-blue-100 text-blue-700';
     default:
       return isDark ? 'bg-gray-500/20 text-gray-300' : 'bg-gray-100 text-gray-700';
   }
@@ -48,7 +48,8 @@ function getStatusBadgeClasses(status: 'active' | 'inactive', isDark: boolean): 
 const emptyForm = { name: '', email: '', role: 'Student', department: '', status: 'active' as const };
 
 export function UserManagementPage() {
-  const { isDark } = useTheme();
+  const { isDark, primaryHex } = useTheme() as any;
+  const accentColor = primaryHex || '#3b82f6';
   const { t } = useLanguage();
 
   const [users, setUsers] = useState<User[]>(initialUsers);
@@ -102,7 +103,7 @@ export function UserManagementPage() {
     setUsers((prev) => prev.filter((u) => u.id !== id));
   };
 
-  const inputClasses = `w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 ${
+  const inputClasses = `w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
     isDark ? 'bg-slate-800/50 border-slate-700 text-white placeholder-slate-500' : 'bg-white border-slate-300 text-slate-900 placeholder-slate-400'
   }`;
 
@@ -111,8 +112,8 @@ export function UserManagementPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-cyan-600/20">
-            <Users className="w-6 h-6 text-cyan-500" />
+          <div className="p-2 rounded-xl bg-blue-600/20">
+            <Users className="w-6 h-6 text-blue-500" />
           </div>
           <div>
             <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
@@ -125,7 +126,7 @@ export function UserManagementPage() {
         </div>
         <button
           onClick={openAddModal}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white text-sm font-medium transition-colors"
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:opacity-90 text-white text-sm font-medium transition-colors"
         >
           <Plus className="w-4 h-4" />
           Add User
@@ -208,7 +209,7 @@ export function UserManagementPage() {
                       <div className="flex items-center gap-1">
                         <button
                           onClick={() => openEditModal(user)}
-                          className={`p-1.5 rounded-lg transition-colors ${isDark ? 'hover:bg-white/10 text-slate-400 hover:text-cyan-400' : 'hover:bg-slate-100 text-slate-500 hover:text-cyan-600'}`}
+                          className={`p-1.5 rounded-lg transition-colors ${isDark ? 'hover:bg-white/10 text-slate-400 hover:text-blue-400' : 'hover:bg-slate-100 text-slate-500 hover:text-blue-600'}`}
                           title="Edit user"
                         >
                           <Edit2 className="w-4 h-4" />
@@ -316,7 +317,7 @@ export function UserManagementPage() {
               </button>
               <button
                 onClick={handleSave}
-                className="flex-1 px-4 py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white text-sm font-medium transition-colors"
+                className="flex-1 px-4 py-2.5 rounded-xl bg-blue-600 hover:opacity-90 text-white text-sm font-medium transition-colors"
               >
                 {editingUser ? 'Save Changes' : 'Add User'}
               </button>

@@ -137,7 +137,8 @@ const notifications: Notification[] = [
 ];
 
 export function NotificationCenter() {
-  const { isDark } = useTheme();
+  const { isDark, primaryHex } = useTheme() as any;
+  const accentColor = primaryHex || '#3b82f6';
   const [notificationList, setNotificationList] = useState<Notification[]>(notifications);
   const [filterType, setFilterType] = useState<string>('all');
   const [showSettings, setShowSettings] = useState(false);
@@ -188,11 +189,11 @@ export function NotificationCenter() {
       case 'announcement':
         return isDark ? 'bg-blue-900/50 text-blue-400 border-blue-800' : 'bg-blue-100 text-blue-600 border-blue-200';
       case 'reminder':
-        return isDark ? 'bg-purple-900/50 text-purple-400 border-purple-800' : 'bg-purple-100 text-purple-600 border-purple-200';
+        return isDark ? 'bg-blue-900/50 text-blue-400 border-blue-800' : 'bg-blue-100 text-blue-600 border-blue-200';
       case 'achievement':
         return isDark ? 'bg-amber-900/50 text-amber-400 border-amber-800' : 'bg-amber-100 text-amber-600 border-amber-200';
       case 'message':
-        return 'bg-[#7C3AED]/10 text-[#7C3AED] border-[#7C3AED]/20';
+        return 'bg-[var(--accent-color)]/10 text-[var(--accent-color)] border-[var(--accent-color)]/20';
       case 'warning':
         return isDark ? 'bg-orange-900/50 text-orange-400 border-orange-800' : 'bg-orange-100 text-orange-600 border-orange-200';
       default:
@@ -275,7 +276,7 @@ export function NotificationCenter() {
                     onClick={() => setFilterType(filter.id)}
                     className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
                       filterType === filter.id
-                        ? 'bg-[#7C3AED]/10 text-[#7C3AED] border-2 border-[#7C3AED]/30'
+                        ? 'bg-[var(--accent-color)]/10 text-[var(--accent-color)] border-2 border-[var(--accent-color)]/30'
                         : `${isDark ? 'bg-white/5 text-slate-400' : 'bg-slate-50 text-slate-600'} border-2 border-transparent ${isDark ? 'hover:bg-white/10' : 'hover:bg-slate-200'}`
                     }`}
                   >
@@ -315,7 +316,7 @@ export function NotificationCenter() {
                 <div
                   key={notification.id}
                   className={`${isDark ? 'bg-card-dark' : 'bg-white'} rounded-xl border-2 p-4 transition-all hover:shadow-md ${
-                    !notification.read ? 'border-[#7C3AED]/20 bg-[#7C3AED]/10/30' : `${isDark ? 'border-white/5' : 'border-slate-100'}`
+                    !notification.read ? 'border-[var(--accent-color)]/20 bg-[var(--accent-color)]/10/30' : `${isDark ? 'border-white/5' : 'border-slate-100'}`
                   }`}
                 >
                   <div className="flex items-start gap-4">
@@ -332,7 +333,7 @@ export function NotificationCenter() {
                             {notification.title}
                           </h4>
                           {!notification.read && (
-                            <span className="w-2 h-2 bg-[#7C3AED]/100 rounded-full" />
+                            <span className="w-2 h-2 bg-[var(--accent-color)]/100 rounded-full" />
                           )}
                           <span className={`px-2 py-0.5 rounded text-xs font-medium ${getPriorityBadge(notification.priority)}`}>
                             {notification.priority}
@@ -354,7 +355,7 @@ export function NotificationCenter() {
                         {!notification.read && (
                           <button
                             onClick={() => markAsRead(notification.id)}
-                            className="text-xs text-[#7C3AED] hover:text-[#7C3AED] font-medium"
+                            className="text-xs text-[var(--accent-color)] hover:text-[var(--accent-color)] font-medium"
                           >
                             Mark as read
                           </button>
@@ -402,7 +403,7 @@ export function NotificationCenter() {
                             ...notificationSettings,
                             [setting.key]: e.target.checked
                           })}
-                          className="w-5 h-5 text-[#7C3AED] rounded border-slate-200 focus:ring-[#7C3AED]"
+                          className="w-5 h-5 text-[var(--accent-color)] rounded border-slate-200 focus:ring-[var(--accent-color)]"
                         />
                       </label>
                     ))}
@@ -426,14 +427,14 @@ export function NotificationCenter() {
                             ...notificationSettings,
                             [setting.key]: e.target.checked
                           })}
-                          className="w-5 h-5 text-[#7C3AED] rounded border-slate-200 focus:ring-[#7C3AED]"
+                          className="w-5 h-5 text-[var(--accent-color)] rounded border-slate-200 focus:ring-[var(--accent-color)]"
                         />
                       </label>
                     ))}
                   </div>
                 </div>
 
-                <button className="w-full px-4 py-3 bg-[#7C3AED] text-white rounded-lg hover:bg-[#6D28D9] transition-all font-medium">
+                <button className="w-full px-4 py-3 bg-[var(--accent-color)] text-white rounded-lg hover:opacity-90 transition-all font-medium">
                   Save Settings
                 </button>
               </div>
@@ -473,15 +474,15 @@ export function NotificationCenter() {
               <div className="glass rounded-[2.5rem] overflow-hidden">
                 <div className={`${isDark ? 'bg-white/5 border-b border-white/5' : 'bg-gradient-to-r from-background-light to-white border-b border-slate-100'} p-4`}>
                   <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'} flex items-center gap-2`}>
-                    <Calendar className="w-5 h-5 text-[#7C3AED]" />
+                    <Calendar className="w-5 h-5 text-[var(--accent-color)]" />
                     Upcoming Deadlines
                   </h3>
                 </div>
                 <div className="p-4 space-y-3">
                   {notificationList.filter(n => n.type === 'deadline' || n.type === 'reminder').slice(0, 4).map((deadline) => (
                     <div key={deadline.id} className={`flex items-center gap-3 p-3 ${isDark ? 'bg-white/5' : 'bg-background-light'} rounded-lg`}>
-                      <div className="w-10 h-10 bg-[#7C3AED]/10 rounded-lg flex items-center justify-center">
-                        <Clock className="w-5 h-5 text-[#7C3AED]" />
+                      <div className="w-10 h-10 bg-[var(--accent-color)]/10 rounded-lg flex items-center justify-center">
+                        <Clock className="w-5 h-5 text-[var(--accent-color)]" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'} truncate`}>{deadline.title}</p>

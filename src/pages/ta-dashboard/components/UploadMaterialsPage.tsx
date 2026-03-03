@@ -30,7 +30,7 @@ const FILE_TYPE_FILTERS: FileType[] = ['All', 'PDF', 'Video', 'Code', 'AI Genera
 function getFileIcon(type: Material['type']) {
   switch (type) {
     case 'PDF': return <FileText className="w-5 h-5 text-red-400" />;
-    case 'Video': return <Film className="w-5 h-5 text-purple-400" />;
+    case 'Video': return <Film className="w-5 h-5 text-blue-400" />;
     case 'Code': return <Code className="w-5 h-5 text-green-400" />;
     case 'Image': return <Image className="w-5 h-5 text-blue-400" />;
     case 'Archive': return <Archive className="w-5 h-5 text-yellow-400" />;
@@ -115,7 +115,7 @@ export function UploadMaterialsPage() {
             <Upload className="w-4 h-4" />
             Upload
           </button>
-          <button className="flex items-center gap-2 rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700 transition-colors">
+          <button className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
             <Sparkles className="w-4 h-4" />
             AI Generate
           </button>
@@ -232,7 +232,7 @@ export function UploadMaterialsPage() {
               <div className="flex items-center gap-2">
                 <p className={`font-medium truncate ${headingClass}`}>{material.name}</p>
                 {material.aiGenerated && (
-                  <span className="flex items-center gap-1 rounded-full bg-purple-500/20 px-2 py-0.5 text-xs text-purple-400 whitespace-nowrap">
+                  <span className="flex items-center gap-1 rounded-full bg-blue-500/20 px-2 py-0.5 text-xs text-blue-400 whitespace-nowrap">
                     <Sparkles className="w-3 h-3" />
                     AI
                   </span>

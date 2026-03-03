@@ -99,7 +99,7 @@ export function ScheduleManagementPage({ schedules, courses, users, adminDepartm
     setConflictError('');
   };
 
-  const typeColors: Record<string, string> = { lecture: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400', lab: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400', section: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400', tutorial: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' };
+  const typeColors: Record<string, string> = { lecture: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400', lab: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400', section: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400', tutorial: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' };
 
   const dayTranslations: Record<string, string> = { Sunday: t('sunday'), Monday: t('monday'), Tuesday: t('tuesday'), Wednesday: t('wednesday'), Thursday: t('thursday'), Saturday: t('saturday') };
 
@@ -126,7 +126,7 @@ export function ScheduleManagementPage({ schedules, courses, users, adminDepartm
         {[
           { label: t('totalSessions'), value: deptSchedules.length, icon: CalendarDays, color: 'text-blue-500' },
           { label: t('totalRooms'), value: uniqueRooms.length, icon: MapPin, color: 'text-green-500' },
-          { label: t('totalCourses'), value: deptCourses.length, icon: BookOpen, color: 'text-purple-500' },
+          { label: t('totalCourses'), value: deptCourses.length, icon: BookOpen, color: 'text-blue-500' },
         ].map((stat, i) => (
           <div key={i} className={`p-4 rounded-xl border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
             <div className="flex items-center gap-3">

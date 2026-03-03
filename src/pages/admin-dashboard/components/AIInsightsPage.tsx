@@ -105,7 +105,8 @@ function getTimestamp(): string {
 }
 
 export function AIInsightsPage() {
-  const { isDark } = useTheme();
+  const { isDark, primaryHex } = useTheme() as any;
+  const accentColor = primaryHex || '#3b82f6';
   const { t } = useLanguage();
   const [mode, setMode] = useState<Mode>('general');
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -195,8 +196,8 @@ export function AIInsightsPage() {
               className={`flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-medium transition-colors ${
                 isActive
                   ? isDark
-                    ? 'bg-rose-500/20 text-rose-400 border-rose-500'
-                    : 'bg-rose-50 text-rose-600 border-rose-500'
+                    ? 'bg-blue-500/20 text-blue-400 border-blue-500'
+                    : 'bg-blue-50 text-blue-600 border-blue-500'
                   : isDark
                     ? 'bg-gray-800 text-gray-400 border-gray-700 hover:text-gray-200'
                     : 'bg-white text-gray-500 border-gray-200 hover:text-gray-700'
@@ -213,7 +214,7 @@ export function AIInsightsPage() {
       <div className={`${cardClass} !p-4`}>
         <div className="flex items-center gap-3 flex-wrap justify-between">
           <div className="flex items-center gap-2">
-            <Brain size={18} className={isDark ? 'text-rose-400' : 'text-rose-500'} />
+            <Brain size={18} className={isDark ? 'text-blue-400' : 'text-blue-500'} />
             <span className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>AI Stats</span>
           </div>
           <div className="flex items-center gap-6 flex-wrap">
@@ -240,8 +241,8 @@ export function AIInsightsPage() {
                       className={`rounded-2xl px-4 py-3 text-sm ${
                         msg.role === 'user'
                           ? isDark
-                            ? 'bg-rose-600 text-white'
-                            : 'bg-rose-500 text-white'
+                            ? ''
+                            : 'bg-blue-500 text-white'
                           : isDark
                             ? 'bg-gray-700 text-white'
                             : 'bg-gray-100 text-gray-900'
@@ -249,8 +250,8 @@ export function AIInsightsPage() {
                     >
                       {msg.role === 'ai' && (
                         <div className="flex items-center gap-1.5 mb-1">
-                          <Sparkles size={14} className={isDark ? 'text-rose-400' : 'text-rose-500'} />
-                          <span className={`text-xs font-semibold ${isDark ? 'text-rose-400' : 'text-rose-500'}`}>
+                          <Sparkles size={14} className={isDark ? 'text-blue-400' : 'text-blue-500'} />
+                          <span className={`text-xs font-semibold ${isDark ? 'text-blue-400' : 'text-blue-500'}`}>
                             AI Assistant
                           </span>
                         </div>
@@ -296,7 +297,7 @@ export function AIInsightsPage() {
                           : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
                       }`}
                     >
-                      <Icon size={16} className={isDark ? 'text-rose-400' : 'text-rose-500'} />
+                      <Icon size={16} className={isDark ? 'text-blue-400' : 'text-blue-500'} />
                       {action.text}
                     </button>
                   );
@@ -329,7 +330,7 @@ export function AIInsightsPage() {
         {mode === 'analytics' && (
           <div className="p-6 space-y-4">
             <div className="flex items-center gap-2 mb-2">
-              <BarChart3 size={18} className={isDark ? 'text-rose-400' : 'text-rose-500'} />
+              <BarChart3 size={18} className={isDark ? 'text-blue-400' : 'text-blue-500'} />
               <h3 className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>AI-Generated Insights</h3>
             </div>
             {analyticsInsights.map((insight) => {
@@ -341,8 +342,8 @@ export function AIInsightsPage() {
                     isDark ? 'bg-gray-700/50 border-gray-600' : 'bg-gray-50 border-gray-200'
                   }`}
                 >
-                  <div className={`p-2 rounded-lg ${isDark ? 'bg-rose-500/20' : 'bg-rose-50'}`}>
-                    <Icon size={18} className={isDark ? 'text-rose-400' : 'text-rose-500'} />
+                  <div className={`p-2 rounded-lg ${isDark ? 'bg-blue-500/20' : 'bg-blue-50'}`}>
+                    <Icon size={18} className={isDark ? 'text-blue-400' : 'text-blue-500'} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <h4 className={`text-sm font-semibold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{insight.title}</h4>
@@ -355,8 +356,8 @@ export function AIInsightsPage() {
                     }}
                     className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                       isDark
-                        ? 'bg-rose-500/20 text-rose-400 hover:bg-rose-500/30'
-                        : 'bg-rose-50 text-rose-600 hover:bg-rose-100'
+                        ? 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30'
+                        : 'bg-blue-50 text-blue-600 hover:bg-blue-100'
                     }`}
                   >
                     Explore <ArrowRight size={12} />
@@ -371,7 +372,7 @@ export function AIInsightsPage() {
         {mode === 'recommendations' && (
           <div className="p-6 space-y-4">
             <div className="flex items-center gap-2 mb-2">
-              <Lightbulb size={18} className={isDark ? 'text-rose-400' : 'text-rose-500'} />
+              <Lightbulb size={18} className={isDark ? 'text-blue-400' : 'text-blue-500'} />
               <h3 className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>AI Recommendations</h3>
             </div>
             {recommendations.map((rec) => {
@@ -397,8 +398,8 @@ export function AIInsightsPage() {
                         <button
                           className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                             isDark
-                              ? 'bg-rose-500/20 text-rose-400 hover:bg-rose-500/30'
-                              : 'bg-rose-50 text-rose-600 hover:bg-rose-100'
+                              ? 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30'
+                              : 'bg-blue-50 text-blue-600 hover:bg-blue-100'
                           }`}
                         >
                           <CheckCircle size={12} className="inline mr-1" />
@@ -457,7 +458,7 @@ export function AIInsightsPage() {
           disabled={!input.trim()}
           className={`p-2 rounded-lg transition-colors ${
             input.trim()
-              ? 'bg-rose-500 text-white hover:bg-rose-600'
+              ? 'bg-blue-500 text-white hover:'
               : isDark
                 ? 'bg-gray-700 text-gray-500'
                 : 'bg-gray-100 text-gray-400'

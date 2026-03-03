@@ -33,32 +33,78 @@ interface Ticket {
 // ─── Static Data ─────────────────────────────────────────────────────────────
 
 const tickets: Ticket[] = [
-  { id: 'TK-001', subject: 'Cannot access course materials', submittedBy: 'Sara Mohamed', category: 'Technical', priority: 'high', status: 'open', date: '2025-01-15', description: 'I cannot download any PDF files from the course materials section.' },
-  { id: 'TK-002', subject: 'Grade display error', submittedBy: 'Omar Ali', category: 'Bug Report', priority: 'critical', status: 'in-progress', date: '2025-01-14', description: 'My grades are showing incorrectly in the gradebook.' },
-  { id: 'TK-003', subject: 'Request for new feature', submittedBy: 'Dr. Ahmed Hassan', category: 'Feature Request', priority: 'low', status: 'resolved', date: '2025-01-13', description: 'Can we add a dark mode toggle to the notification settings?' },
-  { id: 'TK-004', subject: 'Login issues on mobile', submittedBy: 'Fatima Nour', category: 'Technical', priority: 'medium', status: 'open', date: '2025-01-12', description: 'Cannot login from mobile browser, always redirects to error page.' },
-  { id: 'TK-005', subject: 'Slow page loading', submittedBy: 'Hassan Youssef', category: 'Performance', priority: 'high', status: 'in-progress', date: '2025-01-11', description: 'Dashboard takes over 10 seconds to load.' },
+  {
+    id: 'TK-001',
+    subject: 'Cannot access course materials',
+    submittedBy: 'Sara Mohamed',
+    category: 'Technical',
+    priority: 'high',
+    status: 'open',
+    date: '2025-01-15',
+    description: 'I cannot download any PDF files from the course materials section.',
+  },
+  {
+    id: 'TK-002',
+    subject: 'Grade display error',
+    submittedBy: 'Omar Ali',
+    category: 'Bug Report',
+    priority: 'critical',
+    status: 'in-progress',
+    date: '2025-01-14',
+    description: 'My grades are showing incorrectly in the gradebook.',
+  },
+  {
+    id: 'TK-003',
+    subject: 'Request for new feature',
+    submittedBy: 'Dr. Ahmed Hassan',
+    category: 'Feature Request',
+    priority: 'low',
+    status: 'resolved',
+    date: '2025-01-13',
+    description: 'Can we add a dark mode toggle to the notification settings?',
+  },
+  {
+    id: 'TK-004',
+    subject: 'Login issues on mobile',
+    submittedBy: 'Fatima Nour',
+    category: 'Technical',
+    priority: 'medium',
+    status: 'open',
+    date: '2025-01-12',
+    description: 'Cannot login from mobile browser, always redirects to error page.',
+  },
+  {
+    id: 'TK-005',
+    subject: 'Slow page loading',
+    submittedBy: 'Hassan Youssef',
+    category: 'Performance',
+    priority: 'high',
+    status: 'in-progress',
+    date: '2025-01-11',
+    description: 'Dashboard takes over 10 seconds to load.',
+  },
 ];
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const priorityConfig: Record<Priority, { label: string; bg: string; text: string }> = {
   critical: { label: 'Critical', bg: 'bg-red-500/15', text: 'text-red-500' },
-  high:     { label: 'High',     bg: 'bg-orange-500/15', text: 'text-orange-500' },
-  medium:   { label: 'Medium',   bg: 'bg-yellow-500/15', text: 'text-yellow-500' },
-  low:      { label: 'Low',      bg: 'bg-green-500/15', text: 'text-green-500' },
+  high: { label: 'High', bg: 'bg-orange-500/15', text: 'text-orange-500' },
+  medium: { label: 'Medium', bg: 'bg-yellow-500/15', text: 'text-yellow-500' },
+  low: { label: 'Low', bg: 'bg-green-500/15', text: 'text-green-500' },
 };
 
 const statusConfig: Record<Status, { label: string; bg: string; text: string }> = {
-  open:          { label: 'Open',        bg: 'bg-blue-500/15', text: 'text-blue-500' },
+  open: { label: 'Open', bg: 'bg-blue-500/15', text: 'text-blue-500' },
   'in-progress': { label: 'In Progress', bg: 'bg-yellow-500/15', text: 'text-yellow-500' },
-  resolved:      { label: 'Resolved',    bg: 'bg-green-500/15', text: 'text-green-500' },
+  resolved: { label: 'Resolved', bg: 'bg-green-500/15', text: 'text-green-500' },
 };
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export function FeedbackSupportPage() {
-  const { isDark } = useTheme();
+  const { isDark, primaryHex } = useTheme() as any;
+  const accentColor = primaryHex || '#3b82f6';
   const { t } = useLanguage();
 
   const [statusFilter, setStatusFilter] = useState<'all' | Status>('all');
@@ -107,18 +153,42 @@ export function FeedbackSupportPage() {
   // ─── Overview Cards ────────────────────────────────────────────────────────
 
   const overviewCards = [
-    { title: 'Open Tickets', value: openCount, icon: MessageSquare, color: 'text-blue-500', bgColor: 'bg-blue-500/10' },
-    { title: 'In Progress', value: inProgressCount, icon: Clock, color: 'text-yellow-500', bgColor: 'bg-yellow-500/10' },
-    { title: 'Resolved', value: resolvedCount, icon: CheckCircle, color: 'text-green-500', bgColor: 'bg-green-500/10' },
-    { title: 'Avg Response Time', value: '2.4h', icon: HeadphonesIcon, color: 'text-[#0891B2]', bgColor: 'bg-[#0891B2]/10' },
+    {
+      title: 'Open Tickets',
+      value: openCount,
+      icon: MessageSquare,
+      color: 'text-blue-500',
+      bgColor: 'bg-blue-500/10',
+    },
+    {
+      title: 'In Progress',
+      value: inProgressCount,
+      icon: Clock,
+      color: 'text-yellow-500',
+      bgColor: 'bg-yellow-500/10',
+    },
+    {
+      title: 'Resolved',
+      value: resolvedCount,
+      icon: CheckCircle,
+      color: 'text-green-500',
+      bgColor: 'bg-green-500/10',
+    },
+    {
+      title: 'Avg Response Time',
+      value: '2.4h',
+      icon: HeadphonesIcon,
+      color: `text-[${accentColor}]`,
+      bgColor: `bg-[${accentColor}]/10`,
+    },
   ];
 
   return (
     <div className="space-y-6">
       {/* Page Header */}
       <div className="flex items-center gap-3">
-        <div className="p-2 rounded-lg bg-[#0891B2]/10">
-          <HeadphonesIcon className="w-6 h-6 text-[#0891B2]" />
+        <div className="p-2 rounded-lg" style={{ backgroundColor: `${accentColor}15` }}>
+          <HeadphonesIcon className="w-6 h-6" style={{ color: accentColor }} />
         </div>
         <div>
           <h1 className={`text-2xl font-bold ${headingClass}`}>
@@ -163,7 +233,8 @@ export function FeedbackSupportPage() {
               placeholder="Search tickets..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className={`w-full pl-9 pr-3 py-2 rounded-lg border text-sm ${inputClass} focus:outline-none focus:ring-2 focus:ring-[#0891B2]/40`}
+              className={`w-full pl-9 pr-3 py-2 rounded-lg border text-sm ${inputClass} focus:outline-none focus:ring-2`}
+              style={{ '--tw-ring-color': `${accentColor}66` } as React.CSSProperties}
             />
           </div>
 
@@ -171,7 +242,8 @@ export function FeedbackSupportPage() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as 'all' | Status)}
-            className={`px-3 py-2 rounded-lg border text-sm ${inputClass} focus:outline-none focus:ring-2 focus:ring-[#0891B2]/40`}
+            className={`px-3 py-2 rounded-lg border text-sm ${inputClass} focus:outline-none focus:ring-2`}
+            style={{ '--tw-ring-color': `${accentColor}66` } as React.CSSProperties}
           >
             <option value="all">All Status</option>
             <option value="open">Open</option>
@@ -183,7 +255,8 @@ export function FeedbackSupportPage() {
           <select
             value={priorityFilter}
             onChange={(e) => setPriorityFilter(e.target.value as 'all' | Priority)}
-            className={`px-3 py-2 rounded-lg border text-sm ${inputClass} focus:outline-none focus:ring-2 focus:ring-[#0891B2]/40`}
+            className={`px-3 py-2 rounded-lg border text-sm ${inputClass} focus:outline-none focus:ring-2`}
+            style={{ '--tw-ring-color': `${accentColor}66` } as React.CSSProperties}
           >
             <option value="all">All Priority</option>
             <option value="low">Low</option>
@@ -201,16 +274,23 @@ export function FeedbackSupportPage() {
           <table className="w-full">
             <thead>
               <tr className={isDark ? 'bg-white/5' : 'bg-slate-50'}>
-                {['ID', 'Subject', 'Submitted By', 'Category', 'Priority', 'Status', 'Date', ''].map(
-                  (header) => (
-                    <th
-                      key={header}
-                      className={`px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider ${labelClass}`}
-                    >
-                      {header}
-                    </th>
-                  ),
-                )}
+                {[
+                  'ID',
+                  'Subject',
+                  'Submitted By',
+                  'Category',
+                  'Priority',
+                  'Status',
+                  'Date',
+                  '',
+                ].map((header) => (
+                  <th
+                    key={header}
+                    className={`px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider ${labelClass}`}
+                  >
+                    {header}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody className={`divide-y ${isDark ? 'divide-white/5' : 'divide-slate-100'}`}>
@@ -299,9 +379,7 @@ export function FeedbackSupportPage() {
                       {statusConfig[ticket.status].label}
                     </span>
                   </div>
-                  <p className={`text-sm font-medium ${headingClass} truncate`}>
-                    {ticket.subject}
-                  </p>
+                  <p className={`text-sm font-medium ${headingClass} truncate`}>{ticket.subject}</p>
                   <p className={`text-xs mt-1 ${labelClass}`}>
                     {ticket.submittedBy} · {ticket.category} · {ticket.date}
                   </p>
@@ -321,9 +399,7 @@ export function FeedbackSupportPage() {
                     labelClass={labelClass}
                     inputClass={inputClass}
                     replyText={replyText[ticket.id] || ''}
-                    onReplyChange={(val) =>
-                      setReplyText((prev) => ({ ...prev, [ticket.id]: val }))
-                    }
+                    onReplyChange={(val) => setReplyText((prev) => ({ ...prev, [ticket.id]: val }))}
                     onSendReply={() => handleReply(ticket.id)}
                   />
                 </div>
@@ -410,7 +486,8 @@ function TicketDetails({
             onChange={(e) => onReplyChange(e.target.value)}
             placeholder="Type your reply..."
             rows={2}
-            className={`flex-1 px-3 py-2 rounded-lg border text-sm resize-none ${inputClass} focus:outline-none focus:ring-2 focus:ring-[#0891B2]/40`}
+            className={`flex-1 px-3 py-2 rounded-lg border text-sm resize-none ${inputClass} focus:outline-none focus:ring-2`}
+            style={{ '--tw-ring-color': `${accentColor}66` } as React.CSSProperties}
           />
           <button
             onClick={(e) => {
@@ -418,7 +495,8 @@ function TicketDetails({
               onSendReply();
             }}
             disabled={!replyText.trim()}
-            className="self-end px-4 py-2 rounded-lg bg-[#0891B2] text-white text-sm font-medium hover:bg-[#0891B2]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
+            className="self-end px-4 py-2 rounded-lg text-white text-sm font-medium hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
+            style={{ backgroundColor: accentColor }}
           >
             <Send className="w-4 h-4" />
             Send

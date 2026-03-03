@@ -109,8 +109,8 @@ const defaultPermissions: Record<RoleId, Record<string, Record<Permission, boole
 const roles: RoleInfo[] = [
   { id: 'student',    name: 'Student',    count: 5200, color: 'text-blue-600',   borderColor: 'border-blue-500', bgColor: 'bg-blue-50',   description: 'Can view courses, submit assignments, participate in discussions' },
   { id: 'instructor', name: 'Instructor', count: 205,  color: 'text-green-600',  borderColor: 'border-green-500', bgColor: 'bg-green-50', description: 'Can create and manage courses, grade assignments, moderate discussions' },
-  { id: 'ta',         name: 'TA',         count: 48,   color: 'text-purple-600', borderColor: 'border-purple-500', bgColor: 'bg-purple-50', description: 'Can assist with labs, grade assignments, participate in discussions' },
-  { id: 'admin',      name: 'Admin',      count: 15,   color: 'text-rose-600',   borderColor: 'border-rose-500', bgColor: 'bg-rose-50',   description: 'Full access to all system features and settings' },
+  { id: 'ta',         name: 'TA',         count: 48,   color: 'text-blue-600', borderColor: 'border-blue-500', bgColor: 'bg-blue-50', description: 'Can assist with labs, grade assignments, participate in discussions' },
+  { id: 'admin',      name: 'Admin',      count: 15,   color: 'text-blue-600',   borderColor: 'border-blue-500', bgColor: 'bg-blue-50',   description: 'Full access to all system features and settings' },
   { id: 'custom',     name: 'Custom',     count: 3,    color: 'text-gray-600',   borderColor: 'border-gray-500', bgColor: 'bg-gray-50',   description: 'Create a custom role with specific permissions' },
 ];
 
@@ -119,7 +119,8 @@ function deepClone<T>(obj: T): T {
 }
 
 export function RoleManagementPage() {
-  const { isDark } = useTheme();
+  const { isDark, primaryHex } = useTheme() as any;
+  const accentColor = primaryHex || '#3b82f6';
   const { t } = useLanguage();
 
   const [selectedRole, setSelectedRole] = useState<RoleId>('student');
@@ -172,7 +173,7 @@ export function RoleManagementPage() {
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-sm font-medium transition-colors"
+          className="flex items-center gap-2 px-4 py-2 hover:opacity-90 text-white rounded-lg text-sm font-medium transition-colors"
         >
           <Plus size={16} />
           Create Custom Role
@@ -243,7 +244,7 @@ export function RoleManagementPage() {
                         onClick={() => togglePermission(module, perm)}
                         className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
                           currentPermissions[module][perm]
-                            ? 'bg-rose-600'
+                            ? ''
                             : isDark ? 'bg-gray-600' : 'bg-gray-300'
                         }`}
                       >
@@ -284,7 +285,7 @@ export function RoleManagementPage() {
             </button>
             <button
               onClick={handleSave}
-              className="flex items-center gap-2 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-sm font-medium transition-colors"
+              className="flex items-center gap-2 px-4 py-2 hover:opacity-90 text-white rounded-lg text-sm font-medium transition-colors"
             >
               <Save size={14} />
               Save Changes
@@ -367,7 +368,7 @@ export function RoleManagementPage() {
               </button>
               <button
                 onClick={handleCreateRole}
-                className="flex items-center gap-2 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-sm font-medium transition-colors"
+                className="flex items-center gap-2 px-4 py-2 hover:opacity-90 text-white rounded-lg text-sm font-medium transition-colors"
               >
                 <Check size={14} />
                 Save Role

@@ -108,7 +108,7 @@ const assignmentData: { [key: number]: any } = {
     points: 150,
     submittedPoints: null,
     progress: 60,
-    color: 'bg-[#7C3AED]/100',
+    color: 'bg-[var(--accent-color)]/100',
     instructor: 'Dr. Robert Taylor',
     instructorEmail: 'r.taylor@university.edu',
     dateAssigned: '2025-11-18',
@@ -160,7 +160,7 @@ const assignmentData: { [key: number]: any } = {
     points: 50,
     submittedPoints: null,
     progress: 75,
-    color: 'bg-purple-500',
+    color: 'bg-blue-500',
     instructor: 'Prof. Michael Chen',
     instructorEmail: 'm.chen@university.edu',
     dateAssigned: '2025-11-15',
@@ -272,7 +272,7 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
           <p className="text-slate-600 mb-4">The assignment you're looking for doesn't exist.</p>
           <button
             onClick={onBack}
-            className="px-4 py-2 bg-[#7C3AED] text-white rounded-lg hover:bg-[#6D28D9]"
+            className="px-4 py-2 bg-[var(--accent-color)] text-white rounded-lg hover:opacity-90"
           >
             Go Back
           </button>
@@ -319,7 +319,7 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
           <span>Back to Assignments</span>
         </button>
 
-        <div className="bg-gradient-to-br from-[#7C3AED] via-purple-600 to-pink-600 rounded-2xl p-8 text-white shadow-xl">
+        <div className="bg-gradient-to-br from-[var(--accent-color)] via-blue-600 to-pink-600 rounded-2xl p-8 text-white shadow-xl">
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-3 flex-wrap">
@@ -337,7 +337,7 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
                 )}
               </div>
               <h1 className="text-3xl mb-2 font-bold">{assignment.title}</h1>
-              <p className="text-purple-100 text-lg mb-4">{assignment.description}</p>
+              <p className="text-blue-100 text-lg mb-4">{assignment.description}</p>
 
               <div className="flex items-center gap-6 text-sm">
                 <div className="flex items-center gap-2">
@@ -356,7 +356,7 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 min-w-[200px] border border-white/20">
               <div className="text-center mb-3">
                 <Calendar className="w-6 h-6 mx-auto mb-2" />
-                <p className="text-sm text-purple-100 mb-1">Due Date</p>
+                <p className="text-sm text-blue-100 mb-1">Due Date</p>
                 <p className="text-xl font-semibold">
                   {new Date(assignment.dueDate).toLocaleDateString('en-US', {
                     month: 'short',
@@ -364,7 +364,7 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
                     year: 'numeric',
                   })}
                 </p>
-                <p className="text-sm text-purple-100">{assignment.dueTime}</p>
+                <p className="text-sm text-blue-100">{assignment.dueTime}</p>
               </div>
               <div
                 className={`text-center p-3 rounded-lg ${
@@ -418,7 +418,7 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
                     >
                       <div className="flex items-start justify-between mb-2">
                         <h3 className="text-slate-800 font-medium">{item.criteria}</h3>
-                        <span className="px-3 py-1 bg-[#7C3AED]/10 text-[#7C3AED] rounded-lg text-sm border border-[#7C3AED]/20 font-medium">
+                        <span className="px-3 py-1 bg-[var(--accent-color)]/10 text-[var(--accent-color)] rounded-lg text-sm border border-[var(--accent-color)]/20 font-medium">
                           {item.points} pts
                         </span>
                       </div>
@@ -438,11 +438,11 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
             </div>
             <div className="p-6">
               {/* File Upload Area */}
-              <div className="border-2 border-dashed border-slate-200 rounded-xl p-8 text-center hover:border-[#7C3AED] hover:bg-[#7C3AED]/10/50 transition-all mb-4">
+              <div className="border-2 border-dashed border-slate-200 rounded-xl p-8 text-center hover:border-[var(--accent-color)] hover:bg-[var(--accent-color)]/10/50 transition-all mb-4">
                 <Upload className="w-12 h-12 text-slate-500 mx-auto mb-3" />
                 <p className="text-slate-800 mb-2 font-medium">Drag and drop your files here</p>
                 <p className="text-slate-500 text-sm mb-4">or click to browse</p>
-                <label className="inline-flex items-center gap-2 px-6 py-3 bg-[#7C3AED] text-white rounded-lg cursor-pointer hover:bg-[#6D28D9] transition-colors">
+                <label className="inline-flex items-center gap-2 px-6 py-3 bg-[var(--accent-color)] text-white rounded-lg cursor-pointer hover:opacity-90 transition-colors">
                   <Paperclip className="w-4 h-4" />
                   <span>Choose Files</span>
                   <input type="file" multiple onChange={handleFileAttach} className="hidden" />
@@ -465,8 +465,8 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
                         className="flex items-center justify-between p-3 border border-slate-100 rounded-lg hover:bg-slate-50"
                       >
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-[#7C3AED]/10 rounded-lg flex items-center justify-center">
-                            <File className="w-5 h-5 text-[#7C3AED]" />
+                          <div className="w-10 h-10 bg-[var(--accent-color)]/10 rounded-lg flex items-center justify-center">
+                            <File className="w-5 h-5 text-[var(--accent-color)]" />
                           </div>
                           <div>
                             <p className="text-slate-800 text-sm font-medium">{file.name}</p>
@@ -491,7 +491,7 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
               <button
                 onClick={handleSubmit}
                 disabled={attachedFiles.length === 0}
-                className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-[#7C3AED] to-[#6D28D9] text-white rounded-xl hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none font-medium"
+                className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-[var(--accent-color)] to-[var(--accent-color)] text-white rounded-xl hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none font-medium"
               >
                 <Send className="w-5 h-5" />
                 <span className="text-lg">Hand In Assignment</span>
@@ -518,7 +518,7 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
               <div>
                 <p className="text-slate-600 text-sm mb-1 font-medium">Instructor</p>
                 <p className="text-slate-800 font-medium">{assignment.instructor}</p>
-                <p className="text-[#7C3AED] text-sm">{assignment.instructorEmail}</p>
+                <p className="text-[var(--accent-color)] text-sm">{assignment.instructorEmail}</p>
               </div>
               <div className="border-t border-slate-100 pt-4">
                 <p className="text-slate-600 text-sm mb-1 font-medium">Date Assigned</p>
@@ -581,20 +581,20 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
                 {assignment.resources.map((resource: any, index: number) => (
                   <button
                     key={index}
-                    className="w-full flex items-center justify-between p-3 border border-slate-100 rounded-lg hover:bg-[#7C3AED]/10 hover:border-[#7C3AED]/50 transition-all group"
+                    className="w-full flex items-center justify-between p-3 border border-slate-100 rounded-lg hover:bg-[var(--accent-color)]/10 hover:border-[var(--accent-color)]/50 transition-all group"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-[#7C3AED]/10 rounded-lg flex items-center justify-center group-hover:bg-[#7C3AED]/20 transition-colors">
-                        <FileText className="w-5 h-5 text-[#7C3AED]" />
+                      <div className="w-10 h-10 bg-[var(--accent-color)]/10 rounded-lg flex items-center justify-center group-hover:bg-[var(--accent-color)]/20 transition-colors">
+                        <FileText className="w-5 h-5 text-[var(--accent-color)]" />
                       </div>
                       <div className="text-left">
-                        <p className="text-slate-800 text-sm group-hover:text-[#7C3AED] transition-colors font-medium">
+                        <p className="text-slate-800 text-sm group-hover:text-[var(--accent-color)] transition-colors font-medium">
                           {resource.name}
                         </p>
                         <p className="text-slate-500 text-xs">{resource.size}</p>
                       </div>
                     </div>
-                    <Download className="w-5 h-5 text-slate-500 group-hover:text-[#7C3AED] transition-colors" />
+                    <Download className="w-5 h-5 text-slate-500 group-hover:text-[var(--accent-color)] transition-colors" />
                   </button>
                 ))}
               </div>
@@ -625,8 +625,8 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
       {showSubmitConfirmation && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl">
-            <div className="w-16 h-16 bg-[#7C3AED]/10 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Send className="w-8 h-8 text-[#7C3AED]" />
+            <div className="w-16 h-16 bg-[var(--accent-color)]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Send className="w-8 h-8 text-[var(--accent-color)]" />
             </div>
             <h2 className="text-slate-800 text-center mb-2 font-semibold">Submit Assignment?</h2>
             <p className="text-slate-600 text-center mb-6">
@@ -654,7 +654,7 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
               </button>
               <button
                 onClick={confirmSubmit}
-                className="flex-1 px-4 py-3 bg-gradient-to-r from-[#7C3AED] to-[#6D28D9] text-white rounded-xl hover:shadow-lg transition-all font-medium"
+                className="flex-1 px-4 py-3 bg-gradient-to-r from-[var(--accent-color)] to-[var(--accent-color)] text-white rounded-xl hover:shadow-lg transition-all font-medium"
               >
                 Confirm Submit
               </button>

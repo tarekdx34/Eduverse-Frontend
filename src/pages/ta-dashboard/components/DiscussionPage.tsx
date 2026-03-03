@@ -309,7 +309,7 @@ export function DiscussionPage({
       case 'instructor':
         return (
           <span
-            className={`px-2 py-0.5 rounded text-xs font-medium ${isDark ? 'bg-purple-900/30 text-purple-400' : 'bg-purple-100 text-purple-700'}`}
+            className={`px-2 py-0.5 rounded text-xs font-medium ${isDark ? 'bg-blue-900/30 text-blue-400' : 'bg-blue-100 text-blue-700'}`}
           >
             {t('instructorRole')}
           </span>
@@ -535,8 +535,8 @@ export function DiscussionPage({
                                     : 'bg-blue-100'
                                   : reply.authorRole === 'instructor'
                                     ? isDark
-                                      ? 'bg-purple-900/30'
-                                      : 'bg-purple-100'
+                                      ? 'bg-blue-900/30'
+                                      : 'bg-blue-100'
                                     : isDark
                                       ? 'bg-gray-700'
                                       : 'bg-gray-100'
@@ -548,7 +548,7 @@ export function DiscussionPage({
                                   reply.authorRole === 'ta'
                                     ? 'text-blue-600'
                                     : reply.authorRole === 'instructor'
-                                      ? 'text-purple-600'
+                                      ? 'text-blue-600'
                                       : 'text-gray-600'
                                 }
                               />

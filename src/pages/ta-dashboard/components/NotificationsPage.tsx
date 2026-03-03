@@ -123,7 +123,7 @@ function getTypeColor(type: NotificationType, isDark: boolean) {
     case 'question': return isDark ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-600';
     case 'submission': return isDark ? 'bg-green-500/20 text-green-400' : 'bg-green-100 text-green-600';
     case 'plagiarism': return isDark ? 'bg-red-500/20 text-red-400' : 'bg-red-100 text-red-600';
-    case 'ai_alert': return isDark ? 'bg-purple-500/20 text-purple-400' : 'bg-purple-100 text-purple-600';
+    case 'ai_alert': return isDark ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-600';
     case 'system': return isDark ? 'bg-slate-500/20 text-slate-400' : 'bg-slate-100 text-slate-600';
     case 'deadline': return isDark ? 'bg-amber-500/20 text-amber-400' : 'bg-amber-100 text-amber-600';
   }

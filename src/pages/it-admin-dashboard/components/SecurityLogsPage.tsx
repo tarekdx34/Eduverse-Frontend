@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
-import {
-  Shield, AlertTriangle, Lock, Eye, Download, Filter, Clock
-} from 'lucide-react';
+import { Shield, AlertTriangle, Lock, Eye, Download, Filter, Clock } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 
@@ -21,23 +19,105 @@ interface SecurityEvent {
 }
 
 const mockEvents: SecurityEvent[] = [
-  { id: 1, timestamp: '2025-01-15 11:30:45', eventType: 'Login', user: 'admin@university.edu', ip: '192.168.1.100', location: 'Cairo, Egypt', severity: 'info', status: 'success' },
-  { id: 2, timestamp: '2025-01-15 10:15:22', eventType: 'Failed Login', user: 'unknown@test.com', ip: '45.33.32.156', location: 'Unknown', severity: 'warning', status: 'failure' },
-  { id: 3, timestamp: '2025-01-15 09:45:10', eventType: 'Config Change', user: 'it.admin@university.edu', ip: '192.168.1.50', location: 'Cairo, Egypt', severity: 'info', status: 'success' },
-  { id: 4, timestamp: '2025-01-15 08:20:33', eventType: 'Threat Detected', user: 'N/A', ip: '103.21.244.0', location: 'Beijing, China', severity: 'critical', status: 'blocked' },
-  { id: 5, timestamp: '2025-01-15 07:55:18', eventType: 'Access Denied', user: 'sara@university.edu', ip: '192.168.1.75', location: 'Cairo, Egypt', severity: 'warning', status: 'failure' },
-  { id: 6, timestamp: '2025-01-14 23:10:05', eventType: 'Failed Login', user: 'admin@university.edu', ip: '10.0.0.1', location: 'Cairo, Egypt', severity: 'error', status: 'failure' },
+  {
+    id: 1,
+    timestamp: '2025-01-15 11:30:45',
+    eventType: 'Login',
+    user: 'admin@university.edu',
+    ip: '192.168.1.100',
+    location: 'Cairo, Egypt',
+    severity: 'info',
+    status: 'success',
+  },
+  {
+    id: 2,
+    timestamp: '2025-01-15 10:15:22',
+    eventType: 'Failed Login',
+    user: 'unknown@test.com',
+    ip: '45.33.32.156',
+    location: 'Unknown',
+    severity: 'warning',
+    status: 'failure',
+  },
+  {
+    id: 3,
+    timestamp: '2025-01-15 09:45:10',
+    eventType: 'Config Change',
+    user: 'it.admin@university.edu',
+    ip: '192.168.1.50',
+    location: 'Cairo, Egypt',
+    severity: 'info',
+    status: 'success',
+  },
+  {
+    id: 4,
+    timestamp: '2025-01-15 08:20:33',
+    eventType: 'Threat Detected',
+    user: 'N/A',
+    ip: '103.21.244.0',
+    location: 'Beijing, China',
+    severity: 'critical',
+    status: 'blocked',
+  },
+  {
+    id: 5,
+    timestamp: '2025-01-15 07:55:18',
+    eventType: 'Access Denied',
+    user: 'sara@university.edu',
+    ip: '192.168.1.75',
+    location: 'Cairo, Egypt',
+    severity: 'warning',
+    status: 'failure',
+  },
+  {
+    id: 6,
+    timestamp: '2025-01-14 23:10:05',
+    eventType: 'Failed Login',
+    user: 'admin@university.edu',
+    ip: '10.0.0.1',
+    location: 'Cairo, Egypt',
+    severity: 'error',
+    status: 'failure',
+  },
 ];
 
-const severityConfig: Record<Severity, { label: string; color: string; darkColor: string; bg: string; darkBg: string }> = {
-  critical: { label: 'Critical', color: 'text-red-700', darkColor: 'text-red-400', bg: 'bg-red-100', darkBg: 'bg-red-500/20' },
-  error: { label: 'Error', color: 'text-orange-700', darkColor: 'text-orange-400', bg: 'bg-orange-100', darkBg: 'bg-orange-500/20' },
-  warning: { label: 'Warning', color: 'text-yellow-700', darkColor: 'text-yellow-400', bg: 'bg-yellow-100', darkBg: 'bg-yellow-500/20' },
-  info: { label: 'Info', color: 'text-blue-700', darkColor: 'text-blue-400', bg: 'bg-blue-100', darkBg: 'bg-blue-500/20' },
+const severityConfig: Record<
+  Severity,
+  { label: string; color: string; darkColor: string; bg: string; darkBg: string }
+> = {
+  critical: {
+    label: 'Critical',
+    color: 'text-red-700',
+    darkColor: 'text-red-400',
+    bg: 'bg-red-100',
+    darkBg: 'bg-red-500/20',
+  },
+  error: {
+    label: 'Error',
+    color: 'text-orange-700',
+    darkColor: 'text-orange-400',
+    bg: 'bg-orange-100',
+    darkBg: 'bg-orange-500/20',
+  },
+  warning: {
+    label: 'Warning',
+    color: 'text-yellow-700',
+    darkColor: 'text-yellow-400',
+    bg: 'bg-yellow-100',
+    darkBg: 'bg-yellow-500/20',
+  },
+  info: {
+    label: 'Info',
+    color: 'text-blue-700',
+    darkColor: 'text-blue-400',
+    bg: 'bg-blue-100',
+    darkBg: 'bg-blue-500/20',
+  },
 };
 
 export function SecurityLogsPage() {
-  const { isDark } = useTheme();
+  const { isDark, primaryHex } = useTheme() as any;
+  const accentColor = primaryHex || '#3b82f6';
   const { t } = useLanguage();
   const [severityFilter, setSeverityFilter] = useState<'all' | Severity>('all');
   const [eventTypeFilter, setEventTypeFilter] = useState<EventTypeFilter>('all');
@@ -63,14 +143,22 @@ export function SecurityLogsPage() {
   const threatsBlocked = mockEvents.filter((e) => e.status === 'blocked').length;
 
   const overviewCards = [
-    { title: 'Total Events (24h)', value: totalEvents, icon: Shield, color: '#0891B2' },
+    { title: 'Total Events (24h)', value: totalEvents, icon: Shield, color: accentColor },
     { title: 'Failed Logins', value: failedLogins, icon: Lock, color: '#EF4444' },
     { title: 'Active Sessions', value: activeSessions, icon: Eye, color: '#10B981' },
     { title: 'Threats Blocked', value: threatsBlocked, icon: AlertTriangle, color: '#F59E0B' },
   ];
 
   const handleExport = () => {
-    const headers = ['Timestamp', 'Event Type', 'User', 'IP Address', 'Location', 'Severity', 'Status'];
+    const headers = [
+      'Timestamp',
+      'Event Type',
+      'User',
+      'IP Address',
+      'Location',
+      'Severity',
+      'Status',
+    ];
     const rows = filteredEvents.map((e) =>
       [e.timestamp, e.eventType, e.user, e.ip, e.location, e.severity, e.status].join(',')
     );
@@ -98,8 +186,8 @@ export function SecurityLogsPage() {
         </div>
         <button
           onClick={handleExport}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors"
-          style={{ backgroundColor: '#0891B2' }}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors hover:opacity-90"
+          style={{ backgroundColor: accentColor }}
         >
           <Download className="w-4 h-4" />
           Export Logs
@@ -118,7 +206,9 @@ export function SecurityLogsPage() {
                 <p className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
                   {card.title}
                 </p>
-                <p className={`text-2xl font-bold mt-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                <p
+                  className={`text-2xl font-bold mt-1 ${isDark ? 'text-white' : 'text-slate-900'}`}
+                >
                   {card.value}
                 </p>
               </div>
@@ -195,18 +285,24 @@ export function SecurityLogsPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className={isDark ? 'bg-[#0f172a]/50' : 'bg-slate-50'}>
-                {['Timestamp', 'Event Type', 'User', 'IP Address', 'Location', 'Severity', 'Status'].map(
-                  (header) => (
-                    <th
-                      key={header}
-                      className={`px-4 py-3 text-left font-medium whitespace-nowrap ${
-                        isDark ? 'text-slate-300' : 'text-slate-600'
-                      }`}
-                    >
-                      {header}
-                    </th>
-                  )
-                )}
+                {[
+                  'Timestamp',
+                  'Event Type',
+                  'User',
+                  'IP Address',
+                  'Location',
+                  'Severity',
+                  'Status',
+                ].map((header) => (
+                  <th
+                    key={header}
+                    className={`px-4 py-3 text-left font-medium whitespace-nowrap ${
+                      isDark ? 'text-slate-300' : 'text-slate-600'
+                    }`}
+                  >
+                    {header}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody className={`divide-y ${isDark ? 'divide-white/5' : 'divide-slate-100'}`}>
@@ -227,19 +323,29 @@ export function SecurityLogsPage() {
                       key={event.id}
                       className={`transition-colors ${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'}`}
                     >
-                      <td className={`px-4 py-3 whitespace-nowrap font-mono text-xs ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+                      <td
+                        className={`px-4 py-3 whitespace-nowrap font-mono text-xs ${isDark ? 'text-slate-300' : 'text-slate-600'}`}
+                      >
                         {event.timestamp}
                       </td>
-                      <td className={`px-4 py-3 whitespace-nowrap font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                      <td
+                        className={`px-4 py-3 whitespace-nowrap font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}
+                      >
                         {event.eventType}
                       </td>
-                      <td className={`px-4 py-3 whitespace-nowrap ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+                      <td
+                        className={`px-4 py-3 whitespace-nowrap ${isDark ? 'text-slate-300' : 'text-slate-600'}`}
+                      >
                         {event.user}
                       </td>
-                      <td className={`px-4 py-3 whitespace-nowrap font-mono text-xs ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+                      <td
+                        className={`px-4 py-3 whitespace-nowrap font-mono text-xs ${isDark ? 'text-slate-300' : 'text-slate-600'}`}
+                      >
                         {event.ip}
                       </td>
-                      <td className={`px-4 py-3 whitespace-nowrap ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+                      <td
+                        className={`px-4 py-3 whitespace-nowrap ${isDark ? 'text-slate-300' : 'text-slate-600'}`}
+                      >
                         {event.location}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
@@ -255,10 +361,16 @@ export function SecurityLogsPage() {
                         <span
                           className={`text-xs font-medium capitalize ${
                             event.status === 'success'
-                              ? isDark ? 'text-green-400' : 'text-green-600'
+                              ? isDark
+                                ? 'text-green-400'
+                                : 'text-green-600'
                               : event.status === 'blocked'
-                                ? isDark ? 'text-yellow-400' : 'text-yellow-600'
-                                : isDark ? 'text-red-400' : 'text-red-600'
+                                ? isDark
+                                  ? 'text-yellow-400'
+                                  : 'text-yellow-600'
+                                : isDark
+                                  ? 'text-red-400'
+                                  : 'text-red-600'
                           }`}
                         >
                           {event.status}

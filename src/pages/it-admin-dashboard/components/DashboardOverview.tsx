@@ -11,7 +11,8 @@ interface DashboardOverviewProps {
 }
 
 export function DashboardOverview({ stats, serverStatus, recentActivity, onNavigate }: DashboardOverviewProps) {
-  const { isDark } = useTheme();
+  const { isDark, primaryHex } = useTheme() as any;
+  const accentColor = primaryHex || '#3b82f6';
   const { t } = useLanguage();
 
   const getStatusColor = (status: string) => {
@@ -54,10 +55,10 @@ export function DashboardOverview({ stats, serverStatus, recentActivity, onNavig
             comparison={stat.comparison}
             isPositive={stat.isPositive}
             icon={
-              index === 0 ? <Activity className={isDark ? 'text-cyan-400' : 'text-cyan-600'} /> :
+              index === 0 ? <Activity className={isDark ? 'text-blue-400' : 'text-blue-600'} /> :
               index === 1 ? <Wifi className={isDark ? 'text-blue-400' : 'text-blue-600'} /> :
               index === 2 ? <Server className={isDark ? 'text-green-400' : 'text-green-600'} /> :
-              <HardDrive className={isDark ? 'text-purple-400' : 'text-purple-600'} />
+              <HardDrive className={isDark ? 'text-blue-400' : 'text-blue-600'} />
             }
           />
         ))}
@@ -73,7 +74,7 @@ export function DashboardOverview({ stats, serverStatus, recentActivity, onNavig
             </h2>
             <button
               onClick={() => onNavigate('monitoring')}
-              className={`text-sm ${isDark ? 'text-cyan-400 hover:text-cyan-300' : 'text-cyan-600 hover:text-cyan-700'}`}
+              className={`text-sm ${isDark ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'}`}
             >
               {t('viewAll')}
             </button>
@@ -112,7 +113,7 @@ export function DashboardOverview({ stats, serverStatus, recentActivity, onNavig
             </h2>
             <button
               onClick={() => onNavigate('security')}
-              className={`text-sm ${isDark ? 'text-cyan-400 hover:text-cyan-300' : 'text-cyan-600 hover:text-cyan-700'}`}
+              className={`text-sm ${isDark ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'}`}
             >
               {t('viewLogs')}
             </button>
@@ -123,8 +124,8 @@ export function DashboardOverview({ stats, serverStatus, recentActivity, onNavig
                 key={activity.id}
                 className={`flex items-start gap-3 p-3 rounded-lg ${isDark ? 'bg-gray-700/50' : 'bg-gray-50'}`}
               >
-                <div className={`p-2 rounded-lg ${isDark ? 'bg-cyan-900/50' : 'bg-cyan-50'}`}>
-                  <Activity className={`w-4 h-4 ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`} />
+                <div className={`p-2 rounded-lg ${isDark ? 'bg-blue-900/50' : 'bg-blue-50'}`}>
+                  <Activity className={`w-4 h-4 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{activity.action}</p>
@@ -158,7 +159,7 @@ export function DashboardOverview({ stats, serverStatus, recentActivity, onNavig
                   : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
               }`}
             >
-              <action.icon className={`w-6 h-6 ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`} />
+              <action.icon className={`w-6 h-6 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
               <span className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                 {action.label}
               </span>

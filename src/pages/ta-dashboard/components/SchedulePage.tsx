@@ -1,5 +1,16 @@
 import React, { useState } from 'react';
-import { Calendar, Clock, MapPin, BookOpen, ChevronLeft, ChevronRight, Plus, Edit2, Trash2, X } from 'lucide-react';
+import {
+  Calendar,
+  Clock,
+  MapPin,
+  BookOpen,
+  ChevronLeft,
+  ChevronRight,
+  Plus,
+  Edit2,
+  Trash2,
+  X,
+} from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -132,7 +143,15 @@ export function SchedulePage() {
 
   const openAddModal = () => {
     setEditingEvent(null);
-    setModalForm({ title: '', courseCode: 'CS101', type: 'lab', date: '', startTime: '', endTime: '', location: '' });
+    setModalForm({
+      title: '',
+      courseCode: 'CS101',
+      type: 'lab',
+      date: '',
+      startTime: '',
+      endTime: '',
+      location: '',
+    });
     setShowModal(true);
   };
 
@@ -189,7 +208,7 @@ export function SchedulePage() {
     const map: Record<string, { bg: string; border: string; text: string }> = {
       blue: { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700' },
       green: { bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-700' },
-      purple: { bg: 'bg-purple-50', border: 'border-purple-200', text: 'text-purple-700' },
+      purple: { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700' },
       red: { bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700' },
       orange: { bg: 'bg-orange-50', border: 'border-orange-200', text: 'text-orange-700' },
       indigo: { bg: 'bg-indigo-50', border: 'border-indigo-200', text: 'text-indigo-700' },
@@ -276,10 +295,12 @@ export function SchedulePage() {
       </div>
 
       {/* Navigation Header */}
-      <div className={`border rounded-lg p-4 ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}>
+      <div
+        className={`border rounded-lg p-4 ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}
+      >
         <div className="flex items-center justify-between">
           <button
-            onClick={() => view === 'day' ? navigateDay(-1) : undefined}
+            onClick={() => (view === 'day' ? navigateDay(-1) : undefined)}
             className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`}
           >
             <ChevronLeft className={`w-5 h-5 ${isDark ? 'text-slate-400' : 'text-gray-600'}`} />
@@ -288,11 +309,16 @@ export function SchedulePage() {
             {view === 'month'
               ? 'February 2025'
               : view === 'day'
-                ? new Date(selectedDay + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
+                ? new Date(selectedDay + 'T00:00:00').toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    month: 'long',
+                    day: 'numeric',
+                    year: 'numeric',
+                  })
                 : 'Feb 22 – Feb 27, 2025'}
           </h3>
           <button
-            onClick={() => view === 'day' ? navigateDay(1) : undefined}
+            onClick={() => (view === 'day' ? navigateDay(1) : undefined)}
             className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`}
           >
             <ChevronRight className={`w-5 h-5 ${isDark ? 'text-slate-400' : 'text-gray-600'}`} />
@@ -303,17 +329,29 @@ export function SchedulePage() {
       {/* Schedule Views */}
       {view === 'month' ? (
         /* Month Grid View */
-        <div className={`border rounded-lg overflow-hidden ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}>
-          <div className={`grid grid-cols-7 ${isDark ? 'divide-white/10' : 'divide-gray-200'} divide-x`}>
+        <div
+          className={`border rounded-lg overflow-hidden ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}
+        >
+          <div
+            className={`grid grid-cols-7 ${isDark ? 'divide-white/10' : 'divide-gray-200'} divide-x`}
+          >
             {monthWeekdays.map((wd) => (
-              <div key={wd} className={`p-2 text-center text-xs font-semibold ${isDark ? 'bg-white/5 text-slate-400 border-b border-white/10' : 'bg-gray-50 text-gray-500 border-b border-gray-200'}`}>
+              <div
+                key={wd}
+                className={`p-2 text-center text-xs font-semibold ${isDark ? 'bg-white/5 text-slate-400 border-b border-white/10' : 'bg-gray-50 text-gray-500 border-b border-gray-200'}`}
+              >
                 {wd}
               </div>
             ))}
           </div>
-          <div className={`grid grid-cols-7 ${isDark ? 'divide-white/10' : 'divide-gray-200'} divide-x`}>
+          <div
+            className={`grid grid-cols-7 ${isDark ? 'divide-white/10' : 'divide-gray-200'} divide-x`}
+          >
             {Array.from({ length: firstDayOfWeek }).map((_, i) => (
-              <div key={`empty-${i}`} className={`min-h-[90px] ${isDark ? 'bg-white/[0.02]' : 'bg-gray-50/50'}`} />
+              <div
+                key={`empty-${i}`}
+                className={`min-h-[90px] ${isDark ? 'bg-white/[0.02]' : 'bg-gray-50/50'}`}
+              />
             ))}
             {Array.from({ length: febDays }).map((_, i) => {
               const day = i + 1;
@@ -323,17 +361,28 @@ export function SchedulePage() {
               return (
                 <div
                   key={day}
-                  onClick={() => { setSelectedDay(dateStr); setView('day'); }}
+                  onClick={() => {
+                    setSelectedDay(dateStr);
+                    setView('day');
+                  }}
                   className={`min-h-[90px] p-1.5 cursor-pointer transition-colors ${
                     isDark
                       ? `border-b border-white/10 hover:bg-white/10 ${isSelected ? 'bg-white/10' : ''}`
                       : `border-b border-gray-200 hover:bg-blue-50 ${isSelected ? 'bg-blue-50' : ''}`
                   }`}
                 >
-                  <p className={`text-sm font-medium mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{day}</p>
+                  <p
+                    className={`text-sm font-medium mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}
+                  >
+                    {day}
+                  </p>
                   <div className="flex flex-wrap gap-1">
                     {dayEvents.map((ev) => (
-                      <div key={ev.id} className={`w-2 h-2 rounded-full bg-${ev.color}-500`} title={ev.title} />
+                      <div
+                        key={ev.id}
+                        className={`w-2 h-2 rounded-full bg-${ev.color}-500`}
+                        title={ev.title}
+                      />
                     ))}
                   </div>
                 </div>
@@ -345,9 +394,15 @@ export function SchedulePage() {
         /* Day View */
         <div className="space-y-3">
           {(groupedByDate[selectedDay] || []).length === 0 ? (
-            <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} border rounded-lg p-8 text-center`}>
-              <Calendar className={`w-10 h-10 mx-auto mb-2 ${isDark ? 'text-slate-500' : 'text-gray-400'}`} />
-              <p className={`${isDark ? 'text-slate-400' : 'text-gray-500'}`}>No events scheduled for this day.</p>
+            <div
+              className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} border rounded-lg p-8 text-center`}
+            >
+              <Calendar
+                className={`w-10 h-10 mx-auto mb-2 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}
+              />
+              <p className={`${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
+                No events scheduled for this day.
+              </p>
             </div>
           ) : (
             (groupedByDate[selectedDay] || []).map((event) => {
@@ -363,11 +418,17 @@ export function SchedulePage() {
                         <h4 className={`font-semibold ${colors.text}`}>{event.title}</h4>
                         {getTypeBadge(event.type)}
                       </div>
-                      <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>{event.course} ({event.courseCode})</p>
-                      <div className={`flex items-center gap-4 mt-2 text-sm ${isDark ? 'text-slate-500' : 'text-gray-500'}`}>
+                      <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                        {event.course} ({event.courseCode})
+                      </p>
+                      <div
+                        className={`flex items-center gap-4 mt-2 text-sm ${isDark ? 'text-slate-500' : 'text-gray-500'}`}
+                      >
                         <div className="flex items-center gap-1">
                           <Clock className="w-3.5 h-3.5" />
-                          <span>{event.startTime} - {event.endTime}</span>
+                          <span>
+                            {event.startTime} - {event.endTime}
+                          </span>
                         </div>
                         <div className="flex items-center gap-1">
                           <MapPin className="w-3.5 h-3.5" />
@@ -393,7 +454,9 @@ export function SchedulePage() {
             .sort(([a], [b]) => a.localeCompare(b))
             .map(([date, dayEvents]) => (
               <div key={date}>
-                <h3 className={`text-sm font-semibold uppercase mb-3 ${isDark ? 'text-slate-500' : 'text-gray-500'}`}>
+                <h3
+                  className={`text-sm font-semibold uppercase mb-3 ${isDark ? 'text-slate-500' : 'text-gray-500'}`}
+                >
                   {new Date(date + 'T00:00:00').toLocaleDateString('en-US', {
                     weekday: 'long',
                     month: 'long',
@@ -414,11 +477,17 @@ export function SchedulePage() {
                               <h4 className={`font-semibold ${colors.text}`}>{event.title}</h4>
                               {getTypeBadge(event.type)}
                             </div>
-                            <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>{event.course} ({event.courseCode})</p>
-                            <div className={`flex items-center gap-4 mt-2 text-sm ${isDark ? 'text-slate-500' : 'text-gray-500'}`}>
+                            <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                              {event.course} ({event.courseCode})
+                            </p>
+                            <div
+                              className={`flex items-center gap-4 mt-2 text-sm ${isDark ? 'text-slate-500' : 'text-gray-500'}`}
+                            >
                               <div className="flex items-center gap-1">
                                 <Clock className="w-3.5 h-3.5" />
-                                <span>{event.startTime} - {event.endTime}</span>
+                                <span>
+                                  {event.startTime} - {event.endTime}
+                                </span>
                               </div>
                               <div className="flex items-center gap-1">
                                 <MapPin className="w-3.5 h-3.5" />
@@ -442,8 +511,12 @@ export function SchedulePage() {
         </div>
       ) : (
         /* Week Grid View */
-        <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} border rounded-lg overflow-hidden`}>
-          <div className={`grid grid-cols-5 ${isDark ? 'divide-white/10' : 'divide-gray-200'} divide-x`}>
+        <div
+          className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} border rounded-lg overflow-hidden`}
+        >
+          <div
+            className={`grid grid-cols-5 ${isDark ? 'divide-white/10' : 'divide-gray-200'} divide-x`}
+          >
             {DAYS_KEYS.map((dayKey, idx) => {
               const date = new Date('2025-02-22');
               date.setDate(date.getDate() + idx);
@@ -452,9 +525,17 @@ export function SchedulePage() {
 
               return (
                 <div key={dayKey} className="min-h-[300px]">
-                  <div className={`p-3 text-center ${isDark ? 'bg-white/5 border-b border-white/10' : 'bg-gray-50 border-b border-gray-200'}`}>
-                    <p className={`text-xs font-medium ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>{t(dayKey)}</p>
-                    <p className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{date.getDate()}</p>
+                  <div
+                    className={`p-3 text-center ${isDark ? 'bg-white/5 border-b border-white/10' : 'bg-gray-50 border-b border-gray-200'}`}
+                  >
+                    <p
+                      className={`text-xs font-medium ${isDark ? 'text-slate-400' : 'text-gray-500'}`}
+                    >
+                      {t(dayKey)}
+                    </p>
+                    <p className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                      {date.getDate()}
+                    </p>
                   </div>
                   <div className="p-2 space-y-2">
                     {dayEvents.map((event) => {
@@ -465,8 +546,14 @@ export function SchedulePage() {
                           onClick={() => openEditModal(event)}
                           className={`${colors.bg} border ${colors.border} rounded-md p-2 cursor-pointer hover:shadow-sm transition-shadow`}
                         >
-                          <p className={`text-xs font-semibold ${colors.text} truncate`}>{event.title}</p>
-                          <p className={`text-[10px] mt-0.5 ${isDark ? 'text-slate-500' : 'text-gray-500'}`}>{event.startTime}</p>
+                          <p className={`text-xs font-semibold ${colors.text} truncate`}>
+                            {event.title}
+                          </p>
+                          <p
+                            className={`text-[10px] mt-0.5 ${isDark ? 'text-slate-500' : 'text-gray-500'}`}
+                          >
+                            {event.startTime}
+                          </p>
                           <div className="mt-1">{getTypeBadge(event.type)}</div>
                         </div>
                       );
@@ -480,24 +567,36 @@ export function SchedulePage() {
       )}
 
       {/* Legend */}
-      <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} border rounded-lg p-4`}>
-        <h4 className={`text-sm font-medium mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('legend')}</h4>
+      <div
+        className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} border rounded-lg p-4`}
+      >
+        <h4 className={`text-sm font-medium mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          {t('legend')}
+        </h4>
         <div className="flex flex-wrap gap-4">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded bg-blue-500" />
-            <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>{t('labSessions')}</span>
+            <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+              {t('labSessions')}
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded bg-green-500" />
-            <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>{t('officeHours')}</span>
+            <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+              {t('officeHours')}
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded bg-orange-500" />
-            <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>{t('meetings')}</span>
+            <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+              {t('meetings')}
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded bg-red-500" />
-            <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>{t('deadlines')}</span>
+            <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+              {t('deadlines')}
+            </span>
           </div>
         </div>
       </div>
@@ -505,18 +604,27 @@ export function SchedulePage() {
       {/* Event CRUD Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className={`${isDark ? 'bg-gray-800 border-white/10' : 'bg-white border-gray-200'} border rounded-xl shadow-xl w-full max-w-md p-6`}>
+          <div
+            className={`${isDark ? 'bg-gray-800 border-white/10' : 'bg-white border-gray-200'} border rounded-xl shadow-xl w-full max-w-md p-6`}
+          >
             <div className="flex items-center justify-between mb-4">
               <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
                 {editingEvent ? 'Edit Event' : 'Add Event'}
               </h3>
-              <button onClick={() => setShowModal(false)} className={`p-1 rounded-md transition-colors ${isDark ? 'hover:bg-white/10 text-slate-400' : 'hover:bg-gray-100 text-gray-500'}`}>
+              <button
+                onClick={() => setShowModal(false)}
+                className={`p-1 rounded-md transition-colors ${isDark ? 'hover:bg-white/10 text-slate-400' : 'hover:bg-gray-100 text-gray-500'}`}
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
             <div className="space-y-3">
               <div>
-                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>Title</label>
+                <label
+                  className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-300' : 'text-gray-700'}`}
+                >
+                  Title
+                </label>
                 <input
                   type="text"
                   value={modalForm.title}
@@ -526,7 +634,11 @@ export function SchedulePage() {
                 />
               </div>
               <div>
-                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>Course</label>
+                <label
+                  className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-300' : 'text-gray-700'}`}
+                >
+                  Course
+                </label>
                 <select
                   value={modalForm.courseCode}
                   onChange={(e) => setModalForm({ ...modalForm, courseCode: e.target.value })}
@@ -538,10 +650,16 @@ export function SchedulePage() {
                 </select>
               </div>
               <div>
-                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>Type</label>
+                <label
+                  className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-300' : 'text-gray-700'}`}
+                >
+                  Type
+                </label>
                 <select
                   value={modalForm.type}
-                  onChange={(e) => setModalForm({ ...modalForm, type: e.target.value as ScheduleEvent['type'] })}
+                  onChange={(e) =>
+                    setModalForm({ ...modalForm, type: e.target.value as ScheduleEvent['type'] })
+                  }
                   className={`w-full px-3 py-2 rounded-lg border text-sm ${isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
                 >
                   <option value="lab">Lab Session</option>
@@ -551,7 +669,11 @@ export function SchedulePage() {
                 </select>
               </div>
               <div>
-                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>Date</label>
+                <label
+                  className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-300' : 'text-gray-700'}`}
+                >
+                  Date
+                </label>
                 <input
                   type="date"
                   value={modalForm.date}
@@ -561,7 +683,11 @@ export function SchedulePage() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>Start Time</label>
+                  <label
+                    className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-300' : 'text-gray-700'}`}
+                  >
+                    Start Time
+                  </label>
                   <input
                     type="time"
                     value={modalForm.startTime}
@@ -570,7 +696,11 @@ export function SchedulePage() {
                   />
                 </div>
                 <div>
-                  <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>End Time</label>
+                  <label
+                    className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-300' : 'text-gray-700'}`}
+                  >
+                    End Time
+                  </label>
                   <input
                     type="time"
                     value={modalForm.endTime}
@@ -580,7 +710,11 @@ export function SchedulePage() {
                 </div>
               </div>
               <div>
-                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>Location</label>
+                <label
+                  className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-300' : 'text-gray-700'}`}
+                >
+                  Location
+                </label>
                 <input
                   type="text"
                   value={modalForm.location}

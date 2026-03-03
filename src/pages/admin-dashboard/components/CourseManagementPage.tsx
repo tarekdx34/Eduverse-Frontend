@@ -29,7 +29,8 @@ interface CourseManagementPageProps {
 }
 
 export function CourseManagementPage({ courses, users, adminDepartment, onAddCourse, onEditCourse, onDeleteCourse }: CourseManagementPageProps) {
-  const { isDark } = useTheme();
+  const { isDark, primaryHex } = useTheme() as any;
+  const accentColor = primaryHex || '#3b82f6';
   const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [departmentFilter, setDepartmentFilter] = useState('all');
@@ -139,7 +140,7 @@ export function CourseManagementPage({ courses, users, adminDepartment, onAddCou
         {activeSubTab === 'courses' && (
           <button
             onClick={openAddModal}
-            className="flex items-center gap-2 px-4 py-2 bg-rose-600 text-white rounded-lg hover:bg-rose-700 transition-colors"
+            className="flex items-center gap-2 px-4 py-2  text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
             <Plus size={18} />
             {t('addCourse')}
@@ -160,7 +161,7 @@ export function CourseManagementPage({ courses, users, adminDepartment, onAddCou
             onClick={() => setActiveSubTab(tab.key)}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition-all ${
               activeSubTab === tab.key
-                ? 'bg-rose-600 text-white'
+                ? ''
                 : isDark ? 'bg-white/5 text-slate-300 hover:bg-white/10' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
             }`}
           >
@@ -293,7 +294,7 @@ export function CourseManagementPage({ courses, users, adminDepartment, onAddCou
             <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Staff Assignment</h2>
             <button
               onClick={() => { setStaffFormData({ courseId: deptCourses[0]?.id || 0, instructorId: 0, taIds: [] }); setShowStaffModal(true); }}
-              className="flex items-center gap-2 px-4 py-2 bg-rose-600 text-white rounded-lg hover:bg-rose-700 transition-colors"
+              className="flex items-center gap-2 px-4 py-2  text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
               <UserCheck size={18} />
               Assign Staff
@@ -321,7 +322,7 @@ export function CourseManagementPage({ courses, users, adminDepartment, onAddCou
                       <td className={tdClass}>
                         <button
                           onClick={() => { setStaffFormData({ courseId: course.id, instructorId: course.instructorId || 0, taIds: course.taIds || [] }); setShowStaffModal(true); }}
-                          className="text-rose-600 hover:text-rose-700 text-sm font-medium"
+                          className="text-blue-600 hover:text-blue-700 text-sm font-medium"
                         >
                           Edit
                         </button>
@@ -378,7 +379,7 @@ export function CourseManagementPage({ courses, users, adminDepartment, onAddCou
                               onClick={() => toggleStaffTA(ta.id)}
                               className={`px-3 py-1 rounded-full text-sm transition-colors ${
                                 staffFormData.taIds.includes(ta.id)
-                                  ? 'bg-rose-600 text-white'
+                                  ? ''
                                   : isDark ? 'bg-gray-600 text-gray-300 hover:bg-gray-500' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                               }`}
                             >
@@ -397,7 +398,7 @@ export function CourseManagementPage({ courses, users, adminDepartment, onAddCou
                     >
                       Cancel
                     </button>
-                    <button onClick={handleStaffAssign} className="px-4 py-2 bg-rose-600 text-white rounded-lg hover:bg-rose-700">
+                    <button onClick={handleStaffAssign} className="px-4 py-2  text-white rounded-lg hover:bg-blue-700">
                       Assign
                     </button>
                   </div>
@@ -413,7 +414,7 @@ export function CourseManagementPage({ courses, users, adminDepartment, onAddCou
         <>
           <div className="flex items-center justify-between mb-4">
             <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Class Schedule</h2>
-            <button className="flex items-center gap-2 px-4 py-2 bg-rose-600 text-white rounded-lg hover:bg-rose-700 transition-colors">
+            <button className="flex items-center gap-2 px-4 py-2  text-white rounded-lg hover:bg-blue-700 transition-colors">
               <Plus size={18} />
               Add Schedule
             </button>
@@ -452,7 +453,7 @@ export function CourseManagementPage({ courses, users, adminDepartment, onAddCou
         <>
           <div className="flex items-center justify-between mb-4">
             <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Exam Schedule</h2>
-            <button className="flex items-center gap-2 px-4 py-2 bg-rose-600 text-white rounded-lg hover:bg-rose-700 transition-colors">
+            <button className="flex items-center gap-2 px-4 py-2  text-white rounded-lg hover:bg-blue-700 transition-colors">
               <Plus size={18} />
               Add Exam
             </button>
@@ -480,7 +481,7 @@ export function CourseManagementPage({ courses, users, adminDepartment, onAddCou
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                           row.type === 'Midterm'
                             ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
-                            : 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400'
+                            : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
                         }`}>
                           {row.type}
                         </span>

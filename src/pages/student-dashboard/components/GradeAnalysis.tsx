@@ -25,14 +25,14 @@ import {
 const gradeDistribution = [
   { grade: 'A+', count: 3, color: 'from-emerald-500 to-green-500' },
   { grade: 'A', count: 5, color: 'from-green-500 to-teal-500' },
-  { grade: 'A-', count: 4, color: 'from-teal-500 to-cyan-500' },
+  { grade: 'A-', count: 4, color: 'from-teal-500 to-blue-500' },
   { grade: 'B+', count: 6, color: 'from-blue-500 to-indigo-500' },
-  { grade: 'B', count: 3, color: 'from-indigo-500 to-violet-500' },
-  { grade: 'B-', count: 2, color: 'from-violet-500 to-purple-500' },
+  { grade: 'B', count: 3, color: 'from-indigo-500 to-blue-500' },
+  { grade: 'B-', count: 2, color: 'from-blue-500 to-blue-500' },
   { grade: 'C+', count: 1, color: 'from-amber-500 to-orange-500' },
   { grade: 'C', count: 1, color: 'from-orange-500 to-red-500' },
-  { grade: 'D', count: 0, color: 'from-red-500 to-rose-500' },
-  { grade: 'F', count: 0, color: 'from-rose-500 to-red-700' },
+  { grade: 'D', count: 0, color: 'from-red-500 to-blue-500' },
+  { grade: 'F', count: 0, color: 'from-blue-500 to-red-700' },
 ];
 
 const semesterGPA = [
@@ -95,7 +95,8 @@ const focusAreas = [
 // --- Component ---
 
 export const GradeAnalysis = () => {
-  const { isDark } = useTheme();
+  const { isDark, primaryHex } = useTheme() as any;
+  const accentColor = primaryHex || '#3b82f6';
   const { t } = useLanguage();
   const [activeAnalysisTab, setActiveAnalysisTab] = useState('overview');
 
@@ -122,7 +123,7 @@ export const GradeAnalysis = () => {
     if (gpa >= 3.5) return 'from-green-500 to-emerald-500';
     if (gpa >= 3.0) return 'from-blue-500 to-indigo-500';
     if (gpa >= 2.5) return 'from-amber-500 to-orange-500';
-    return 'from-red-500 to-rose-500';
+    return 'from-red-500 to-blue-500';
   };
 
   const getPriorityColor = (priority: string) => {
@@ -141,7 +142,7 @@ export const GradeAnalysis = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-gradient-to-br from-[#7C3AED] via-purple-600 to-indigo-700 rounded-2xl p-8 text-white shadow-xl">
+      <div className="bg-gradient-to-br from-[var(--accent-color)] via-blue-600 to-blue-700 rounded-2xl p-8 text-white shadow-xl">
         <div className="flex items-center justify-between">
           <div>
             <div className="flex items-center gap-3 mb-3">
@@ -149,7 +150,7 @@ export const GradeAnalysis = () => {
               <span className="text-sm bg-white/20 px-3 py-1 rounded-full">Grade Analysis</span>
             </div>
             <h1 className="text-3xl font-bold mb-2">Grade Analysis</h1>
-            <p className="text-purple-100 text-lg">Detailed Performance Insights</p>
+            <p className="text-blue-100 text-lg">Detailed Performance Insights</p>
           </div>
           <div className="flex items-center gap-2 bg-green-500/20 border border-green-400/30 px-4 py-2 rounded-full">
             <TrendingUp className="w-5 h-5 text-green-300" />
@@ -168,7 +169,7 @@ export const GradeAnalysis = () => {
               onClick={() => setActiveAnalysisTab(tab.id)}
               className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-medium transition-all text-sm ${
                 activeAnalysisTab === tab.id
-                  ? 'bg-[#7C3AED] text-white shadow-md'
+                  ? 'bg-[var(--accent-color)] text-white shadow-md'
                   : `${isDark ? 'text-slate-400 hover:bg-white/5' : 'text-slate-600 hover:bg-slate-100'}`
               }`}
             >
@@ -185,17 +186,17 @@ export const GradeAnalysis = () => {
       {activeAnalysisTab === 'overview' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* GPA Overview Card */}
-          <div className="bg-gradient-to-br from-[#7C3AED] via-purple-600 to-indigo-700 rounded-[2.5rem] p-6 text-white shadow-xl overflow-hidden relative">
+          <div className="bg-gradient-to-br from-[var(--accent-color)] via-blue-600 to-blue-700 rounded-[2.5rem] p-6 text-white shadow-xl overflow-hidden relative">
             <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
             <div className="relative z-10">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <p className="text-purple-200 text-sm mb-1">Academic Standing</p>
+                  <p className="text-blue-200 text-sm mb-1">Academic Standing</p>
                   <span className="bg-green-500/20 border border-green-400/30 text-green-200 px-3 py-1 rounded-full text-sm font-medium">
                     Excellent
                   </span>
                 </div>
-                <Award className="w-6 h-6 text-purple-200" />
+                <Award className="w-6 h-6 text-blue-200" />
               </div>
 
               <div className="flex items-center gap-6 my-6">
@@ -219,13 +220,13 @@ export const GradeAnalysis = () => {
                   </svg>
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
                     <span className="text-2xl font-bold">3.75</span>
-                    <span className="text-purple-200 text-xs">/ 4.00</span>
+                    <span className="text-blue-200 text-xs">/ 4.00</span>
                   </div>
                 </div>
 
                 <div className="flex-1 space-y-3">
                   <div className="text-4xl font-bold tracking-tight">3.75</div>
-                  <div className="text-purple-200">Cumulative GPA</div>
+                  <div className="text-blue-200">Cumulative GPA</div>
                   <div className="flex items-center gap-1 text-green-300 text-sm">
                     <TrendingUp className="w-4 h-4" />
                     <span>+0.10 from last semester</span>
@@ -237,15 +238,15 @@ export const GradeAnalysis = () => {
               <div className="grid grid-cols-3 gap-3">
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 text-center border border-white/10">
                   <div className="text-xl font-bold">92%</div>
-                  <div className="text-purple-200 text-xs">Pass Rate</div>
+                  <div className="text-blue-200 text-xs">Pass Rate</div>
                 </div>
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 text-center border border-white/10">
                   <div className="text-xl font-bold">A+</div>
-                  <div className="text-purple-200 text-xs">Highest Grade</div>
+                  <div className="text-blue-200 text-xs">Highest Grade</div>
                 </div>
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 text-center border border-white/10">
                   <div className="text-xl font-bold">87%</div>
-                  <div className="text-purple-200 text-xs">Average</div>
+                  <div className="text-blue-200 text-xs">Average</div>
                 </div>
               </div>
             </div>
@@ -255,7 +256,7 @@ export const GradeAnalysis = () => {
           <div className={`${isDark ? 'bg-card-dark border border-white/5' : 'glass'} rounded-[2.5rem] overflow-hidden`}>
             <div className={`${isDark ? 'bg-white/5 border-b border-white/5' : 'bg-gradient-to-r from-background-light to-white border-b border-slate-100'} p-4`}>
               <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'} flex items-center gap-2`}>
-                <BarChart3 className="w-5 h-5 text-[#7C3AED]" />
+                <BarChart3 className="w-5 h-5 text-[var(--accent-color)]" />
                 Grade Distribution
               </h3>
             </div>
@@ -284,7 +285,7 @@ export const GradeAnalysis = () => {
           <div className={`${isDark ? 'bg-card-dark border border-white/5' : 'glass'} rounded-[2.5rem] overflow-hidden`}>
             <div className={`${isDark ? 'bg-white/5 border-b border-white/5' : 'bg-gradient-to-r from-background-light to-white border-b border-slate-100'} p-4`}>
               <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'} flex items-center gap-2`}>
-                <Target className="w-5 h-5 text-[#7C3AED]" />
+                <Target className="w-5 h-5 text-[var(--accent-color)]" />
                 Performance Stats
               </h3>
             </div>
@@ -316,7 +317,7 @@ export const GradeAnalysis = () => {
           <div className={`${isDark ? 'bg-card-dark border border-white/5' : 'glass'} rounded-[2.5rem] overflow-hidden`}>
             <div className={`${isDark ? 'bg-white/5 border-b border-white/5' : 'bg-gradient-to-r from-background-light to-white border-b border-slate-100'} p-4`}>
               <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'} flex items-center gap-2`}>
-                <BookOpen className="w-5 h-5 text-[#7C3AED]" />
+                <BookOpen className="w-5 h-5 text-[var(--accent-color)]" />
                 Credit Progress
               </h3>
             </div>
@@ -327,13 +328,13 @@ export const GradeAnalysis = () => {
                   <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>of 144 credits earned</div>
                 </div>
                 <div className="text-right">
-                  <span className="bg-gradient-to-r from-[#7C3AED] to-indigo-500 bg-clip-text text-transparent text-2xl font-bold">83%</span>
+                  <span className="bg-gradient-to-r from-[var(--accent-color)] to-indigo-500 bg-clip-text text-transparent text-2xl font-bold">83%</span>
                   <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Completed</div>
                 </div>
               </div>
               <div className={`w-full ${isDark ? 'bg-white/10' : 'bg-slate-200'} rounded-full h-4`}>
                 <div
-                  className="h-4 rounded-full bg-gradient-to-r from-[#7C3AED] via-purple-500 to-indigo-500 transition-all relative overflow-hidden"
+                  className="h-4 rounded-full bg-gradient-to-r from-[var(--accent-color)] via-blue-500 to-indigo-500 transition-all relative overflow-hidden"
                   style={{ width: '83%' }}
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse" />
@@ -358,7 +359,7 @@ export const GradeAnalysis = () => {
           <div className={`${isDark ? 'bg-card-dark border border-white/5' : 'glass'} rounded-[2.5rem] overflow-hidden lg:col-span-2`}>
             <div className={`${isDark ? 'bg-white/5 border-b border-white/5' : 'bg-gradient-to-r from-background-light to-white border-b border-slate-100'} p-4`}>
               <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'} flex items-center gap-2`}>
-                <TrendingUp className="w-5 h-5 text-[#7C3AED]" />
+                <TrendingUp className="w-5 h-5 text-[var(--accent-color)]" />
                 GPA Trend
               </h3>
             </div>
@@ -391,14 +392,14 @@ export const GradeAnalysis = () => {
           <div className={`${isDark ? 'bg-card-dark border border-white/5' : 'glass'} rounded-[2.5rem] overflow-hidden`}>
             <div className={`${isDark ? 'bg-white/5 border-b border-white/5' : 'bg-gradient-to-r from-background-light to-white border-b border-slate-100'} p-4`}>
               <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'} flex items-center gap-2`}>
-                <BarChart3 className="w-5 h-5 text-[#7C3AED]" />
+                <BarChart3 className="w-5 h-5 text-[var(--accent-color)]" />
                 Semester Comparison
               </h3>
             </div>
             <div className="p-4 space-y-4">
               {semesterGPA.slice(-3).reverse().map((sem) => {
                 const gpaPercent = (sem.gpa / maxGPA) * 100;
-                const barColor = sem.gpa >= 3.5 ? 'from-green-500 to-emerald-500' : sem.gpa >= 3.0 ? 'from-blue-500 to-indigo-500' : sem.gpa >= 2.5 ? 'from-amber-500 to-orange-500' : 'from-red-500 to-rose-500';
+                const barColor = sem.gpa >= 3.5 ? 'from-green-500 to-emerald-500' : sem.gpa >= 3.0 ? 'from-blue-500 to-indigo-500' : sem.gpa >= 2.5 ? 'from-amber-500 to-orange-500' : 'from-red-500 to-blue-500';
                 return (
                   <div key={sem.semester}>
                     <div className="flex items-center justify-between mb-1">
@@ -429,7 +430,7 @@ export const GradeAnalysis = () => {
           <div className={`${isDark ? 'bg-card-dark border border-white/5' : 'glass'} rounded-[2.5rem] overflow-hidden`}>
             <div className={`${isDark ? 'bg-white/5 border-b border-white/5' : 'bg-gradient-to-r from-background-light to-white border-b border-slate-100'} p-4`}>
               <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'} flex items-center gap-2`}>
-                <Award className="w-5 h-5 text-[#7C3AED]" />
+                <Award className="w-5 h-5 text-[var(--accent-color)]" />
                 Course Ranking
               </h3>
             </div>
@@ -533,7 +534,7 @@ export const GradeAnalysis = () => {
           <div className={`${isDark ? 'bg-card-dark border border-white/5' : 'glass'} rounded-[2.5rem] overflow-hidden lg:col-span-2`}>
             <div className={`${isDark ? 'bg-white/5 border-b border-white/5' : 'bg-gradient-to-r from-background-light to-white border-b border-slate-100'} p-4`}>
               <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'} flex items-center gap-2`}>
-                <Sparkles className="w-5 h-5 text-[#7C3AED]" />
+                <Sparkles className="w-5 h-5 text-[var(--accent-color)]" />
                 AI Recommendations
               </h3>
             </div>
@@ -541,16 +542,16 @@ export const GradeAnalysis = () => {
               {recommendations.map((rec, idx) => (
                 <div
                   key={idx}
-                  className={`p-4 rounded-xl border-2 transition-all ${isDark ? 'border-white/5 hover:border-[#7C3AED]/30' : 'border-slate-100 hover:border-[#7C3AED]/30'}`}
+                  className={`p-4 rounded-xl border-2 transition-all ${isDark ? 'border-white/5 hover:border-[var(--accent-color)]/30' : 'border-slate-100 hover:border-[var(--accent-color)]/30'}`}
                 >
                   <div className="flex items-start gap-3">
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${isDark ? 'bg-[#7C3AED]/10' : 'bg-purple-50'}`}>
-                      <Sparkles className="w-5 h-5 text-[#7C3AED]" />
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${isDark ? 'bg-[var(--accent-color)]/10' : 'bg-blue-50'}`}>
+                      <Sparkles className="w-5 h-5 text-[var(--accent-color)]" />
                     </div>
                     <div className="flex-1">
                       <h4 className={`font-semibold mb-1 ${isDark ? 'text-white' : 'text-slate-800'}`}>{rec.title}</h4>
                       <p className={`text-sm mb-3 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{rec.description}</p>
-                      <button className="flex items-center gap-1 text-sm font-medium text-[#7C3AED] hover:underline">
+                      <button className="flex items-center gap-1 text-sm font-medium text-[var(--accent-color)] hover:underline">
                         {rec.action}
                         <ChevronRight className="w-4 h-4" />
                       </button>
@@ -567,7 +568,7 @@ export const GradeAnalysis = () => {
             <div className={`${isDark ? 'bg-card-dark border border-white/5' : 'glass'} rounded-[2.5rem] overflow-hidden`}>
               <div className={`${isDark ? 'bg-white/5 border-b border-white/5' : 'bg-gradient-to-r from-background-light to-white border-b border-slate-100'} p-4`}>
                 <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'} flex items-center gap-2`}>
-                  <Target className="w-5 h-5 text-[#7C3AED]" />
+                  <Target className="w-5 h-5 text-[var(--accent-color)]" />
                   Study Goals
                 </h3>
               </div>
@@ -584,7 +585,7 @@ export const GradeAnalysis = () => {
                       </div>
                       <div className={`w-full ${isDark ? 'bg-white/10' : 'bg-slate-200'} rounded-full h-2`}>
                         <div
-                          className="h-2 rounded-full bg-gradient-to-r from-[#7C3AED] to-indigo-500 transition-all"
+                          className="h-2 rounded-full bg-gradient-to-r from-[var(--accent-color)] to-indigo-500 transition-all"
                           style={{ width: `${Math.min(progress, 100)}%` }}
                         />
                       </div>
@@ -598,7 +599,7 @@ export const GradeAnalysis = () => {
             <div className={`${isDark ? 'bg-card-dark border border-white/5' : 'glass'} rounded-[2.5rem] overflow-hidden`}>
               <div className={`${isDark ? 'bg-white/5 border-b border-white/5' : 'bg-gradient-to-r from-background-light to-white border-b border-slate-100'} p-4`}>
                 <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'} flex items-center gap-2`}>
-                  <Brain className="w-5 h-5 text-[#7C3AED]" />
+                  <Brain className="w-5 h-5 text-[var(--accent-color)]" />
                   Focus Areas
                 </h3>
               </div>

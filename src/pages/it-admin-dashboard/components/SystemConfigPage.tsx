@@ -16,7 +16,8 @@ export function SystemConfigPage({
   onUpdateSystemSettings, 
   onUpdateBrandingSettings 
 }: SystemConfigPageProps) {
-  const { isDark } = useTheme();
+  const { isDark, primaryHex } = useTheme() as any;
+  const accentColor = primaryHex || '#3b82f6';
   const { t } = useLanguage();
   const [settings, setSettings] = useState(systemSettings);
   const [branding, setBranding] = useState(brandingSettings);
@@ -56,7 +57,7 @@ export function SystemConfigPage({
         </div>
         <button
           onClick={handleSave}
-          className="flex items-center gap-2 px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:opacity-90 transition-colors"
         >
           <Save className="w-4 h-4" />
           {t('saveChanges')}
@@ -74,8 +75,8 @@ export function SystemConfigPage({
                 className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
                   activeSection === section.id
                     ? isDark
-                      ? 'bg-cyan-900/50 text-cyan-300'
-                      : 'bg-cyan-50 text-cyan-700'
+                      ? 'bg-blue-900/50 text-blue-300'
+                      : 'bg-blue-50 text-blue-700'
                     : isDark
                       ? 'hover:bg-gray-700 text-gray-300'
                       : 'hover:bg-gray-50 text-gray-700'
@@ -104,7 +105,7 @@ export function SystemConfigPage({
                   </div>
                   <button
                     onClick={() => handleSettingChange('maintenanceMode', !settings.maintenanceMode)}
-                    className={`p-1 rounded-lg ${settings.maintenanceMode ? 'text-cyan-500' : 'text-gray-400'}`}
+                    className={`p-1 rounded-lg ${settings.maintenanceMode ? 'text-blue-500' : 'text-gray-400'}`}
                   >
                     {settings.maintenanceMode ? <ToggleRight className="w-10 h-6" /> : <ToggleLeft className="w-10 h-6" />}
                   </button>
@@ -119,7 +120,7 @@ export function SystemConfigPage({
                   </div>
                   <button
                     onClick={() => handleSettingChange('debugMode', !settings.debugMode)}
-                    className={`p-1 rounded-lg ${settings.debugMode ? 'text-cyan-500' : 'text-gray-400'}`}
+                    className={`p-1 rounded-lg ${settings.debugMode ? 'text-blue-500' : 'text-gray-400'}`}
                   >
                     {settings.debugMode ? <ToggleRight className="w-10 h-6" /> : <ToggleLeft className="w-10 h-6" />}
                   </button>
@@ -174,7 +175,7 @@ export function SystemConfigPage({
                   </div>
                   <button
                     onClick={() => handleSettingChange('twoFactorEnabled', !settings.twoFactorEnabled)}
-                    className={`p-1 rounded-lg ${settings.twoFactorEnabled ? 'text-cyan-500' : 'text-gray-400'}`}
+                    className={`p-1 rounded-lg ${settings.twoFactorEnabled ? 'text-blue-500' : 'text-gray-400'}`}
                   >
                     {settings.twoFactorEnabled ? <ToggleRight className="w-10 h-6" /> : <ToggleLeft className="w-10 h-6" />}
                   </button>
@@ -335,7 +336,7 @@ export function SystemConfigPage({
                   </h3>
                   <div className="grid grid-cols-3 gap-4 text-center">
                     <div>
-                      <p className={`text-2xl font-bold ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`}>2,847</p>
+                      <p className={`text-2xl font-bold ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>2,847</p>
                       <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{t('activeNow')}</p>
                     </div>
                     <div>
@@ -343,7 +344,7 @@ export function SystemConfigPage({
                       <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{t('today')}</p>
                     </div>
                     <div>
-                      <p className={`text-2xl font-bold ${isDark ? 'text-purple-400' : 'text-purple-600'}`}>45,200</p>
+                      <p className={`text-2xl font-bold ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>45,200</p>
                       <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{t('thisWeek')}</p>
                     </div>
                   </div>

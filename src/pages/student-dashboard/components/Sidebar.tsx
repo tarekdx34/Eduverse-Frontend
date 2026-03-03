@@ -38,7 +38,8 @@ const tabTranslationKeys: Record<string, string> = {
 
 export default function Sidebar({ onTabChange, tabs, activeTab, onLogout }: SidebarProps) {
   const { t, isRTL } = useLanguage();
-  const { isDark } = useTheme();
+  const { isDark, primaryHex } = useTheme() as any;
+  const accentColor = primaryHex || '#3b82f6';
 
   return (
     <aside className={`w-64 h-screen flex flex-col ${isDark ? 'bg-card-dark border-white/5' : 'glass border-slate-200'} ${isRTL ? 'border-l' : 'border-r'} p-6`}>
@@ -64,11 +65,11 @@ export default function Sidebar({ onTabChange, tabs, activeTab, onLogout }: Side
               className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all text-sm ${
                 isActive
                   ? isDark
-                    ? 'bg-[#7C3AED]/10 text-[#7C3AED] font-semibold'
+                    ? 'bg-[var(--accent-color)]/10 text-[var(--accent-color)] font-semibold'
                     : 'sidebar-item-active text-white font-semibold'
                   : isDark
                     ? 'text-slate-400 hover:bg-white/5'
-                    : 'text-slate-500 hover:text-[#7C3AED]'
+                    : 'text-slate-500 hover:text-[var(--accent-color)]'
               }`}
             >
               <IconComponent className="w-5 h-5 flex-shrink-0" />

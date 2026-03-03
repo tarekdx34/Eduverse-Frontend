@@ -17,8 +17,8 @@ interface DailyScheduleProps {
 
 // Assign colors for timeline dots and time labels
 const scheduleColors = [
-  { dot: 'bg-[#7C3AED]', ring: 'ring-[#7C3AED]/20', timeColor: 'text-[#7C3AED]', hoverBorder: 'hover:border-[#7C3AED]/20', tagBg: 'bg-blue-100 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400' },
-  { dot: 'bg-[#ec4899]', ring: 'ring-[#ec4899]/20', timeColor: 'text-[#ec4899]', hoverBorder: 'hover:border-[#ec4899]/20', tagBg: 'bg-purple-100 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400' },
+  { dot: 'bg-[var(--accent-color)]', ring: 'ring-[#7C3AED]/20', timeColor: 'text-[var(--accent-color)]', hoverBorder: 'hover:border-[var(--accent-color)]/20', tagBg: 'bg-blue-100 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400' },
+  { dot: 'bg-[#ec4899]', ring: 'ring-[#ec4899]/20', timeColor: 'text-[#ec4899]', hoverBorder: 'hover:border-[#ec4899]/20', tagBg: 'bg-blue-100 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400' },
   { dot: 'bg-slate-300 dark:bg-slate-700', ring: 'ring-slate-300/20', timeColor: 'text-slate-400', hoverBorder: '', tagBg: 'bg-slate-100 dark:bg-white/10 text-slate-400' },
 ];
 
@@ -51,7 +51,8 @@ const ScheduleItem = ({ course, index, isDark, isLast }: { course: CourseSchedul
 };
 
 export default function DailySchedule({ schedules }: DailyScheduleProps) {
-  const { isDark } = useTheme();
+  const { isDark, primaryHex } = useTheme() as any;
+  const accentColor = primaryHex || '#3b82f6';
   const { t } = useLanguage();
 
   return (
@@ -62,7 +63,7 @@ export default function DailySchedule({ schedules }: DailyScheduleProps) {
         <h3 className={`text-xl font-bold mb-0 ${isDark ? 'text-white' : 'text-slate-800'}`}>
           {t('dailyClassSchedule') || 'Smart Schedule'}
         </h3>
-        <button className="text-[#7C3AED] text-sm font-bold hover:underline">
+        <button className="text-[var(--accent-color)] text-sm font-bold hover:underline">
           Full Week
         </button>
       </div>

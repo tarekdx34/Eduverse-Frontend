@@ -1,15 +1,7 @@
 import { useState } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
-import {
-  Database,
-  Download,
-  Upload,
-  Clock,
-  HardDrive,
-  RefreshCw,
-  Calendar,
-} from 'lucide-react';
+import { Database, Download, Upload, Clock, HardDrive, RefreshCw, Calendar } from 'lucide-react';
 
 interface Backup {
   id: number;
@@ -21,21 +13,63 @@ interface Backup {
 }
 
 const mockBackups: Backup[] = [
-  { id: 1, date: '2025-01-15 02:00', type: 'Full', size: '4.2 GB', duration: '45 min', status: 'success' },
-  { id: 2, date: '2025-01-14 02:00', type: 'Incremental', size: '890 MB', duration: '12 min', status: 'success' },
-  { id: 3, date: '2025-01-13 02:00', type: 'Incremental', size: '1.1 GB', duration: '15 min', status: 'success' },
-  { id: 4, date: '2025-01-12 02:00', type: 'Full', size: '4.1 GB', duration: '43 min', status: 'failed' },
-  { id: 5, date: '2025-01-11 02:00', type: 'Differential', size: '2.3 GB', duration: '28 min', status: 'success' },
+  {
+    id: 1,
+    date: '2025-01-15 02:00',
+    type: 'Full',
+    size: '4.2 GB',
+    duration: '45 min',
+    status: 'success',
+  },
+  {
+    id: 2,
+    date: '2025-01-14 02:00',
+    type: 'Incremental',
+    size: '890 MB',
+    duration: '12 min',
+    status: 'success',
+  },
+  {
+    id: 3,
+    date: '2025-01-13 02:00',
+    type: 'Incremental',
+    size: '1.1 GB',
+    duration: '15 min',
+    status: 'success',
+  },
+  {
+    id: 4,
+    date: '2025-01-12 02:00',
+    type: 'Full',
+    size: '4.1 GB',
+    duration: '43 min',
+    status: 'failed',
+  },
+  {
+    id: 5,
+    date: '2025-01-11 02:00',
+    type: 'Differential',
+    size: '2.3 GB',
+    duration: '28 min',
+    status: 'success',
+  },
 ];
 
 const statusConfig = {
-  success: { label: 'Success', bg: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' },
+  success: {
+    label: 'Success',
+    bg: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+  },
   failed: { label: 'Failed', bg: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
-  in_progress: { label: 'In Progress', bg: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' },
+  in_progress: {
+    label: 'In Progress',
+    bg: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
+  },
 };
 
 export function BackupCenterPage() {
-  const { isDark } = useTheme();
+  const { isDark, primaryHex } = useTheme() as any;
+  const accentColor = primaryHex || '#3b82f6';
   const { t } = useLanguage();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedType, setSelectedType] = useState('Full');
@@ -51,10 +85,30 @@ export function BackupCenterPage() {
   const subtleBg = isDark ? 'bg-[#0f172a]' : 'bg-slate-50';
 
   const overviewCards = [
-    { title: t('totalBackups') || 'Total Backups', value: '142', icon: Database, color: 'text-[#0891B2]' },
-    { title: t('lastBackup') || 'Last Backup', value: 'Jan 15, 02:00', icon: Clock, color: 'text-green-500' },
-    { title: t('storageUsed') || 'Storage Used', value: '128.4 GB', icon: HardDrive, color: 'text-amber-500' },
-    { title: t('nextScheduled') || 'Next Scheduled', value: 'Jan 16, 02:00', icon: Calendar, color: 'text-purple-500' },
+    {
+      title: t('totalBackups') || 'Total Backups',
+      value: '142',
+      icon: Database,
+      color: `text-[${accentColor}]`,
+    },
+    {
+      title: t('lastBackup') || 'Last Backup',
+      value: 'Jan 15, 02:00',
+      icon: Clock,
+      color: 'text-green-500',
+    },
+    {
+      title: t('storageUsed') || 'Storage Used',
+      value: '128.4 GB',
+      icon: HardDrive,
+      color: 'text-amber-500',
+    },
+    {
+      title: t('nextScheduled') || 'Next Scheduled',
+      value: 'Jan 16, 02:00',
+      icon: Calendar,
+      color: 'text-blue-500',
+    },
   ];
 
   return (
@@ -71,7 +125,8 @@ export function BackupCenterPage() {
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#0891B2] text-white font-medium hover:bg-[#0891B2]/90 transition-colors"
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-white font-medium hover:opacity-90 transition-colors"
+          style={{ backgroundColor: accentColor }}
         >
           <Upload className="w-4 h-4" />
           {t('createBackup') || 'Create Backup'}
@@ -188,9 +243,10 @@ export function BackupCenterPage() {
             </span>
             <button
               onClick={() => setAutoBackupEnabled(!autoBackupEnabled)}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                autoBackupEnabled ? 'bg-[#0891B2]' : isDark ? 'bg-slate-600' : 'bg-slate-300'
-              }`}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors`}
+              style={{
+                backgroundColor: autoBackupEnabled ? accentColor : isDark ? '#475569' : '#cbd5e1',
+              }}
             >
               <span
                 className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
@@ -222,9 +278,7 @@ export function BackupCenterPage() {
 
           {/* Time */}
           <div className="flex flex-col gap-2">
-            <label className={`text-sm font-medium ${label}`}>
-              {t('time') || 'Time'}
-            </label>
+            <label className={`text-sm font-medium ${label}`}>{t('time') || 'Time'}</label>
             <input
               type="time"
               value={scheduleTime}
@@ -258,11 +312,16 @@ export function BackupCenterPage() {
                       onClick={() => setSelectedType(type)}
                       className={`px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
                         selectedType === type
-                          ? 'bg-[#0891B2] text-white'
+                          ? ''
                           : isDark
                             ? 'bg-white/5 text-slate-300 hover:bg-white/10'
                             : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                       }`}
+                      style={
+                        selectedType === type
+                          ? { backgroundColor: accentColor, color: 'white' }
+                          : undefined
+                      }
                     >
                       {type}
                     </button>
@@ -282,7 +341,8 @@ export function BackupCenterPage() {
                 </button>
                 <button
                   onClick={() => setShowCreateModal(false)}
-                  className="flex-1 px-4 py-2.5 rounded-xl bg-[#0891B2] text-white text-sm font-medium hover:bg-[#0891B2]/90 transition-colors"
+                  className="flex-1 px-4 py-2.5 rounded-xl text-white text-sm font-medium hover:opacity-90 transition-colors"
+                  style={{ backgroundColor: accentColor }}
                 >
                   {t('startBackup') || 'Start Backup'}
                 </button>

@@ -6,7 +6,7 @@ export function Sidebar({ tabs, activeTab, onChangeTab }: { tabs: TabItem[]; act
   return (
     <aside className="w-64 bg-white border-r min-h-screen p-6">
       <div className="flex items-center gap-3 mb-6">
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500" />
+        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-500" />
         <h2 className="text-lg font-semibold">TA Panel</h2>
       </div>
       <nav className="space-y-1">

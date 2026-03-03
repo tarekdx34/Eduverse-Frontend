@@ -11,7 +11,8 @@ interface MultiCampusPageProps {
 }
 
 export function MultiCampusPage({ campuses, onAddCampus, onEditCampus, onDeleteCampus }: MultiCampusPageProps) {
-  const { isDark } = useTheme();
+  const { isDark, primaryHex } = useTheme() as any;
+  const accentColor = primaryHex || '#3b82f6';
   const { t } = useLanguage();
   const [showAddModal, setShowAddModal] = useState(false);
 
@@ -41,7 +42,7 @@ export function MultiCampusPage({ campuses, onAddCampus, onEditCampus, onDeleteC
         </div>
         <button
           onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:opacity-90 transition-colors"
         >
           <Plus className="w-4 h-4" />
           {t('addCampus')}
@@ -52,8 +53,8 @@ export function MultiCampusPage({ campuses, onAddCampus, onEditCampus, onDeleteC
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className={`rounded-xl border p-6 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
           <div className="flex items-center gap-3 mb-2">
-            <div className={`p-2 rounded-lg ${isDark ? 'bg-cyan-900/50' : 'bg-cyan-50'}`}>
-              <Building2 className={`w-5 h-5 ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`} />
+            <div className={`p-2 rounded-lg ${isDark ? 'bg-blue-900/50' : 'bg-blue-50'}`}>
+              <Building2 className={`w-5 h-5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
             </div>
             <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('totalCampuses')}</p>
           </div>
@@ -86,8 +87,8 @@ export function MultiCampusPage({ campuses, onAddCampus, onEditCampus, onDeleteC
 
         <div className={`rounded-xl border p-6 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
           <div className="flex items-center gap-3 mb-2">
-            <div className={`p-2 rounded-lg ${isDark ? 'bg-purple-900/50' : 'bg-purple-50'}`}>
-              <HardDrive className={`w-5 h-5 ${isDark ? 'text-purple-400' : 'text-purple-600'}`} />
+            <div className={`p-2 rounded-lg ${isDark ? 'bg-blue-900/50' : 'bg-blue-50'}`}>
+              <HardDrive className={`w-5 h-5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
             </div>
             <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('totalStorage')}</p>
           </div>
@@ -112,8 +113,8 @@ export function MultiCampusPage({ campuses, onAddCampus, onEditCampus, onDeleteC
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-lg ${isDark ? 'bg-cyan-900/50' : 'bg-cyan-50'}`}>
-                    <Building2 className={`w-5 h-5 ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`} />
+                  <div className={`p-2 rounded-lg ${isDark ? 'bg-blue-900/50' : 'bg-blue-50'}`}>
+                    <Building2 className={`w-5 h-5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
                   </div>
                   <div>
                     <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
@@ -147,7 +148,7 @@ export function MultiCampusPage({ campuses, onAddCampus, onEditCampus, onDeleteC
                   target="_blank"
                   rel="noopener noreferrer"
                   className={`text-sm flex items-center gap-1 ${
-                    isDark ? 'text-cyan-400 hover:text-cyan-300' : 'text-cyan-600 hover:text-cyan-700'
+                    isDark ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'
                   }`}
                 >
                   {campus.domain}

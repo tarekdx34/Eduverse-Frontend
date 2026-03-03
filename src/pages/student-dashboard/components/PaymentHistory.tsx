@@ -42,7 +42,7 @@ export default function PaymentHistory({ payments = defaultPayments }: PaymentHi
           <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>{t('paymentTuitionHistory')}</h2>
           <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{t('paymentHistoryDesc')}</p>
         </div>
-        <button className="text-purple-600 text-sm font-medium hover:text-purple-700 transition-colors">{t('viewAllPayment')}</button>
+        <button className="text-blue-600 text-sm font-medium hover:text-blue-700 transition-colors">{t('viewAllPayment')}</button>
       </div>
 
       <div className="overflow-x-auto">

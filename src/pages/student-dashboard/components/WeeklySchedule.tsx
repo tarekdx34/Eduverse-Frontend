@@ -247,9 +247,9 @@ const ScheduleGrid = ({ scheduleData, t }: { scheduleData: ScheduleData; t: (key
                   .map((cls) => (
                     <div
                       key={cls.id}
-                      className="bg-gradient-to-br from-purple-50 to-blue-50 border-l-4 border-purple-600 rounded p-2 mb-2"
+                      className="bg-gradient-to-br from-blue-50 to-blue-50 border-l-4 border-blue-600 rounded p-2 mb-2"
                     >
-                      <p className="text-xs font-bold text-purple-900">{cls.code}</p>
+                      <p className="text-xs font-bold text-blue-900">{cls.code}</p>
                       <p className="text-xs text-slate-700 line-clamp-2 mt-1">{cls.title}</p>
                       <p className="text-xs text-slate-600 mt-1">{cls.room}</p>
                     </div>

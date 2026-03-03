@@ -2,16 +2,17 @@ import { MessageSquare, Sparkles, Send } from 'lucide-react';
 import { useTheme } from '../../../contexts/ThemeContext';
 
 export function ChatbotContent() {
-  const { isDark } = useTheme();
+  const { isDark, primaryHex } = useTheme() as any;
+  const accentColor = primaryHex || '#3b82f6';
 
   return (
     <div className="space-y-4">
-      <div className={`${isDark ? 'bg-[#7C3AED]/10 border-[#7C3AED]/20' : 'bg-gradient-to-br from-[#7C3AED]/10 to-purple-100 border-[#7C3AED]/20'} rounded-xl p-6 border`}>
+      <div className={`${isDark ? 'bg-[var(--accent-color)]/10 border-[var(--accent-color)]/20' : 'bg-gradient-to-br from-[var(--accent-color)]/10 to-blue-100 border-[var(--accent-color)]/20'} rounded-xl p-6 border`}>
         <h4 className={`${isDark ? 'text-white' : 'text-[#4C1D95]'} mb-2 flex items-center gap-2`}>
           <MessageSquare className="w-4 h-4" />
           Your Personal Study Assistant
         </h4>
-        <p className={`text-sm ${isDark ? 'text-[#7C3AED]' : 'text-[#7C3AED]'}`}>
+        <p className={`text-sm ${isDark ? 'text-[var(--accent-color)]' : 'text-[var(--accent-color)]'}`}>
           Ask anything about your courses, get study tips, or request explanations
         </p>
       </div>
@@ -19,7 +20,7 @@ export function ChatbotContent() {
       <div className={`${isDark ? 'bg-card-dark border-white/5' : 'border-2 border-slate-100 bg-gradient-to-b from-white to-background-light'} rounded-xl p-6 h-96 overflow-y-auto`}>
         <div className="space-y-6">
           <div className="flex gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-[#7C3AED] to-[#7C3AED] rounded-xl flex items-center justify-center flex-shrink-0 shadow-md">
+            <div className="w-10 h-10 bg-gradient-to-br from-[var(--accent-color)] to-[var(--accent-color)] rounded-xl flex items-center justify-center flex-shrink-0 shadow-md">
               <Sparkles className="w-5 h-5 text-white" />
             </div>
             <div className={`${isDark ? 'bg-white/5 border-white/5' : 'bg-white border border-slate-100'} rounded-2xl rounded-tl-sm p-4 shadow-sm max-w-sm`}>
@@ -36,7 +37,7 @@ export function ChatbotContent() {
           </div>
 
           <div className="flex gap-3 justify-end">
-            <div className="bg-[#7C3AED] text-white rounded-2xl rounded-tr-sm p-4 shadow-md max-w-sm">
+            <div className="bg-[var(--accent-color)] text-white rounded-2xl rounded-tr-sm p-4 shadow-md max-w-sm">
               <p className="text-sm">
                 Can you explain the difference between stacks and queues?
               </p>
@@ -47,7 +48,7 @@ export function ChatbotContent() {
           </div>
 
           <div className="flex gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-[#7C3AED] to-[#7C3AED] rounded-xl flex items-center justify-center flex-shrink-0 shadow-md">
+            <div className="w-10 h-10 bg-gradient-to-br from-[var(--accent-color)] to-[var(--accent-color)] rounded-xl flex items-center justify-center flex-shrink-0 shadow-md">
               <Sparkles className="w-5 h-5 text-white" />
             </div>
             <div className={`${isDark ? 'bg-white/5 border-white/5' : 'bg-white border border-slate-100'} rounded-2xl rounded-tl-sm p-4 shadow-sm max-w-sm`}>
@@ -64,7 +65,7 @@ export function ChatbotContent() {
           {['Explain concept', 'Practice problem', 'Study tips', 'Exam prep'].map((suggestion, idx) => (
             <button
               key={idx}
-              className={`px-4 py-2 ${isDark ? 'bg-white/5 border-white/10 text-slate-300 hover:border-[#7C3AED] hover:bg-[#7C3AED]/10' : 'bg-white border-2 border-slate-100 text-slate-700 hover:border-[#7C3AED] hover:bg-[#7C3AED]/10'} rounded-full text-sm transition-all`}
+              className={`px-4 py-2 ${isDark ? 'bg-white/5 border-white/10 text-slate-300 hover:border-[var(--accent-color)] hover:bg-[var(--accent-color)]/10' : 'bg-white border-2 border-slate-100 text-slate-700 hover:border-[var(--accent-color)] hover:bg-[var(--accent-color)]/10'} rounded-full text-sm transition-all`}
             >
               {suggestion}
             </button>
@@ -75,9 +76,9 @@ export function ChatbotContent() {
           <input
             type="text"
             placeholder="Type your question here..."
-            className={`flex-1 px-5 py-3 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-slate-500' : 'border-2 border-slate-100'} rounded-xl focus:outline-none focus:border-[#7C3AED] focus:ring-4 focus:ring-[#7C3AED]/10 transition-all`}
+            className={`flex-1 px-5 py-3 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-slate-500' : 'border-2 border-slate-100'} rounded-xl focus:outline-none focus:border-[var(--accent-color)] focus:ring-4 focus:ring-[var(--accent-color)]/10 transition-all`}
           />
-          <button className="px-6 py-3 bg-gradient-to-r from-[#7C3AED] to-[#6D28D9] text-white rounded-xl hover:shadow-lg transition-all flex items-center justify-center gap-2">
+          <button className="px-6 py-3 bg-gradient-to-r from-[var(--accent-color)] to-[var(--accent-color)] text-white rounded-xl hover:shadow-lg transition-all flex items-center justify-center gap-2">
             <Send className="w-5 h-5" />
           </button>
         </div>

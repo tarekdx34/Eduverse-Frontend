@@ -640,7 +640,7 @@ function CourseDetail({
                         >
                           <div className="flex items-center gap-2">
                             {mat.type === 'video' ? (
-                              <Video className="w-4 h-4 text-purple-500" />
+                              <Video className="w-4 h-4 text-blue-500" />
                             ) : (
                               <FileText className="w-4 h-4 text-blue-500" />
                             )}
@@ -896,7 +896,7 @@ function CourseDetail({
                           session.id
                         )
                       }
-                      className="mt-2 sm:mt-0 text-xs px-3 py-1 rounded-lg bg-purple-600 text-white hover:bg-purple-700"
+                      className="mt-2 sm:mt-0 text-xs px-3 py-1 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
                     >
                       Grade Attendance
                     </button>

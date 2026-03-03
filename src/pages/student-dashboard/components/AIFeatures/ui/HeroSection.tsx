@@ -11,14 +11,15 @@ export function HeroSection({
   subtitle
 }: HeroSectionProps) {
   const { isRTL } = useLanguage();
-  const { isDark } = useTheme();
+  const { isDark, primaryHex } = useTheme() as any;
+  const accentColor = primaryHex || '#3b82f6';
   
   const displayTitle = title || (isRTL ? 'عزز تعلمك بالذكاء الاصطناعي' : 'Supercharge Learning with AI');
   const displaySubtitle = subtitle || (isRTL ? 'احصل على أدوات الذكاء الاصطناعي المتطورة المصممة لتسريع نجاحك الأكاديمي' : 'Access cutting-edge AI tools designed to accelerate your academic success and transform how you study.');
 
   return (
     <section className={`relative rounded-[2.5rem] p-10 mb-8 text-white overflow-hidden min-h-[220px] flex flex-col justify-end ${
-      isDark ? 'shadow-2xl shadow-[#7C3AED]/20' : 'shadow-xl shadow-[#7C3AED]/20'
+      isDark ? 'shadow-2xl shadow-blue-500/20' : 'shadow-xl shadow-blue-500/20'
     }`} style={{ background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%)' }} dir={isRTL ? 'rtl' : 'ltr'}>
       <div className="relative z-10 max-w-2xl">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md mb-4">

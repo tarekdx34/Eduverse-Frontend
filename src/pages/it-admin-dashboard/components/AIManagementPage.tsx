@@ -10,7 +10,8 @@ interface AIManagementPageProps {
 }
 
 export function AIManagementPage({ aiModels, onToggleModel, onUpdateModelSettings }: AIManagementPageProps) {
-  const { isDark } = useTheme();
+  const { isDark, primaryHex } = useTheme() as any;
+  const accentColor = primaryHex || '#3b82f6';
   const { t } = useLanguage();
 
   const totalCost = aiModels.reduce((sum, model) => {
@@ -24,7 +25,7 @@ export function AIManagementPage({ aiModels, onToggleModel, onUpdateModelSetting
     switch (provider) {
       case 'OpenAI': return isDark ? 'bg-green-900/30 text-green-400' : 'bg-green-50 text-green-700';
       case 'Google': return isDark ? 'bg-blue-900/30 text-blue-400' : 'bg-blue-50 text-blue-700';
-      case 'Anthropic': return isDark ? 'bg-purple-900/30 text-purple-400' : 'bg-purple-50 text-purple-700';
+      case 'Anthropic': return isDark ? 'bg-blue-900/30 text-blue-400' : 'bg-blue-50 text-blue-700';
       default: return isDark ? 'bg-gray-700 text-gray-400' : 'bg-gray-100 text-gray-700';
     }
   };
@@ -44,8 +45,8 @@ export function AIManagementPage({ aiModels, onToggleModel, onUpdateModelSetting
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className={`rounded-xl border p-6 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
           <div className="flex items-center gap-3 mb-2">
-            <div className={`p-2 rounded-lg ${isDark ? 'bg-purple-900/50' : 'bg-purple-50'}`}>
-              <Brain className={`w-5 h-5 ${isDark ? 'text-purple-400' : 'text-purple-600'}`} />
+            <div className={`p-2 rounded-lg ${isDark ? 'bg-blue-900/50' : 'bg-blue-50'}`}>
+              <Brain className={`w-5 h-5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
             </div>
             <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('activeModels')}</p>
           </div>
@@ -56,8 +57,8 @@ export function AIManagementPage({ aiModels, onToggleModel, onUpdateModelSetting
 
         <div className={`rounded-xl border p-6 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
           <div className="flex items-center gap-3 mb-2">
-            <div className={`p-2 rounded-lg ${isDark ? 'bg-cyan-900/50' : 'bg-cyan-50'}`}>
-              <Sparkles className={`w-5 h-5 ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`} />
+            <div className={`p-2 rounded-lg ${isDark ? 'bg-blue-900/50' : 'bg-blue-50'}`}>
+              <Sparkles className={`w-5 h-5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
             </div>
             <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('totalRequests')}</p>
           </div>
@@ -103,8 +104,8 @@ export function AIManagementPage({ aiModels, onToggleModel, onUpdateModelSetting
             <div key={model.id} className="p-6">
               <div className="flex items-start justify-between">
                 <div className="flex items-start gap-4">
-                  <div className={`p-3 rounded-xl ${isDark ? 'bg-purple-900/30' : 'bg-purple-50'}`}>
-                    <Brain className={`w-6 h-6 ${isDark ? 'text-purple-400' : 'text-purple-600'}`} />
+                  <div className={`p-3 rounded-xl ${isDark ? 'bg-blue-900/30' : 'bg-blue-50'}`}>
+                    <Brain className={`w-6 h-6 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
                   </div>
                   <div>
                     <div className="flex items-center gap-2 mb-1">
@@ -154,7 +155,7 @@ export function AIManagementPage({ aiModels, onToggleModel, onUpdateModelSetting
                   </button>
                   <button
                     onClick={() => onToggleModel(model.id, model.status !== 'active')}
-                    className={`p-1 ${model.status === 'active' ? 'text-cyan-500' : 'text-gray-400'}`}
+                    className={`p-1 ${model.status === 'active' ? 'text-blue-500' : 'text-gray-400'}`}
                   >
                     {model.status === 'active' ? (
                       <ToggleRight className="w-10 h-6" />

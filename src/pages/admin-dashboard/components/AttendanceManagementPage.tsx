@@ -1,6 +1,25 @@
 import React, { useState } from 'react';
-import { Users, CheckCircle, XCircle, Clock, TrendingUp, Search, Filter, AlertTriangle } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
+import {
+  Users,
+  CheckCircle,
+  XCircle,
+  Clock,
+  TrendingUp,
+  Search,
+  Filter,
+  AlertTriangle,
+} from 'lucide-react';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  LineChart,
+  Line,
+} from 'recharts';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 
@@ -23,11 +42,56 @@ const departmentStats = [
 ];
 
 const coursesData = [
-  { code: 'CS101', name: 'Intro to Programming', instructor: 'Dr. Smith', rate: 92, present: 110, total: 120, absent: 8, late: 2 },
-  { code: 'CS202', name: 'Data Structures', instructor: 'Dr. Johnson', rate: 85, present: 81, total: 95, absent: 10, late: 4 },
-  { code: 'ENG101', name: 'Engineering Basics', instructor: 'Dr. Lee', rate: 88, present: 106, total: 120, absent: 10, late: 4 },
-  { code: 'BUS201', name: 'Business Analytics', instructor: 'Dr. Clark', rate: 79, present: 63, total: 80, absent: 12, late: 5 },
-  { code: 'SCI301', name: 'Physics Lab', instructor: 'Dr. Adams', rate: 94, present: 47, total: 50, absent: 2, late: 1 },
+  {
+    code: 'CS101',
+    name: 'Intro to Programming',
+    instructor: 'Dr. Smith',
+    rate: 92,
+    present: 110,
+    total: 120,
+    absent: 8,
+    late: 2,
+  },
+  {
+    code: 'CS202',
+    name: 'Data Structures',
+    instructor: 'Dr. Johnson',
+    rate: 85,
+    present: 81,
+    total: 95,
+    absent: 10,
+    late: 4,
+  },
+  {
+    code: 'ENG101',
+    name: 'Engineering Basics',
+    instructor: 'Dr. Lee',
+    rate: 88,
+    present: 106,
+    total: 120,
+    absent: 10,
+    late: 4,
+  },
+  {
+    code: 'BUS201',
+    name: 'Business Analytics',
+    instructor: 'Dr. Clark',
+    rate: 79,
+    present: 63,
+    total: 80,
+    absent: 12,
+    late: 5,
+  },
+  {
+    code: 'SCI301',
+    name: 'Physics Lab',
+    instructor: 'Dr. Adams',
+    rate: 94,
+    present: 47,
+    total: 50,
+    absent: 2,
+    late: 1,
+  },
 ];
 
 const studentsData = [
@@ -42,7 +106,8 @@ const studentsData = [
 ];
 
 export function AttendanceManagementPage() {
-  const { isDark } = useTheme();
+  const { isDark, primaryHex } = useTheme() as any;
+  const accentColor = primaryHex || '#3b82f6';
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<'overview' | 'courses' | 'students'>('overview');
   const [courseSearch, setCourseSearch] = useState('');
@@ -99,7 +164,8 @@ export function AttendanceManagementPage() {
   };
 
   const filteredCourses = coursesData.filter((c) => {
-    const matchesSearch = c.code.toLowerCase().includes(courseSearch.toLowerCase()) ||
+    const matchesSearch =
+      c.code.toLowerCase().includes(courseSearch.toLowerCase()) ||
       c.name.toLowerCase().includes(courseSearch.toLowerCase()) ||
       c.instructor.toLowerCase().includes(courseSearch.toLowerCase());
     const matchesDept = departmentFilter === 'All' || c.code.startsWith(departmentFilter);
@@ -107,7 +173,8 @@ export function AttendanceManagementPage() {
   });
 
   const filteredStudents = studentsData.filter((s) => {
-    const matchesSearch = s.name.toLowerCase().includes(studentSearch.toLowerCase()) ||
+    const matchesSearch =
+      s.name.toLowerCase().includes(studentSearch.toLowerCase()) ||
       s.course.toLowerCase().includes(studentSearch.toLowerCase());
     const matchesStatus = statusFilter === 'All' || s.status === statusFilter;
     return matchesSearch && matchesStatus;
@@ -131,9 +198,12 @@ export function AttendanceManagementPage() {
             onClick={() => setActiveTab(tab.key)}
             className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
               activeTab === tab.key
-                ? 'bg-rose-600 text-white shadow-sm'
+                ? ''
                 : `${textSecondary} hover:${isDark ? 'text-white' : 'text-gray-900'}`
             }`}
+            style={
+              activeTab === tab.key ? { backgroundColor: accentColor, color: 'white' } : undefined
+            }
           >
             {tab.label}
           </button>
@@ -197,7 +267,9 @@ export function AttendanceManagementPage() {
 
           {/* Weekly Trends Chart */}
           <div className={cardClass}>
-            <h2 className={`text-lg font-semibold mb-4 ${textPrimary}`}>Weekly Attendance Trends</h2>
+            <h2 className={`text-lg font-semibold mb-4 ${textPrimary}`}>
+              Weekly Attendance Trends
+            </h2>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={weeklyTrendsData}>
                 <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#374151' : '#e5e7eb'} />
@@ -211,7 +283,13 @@ export function AttendanceManagementPage() {
                     color: isDark ? '#ffffff' : '#111827',
                   }}
                 />
-                <Line type="monotone" dataKey="rate" stroke="#e11d48" strokeWidth={2} dot={{ fill: '#e11d48', r: 4 }} />
+                <Line
+                  type="monotone"
+                  dataKey="rate"
+                  stroke={accentColor}
+                  strokeWidth={2}
+                  dot={{ fill: accentColor, r: 4 }}
+                />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -224,9 +302,13 @@ export function AttendanceManagementPage() {
                 <div key={dept.name}>
                   <div className="flex items-center justify-between mb-1">
                     <span className={`text-sm font-medium ${textPrimary}`}>{dept.name}</span>
-                    <span className={`text-sm font-semibold ${getRateColor(dept.rate)}`}>{dept.rate}%</span>
+                    <span className={`text-sm font-semibold ${getRateColor(dept.rate)}`}>
+                      {dept.rate}%
+                    </span>
                   </div>
-                  <div className={`w-full h-2 rounded-full ${isDark ? 'bg-gray-700' : 'bg-gray-200'}`}>
+                  <div
+                    className={`w-full h-2 rounded-full ${isDark ? 'bg-gray-700' : 'bg-gray-200'}`}
+                  >
                     <div
                       className={`h-2 rounded-full ${getRateBg(dept.rate)}`}
                       style={{ width: `${dept.rate}%` }}
@@ -245,25 +327,33 @@ export function AttendanceManagementPage() {
           {/* Search + Filter */}
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
-              <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${textSecondary}`} />
+              <Search
+                className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${textSecondary}`}
+              />
               <input
                 type="text"
                 placeholder="Search courses..."
                 value={courseSearch}
                 onChange={(e) => setCourseSearch(e.target.value)}
                 className={`w-full pl-10 pr-4 py-2 rounded-lg border ${
-                  isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'
-                } focus:outline-none focus:ring-2 focus:ring-rose-500`}
+                  isDark
+                    ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500'
+                    : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'
+                } focus:outline-none focus:ring-2 focus:ring-blue-500`}
               />
             </div>
             <div className="relative">
-              <Filter className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${textSecondary}`} />
+              <Filter
+                className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${textSecondary}`}
+              />
               <select
                 value={departmentFilter}
                 onChange={(e) => setDepartmentFilter(e.target.value)}
                 className={`pl-10 pr-8 py-2 rounded-lg border appearance-none ${
-                  isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900'
-                } focus:outline-none focus:ring-2 focus:ring-rose-500`}
+                  isDark
+                    ? 'bg-gray-800 border-gray-700 text-white'
+                    : 'bg-white border-gray-200 text-gray-900'
+                } focus:outline-none focus:ring-2 focus:ring-blue-500`}
               >
                 <option value="All">All Departments</option>
                 <option value="CS">Computer Science</option>
@@ -279,23 +369,46 @@ export function AttendanceManagementPage() {
             <table className="w-full min-w-[700px]">
               <thead>
                 <tr className={`border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
-                  <th className={`text-left py-3 px-4 text-sm font-semibold ${textSecondary}`}>Code</th>
-                  <th className={`text-left py-3 px-4 text-sm font-semibold ${textSecondary}`}>Course Name</th>
-                  <th className={`text-left py-3 px-4 text-sm font-semibold ${textSecondary}`}>Instructor</th>
-                  <th className={`text-left py-3 px-4 text-sm font-semibold ${textSecondary}`}>Rate</th>
-                  <th className={`text-left py-3 px-4 text-sm font-semibold ${textSecondary}`}>Present</th>
-                  <th className={`text-left py-3 px-4 text-sm font-semibold ${textSecondary}`}>Absent</th>
-                  <th className={`text-left py-3 px-4 text-sm font-semibold ${textSecondary}`}>Late</th>
+                  <th className={`text-left py-3 px-4 text-sm font-semibold ${textSecondary}`}>
+                    Code
+                  </th>
+                  <th className={`text-left py-3 px-4 text-sm font-semibold ${textSecondary}`}>
+                    Course Name
+                  </th>
+                  <th className={`text-left py-3 px-4 text-sm font-semibold ${textSecondary}`}>
+                    Instructor
+                  </th>
+                  <th className={`text-left py-3 px-4 text-sm font-semibold ${textSecondary}`}>
+                    Rate
+                  </th>
+                  <th className={`text-left py-3 px-4 text-sm font-semibold ${textSecondary}`}>
+                    Present
+                  </th>
+                  <th className={`text-left py-3 px-4 text-sm font-semibold ${textSecondary}`}>
+                    Absent
+                  </th>
+                  <th className={`text-left py-3 px-4 text-sm font-semibold ${textSecondary}`}>
+                    Late
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {filteredCourses.map((course) => (
-                  <tr key={course.code} className={`border-b last:border-0 ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
-                    <td className={`py-3 px-4 text-sm font-medium ${textPrimary}`}>{course.code}</td>
+                  <tr
+                    key={course.code}
+                    className={`border-b last:border-0 ${isDark ? 'border-gray-700' : 'border-gray-200'}`}
+                  >
+                    <td className={`py-3 px-4 text-sm font-medium ${textPrimary}`}>
+                      {course.code}
+                    </td>
                     <td className={`py-3 px-4 text-sm ${textPrimary}`}>{course.name}</td>
                     <td className={`py-3 px-4 text-sm ${textSecondary}`}>{course.instructor}</td>
-                    <td className={`py-3 px-4 text-sm font-semibold ${getRateColor(course.rate)}`}>{course.rate}%</td>
-                    <td className={`py-3 px-4 text-sm ${textPrimary}`}>{course.present}/{course.total}</td>
+                    <td className={`py-3 px-4 text-sm font-semibold ${getRateColor(course.rate)}`}>
+                      {course.rate}%
+                    </td>
+                    <td className={`py-3 px-4 text-sm ${textPrimary}`}>
+                      {course.present}/{course.total}
+                    </td>
                     <td className="py-3 px-4 text-sm text-red-500">{course.absent}</td>
                     <td className="py-3 px-4 text-sm text-yellow-500">{course.late}</td>
                   </tr>
@@ -312,25 +425,33 @@ export function AttendanceManagementPage() {
           {/* Search + Status Filter */}
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
-              <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${textSecondary}`} />
+              <Search
+                className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${textSecondary}`}
+              />
               <input
                 type="text"
                 placeholder="Search students..."
                 value={studentSearch}
                 onChange={(e) => setStudentSearch(e.target.value)}
                 className={`w-full pl-10 pr-4 py-2 rounded-lg border ${
-                  isDark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500' : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'
-                } focus:outline-none focus:ring-2 focus:ring-rose-500`}
+                  isDark
+                    ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500'
+                    : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'
+                } focus:outline-none focus:ring-2 focus:ring-blue-500`}
               />
             </div>
             <div className="relative">
-              <Filter className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${textSecondary}`} />
+              <Filter
+                className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${textSecondary}`}
+              />
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
                 className={`pl-10 pr-8 py-2 rounded-lg border appearance-none ${
-                  isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900'
-                } focus:outline-none focus:ring-2 focus:ring-rose-500`}
+                  isDark
+                    ? 'bg-gray-800 border-gray-700 text-white'
+                    : 'bg-white border-gray-200 text-gray-900'
+                } focus:outline-none focus:ring-2 focus:ring-blue-500`}
               >
                 <option value="All">All</option>
                 <option value="Present">Present</option>
@@ -346,8 +467,8 @@ export function AttendanceManagementPage() {
               <div key={idx} className={cardClass}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center">
-                      <Users className="w-5 h-5 text-rose-500" />
+                    <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                      <Users className="w-5 h-5 text-blue-500" />
                     </div>
                     <div>
                       <p className={`font-medium ${textPrimary}`}>{student.name}</p>
@@ -355,17 +476,23 @@ export function AttendanceManagementPage() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className={`text-lg font-bold ${getRateColor(student.rate)}`}>{student.rate}%</p>
+                    <p className={`text-lg font-bold ${getRateColor(student.rate)}`}>
+                      {student.rate}%
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 mt-3">
-                  <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(student.status)}`}>
+                  <span
+                    className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(student.status)}`}
+                  >
                     {student.status === 'Present' && <CheckCircle className="w-3 h-3" />}
                     {student.status === 'Absent' && <XCircle className="w-3 h-3" />}
                     {student.status === 'Late' && <Clock className="w-3 h-3" />}
                     {student.status}
                   </span>
-                  <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${getRiskBadge(student.risk)}`}>
+                  <span
+                    className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${getRiskBadge(student.risk)}`}
+                  >
                     {student.risk === 'High Risk' && <AlertTriangle className="w-3 h-3" />}
                     {student.risk}
                   </span>

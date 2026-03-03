@@ -158,7 +158,8 @@ const availableCourses: Course[] = [
 
 export function CourseRegistration() {
   const { t } = useLanguage();
-  const { isDark } = useTheme();
+  const { isDark, primaryHex } = useTheme() as any;
+  const accentColor = primaryHex || '#3b82f6';
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState('all');
   const [selectedLevel, setSelectedLevel] = useState('all');
@@ -245,7 +246,7 @@ export function CourseRegistration() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-gradient-to-br from-[#7C3AED] via-purple-600 to-pink-600 rounded-2xl p-8 text-white shadow-xl">
+      <div className="bg-gradient-to-br from-[var(--accent-color)] via-blue-600 to-pink-600 rounded-2xl p-8 text-white shadow-xl">
         <div className="flex items-center gap-3 mb-3">
           <GraduationCap className="w-8 h-8" />
           <span className="text-sm bg-white/20 px-3 py-1 rounded-full">
@@ -253,11 +254,11 @@ export function CourseRegistration() {
           </span>
         </div>
         <h1 className="text-3xl font-bold mb-2">{t('courseRegistration')}</h1>
-        <p className="text-purple-100 text-lg">{t('browseCourses')}</p>
+        <p className="text-blue-100 text-lg">{t('browseCourses')}</p>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
           <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-            <p className="text-sm text-purple-200 mb-1">{t('creditsEnrolled')}</p>
+            <p className="text-sm text-blue-200 mb-1">{t('creditsEnrolled')}</p>
             <p className="text-2xl font-bold">
               {totalCredits} / {maxCredits}
             </p>
@@ -269,13 +270,13 @@ export function CourseRegistration() {
             </div>
           </div>
           <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-            <p className="text-sm text-purple-200 mb-1">{t('coursesRegistered')}</p>
+            <p className="text-sm text-blue-200 mb-1">{t('coursesRegistered')}</p>
             <p className="text-2xl font-bold">
               {registeredCourses.filter((c) => c.status === 'registered').length}
             </p>
           </div>
           <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-            <p className="text-sm text-purple-200 mb-1">{t('onWaitlist')}</p>
+            <p className="text-sm text-blue-200 mb-1">{t('onWaitlist')}</p>
             <p className="text-2xl font-bold">
               {registeredCourses.filter((c) => c.status === 'waitlist').length}
             </p>
@@ -296,7 +297,7 @@ export function CourseRegistration() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder={t('searchCoursePlaceholder')}
-                  className={`w-full pl-10 pr-4 py-2.5 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-gray-400' : 'border-slate-100 text-gray-900 placeholder-gray-500'} border-2 rounded-lg focus:outline-none focus:border-[#7C3AED] transition-all`}
+                  className={`w-full pl-10 pr-4 py-2.5 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-gray-400' : 'border-slate-100 text-gray-900 placeholder-gray-500'} border-2 rounded-lg focus:outline-none focus:border-[var(--accent-color)] transition-all`}
                 />
               </div>
             </div>
@@ -313,7 +314,7 @@ export function CourseRegistration() {
                   value={selectedDepartment}
                   onChange={setSelectedDepartment}
                   isDark={isDark}
-                  accentColor="#7C3AED"
+                  accentColor={accentColor}
                 />
               </div>
               <div className="flex-1">
@@ -328,7 +329,7 @@ export function CourseRegistration() {
                   value={selectedLevel}
                   onChange={setSelectedLevel}
                   isDark={isDark}
-                  accentColor="#7C3AED"
+                  accentColor={accentColor}
                 />
               </div>
             </div>
@@ -341,7 +342,7 @@ export function CourseRegistration() {
                 key={course.id}
                 className={`${isDark ? 'bg-card-dark' : 'bg-white'} rounded-xl border-2 p-5 transition-all hover:shadow-lg cursor-pointer ${
                   selectedCourse?.id === course.id
-                    ? 'border-[#7C3AED] shadow-md'
+                    ? 'border-[var(--accent-color)] shadow-md'
                     : `${isDark ? 'border-white/5' : 'border-slate-100'}`
                 }`}
                 onClick={() => setSelectedCourse(course)}
@@ -349,7 +350,7 @@ export function CourseRegistration() {
                 <div className="flex items-start justify-between mb-3">
                   <div>
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-sm font-bold text-[#7C3AED]">{course.code}</span>
+                      <span className="text-sm font-bold text-[var(--accent-color)]">{course.code}</span>
                       <span
                         className={`px-2 py-0.5 rounded-full text-xs font-medium border ${getStatusBadge(course.status)}`}
                       >
@@ -417,8 +418,8 @@ export function CourseRegistration() {
                           }}
                           className={`text-xs px-2 py-1 rounded-md flex items-center gap-1 transition-colors ${
                             isDark
-                              ? 'bg-[#7C3AED]/20 hover:bg-[#7C3AED]/30 text-[#A78BFA]'
-                              : 'bg-[#7C3AED]/10 hover:bg-[#7C3AED]/20 text-[#6D28D9]'
+                              ? 'bg-[var(--accent-color)]/20 hover:bg-[var(--accent-color)]/30 text-[#A78BFA]'
+                              : 'bg-[var(--accent-color)]/10 hover:bg-[var(--accent-color)]/20 text-[#6D28D9]'
                           }`}
                         >
                           <Info className="w-3 h-3" />
@@ -478,7 +479,7 @@ export function CourseRegistration() {
                         e.stopPropagation();
                         handleRegister(course);
                       }}
-                      className="flex items-center gap-2 px-4 py-2 bg-[#7C3AED] text-white rounded-lg hover:bg-[#6D28D9] transition-all text-sm font-medium"
+                      className="flex items-center gap-2 px-4 py-2 bg-[var(--accent-color)] text-white rounded-lg hover:opacity-90 transition-all text-sm font-medium"
                     >
                       <Plus className="w-4 h-4" />
                       {course.status === 'waitlist' ? t('joinWaitlist') : t('register')}
@@ -500,7 +501,7 @@ export function CourseRegistration() {
               <h3
                 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'} flex items-center gap-2`}
               >
-                <Calendar className="w-5 h-5 text-[#7C3AED]" />
+                <Calendar className="w-5 h-5 text-[var(--accent-color)]" />
                 {t('mySchedule')}
               </h3>
               <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'} mt-1`}>
@@ -525,7 +526,7 @@ export function CourseRegistration() {
                     <div className="flex items-start justify-between mb-2">
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-bold text-[#7C3AED]">{course.code}</span>
+                          <span className="text-sm font-bold text-[var(--accent-color)]">{course.code}</span>
                           {course.status === 'waitlist' && (
                             <span className="px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full text-xs">
                               {t('waitlist')}
@@ -572,7 +573,7 @@ export function CourseRegistration() {
               </div>
               <div className="p-4">
                 <div className="mb-4">
-                  <span className="text-sm font-bold text-[#7C3AED]">{selectedCourse.code}</span>
+                  <span className="text-sm font-bold text-[var(--accent-color)]">{selectedCourse.code}</span>
                   <h4
                     className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}
                   >
@@ -684,8 +685,8 @@ export function CourseRegistration() {
           <div
             className={`${isDark ? 'bg-card-dark' : 'bg-white'} rounded-2xl p-8 max-w-md w-full shadow-2xl`}
           >
-            <div className="w-16 h-16 bg-[#7C3AED]/10 rounded-full flex items-center justify-center mx-auto mb-4">
-              <BookOpen className="w-8 h-8 text-[#7C3AED]" />
+            <div className="w-16 h-16 bg-[var(--accent-color)]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <BookOpen className="w-8 h-8 text-[var(--accent-color)]" />
             </div>
             <h2
               className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-slate-800'} text-center mb-2`}
@@ -753,7 +754,7 @@ export function CourseRegistration() {
               </button>
               <button
                 onClick={confirmRegistration}
-                className="flex-1 px-4 py-3 bg-gradient-to-r from-[#7C3AED] to-[#6D28D9] text-white rounded-xl hover:shadow-lg transition-all font-medium"
+                className="flex-1 px-4 py-3 bg-gradient-to-r from-[var(--accent-color)] to-[var(--accent-color)] text-white rounded-xl hover:shadow-lg transition-all font-medium"
               >
                 {courseToRegister.status === 'waitlist' ? t('joinWaitlist') : t('confirm')}
               </button>

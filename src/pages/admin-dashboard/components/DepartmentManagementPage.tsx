@@ -64,8 +64,8 @@ export function DepartmentManagementPage({ departments, onAddDepartment, onEditD
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className={`p-4 rounded-xl border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
           <div className="flex items-center gap-3">
-            <div className={`p-2 rounded-lg ${isDark ? 'bg-purple-900/50' : 'bg-purple-100'}`}>
-              <Building2 className="text-purple-600" size={20} />
+            <div className={`p-2 rounded-lg ${isDark ? 'bg-blue-900/50' : 'bg-blue-100'}`}>
+              <Building2 className="text-blue-600" size={20} />
             </div>
             <div>
               <div className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{departments.length}</div>
@@ -144,13 +144,13 @@ export function DepartmentManagementPage({ departments, onAddDepartment, onEditD
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredDepartments.map((dept) => (
           <div key={dept.id} className={`rounded-xl border overflow-hidden ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-            <div className="h-20 bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center">
+            <div className="h-20 bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
               <Building2 className="text-white opacity-50" size={40} />
             </div>
             <div className="p-6">
               <div className="flex items-start justify-between mb-4">
                 <div>
-                  <span className={`text-xs font-semibold px-2 py-1 rounded ${isDark ? 'bg-purple-900/50 text-purple-300' : 'bg-purple-100 text-purple-700'}`}>
+                  <span className={`text-xs font-semibold px-2 py-1 rounded ${isDark ? 'bg-blue-900/50 text-blue-300' : 'bg-blue-100 text-blue-700'}`}>
                     {dept.faculty}
                   </span>
                   <h3 className={`font-semibold mt-2 text-lg ${isDark ? 'text-white' : 'text-gray-900'}`}>{dept.name}</h3>

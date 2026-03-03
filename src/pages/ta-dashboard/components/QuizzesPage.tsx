@@ -177,7 +177,7 @@ export function QuizzesPage() {
           </button>
           <button
             onClick={() => setShowAIModal(true)}
-            className="flex items-center gap-2 rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700 transition-colors"
+            className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
           >
             <Sparkles className="h-4 w-4" />
             {t('AI Generate', 'توليد بالذكاء الاصطناعي')}
@@ -225,7 +225,7 @@ export function QuizzesPage() {
                 <Edit2 className="h-3.5 w-3.5" />
                 {t('Edit Quiz', 'تعديل الاختبار')}
               </button>
-              <button className={`flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${isDark ? 'bg-purple-500/20 text-purple-300 hover:bg-purple-500/30' : 'bg-purple-50 text-purple-700 hover:bg-purple-100'}`}>
+              <button className={`flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${isDark ? 'bg-blue-500/20 text-blue-300 hover:bg-blue-500/30' : 'bg-blue-50 text-blue-700 hover:bg-blue-100'}`}>
                 <Sparkles className="h-3.5 w-3.5" />
                 {t('Generate with AI', 'توليد بالذكاء الاصطناعي')}
               </button>
@@ -403,7 +403,7 @@ export function QuizzesPage() {
           <div className={`w-full max-w-lg rounded-2xl border p-6 ${isDark ? 'bg-gray-900 border-white/10' : 'bg-white border-gray-200'}`}>
             <div className="flex items-center justify-between mb-6">
               <h2 className={`text-xl font-bold flex items-center gap-2 ${headingClass}`}>
-                <Sparkles className="h-5 w-5 text-purple-400" />
+                <Sparkles className="h-5 w-5 text-blue-400" />
                 {t('AI Quiz Generation', 'توليد اختبار بالذكاء الاصطناعي')}
               </h2>
               <button onClick={() => setShowAIModal(false)} className={`p-1 rounded-lg transition-colors ${isDark ? 'hover:bg-white/10 text-slate-400' : 'hover:bg-gray-100 text-gray-500'}`}>
@@ -490,7 +490,7 @@ export function QuizzesPage() {
               <button
                 onClick={handleAIGenerate}
                 disabled={isGenerating || !aiCourse}
-                className="flex items-center gap-2 rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700 transition-colors disabled:opacity-50"
+                className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors disabled:opacity-50"
               >
                 {isGenerating ? (
                   <>

@@ -11,7 +11,8 @@ interface DatabasePageProps {
 }
 
 export function DatabasePage({ backups, onRunBackup, onRestoreBackup, onDownloadBackup }: DatabasePageProps) {
-  const { isDark } = useTheme();
+  const { isDark, primaryHex } = useTheme() as any;
+  const accentColor = primaryHex || '#3b82f6';
   const { t } = useLanguage();
   const [selectedBackupType, setSelectedBackupType] = useState('full');
   const [activeTab, setActiveTab] = useState<'backups' | 'dr-runbooks' | 'integrity' | 'ai-recommendations'>('backups');
@@ -77,7 +78,7 @@ export function DatabasePage({ backups, onRunBackup, onRestoreBackup, onDownload
     { name: 'MongoDB', size: 12, color: 'bg-green-500' },
     { name: 'Redis', size: 2.1, color: 'bg-red-500' },
     { name: 'Elasticsearch', size: 8.5, color: 'bg-yellow-500' },
-    { name: 'Backups', size: 32, color: 'bg-purple-500' },
+    { name: 'Backups', size: 32, color: 'bg-blue-500' },
   ];
 
   const totalStorage = storageDistribution.reduce((sum, item) => sum + item.size, 0);
@@ -103,7 +104,7 @@ export function DatabasePage({ backups, onRunBackup, onRestoreBackup, onDownload
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'completed': return <CheckCircle className="w-5 h-5 text-green-500" />;
-      case 'running': return <Loader className="w-5 h-5 text-cyan-500 animate-spin" />;
+      case 'running': return <Loader className="w-5 h-5 text-blue-500 animate-spin" />;
       case 'failed': return <AlertCircle className="w-5 h-5 text-red-500" />;
       default: return <Clock className="w-5 h-5 text-gray-500" />;
     }
@@ -112,7 +113,7 @@ export function DatabasePage({ backups, onRunBackup, onRestoreBackup, onDownload
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed': return isDark ? 'bg-green-500/20 text-green-300' : 'bg-green-100 text-green-700';
-      case 'running': return isDark ? 'bg-cyan-500/20 text-cyan-300' : 'bg-cyan-100 text-cyan-700';
+      case 'running': return isDark ? 'bg-blue-500/20 text-blue-300' : 'bg-blue-100 text-blue-700';
       case 'failed': return isDark ? 'bg-red-500/20 text-red-300' : 'bg-red-100 text-red-700';
       default: return isDark ? 'bg-gray-500/20 text-gray-300' : 'bg-gray-100 text-gray-700';
     }
@@ -140,7 +141,7 @@ export function DatabasePage({ backups, onRunBackup, onRestoreBackup, onDownload
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-2 pb-3 px-1 text-sm font-medium transition-colors ${
                 isActive
-                  ? isDark ? 'text-cyan-400 border-b-2 border-cyan-400' : 'text-cyan-600 border-b-2 border-cyan-600'
+                  ? isDark ? 'text-blue-400 border-b-2 border-blue-400' : 'text-blue-600 border-b-2 border-blue-600'
                   : isDark ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'
               }`}
             >
@@ -159,8 +160,8 @@ export function DatabasePage({ backups, onRunBackup, onRestoreBackup, onDownload
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className={`rounded-xl border p-6 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
           <div className="flex items-center gap-3 mb-2">
-            <div className={`p-2 rounded-lg ${isDark ? 'bg-cyan-900/50' : 'bg-cyan-50'}`}>
-              <Database className={`w-5 h-5 ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`} />
+            <div className={`p-2 rounded-lg ${isDark ? 'bg-blue-900/50' : 'bg-blue-50'}`}>
+              <Database className={`w-5 h-5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
             </div>
             <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('databaseSize')}</p>
           </div>
@@ -179,8 +180,8 @@ export function DatabasePage({ backups, onRunBackup, onRestoreBackup, onDownload
 
         <div className={`rounded-xl border p-6 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
           <div className="flex items-center gap-3 mb-2">
-            <div className={`p-2 rounded-lg ${isDark ? 'bg-purple-900/50' : 'bg-purple-50'}`}>
-              <Clock className={`w-5 h-5 ${isDark ? 'text-purple-400' : 'text-purple-600'}`} />
+            <div className={`p-2 rounded-lg ${isDark ? 'bg-blue-900/50' : 'bg-blue-50'}`}>
+              <Clock className={`w-5 h-5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
             </div>
             <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('lastBackup')}</p>
           </div>
@@ -252,7 +253,7 @@ export function DatabasePage({ backups, onRunBackup, onRestoreBackup, onDownload
           </div>
           <button
             onClick={() => onRunBackup(selectedBackupType)}
-            className="flex items-center gap-2 px-6 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-colors"
+            className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:opacity-90 transition-colors"
           >
             <Play className="w-4 h-4" />
             {t('runBackup')}
@@ -361,8 +362,8 @@ export function DatabasePage({ backups, onRunBackup, onRestoreBackup, onDownload
             <div key={index} className={`rounded-xl border p-6 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-lg ${isDark ? 'bg-cyan-900/50' : 'bg-cyan-50'}`}>
-                    <FileText className={`w-5 h-5 ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`} />
+                  <div className={`p-2 rounded-lg ${isDark ? 'bg-blue-900/50' : 'bg-blue-50'}`}>
+                    <FileText className={`w-5 h-5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
                   </div>
                   <div>
                     <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{runbook.title}</h3>
@@ -401,7 +402,7 @@ export function DatabasePage({ backups, onRunBackup, onRestoreBackup, onDownload
               </div>
 
               <div className="flex gap-2">
-                <button className="flex items-center gap-1.5 px-4 py-2 bg-cyan-600 text-white text-sm rounded-lg hover:bg-cyan-700 transition-colors">
+                <button className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:opacity-90 transition-colors">
                   <Play className="w-3.5 h-3.5" />
                   Run Drill
                 </button>
@@ -447,7 +448,7 @@ export function DatabasePage({ backups, onRunBackup, onRestoreBackup, onDownload
           <div className={`rounded-xl border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
             <div className={`p-6 border-b ${isDark ? 'border-gray-700' : 'border-gray-200'} flex items-center justify-between`}>
               <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Check Results</h2>
-              <button className="flex items-center gap-2 px-4 py-2 bg-cyan-600 text-white text-sm rounded-lg hover:bg-cyan-700 transition-colors">
+              <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:opacity-90 transition-colors">
                 <RefreshCw className="w-4 h-4" />
                 Run Check Now
               </button>
@@ -487,7 +488,7 @@ export function DatabasePage({ backups, onRunBackup, onRestoreBackup, onDownload
                 <div className="flex-1">
                   <p className={`text-sm ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>{rec.text}</p>
                   <div className="flex gap-2 mt-3">
-                    <button className="px-3 py-1.5 bg-cyan-600 text-white text-xs rounded-lg hover:bg-cyan-700 transition-colors">
+                    <button className="px-3 py-1.5 bg-blue-600 text-white text-xs rounded-lg hover:opacity-90 transition-colors">
                       Apply
                     </button>
                     <button className={`px-3 py-1.5 text-xs rounded-lg border transition-colors ${

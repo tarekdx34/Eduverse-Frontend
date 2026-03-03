@@ -16,7 +16,8 @@ export function IntegrationsPage({
   onSyncIntegration,
   onUpdateApiKey 
 }: IntegrationsPageProps) {
-  const { isDark } = useTheme();
+  const { isDark, primaryHex } = useTheme() as any;
+  const accentColor = primaryHex || '#3b82f6';
   const { t } = useLanguage();
   const [editingKey, setEditingKey] = useState<number | null>(null);
   const [newKey, setNewKey] = useState('');
@@ -34,11 +35,11 @@ export function IntegrationsPage({
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case 'AI': return isDark ? 'text-purple-400 bg-purple-900/30' : 'text-purple-600 bg-purple-50';
+      case 'AI': return isDark ? 'text-blue-400 bg-blue-900/30' : 'text-blue-600 bg-blue-50';
       case 'Cloud': return isDark ? 'text-blue-400 bg-blue-900/30' : 'text-blue-600 bg-blue-50';
       case 'Storage': return isDark ? 'text-green-400 bg-green-900/30' : 'text-green-600 bg-green-50';
       case 'Email': return isDark ? 'text-orange-400 bg-orange-900/30' : 'text-orange-600 bg-orange-50';
-      case 'Video': return isDark ? 'text-cyan-400 bg-cyan-900/30' : 'text-cyan-600 bg-cyan-50';
+      case 'Video': return isDark ? 'text-blue-400 bg-blue-900/30' : 'text-blue-600 bg-blue-50';
       default: return isDark ? 'text-gray-400 bg-gray-700' : 'text-gray-600 bg-gray-100';
     }
   };
@@ -58,8 +59,8 @@ export function IntegrationsPage({
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className={`rounded-xl border p-6 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
           <div className="flex items-center gap-3 mb-2">
-            <div className={`p-2 rounded-lg ${isDark ? 'bg-cyan-900/50' : 'bg-cyan-50'}`}>
-              <Wifi className={`w-5 h-5 ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`} />
+            <div className={`p-2 rounded-lg ${isDark ? 'bg-blue-900/50' : 'bg-blue-50'}`}>
+              <Wifi className={`w-5 h-5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
             </div>
             <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('activeIntegrations')}</p>
           </div>
@@ -80,8 +81,8 @@ export function IntegrationsPage({
 
         <div className={`rounded-xl border p-6 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
           <div className="flex items-center gap-3 mb-2">
-            <div className={`p-2 rounded-lg ${isDark ? 'bg-purple-900/50' : 'bg-purple-50'}`}>
-              <Brain className={`w-5 h-5 ${isDark ? 'text-purple-400' : 'text-purple-600'}`} />
+            <div className={`p-2 rounded-lg ${isDark ? 'bg-blue-900/50' : 'bg-blue-50'}`}>
+              <Brain className={`w-5 h-5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
             </div>
             <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('monthlyCost')}</p>
           </div>
@@ -144,7 +145,7 @@ export function IntegrationsPage({
                               setEditingKey(null);
                               setNewKey('');
                             }}
-                            className="text-cyan-500 text-sm hover:underline"
+                            className="text-blue-500 text-sm hover:underline"
                           >
                             {t('save')}
                           </button>
@@ -165,7 +166,7 @@ export function IntegrationsPage({
                           </code>
                           <button
                             onClick={() => setEditingKey(integration.id)}
-                            className={`text-sm ${isDark ? 'text-cyan-400 hover:text-cyan-300' : 'text-cyan-600 hover:text-cyan-700'}`}
+                            className={`text-sm ${isDark ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'}`}
                           >
                             {t('edit')}
                           </button>
@@ -191,7 +192,7 @@ export function IntegrationsPage({
                                 ? 'bg-red-500'
                                 : (integration.usage / integration.limit) > 0.7
                                   ? 'bg-yellow-500'
-                                  : 'bg-cyan-500'
+                                  : 'bg-blue-500'
                             }`}
                             style={{ width: `${Math.min((integration.usage / integration.limit) * 100, 100)}%` }}
                           />
@@ -216,7 +217,7 @@ export function IntegrationsPage({
                   </button>
                   <button
                     onClick={() => onToggleIntegration(integration.id, integration.status !== 'active')}
-                    className={`p-1 ${integration.status === 'active' ? 'text-cyan-500' : 'text-gray-400'}`}
+                    className={`p-1 ${integration.status === 'active' ? 'text-blue-500' : 'text-gray-400'}`}
                   >
                     {integration.status === 'active' ? (
                       <ToggleRight className="w-10 h-6" />

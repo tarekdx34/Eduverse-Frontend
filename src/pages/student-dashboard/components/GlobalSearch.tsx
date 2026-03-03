@@ -89,7 +89,8 @@ export function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
   const [selectedFilter, setSelectedFilter] = useState<string>('all');
   const [isSearching, setIsSearching] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const { isDark } = useTheme();
+  const { isDark, primaryHex } = useTheme() as any;
+  const accentColor = primaryHex || '#3b82f6';
 
   useEffect(() => {
     if (isOpen && inputRef.current) {
@@ -144,7 +145,7 @@ export function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
       case 'assignment':
         return 'bg-amber-100 text-amber-600';
       case 'file':
-        return 'bg-purple-100 text-purple-600';
+        return 'bg-blue-100 text-blue-600';
       case 'announcement':
         return 'bg-red-100 text-red-600';
       case 'user':
@@ -189,8 +190,8 @@ export function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
               placeholder="Search courses, assignments, files, users..."
               className={`w-full pl-12 pr-12 py-4 text-lg border-2 rounded-xl focus:outline-none transition-all ${
                 isDark 
-                  ? 'bg-white/5 border-white/10 text-white placeholder-slate-500 focus:border-[#7C3AED]' 
-                  : 'bg-white border-slate-100 text-slate-800 focus:border-[#7C3AED]'
+                  ? 'bg-white/5 border-white/10 text-white placeholder-slate-500 focus:border-[var(--accent-color)]' 
+                  : 'bg-white border-slate-100 text-slate-800 focus:border-[var(--accent-color)]'
               }`}
             />
             {query && (
@@ -219,7 +220,7 @@ export function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
                 onClick={() => setSelectedFilter(filter.id)}
                 className={`px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
                   selectedFilter === filter.id
-                    ? 'bg-[#7C3AED]/10 text-[#7C3AED] border-2 border-[#7C3AED]/30'
+                    ? 'bg-[var(--accent-color)]/10 text-[var(--accent-color)] border-2 border-[var(--accent-color)]/30'
                     : isDark 
                       ? 'bg-white/5 text-slate-400 border-2 border-transparent hover:bg-white/10' 
                       : 'bg-slate-50 text-slate-600 border-2 border-transparent hover:bg-slate-200'
@@ -248,8 +249,8 @@ export function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
                       key={idx}
                       className={`flex flex-col items-center gap-2 p-4 border rounded-xl transition-all ${
                         isDark 
-                          ? 'border-white/5 hover:bg-white/5 hover:border-[#7C3AED]' 
-                          : 'border-slate-100 hover:bg-slate-50 hover:border-[#7C3AED]/50'
+                          ? 'border-white/5 hover:bg-white/5 hover:border-[var(--accent-color)]' 
+                          : 'border-slate-100 hover:bg-slate-50 hover:border-[var(--accent-color)]/50'
                       }`}
                     >
                       <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${link.color}`}>
@@ -287,7 +288,7 @@ export function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
           ) : isSearching ? (
             /* Loading State */
             <div className="p-8 text-center">
-              <div className="w-8 h-8 border-2 border-[#7C3AED] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+              <div className="w-8 h-8 border-2 border-[var(--accent-color)] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
               <p className={isDark ? 'text-slate-500' : 'text-slate-600'}>Searching...</p>
             </div>
           ) : results.length > 0 ? (

@@ -64,10 +64,10 @@ const classes = [
     day: 'Tuesday',
     startTime: '10:00 AM',
     endTime: '11:30 AM',
-    color: 'bg-purple-500',
-    textColor: 'text-purple-700',
-    bgLight: 'bg-purple-50',
-    borderColor: 'border-purple-500'
+    color: 'bg-blue-500',
+    textColor: 'text-blue-700',
+    bgLight: 'bg-blue-50',
+    borderColor: 'border-blue-500'
   },
   {
     id: 5,
@@ -92,10 +92,10 @@ const classes = [
     day: 'Tuesday',
     startTime: '03:00 PM',
     endTime: '04:30 PM',
-    color: 'bg-[#7C3AED]/100',
-    textColor: 'text-[#7C3AED]',
-    bgLight: 'bg-[#7C3AED]/10',
-    borderColor: 'border-[#7C3AED]'
+    color: 'bg-[var(--accent-color)]/100',
+    textColor: 'text-[var(--accent-color)]',
+    bgLight: 'bg-[var(--accent-color)]/10',
+    borderColor: 'border-[var(--accent-color)]'
   },
   {
     id: 7,
@@ -148,10 +148,10 @@ const classes = [
     day: 'Thursday',
     startTime: '10:00 AM',
     endTime: '11:30 AM',
-    color: 'bg-purple-500',
-    textColor: 'text-purple-700',
-    bgLight: 'bg-purple-50',
-    borderColor: 'border-purple-500'
+    color: 'bg-blue-500',
+    textColor: 'text-blue-700',
+    bgLight: 'bg-blue-50',
+    borderColor: 'border-blue-500'
   },
   {
     id: 11,
@@ -176,10 +176,10 @@ const classes = [
     day: 'Thursday',
     startTime: '03:00 PM',
     endTime: '04:30 PM',
-    color: 'bg-[#7C3AED]/100',
-    textColor: 'text-[#7C3AED]',
-    bgLight: 'bg-[#7C3AED]/10',
-    borderColor: 'border-[#7C3AED]'
+    color: 'bg-[var(--accent-color)]/100',
+    textColor: 'text-[var(--accent-color)]',
+    bgLight: 'bg-[var(--accent-color)]/10',
+    borderColor: 'border-[var(--accent-color)]'
   },
   {
     id: 13,
@@ -254,7 +254,7 @@ const upcomingClasses = [
     date: 'Tuesday, Dec 5, 2025',
     room: 'Room B-205',
     instructor: 'Prof. Michael Chen',
-    color: 'bg-purple-500',
+    color: 'bg-blue-500',
     progress: 60
   },
   {
@@ -272,7 +272,8 @@ const upcomingClasses = [
 
 export default function ClassSchedule() {
   const { t, isRTL, language } = useLanguage();
-  const { isDark } = useTheme();
+  const { isDark, primaryHex } = useTheme() as any;
+  const accentColor = primaryHex || '#3b82f6';
   const navigate = useNavigate();
   const [currentWeek, setCurrentWeek] = useState('Week of Dec 4 - Dec 10, 2025');
   const [scheduleType, setScheduleType] = useState<'daily' | 'weekly' | 'monthly'>('weekly');
@@ -330,7 +331,7 @@ export default function ClassSchedule() {
                     <button key={type} onClick={() => setScheduleType(type)}
                       className={`px-3 py-1.5 rounded-md text-sm font-medium capitalize transition-all ${
                         scheduleType === type
-                          ? 'bg-[#7C3AED] text-white shadow-sm'
+                          ? 'bg-[var(--accent-color)] text-white shadow-sm'
                           : isDark ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-800'
                       }`}>{type}</button>
                   ))}
@@ -364,7 +365,7 @@ export default function ClassSchedule() {
                 </div>
 
                 {/* Time Slots */}
-                <div className="overflow-y-auto max-h-[600px] scrollbar-thin scrollbar-thumb-[#7C3AED]/30 scrollbar-track-transparent">
+                <div className="overflow-y-auto max-h-[600px] scrollbar-thin scrollbar-thumb-blue-500/30 scrollbar-track-transparent">
                   {timeSlots.map((time) => (
                     <div key={time} className={`grid grid-cols-8 min-w-[700px] border-b last:border-b-0 transition-colors ${isDark ? 'border-white/5 hover:bg-white/5/30' : 'border-slate-100 hover:bg-slate-50/50'}`}>
                       <div className={`p-3 border-r ${isDark ? 'border-white/5 bg-white/[0.03]' : 'border-slate-100 bg-background-light/50'}`}>
@@ -525,19 +526,19 @@ export default function ClassSchedule() {
                       <p className={`text-xs font-medium mb-3 ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{classItem.code}</p>
                       <div className="space-y-2">
                         <div className={`flex items-center gap-2 text-xs ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
-                          <Clock className="w-3.5 h-3.5 text-[#7C3AED] flex-shrink-0" />
+                          <Clock className="w-3.5 h-3.5 text-[var(--accent-color)] flex-shrink-0" />
                           <span>{classItem.time}</span>
                         </div>
                         <div className={`flex items-center gap-2 text-xs ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
-                          <Calendar className="w-3.5 h-3.5 text-[#7C3AED] flex-shrink-0" />
+                          <Calendar className="w-3.5 h-3.5 text-[var(--accent-color)] flex-shrink-0" />
                           <span>{classItem.date}</span>
                         </div>
                         <div className={`flex items-center gap-2 text-xs ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
-                          <MapPin className="w-3.5 h-3.5 text-[#7C3AED] flex-shrink-0" />
+                          <MapPin className="w-3.5 h-3.5 text-[var(--accent-color)] flex-shrink-0" />
                           <span>{classItem.room}</span>
                         </div>
                         <div className={`flex items-center gap-2 text-xs ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
-                          <User className="w-3.5 h-3.5 text-[#7C3AED] flex-shrink-0" />
+                          <User className="w-3.5 h-3.5 text-[var(--accent-color)] flex-shrink-0" />
                           <span>{classItem.instructor}</span>
                         </div>
                       </div>
@@ -545,7 +546,7 @@ export default function ClassSchedule() {
                       <div className={`mt-3 pt-3 border-t ${isDark ? 'border-white/5' : 'border-slate-100'}`}>
                         <div className="flex items-center justify-between mb-2">
                           <span className={`text-xs font-medium ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{t('progress')}</span>
-                          <span className={`text-xs font-bold px-2 py-0.5 rounded ${isDark ? 'text-[#7C3AED]/70 bg-[#7C3AED]/20' : 'text-[#7C3AED] bg-[#7C3AED]/10'}`}>
+                          <span className={`text-xs font-bold px-2 py-0.5 rounded ${isDark ? 'text-[var(--accent-color)]/70 bg-[var(--accent-color)]/20' : 'text-[var(--accent-color)] bg-[var(--accent-color)]/10'}`}>
                             {classItem.progress}%
                           </span>
                         </div>

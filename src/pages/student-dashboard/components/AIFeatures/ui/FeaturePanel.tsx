@@ -9,14 +9,15 @@ interface FeaturePanelProps {
 }
 
 export function FeaturePanel({ feature, children }: FeaturePanelProps) {
-  const { isDark } = useTheme();
+  const { isDark, primaryHex } = useTheme() as any;
+  const accentColor = primaryHex || '#3b82f6';
 
   if (!feature) {
     return (
       <div className="glass rounded-[2.5rem] sticky top-6 overflow-hidden">
         <div className="text-center py-20 px-6">
-          <div className="w-20 h-20 bg-gradient-to-br from-[#7C3AED]/20 to-purple-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Sparkles className="w-10 h-10 text-[#7C3AED]" />
+          <div className="w-20 h-20 bg-gradient-to-br from-[var(--accent-color)]/20 to-blue-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <Sparkles className="w-10 h-10 text-[var(--accent-color)]" />
           </div>
           <h4 className={`font-bold mb-2 ${isDark ? 'text-white' : 'text-slate-800'}`}>Ready to Begin?</h4>
           <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
@@ -30,7 +31,7 @@ export function FeaturePanel({ feature, children }: FeaturePanelProps) {
   return (
     <div className="glass rounded-[2.5rem] overflow-hidden">
       <div className={`p-6 border-b ${
-        isDark ? 'border-white/5 bg-gradient-to-r from-[#7C3AED]/10 to-transparent' : `${feature.bgLight} border-slate-100`
+        isDark ? 'border-white/5 bg-gradient-to-r from-[var(--accent-color)]/10 to-transparent' : `${feature.bgLight} border-slate-100`
       }`}>
         <div className="flex items-center gap-3 mb-3">
           <div className={`${feature.color} w-12 h-12 rounded-xl flex items-center justify-center shadow-lg`}>

@@ -40,7 +40,8 @@ const regions = [
 ];
 
 export function CloudServicesPage() {
-  const { isDark } = useTheme();
+  const { isDark, primaryHex } = useTheme() as any;
+  const accentColor = primaryHex || '#3b82f6';
   const { t } = useLanguage();
   const [activeProvider, setActiveProvider] = useState<Provider>('All');
 
@@ -81,7 +82,7 @@ export function CloudServicesPage() {
               onClick={() => setActiveProvider(p)}
               className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                 activeProvider === p
-                  ? 'bg-cyan-600 text-white'
+                  ? 'bg-blue-600 text-white'
                   : isDark ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'
               }`}
             >
@@ -120,8 +121,8 @@ export function CloudServicesPage() {
 
         <div className={cardClass}>
           <div className="flex items-center gap-3 mb-2">
-            <div className={`p-2 rounded-lg ${isDark ? 'bg-cyan-900/50' : 'bg-cyan-50'}`}>
-              <Activity className={`w-5 h-5 ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`} />
+            <div className={`p-2 rounded-lg ${isDark ? 'bg-blue-900/50' : 'bg-blue-50'}`}>
+              <Activity className={`w-5 h-5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
             </div>
             <p className={`text-sm ${textSecondary}`}>Uptime</p>
           </div>
@@ -130,8 +131,8 @@ export function CloudServicesPage() {
 
         <div className={cardClass}>
           <div className="flex items-center gap-3 mb-2">
-            <div className={`p-2 rounded-lg ${isDark ? 'bg-purple-900/50' : 'bg-purple-50'}`}>
-              <Globe className={`w-5 h-5 ${isDark ? 'text-purple-400' : 'text-purple-600'}`} />
+            <div className={`p-2 rounded-lg ${isDark ? 'bg-blue-900/50' : 'bg-blue-50'}`}>
+              <Globe className={`w-5 h-5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
             </div>
             <p className={`text-sm ${textSecondary}`}>Regions</p>
           </div>
@@ -244,7 +245,7 @@ export function CloudServicesPage() {
                     <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
                       service.status === 'Running'
                         ? isDark ? 'bg-green-500/20 text-green-300' : 'bg-green-100 text-green-700'
-                        : isDark ? 'bg-cyan-500/20 text-cyan-300' : 'bg-cyan-100 text-cyan-700'
+                        : isDark ? 'bg-blue-500/20 text-blue-300' : 'bg-blue-100 text-blue-700'
                     }`}>
                       <CheckCircle className="w-3 h-3" />
                       {service.status}
@@ -255,7 +256,7 @@ export function CloudServicesPage() {
                     <div className="flex items-center gap-2 min-w-[120px]">
                       <div className={`flex-1 h-2 rounded-full ${isDark ? 'bg-gray-700' : 'bg-gray-200'}`}>
                         <div
-                          className={`h-2 rounded-full ${service.usage > 80 ? 'bg-orange-500' : 'bg-cyan-500'}`}
+                          className={`h-2 rounded-full ${service.usage > 80 ? 'bg-orange-500' : 'bg-blue-500'}`}
                           style={{ width: `${service.usage}%` }}
                         />
                       </div>
@@ -283,7 +284,7 @@ export function CloudServicesPage() {
       <div className={cardClass}>
         <div className="flex items-center justify-between mb-4">
           <h2 className={`text-lg font-semibold ${textPrimary}`}>Budget Tracking</h2>
-          <button className="px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-700 text-white text-sm font-medium transition-colors">
+          <button className="px-4 py-2 rounded-lg bg-blue-600 hover:opacity-90 text-white text-sm font-medium transition-colors">
             Set Budget
           </button>
         </div>
@@ -308,7 +309,7 @@ export function CloudServicesPage() {
           {regions.map(region => (
             <div key={region.name} className={`rounded-lg border p-4 ${isDark ? 'border-gray-700 bg-gray-750' : 'border-gray-200 bg-gray-50'}`}>
               <div className="flex items-center gap-2 mb-3">
-                <MapPin className={`w-4 h-4 ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`} />
+                <MapPin className={`w-4 h-4 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
                 <h3 className={`font-medium ${textPrimary}`}>{region.name}</h3>
               </div>
               <div className="space-y-1.5">

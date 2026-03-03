@@ -45,7 +45,7 @@ export function EnrollmentPeriodPage({ enrollmentPeriods, courses, adminDepartme
   const statusConfig: Record<string, { color: string; icon: React.ReactNode; gradient: string }> = {
     active: { color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400', icon: <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />, gradient: 'from-green-500 to-emerald-500' },
     closed: { color: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400', icon: <CheckCircle2 size={12} />, gradient: 'from-gray-400 to-gray-500' },
-    upcoming: { color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400', icon: <Timer size={12} />, gradient: 'from-blue-500 to-cyan-500' },
+    upcoming: { color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400', icon: <Timer size={12} />, gradient: 'from-blue-500 to-blue-500' },
   };
 
   const openAddModal = () => {
@@ -99,7 +99,7 @@ export function EnrollmentPeriodPage({ enrollmentPeriods, courses, adminDepartme
         {[
           { label: t('totalPeriods'), value: deptPeriods.length, icon: CalendarDays, color: 'text-blue-500' },
           { label: t('activePeriods'), value: activePeriods, icon: AlertCircle, color: 'text-green-500' },
-          { label: t('students'), value: `${totalRegistered}/150`, icon: Users, color: 'text-purple-500' },
+          { label: t('students'), value: `${totalRegistered}/150`, icon: Users, color: 'text-blue-500' },
           { label: t('totalCourses'), value: deptCourses.length, icon: BookOpen, color: 'text-amber-500' },
         ].map((stat, i) => (
           <div key={i} className={`p-4 rounded-xl border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>

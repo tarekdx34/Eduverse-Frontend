@@ -184,7 +184,7 @@ export function Gamification() {
     switch (rarity) {
       case 'common': return 'from-slate-400 to-slate-500';
       case 'rare': return 'from-blue-400 to-blue-600';
-      case 'epic': return 'from-purple-400 to-purple-600';
+      case 'epic': return 'from-blue-400 to-blue-600';
       case 'legendary': return 'from-amber-400 to-orange-500';
       default: return 'from-slate-400 to-slate-500';
     }
@@ -194,7 +194,7 @@ export function Gamification() {
     switch (rarity) {
       case 'common': return 'bg-slate-50 border-slate-100';
       case 'rare': return 'bg-blue-50 border-blue-200';
-      case 'epic': return 'bg-purple-50 border-purple-200';
+      case 'epic': return 'bg-blue-50 border-blue-200';
       case 'legendary': return 'bg-amber-50 border-amber-200';
       default: return 'bg-slate-50 border-slate-100';
     }
@@ -206,7 +206,8 @@ export function Gamification() {
 
   const unlockedAchievements = achievements.filter(a => a.unlocked).length;
   const { t, isRTL } = useLanguage();
-  const { isDark } = useTheme();
+  const { isDark, primaryHex } = useTheme() as any;
+  const accentColor = primaryHex || '#3b82f6';
 
   return (
     <div className="space-y-6" dir={isRTL ? 'rtl' : 'ltr'}>
@@ -279,7 +280,7 @@ export function Gamification() {
           <div className="glass rounded-[2.5rem] overflow-hidden">
             <div className={`${isDark ? 'bg-white/5 border-b border-white/5' : 'bg-gradient-to-r from-background-light to-white border-b border-slate-100'} p-4`}>
               <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'} flex items-center gap-2`}>
-                <Target className="w-5 h-5 text-[#7C3AED]" />
+                <Target className="w-5 h-5 text-[var(--accent-color)]" />
                 Daily Challenges
               </h3>
             </div>
@@ -309,7 +310,7 @@ export function Gamification() {
                   {!challenge.done && (
                     <div className={`w-full ${isDark ? 'bg-white/10' : 'bg-slate-200'} rounded-full h-1.5 ml-8`}>
                       <div 
-                        className="bg-[#7C3AED]/100 h-1.5 rounded-full transition-all"
+                        className="bg-[var(--accent-color)]/100 h-1.5 rounded-full transition-all"
                         style={{ width: `${(challenge.progress / challenge.max) * 100}%` }}
                       />
                     </div>
@@ -326,7 +327,7 @@ export function Gamification() {
                 <Gift className="w-5 h-5 text-pink-500" />
                 Rewards Shop
               </h3>
-              <button className="text-sm text-[#7C3AED] font-medium flex items-center gap-1">
+              <button className="text-sm text-[var(--accent-color)] font-medium flex items-center gap-1">
                 View All <ChevronRight className="w-4 h-4" />
               </button>
             </div>
@@ -461,7 +462,7 @@ export function Gamification() {
 
                 {/* Avatar */}
                 <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex-shrink-0 flex items-center justify-center text-white text-xs sm:text-sm font-semibold ${
-                  entry.isCurrentUser ? 'bg-gradient-to-br from-[#7C3AED] to-purple-600' : 'bg-gradient-to-br from-slate-400 to-slate-500'
+                  entry.isCurrentUser ? 'bg-gradient-to-br from-[var(--accent-color)] to-blue-600' : 'bg-gradient-to-br from-slate-400 to-slate-500'
                 }`}>
                   {entry.avatar}
                 </div>
@@ -471,7 +472,7 @@ export function Gamification() {
                   <div className="flex items-center gap-2">
                     <p className={`font-semibold text-sm sm:text-base truncate ${isDark ? 'text-white' : 'text-slate-800'}`}>{entry.name}</p>
                     {entry.isCurrentUser && (
-                      <span className="px-2 py-0.5 bg-[#7C3AED]/10 text-[#7C3AED] rounded text-xs font-medium flex-shrink-0">You</span>
+                      <span className="px-2 py-0.5 bg-[var(--accent-color)]/10 text-[var(--accent-color)] rounded text-xs font-medium flex-shrink-0">You</span>
                     )}
                   </div>
                   <p className={`text-xs sm:text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Level {entry.level}</p>
