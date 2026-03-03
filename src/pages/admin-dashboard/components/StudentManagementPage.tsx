@@ -41,7 +41,8 @@ const enrollmentConflicts: Record<string, { course: string; conflict: string; re
 type ModalType = 'add-course' | 'remove-course' | 'fix-enrollment' | null;
 
 export function StudentManagementPage() {
-  const { isDark } = useTheme();
+  const { isDark, primaryHex } = useTheme() as any;
+  const accentColor = primaryHex || '#3b82f6';
   const { t } = useLanguage();
 
   const [students, setStudents] = useState<Student[]>(mockStudents);
@@ -121,7 +122,7 @@ export function StudentManagementPage() {
   const cardClass = `${isDark ? 'bg-[#1e293b]/80 border border-white/5' : 'bg-white border border-slate-200 shadow-sm'} rounded-2xl`;
   const headingClass = `${isDark ? 'text-white' : 'text-slate-900'}`;
   const labelClass = `${isDark ? 'text-slate-300' : 'text-slate-600'}`;
-  const inputClass = `${isDark ? 'bg-slate-800/50 border-slate-700 text-white placeholder-slate-500' : 'bg-white border-slate-300 text-slate-900 placeholder-slate-400'} border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/40`;
+  const inputClass = `${isDark ? 'bg-slate-800/50 border-slate-700 text-white placeholder-slate-500' : 'bg-white border-slate-300 text-slate-900 placeholder-slate-400'} border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40`;
   const rowHoverClass = `${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'}`;
 
   const coursesNotEnrolled = selectedStudent
@@ -136,7 +137,7 @@ export function StudentManagementPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className={`text-2xl font-bold ${headingClass} flex items-center gap-2`}>
-            <GraduationCap className="w-7 h-7 text-rose-500" />
+            <GraduationCap className="w-7 h-7 text-blue-500" />
             {t('students') || 'Student Management'}
           </h1>
           <p className={`text-sm mt-1 ${labelClass}`}>Manage department student enrollments and records</p>
@@ -214,7 +215,7 @@ export function StudentManagementPage() {
                           <span
                             key={c}
                             className={`px-2 py-0.5 rounded text-xs font-medium ${
-                              isDark ? 'bg-rose-500/10 text-rose-400' : 'bg-rose-50 text-rose-600'
+                              isDark ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-50 text-blue-600'
                             }`}
                           >
                             {c}
@@ -231,7 +232,7 @@ export function StudentManagementPage() {
                       <button
                         onClick={() => openModal('add-course', student)}
                         title="Add Course"
-                        className="p-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white transition-colors"
+                        className="p-1.5 rounded-lg hover:opacity-90 text-white transition-colors"
                       >
                         <Plus className="w-3.5 h-3.5" />
                       </button>
@@ -286,7 +287,7 @@ export function StudentManagementPage() {
             {activeModal === 'add-course' && (
               <>
                 <h2 className={`text-lg font-semibold ${headingClass} flex items-center gap-2 mb-4`}>
-                  <BookOpen className="w-5 h-5 text-rose-500" />
+                  <BookOpen className="w-5 h-5 text-blue-500" />
                   Add Course — {selectedStudent.name}
                 </h2>
                 {coursesNotEnrolled.length > 0 ? (
@@ -305,7 +306,7 @@ export function StudentManagementPage() {
                     <button
                       onClick={handleAddCourse}
                       disabled={!selectedCourse}
-                      className="w-full py-2 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-medium text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full py-2 rounded-lg hover:opacity-90 text-white font-medium text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Enroll Student
                     </button>
@@ -320,7 +321,7 @@ export function StudentManagementPage() {
             {activeModal === 'remove-course' && (
               <>
                 <h2 className={`text-lg font-semibold ${headingClass} flex items-center gap-2 mb-4`}>
-                  <Minus className="w-5 h-5 text-rose-500" />
+                  <Minus className="w-5 h-5 text-blue-500" />
                   Remove Course — {selectedStudent.name}
                 </h2>
                 {selectedStudent.enrolledCourses.length > 0 ? (
@@ -351,7 +352,7 @@ export function StudentManagementPage() {
             {activeModal === 'fix-enrollment' && (
               <>
                 <h2 className={`text-lg font-semibold ${headingClass} flex items-center gap-2 mb-4`}>
-                  <Wrench className="w-5 h-5 text-rose-500" />
+                  <Wrench className="w-5 h-5 text-blue-500" />
                   Fix Enrollment — {selectedStudent.name}
                 </h2>
                 {conflicts.length > 0 ? (
@@ -365,7 +366,7 @@ export function StudentManagementPage() {
                         <p className={`text-xs mt-1 ${isDark ? 'text-yellow-400' : 'text-yellow-700'}`}>{item.conflict}</p>
                         <button
                           onClick={() => handleFixConflict(item.resolution)}
-                          className="mt-2 px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-medium transition-colors"
+                          className="mt-2 px-3 py-1.5 rounded-lg hover:opacity-90 text-white text-xs font-medium transition-colors"
                         >
                           {item.resolution}
                         </button>

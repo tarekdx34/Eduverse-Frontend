@@ -60,7 +60,7 @@ export default function ProfilePage() {
           {/* Profile Header Card */}
           <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden mb-6">
             {/* Cover Photo */}
-            <div className="h-48 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 relative">
+            <div className="h-48 bg-gradient-to-r from-indigo-500 via-blue-500 to-pink-500 relative">
               <button className="absolute bottom-4 right-4 px-4 py-2 bg-white/90 hover:bg-white rounded-lg text-sm flex items-center gap-2 transition-colors">
                 <Camera className="w-4 h-4" />
                 Change Cover
@@ -153,9 +153,9 @@ export default function ProfilePage() {
                   <p className="text-sm text-gray-600 mb-1">GPA</p>
                   <p className="text-2xl text-emerald-700">{profileData.gpa}</p>
                 </div>
-                <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-100">
+                <div className="bg-gradient-to-br from-blue-50 to-pink-50 rounded-xl p-4 border border-blue-100">
                   <p className="text-sm text-gray-600 mb-1">Credits Earned</p>
-                  <p className="text-2xl text-purple-700">95</p>
+                  <p className="text-2xl text-blue-700">95</p>
                 </div>
                 <div className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl p-4 border border-orange-100">
                   <p className="text-sm text-gray-600 mb-1">Attendance</p>
@@ -428,7 +428,7 @@ export default function ProfilePage() {
                     ].map((interest, idx) => (
                       <span
                         key={idx}
-                        className="px-3 py-1.5 bg-purple-50 text-purple-700 rounded-lg text-sm border border-purple-100"
+                        className="px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg text-sm border border-blue-100"
                       >
                         {interest}
                       </span>

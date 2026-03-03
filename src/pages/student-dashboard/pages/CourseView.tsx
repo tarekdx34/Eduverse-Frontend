@@ -38,7 +38,8 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
   const [activeTab, setActiveTab] = useState('overview');
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [selectedLesson, setSelectedLesson] = useState<string | null>(null);
-  const { isDark } = useTheme();
+  const { isDark, primaryHex } = useTheme() as any;
+  const accentColor = primaryHex || '#3b82f6';
 
   const courseData = {
     id: '1',
@@ -265,7 +266,7 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
               />
               {/* AI Notes Button */}
               <button
-                className={`absolute top-4 right-4 ${isDark ? 'bg-[#7C3AED]/90' : 'bg-[#7C3AED]'} hover:bg-[#6D28D9] text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium shadow-lg backdrop-blur-sm transition-all transform hover:scale-105 z-10`}
+                className={`absolute top-4 right-4 ${isDark ? 'bg-[var(--accent-color)]/90' : 'bg-[var(--accent-color)]'} hover:opacity-90 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium shadow-lg backdrop-blur-sm transition-all transform hover:scale-105 z-10`}
               >
                 <Sparkles size={16} />
                 Generate AI Notes
@@ -415,7 +416,7 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
         {/* Right Sidebar */}
         <div className="w-full xl:w-96">
           {/* Progress Card */}
-          <div className="bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-100 rounded-lg p-6 mb-6">
+          <div className="bg-gradient-to-br from-indigo-50 to-blue-50 border border-indigo-100 rounded-lg p-6 mb-6">
             <h3 className="font-semibold text-gray-900 mb-4">Course Content</h3>
 
             <div className="mb-4">
@@ -427,7 +428,7 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div
-                  className="h-2 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600"
+                  className="h-2 rounded-full bg-gradient-to-r from-blue-600 to-blue-600"
                   style={{ width: `${courseData.progress}%` }}
                 />
               </div>

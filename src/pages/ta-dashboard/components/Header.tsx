@@ -83,7 +83,7 @@ export function Header({ title, ta, onProfileClick }: HeaderProps) {
             onClick={() => setShowDropdown(!showDropdown)}
             className={`flex items-center gap-3 rounded-lg p-1.5 transition-colors ${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}`}
           >
-            <div className="w-9 h-9 bg-gradient-to-br from-blue-400 to-cyan-400 rounded-full cursor-pointer hover:opacity-80 transition-opacity flex items-center justify-center text-white text-sm font-semibold">
+            <div className="w-9 h-9 bg-gradient-to-br from-blue-400 to-blue-400 rounded-full cursor-pointer hover:opacity-80 transition-opacity flex items-center justify-center text-white text-sm font-semibold">
               {initials}
             </div>
             <div className={`text-sm text-left ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>

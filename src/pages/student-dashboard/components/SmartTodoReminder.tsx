@@ -223,7 +223,8 @@ export function SmartTodoReminder() {
     (t) => !t.isCompleted && getDaysUntilDue(t.dueDate) === 0
   ).length;
   const { t, isRTL } = useLanguage();
-  const { isDark } = useTheme();
+  const { isDark, primaryHex } = useTheme() as any;
+  const accentColor = primaryHex || '#3b82f6';
 
   const getPriorityText = (priority: string) => {
     switch (priority) {
@@ -263,9 +264,9 @@ export function SmartTodoReminder() {
         >
           <div className="flex items-center gap-3 mb-2">
             <div
-              className={`w-10 h-10 rounded-lg flex items-center justify-center ${isDark ? 'bg-[#7C3AED]/20' : 'bg-[#7C3AED]/10'}`}
+              className={`w-10 h-10 rounded-lg flex items-center justify-center ${isDark ? 'bg-[var(--accent-color)]/20' : 'bg-[var(--accent-color)]/10'}`}
             >
-              <Circle className={`w-5 h-5 ${isDark ? 'text-[#7C3AED]/70' : 'text-[#7C3AED]'}`} />
+              <Circle className={`w-5 h-5 ${isDark ? 'text-[var(--accent-color)]/70' : 'text-[var(--accent-color)]'}`} />
             </div>
             <span className={`text-sm font-medium ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
               {t('pending')}
@@ -342,7 +343,7 @@ export function SmartTodoReminder() {
               : 'Stay organized with AI-powered task management'}
           </p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-[#7C3AED] text-white rounded-lg hover:bg-[#6D28D9] transition-colors font-medium">
+        <button className="flex items-center gap-2 px-4 py-2 bg-[var(--accent-color)] text-white rounded-lg hover:opacity-90 transition-colors font-medium">
           <Plus className="w-5 h-5" />
           {t('addTask')}
         </button>
@@ -364,7 +365,7 @@ export function SmartTodoReminder() {
                   onClick={() => setFilter(f)}
                   className={`px-3 py-1.5 rounded-lg text-sm capitalize font-medium transition-colors ${
                     filter === f
-                      ? 'bg-[#7C3AED]/10 text-[#7C3AED] border border-[#7C3AED]/20'
+                      ? 'bg-[var(--accent-color)]/10 text-[var(--accent-color)] border border-[var(--accent-color)]/20'
                       : isDark
                         ? 'bg-white/5 text-slate-400 hover:bg-white/10'
                         : 'bg-slate-50 text-slate-700 hover:bg-slate-200'
@@ -386,7 +387,7 @@ export function SmartTodoReminder() {
                   onClick={() => setPriorityFilter(p)}
                   className={`px-3 py-1.5 rounded-lg text-sm capitalize font-medium transition-colors ${
                     priorityFilter === p
-                      ? 'bg-[#7C3AED]/10 text-[#7C3AED] border border-[#7C3AED]/20'
+                      ? 'bg-[var(--accent-color)]/10 text-[var(--accent-color)] border border-[var(--accent-color)]/20'
                       : isDark
                         ? 'bg-white/5 text-slate-400 hover:bg-white/10'
                         : 'bg-slate-50 text-slate-700 hover:bg-slate-200'
@@ -424,7 +425,7 @@ export function SmartTodoReminder() {
                   <CheckCircle className="w-6 h-6 text-green-600" />
                 ) : (
                   <Circle
-                    className={`w-6 h-6 hover:text-[#7C3AED] ${isDark ? 'text-slate-500' : 'text-slate-500'}`}
+                    className={`w-6 h-6 hover:text-[var(--accent-color)] ${isDark ? 'text-slate-500' : 'text-slate-500'}`}
                   />
                 )}
               </button>
@@ -513,7 +514,7 @@ export function SmartTodoReminder() {
                   {todo.tags.map((tag, idx) => (
                     <span
                       key={idx}
-                      className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border ${isDark ? 'bg-[#7C3AED]/20 text-[#7C3AED]/70 border-[#7C3AED]/50' : 'bg-[#7C3AED]/10 text-[#7C3AED] border-[#7C3AED]/10'}`}
+                      className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border ${isDark ? 'bg-[var(--accent-color)]/20 text-[var(--accent-color)]/70 border-[var(--accent-color)]/50' : 'bg-[var(--accent-color)]/10 text-[var(--accent-color)] border-[var(--accent-color)]/10'}`}
                     >
                       <Hash className="w-3 h-3" />
                       {tag}

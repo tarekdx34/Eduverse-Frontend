@@ -83,7 +83,7 @@ const defaultEvents: CalendarEvent[] = [
     date: 15,
     title: 'Registration Deadline - Spring 2026',
     type: 'deadline',
-    color: 'bg-purple-100',
+    color: 'bg-blue-100',
   },
   { id: '18', date: 18, title: 'Career Fair', type: 'event', color: 'bg-green-100' },
   { id: '20', date: 20, title: 'Winter Break Begins', type: 'holiday', color: 'bg-orange-100' },
@@ -136,7 +136,7 @@ const getEventBadgeColor = (type: string) => {
     case 'Assignment':
       return 'bg-yellow-100 text-yellow-700';
     case 'Deadline':
-      return 'bg-purple-100 text-purple-700';
+      return 'bg-blue-100 text-blue-700';
     case 'Holiday':
       return 'bg-orange-100 text-orange-700';
     default:
@@ -347,7 +347,7 @@ const CalendarGrid = ({
             <span className="text-slate-600">Holiday</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-purple-100 rounded"></div>
+            <div className="w-3 h-3 bg-blue-100 rounded"></div>
             <span>Deadline</span>
           </div>
         </div>
@@ -364,7 +364,8 @@ export default function AcademicCalendar({
   stats = defaultStats,
 }: AcademicCalendarProps) {
   const [filterCategory, setFilterCategory] = useState('All Categories');
-  const { isDark } = useTheme();
+  const { isDark, primaryHex } = useTheme() as any;
+  const accentColor = primaryHex || '#3b82f6';
 
   return (
     <div className="space-y-6">
@@ -402,7 +403,7 @@ export default function AcademicCalendar({
           label="Deadlines"
           value={stats.deadlines}
           subtext="Important dates"
-          color={isDark ? 'bg-purple-900/50' : 'bg-purple-100'}
+          color={isDark ? 'bg-blue-900/50' : 'bg-blue-100'}
           isDark={isDark}
         />
       </div>
@@ -446,7 +447,7 @@ export default function AcademicCalendar({
             value={filterCategory}
             onChange={setFilterCategory}
             isDark={isDark}
-            accentColor="#7C3AED"
+            accentColor={accentColor}
           />
 
           {/* Upcoming events list */}

@@ -60,7 +60,8 @@ const dataCategories = [
 ];
 
 export function BackupCenterPage() {
-  const { isDark } = useTheme();
+  const { isDark, primaryHex } = useTheme() as any;
+  const accentColor = primaryHex || '#3b82f6';
   const { t } = useLanguage();
 
   const [activeTab, setActiveTab] = useState<TabId>('overview');
@@ -81,7 +82,7 @@ export function BackupCenterPage() {
   const cardClass = `rounded-xl border shadow-sm p-6 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`;
   const textPrimary = isDark ? 'text-white' : 'text-gray-900';
   const textSecondary = isDark ? 'text-gray-400' : 'text-gray-500';
-  const btnPrimary = 'bg-rose-600 hover:bg-rose-700 text-white';
+  const btnPrimary = 'hover:opacity-90 text-white';
   const btnOutline = `border ${isDark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`;
 
   const toggleCategory = (key: string) => {
@@ -112,8 +113,8 @@ export function BackupCenterPage() {
       {/* Status Card */}
       <div className={cardClass}>
         <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 bg-rose-100 dark:bg-rose-900/30 rounded-lg">
-            <Database size={20} className="text-rose-600" />
+          <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+            <Database size={20} className="text-blue-600" />
           </div>
           <h3 className={`text-lg font-semibold ${textPrimary}`}>Backup Status</h3>
           <span className="ml-auto inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
@@ -135,7 +136,7 @@ export function BackupCenterPage() {
           </div>
         </div>
         <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
-          <div className="bg-rose-600 h-2.5 rounded-full" style={{ width: '48%' }} />
+          <div className=" h-2.5 rounded-full" style={{ width: '48%' }} />
         </div>
       </div>
 
@@ -160,7 +161,7 @@ export function BackupCenterPage() {
         <h3 className={`text-lg font-semibold mb-4 ${textPrimary}`}>Storage Breakdown</h3>
         <div className="space-y-3">
           {[
-            { label: 'Database', size: '2.1 GB', pct: 43.75, color: 'bg-rose-500' },
+            { label: 'Database', size: '2.1 GB', pct: 43.75, color: 'bg-blue-500' },
             { label: 'Files', size: '1.5 GB', pct: 31.25, color: 'bg-blue-500' },
             { label: 'Media', size: '0.8 GB', pct: 16.67, color: 'bg-amber-500' },
             { label: 'Logs', size: '0.4 GB', pct: 8.33, color: 'bg-emerald-500' },
@@ -186,8 +187,8 @@ export function BackupCenterPage() {
       {/* Auto-Backup Settings */}
       <div className={cardClass}>
         <div className="flex items-center gap-3 mb-5">
-          <div className="p-2 bg-rose-100 dark:bg-rose-900/30 rounded-lg">
-            <Settings size={20} className="text-rose-600" />
+          <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+            <Settings size={20} className="text-blue-600" />
           </div>
           <h3 className={`text-lg font-semibold ${textPrimary}`}>Auto-Backup Settings</h3>
         </div>
@@ -197,7 +198,7 @@ export function BackupCenterPage() {
             <span className={`text-sm font-medium ${textPrimary}`}>Enable Auto-Backup</span>
             <button
               onClick={() => setAutoBackupEnabled(!autoBackupEnabled)}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${autoBackupEnabled ? 'bg-rose-600' : 'bg-gray-300 dark:bg-gray-600'}`}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${autoBackupEnabled ? '' : 'bg-gray-300 dark:bg-gray-600'}`}
             >
               <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${autoBackupEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
             </button>
@@ -228,7 +229,7 @@ export function BackupCenterPage() {
               max={90}
               value={retentionDays}
               onChange={e => setRetentionDays(Number(e.target.value))}
-              className="w-full accent-rose-600"
+              className="w-full accent-blue-600"
             />
           </div>
 
@@ -260,7 +261,7 @@ export function BackupCenterPage() {
                 <tr key={b.id} className={`border-b ${isDark ? 'border-gray-700/50' : 'border-gray-100'}`}>
                   <td className={`py-3 px-3 ${textPrimary}`}>
                     <div className="flex items-center gap-2">
-                      <Archive size={16} className="text-rose-500" />
+                      <Archive size={16} className="text-blue-500" />
                       {b.type}
                     </div>
                   </td>
@@ -270,7 +271,7 @@ export function BackupCenterPage() {
                     <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
                       b.trigger === 'Auto'
                         ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                        : 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
+                        : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
                     }`}>
                       {b.trigger}
                     </span>
@@ -339,7 +340,7 @@ export function BackupCenterPage() {
               key={cat.key}
               className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
                 selectedCategories.includes(cat.key)
-                  ? isDark ? 'bg-rose-900/20 border border-rose-700' : 'bg-rose-50 border border-rose-200'
+                  ? isDark ? 'bg-blue-900/20 border border-blue-700' : 'bg-blue-50 border border-blue-200'
                   : isDark ? 'hover:bg-gray-700/50' : 'hover:bg-gray-50'
               }`}
             >
@@ -347,7 +348,7 @@ export function BackupCenterPage() {
                 type="checkbox"
                 checked={selectedCategories.includes(cat.key)}
                 onChange={() => toggleCategory(cat.key)}
-                className="w-4 h-4 text-rose-600 rounded border-gray-300 focus:ring-rose-500"
+                className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
               />
               <div className="flex-1">
                 <span className={`text-sm font-medium ${textPrimary}`}>{cat.label}</span>
@@ -367,7 +368,7 @@ export function BackupCenterPage() {
               key={fmt}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border cursor-pointer transition-colors ${
                 exportFormat === fmt
-                  ? 'bg-rose-600 border-rose-600 text-white'
+                  ? ' border-blue-600 text-white'
                   : isDark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'
               }`}
             >
@@ -403,7 +404,7 @@ export function BackupCenterPage() {
             </div>
             <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
               <div
-                className="bg-rose-600 h-2 rounded-full transition-all duration-300"
+                className=" h-2 rounded-full transition-all duration-300"
                 style={{ width: `${exportProgress}%` }}
               />
             </div>
@@ -421,7 +422,7 @@ export function BackupCenterPage() {
               className={`flex items-center justify-between p-3 rounded-lg ${isDark ? 'bg-gray-700/50' : 'bg-gray-50'}`}
             >
               <div className="flex items-center gap-3">
-                <FileText size={18} className="text-rose-500" />
+                <FileText size={18} className="text-blue-500" />
                 <div>
                   <p className={`text-sm font-medium ${textPrimary}`}>{item.name}</p>
                   <p className={`text-xs ${textSecondary}`}>{item.format} · {item.size} · {item.date}</p>

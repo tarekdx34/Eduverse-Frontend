@@ -64,7 +64,8 @@ const aiSuggestions = [
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export function AlertsManagementPage() {
-  const { isDark } = useTheme();
+  const { isDark, primaryHex } = useTheme() as any;
+  const accentColor = primaryHex || '#3b82f6';
   const { t } = useLanguage();
 
   const [activeTab, setActiveTab] = useState<TabKey>('rules');
@@ -89,7 +90,7 @@ export function AlertsManagementPage() {
   const card = `rounded-xl border shadow-sm p-6 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`;
   const textPrimary = isDark ? 'text-white' : 'text-gray-900';
   const textSecondary = isDark ? 'text-gray-400' : 'text-gray-600';
-  const btnPrimary = 'bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors';
+  const btnPrimary = 'bg-blue-600 hover:opacity-90 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors';
   const inputClass = `w-full rounded-lg border px-3 py-2 text-sm ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`;
   const selectClass = inputClass;
 
@@ -195,8 +196,8 @@ export function AlertsManagementPage() {
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
               isActive
                 ? isDark
-                  ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500'
-                  : 'bg-cyan-50 text-cyan-700 border-cyan-500'
+                  ? 'bg-blue-500/20 text-blue-400 border-blue-500'
+                  : 'bg-blue-50 text-blue-700 border-blue-500'
                 : isDark
                   ? 'bg-gray-800 text-gray-400 border-gray-700 hover:text-gray-200'
                   : 'bg-white text-gray-600 border-gray-200 hover:text-gray-900'
@@ -217,7 +218,7 @@ export function AlertsManagementPage() {
       {/* Stats bar */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
-          { label: 'Active Rules', value: rules.filter((r) => r.status === 'Active').length, icon: <Bell size={20} className="text-cyan-500" /> },
+          { label: 'Active Rules', value: rules.filter((r) => r.status === 'Active').length, icon: <Bell size={20} className="text-blue-500" /> },
           { label: 'Triggered (24h)', value: 12, icon: <AlertTriangle size={20} className="text-yellow-500" /> },
           { label: 'Suppressed', value: 3, icon: <Pause size={20} className="text-gray-500" /> },
         ].map((stat) => (
@@ -290,9 +291,9 @@ export function AlertsManagementPage() {
 
   const renderChannels = () => {
     const channels = [
-      { name: 'Email', detail: 'smtp://mail.university.edu', active: true, sent: 45, icon: <Mail size={24} className="text-cyan-500" /> },
-      { name: 'SMS (Twilio)', detail: '+1-555-ALERTS', active: true, sent: 12, icon: <MessageSquare size={24} className="text-cyan-500" /> },
-      { name: 'Slack', detail: '#it-alerts channel', active: true, sent: 38, icon: <MessageSquare size={24} className="text-purple-500" /> },
+      { name: 'Email', detail: 'smtp://mail.university.edu', active: true, sent: 45, icon: <Mail size={24} className="text-blue-500" /> },
+      { name: 'SMS (Twilio)', detail: '+1-555-ALERTS', active: true, sent: 12, icon: <MessageSquare size={24} className="text-blue-500" /> },
+      { name: 'Slack', detail: '#it-alerts channel', active: true, sent: 38, icon: <MessageSquare size={24} className="text-blue-500" /> },
       { name: 'PagerDuty', detail: 'IT On-Call Team', active: false, sent: 0, icon: <Phone size={24} className="text-orange-500" /> },
     ];
 
@@ -379,7 +380,7 @@ export function AlertsManagementPage() {
             <div className="flex flex-col gap-3">
               {policy.levels.map((lvl, i) => (
                 <div key={lvl.level} className="flex items-center gap-3">
-                  <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${isDark ? 'bg-cyan-900/40 text-cyan-400' : 'bg-cyan-100 text-cyan-700'}`}>
+                  <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${isDark ? 'bg-blue-900/40 text-blue-400' : 'bg-blue-100 text-blue-700'}`}>
                     {lvl.level}
                   </div>
                   <div className={`flex-1 p-3 rounded-lg border ${isDark ? 'bg-gray-700/50 border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
@@ -515,7 +516,7 @@ export function AlertsManagementPage() {
     <div className="space-y-4">
       <div className={card}>
         <div className="flex items-center gap-2 mb-4">
-          <Sparkles size={20} className="text-cyan-500" />
+          <Sparkles size={20} className="text-blue-500" />
           <h3 className={`text-lg font-semibold ${textPrimary}`}>AI-Powered Suggestions</h3>
         </div>
         <p className={`text-sm mb-4 ${textSecondary}`}>

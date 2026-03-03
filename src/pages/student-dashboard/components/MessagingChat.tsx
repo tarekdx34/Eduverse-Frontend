@@ -163,7 +163,8 @@ interface MessagingChatProps {
 }
 
 export function MessagingChat({ height = '100vh' }: MessagingChatProps) {
-  const { isDark } = useTheme();
+  const { isDark, primaryHex } = useTheme() as any;
+  const accentColor = primaryHex || '#3b82f6';
   const [selectedConversation, setSelectedConversation] = useState<string>('1');
   const [messageInput, setMessageInput] = useState('');
   const [messages, setMessages] = useState<Message[]>(MESSAGES);
@@ -221,7 +222,7 @@ export function MessagingChat({ height = '100vh' }: MessagingChatProps) {
               }}
               className={`w-full p-4 border-l-4 transition-colors text-left ${
                 selectedConversation === conversation.id
-                  ? 'bg-[#7C3AED]/10 border-l-[#7C3AED]'
+                  ? 'bg-[var(--accent-color)]/10 border-l-[var(--accent-color)]'
                   : `border-l-transparent ${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'}`
               }`}
             >
@@ -254,7 +255,7 @@ export function MessagingChat({ height = '100vh' }: MessagingChatProps) {
 
                 {/* Unread Badge */}
                 {conversation.unreadCount > 0 && (
-                  <div className="bg-[#7C3AED] text-white text-xs font-semibold rounded-full w-6 h-6 flex items-center justify-center">
+                  <div className="bg-[var(--accent-color)] text-white text-xs font-semibold rounded-full w-6 h-6 flex items-center justify-center">
                     {conversation.unreadCount}
                   </div>
                 )}
@@ -336,7 +337,7 @@ export function MessagingChat({ height = '100vh' }: MessagingChatProps) {
                     <div
                       className={`px-4 py-3 rounded-2xl max-w-xs ${
                         message.isCurrentUser
-                          ? 'bg-[#7C3AED] text-white rounded-br-sm'
+                          ? 'bg-[var(--accent-color)] text-white rounded-br-sm'
                           : `${isDark ? 'bg-card-dark text-white border-white/5' : 'bg-white text-slate-800 border-slate-100'} border rounded-tl-sm`
                       }`}
                     >
@@ -371,7 +372,7 @@ export function MessagingChat({ height = '100vh' }: MessagingChatProps) {
                 onChange={(e) => setMessageInput(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                 placeholder="Type a message..."
-                className={`flex-1 px-4 py-2 ${isDark ? 'bg-white/5 border-white/10 text-white' : 'border-slate-100'} border rounded-lg text-sm focus:outline-none focus:border-[#7C3AED]`}
+                className={`flex-1 px-4 py-2 ${isDark ? 'bg-white/5 border-white/10 text-white' : 'border-slate-100'} border rounded-lg text-sm focus:outline-none focus:border-[var(--accent-color)]`}
               />
               <button
                 className={`p-2 ${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'} rounded-lg transition-colors`}
@@ -380,7 +381,7 @@ export function MessagingChat({ height = '100vh' }: MessagingChatProps) {
               </button>
               <button
                 onClick={handleSendMessage}
-                className="p-2 bg-gradient-to-r from-[#7C3AED] to-purple-700 hover:from-[#6D28D9] hover:to-purple-800 text-white rounded-lg transition-colors"
+                className="p-2 bg-gradient-to-r from-[var(--accent-color)] to-blue-700 hover:from-[var(--accent-color)] hover:to-blue-800 text-white rounded-lg transition-colors"
               >
                 <Send size={20} />
               </button>

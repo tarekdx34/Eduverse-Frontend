@@ -186,7 +186,8 @@ const labSessions: LabSession[] = [
 ];
 
 export function LabInstructions() {
-  const { isDark } = useTheme();
+  const { isDark, primaryHex } = useTheme() as any;
+  const accentColor = primaryHex || '#3b82f6';
   const [selectedLab, setSelectedLab] = useState<LabSession | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
@@ -247,7 +248,7 @@ export function LabInstructions() {
         </button>
 
         {/* Lab Header */}
-        <div className="bg-gradient-to-br from-purple-600 via-[#7C3AED] to-blue-600 rounded-2xl p-8 text-white shadow-xl">
+        <div className="bg-gradient-to-br from-blue-600 via-[var(--accent-color)] to-blue-600 rounded-2xl p-8 text-white shadow-xl">
           <div className="flex items-start justify-between">
             <div>
               <div className="flex items-center gap-3 mb-3">
@@ -260,7 +261,7 @@ export function LabInstructions() {
                 </span>
               </div>
               <h1 className="text-3xl font-bold mb-2">{selectedLab.title}</h1>
-              <p className="text-purple-100 text-lg">{selectedLab.courseName}</p>
+              <p className="text-blue-100 text-lg">{selectedLab.courseName}</p>
               
               <div className="flex items-center gap-6 mt-4 text-sm">
                 <div className="flex items-center gap-2">
@@ -287,7 +288,7 @@ export function LabInstructions() {
             <div className="glass rounded-[2.5rem] overflow-hidden">
               <div className={`${isDark ? 'bg-white/5 border-b border-white/5' : 'bg-gradient-to-r from-background-light to-white border-b border-slate-100'} p-4`}>
                 <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'} flex items-center gap-2`}>
-                  <Award className="w-5 h-5 text-[#7C3AED]" />
+                  <Award className="w-5 h-5 text-[var(--accent-color)]" />
                   Learning Objectives
                 </h3>
               </div>
@@ -307,7 +308,7 @@ export function LabInstructions() {
             <div className="glass rounded-[2.5rem] overflow-hidden">
               <div className={`${isDark ? 'bg-white/5 border-b border-white/5' : 'bg-gradient-to-r from-background-light to-white border-b border-slate-100'} p-4`}>
                 <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'} flex items-center gap-2`}>
-                  <Terminal className="w-5 h-5 text-purple-500" />
+                  <Terminal className="w-5 h-5 text-blue-500" />
                   Lab Instructions
                 </h3>
               </div>
@@ -315,8 +316,8 @@ export function LabInstructions() {
                 <ol className="space-y-4">
                   {selectedLab.instructions.map((instruction, idx) => (
                     <li key={idx} className="flex items-start gap-4">
-                      <div className="w-8 h-8 bg-[#7C3AED]/10 rounded-full flex items-center justify-center flex-shrink-0">
-                        <span className="text-sm font-bold text-[#7C3AED]">{idx + 1}</span>
+                      <div className="w-8 h-8 bg-[var(--accent-color)]/10 rounded-full flex items-center justify-center flex-shrink-0">
+                        <span className="text-sm font-bold text-[var(--accent-color)]">{idx + 1}</span>
                       </div>
                       <div className="flex-1 pt-1">
                         <p className={`${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{instruction}</p>
@@ -340,11 +341,11 @@ export function LabInstructions() {
                   </p>
                 </div>
                 <div className="p-4">
-                  <div className="border-2 border-dashed border-slate-200 rounded-xl p-6 text-center hover:border-[#7C3AED] hover:bg-[#7C3AED]/10/50 transition-all mb-4">
+                  <div className="border-2 border-dashed border-slate-200 rounded-xl p-6 text-center hover:border-[var(--accent-color)] hover:bg-[var(--accent-color)]/10/50 transition-all mb-4">
                     <Upload className="w-10 h-10 text-slate-500 mx-auto mb-3" />
                     <p className={`${isDark ? 'text-white' : 'text-slate-800'} mb-2 font-medium`}>Drop your files here</p>
                     <p className="text-slate-500 text-sm mb-4">or click to browse</p>
-                    <label className="inline-flex items-center gap-2 px-4 py-2 bg-[#7C3AED] text-white rounded-lg cursor-pointer hover:bg-[#6D28D9] transition-colors">
+                    <label className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--accent-color)] text-white rounded-lg cursor-pointer hover:opacity-90 transition-colors">
                       <FileText className="w-4 h-4" />
                       <span>Choose Files</span>
                       <input
@@ -361,7 +362,7 @@ export function LabInstructions() {
                       {attachedFiles.map((file, idx) => (
                         <div key={idx} className={`flex items-center justify-between p-3 ${isDark ? 'bg-white/5' : 'bg-background-light'} rounded-lg`}>
                           <div className="flex items-center gap-3">
-                            <File className="w-5 h-5 text-[#7C3AED]" />
+                            <File className="w-5 h-5 text-[var(--accent-color)]" />
                             <span className={`text-sm ${isDark ? 'text-white' : 'text-slate-800'}`}>{file.name}</span>
                           </div>
                           <button
@@ -432,18 +433,18 @@ export function LabInstructions() {
                 {selectedLab.resources.map((resource, idx) => (
                   <button
                     key={idx}
-                    className={`w-full flex items-center justify-between p-3 border ${isDark ? 'border-white/5' : 'border-slate-100'} rounded-lg hover:bg-[#7C3AED]/10 hover:border-[#7C3AED]/50 transition-all group`}
+                    className={`w-full flex items-center justify-between p-3 border ${isDark ? 'border-white/5' : 'border-slate-100'} rounded-lg hover:bg-[var(--accent-color)]/10 hover:border-[var(--accent-color)]/50 transition-all group`}
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-[#7C3AED]/10 rounded-lg flex items-center justify-center">
-                        <FileText className="w-5 h-5 text-[#7C3AED]" />
+                      <div className="w-10 h-10 bg-[var(--accent-color)]/10 rounded-lg flex items-center justify-center">
+                        <FileText className="w-5 h-5 text-[var(--accent-color)]" />
                       </div>
                       <div className="text-left">
                         <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'}`}>{resource.name}</p>
                         <p className="text-xs text-slate-500">{resource.size}</p>
                       </div>
                     </div>
-                    <Download className="w-4 h-4 text-slate-500 group-hover:text-[#7C3AED]" />
+                    <Download className="w-4 h-4 text-slate-500 group-hover:text-[var(--accent-color)]" />
                   </button>
                 ))}
               </div>
@@ -456,7 +457,7 @@ export function LabInstructions() {
               </div>
               <div className="p-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-gradient-to-br from-[#7C3AED] to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
+                  <div className="w-12 h-12 bg-gradient-to-br from-[var(--accent-color)] to-blue-600 rounded-full flex items-center justify-center text-white font-semibold">
                     {selectedLab.instructor.split(' ').map(n => n[0]).join('')}
                   </div>
                   <div>
@@ -504,25 +505,25 @@ export function LabInstructions() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-gradient-to-br from-purple-600 via-[#7C3AED] to-blue-600 rounded-2xl p-8 text-white shadow-xl">
+      <div className="bg-gradient-to-br from-blue-600 via-[var(--accent-color)] to-blue-600 rounded-2xl p-8 text-white shadow-xl">
         <div className="flex items-center gap-3 mb-3">
           <Beaker className="w-8 h-8" />
           <span className="text-sm bg-white/20 px-3 py-1 rounded-full">Lab Sessions</span>
         </div>
         <h1 className="text-3xl font-bold mb-2">Lab Instructions & Deliverables</h1>
-        <p className="text-purple-100 text-lg">Access lab materials, view instructions, and submit your work</p>
+        <p className="text-blue-100 text-lg">Access lab materials, view instructions, and submit your work</p>
         
         <div className="grid grid-cols-3 gap-4 mt-6">
           <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-            <p className="text-sm text-purple-200 mb-1">Upcoming Labs</p>
+            <p className="text-sm text-blue-200 mb-1">Upcoming Labs</p>
             <p className="text-2xl font-bold">{upcomingLabs.length}</p>
           </div>
           <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-            <p className="text-sm text-purple-200 mb-1">Completed</p>
+            <p className="text-sm text-blue-200 mb-1">Completed</p>
             <p className="text-2xl font-bold">{completedLabs.length}</p>
           </div>
           <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-            <p className="text-sm text-purple-200 mb-1">Pending Submissions</p>
+            <p className="text-sm text-blue-200 mb-1">Pending Submissions</p>
             <p className="text-2xl font-bold">{upcomingLabs.filter(l => l.deliverable && !l.deliverable.submitted).length}</p>
           </div>
         </div>
@@ -536,7 +537,7 @@ export function LabInstructions() {
             onClick={() => setFilterStatus(status)}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all capitalize ${
               filterStatus === status
-                ? 'bg-[#7C3AED]/10 text-[#7C3AED] border-2 border-[#7C3AED]/30'
+                ? 'bg-[var(--accent-color)]/10 text-[var(--accent-color)] border-2 border-[var(--accent-color)]/30'
                 : `${isDark ? 'bg-white/5 text-slate-400' : 'bg-slate-50 text-slate-600'} border-2 border-transparent ${isDark ? 'hover:bg-white/10' : 'hover:bg-slate-200'}`
             }`}
           >
@@ -550,13 +551,13 @@ export function LabInstructions() {
         {filteredLabs.map((lab) => (
           <div
             key={lab.id}
-            className={`${isDark ? 'bg-card-dark border-white/5' : 'bg-white border-slate-100'} rounded-xl border-2 p-5 hover:border-[#7C3AED]/50 hover:shadow-lg transition-all cursor-pointer`}
+            className={`${isDark ? 'bg-card-dark border-white/5' : 'bg-white border-slate-100'} rounded-xl border-2 p-5 hover:border-[var(--accent-color)]/50 hover:shadow-lg transition-all cursor-pointer`}
             onClick={() => setSelectedLab(lab)}
           >
             <div className="flex items-start justify-between mb-3">
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-sm font-bold text-[#7C3AED]">{lab.courseCode}</span>
+                  <span className="text-sm font-bold text-[var(--accent-color)]">{lab.courseCode}</span>
                   <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${getStatusBadge(lab.status)}`}>
                     {lab.status.charAt(0).toUpperCase() + lab.status.slice(1)}
                   </span>

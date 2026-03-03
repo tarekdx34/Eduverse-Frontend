@@ -280,7 +280,7 @@ export function CommunicationPage({ templates, onCreateTemplate, onEditTemplate,
                     <span className={`px-2 py-1 rounded text-xs font-medium ${
                       template.type === 'email' ? 'bg-blue-100 text-blue-700' :
                       template.type === 'push' ? 'bg-green-100 text-green-700' :
-                      'bg-purple-100 text-purple-700'
+                      'bg-blue-100 text-blue-700'
                     }`}>
                       {template.type.toUpperCase()}
                     </span>

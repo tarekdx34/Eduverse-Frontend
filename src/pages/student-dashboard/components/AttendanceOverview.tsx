@@ -37,7 +37,7 @@ const attendanceData = [
     late: 2,
     percentage: 87.5,
     status: 'good',
-    color: 'bg-purple-500',
+    color: 'bg-blue-500',
     lastClass: '2024-12-01',
   },
   {
@@ -89,7 +89,7 @@ const attendanceData = [
     late: 2,
     percentage: 83.3,
     status: 'good',
-    color: 'bg-[#7C3AED]/100',
+    color: 'bg-[var(--accent-color)]/100',
     lastClass: '2024-12-02',
   },
 ];
@@ -193,7 +193,8 @@ const recentAttendance = [
 
 export function AttendanceOverview() {
   const { t, isRTL } = useLanguage();
-  const { isDark } = useTheme();
+  const { isDark, primaryHex } = useTheme() as any;
+  const accentColor = primaryHex || '#3b82f6';
   const [selectedCourse, setSelectedCourse] = useState<(typeof attendanceData)[number] | null>(
     null
   );

@@ -86,7 +86,7 @@ export function PrerequisitesManagementPage({ courses, adminDepartment, onUpdate
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {[
           { label: t('totalCourses'), value: deptCourses.length, icon: BookOpen, color: 'text-blue-500' },
-          { label: t('currentPrerequisites'), value: coursesWithPrereqs, icon: GitBranch, color: 'text-purple-500' },
+          { label: t('currentPrerequisites'), value: coursesWithPrereqs, icon: GitBranch, color: 'text-blue-500' },
           { label: t('availableCourses'), value: allCourses.length, icon: AlertCircle, color: 'text-green-500' },
         ].map((stat, i) => (
           <div key={i} className={`p-4 rounded-xl border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
@@ -112,7 +112,7 @@ export function PrerequisitesManagementPage({ courses, adminDepartment, onUpdate
       {/* Prerequisite Chain Visualization */}
       <div className={`p-4 rounded-xl border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
         <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-          <GitBranch size={20} className="text-purple-500" /> {t('prerequisiteChain')}
+          <GitBranch size={20} className="text-blue-500" /> {t('prerequisiteChain')}
         </h3>
         <div className="flex flex-wrap gap-3">
           {deptCourses.filter(c => c.prerequisites && c.prerequisites.length > 0).map(course => (
@@ -123,7 +123,7 @@ export function PrerequisitesManagementPage({ courses, adminDepartment, onUpdate
                   <ArrowRight size={14} className={isDark ? 'text-gray-500' : 'text-gray-400'} />
                 </React.Fragment>
               ))}
-              <span className={`text-sm font-semibold px-2 py-1 rounded ${isDark ? 'bg-purple-900/30 text-purple-400' : 'bg-purple-100 text-purple-700'}`}>{course.code}</span>
+              <span className={`text-sm font-semibold px-2 py-1 rounded ${isDark ? 'bg-blue-900/30 text-blue-400' : 'bg-blue-100 text-blue-700'}`}>{course.code}</span>
             </div>
           ))}
           {deptCourses.filter(c => c.prerequisites && c.prerequisites.length > 0).length === 0 && (
@@ -144,7 +144,7 @@ export function PrerequisitesManagementPage({ courses, adminDepartment, onUpdate
                   <span className={`text-xs font-semibold px-2 py-1 rounded bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400`}>{course.code}</span>
                   <span className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{course.name}</span>
                   {course.prerequisites && course.prerequisites.length > 0 && (
-                    <span className={`text-xs px-2 py-1 rounded-full ${isDark ? 'bg-purple-900/30 text-purple-400' : 'bg-purple-100 text-purple-700'}`}>
+                    <span className={`text-xs px-2 py-1 rounded-full ${isDark ? 'bg-blue-900/30 text-blue-400' : 'bg-blue-100 text-blue-700'}`}>
                       {course.prerequisites.length} {t('currentPrerequisites').toLowerCase()}
                     </span>
                   )}

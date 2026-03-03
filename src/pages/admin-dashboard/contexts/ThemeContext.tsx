@@ -6,9 +6,15 @@ interface ThemeContextType {
   theme: Theme;
   toggleTheme: () => void;
   isDark: boolean;
+  primaryColor: string;
+  primaryHex: string;
+  setPrimaryColor: (color: string) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+
+const normalizePrimaryColor = (color: string | null | undefined) =>
+  color === 'violet' ? 'blue' : color || 'blue';
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>(() => {
@@ -19,6 +25,22 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     return 'light';
   });
 
+  const [primaryColor, setPrimaryColorState] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return normalizePrimaryColor(localStorage.getItem('eduverse-primary-color'));
+    }
+    return 'blue';
+  });
+
+  const setPrimaryColor = (color: string) => {
+    const nextColor = normalizePrimaryColor(color);
+    setPrimaryColorState(nextColor);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('eduverse-primary-color', nextColor);
+      window.dispatchEvent(new CustomEvent('eduverse-color-change', { detail: nextColor }));
+    }
+  };
+
   useEffect(() => {
     localStorage.setItem('eduverse-admin-theme', theme);
     if (theme === 'dark') {
@@ -28,14 +50,34 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     }
   }, [theme]);
 
+  // Sync color from other dashboards via custom event
+  useEffect(() => {
+    const handleColorChange = (e: any) => {
+      setPrimaryColorState(normalizePrimaryColor(e.detail));
+    };
+    window.addEventListener('eduverse-color-change', handleColorChange);
+    return () => window.removeEventListener('eduverse-color-change', handleColorChange);
+  }, []);
+
   const toggleTheme = () => {
-    setTheme(prev => prev === 'light' ? 'dark' : 'light');
+    setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
   };
 
   const isDark = theme === 'dark';
 
+  const hexMap: Record<string, string> = {
+    blue: '#3b82f6',
+    emerald: '#10b981',
+    violet: '#3b82f6',
+    rose: '#f43f5e',
+    amber: '#f59e0b',
+  };
+  const primaryHex = hexMap[primaryColor] || '#3b82f6';
+
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme, isDark }}>
+    <ThemeContext.Provider
+      value={{ theme, toggleTheme, isDark, primaryColor, primaryHex, setPrimaryColor }}
+    >
       {children}
     </ThemeContext.Provider>
   );

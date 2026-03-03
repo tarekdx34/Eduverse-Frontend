@@ -11,7 +11,8 @@ interface StatsCardsProps {
 
 export function StatsCards({ totalFeatures, totalUsage, mostUsedFeature }: StatsCardsProps) {
   const { isRTL } = useLanguage();
-  const { isDark } = useTheme();
+  const { isDark, primaryHex } = useTheme() as any;
+  const accentColor = primaryHex || '#3b82f6';
 
   const cards = [
     {
@@ -19,16 +20,16 @@ export function StatsCards({ totalFeatures, totalUsage, mostUsedFeature }: Stats
       value: `0${totalFeatures}`,
       sub: <span className="text-green-500 text-xs font-bold flex items-center gap-1"><TrendingUp className="w-3 h-3" /> {isRTL ? 'جميعها متاحة' : 'All unlocked'}</span>,
       icon: 'apps',
-      iconBg: 'bg-[#7C3AED]/10 text-[#7C3AED]',
-      hoverBorder: 'hover:border-[#7C3AED]/50',
+      iconBg: 'bg-[var(--accent-color)]/10 text-[var(--accent-color)]',
+      hoverBorder: 'hover:border-[var(--accent-color)]/50',
     },
     {
       label: isRTL ? 'إجمالي التفاعلات' : 'Total Interactions',
       value: totalUsage.toString(),
       sub: <span className="text-slate-400 text-xs">{isRTL ? 'هذا الفصل' : 'This semester'}</span>,
       icon: 'bolt',
-      iconBg: 'bg-purple-500/10 text-purple-500',
-      hoverBorder: 'hover:border-purple-500/50',
+      iconBg: 'bg-blue-500/10 text-blue-500',
+      hoverBorder: 'hover:border-blue-500/50',
     },
     {
       label: isRTL ? 'الأكثر استخداماً' : 'Most Popular',

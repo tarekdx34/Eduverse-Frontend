@@ -58,7 +58,8 @@ const templates: Template[] = [
 const statusFilters: StatusFilter[] = ['All', 'Sent', 'Pending', 'Failed', 'Scheduled'];
 
 export function AdminNotificationsPage() {
-  const { isDark } = useTheme();
+  const { isDark, primaryHex } = useTheme() as any;
+  const accentColor = primaryHex || '#3b82f6';
   const { t } = useLanguage();
 
   const [activeTab, setActiveTab] = useState<Tab>('overview');
@@ -81,7 +82,7 @@ export function AdminNotificationsPage() {
   const cardClass = `rounded-xl border shadow-sm p-6 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`;
   const textPrimary = isDark ? 'text-white' : 'text-gray-900';
   const textSecondary = isDark ? 'text-gray-400' : 'text-gray-500';
-  const inputClass = `w-full px-3 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'} focus:outline-none focus:ring-2 focus:ring-rose-500`;
+  const inputClass = `w-full px-3 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'} focus:outline-none focus:ring-2 focus:ring-blue-500`;
 
   const filteredNotifications = notifications.filter((n) => {
     const matchesSearch = searchQuery === '' || n.title.toLowerCase().includes(searchQuery.toLowerCase()) || n.audience.toLowerCase().includes(searchQuery.toLowerCase());
@@ -109,7 +110,7 @@ export function AdminNotificationsPage() {
     const base = 'px-2 py-1 rounded-full text-xs font-medium';
     switch (category) {
       case 'Auto':
-        return `${base} bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400`;
+        return `${base} bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400`;
       case 'Manual':
         return `${base} bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400`;
       case 'Scheduled':
@@ -157,8 +158,8 @@ export function AdminNotificationsPage() {
             onClick={() => setActiveTab(tab.key)}
             className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
               activeTab === tab.key
-                ? 'border-rose-600 text-rose-600'
-                : `border-transparent ${textSecondary} hover:text-rose-500`
+                ? 'border-blue-600 text-blue-600'
+                : `border-transparent ${textSecondary} hover:text-blue-500`
             }`}
           >
             {tab.icon}
@@ -204,7 +205,7 @@ export function AdminNotificationsPage() {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
-                className={`px-3 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:outline-none focus:ring-2 focus:ring-rose-500`}
+                className={`px-3 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
               >
                 {statusFilters.map((f) => (
                   <option key={f} value={f}>{f}</option>
@@ -213,7 +214,7 @@ export function AdminNotificationsPage() {
             </div>
             <button
               onClick={() => setShowSendModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg font-medium transition-colors"
+              className="flex items-center gap-2 px-4 py-2 hover:opacity-90 text-white rounded-lg font-medium transition-colors"
             >
               <Plus size={18} />
               Send Notification
@@ -247,7 +248,7 @@ export function AdminNotificationsPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     {n.status === 'Failed' && (
-                      <button className="flex items-center gap-1 px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-sm font-medium transition-colors">
+                      <button className="flex items-center gap-1 px-3 py-1.5 hover:opacity-90 text-white rounded-lg text-sm font-medium transition-colors">
                         <Send size={14} /> Resend
                       </button>
                     )}
@@ -270,7 +271,7 @@ export function AdminNotificationsPage() {
           <div className="flex justify-end">
             <button
               onClick={() => setShowTemplateModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg font-medium transition-colors"
+              className="flex items-center gap-2 px-4 py-2 hover:opacity-90 text-white rounded-lg font-medium transition-colors"
             >
               <Plus size={18} />
               Create Template
@@ -314,7 +315,7 @@ export function AdminNotificationsPage() {
               <div className={cardClass}>
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <Bell size={20} className="text-rose-500" />
+                    <Bell size={20} className="text-blue-500" />
                     <h3 className={`font-semibold ${textPrimary}`}>Push Notifications</h3>
                   </div>
                   <button
@@ -335,7 +336,7 @@ export function AdminNotificationsPage() {
               <div className={cardClass}>
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <Mail size={20} className="text-rose-500" />
+                    <Mail size={20} className="text-blue-500" />
                     <h3 className={`font-semibold ${textPrimary}`}>Email Notifications</h3>
                   </div>
                   <button
@@ -356,7 +357,7 @@ export function AdminNotificationsPage() {
               <div className={cardClass}>
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <MessageSquare size={20} className="text-rose-500" />
+                    <MessageSquare size={20} className="text-blue-500" />
                     <h3 className={`font-semibold ${textPrimary}`}>SMS Notifications</h3>
                   </div>
                   <button
@@ -385,7 +386,7 @@ export function AdminNotificationsPage() {
                   type="number"
                   value={maxPerDay}
                   onChange={(e) => setMaxPerDay(Number(e.target.value))}
-                  className={`w-24 px-3 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:outline-none focus:ring-2 focus:ring-rose-500`}
+                  className={`w-24 px-3 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
                 />
               </div>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -395,14 +396,14 @@ export function AdminNotificationsPage() {
                     type="time"
                     value={quietStart}
                     onChange={(e) => setQuietStart(e.target.value)}
-                    className={`px-3 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:outline-none focus:ring-2 focus:ring-rose-500`}
+                    className={`px-3 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
                   />
                   <span className={textSecondary}>to</span>
                   <input
                     type="time"
                     value={quietEnd}
                     onChange={(e) => setQuietEnd(e.target.value)}
-                    className={`px-3 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:outline-none focus:ring-2 focus:ring-rose-500`}
+                    className={`px-3 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
                   />
                 </div>
               </div>
@@ -419,7 +420,7 @@ export function AdminNotificationsPage() {
           </div>
 
           <div className="flex justify-end">
-            <button className="flex items-center gap-2 px-6 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg font-medium transition-colors">
+            <button className="flex items-center gap-2 px-6 py-2 hover:opacity-90 text-white rounded-lg font-medium transition-colors">
               Save Settings
             </button>
           </div>
@@ -509,7 +510,7 @@ export function AdminNotificationsPage() {
               </button>
               <button
                 onClick={() => setShowSendModal(false)}
-                className="flex items-center gap-2 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg font-medium transition-colors"
+                className="flex items-center gap-2 px-4 py-2 hover:opacity-90 text-white rounded-lg font-medium transition-colors"
               >
                 <Send size={16} />
                 Send
@@ -576,7 +577,7 @@ export function AdminNotificationsPage() {
               </button>
               <button
                 onClick={() => setShowTemplateModal(false)}
-                className="flex items-center gap-2 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg font-medium transition-colors"
+                className="flex items-center gap-2 px-4 py-2 hover:opacity-90 text-white rounded-lg font-medium transition-colors"
               >
                 Save
               </button>

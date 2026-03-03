@@ -181,7 +181,8 @@ const translations = {
 };
 
 export function SettingsPreferences() {
-  const { isDark, toggleTheme } = useTheme();
+  const { isDark, toggleTheme, primaryHex } = useTheme() as any;
+  const accentColor = primaryHex || '#3b82f6';
   const { language: globalLanguage, setLanguage: setGlobalLanguage } = useLanguage();
   const [settings, setSettings] = useState<SettingsState>({
     theme: 'light',
@@ -280,7 +281,7 @@ export function SettingsPreferences() {
                   onClick={() => setActiveSection(section.id)}
                   className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all ${
                     activeSection === section.id
-                      ? 'bg-[#7C3AED]/10 text-[#7C3AED] border-2 border-[#7C3AED]/20'
+                      ? 'bg-[var(--accent-color)]/10 text-[var(--accent-color)] border-2 border-[var(--accent-color)]/20'
                       : isDark 
                         ? 'hover:bg-white/5 text-slate-400 border-2 border-transparent' 
                         : 'hover:bg-slate-50 text-slate-700 border-2 border-transparent'
@@ -288,7 +289,7 @@ export function SettingsPreferences() {
                 >
                   <section.icon className="w-5 h-5" />
                   <span className="text-sm font-medium">{section.label}</span>
-                  <ChevronRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''} ${activeSection === section.id ? 'text-[#7C3AED]' : isDark ? 'text-slate-500' : 'text-slate-500'} ${isRTL ? 'mr-auto' : 'ml-auto'}`} />
+                  <ChevronRight className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''} ${activeSection === section.id ? 'text-[var(--accent-color)]' : isDark ? 'text-slate-500' : 'text-slate-500'} ${isRTL ? 'mr-auto' : 'ml-auto'}`} />
                 </button>
               ))}
             </div>
@@ -302,7 +303,7 @@ export function SettingsPreferences() {
             <div className="glass rounded-[2.5rem] overflow-hidden">
               <div className={`p-4 border-b ${isDark ? 'bg-white/5 border-white/5' : 'bg-gradient-to-r from-background-light to-white border-slate-100'}`}>
                 <h3 className={`font-semibold flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-800'}`}>
-                  <Palette className="w-5 h-5 text-[#7C3AED]" />
+                  <Palette className="w-5 h-5 text-[var(--accent-color)]" />
                   {t.appearance}
                 </h3>
               </div>
@@ -325,26 +326,26 @@ export function SettingsPreferences() {
                         }}
                         className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
                           settings.theme === theme.id
-                            ? 'border-[#7C3AED] bg-[#7C3AED]/10'
+                            ? 'border-[var(--accent-color)] bg-[var(--accent-color)]/10'
                             : isDark 
                               ? 'border-white/10 hover:border-white/20' 
                               : 'border-slate-100 hover:border-slate-200'
                         }`}
                       >
                         <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                          settings.theme === theme.id ? 'bg-[#7C3AED]/10' : isDark ? 'bg-white/5' : 'bg-slate-50'
+                          settings.theme === theme.id ? 'bg-[var(--accent-color)]/10' : isDark ? 'bg-white/5' : 'bg-slate-50'
                         }`}>
                           <theme.icon className={`w-6 h-6 ${
-                            settings.theme === theme.id ? 'text-[#7C3AED]' : isDark ? 'text-slate-500' : 'text-slate-500'
+                            settings.theme === theme.id ? 'text-[var(--accent-color)]' : isDark ? 'text-slate-500' : 'text-slate-500'
                           }`} />
                         </div>
                         <span className={`text-sm font-medium ${
-                          settings.theme === theme.id ? 'text-[#7C3AED]' : isDark ? 'text-slate-400' : 'text-slate-700'
+                          settings.theme === theme.id ? 'text-[var(--accent-color)]' : isDark ? 'text-slate-400' : 'text-slate-700'
                         }`}>
                           {theme.label}
                         </span>
                         {settings.theme === theme.id && (
-                          <Check className="w-4 h-4 text-[#7C3AED]" />
+                          <Check className="w-4 h-4 text-[var(--accent-color)]" />
                         )}
                       </button>
                     ))}
@@ -359,33 +360,33 @@ export function SettingsPreferences() {
                       onClick={() => { updateSettings('language', 'en'); setGlobalLanguage('en'); }}
                       className={`flex items-center justify-center gap-3 p-4 rounded-xl border-2 transition-all ${
                         settings.language === 'en'
-                          ? 'border-[#7C3AED] bg-[#7C3AED]/10'
+                          ? 'border-[var(--accent-color)] bg-[var(--accent-color)]/10'
                           : isDark 
                             ? 'border-white/10 hover:border-white/20' 
                             : 'border-slate-100 hover:border-slate-200'
                       }`}
                     >
-                      <Globe className={`w-5 h-5 ${settings.language === 'en' ? 'text-[#7C3AED]' : isDark ? 'text-slate-500' : 'text-slate-500'}`} />
-                      <span className={`text-sm font-medium ${settings.language === 'en' ? 'text-[#7C3AED]' : isDark ? 'text-slate-400' : 'text-slate-700'}`}>
+                      <Globe className={`w-5 h-5 ${settings.language === 'en' ? 'text-[var(--accent-color)]' : isDark ? 'text-slate-500' : 'text-slate-500'}`} />
+                      <span className={`text-sm font-medium ${settings.language === 'en' ? 'text-[var(--accent-color)]' : isDark ? 'text-slate-400' : 'text-slate-700'}`}>
                         {t.english}
                       </span>
-                      {settings.language === 'en' && <Check className="w-4 h-4 text-[#7C3AED]" />}
+                      {settings.language === 'en' && <Check className="w-4 h-4 text-[var(--accent-color)]" />}
                     </button>
                     <button
                       onClick={() => { updateSettings('language', 'ar'); setGlobalLanguage('ar'); }}
                       className={`flex items-center justify-center gap-3 p-4 rounded-xl border-2 transition-all ${
                         settings.language === 'ar'
-                          ? 'border-[#7C3AED] bg-[#7C3AED]/10'
+                          ? 'border-[var(--accent-color)] bg-[var(--accent-color)]/10'
                           : isDark 
                             ? 'border-white/10 hover:border-white/20' 
                             : 'border-slate-100 hover:border-slate-200'
                       }`}
                     >
-                      <Globe className={`w-5 h-5 ${settings.language === 'ar' ? 'text-[#7C3AED]' : isDark ? 'text-slate-500' : 'text-slate-500'}`} />
-                      <span className={`text-sm font-medium ${settings.language === 'ar' ? 'text-[#7C3AED]' : isDark ? 'text-slate-400' : 'text-slate-700'}`}>
+                      <Globe className={`w-5 h-5 ${settings.language === 'ar' ? 'text-[var(--accent-color)]' : isDark ? 'text-slate-500' : 'text-slate-500'}`} />
+                      <span className={`text-sm font-medium ${settings.language === 'ar' ? 'text-[var(--accent-color)]' : isDark ? 'text-slate-400' : 'text-slate-700'}`}>
                         {t.arabic}
                       </span>
-                      {settings.language === 'ar' && <Check className="w-4 h-4 text-[#7C3AED]" />}
+                      {settings.language === 'ar' && <Check className="w-4 h-4 text-[var(--accent-color)]" />}
                     </button>
                   </div>
                 </div>
@@ -398,7 +399,7 @@ export function SettingsPreferences() {
             <div className="glass rounded-[2.5rem] overflow-hidden">
               <div className={`p-4 border-b ${isDark ? 'bg-white/5 border-white/5' : 'bg-gradient-to-r from-background-light to-white border-slate-100'}`}>
                 <h3 className={`font-semibold flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-800'}`}>
-                  <Bell className="w-5 h-5 text-[#7C3AED]" />
+                  <Bell className="w-5 h-5 text-[var(--accent-color)]" />
                   {t.notifications}
                 </h3>
               </div>
@@ -420,7 +421,7 @@ export function SettingsPreferences() {
                     <button
                       onClick={() => updateSettings(`notifications.${item.key}`, !settings.notifications[item.key as keyof typeof settings.notifications])}
                       className={`w-12 h-6 rounded-full transition-colors ${
-                        settings.notifications[item.key as keyof typeof settings.notifications] ? 'bg-[#7C3AED]' : 'bg-slate-300'
+                        settings.notifications[item.key as keyof typeof settings.notifications] ? 'bg-[var(--accent-color)]' : 'bg-slate-300'
                       }`}
                     >
                       <div
@@ -440,7 +441,7 @@ export function SettingsPreferences() {
             <div className="glass rounded-[2.5rem] overflow-hidden">
               <div className={`p-4 border-b ${isDark ? 'bg-white/5 border-white/5' : 'bg-gradient-to-r from-background-light to-white border-slate-100'}`}>
                 <h3 className={`font-semibold flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-800'}`}>
-                  <Shield className="w-5 h-5 text-[#7C3AED]" />
+                  <Shield className="w-5 h-5 text-[var(--accent-color)]" />
                   {t.security}
                 </h3>
               </div>
@@ -470,7 +471,7 @@ export function SettingsPreferences() {
                       className={`px-4 py-2 rounded-lg font-medium transition-all ${
                         settings.twoFactor.enabled
                           ? 'bg-red-100 text-red-700 hover:bg-red-200'
-                          : 'bg-[#7C3AED] text-white hover:bg-[#6D28D9]'
+                          : 'bg-[var(--accent-color)] text-white hover:opacity-90'
                       }`}
                     >
                       {settings.twoFactor.enabled ? t.disable2FA : t.enable2FA}
@@ -490,17 +491,17 @@ export function SettingsPreferences() {
                           onClick={() => updateSettings('twoFactor.method', method.id)}
                           className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
                             settings.twoFactor.method === method.id
-                              ? 'border-[#7C3AED] bg-[#7C3AED]/10'
+                              ? 'border-[var(--accent-color)] bg-[var(--accent-color)]/10'
                               : isDark 
                                 ? 'border-white/10 hover:border-white/20 bg-card-dark' 
                                 : 'border-slate-100 hover:border-slate-200 bg-white'
                           }`}
                         >
                           <method.icon className={`w-6 h-6 ${
-                            settings.twoFactor.method === method.id ? 'text-[#7C3AED]' : isDark ? 'text-slate-500' : 'text-slate-500'
+                            settings.twoFactor.method === method.id ? 'text-[var(--accent-color)]' : isDark ? 'text-slate-500' : 'text-slate-500'
                           }`} />
                           <span className={`text-xs font-medium text-center ${
-                            settings.twoFactor.method === method.id ? 'text-[#7C3AED]' : isDark ? 'text-slate-400' : 'text-slate-600'
+                            settings.twoFactor.method === method.id ? 'text-[var(--accent-color)]' : isDark ? 'text-slate-400' : 'text-slate-600'
                           }`}>
                             {method.label}
                           </span>
@@ -518,7 +519,7 @@ export function SettingsPreferences() {
             <div className="glass rounded-[2.5rem] overflow-hidden">
               <div className={`p-4 border-b ${isDark ? 'bg-white/5 border-white/5' : 'bg-gradient-to-r from-background-light to-white border-slate-100'}`}>
                 <h3 className={`font-semibold flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-800'}`}>
-                  <Eye className="w-5 h-5 text-[#7C3AED]" />
+                  <Eye className="w-5 h-5 text-[var(--accent-color)]" />
                   {t.privacy}
                 </h3>
               </div>
@@ -533,7 +534,7 @@ export function SettingsPreferences() {
                     <button
                       onClick={() => updateSettings(`privacy.${item.key}`, !settings.privacy[item.key as keyof typeof settings.privacy])}
                       className={`w-12 h-6 rounded-full transition-colors ${
-                        settings.privacy[item.key as keyof typeof settings.privacy] ? 'bg-[#7C3AED]' : 'bg-slate-300'
+                        settings.privacy[item.key as keyof typeof settings.privacy] ? 'bg-[var(--accent-color)]' : 'bg-slate-300'
                       }`}
                     >
                       <div
@@ -553,7 +554,7 @@ export function SettingsPreferences() {
             <div className="glass rounded-[2.5rem] overflow-hidden">
               <div className={`p-4 border-b ${isDark ? 'bg-white/5 border-white/5' : 'bg-gradient-to-r from-background-light to-white border-slate-100'}`}>
                 <h3 className={`font-semibold flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-800'}`}>
-                  <Monitor className="w-5 h-5 text-[#7C3AED]" />
+                  <Monitor className="w-5 h-5 text-[var(--accent-color)]" />
                   {t.accessibility}
                 </h3>
               </div>
@@ -572,14 +573,14 @@ export function SettingsPreferences() {
                         onClick={() => updateSettings('accessibility.fontSize', option.id)}
                         className={`p-4 rounded-xl border-2 transition-all ${
                           settings.accessibility.fontSize === option.id
-                            ? 'border-[#7C3AED] bg-[#7C3AED]/10'
+                            ? 'border-[var(--accent-color)] bg-[var(--accent-color)]/10'
                             : isDark 
                               ? 'border-white/10 hover:border-white/20' 
                               : 'border-slate-100 hover:border-slate-200'
                         }`}
                       >
                         <span className={`${option.size} font-medium ${
-                          settings.accessibility.fontSize === option.id ? 'text-[#7C3AED]' : isDark ? 'text-slate-400' : 'text-slate-700'
+                          settings.accessibility.fontSize === option.id ? 'text-[var(--accent-color)]' : isDark ? 'text-slate-400' : 'text-slate-700'
                         }`}>
                           {option.label}
                         </span>
@@ -598,7 +599,7 @@ export function SettingsPreferences() {
                     <button
                       onClick={() => updateSettings(`accessibility.${item.key}`, !settings.accessibility[item.key as keyof typeof settings.accessibility])}
                       className={`w-12 h-6 rounded-full transition-colors ${
-                        settings.accessibility[item.key as keyof typeof settings.accessibility] ? 'bg-[#7C3AED]' : 'bg-slate-300'
+                        settings.accessibility[item.key as keyof typeof settings.accessibility] ? 'bg-[var(--accent-color)]' : 'bg-slate-300'
                       }`}
                     >
                       <div
@@ -619,7 +620,7 @@ export function SettingsPreferences() {
               <div className="glass rounded-[2.5rem] overflow-hidden">
                 <div className={`p-4 border-b ${isDark ? 'bg-white/5 border-white/5' : 'bg-gradient-to-r from-background-light to-white border-slate-100'}`}>
                   <h3 className={`font-semibold flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-800'}`}>
-                    <Download className="w-5 h-5 text-[#7C3AED]" />
+                    <Download className="w-5 h-5 text-[var(--accent-color)]" />
                     {t.offline}
                   </h3>
                 </div>
@@ -637,7 +638,7 @@ export function SettingsPreferences() {
                     </div>
                     <div className={`w-full rounded-full h-3 ${isDark ? 'bg-white/10' : 'bg-slate-200'}`}>
                       <div 
-                        className="bg-[#7C3AED]/100 h-3 rounded-full transition-all"
+                        className="bg-[var(--accent-color)]/100 h-3 rounded-full transition-all"
                         style={{ width: `${(settings.offline.storageUsed / settings.offline.storageLimit) * 100}%` }}
                       />
                     </div>
@@ -665,7 +666,7 @@ export function SettingsPreferences() {
                       <button
                         onClick={() => updateSettings(`offline.${item.key}`, !settings.offline[item.key as keyof typeof settings.offline])}
                         className={`w-12 h-6 rounded-full transition-colors ${
-                          settings.offline[item.key as keyof typeof settings.offline] ? 'bg-[#7C3AED]' : 'bg-slate-300'
+                          settings.offline[item.key as keyof typeof settings.offline] ? 'bg-[var(--accent-color)]' : 'bg-slate-300'
                         }`}
                       >
                         <div
@@ -713,7 +714,7 @@ export function SettingsPreferences() {
                         className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                           item.downloaded
                             ? 'bg-red-100 text-red-700 hover:bg-red-200'
-                            : 'bg-[#7C3AED]/10 text-[#7C3AED] hover:bg-[#7C3AED]/20'
+                            : 'bg-[var(--accent-color)]/10 text-[var(--accent-color)] hover:bg-[var(--accent-color)]/20'
                         }`}
                       >
                         {item.downloaded ? t.remove : t.download}
@@ -734,7 +735,7 @@ export function SettingsPreferences() {
             }`}>
               {t.cancel}
             </button>
-            <button className="px-6 py-3 bg-[#7C3AED] text-white rounded-xl font-medium hover:bg-[#6D28D9] transition-all">
+            <button className="px-6 py-3 bg-[var(--accent-color)] text-white rounded-xl font-medium hover:opacity-90 transition-all">
               {t.saveChanges}
             </button>
           </div>

@@ -1,21 +1,6 @@
 import React from 'react';
-import {
-  BookOpen,
-  GraduationCap,
-  Calendar,
-  Clock,
-  Users,
-  TrendingUp,
-} from 'lucide-react';
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from 'recharts';
+import { BookOpen, GraduationCap, Calendar, Clock, Users, TrendingUp } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 
@@ -29,8 +14,7 @@ interface DashboardOverviewProps {
 const cardClass = (isDark: boolean) =>
   `${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`;
 
-const headingClass = (isDark: boolean) =>
-  `${isDark ? 'text-white' : 'text-gray-900'}`;
+const headingClass = (isDark: boolean) => `${isDark ? 'text-white' : 'text-gray-900'}`;
 
 const enrollmentData = [
   { course: 'CS101', enrolled: 45, capacity: 50 },
@@ -42,14 +26,34 @@ const enrollmentData = [
 ];
 
 const upcomingSchedule = [
-  { course: 'CS101 – Intro to Programming', time: 'Sun, 9:00 AM', room: 'Hall A-201', instructor: 'Dr. Ahmed Hassan' },
-  { course: 'CS201 – Data Structures', time: 'Sun, 11:00 AM', room: 'Lab B-105', instructor: 'Dr. Sara Mostafa' },
-  { course: 'CS301 – Operating Systems', time: 'Mon, 10:00 AM', room: 'Hall C-302', instructor: 'Dr. Mohamed Ali' },
-  { course: 'CS401 – Machine Learning', time: 'Mon, 1:00 PM', room: 'Lab D-110', instructor: 'Dr. Nour El-Din' },
+  {
+    course: 'CS101 – Intro to Programming',
+    time: 'Sun, 9:00 AM',
+    room: 'Hall A-201',
+    instructor: 'Dr. Ahmed Hassan',
+  },
+  {
+    course: 'CS201 – Data Structures',
+    time: 'Sun, 11:00 AM',
+    room: 'Lab B-105',
+    instructor: 'Dr. Sara Mostafa',
+  },
+  {
+    course: 'CS301 – Operating Systems',
+    time: 'Mon, 10:00 AM',
+    room: 'Hall C-302',
+    instructor: 'Dr. Mohamed Ali',
+  },
+  {
+    course: 'CS401 – Machine Learning',
+    time: 'Mon, 1:00 PM',
+    room: 'Lab D-110',
+    instructor: 'Dr. Nour El-Din',
+  },
 ];
 
 export function DashboardOverview({ stats, recentActivity }: DashboardOverviewProps) {
-  const { isDark } = useTheme();
+  const { isDark, primaryHex } = useTheme() as any;
   const { t } = useLanguage();
 
   const topStats = [
@@ -58,8 +62,8 @@ export function DashboardOverview({ stats, recentActivity }: DashboardOverviewPr
       value: stats.totalCourses ?? 24,
       sub: `${stats.activeCourses ?? 18} ${t('activeCourses')}`,
       icon: BookOpen,
-      iconBg: isDark ? 'bg-rose-900/50' : 'bg-rose-50',
-      iconColor: 'text-rose-600',
+      iconBg: isDark ? 'bg-blue-900/50' : 'bg-blue-50',
+      iconColor: 'text-blue-600',
       subColor: 'text-green-600',
     },
     {
@@ -85,9 +89,9 @@ export function DashboardOverview({ stats, recentActivity }: DashboardOverviewPr
       value: 8,
       sub: '3 course overrides',
       icon: Clock,
-      iconBg: isDark ? 'bg-purple-900/50' : 'bg-purple-50',
-      iconColor: 'text-purple-600',
-      subColor: 'text-purple-600',
+      iconBg: isDark ? 'bg-blue-900/50' : 'bg-blue-50',
+      iconColor: 'text-blue-600',
+      subColor: 'text-blue-600',
     },
   ];
 
@@ -105,7 +109,9 @@ export function DashboardOverview({ stats, recentActivity }: DashboardOverviewPr
             <div className={`text-3xl font-bold mb-1 ${headingClass(isDark)}`}>
               {typeof stat.value === 'number' ? stat.value.toLocaleString() : stat.value}
             </div>
-            <div className={`text-sm mb-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{stat.label}</div>
+            <div className={`text-sm mb-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+              {stat.label}
+            </div>
             <div className={`text-xs font-medium ${stat.subColor}`}>{stat.sub}</div>
           </div>
         ))}
@@ -116,17 +122,15 @@ export function DashboardOverview({ stats, recentActivity }: DashboardOverviewPr
         className="rounded-xl p-6 text-white relative overflow-hidden"
         style={{
           background: isDark
-            ? 'linear-gradient(135deg, #9f1239 0%, #9a3412 100%)'
-            : 'linear-gradient(135deg, #E11D48 0%, #f97316 100%)',
+            ? `linear-gradient(135deg, ${primaryHex || '#3b82f6'}90 0%, ${primaryHex || '#3b82f6'}60 100%)`
+            : `linear-gradient(135deg, ${primaryHex || '#3b82f6'} 0%, ${primaryHex || '#3b82f6'}cc 100%)`,
         }}
       >
         <div className="flex items-center gap-2 mb-2">
           <GraduationCap size={20} />
           <h3 className="text-lg font-semibold">Computer Science and Engineering</h3>
         </div>
-        <p className="text-rose-100 text-sm mb-4 max-w-lg">
-          Spring 2025 Semester — Week 8 of 16
-        </p>
+        <p className="text-blue-100 text-sm mb-4 max-w-lg">Spring 2025 Semester — Week 8 of 16</p>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
             { label: 'Instructors', value: 12 },
@@ -135,7 +139,7 @@ export function DashboardOverview({ stats, recentActivity }: DashboardOverviewPr
             { label: 'Avg. Enrollment', value: '38/course' },
           ].map((item) => (
             <div key={item.label} className="bg-white/10 rounded-lg p-3 backdrop-blur-sm">
-              <div className="text-xs text-rose-100 mb-1">{item.label}</div>
+              <div className="text-xs text-blue-100 mb-1">{item.label}</div>
               <div className="text-xl font-bold">{item.value}</div>
             </div>
           ))}
@@ -149,7 +153,9 @@ export function DashboardOverview({ stats, recentActivity }: DashboardOverviewPr
           {/* Course Enrollment Status */}
           <div className={cardClass(isDark)}>
             <div className="flex items-center justify-between mb-6">
-              <h3 className={`text-lg font-semibold ${headingClass(isDark)}`}>Course Enrollment Status</h3>
+              <h3 className={`text-lg font-semibold ${headingClass(isDark)}`}>
+                Course Enrollment Status
+              </h3>
               <div className="flex items-center gap-2">
                 <TrendingUp className="text-green-600" size={16} />
                 <span className="text-sm text-green-600 font-medium">87% avg. fill rate</span>
@@ -174,22 +180,36 @@ export function DashboardOverview({ stats, recentActivity }: DashboardOverviewPr
                     borderRadius: '8px',
                   }}
                 />
-                <Bar dataKey="enrolled" fill="#E11D48" radius={[4, 4, 0, 0]} name="Enrolled" />
-                <Bar dataKey="capacity" fill={isDark ? '#374151' : '#e5e7eb'} radius={[4, 4, 0, 0]} name="Capacity" />
+                <Bar
+                  dataKey="enrolled"
+                  fill={primaryHex || '#3b82f6'}
+                  radius={[4, 4, 0, 0]}
+                  name="Enrolled"
+                />
+                <Bar
+                  dataKey="capacity"
+                  fill={isDark ? '#374151' : '#e5e7eb'}
+                  radius={[4, 4, 0, 0]}
+                  name="Capacity"
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>
 
           {/* Upcoming Schedule */}
           <div className={cardClass(isDark)}>
-            <h3 className={`text-lg font-semibold mb-4 ${headingClass(isDark)}`}>Upcoming Schedule</h3>
+            <h3 className={`text-lg font-semibold mb-4 ${headingClass(isDark)}`}>
+              Upcoming Schedule
+            </h3>
             <div className="space-y-3">
               {upcomingSchedule.map((item, index) => (
                 <div
                   key={index}
                   className={`flex items-center gap-4 p-4 rounded-lg ${isDark ? 'bg-gray-700' : 'bg-gray-50'}`}
                 >
-                  <div className={`p-2 rounded-lg ${isDark ? 'bg-rose-900/30 text-rose-400' : 'bg-rose-50 text-rose-600'}`}>
+                  <div
+                    className={`p-2 rounded-lg ${isDark ? 'bg-blue-900/30 text-blue-400' : 'bg-blue-50 text-blue-600'}`}
+                  >
                     <Calendar size={18} />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -198,7 +218,9 @@ export function DashboardOverview({ stats, recentActivity }: DashboardOverviewPr
                       {item.instructor} · {item.room}
                     </p>
                   </div>
-                  <span className={`text-xs font-medium whitespace-nowrap ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                  <span
+                    className={`text-xs font-medium whitespace-nowrap ${isDark ? 'text-gray-400' : 'text-gray-500'}`}
+                  >
                     {item.time}
                   </span>
                 </div>
@@ -210,27 +232,44 @@ export function DashboardOverview({ stats, recentActivity }: DashboardOverviewPr
         {/* Right Column - 1/3: Recent Activity */}
         <div className="space-y-6">
           <div className={cardClass(isDark)}>
-            <h3 className={`text-lg font-semibold mb-4 ${headingClass(isDark)}`}>{t('recentActivity')}</h3>
+            <h3 className={`text-lg font-semibold mb-4 ${headingClass(isDark)}`}>
+              {t('recentActivity')}
+            </h3>
             <div className="space-y-4">
               {recentActivity
                 .filter((a) => a.type === 'course' || a.type === 'user')
                 .slice(0, 5)
                 .map((activity, index) => (
-                  <div key={index} className={`flex items-start gap-3 p-3 rounded-lg ${isDark ? 'bg-gray-700' : 'bg-gray-50'}`}>
+                  <div
+                    key={index}
+                    className={`flex items-start gap-3 p-3 rounded-lg ${isDark ? 'bg-gray-700' : 'bg-gray-50'}`}
+                  >
                     <div
                       className={`p-2 rounded-lg ${
                         activity.type === 'course'
-                          ? isDark ? 'bg-green-500/20 text-green-400' : 'bg-green-100 text-green-600'
-                          : isDark ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-600'
+                          ? isDark
+                            ? 'bg-green-500/20 text-green-400'
+                            : 'bg-green-100 text-green-600'
+                          : isDark
+                            ? 'bg-blue-500/20 text-blue-400'
+                            : 'bg-blue-100 text-blue-600'
                       }`}
                     >
                       {activity.type === 'course' ? <BookOpen size={14} /> : <Users size={14} />}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h4 className={`font-medium text-sm ${headingClass(isDark)}`}>{activity.title}</h4>
-                      <p className={`text-xs mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{activity.description}</p>
+                      <h4 className={`font-medium text-sm ${headingClass(isDark)}`}>
+                        {activity.title}
+                      </h4>
+                      <p className={`text-xs mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                        {activity.description}
+                      </p>
                     </div>
-                    <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'} whitespace-nowrap`}>{activity.time}</span>
+                    <span
+                      className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'} whitespace-nowrap`}
+                    >
+                      {activity.time}
+                    </span>
                   </div>
                 ))}
             </div>

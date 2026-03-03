@@ -186,14 +186,14 @@ const login = () => {
               </button>
               <button
                 onClick={() => navigate('/admindashboard')}
-                className="h-10 rounded-xl border border-purple-300/80 bg-purple-50/80 hover:bg-purple-100/80 dark:bg-purple-950/40 dark:border-purple-700/50 dark:hover:bg-purple-900/50 transition-colors flex items-center justify-center gap-2 text-purple-700 dark:text-purple-300 text-xs font-medium"
+                className="h-10 rounded-xl border border-blue-300/80 bg-blue-50/80 hover:bg-blue-100/80 dark:bg-blue-950/40 dark:border-blue-700/50 dark:hover:bg-blue-900/50 transition-colors flex items-center justify-center gap-2 text-blue-700 dark:text-blue-300 text-xs font-medium"
               >
                 <span>🛡️</span>
                 <span>Admin</span>
               </button>
               <button
                 onClick={() => navigate('/itadmindashboard')}
-                className="h-10 rounded-xl border border-cyan-300/80 bg-cyan-50/80 hover:bg-cyan-100/80 dark:bg-cyan-950/40 dark:border-cyan-700/50 dark:hover:bg-cyan-900/50 transition-colors flex items-center justify-center gap-2 text-cyan-700 dark:text-cyan-300 text-xs font-medium"
+                className="h-10 rounded-xl border border-blue-300/80 bg-blue-50/80 hover:bg-blue-100/80 dark:bg-blue-950/40 dark:border-blue-700/50 dark:hover:bg-blue-900/50 transition-colors flex items-center justify-center gap-2 text-blue-700 dark:text-blue-300 text-xs font-medium"
               >
                 <span>⚙️</span>
                 <span>IT Admin</span>

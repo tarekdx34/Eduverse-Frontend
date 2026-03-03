@@ -54,9 +54,9 @@ export const assignments = [
     points: 150,
     submittedPoints: null,
     progress: 60,
-    color: 'bg-[#7C3AED]/100',
-    colorLight: 'bg-[#7C3AED]/10',
-    colorBorder: 'border-[#7C3AED]',
+    color: 'bg-[var(--accent-color)]/100',
+    colorLight: 'bg-[var(--accent-color)]/10',
+    colorBorder: 'border-[var(--accent-color)]',
   },
   {
     id: 3,
@@ -72,9 +72,9 @@ export const assignments = [
     points: 50,
     submittedPoints: null,
     progress: 75,
-    color: 'bg-purple-500',
-    colorLight: 'bg-purple-50',
-    colorBorder: 'border-purple-500',
+    color: 'bg-blue-500',
+    colorLight: 'bg-blue-50',
+    colorBorder: 'border-blue-500',
   },
   {
     id: 4,
@@ -191,7 +191,8 @@ export default function Assignments() {
   const [filterStatus, setFilterStatus] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<number | null>(null);
-  const { isDark } = useTheme();
+  const { isDark, primaryHex } = useTheme() as any;
+  const accentColor = primaryHex || '#3b82f6';
   const { t } = useLanguage();
 
   const getUrgencyLabel = (daysUntil: number) => {
@@ -359,15 +360,15 @@ export default function Assignments() {
                           ? 'border-red-800 bg-red-900/20'
                           : 'border-red-200 bg-red-50/30'
                         : isDark
-                          ? 'border-white/5 hover:border-[#7C3AED]'
-                          : 'border-slate-100 hover:border-[#7C3AED]/50'
+                          ? 'border-white/5 hover:border-[var(--accent-color)]'
+                          : 'border-slate-100 hover:border-[var(--accent-color)]/50'
                     }`}
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2 flex-wrap">
                           <h3
-                            className={`group-hover:text-[#7C3AED] transition-colors text-base font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}
+                            className={`group-hover:text-[var(--accent-color)] transition-colors text-base font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}
                           >
                             {assignment.title}
                           </h3>
@@ -426,7 +427,7 @@ export default function Assignments() {
                     >
                       <div>
                         <div className="flex items-center gap-1.5 mb-1">
-                          <Calendar className="w-3 h-3 text-[#7C3AED]" />
+                          <Calendar className="w-3 h-3 text-[var(--accent-color)]" />
                           <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
                             {t('dueDate')}
                           </p>
@@ -445,7 +446,7 @@ export default function Assignments() {
                       </div>
                       <div>
                         <div className="flex items-center gap-1.5 mb-1">
-                          <Clock className="w-3 h-3 text-[#7C3AED]" />
+                          <Clock className="w-3 h-3 text-[var(--accent-color)]" />
                           <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
                             {t('timeLeft')}
                           </p>
@@ -462,7 +463,7 @@ export default function Assignments() {
                       </div>
                       <div>
                         <div className="flex items-center gap-1.5 mb-1">
-                          <Award className="w-3 h-3 text-[#7C3AED]" />
+                          <Award className="w-3 h-3 text-[var(--accent-color)]" />
                           <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
                             {t('worth')}
                           </p>
@@ -483,7 +484,7 @@ export default function Assignments() {
                           {t('progress')}
                         </span>
                         <span
-                          className={`text-xs px-2 py-0.5 rounded font-semibold ${isDark ? 'bg-[#7C3AED]/20 text-[#7C3AED]/70' : 'bg-[#7C3AED]/10 text-[#7C3AED]'}`}
+                          className={`text-xs px-2 py-0.5 rounded font-semibold ${isDark ? 'bg-[var(--accent-color)]/20 text-[var(--accent-color)]/70' : 'bg-[var(--accent-color)]/10 text-[var(--accent-color)]'}`}
                         >
                           {assignment.progress}%
                         </span>
@@ -503,7 +504,7 @@ export default function Assignments() {
                     <div className="flex gap-2">
                       <button
                         onClick={() => setSelectedAssignmentId(assignment.id)}
-                        className="flex-1 px-3 py-2 bg-gradient-to-r from-[#7C3AED] to-[#6D28D9] text-white rounded-lg hover:shadow-lg transition-all flex items-center justify-center gap-1.5 text-sm font-medium"
+                        className="flex-1 px-3 py-2 bg-gradient-to-r from-[var(--accent-color)] to-[var(--accent-color)] text-white rounded-lg hover:shadow-lg transition-all flex items-center justify-center gap-1.5 text-sm font-medium"
                       >
                         <span>{t('continueWork')}</span>
                         <ChevronRight className="w-3 h-3" />
@@ -563,7 +564,7 @@ export default function Assignments() {
                 placeholder={t('searchAssignments')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className={`w-full pl-10 pr-4 py-2.5 border-2 rounded-xl focus:outline-none focus:border-[#7C3AED] transition-all ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-slate-500' : 'border-slate-100 focus:ring-4 focus:ring-[#7C3AED]/10'}`}
+                className={`w-full pl-10 pr-4 py-2.5 border-2 rounded-xl focus:outline-none focus:border-[var(--accent-color)] transition-all ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-slate-500' : 'border-slate-100 focus:ring-4 focus:ring-[var(--accent-color)]/10'}`}
               />
             </div>
             <div className="w-48">
@@ -576,7 +577,7 @@ export default function Assignments() {
                 value={filterStatus}
                 onChange={setFilterStatus}
                 isDark={isDark}
-                accentColor="#7C3AED"
+                accentColor={accentColor}
               />
             </div>
           </div>
@@ -678,7 +679,7 @@ export default function Assignments() {
                     </td>
                     <td className="px-6 py-4 text-center">
                       <span
-                        className={`px-3 py-1.5 border rounded-lg text-xs font-medium ${isDark ? 'bg-[#7C3AED]/20 border-[#7C3AED]/50 text-[#7C3AED]/70' : 'bg-[#7C3AED]/10 border-[#7C3AED]/20 text-[#7C3AED]'}`}
+                        className={`px-3 py-1.5 border rounded-lg text-xs font-medium ${isDark ? 'bg-[var(--accent-color)]/20 border-[var(--accent-color)]/50 text-[var(--accent-color)]/70' : 'bg-[var(--accent-color)]/10 border-[var(--accent-color)]/20 text-[var(--accent-color)]'}`}
                       >
                         {assignment.type}
                       </span>

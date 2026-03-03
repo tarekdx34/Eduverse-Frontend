@@ -11,7 +11,8 @@ interface SecurityPageProps {
 }
 
 export function SecurityPage({ securityEvents, sslCertificates, onRenewCertificate, onExportLogs }: SecurityPageProps) {
-  const { isDark } = useTheme();
+  const { isDark, primaryHex } = useTheme() as any;
+  const accentColor = primaryHex || '#3b82f6';
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<'events' | 'certificates' | 'access' | 'policies' | 'ai'>('events');
 
@@ -55,7 +56,7 @@ export function SecurityPage({ securityEvents, sslCertificates, onRenewCertifica
         </div>
         <button
           onClick={onExportLogs}
-          className="flex items-center gap-2 px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:opacity-90 transition-colors"
         >
           <Download className="w-4 h-4" />
           {t('exportLogs')}
@@ -86,8 +87,8 @@ export function SecurityPage({ securityEvents, sslCertificates, onRenewCertifica
 
         <div className={`rounded-xl border p-6 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
           <div className="flex items-center gap-3 mb-2">
-            <div className={`p-2 rounded-lg ${isDark ? 'bg-cyan-900/50' : 'bg-cyan-50'}`}>
-              <Lock className={`w-5 h-5 ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`} />
+            <div className={`p-2 rounded-lg ${isDark ? 'bg-blue-900/50' : 'bg-blue-50'}`}>
+              <Lock className={`w-5 h-5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
             </div>
             <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('failedLogins24h')}</p>
           </div>
@@ -96,8 +97,8 @@ export function SecurityPage({ securityEvents, sslCertificates, onRenewCertifica
 
         <div className={`rounded-xl border p-6 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
           <div className="flex items-center gap-3 mb-2">
-            <div className={`p-2 rounded-lg ${isDark ? 'bg-purple-900/50' : 'bg-purple-50'}`}>
-              <Key className={`w-5 h-5 ${isDark ? 'text-purple-400' : 'text-purple-600'}`} />
+            <div className={`p-2 rounded-lg ${isDark ? 'bg-blue-900/50' : 'bg-blue-50'}`}>
+              <Key className={`w-5 h-5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
             </div>
             <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('activeCertificates')}</p>
           </div>
@@ -112,7 +113,7 @@ export function SecurityPage({ securityEvents, sslCertificates, onRenewCertifica
             onClick={() => setActiveTab('events')}
             className={`px-6 py-3 text-sm font-medium transition-colors ${
               activeTab === 'events'
-                ? isDark ? 'text-cyan-400 border-b-2 border-cyan-400' : 'text-cyan-600 border-b-2 border-cyan-600'
+                ? isDark ? 'text-blue-400 border-b-2 border-blue-400' : 'text-blue-600 border-b-2 border-blue-600'
                 : isDark ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
@@ -122,7 +123,7 @@ export function SecurityPage({ securityEvents, sslCertificates, onRenewCertifica
             onClick={() => setActiveTab('certificates')}
             className={`px-6 py-3 text-sm font-medium transition-colors ${
               activeTab === 'certificates'
-                ? isDark ? 'text-cyan-400 border-b-2 border-cyan-400' : 'text-cyan-600 border-b-2 border-cyan-600'
+                ? isDark ? 'text-blue-400 border-b-2 border-blue-400' : 'text-blue-600 border-b-2 border-blue-600'
                 : isDark ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
@@ -132,7 +133,7 @@ export function SecurityPage({ securityEvents, sslCertificates, onRenewCertifica
             onClick={() => setActiveTab('access')}
             className={`px-6 py-3 text-sm font-medium transition-colors ${
               activeTab === 'access'
-                ? isDark ? 'text-cyan-400 border-b-2 border-cyan-400' : 'text-cyan-600 border-b-2 border-cyan-600'
+                ? isDark ? 'text-blue-400 border-b-2 border-blue-400' : 'text-blue-600 border-b-2 border-blue-600'
                 : isDark ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
@@ -142,7 +143,7 @@ export function SecurityPage({ securityEvents, sslCertificates, onRenewCertifica
             onClick={() => setActiveTab('policies')}
             className={`px-6 py-3 text-sm font-medium transition-colors ${
               activeTab === 'policies'
-                ? isDark ? 'text-cyan-400 border-b-2 border-cyan-400' : 'text-cyan-600 border-b-2 border-cyan-600'
+                ? isDark ? 'text-blue-400 border-b-2 border-blue-400' : 'text-blue-600 border-b-2 border-blue-600'
                 : isDark ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
@@ -152,7 +153,7 @@ export function SecurityPage({ securityEvents, sslCertificates, onRenewCertifica
             onClick={() => setActiveTab('ai')}
             className={`px-6 py-3 text-sm font-medium transition-colors ${
               activeTab === 'ai'
-                ? isDark ? 'text-cyan-400 border-b-2 border-cyan-400' : 'text-cyan-600 border-b-2 border-cyan-600'
+                ? isDark ? 'text-blue-400 border-b-2 border-blue-400' : 'text-blue-600 border-b-2 border-blue-600'
                 : isDark ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
@@ -250,7 +251,7 @@ export function SecurityPage({ securityEvents, sslCertificates, onRenewCertifica
                       <button
                         onClick={() => onRenewCertificate(cert.id)}
                         className={`flex items-center gap-1 text-sm ${
-                          isDark ? 'text-cyan-400 hover:text-cyan-300' : 'text-cyan-600 hover:text-cyan-700'
+                          isDark ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'
                         }`}
                       >
                         <RefreshCw className="w-4 h-4" />
@@ -279,7 +280,7 @@ export function SecurityPage({ securityEvents, sslCertificates, onRenewCertifica
                   key={item.id}
                   className={`flex items-center gap-4 p-4 rounded-lg ${isDark ? 'bg-gray-700/50' : 'bg-gray-50'}`}
                 >
-                  <Users className={`w-5 h-5 ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`} />
+                  <Users className={`w-5 h-5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
                   <div className="flex-1">
                     <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{item.name}</p>
                     <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
@@ -324,7 +325,7 @@ export function SecurityPage({ securityEvents, sslCertificates, onRenewCertifica
               {/* Password Policy */}
               <div className={`rounded-xl border p-6 ${isDark ? 'bg-gray-700/50 border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
                 <div className="flex items-center gap-2 mb-4">
-                  <Key className={`w-5 h-5 ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`} />
+                  <Key className={`w-5 h-5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
                   <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Password Policy</h3>
                 </div>
                 <div className="space-y-3">
@@ -338,7 +339,7 @@ export function SecurityPage({ securityEvents, sslCertificates, onRenewCertifica
                       <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{rule.label}</span>
                       <label className="relative inline-flex items-center cursor-pointer">
                         <input type="checkbox" defaultChecked={rule.defaultOn} className="sr-only peer" />
-                        <div className="w-9 h-5 bg-gray-300 peer-checked:bg-cyan-600 rounded-full peer peer-focus:ring-2 peer-focus:ring-cyan-300 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"></div>
+                        <div className="w-9 h-5 bg-gray-300 peer-checked:bg-blue-600 rounded-full peer peer-focus:ring-2 peer-focus:ring-blue-300 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"></div>
                       </label>
                     </div>
                   ))}
@@ -347,13 +348,13 @@ export function SecurityPage({ securityEvents, sslCertificates, onRenewCertifica
                     <input type="number" defaultValue={90} className={`w-20 px-2 py-1 rounded border text-sm ${isDark ? 'bg-gray-600 border-gray-500 text-white' : 'bg-white border-gray-300 text-gray-900'}`} />
                   </div>
                 </div>
-                <button className="mt-4 px-4 py-2 bg-cyan-600 text-white text-sm rounded-lg hover:bg-cyan-700 transition-colors">Save</button>
+                <button className="mt-4 px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:opacity-90 transition-colors">Save</button>
               </div>
 
               {/* Login Policy */}
               <div className={`rounded-xl border p-6 ${isDark ? 'bg-gray-700/50 border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
                 <div className="flex items-center gap-2 mb-4">
-                  <Lock className={`w-5 h-5 ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`} />
+                  <Lock className={`w-5 h-5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
                   <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Login Policy</h3>
                 </div>
                 <div className="space-y-3">
@@ -369,17 +370,17 @@ export function SecurityPage({ securityEvents, sslCertificates, onRenewCertifica
                     <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>2FA required for admins</span>
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input type="checkbox" defaultChecked className="sr-only peer" />
-                      <div className="w-9 h-5 bg-gray-300 peer-checked:bg-cyan-600 rounded-full peer peer-focus:ring-2 peer-focus:ring-cyan-300 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"></div>
+                      <div className="w-9 h-5 bg-gray-300 peer-checked:bg-blue-600 rounded-full peer peer-focus:ring-2 peer-focus:ring-blue-300 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"></div>
                     </label>
                   </div>
                 </div>
-                <button className="mt-4 px-4 py-2 bg-cyan-600 text-white text-sm rounded-lg hover:bg-cyan-700 transition-colors">Save</button>
+                <button className="mt-4 px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:opacity-90 transition-colors">Save</button>
               </div>
 
               {/* Network Policy */}
               <div className={`rounded-xl border p-6 ${isDark ? 'bg-gray-700/50 border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
                 <div className="flex items-center gap-2 mb-4">
-                  <Wifi className={`w-5 h-5 ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`} />
+                  <Wifi className={`w-5 h-5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
                   <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Network Policy</h3>
                 </div>
                 <div className="space-y-3">
@@ -387,14 +388,14 @@ export function SecurityPage({ securityEvents, sslCertificates, onRenewCertifica
                     <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>IP whitelist enabled</span>
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input type="checkbox" defaultChecked className="sr-only peer" />
-                      <div className="w-9 h-5 bg-gray-300 peer-checked:bg-cyan-600 rounded-full peer peer-focus:ring-2 peer-focus:ring-cyan-300 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"></div>
+                      <div className="w-9 h-5 bg-gray-300 peer-checked:bg-blue-600 rounded-full peer peer-focus:ring-2 peer-focus:ring-blue-300 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"></div>
                     </label>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>VPN required for admin</span>
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input type="checkbox" defaultChecked className="sr-only peer" />
-                      <div className="w-9 h-5 bg-gray-300 peer-checked:bg-cyan-600 rounded-full peer peer-focus:ring-2 peer-focus:ring-cyan-300 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"></div>
+                      <div className="w-9 h-5 bg-gray-300 peer-checked:bg-blue-600 rounded-full peer peer-focus:ring-2 peer-focus:ring-blue-300 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"></div>
                     </label>
                   </div>
                   <div className="flex items-center justify-between">
@@ -402,13 +403,13 @@ export function SecurityPage({ securityEvents, sslCertificates, onRenewCertifica
                     <input type="number" defaultValue={1000} className={`w-20 px-2 py-1 rounded border text-sm ${isDark ? 'bg-gray-600 border-gray-500 text-white' : 'bg-white border-gray-300 text-gray-900'}`} />
                   </div>
                 </div>
-                <button className="mt-4 px-4 py-2 bg-cyan-600 text-white text-sm rounded-lg hover:bg-cyan-700 transition-colors">Save</button>
+                <button className="mt-4 px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:opacity-90 transition-colors">Save</button>
               </div>
 
               {/* Data Policy */}
               <div className={`rounded-xl border p-6 ${isDark ? 'bg-gray-700/50 border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
                 <div className="flex items-center gap-2 mb-4">
-                  <Settings className={`w-5 h-5 ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`} />
+                  <Settings className={`w-5 h-5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
                   <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Data Policy</h3>
                 </div>
                 <div className="space-y-3">
@@ -416,14 +417,14 @@ export function SecurityPage({ securityEvents, sslCertificates, onRenewCertifica
                     <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Encryption at rest</span>
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input type="checkbox" defaultChecked className="sr-only peer" />
-                      <div className="w-9 h-5 bg-gray-300 peer-checked:bg-cyan-600 rounded-full peer peer-focus:ring-2 peer-focus:ring-cyan-300 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"></div>
+                      <div className="w-9 h-5 bg-gray-300 peer-checked:bg-blue-600 rounded-full peer peer-focus:ring-2 peer-focus:ring-blue-300 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"></div>
                     </label>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Backup encryption</span>
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input type="checkbox" defaultChecked className="sr-only peer" />
-                      <div className="w-9 h-5 bg-gray-300 peer-checked:bg-cyan-600 rounded-full peer peer-focus:ring-2 peer-focus:ring-cyan-300 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"></div>
+                      <div className="w-9 h-5 bg-gray-300 peer-checked:bg-blue-600 rounded-full peer peer-focus:ring-2 peer-focus:ring-blue-300 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"></div>
                     </label>
                   </div>
                   <div className="flex items-center justify-between">
@@ -431,7 +432,7 @@ export function SecurityPage({ securityEvents, sslCertificates, onRenewCertifica
                     <input type="number" defaultValue={365} className={`w-20 px-2 py-1 rounded border text-sm ${isDark ? 'bg-gray-600 border-gray-500 text-white' : 'bg-white border-gray-300 text-gray-900'}`} />
                   </div>
                 </div>
-                <button className="mt-4 px-4 py-2 bg-cyan-600 text-white text-sm rounded-lg hover:bg-cyan-700 transition-colors">Save</button>
+                <button className="mt-4 px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:opacity-90 transition-colors">Save</button>
               </div>
             </div>
           </div>
@@ -451,14 +452,14 @@ export function SecurityPage({ securityEvents, sslCertificates, onRenewCertifica
                   key={insight.id}
                   className={`flex items-start gap-4 p-4 rounded-lg border-l-4 ${insight.border} ${isDark ? 'bg-gray-700/50' : 'bg-gray-50'}`}
                 >
-                  <Sparkles className={`w-5 h-5 mt-0.5 ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`} />
+                  <Sparkles className={`w-5 h-5 mt-0.5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
                   <div className="flex-1">
                     <p className={`text-sm ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>
                       {insight.icon} {insight.text}
                     </p>
                   </div>
                   <div className="flex gap-2 shrink-0">
-                    <button className="px-3 py-1.5 bg-cyan-600 text-white text-xs rounded-lg hover:bg-cyan-700 transition-colors">
+                    <button className="px-3 py-1.5 bg-blue-600 text-white text-xs rounded-lg hover:opacity-90 transition-colors">
                       Take Action
                     </button>
                     <button className={`px-3 py-1.5 text-xs rounded-lg transition-colors ${isDark ? 'bg-gray-600 text-gray-300 hover:bg-gray-500' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>

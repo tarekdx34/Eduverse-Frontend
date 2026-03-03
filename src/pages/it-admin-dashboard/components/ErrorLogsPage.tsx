@@ -76,7 +76,8 @@ const errorLogs: ErrorLog[] = [
 ];
 
 export function ErrorLogsPage() {
-  const { isDark } = useTheme();
+  const { isDark, primaryHex } = useTheme() as any;
+  const accentColor = primaryHex || '#3b82f6';
   const { t } = useLanguage();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -161,7 +162,7 @@ export function ErrorLogsPage() {
   ];
 
   const severityChips: { label: string; value: 'All' | Severity; color: string }[] = [
-    { label: 'All', value: 'All', color: 'bg-cyan-600 text-white' },
+    { label: 'All', value: 'All', color: 'bg-blue-600 text-white' },
     { label: 'Critical', value: 'Critical', color: 'bg-red-600 text-white' },
     { label: 'Error', value: 'Error', color: 'bg-orange-600 text-white' },
     { label: 'Warning', value: 'Warning', color: 'bg-yellow-500 text-white' },
@@ -183,7 +184,7 @@ export function ErrorLogsPage() {
           <p className={textSecondary}>Monitor and manage system errors across all services</p>
         </div>
         <div className="flex items-center gap-2">
-          <button className="inline-flex items-center gap-2 px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg text-sm font-medium transition-colors">
+          <button className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:opacity-90 text-white rounded-lg text-sm font-medium transition-colors">
             <Download className="w-4 h-4" /> Export Logs
           </button>
           <button className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors border ${isDark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}>
@@ -218,7 +219,7 @@ export function ErrorLogsPage() {
               placeholder="Search error messages..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className={`w-full pl-10 pr-4 py-2 rounded-lg border text-sm ${isDark ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'} focus:outline-none focus:ring-2 focus:ring-cyan-500`}
+              className={`w-full pl-10 pr-4 py-2 rounded-lg border text-sm ${isDark ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
             />
           </div>
 
@@ -244,7 +245,7 @@ export function ErrorLogsPage() {
           <select
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value as 'All' | ErrorType)}
-            className={`px-3 py-2 rounded-lg border text-sm ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:outline-none focus:ring-2 focus:ring-cyan-500`}
+            className={`px-3 py-2 rounded-lg border text-sm ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
           >
             {typeOptions.map((opt) => (
               <option key={opt} value={opt}>{opt === 'All' ? 'All Types' : opt}</option>
@@ -255,13 +256,13 @@ export function ErrorLogsPage() {
 
       {/* Bulk Actions */}
       {selectedIds.size > 0 && (
-        <div className={`flex items-center gap-3 px-4 py-3 rounded-lg border ${isDark ? 'bg-cyan-900/20 border-cyan-700' : 'bg-cyan-50 border-cyan-200'}`}>
-          <span className={`text-sm font-medium ${isDark ? 'text-cyan-300' : 'text-cyan-700'}`}>
+        <div className={`flex items-center gap-3 px-4 py-3 rounded-lg border ${isDark ? 'bg-blue-900/20 border-blue-700' : 'bg-blue-50 border-blue-200'}`}>
+          <span className={`text-sm font-medium ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
             {selectedIds.size} selected
           </span>
           <button
             onClick={toggleSelectAll}
-            className="text-sm text-cyan-600 hover:text-cyan-700 font-medium"
+            className="text-sm text-blue-600 hover:text-blue-700 font-medium"
           >
             {selectedIds.size === filteredLogs.length ? 'Deselect All' : 'Select All'}
           </button>
@@ -289,7 +290,7 @@ export function ErrorLogsPage() {
                 checked={selectedIds.has(log.id)}
                 onChange={(e) => { e.stopPropagation(); toggleSelect(log.id); }}
                 onClick={(e) => e.stopPropagation()}
-                className="w-4 h-4 rounded border-gray-300 text-cyan-600 focus:ring-cyan-500"
+                className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
               />
 
               {/* Time */}

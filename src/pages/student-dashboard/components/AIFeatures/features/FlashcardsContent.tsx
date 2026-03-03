@@ -124,7 +124,7 @@ export function FlashcardsContent() {
           </div>
           <div className={`mt-3 w-full ${isDark ? 'bg-white/10' : 'bg-teal-200'} rounded-full h-2`}>
             <div 
-              className="bg-gradient-to-r from-teal-500 to-cyan-500 h-2 rounded-full transition-all duration-300"
+              className="bg-gradient-to-r from-teal-500 to-blue-500 h-2 rounded-full transition-all duration-300"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -156,7 +156,7 @@ export function FlashcardsContent() {
             </div>
 
             {/* Back */}
-            <div className={`absolute inset-0 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-2xl p-8 flex flex-col items-center justify-center shadow-lg text-white ${isFlipped ? 'opacity-100' : 'opacity-0'}`}>
+            <div className={`absolute inset-0 bg-gradient-to-br from-teal-500 to-blue-600 rounded-2xl p-8 flex flex-col items-center justify-center shadow-lg text-white ${isFlipped ? 'opacity-100' : 'opacity-0'}`}>
               <Brain className="w-10 h-10 text-teal-200 mb-4" />
               <p className="text-lg text-center leading-relaxed">{currentCard.back}</p>
               <p className="text-sm text-teal-200 mt-6">Click to see question</p>
@@ -303,7 +303,7 @@ export function FlashcardsContent() {
       <button 
         onClick={handleGenerate}
         disabled={!topic.trim() || isGenerating}
-        className="w-full px-6 py-4 bg-gradient-to-r from-teal-600 to-cyan-600 text-white rounded-lg hover:shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full px-6 py-4 bg-gradient-to-r from-teal-600 to-blue-600 text-white rounded-lg hover:shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {isGenerating ? (
           <>

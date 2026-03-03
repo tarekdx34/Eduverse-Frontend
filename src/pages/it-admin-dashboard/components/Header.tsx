@@ -71,7 +71,7 @@ export function Header({ userName = 'IT Administrator', onProfileClick }: Header
         isDark ? 'hover:bg-gray-700 bg-gray-800' : 'hover:bg-gray-100 bg-white'
       }`}>
         <Bell size={20} className={isDark ? 'text-gray-300' : 'text-gray-600'} />
-        <div className={`absolute top-1 ${isRTL ? 'left-1' : 'right-1'} w-2 h-2 bg-cyan-500 rounded-full`} />
+        <div className={`absolute top-1 ${isRTL ? 'left-1' : 'right-1'} w-2 h-2 bg-blue-500 rounded-full`} />
       </button>
 
       {/* Profile Dropdown */}
@@ -80,7 +80,7 @@ export function Header({ userName = 'IT Administrator', onProfileClick }: Header
           onClick={() => setShowDropdown(!showDropdown)}
           className={`rounded-lg p-1 transition-colors ${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}`}
         >
-          <div className="w-9 h-9 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-full cursor-pointer hover:opacity-80 transition-opacity flex items-center justify-center text-white text-sm font-semibold">
+          <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full cursor-pointer hover:opacity-80 transition-opacity flex items-center justify-center text-white text-sm font-semibold">
             IT
           </div>
         </button>
@@ -101,7 +101,7 @@ export function Header({ userName = 'IT Administrator', onProfileClick }: Header
                   onClick={() => handleLanguageChange('en')}
                   className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
                     language === 'en'
-                      ? 'bg-cyan-100 text-cyan-700 border border-cyan-200'
+                      ? 'bg-blue-100 text-blue-700 border border-blue-200'
                       : isDark 
                         ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' 
                         : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
@@ -114,7 +114,7 @@ export function Header({ userName = 'IT Administrator', onProfileClick }: Header
                   onClick={() => handleLanguageChange('ar')}
                   className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
                     language === 'ar'
-                      ? 'bg-cyan-100 text-cyan-700 border border-cyan-200'
+                      ? 'bg-blue-100 text-blue-700 border border-blue-200'
                       : isDark 
                         ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' 
                         : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
@@ -143,7 +143,7 @@ export function Header({ userName = 'IT Administrator', onProfileClick }: Header
                     {isDark ? t('darkMode') : t('lightMode')}
                   </span>
                 </div>
-                <div className={`w-10 h-5 rounded-full transition-colors ${isDark ? 'bg-cyan-600' : 'bg-gray-300'}`}>
+                <div className={`w-10 h-5 rounded-full transition-colors ${isDark ? 'bg-blue-600' : 'bg-gray-300'}`}>
                   <div className={`w-4 h-4 bg-white rounded-full shadow-sm transition-transform duration-200 mt-0.5 ${isDark ? 'translate-x-5 ml-0.5' : 'translate-x-0.5'}`} />
                 </div>
               </button>

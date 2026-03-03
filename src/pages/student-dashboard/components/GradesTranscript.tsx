@@ -253,16 +253,16 @@ const StatCard = ({
     switch (color) {
       case 'violet':
         return isDark
-          ? 'bg-violet-900/40 text-violet-400'
-          : 'bg-violet-50 text-violet-600 border border-violet-100';
+          ? 'bg-blue-900/40 text-blue-400'
+          : 'bg-blue-50 text-blue-600 border border-blue-100';
       case 'green':
         return isDark
           ? 'bg-emerald-900/40 text-emerald-400'
           : 'bg-emerald-50 text-emerald-600 border border-emerald-100';
       case 'purple':
         return isDark
-          ? 'bg-purple-900/40 text-purple-400'
-          : 'bg-purple-50 text-purple-600 border border-purple-100';
+          ? 'bg-blue-900/40 text-blue-400'
+          : 'bg-blue-50 text-blue-600 border border-blue-100';
       case 'orange':
         return isDark
           ? 'bg-orange-900/40 text-orange-400'
@@ -349,7 +349,7 @@ const GradeTable = ({
               placeholder="Search courses"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className={`w-full pl-10 pr-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-slate-500' : 'border-slate-100'}`}
+              className={`w-full pl-10 pr-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-slate-500' : 'border-slate-100'}`}
             />
           </div>
           <button
@@ -360,7 +360,7 @@ const GradeTable = ({
               Filter
             </span>
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
+          <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
             <Download size={16} />
             <span className="text-sm font-medium">Download</span>
           </button>
@@ -521,7 +521,7 @@ export default function GradesTranscript({
           onClick={() => setActiveView('grades')}
           className={`px-5 py-2 rounded-full text-sm font-medium transition-colors ${
             activeView === 'grades'
-              ? 'bg-purple-600 text-white'
+              ? 'bg-blue-600 text-white'
               : isDark
                 ? 'bg-white/5 text-slate-400 hover:bg-white/10'
                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -533,7 +533,7 @@ export default function GradesTranscript({
           onClick={() => setActiveView('analysis')}
           className={`px-5 py-2 rounded-full text-sm font-medium transition-colors ${
             activeView === 'analysis'
-              ? 'bg-purple-600 text-white'
+              ? 'bg-blue-600 text-white'
               : isDark
                 ? 'bg-white/5 text-slate-400 hover:bg-white/10'
                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -623,7 +623,7 @@ export default function GradesTranscript({
               <Download size={16} />
               <span className="text-sm font-medium">Export as PDF</span>
             </button>
-            <button className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
+            <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
               <Target size={16} />
               <span className="text-sm font-medium">Set Study Goals</span>
             </button>

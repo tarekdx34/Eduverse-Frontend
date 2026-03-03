@@ -87,7 +87,8 @@ const activeSessions: ActiveSession[] = [
 const activityTypes: ActivityType[] = ['All', 'Login', 'Logout', 'Password Change', 'Permission Change', 'Data Export', 'Failed Login'];
 
 export function SecurityLogsPage() {
-  const { isDark } = useTheme();
+  const { isDark, primaryHex } = useTheme() as any;
+  const accentColor = primaryHex || '#3b82f6';
   const { t } = useLanguage();
 
   const [activeTab, setActiveTab] = useState<Tab>('all');
@@ -100,7 +101,7 @@ export function SecurityLogsPage() {
   const textPrimary = isDark ? 'text-white' : 'text-gray-900';
   const textSecondary = isDark ? 'text-gray-400' : 'text-gray-500';
   const tableHeaderBg = isDark ? 'bg-gray-700' : 'bg-gray-50';
-  const inputClass = `w-full px-3 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'} focus:outline-none focus:ring-2 focus:ring-rose-500`;
+  const inputClass = `w-full px-3 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'} focus:outline-none focus:ring-2 focus:ring-blue-500`;
 
   const filteredLogs = activityLogs.filter((log) => {
     const matchesSearch =
@@ -165,7 +166,7 @@ export function SecurityLogsPage() {
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Shield className="w-8 h-8 text-rose-600" />
+          <Shield className="w-8 h-8 text-blue-600" />
           <div>
             <h1 className={`text-2xl font-bold ${textPrimary}`}>Security & Logs</h1>
             <p className={textSecondary}>Monitor system security, activity logs, and active sessions</p>
@@ -181,7 +182,7 @@ export function SecurityLogsPage() {
             onClick={() => setActiveTab(tab.key)}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               activeTab === tab.key
-                ? 'bg-rose-600 text-white'
+                ? ''
                 : `${textSecondary} hover:${isDark ? 'bg-gray-700' : 'bg-gray-200'}`
             }`}
           >
@@ -204,7 +205,7 @@ export function SecurityLogsPage() {
             </div>
             <button
               onClick={() => setActiveTab('threats')}
-              className="bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+              className="hover:opacity-90 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
             >
               View Alerts
             </button>
@@ -228,7 +229,7 @@ export function SecurityLogsPage() {
                 <select
                   value={activityFilter}
                   onChange={(e) => setActivityFilter(e.target.value as ActivityType)}
-                  className={`px-3 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:outline-none focus:ring-2 focus:ring-rose-500`}
+                  className={`px-3 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
                 >
                   {activityTypes.map((type) => (
                     <option key={type} value={type}>{type}</option>
@@ -331,7 +332,7 @@ export function SecurityLogsPage() {
                       </div>
                     </div>
                     <div className="flex gap-2 ml-8 sm:ml-0">
-                      <button className="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-colors">
+                      <button className="hover:opacity-90 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-colors">
                         Investigate
                       </button>
                       <button className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ${isDark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-600 hover:bg-gray-100'}`}>
@@ -391,7 +392,7 @@ export function SecurityLogsPage() {
               <h2 className={`text-lg font-semibold ${textPrimary}`}>Active Sessions</h2>
               <button
                 onClick={() => setShowIPModal(true)}
-                className="bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+                className="hover:opacity-90 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
               >
                 <Shield className="w-4 h-4" />
                 Add IP Rule
@@ -456,7 +457,7 @@ export function SecurityLogsPage() {
                 <select
                   value={ipForm.ruleType}
                   onChange={(e) => setIpForm({ ...ipForm, ruleType: e.target.value })}
-                  className={`px-3 py-2 rounded-lg border w-full ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:outline-none focus:ring-2 focus:ring-rose-500`}
+                  className={`px-3 py-2 rounded-lg border w-full ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
                 >
                   <option value="Block">Block</option>
                   <option value="Allow">Allow</option>
@@ -485,7 +486,7 @@ export function SecurityLogsPage() {
                   setShowIPModal(false);
                   setIpForm({ ip: '', ruleType: 'Block', reason: '' });
                 }}
-                className="bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                className="hover:opacity-90 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
               >
                 Save
               </button>

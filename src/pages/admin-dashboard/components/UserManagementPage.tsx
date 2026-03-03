@@ -21,7 +21,8 @@ interface UserManagementPageProps {
 }
 
 export function UserManagementPage({ users, onAddUser, onEditUser, onDeleteUser }: UserManagementPageProps) {
-  const { isDark } = useTheme();
+  const { isDark, primaryHex } = useTheme() as any;
+  const accentColor = primaryHex || '#3b82f6';
   const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
@@ -40,7 +41,7 @@ export function UserManagementPage({ users, onAddUser, onEditUser, onDeleteUser 
     switch (role) {
       case 'admin': return isDark ? 'bg-red-500/20 text-red-300' : 'bg-red-100 text-red-700';
       case 'instructor': return isDark ? 'bg-blue-500/20 text-blue-300' : 'bg-blue-100 text-blue-700';
-      case 'ta': return isDark ? 'bg-purple-500/20 text-purple-300' : 'bg-purple-100 text-purple-700';
+      case 'ta': return isDark ? 'bg-blue-500/20 text-blue-300' : 'bg-blue-100 text-blue-700';
       case 'student': return isDark ? 'bg-green-500/20 text-green-300' : 'bg-green-100 text-green-700';
       default: return isDark ? 'bg-gray-500/20 text-gray-300' : 'bg-gray-100 text-gray-700';
     }
@@ -65,7 +66,7 @@ export function UserManagementPage({ users, onAddUser, onEditUser, onDeleteUser 
         </div>
         <button
           onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-rose-500 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500 transition-colors"
         >
           <UserPlus size={18} />
           {t('addUser')}
@@ -108,7 +109,7 @@ export function UserManagementPage({ users, onAddUser, onEditUser, onDeleteUser 
             <option value="inactive">Inactive</option>
             <option value="suspended">Suspended</option>
           </select>
-          <button className={`flex items-center gap-2 px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-rose-500 ${isDark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-200 text-gray-700 hover:bg-gray-50'}`}>
+          <button className={`flex items-center gap-2 px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500 ${isDark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-200 text-gray-700 hover:bg-gray-50'}`}>
             <Download size={18} />
             Export
           </button>

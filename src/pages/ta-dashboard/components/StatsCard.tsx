@@ -13,7 +13,7 @@ interface StatsCardProps {
 const cardThemes: Record<string, { glow: string; gradient: string }> = {
   'Total Courses': {
     glow: 'bg-blue-500/10 group-hover:bg-blue-500/20',
-    gradient: 'from-blue-500 to-cyan-500',
+    gradient: 'from-blue-500 to-blue-500',
   },
   'Active Labs': {
     glow: 'bg-emerald-500/10 group-hover:bg-emerald-500/20',
@@ -24,8 +24,8 @@ const cardThemes: Record<string, { glow: string; gradient: string }> = {
     gradient: 'from-amber-500 to-orange-500',
   },
   'Avg Performance': {
-    glow: 'bg-purple-500/10 group-hover:bg-purple-500/20',
-    gradient: 'from-purple-500 to-pink-500',
+    glow: 'bg-blue-500/10 group-hover:bg-blue-500/20',
+    gradient: 'from-blue-500 to-pink-500',
   },
 };
 

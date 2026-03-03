@@ -42,7 +42,8 @@ interface MonitoringPageProps {
 }
 
 export function MonitoringPage({ serverStatus, performanceMetrics, onRefresh, onRestartServer }: MonitoringPageProps) {
-  const { isDark } = useTheme();
+  const { isDark, primaryHex } = useTheme() as any;
+  const accentColor = primaryHex || '#3b82f6';
   const { t } = useLanguage();
 
   const [localServers, setLocalServers] = useState<ServerEntry[]>([]);
@@ -130,7 +131,7 @@ export function MonitoringPage({ serverStatus, performanceMetrics, onRefresh, on
   const typeBadgeColor = (type: string) => {
     switch (type) {
       case 'Web': return 'bg-blue-500/20 text-blue-400';
-      case 'API': return 'bg-purple-500/20 text-purple-400';
+      case 'API': return 'bg-blue-500/20 text-blue-400';
       case 'Database': return 'bg-orange-500/20 text-orange-400';
       case 'Cache': return 'bg-teal-500/20 text-teal-400';
       default: return 'bg-gray-500/20 text-gray-400';
@@ -175,14 +176,14 @@ export function MonitoringPage({ serverStatus, performanceMetrics, onRefresh, on
         <div className="flex items-center gap-2">
           <button
             onClick={openAddModal}
-            className="flex items-center gap-2 px-4 py-2 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
           >
             <Plus className="w-4 h-4" />
             Add Server
           </button>
           <button
             onClick={onRefresh}
-            className="flex items-center gap-2 px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:opacity-90 transition-colors"
           >
             <RefreshCw className="w-4 h-4" />
             {t('refresh')}
@@ -195,7 +196,7 @@ export function MonitoringPage({ serverStatus, performanceMetrics, onRefresh, on
         <div className={`rounded-xl border p-6 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
           <div className="flex items-center justify-between mb-4">
             <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('avgResponseTime')}</p>
-            <Activity className={`w-5 h-5 ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`} />
+            <Activity className={`w-5 h-5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
           </div>
           <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>185ms</p>
           <div className="flex items-center gap-1 mt-2">
@@ -277,7 +278,7 @@ export function MonitoringPage({ serverStatus, performanceMetrics, onRefresh, on
                 onClick={() => setStatusFilter(status)}
                 className={`px-3 py-1 rounded-full text-xs font-medium capitalize transition-colors ${
                   statusFilter === status
-                    ? 'bg-cyan-600 text-white'
+                    ? 'bg-blue-600 text-white'
                     : isDark ? 'bg-gray-700 border border-gray-600 text-white hover:bg-gray-600' : 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-100'
                 }`}
               >
@@ -475,7 +476,7 @@ export function MonitoringPage({ serverStatus, performanceMetrics, onRefresh, on
                 Cancel
               </button>
               <button onClick={handleSaveServer}
-                className="px-4 py-2 rounded-lg text-sm bg-cyan-600 text-white hover:bg-cyan-700">
+                className="px-4 py-2 rounded-lg text-sm bg-blue-600 text-white hover:opacity-90">
                 Save
               </button>
             </div>

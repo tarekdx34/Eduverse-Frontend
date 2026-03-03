@@ -12,13 +12,14 @@ interface StatsCardProps {
 
 // Color themes for each card type
 const cardThemes: Record<string, { glow: string; gradient: string }> = {
-  'Credits Completed': { glow: 'bg-[#7C3AED]/10 group-hover:bg-[#7C3AED]/20', gradient: 'from-violet-500 to-[#7C3AED]' },
-  'Grade Point Average': { glow: 'bg-pink-500/10 group-hover:bg-pink-500/20', gradient: 'from-pink-500 to-rose-500' },
-  'Active Class': { glow: 'bg-blue-500/10 group-hover:bg-blue-500/20', gradient: 'from-blue-500 to-cyan-500' },
+  'Credits Completed': { glow: 'bg-[var(--accent-color)]/10 group-hover:bg-[var(--accent-color)]/20', gradient: 'from-blue-500 to-[var(--accent-color)]' },
+  'Grade Point Average': { glow: 'bg-pink-500/10 group-hover:bg-pink-500/20', gradient: 'from-pink-500 to-blue-500' },
+  'Active Class': { glow: 'bg-blue-500/10 group-hover:bg-blue-500/20', gradient: 'from-blue-500 to-blue-500' },
 };
 
 export default function StatsCard({ label, value, maxValue, comparison, isPositive }: StatsCardProps) {
-  const { isDark } = useTheme();
+  const { isDark, primaryHex } = useTheme() as any;
+  const accentColor = primaryHex || '#3b82f6';
   const { t } = useLanguage();
 
   const theme = cardThemes[label] || cardThemes['Credits Completed'];
@@ -39,7 +40,7 @@ export default function StatsCard({ label, value, maxValue, comparison, isPositi
       <div className="flex items-baseline gap-2 mb-0">
         <h2 className={`text-5xl font-black mb-0 tracking-tighter ${
           isDark && isGpa
-            ? 'text-transparent bg-clip-text bg-gradient-to-r from-[#7C3AED] to-[#ec4899]'
+            ? 'text-transparent bg-clip-text bg-gradient-to-r from-[var(--accent-color)] to-[#ec4899]'
             : isDark ? 'text-white' : 'text-slate-800'
         }`}>
           {value}<span className={`text-2xl font-normal ${isDark ? 'text-slate-600' : 'text-slate-300'}`}>/{maxValue}</span>

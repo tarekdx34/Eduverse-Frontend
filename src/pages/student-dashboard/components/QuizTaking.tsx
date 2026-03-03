@@ -54,7 +54,7 @@ const availableQuizzes = [
     duration: '45 min',
     difficulty: 'Hard',
     icon: <Settings className="w-6 h-6" />,
-    color: '#7C3AED',
+    color: accentColor,
   },
   {
     id: 4,
@@ -191,7 +191,8 @@ const getLetterGrade = (pct: number) => {
 // --- Component ---
 
 export const QuizTaking = () => {
-  const { isDark } = useTheme();
+  const { isDark, primaryHex } = useTheme() as any;
+  const accentColor = primaryHex || '#3b82f6';
   const { isRTL } = useLanguage();
 
   const [view, setView] = useState<View>('selection');
@@ -288,13 +289,13 @@ export const QuizTaking = () => {
     return (
       <div className="space-y-6" dir={isRTL ? 'rtl' : 'ltr'}>
         {/* Header */}
-        <div className="bg-gradient-to-br from-[#7C3AED] via-purple-600 to-indigo-700 rounded-2xl p-8 text-white shadow-xl">
+        <div className="bg-gradient-to-br from-[var(--accent-color)] via-blue-600 to-blue-700 rounded-2xl p-8 text-white shadow-xl">
           <div className="flex items-center gap-3 mb-3">
             <ClipboardCheck className="w-8 h-8" />
             <span className="text-sm bg-white/20 px-3 py-1 rounded-full">Quiz Center</span>
           </div>
           <h1 className="text-3xl font-bold mb-2">Quiz Center</h1>
-          <p className="text-purple-100 text-lg">Test Your Knowledge</p>
+          <p className="text-blue-100 text-lg">Test Your Knowledge</p>
         </div>
 
         {/* Available Quizzes */}
@@ -343,7 +344,7 @@ export const QuizTaking = () => {
                   </span>
                   <button
                     onClick={() => startQuiz(quiz)}
-                    className="px-5 py-2 rounded-xl bg-[#7C3AED] text-white text-sm font-medium hover:bg-[#6D28D9] transition-colors"
+                    className="px-5 py-2 rounded-xl bg-[var(--accent-color)] text-white text-sm font-medium hover:opacity-90 transition-colors"
                   >
                     Start Quiz
                   </button>
@@ -453,7 +454,7 @@ export const QuizTaking = () => {
           </div>
           <div className={`w-full h-2 rounded-full ${isDark ? 'bg-white/10' : 'bg-slate-200'}`}>
             <div
-              className="h-2 rounded-full bg-[#7C3AED] transition-all"
+              className="h-2 rounded-full bg-[var(--accent-color)] transition-all"
               style={{ width: `${progressPct}%` }}
             />
           </div>
@@ -462,11 +463,11 @@ export const QuizTaking = () => {
         {/* Question Card */}
         <div className={`${cardClass} rounded-[2.5rem] p-6 sm:p-8`}>
           <div className="flex items-center gap-2 mb-4">
-            <span className="w-8 h-8 rounded-lg bg-[#7C3AED] text-white text-sm font-bold flex items-center justify-center">
+            <span className="w-8 h-8 rounded-lg bg-[var(--accent-color)] text-white text-sm font-bold flex items-center justify-center">
               {currentQuestion.id}
             </span>
             <span
-              className={`text-xs px-2 py-0.5 rounded-full font-medium ${currentQuestion.type === 'mcq' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}
+              className={`text-xs px-2 py-0.5 rounded-full font-medium ${currentQuestion.type === 'mcq' ? 'bg-blue-100 text-blue-700' : 'bg-blue-100 text-blue-700'}`}
             >
               {currentQuestion.type === 'mcq' ? 'Multiple Choice' : 'True / False'}
             </span>
@@ -483,14 +484,14 @@ export const QuizTaking = () => {
                   key={idx}
                   onClick={() => selectAnswer(idx)}
                   className={`w-full flex items-center gap-3 p-4 rounded-2xl border-2 text-left transition-all ${
-                    isSelected ? 'border-[#7C3AED] bg-[#7C3AED]/10' : optionBase
+                    isSelected ? 'border-[var(--accent-color)] bg-[var(--accent-color)]/10' : optionBase
                   }`}
                 >
                   {currentQuestion.type === 'mcq' && (
                     <span
                       className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold shrink-0 ${
                         isSelected
-                          ? 'bg-[#7C3AED] text-white'
+                          ? 'bg-[var(--accent-color)] text-white'
                           : isDark
                             ? 'bg-white/10 text-slate-400'
                             : 'bg-slate-100 text-slate-500'
@@ -499,7 +500,7 @@ export const QuizTaking = () => {
                       {label}
                     </span>
                   )}
-                  <span className={`font-medium ${isSelected ? 'text-[#7C3AED]' : textPrimary}`}>
+                  <span className={`font-medium ${isSelected ? 'text-[var(--accent-color)]' : textPrimary}`}>
                     {opt}
                   </span>
                 </button>
@@ -534,7 +535,7 @@ export const QuizTaking = () => {
           {currentQuestionIndex < questions.length - 1 ? (
             <button
               onClick={() => setCurrentQuestionIndex((i) => i + 1)}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#7C3AED] text-white font-medium text-sm hover:bg-[#6D28D9] transition-colors"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[var(--accent-color)] text-white font-medium text-sm hover:opacity-90 transition-colors"
             >
               Next <ChevronRight className="w-4 h-4" />
             </button>
@@ -570,7 +571,7 @@ export const QuizTaking = () => {
                   const isSkipped = skippedQuestions.has(q.id);
                   const isCurrent = idx === currentQuestionIndex;
                   let bg = isDark ? 'bg-white/10 text-slate-400' : 'bg-slate-100 text-slate-500';
-                  if (isCurrent) bg = 'bg-[#7C3AED] text-white';
+                  if (isCurrent) bg = 'bg-[var(--accent-color)] text-white';
                   else if (isAnswered) bg = 'bg-[#10B981] text-white';
                   else if (isSkipped) bg = 'bg-[#F59E0B] text-white';
                   return (
@@ -592,7 +593,7 @@ export const QuizTaking = () => {
                 {[
                   { color: 'bg-[#10B981]', label: 'Answered' },
                   { color: 'bg-[#F59E0B]', label: 'Skipped' },
-                  { color: 'bg-[#7C3AED]', label: 'Current' },
+                  { color: 'bg-[var(--accent-color)]', label: 'Current' },
                   { color: isDark ? 'bg-white/10' : 'bg-slate-200', label: 'Unanswered' },
                 ].map((l) => (
                   <div key={l.label} className={`flex items-center gap-1.5 ${textSecondary}`}>
@@ -724,7 +725,7 @@ export const QuizTaking = () => {
           className={`${isDark ? 'bg-white/5 border-b border-white/5' : 'bg-gradient-to-r from-background-light to-white border-b border-slate-100'} p-4`}
         >
           <h3 className={`font-semibold ${textPrimary} flex items-center gap-2`}>
-            <BookOpen className="w-5 h-5 text-[#7C3AED]" />
+            <BookOpen className="w-5 h-5 text-[var(--accent-color)]" />
             Question Review
           </h3>
         </div>
@@ -797,7 +798,7 @@ export const QuizTaking = () => {
       <div className="flex gap-3">
         <button
           onClick={retakeQuiz}
-          className="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-[#7C3AED] text-white font-medium text-sm hover:bg-[#6D28D9] transition-colors"
+          className="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-[var(--accent-color)] text-white font-medium text-sm hover:opacity-90 transition-colors"
         >
           <RotateCcw className="w-4 h-4" /> Retake Quiz
         </button>

@@ -129,11 +129,11 @@ function ProcessingAnimation({
 
   return (
     <div
-      className={`flex flex-col items-center justify-center p-12 rounded-xl min-h-[400px] ${isDark ? 'bg-gradient-to-br from-indigo-500/10 to-purple-500/10' : 'bg-gradient-to-br from-indigo-50 to-purple-50'}`}
+      className={`flex flex-col items-center justify-center p-12 rounded-xl min-h-[400px] ${isDark ? 'bg-gradient-to-br from-indigo-500/10 to-blue-500/10' : 'bg-gradient-to-br from-indigo-50 to-blue-50'}`}
     >
       <div className="relative mb-8">
         <div className="absolute inset-0 bg-indigo-400 rounded-full blur-xl opacity-30 animate-pulse" />
-        <div className="relative p-6 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full">
+        <div className="relative p-6 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-full">
           <Brain className="text-white animate-pulse" size={48} />
         </div>
         <div className="absolute -top-2 -right-2 animate-bounce">
@@ -189,7 +189,7 @@ function ProcessingAnimation({
         className={`w-full max-w-md rounded-full h-2 overflow-hidden ${isDark ? 'bg-white/10' : 'bg-gray-200'}`}
       >
         <div
-          className="h-full bg-gradient-to-r from-indigo-500 to-purple-600 transition-all duration-300"
+          className="h-full bg-gradient-to-r from-indigo-500 to-blue-600 transition-all duration-300"
           style={{ width: `${progress}%` }}
         />
       </div>

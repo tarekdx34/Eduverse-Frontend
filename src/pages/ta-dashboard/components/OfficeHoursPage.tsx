@@ -161,7 +161,7 @@ export function OfficeHoursPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${slot.type === 'online' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}`}>
+                  <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${slot.type === 'online' ? 'bg-blue-100 text-blue-700' : 'bg-blue-100 text-blue-700'}`}>
                     {slot.type === 'online' ? <Video className="w-3 h-3" /> : <MapPin className="w-3 h-3" />}
                     {slot.type === 'online' ? 'Online' : 'In-person'}
                   </span>

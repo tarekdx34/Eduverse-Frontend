@@ -199,7 +199,7 @@ const CourseCard= ({
       <div className="flex gap-2 flex-wrap">
         <button
           onClick={() => onViewCourse?.(course.id)}
-          className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-lg transition-colors min-w-0"
+          className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors min-w-0"
         >
           {t('viewCourse')}
         </button>

@@ -130,7 +130,7 @@ function TADashboardContent() {
 
   return (
     <div
-      className={`flex min-h-screen ${isRTL ? 'flex-row-reverse' : ''} ${isDark ? 'bg-slate-950' : 'bg-slate-50'} text-slate-800 dark:text-slate-100 transition-colors duration-300`}
+      className={`flex min-h-screen ${isRTL ? 'flex-row-reverse' : ''} ${isDark ? 'bg-background-dark' : 'bg-background-light'} text-slate-800 dark:text-slate-100 transition-colors duration-300`}
       style={{ fontFamily: "'Montserrat', sans-serif" }}
       dir={isRTL ? 'rtl' : 'ltr'}
     >
@@ -164,7 +164,7 @@ function TADashboardContent() {
           isDark={isDark}
           isRTL={isRTL}
           accentColor={primaryHex || '#2563EB'}
-          avatarGradient="from-blue-500 to-cyan-500"
+          avatarGradient="from-blue-500 to-blue-500"
           language={language}
           onToggleTheme={toggleTheme}
           onSetLanguage={setLanguage}
@@ -258,7 +258,7 @@ function TADashboardContent() {
           <DashboardProfileTab
             isDark={isDark}
             accentColor="#2563EB"
-            bannerGradient="from-blue-500 to-cyan-500"
+            bannerGradient="from-blue-500 to-blue-500"
             profileData={{
               fullName: 'Ahmed Hassan',
               role: 'Teaching Assistant',

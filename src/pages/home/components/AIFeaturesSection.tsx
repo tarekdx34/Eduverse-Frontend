@@ -82,7 +82,7 @@ export function AIFeaturesSection() {
         <div className="text-center mb-24">
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
             {t('AI Features', 'الميزات الذكية')}{' '}
-            <span className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-blue-500 via-blue-500 to-pink-500 bg-clip-text text-transparent">
               {t('Showcase', 'عرض')}
             </span>
           </h2>

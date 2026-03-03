@@ -66,7 +66,7 @@ const communities: Community[] = [
     members: 128,
     posts: 189,
     lastActivity: '30 min ago',
-    color: 'bg-purple-500',
+    color: 'bg-blue-500',
     joined: true,
   },
   {
@@ -96,7 +96,7 @@ const communities: Community[] = [
     members: 85,
     posts: 98,
     lastActivity: '5 hours ago',
-    color: 'bg-[#7C3AED]/100',
+    color: 'bg-[var(--accent-color)]/100',
     joined: false,
   },
   {
@@ -190,7 +190,8 @@ const posts: Post[] = [
 ];
 
 export function CourseCommunity() {
-  const { isDark } = useTheme();
+  const { isDark, primaryHex } = useTheme() as any;
+  const accentColor = primaryHex || '#3b82f6';
   const [selectedCommunity, setSelectedCommunity] = useState<string>('CS220');
   const [postsList, setPostsList] = useState<Post[]>(posts);
   const [newPostContent, setNewPostContent] = useState('');
@@ -256,7 +257,7 @@ export function CourseCommunity() {
       case 'instructor':
         return 'bg-blue-100 text-blue-700 border-blue-200';
       case 'ta':
-        return 'bg-purple-100 text-purple-700 border-purple-200';
+        return 'bg-blue-100 text-blue-700 border-blue-200';
       default:
         return '';
     }
@@ -305,7 +306,7 @@ export function CourseCommunity() {
                     onClick={() => setSelectedCommunity(community.courseCode)}
                     className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all ${
                       selectedCommunity === community.courseCode
-                        ? 'bg-[#7C3AED]/10 border-2 border-[#7C3AED]/20'
+                        ? 'bg-[var(--accent-color)]/10 border-2 border-[var(--accent-color)]/20'
                         : `${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'} border-2 border-transparent`
                     }`}
                   >
@@ -323,7 +324,7 @@ export function CourseCommunity() {
                       <p className="text-xs text-slate-500">{community.members} members</p>
                     </div>
                     {selectedCommunity === community.courseCode && (
-                      <ChevronRight className="w-4 h-4 text-[#7C3AED]" />
+                      <ChevronRight className="w-4 h-4 text-[var(--accent-color)]" />
                     )}
                   </button>
                 ))}
@@ -360,7 +361,7 @@ export function CourseCommunity() {
                       </p>
                       <p className="text-xs text-slate-500">{community.members} members</p>
                     </div>
-                    <button className="px-3 py-1 text-xs font-medium text-[#7C3AED] bg-[#7C3AED]/10 rounded-lg hover:bg-[#7C3AED]/10 transition-all">
+                    <button className="px-3 py-1 text-xs font-medium text-[var(--accent-color)] bg-[var(--accent-color)]/10 rounded-lg hover:bg-[var(--accent-color)]/10 transition-all">
                       Join
                     </button>
                   </div>
@@ -419,7 +420,7 @@ export function CourseCommunity() {
             className={`glass rounded-[2rem] p-4 ${isDark ? 'bg-white/5 border-white/5' : 'bg-white border-slate-100 shadow-sm'}`}
           >
             <div className="flex items-start gap-4">
-              <div className="w-10 h-10 bg-gradient-to-br from-[#7C3AED] to-purple-600 rounded-full flex items-center justify-center text-white font-semibold shadow-md">
+              <div className="w-10 h-10 bg-gradient-to-br from-[var(--accent-color)] to-blue-600 rounded-full flex items-center justify-center text-white font-semibold shadow-md">
                 TM
               </div>
               <div className="flex-1">
@@ -428,7 +429,7 @@ export function CourseCommunity() {
                   onChange={(e) => setNewPostContent(e.target.value)}
                   placeholder="Share something with your classmates..."
                   rows={3}
-                  className={`w-full px-4 py-3 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500' : 'bg-slate-50 border-slate-200 text-slate-800 placeholder:text-slate-400'} border-2 rounded-2xl focus:outline-none focus:border-[#7C3AED] resize-none transition-all`}
+                  className={`w-full px-4 py-3 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500' : 'bg-slate-50 border-slate-200 text-slate-800 placeholder:text-slate-400'} border-2 rounded-2xl focus:outline-none focus:border-[var(--accent-color)] resize-none transition-all`}
                 />
                 <div className="flex items-center justify-between mt-3">
                   <div className="flex items-center gap-1">
@@ -451,7 +452,7 @@ export function CourseCommunity() {
                   <button
                     onClick={handlePost}
                     disabled={!newPostContent.trim()}
-                    className="flex items-center gap-2 px-5 py-2 bg-[#7C3AED] text-white rounded-xl hover:bg-[#6D28D9] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
+                    className="flex items-center gap-2 px-5 py-2 bg-[var(--accent-color)] text-white rounded-xl hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
                   >
                     <Send className="w-4 h-4" />
                     <span className="font-medium">Post</span>
@@ -468,14 +469,14 @@ export function CourseCommunity() {
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1 relative group">
                 <Search
-                  className={`w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 transition-colors ${isDark ? 'text-slate-500' : 'text-slate-400 group-focus-within:text-[#7C3AED]'}`}
+                  className={`w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 transition-colors ${isDark ? 'text-slate-500' : 'text-slate-400 group-focus-within:text-[var(--accent-color)]'}`}
                 />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search posts..."
-                  className={`w-full pl-10 pr-4 py-2.5 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500' : 'bg-slate-50 border-slate-200 text-slate-800 placeholder:text-slate-400'} border-2 rounded-xl focus:outline-none focus:border-[#7C3AED] transition-all`}
+                  className={`w-full pl-10 pr-4 py-2.5 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500' : 'bg-slate-50 border-slate-200 text-slate-800 placeholder:text-slate-400'} border-2 rounded-xl focus:outline-none focus:border-[var(--accent-color)] transition-all`}
                 />
               </div>
               <div className="w-full md:w-56">
@@ -583,7 +584,7 @@ function PostCard({
               post.authorRole === 'instructor'
                 ? 'bg-gradient-to-br from-blue-500 to-blue-600'
                 : post.authorRole === 'ta'
-                  ? 'bg-gradient-to-br from-purple-500 to-purple-600'
+                  ? 'bg-gradient-to-br from-blue-500 to-blue-600'
                   : 'bg-gradient-to-br from-slate-400 to-slate-500'
             }`}
           >
@@ -640,7 +641,7 @@ function PostCard({
           onClick={() => onLike(post.id)}
           className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all ${
             post.isLiked
-              ? 'bg-[#7C3AED]/10 text-[#7C3AED]'
+              ? 'bg-[var(--accent-color)]/10 text-[var(--accent-color)]'
               : `${isDark ? 'hover:bg-white/5 text-slate-400' : 'hover:bg-slate-50 text-slate-600'}`
           }`}
         >

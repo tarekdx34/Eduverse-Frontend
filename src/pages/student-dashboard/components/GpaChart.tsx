@@ -13,7 +13,8 @@ interface GpaChartProps {
 export default function GpaChart({ data }: GpaChartProps) {
   const currentYourGpa = data[data.length - 1]?.yourGpa || 0;
   const currentAvgGpa = data[data.length - 1]?.avgGpa || 0;
-  const { isDark } = useTheme();
+  const { isDark, primaryHex } = useTheme() as any;
+  const accentColor = primaryHex || '#3b82f6';
   const { t } = useLanguage();
 
   return (
@@ -29,7 +30,7 @@ export default function GpaChart({ data }: GpaChartProps) {
             {t('gpaComparison') || 'Academic growth over last 4 semesters'}
           </p>
         </div>
-        <select className={`border-none rounded-xl text-sm font-semibold px-4 py-2 focus:ring-[#7C3AED] cursor-pointer ${
+        <select className={`border-none rounded-xl text-sm font-semibold px-4 py-2 focus:ring-[var(--accent-color)] cursor-pointer ${
           isDark ? 'bg-white/5 text-slate-300' : 'glass text-slate-800'
         }`}>
           <option className={isDark ? 'bg-slate-800 text-white' : 'bg-white text-slate-900'}>{t('allSemesters') || 'All Semesters'}</option>
@@ -40,11 +41,11 @@ export default function GpaChart({ data }: GpaChartProps) {
         <AreaChart data={data}>
           <defs>
             <linearGradient id="colorYourGPA" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#7C3AED" stopOpacity={isDark ? 0.15 : 0.2}/>
-              <stop offset="95%" stopColor="#7C3AED" stopOpacity={0}/>
+              <stop offset="5%" stopColor={accentColor} stopOpacity={isDark ? 0.15 : 0.2}/>
+              <stop offset="95%" stopColor={accentColor} stopOpacity={0}/>
             </linearGradient>
             <linearGradient id="lineGradientStroke" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor="#7C3AED"/>
+              <stop offset="0%" stopColor={accentColor}/>
               <stop offset="100%" stopColor="#ec4899"/>
             </linearGradient>
           </defs>
@@ -76,11 +77,11 @@ export default function GpaChart({ data }: GpaChartProps) {
           <Area
             type="monotone"
             dataKey="yourGpa"
-            stroke={isDark ? 'url(#lineGradientStroke)' : '#7C3AED'}
+            stroke={isDark ? 'url(#lineGradientStroke)' : accentColor}
             strokeWidth={4}
             fill="url(#colorYourGPA)"
-            dot={{ fill: '#7C3AED', r: 5, strokeWidth: 0 }}
-            activeDot={{ fill: isDark ? '#ec4899' : '#7C3AED', r: 7, stroke: isDark ? '#0a0a0c' : 'white', strokeWidth: 2 }}
+            dot={{ fill: accentColor, r: 5, strokeWidth: 0 }}
+            activeDot={{ fill: isDark ? '#ec4899' : accentColor, r: 7, stroke: isDark ? '#0a0a0c' : 'white', strokeWidth: 2 }}
             style={{ filter: isDark ? 'drop-shadow(0 0 6px rgba(99, 102, 241, 0.4))' : 'drop-shadow(0 0 8px rgba(124, 58, 237, 0.6))' }}
           />
         </AreaChart>
@@ -88,7 +89,7 @@ export default function GpaChart({ data }: GpaChartProps) {
 
       <div className="mt-10 flex gap-8">
         <div className="flex items-center gap-3">
-          <div className="w-3 h-3 rounded-full bg-[#7C3AED] neon-glow-primary"></div>
+          <div className="w-3 h-3 rounded-full bg-[var(--accent-color)] neon-glow-primary"></div>
           <span className="text-sm font-semibold">
             {t('yourGPA') || 'Your GPA'}: <span className="text-lg">{currentYourGpa.toFixed(2)}</span>
           </span>
