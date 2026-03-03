@@ -2,9 +2,21 @@ import { useState } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
 import {
-  Sparkles, FileText, Clock, BookOpen, Target, Search,
-  Heart, MoreVertical, X, FileUp, Video, Globe, Mic,
-  ChevronDown, Trash2
+  Sparkles,
+  FileText,
+  Clock,
+  BookOpen,
+  Target,
+  Search,
+  Heart,
+  MoreVertical,
+  X,
+  FileUp,
+  Video,
+  Globe,
+  Mic,
+  ChevronDown,
+  Trash2,
 } from 'lucide-react';
 
 interface Note {
@@ -21,32 +33,123 @@ interface Note {
 }
 
 const initialNotes: Note[] = [
-  { id: 1, title: "Data Structures Overview", course: "CS201", category: "Data Structures", preview: "Comprehensive notes covering arrays, linked lists, trees, and graphs with complexity analysis...", date: "Feb 20, 2026", studyTime: "2.5h", flashcards: 15, bookmarked: true, color: "#3B82F6" },
-  { id: 2, title: "Database Normalization", course: "CS220", category: "Databases", preview: "Detailed breakdown of 1NF, 2NF, 3NF, and BCNF with practical examples and exercises...", date: "Feb 18, 2026", studyTime: "1.8h", flashcards: 10, bookmarked: false, color: "#10B981" },
-  { id: 3, title: "Software Design Patterns", course: "CS305", category: "Software Engineering", preview: "Notes on Singleton, Factory, Observer, and Strategy patterns with code examples...", date: "Feb 15, 2026", studyTime: "3.0h", flashcards: 20, bookmarked: true, color: accentColor },
-  { id: 4, title: "Machine Learning Basics", course: "CS410", category: "Machine Learning", preview: "Introduction to supervised and unsupervised learning, regression, classification...", date: "Feb 12, 2026", studyTime: "4.2h", flashcards: 25, bookmarked: false, color: "#F59E0B" },
-  { id: 5, title: "Operating Systems Concepts", course: "CS310", category: "Operating Systems", preview: "Process management, memory management, file systems, and I/O systems...", date: "Feb 10, 2026", studyTime: "2.0h", flashcards: 12, bookmarked: false, color: "#EF4444" },
-  { id: 6, title: "Web Development Frameworks", course: "CS150", category: "Web Development", preview: "Comparison of React, Angular, and Vue with architecture patterns and best practices...", date: "Feb 8, 2026", studyTime: "1.5h", flashcards: 8, bookmarked: true, color: "#06B6D4" },
-  { id: 7, title: "Network Protocols", course: "CS301", category: "Computer Networks", preview: "TCP/IP, HTTP, DNS, and other network protocols with packet analysis...", date: "Feb 5, 2026", studyTime: "2.8h", flashcards: 18, bookmarked: false, color: "#8B5CF6" },
-  { id: 8, title: "Algorithm Complexity", course: "CS250", category: "Algorithms", preview: "Big O notation, time and space complexity analysis for common algorithms...", date: "Feb 2, 2026", studyTime: "3.5h", flashcards: 22, bookmarked: false, color: "#EC4899" }
+  {
+    id: 1,
+    title: 'Data Structures Overview',
+    course: 'CS201',
+    category: 'Data Structures',
+    preview:
+      'Comprehensive notes covering arrays, linked lists, trees, and graphs with complexity analysis...',
+    date: 'Feb 20, 2026',
+    studyTime: '2.5h',
+    flashcards: 15,
+    bookmarked: true,
+    color: '#3B82F6',
+  },
+  {
+    id: 2,
+    title: 'Database Normalization',
+    course: 'CS220',
+    category: 'Databases',
+    preview:
+      'Detailed breakdown of 1NF, 2NF, 3NF, and BCNF with practical examples and exercises...',
+    date: 'Feb 18, 2026',
+    studyTime: '1.8h',
+    flashcards: 10,
+    bookmarked: false,
+    color: '#10B981',
+  },
+  {
+    id: 3,
+    title: 'Software Design Patterns',
+    course: 'CS305',
+    category: 'Software Engineering',
+    preview: 'Notes on Singleton, Factory, Observer, and Strategy patterns with code examples...',
+    date: 'Feb 15, 2026',
+    studyTime: '3.0h',
+    flashcards: 20,
+    bookmarked: true,
+    color: '#8B5CF6',
+  },
+  {
+    id: 4,
+    title: 'Machine Learning Basics',
+    course: 'CS410',
+    category: 'Machine Learning',
+    preview: 'Introduction to supervised and unsupervised learning, regression, classification...',
+    date: 'Feb 12, 2026',
+    studyTime: '4.2h',
+    flashcards: 25,
+    bookmarked: false,
+    color: '#F59E0B',
+  },
+  {
+    id: 5,
+    title: 'Operating Systems Concepts',
+    course: 'CS310',
+    category: 'Operating Systems',
+    preview: 'Process management, memory management, file systems, and I/O systems...',
+    date: 'Feb 10, 2026',
+    studyTime: '2.0h',
+    flashcards: 12,
+    bookmarked: false,
+    color: '#EF4444',
+  },
+  {
+    id: 6,
+    title: 'Web Development Frameworks',
+    course: 'CS150',
+    category: 'Web Development',
+    preview:
+      'Comparison of React, Angular, and Vue with architecture patterns and best practices...',
+    date: 'Feb 8, 2026',
+    studyTime: '1.5h',
+    flashcards: 8,
+    bookmarked: true,
+    color: '#06B6D4',
+  },
+  {
+    id: 7,
+    title: 'Network Protocols',
+    course: 'CS301',
+    category: 'Computer Networks',
+    preview: 'TCP/IP, HTTP, DNS, and other network protocols with packet analysis...',
+    date: 'Feb 5, 2026',
+    studyTime: '2.8h',
+    flashcards: 18,
+    bookmarked: false,
+    color: '#8B5CF6',
+  },
+  {
+    id: 8,
+    title: 'Algorithm Complexity',
+    course: 'CS250',
+    category: 'Algorithms',
+    preview: 'Big O notation, time and space complexity analysis for common algorithms...',
+    date: 'Feb 2, 2026',
+    studyTime: '3.5h',
+    flashcards: 22,
+    bookmarked: false,
+    color: '#EC4899',
+  },
 ];
 
 const filters = [
   { key: 'all', label: 'All' },
   { key: 'bookmarked', label: 'Bookmarked' },
   { key: 'recent', label: 'Recent' },
-  { key: 'category', label: 'By Category' }
+  { key: 'category', label: 'By Category' },
 ] as const;
 
 const sortOptions = [
   { key: 'newest', label: 'Newest' },
   { key: 'oldest', label: 'Oldest' },
   { key: 'az', label: 'A-Z' },
-  { key: 'most-studied', label: 'Most Studied' }
+  { key: 'most-studied', label: 'Most Studied' },
 ] as const;
 
-type FilterKey = typeof filters[number]['key'];
-type SortKey = typeof sortOptions[number]['key'];
+type FilterKey = (typeof filters)[number]['key'];
+type SortKey = (typeof sortOptions)[number]['key'];
 
 export const AINotes = () => {
   const { language } = useLanguage();
@@ -63,23 +166,31 @@ export const AINotes = () => {
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
 
   const toggleBookmark = (id: number) => {
-    setNotes(prev => prev.map(n => n.id === id ? { ...n, bookmarked: !n.bookmarked } : n));
+    setNotes((prev) => prev.map((n) => (n.id === id ? { ...n, bookmarked: !n.bookmarked } : n)));
   };
 
   const deleteNote = (id: number) => {
-    setNotes(prev => prev.filter(n => n.id !== id));
+    setNotes((prev) => prev.filter((n) => n.id !== id));
     setOpenMenuId(null);
   };
 
   const filteredNotes = notes
-    .filter(note => {
+    .filter((note) => {
       if (searchQuery) {
         const q = searchQuery.toLowerCase();
-        if (!note.title.toLowerCase().includes(q) && !note.category.toLowerCase().includes(q) && !note.course.toLowerCase().includes(q)) return false;
+        if (
+          !note.title.toLowerCase().includes(q) &&
+          !note.category.toLowerCase().includes(q) &&
+          !note.course.toLowerCase().includes(q)
+        )
+          return false;
       }
       if (activeFilter === 'bookmarked') return note.bookmarked;
       if (activeFilter === 'recent') {
-        const recentIds = [...notes].sort((a, b) => b.id - a.id).slice(0, 4).map(n => n.id);
+        const recentIds = [...notes]
+          .sort((a, b) => b.id - a.id)
+          .slice(0, 4)
+          .map((n) => n.id);
         return recentIds.includes(note.id);
       }
       return true;
@@ -95,14 +206,14 @@ export const AINotes = () => {
     { label: 'Total Notes', value: notes.length, icon: FileText, color: accentColor },
     { label: 'Study Time', value: '48h', icon: Clock, color: '#3B82F6' },
     { label: 'Topics Covered', value: 12, icon: BookOpen, color: '#10B981' },
-    { label: 'Completion', value: '78%', icon: Target, color: '#F59E0B' }
+    { label: 'Completion', value: '78%', icon: Target, color: '#F59E0B' },
   ];
 
   const sources = [
     { icon: FileUp, title: 'Upload Document', desc: 'PDF, Word, images', color: '#3B82F6' },
     { icon: Video, title: 'From Video', desc: 'YouTube, Vimeo links', color: '#EF4444' },
     { icon: Globe, title: 'From URL', desc: 'Any web page', color: '#10B981' },
-    { icon: Mic, title: 'From Audio', desc: 'MP3, voice recordings', color: accentColor }
+    { icon: Mic, title: 'From Audio', desc: 'MP3, voice recordings', color: accentColor },
   ];
 
   return (
@@ -110,7 +221,9 @@ export const AINotes = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <h1 className={`text-2xl font-bold flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-800'}`}>
+          <h1
+            className={`text-2xl font-bold flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-800'}`}
+          >
             <Sparkles className="w-6 h-6 text-[var(--accent-color)]" />
             AI Notes
           </h1>
@@ -129,7 +242,7 @@ export const AINotes = () => {
 
       {/* Quick Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        {stats.map(stat => (
+        {stats.map((stat) => (
           <div
             key={stat.label}
             className={`rounded-[2.5rem] p-6 ${isDark ? 'bg-card-dark border border-white/5' : 'glass'}`}
@@ -142,8 +255,12 @@ export const AINotes = () => {
                 <stat.icon className="w-5 h-5" style={{ color: stat.color }} />
               </div>
               <div>
-                <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>{stat.value}</p>
-                <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{stat.label}</p>
+                <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                  {stat.value}
+                </p>
+                <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                  {stat.label}
+                </p>
               </div>
             </div>
           </div>
@@ -151,16 +268,20 @@ export const AINotes = () => {
       </div>
 
       {/* Search & Filter */}
-      <div className={`rounded-[2.5rem] p-4 mb-6 ${isDark ? 'bg-card-dark border border-white/5' : 'glass'}`}>
+      <div
+        className={`rounded-[2.5rem] p-4 mb-6 ${isDark ? 'bg-card-dark border border-white/5' : 'glass'}`}
+      >
         <div className="flex flex-col md:flex-row md:items-center gap-4">
           {/* Search Input */}
           <div className="relative flex-1">
-            <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} />
+            <Search
+              className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}
+            />
             <input
               type="text"
               placeholder="Search notes..."
               value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className={`w-full pl-10 pr-4 py-2.5 rounded-lg text-sm outline-none transition-colors ${
                 isDark
                   ? 'bg-white/5 border border-white/10 text-white placeholder:text-slate-500 focus:border-[var(--accent-color)]/50'
@@ -171,7 +292,7 @@ export const AINotes = () => {
 
           {/* Filter Chips */}
           <div className="flex items-center gap-2 flex-wrap">
-            {filters.map(f => (
+            {filters.map((f) => (
               <button
                 key={f.key}
                 onClick={() => setActiveFilter(f.key)}
@@ -198,21 +319,30 @@ export const AINotes = () => {
                   : 'bg-slate-100 text-slate-600 border border-slate-200 hover:bg-slate-200'
               }`}
             >
-              {sortOptions.find(s => s.key === sortBy)?.label}
+              {sortOptions.find((s) => s.key === sortBy)?.label}
               <ChevronDown className="w-3 h-3" />
             </button>
             {showSortDropdown && (
-              <div className={`absolute right-0 top-full mt-1 w-36 rounded-lg shadow-lg z-20 overflow-hidden ${
-                isDark ? 'bg-slate-800 border border-white/10' : 'bg-white border border-slate-200'
-              }`}>
-                {sortOptions.map(s => (
+              <div
+                className={`absolute right-0 top-full mt-1 w-36 rounded-lg shadow-lg z-20 overflow-hidden ${
+                  isDark
+                    ? 'bg-slate-800 border border-white/10'
+                    : 'bg-white border border-slate-200'
+                }`}
+              >
+                {sortOptions.map((s) => (
                   <button
                     key={s.key}
-                    onClick={() => { setSortBy(s.key); setShowSortDropdown(false); }}
+                    onClick={() => {
+                      setSortBy(s.key);
+                      setShowSortDropdown(false);
+                    }}
                     className={`w-full text-left px-3 py-2 text-xs transition-colors ${
                       sortBy === s.key
                         ? 'bg-[var(--accent-color)]/10 text-[var(--accent-color)]'
-                        : isDark ? 'text-slate-300 hover:bg-white/5' : 'text-slate-600 hover:bg-slate-50'
+                        : isDark
+                          ? 'text-slate-300 hover:bg-white/5'
+                          : 'text-slate-600 hover:bg-slate-50'
                     }`}
                   >
                     {s.label}
@@ -227,7 +357,7 @@ export const AINotes = () => {
       {/* Notes List */}
       {filteredNotes.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {filteredNotes.map(note => (
+          {filteredNotes.map((note) => (
             <div
               key={note.id}
               className={`rounded-[2.5rem] p-5 hover:shadow-lg transition-all ${
@@ -259,9 +389,13 @@ export const AINotes = () => {
                       <MoreVertical className="w-4 h-4" />
                     </button>
                     {openMenuId === note.id && (
-                      <div className={`absolute right-0 top-full mt-1 w-32 rounded-lg shadow-lg z-20 overflow-hidden ${
-                        isDark ? 'bg-slate-800 border border-white/10' : 'bg-white border border-slate-200'
-                      }`}>
+                      <div
+                        className={`absolute right-0 top-full mt-1 w-32 rounded-lg shadow-lg z-20 overflow-hidden ${
+                          isDark
+                            ? 'bg-slate-800 border border-white/10'
+                            : 'bg-white border border-slate-200'
+                        }`}
+                      >
                         <button
                           onClick={() => deleteNote(note.id)}
                           className={`w-full flex items-center gap-2 px-3 py-2 text-xs text-red-500 transition-colors ${
@@ -283,12 +417,16 @@ export const AINotes = () => {
               </h3>
 
               {/* Preview */}
-              <p className={`text-sm mb-3 line-clamp-2 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+              <p
+                className={`text-sm mb-3 line-clamp-2 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}
+              >
                 {note.preview}
               </p>
 
               {/* Metadata */}
-              <div className={`flex items-center gap-3 text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+              <div
+                className={`flex items-center gap-3 text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+              >
                 <span className="flex items-center gap-1">
                   <Clock className="w-3 h-3" />
                   {note.date}
@@ -307,16 +445,23 @@ export const AINotes = () => {
         </div>
       ) : (
         /* Empty State */
-        <div className={`rounded-[2.5rem] p-12 flex flex-col items-center justify-center text-center ${
-          isDark ? 'bg-card-dark border border-white/5' : 'glass'
-        }`}>
+        <div
+          className={`rounded-[2.5rem] p-12 flex flex-col items-center justify-center text-center ${
+            isDark ? 'bg-card-dark border border-white/5' : 'glass'
+          }`}
+        >
           <FileText className={`w-12 h-12 mb-4 ${isDark ? 'text-slate-600' : 'text-slate-300'}`} />
-          <h3 className={`font-semibold mb-1 ${isDark ? 'text-white' : 'text-slate-800'}`}>No notes found</h3>
+          <h3 className={`font-semibold mb-1 ${isDark ? 'text-white' : 'text-slate-800'}`}>
+            No notes found
+          </h3>
           <p className={`text-sm mb-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
             Try adjusting your filters or create new notes
           </p>
           <button
-            onClick={() => { setSearchQuery(''); setActiveFilter('all'); }}
+            onClick={() => {
+              setSearchQuery('');
+              setActiveFilter('all');
+            }}
             className="px-4 py-2 bg-[var(--accent-color)] text-white rounded-lg hover:opacity-90 transition-colors text-sm font-medium"
           >
             Clear Filters
@@ -327,9 +472,11 @@ export const AINotes = () => {
       {/* Create Note Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className={`w-full max-w-lg rounded-[2.5rem] p-6 ${
-            isDark ? 'bg-slate-900 border border-white/10' : 'bg-white border border-slate-200'
-          }`}>
+          <div
+            className={`w-full max-w-lg rounded-[2.5rem] p-6 ${
+              isDark ? 'bg-slate-900 border border-white/10' : 'bg-white border border-slate-200'
+            }`}
+          >
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h2 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>
@@ -350,7 +497,7 @@ export const AINotes = () => {
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              {sources.map(src => (
+              {sources.map((src) => (
                 <button
                   key={src.title}
                   className={`flex flex-col items-center gap-3 p-5 rounded-xl text-center transition-all hover:scale-[1.02] ${
@@ -366,8 +513,14 @@ export const AINotes = () => {
                     <src.icon className="w-6 h-6" style={{ color: src.color }} />
                   </div>
                   <div>
-                    <p className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>{src.title}</p>
-                    <p className={`text-xs mt-0.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{src.desc}</p>
+                    <p
+                      className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}
+                    >
+                      {src.title}
+                    </p>
+                    <p className={`text-xs mt-0.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                      {src.desc}
+                    </p>
                   </div>
                 </button>
               ))}

@@ -54,7 +54,7 @@ const availableQuizzes = [
     duration: '45 min',
     difficulty: 'Hard',
     icon: <Settings className="w-6 h-6" />,
-    color: accentColor,
+    color: '#8B5CF6',
   },
   {
     id: 4,
@@ -484,7 +484,9 @@ export const QuizTaking = () => {
                   key={idx}
                   onClick={() => selectAnswer(idx)}
                   className={`w-full flex items-center gap-3 p-4 rounded-2xl border-2 text-left transition-all ${
-                    isSelected ? 'border-[var(--accent-color)] bg-[var(--accent-color)]/10' : optionBase
+                    isSelected
+                      ? 'border-[var(--accent-color)] bg-[var(--accent-color)]/10'
+                      : optionBase
                   }`}
                 >
                   {currentQuestion.type === 'mcq' && (
@@ -500,7 +502,9 @@ export const QuizTaking = () => {
                       {label}
                     </span>
                   )}
-                  <span className={`font-medium ${isSelected ? 'text-[var(--accent-color)]' : textPrimary}`}>
+                  <span
+                    className={`font-medium ${isSelected ? 'text-[var(--accent-color)]' : textPrimary}`}
+                  >
                     {opt}
                   </span>
                 </button>
