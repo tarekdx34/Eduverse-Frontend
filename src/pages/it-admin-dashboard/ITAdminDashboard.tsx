@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import { useApi } from '../../hooks/useApi';
+import { campusService } from '../../services/api/campusService';
 import {
   LayoutGrid,
   Settings,
@@ -46,7 +49,6 @@ import {
   DATABASE_BACKUPS,
   SECURITY_EVENTS,
   SSL_CERTIFICATES,
-  CAMPUSES,
   SYSTEM_SETTINGS,
   BRANDING_SETTINGS,
   PERFORMANCE_METRICS,
@@ -177,6 +179,7 @@ function ITAdminDashboardContent() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { isDark, toggleTheme, primaryHex, primaryColor, setPrimaryColor } = useTheme() as any;
   const { language, isRTL, setLanguage, t } = useLanguage();
+  const { user } = useAuth();
 
   // State for data management
   const [serverStatus, setServerStatus] = useState(SERVER_STATUS);
@@ -184,9 +187,22 @@ function ITAdminDashboardContent() {
   const [backups, setBackups] = useState(DATABASE_BACKUPS);
   const [securityEvents] = useState(SECURITY_EVENTS);
   const [sslCertificates, setSslCertificates] = useState(SSL_CERTIFICATES);
-  const [campuses, setCampuses] = useState(CAMPUSES);
+  const { data: campusesRaw, refetch: refetchCampuses } = useApi(() => campusService.listCampuses(), []);
+  const [campuses, setCampuses] = useState<any[]>([]);
   const [systemSettings, setSystemSettings] = useState(SYSTEM_SETTINGS);
   const [brandingSettings, setBrandingSettings] = useState(BRANDING_SETTINGS);
+
+  useEffect(() => {
+    if (campusesRaw) setCampuses(campusesRaw.map((c: any) => ({
+      id: c.id,
+      name: c.name,
+      domain: c.domain || `${c.name?.toLowerCase().replace(/\s+/g, '')}.eduverse.com`,
+      students: c.students || 0,
+      instructors: c.instructors || 0,
+      status: c.status || 'active',
+      storage: c.storage || '0 TB',
+    })));
+  }, [campusesRaw]);
 
   // Sync tab from URL
   useEffect(() => {
@@ -267,25 +283,20 @@ function ITAdminDashboardContent() {
   };
 
   // Campus handlers
-  const handleAddCampus = (campus: any) => {
-    const newCampus = {
-      id: Math.max(...campuses.map((c) => c.id)) + 1,
-      ...campus,
-      students: 0,
-      instructors: 0,
-      storage: '0 TB',
-      status: 'active',
-    };
-    setCampuses([...campuses, newCampus]);
+  const handleAddCampus = async (campus: any) => {
+    await campusService.createCampus(campus);
+    await refetchCampuses();
   };
 
-  const handleEditCampus = (id: number, campus: any) => {
-    setCampuses(campuses.map((c) => (c.id === id ? { ...c, ...campus } : c)));
+  const handleEditCampus = async (id: number, campus: any) => {
+    await campusService.updateCampus(id, campus);
+    await refetchCampuses();
   };
 
-  const handleDeleteCampus = (id: number) => {
+  const handleDeleteCampus = async (id: number) => {
     if (confirm('Are you sure you want to delete this campus?')) {
-      setCampuses(campuses.filter((c) => c.id !== id));
+      await campusService.deleteCampus(id);
+      await refetchCampuses();
     }
   };
 
@@ -336,7 +347,7 @@ function ITAdminDashboardContent() {
       <main className={`flex-1 ${isRTL ? 'lg:mr-64' : 'lg:ml-64'} ${activeTab === 'chat' ? 'p-0' : 'p-4 lg:p-10'}`}>
         {activeTab !== 'chat' && (
         <DashboardHeader
-          userName="IT Administrator"
+          userName={user?.fullName || user?.firstName || 'IT Administrator'}
           userRole="IT Admin"
           isDark={isDark}
           isRTL={isRTL}
@@ -468,7 +479,7 @@ function ITAdminDashboardContent() {
             height="100vh"
             accentColor={primaryHex || '#4f46e5'}
             className="rounded-none border-0"
-            currentUserName="IT Administrator"
+            currentUserName={user?.fullName || user?.firstName || 'IT Administrator'}
             showVideoCall={true}
             showVoiceCall={true}
             isDark={isDark}
@@ -482,10 +493,10 @@ function ITAdminDashboardContent() {
             accentColor={primaryHex || '#3b82f6'}
             bannerGradient="from-[#3b82f6] to-[#06b6d4]"
             profileData={{
-              fullName: 'IT Administrator',
+              fullName: user?.fullName || `${user?.firstName || 'IT'} ${user?.lastName || 'Administrator'}`,
               role: 'IT Admin',
               department: 'Information Technology',
-              email: 'it.admin@university.edu',
+              email: user?.email || 'it.admin@university.edu',
               phone: '+1 (555) 900-1234',
               address: 'IT Building, Server Room 1',
               dateOfBirth: '1982-07-20',

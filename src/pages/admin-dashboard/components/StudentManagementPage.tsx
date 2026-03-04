@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { GraduationCap, Search, Filter, Plus, Minus, Wrench, X, BookOpen } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useApi } from '../../../hooks/useApi';
+import { userService } from '../../../services/api/userService';
+import { LoadingSkeleton } from '../../../components/shared';
 
 interface Student {
   id: number;
@@ -12,17 +15,6 @@ interface Student {
   enrolledCourses: string[];
   status: 'active' | 'on-hold' | 'graduated';
 }
-
-const mockStudents: Student[] = [
-  { id: 1, studentId: 'STU-2024-001', name: 'Sara Mohamed', email: 'sara.m@university.edu', year: '2nd', enrolledCourses: ['CS201', 'CS203', 'MATH201'], status: 'active' },
-  { id: 2, studentId: 'STU-2024-002', name: 'Omar Ali', email: 'omar.a@university.edu', year: '3rd', enrolledCourses: ['CS301', 'CS303'], status: 'active' },
-  { id: 3, studentId: 'STU-2024-003', name: 'Fatima Nour', email: 'fatima.n@university.edu', year: '1st', enrolledCourses: ['CS101', 'CS103', 'MATH101', 'PHY101'], status: 'active' },
-  { id: 4, studentId: 'STU-2024-004', name: 'Hassan Youssef', email: 'hassan.y@university.edu', year: '4th', enrolledCourses: ['CS401', 'CS403'], status: 'active' },
-  { id: 5, studentId: 'STU-2024-005', name: 'Layla Ibrahim', email: 'layla.i@university.edu', year: '2nd', enrolledCourses: ['CS201'], status: 'on-hold' },
-  { id: 6, studentId: 'STU-2024-006', name: 'Khaled Mansour', email: 'khaled.m@university.edu', year: '3rd', enrolledCourses: ['CS301', 'CS305', 'CS307'], status: 'active' },
-  { id: 7, studentId: 'STU-2024-007', name: 'Nadia Samir', email: 'nadia.s@university.edu', year: '1st', enrolledCourses: ['CS101', 'CS103'], status: 'active' },
-  { id: 8, studentId: 'STU-2024-008', name: 'Tariq Hassan', email: 'tariq.h@university.edu', year: '4th', enrolledCourses: [], status: 'graduated' },
-];
 
 const availableCourses = [
   'CS101', 'CS103', 'CS201', 'CS203', 'CS301', 'CS303',
@@ -45,7 +37,24 @@ export function StudentManagementPage() {
   const accentColor = primaryHex || '#3b82f6';
   const { t } = useLanguage();
 
-  const [students, setStudents] = useState<Student[]>(mockStudents);
+  const { data: usersRaw, loading, refetch } = useApi(() => userService.listUsers(), []);
+  const [students, setStudents] = useState<Student[]>([]);
+  useEffect(() => {
+    if (usersRaw) {
+      const users = Array.isArray(usersRaw) ? usersRaw : usersRaw.data || [];
+      setStudents(users
+        .filter((u: any) => (u.roles && u.roles.includes('student')) || !u.roles)
+        .map((u: any, i: number) => ({
+          id: u.userId || u.id || i + 1,
+          name: `${u.firstName || ''} ${u.lastName || ''}`.trim() || `Student ${i + 1}`,
+          email: u.email || '',
+          studentId: u.studentId || `STU${String(i + 1).padStart(4, '0')}`,
+          year: u.year || 'Junior',
+          enrolledCourses: u.enrolledCourses || [],
+          status: u.status === 'active' ? 'active' : u.status === 'graduated' ? 'graduated' : 'on-hold',
+        })));
+    }
+  }, [usersRaw]);
   const [searchTerm, setSearchTerm] = useState('');
   const [yearFilter, setYearFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -130,6 +139,8 @@ export function StudentManagementPage() {
     : [];
 
   const conflicts = selectedStudent ? enrollmentConflicts[selectedStudent.studentId] || [] : [];
+
+  if (loading) return <LoadingSkeleton variant="table" count={5} />;
 
   return (
     <div className="space-y-6">

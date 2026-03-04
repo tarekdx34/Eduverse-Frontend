@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ClipboardList,
   Users,
@@ -17,6 +17,9 @@ import {
 import { CustomDropdown } from './CustomDropdown';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { useApi } from '../../../hooks/useApi';
+import { quizService } from '../../../services/api/quizService';
+import { LoadingSkeleton } from '../../../components/shared';
 
 interface QuizQuestion {
   id: number;
@@ -77,50 +80,25 @@ export function QuizzesPage() {
   const { t, isRTL } = useLanguage();
   const { isDark, primaryHex = '#3b82f6' } = useTheme() as any;
 
-  const [quizzes, setQuizzes] = useState<QuizData[]>([
-    {
-      title: 'Quiz 3 — Derivatives',
-      subject: 'Calculus II',
+  const { data: quizzesRaw, loading, refetch } = useApi(() => quizService.listQuizzes(), []);
+  const [quizzes, setQuizzes] = useState<QuizData[]>([]);
+
+  useEffect(() => {
+    if (quizzesRaw) setQuizzes(quizzesRaw.map((q: any) => ({
+      title: q.title,
+      subject: q.course?.name || 'Unknown',
       subjectColor: 'bg-blue-100 text-blue-700',
-      date: 'May 14, 10:00 AM',
-      questions: 12,
-      attempted: 52,
-      total: 52,
-      difficulty: 'Medium',
-      difficultyColor: 'bg-yellow-100 text-yellow-700',
-      duration: 30,
-      status: 'Active',
-      statusColor: 'bg-green-100 text-green-700',
-    },
-    {
-      title: 'Quiz 2 — Limits and Continuity',
-      subject: 'Calculus I',
-      subjectColor: 'bg-blue-100 text-blue-700',
-      date: 'May 10, 10:00 AM',
-      questions: 10,
-      attempted: 52,
-      total: 52,
-      difficulty: 'Easy',
-      difficultyColor: 'bg-green-100 text-green-700',
-      duration: 25,
-      status: 'Closed',
-      statusColor: 'bg-gray-100 text-gray-700',
-    },
-    {
-      title: 'Quiz 4 — Kinematics',
-      subject: 'Physics I',
-      subjectColor: '',
-      date: 'May 18, 2:00 PM',
-      questions: 15,
+      date: q.startTime ? new Date(q.startTime).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ', ' + new Date(q.startTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '',
+      questions: q.totalQuestions || 0,
       attempted: 0,
-      total: 43,
-      difficulty: 'Hard',
-      difficultyColor: 'bg-red-100 text-red-700',
-      duration: 45,
-      status: 'Scheduled',
-      statusColor: 'bg-blue-100 text-blue-700',
-    },
-  ]);
+      total: 0,
+      difficulty: q.difficulty || 'Medium',
+      difficultyColor: q.difficulty === 'Easy' ? 'bg-green-100 text-green-700' : q.difficulty === 'Hard' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700',
+      duration: q.duration || 30,
+      status: q.status === 'published' ? 'Active' : q.status === 'closed' ? 'Closed' : 'Scheduled',
+      statusColor: q.status === 'published' ? 'bg-green-100 text-green-700' : q.status === 'closed' ? 'bg-gray-100 text-gray-700' : 'bg-blue-100 text-blue-700',
+    })));
+  }, [quizzesRaw]);
 
   // Create / Edit quiz form state
   const [showCreateQuiz, setShowCreateQuiz] = useState(false);
@@ -290,6 +268,8 @@ export function QuizzesPage() {
       color: primaryHex,
     };
   };
+
+  if (loading) return <LoadingSkeleton variant="card" count={3} />;
 
   return (
     <div className="space-y-6">
