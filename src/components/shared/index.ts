@@ -51,3 +51,8 @@ export type { CourseFeature } from './CourseFeatureToggle';
 export { DashboardHeader } from './DashboardHeader';
 export { DashboardSidebar } from './DashboardSidebar';
 export { CustomDropdown } from './CustomDropdown';
+
+// Error Handling & Loading
+export { ErrorBoundary } from './ErrorBoundary';
+export { ErrorMessage } from './ErrorMessage';
+export { LoadingSkeleton } from './LoadingSkeleton';
