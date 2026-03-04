@@ -8,10 +8,14 @@ import {
   BookOpen,
   Award,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { GradeAnalysis } from './GradeAnalysis';
+import { useApi } from '../../../hooks/useApi';
+import { gradeService } from '../../../services/api/gradeService';
+import { useAuth } from '../../../context/AuthContext';
+import { LoadingSkeleton } from '../../../components/shared';
 
 interface GradeRecord {
   code: string;
@@ -38,175 +42,7 @@ interface GradesTranscriptProps {
   semesters?: SemesterData[];
 }
 
-const defaultSemesters: SemesterData[] = [
-  {
-    semester: 'Spring 2025',
-    gpa: 3.63,
-    credits: 20,
-    courses: [
-      {
-        code: 'CS101',
-        name: 'Introduction to Computer Science',
-        credits: 3,
-        percentage: 95,
-        grade: 'A',
-        points: 4.0,
-        status: 'Completed',
-      },
-      {
-        code: 'CS201',
-        name: 'Data Structures & Algorithms',
-        credits: 4,
-        percentage: 87,
-        grade: 'B+',
-        points: 3.5,
-        status: 'Completed',
-      },
-      {
-        code: 'CS150',
-        name: 'Web Development Fundamentals',
-        credits: 3,
-        percentage: 92,
-        grade: 'A-',
-        points: 3.7,
-        status: 'Completed',
-      },
-      {
-        code: 'CS220',
-        name: 'Database Management Systems',
-        credits: 3,
-        percentage: 83,
-        grade: 'B',
-        points: 3.0,
-        status: 'In Progress',
-      },
-      {
-        code: 'CS305',
-        name: 'Software Engineering Principles',
-        credits: 4,
-        percentage: 96,
-        grade: 'A',
-        points: 4.0,
-        status: 'In Progress',
-      },
-      {
-        code: 'CS350',
-        name: 'Mobile Application Development',
-        credits: 3,
-        percentage: 88,
-        grade: 'B+',
-        points: 3.5,
-        status: 'In Progress',
-      },
-    ],
-  },
-  {
-    semester: 'Fall 2024',
-    gpa: 3.85,
-    credits: 18,
-    courses: [
-      {
-        code: 'CS100',
-        name: 'Programming Fundamentals',
-        credits: 3,
-        percentage: 95,
-        grade: 'A',
-        points: 4.0,
-        status: 'Completed',
-      },
-      {
-        code: 'MATH101',
-        name: 'Calculus I',
-        credits: 4,
-        percentage: 90,
-        grade: 'A-',
-        points: 3.7,
-        status: 'Completed',
-      },
-      {
-        code: 'ENG101',
-        name: 'English Composition',
-        credits: 3,
-        percentage: 88,
-        grade: 'B+',
-        points: 3.5,
-        status: 'Completed',
-      },
-      {
-        code: 'PHY101',
-        name: 'Physics I',
-        credits: 4,
-        percentage: 92,
-        grade: 'A',
-        points: 4.0,
-        status: 'Completed',
-      },
-      {
-        code: 'CS110',
-        name: 'Discrete Mathematics',
-        credits: 4,
-        percentage: 91,
-        grade: 'A-',
-        points: 3.7,
-        status: 'Completed',
-      },
-    ],
-  },
-  {
-    semester: 'Spring 2024',
-    gpa: 3.65,
-    credits: 16,
-    courses: [
-      {
-        code: 'CS120',
-        name: 'Object-Oriented Programming',
-        credits: 4,
-        percentage: 88,
-        grade: 'B+',
-        points: 3.5,
-        status: 'Completed',
-      },
-      {
-        code: 'MATH102',
-        name: 'Calculus II',
-        credits: 4,
-        percentage: 83,
-        grade: 'B',
-        points: 3.0,
-        status: 'Completed',
-      },
-      {
-        code: 'ENG102',
-        name: 'Technical Writing',
-        credits: 3,
-        percentage: 92,
-        grade: 'A',
-        points: 4.0,
-        status: 'Completed',
-      },
-      {
-        code: 'CS130',
-        name: 'Computer Architecture',
-        credits: 3,
-        percentage: 88,
-        grade: 'B+',
-        points: 3.5,
-        status: 'Completed',
-      },
-      {
-        code: 'STAT101',
-        name: 'Statistics',
-        credits: 2,
-        percentage: 91,
-        grade: 'A-',
-        points: 3.7,
-        status: 'Completed',
-      },
-    ],
-  },
-];
-
-const getGradeColor = (grade: string, isDark: boolean) => {
+const getGradeColor= (grade: string, isDark: boolean) => {
   if (isDark) {
     if (grade.startsWith('A'))
       return { bg: 'bg-green-900/50', text: 'text-green-400', border: 'border-green-700' };
@@ -495,15 +331,87 @@ const GradeTable = ({
 };
 
 export default function GradesTranscript({
-  cumulativeGPA = 3.75,
-  currentSemesterGPA = 3.62,
-  totalCredits = 120,
+  cumulativeGPA: propCumulativeGPA,
+  currentSemesterGPA: propCurrentSemesterGPA,
+  totalCredits: propTotalCredits,
   classRank = 15,
-  semesters = defaultSemesters,
+  semesters: propSemesters,
 }: GradesTranscriptProps) {
   const { t, isRTL } = useLanguage();
   const { isDark } = useTheme();
+  const { user } = useAuth();
   const [activeView, setActiveView] = useState<'grades' | 'analysis'>('grades');
+
+  const userId = user?.userId;
+
+  const { data: transcriptData, loading: transcriptLoading, error: transcriptError } = useApi(
+    () => gradeService.getTranscript(userId!),
+    [userId],
+    { immediate: !!userId }
+  );
+
+  const { data: gpaData, loading: gpaLoading, error: gpaError } = useApi(
+    () => gradeService.getGPA(userId!),
+    [userId],
+    { immediate: !!userId }
+  );
+
+  const loading = transcriptLoading || gpaLoading;
+  const error = transcriptError || gpaError;
+
+  const semesters: SemesterData[] = useMemo(() => {
+    if (propSemesters) return propSemesters;
+    if (!transcriptData) return [];
+
+    const grouped = new Map<string, GradeRecord[]>();
+    for (const entry of transcriptData.entries) {
+      const records = grouped.get(entry.semesterName) || [];
+      records.push({
+        code: entry.courseCode,
+        name: entry.courseName,
+        credits: entry.credits,
+        percentage: 0,
+        grade: entry.grade,
+        points: entry.points,
+        status: 'Completed',
+      });
+      grouped.set(entry.semesterName, records);
+    }
+
+    const gpaMap = new Map<string, { gpa: number; credits: number }>();
+    if (gpaData?.semesterBreakdown) {
+      for (const sb of gpaData.semesterBreakdown) {
+        gpaMap.set(sb.semesterName, { gpa: sb.gpa, credits: sb.credits });
+      }
+    }
+
+    return Array.from(grouped.entries()).map(([semesterName, courses]) => {
+      const gpaInfo = gpaMap.get(semesterName);
+      return {
+        semester: semesterName,
+        gpa: gpaInfo?.gpa ?? 0,
+        credits: gpaInfo?.credits ?? courses.reduce((sum, c) => sum + c.credits, 0),
+        courses,
+      };
+    });
+  }, [propSemesters, transcriptData, gpaData]);
+
+  const cumulativeGPA = propCumulativeGPA ?? gpaData?.cumulativeGPA ?? 0;
+  const currentSemesterGPA = propCurrentSemesterGPA ?? gpaData?.semesterGPA ?? 0;
+  const totalCredits = propTotalCredits ?? gpaData?.totalCredits ?? 0;
+
+  if (loading) {
+    return <LoadingSkeleton />;
+  }
+
+  if (error) {
+    return (
+      <div className={`p-8 rounded-2xl text-center ${isDark ? 'bg-card-dark text-red-400' : 'bg-white text-red-600'}`}>
+        <p className="text-lg font-semibold mb-2">Failed to load grades data</p>
+        <p className="text-sm opacity-75">Please try again later.</p>
+      </div>
+    );
+  }
 
   const exportGradesAsPDF = () => {
     const htmlContent = `

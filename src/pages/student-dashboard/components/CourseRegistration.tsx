@@ -3,158 +3,47 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
 import {
   Search,
-  Filter,
   BookOpen,
   Clock,
   Users,
-  Star,
   Calendar,
   MapPin,
   Plus,
   Check,
   X,
   AlertCircle,
-  ChevronDown,
-  ChevronRight,
   GraduationCap,
-  Award,
   Info,
   CheckCircle,
 } from 'lucide-react';
-import { CustomDropdown } from '../../../components/shared';
+import { CustomDropdown, LoadingSkeleton } from '../../../components/shared';
+import { useApi, useMutation } from '../../../hooks/useApi';
+import { enrollmentService } from '../../../services/api/enrollmentService';
+import type { Course, CourseSection } from '../../../types/api';
 
-interface Course {
-  id: string;
-  code: string;
-  title: string;
-  instructor: string;
-  credits: number;
-  schedule: string;
-  room: string;
-  capacity: number;
-  enrolled: number;
-  department: string;
-  level: string;
-  prerequisites: string[];
-  description: string;
-  rating: number;
-  status: 'open' | 'waitlist' | 'closed';
+function getFirstSection(course: Course): CourseSection | undefined {
+  return course.sections?.[0];
 }
 
-interface RegisteredCourse {
-  id: string;
-  code: string;
-  title: string;
-  credits: number;
-  schedule: string;
-  status: 'registered' | 'waitlist';
+function formatSchedule(section?: CourseSection): string {
+  if (!section?.schedules?.length) return 'TBA';
+  return section.schedules
+    .map((s) => `${s.dayOfWeek} ${s.startTime}-${s.endTime}`)
+    .join(', ');
 }
 
-const availableCourses: Course[] = [
-  {
-    id: '1',
-    code: 'CS401',
-    title: 'Machine Learning Fundamentals',
-    instructor: 'Dr. Emily Zhang',
-    credits: 4,
-    schedule: 'Mon, Wed 10:00 AM - 11:30 AM',
-    room: 'Lab 401',
-    capacity: 35,
-    enrolled: 28,
-    department: 'Computer Science',
-    level: 'Advanced',
-    prerequisites: ['CS201', 'MATH301'],
-    description:
-      'Introduction to machine learning algorithms, neural networks, and deep learning concepts.',
-    rating: 4.8,
-    status: 'open',
-  },
-  {
-    id: '2',
-    code: 'CS402',
-    title: 'Cloud Computing & DevOps',
-    instructor: 'Prof. Michael Brown',
-    credits: 3,
-    schedule: 'Tue, Thu 2:00 PM - 3:30 PM',
-    room: 'Room 302',
-    capacity: 40,
-    enrolled: 40,
-    department: 'Computer Science',
-    level: 'Advanced',
-    prerequisites: ['CS305'],
-    description: 'Cloud infrastructure, containerization, CI/CD pipelines, and DevOps practices.',
-    rating: 4.6,
-    status: 'waitlist',
-  },
-  {
-    id: '3',
-    code: 'CS310',
-    title: 'Cybersecurity Essentials',
-    instructor: 'Dr. Sarah Miller',
-    credits: 3,
-    schedule: 'Mon, Wed, Fri 1:00 PM - 2:00 PM',
-    room: 'Lab 205',
-    capacity: 30,
-    enrolled: 30,
-    department: 'Computer Science',
-    level: 'Intermediate',
-    prerequisites: ['CS201'],
-    description: 'Network security, cryptography, ethical hacking, and security protocols.',
-    rating: 4.9,
-    status: 'closed',
-  },
-  {
-    id: '4',
-    code: 'CS320',
-    title: 'Computer Graphics',
-    instructor: 'Dr. James Wilson',
-    credits: 4,
-    schedule: 'Tue, Thu 10:00 AM - 11:30 AM',
-    room: 'Lab 303',
-    capacity: 25,
-    enrolled: 18,
-    department: 'Computer Science',
-    level: 'Intermediate',
-    prerequisites: ['MATH201', 'CS150'],
-    description: '3D graphics programming, OpenGL, shaders, and rendering techniques.',
-    rating: 4.5,
-    status: 'open',
-  },
-  {
-    id: '5',
-    code: 'MATH401',
-    title: 'Linear Algebra for Data Science',
-    instructor: 'Prof. Lisa Chen',
-    credits: 3,
-    schedule: 'Mon, Wed 3:00 PM - 4:30 PM',
-    room: 'Room 201',
-    capacity: 45,
-    enrolled: 32,
-    department: 'Mathematics',
-    level: 'Advanced',
-    prerequisites: ['MATH201'],
-    description: 'Matrix operations, eigenvalues, SVD, and applications in data science.',
-    rating: 4.7,
-    status: 'open',
-  },
-  {
-    id: '6',
-    code: 'CS330',
-    title: 'Natural Language Processing',
-    instructor: 'Dr. Robert Taylor',
-    credits: 3,
-    schedule: 'Wed, Fri 9:00 AM - 10:30 AM',
-    room: 'Lab 402',
-    capacity: 30,
-    enrolled: 25,
-    department: 'Computer Science',
-    level: 'Advanced',
-    prerequisites: ['CS401', 'MATH301'],
-    description: 'Text processing, sentiment analysis, transformers, and language models.',
-    rating: 4.8,
-    status: 'open',
-  },
-];
+function formatRoom(section?: CourseSection): string {
+  if (!section?.schedules?.length) return 'TBA';
+  const first = section.schedules[0];
+  return [first.building, first.room].filter(Boolean).join(' ') || 'TBA';
+}
+
+function getSectionStatus(section?: CourseSection): 'open' | 'closed' {
+  if (!section) return 'closed';
+  if (section.status === 'closed' || section.currentEnrollment >= section.maxCapacity)
+    return 'closed';
+  return 'open';
+}
 
 export function CourseRegistration() {
   const { t } = useLanguage();
@@ -164,39 +53,43 @@ export function CourseRegistration() {
   const [selectedDepartment, setSelectedDepartment] = useState('all');
   const [selectedLevel, setSelectedLevel] = useState('all');
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
-  const [showPrereqsFor, setShowPrereqsFor] = useState<string | null>(null);
-  const [registeredCourses, setRegisteredCourses] = useState<RegisteredCourse[]>([
-    {
-      id: 'r1',
-      code: 'CS101',
-      title: 'Introduction to Computer Science',
-      credits: 3,
-      schedule: 'Mon, Wed, Fri 8:30 AM',
-      status: 'registered',
-    },
-    {
-      id: 'r2',
-      code: 'CS201',
-      title: 'Data Structures & Algorithms',
-      credits: 4,
-      schedule: 'Tue, Thu 10:00 AM',
-      status: 'registered',
-    },
-  ]);
+  const [showPrereqsFor, setShowPrereqsFor] = useState<number | null>(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [courseToRegister, setCourseToRegister] = useState<Course | null>(null);
 
-  const totalCredits = registeredCourses.reduce((sum, c) => sum + c.credits, 0);
+  const {
+    data: availableCourses,
+    loading: loadingCourses,
+    refetch: refetchAvailable,
+  } = useApi(() => enrollmentService.getAvailableCourses(), []);
+
+  const {
+    data: enrolledCourses,
+    loading: loadingEnrollments,
+    refetch: refetchEnrollments,
+  } = useApi(() => enrollmentService.getMyEnrolledCourses(), []);
+
+  const registerMutation = useMutation((sectionId: number) =>
+    enrollmentService.registerForCourse(sectionId)
+  );
+
+  const dropMutation = useMutation((enrollmentId: number) =>
+    enrollmentService.dropCourse(enrollmentId)
+  );
+
+  const courses = availableCourses || [];
+  const registeredCourses = enrolledCourses || [];
+
+  const totalCredits = registeredCourses.reduce((sum, e) => sum + (e.course?.credits || 0), 0);
   const maxCredits = 21;
 
-  const filteredCourses = availableCourses.filter((course) => {
+  const filteredCourses = courses.filter((course) => {
     const matchesSearch =
-      course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      course.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      course.instructor.toLowerCase().includes(searchQuery.toLowerCase());
+      course.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      course.code.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesDepartment =
-      selectedDepartment === 'all' || course.department === selectedDepartment;
-    const matchesLevel = selectedLevel === 'all' || course.level === selectedLevel;
+      selectedDepartment === 'all' || String(course.departmentId) === selectedDepartment;
+    const matchesLevel = selectedLevel === 'all' || String(course.level) === selectedLevel;
     return matchesSearch && matchesDepartment && matchesLevel;
   });
 
@@ -205,25 +98,27 @@ export function CourseRegistration() {
     setShowConfirmModal(true);
   };
 
-  const confirmRegistration = () => {
+  const confirmRegistration = async () => {
     if (!courseToRegister) return;
-
-    const newCourse: RegisteredCourse = {
-      id: `r${Date.now()}`,
-      code: courseToRegister.code,
-      title: courseToRegister.title,
-      credits: courseToRegister.credits,
-      schedule: courseToRegister.schedule,
-      status: courseToRegister.status === 'waitlist' ? 'waitlist' : 'registered',
-    };
-
-    setRegisteredCourses([...registeredCourses, newCourse]);
+    const section = getFirstSection(courseToRegister);
+    if (!section) return;
+    try {
+      await registerMutation.mutate(section.id);
+      await Promise.all([refetchAvailable(), refetchEnrollments()]);
+    } catch {
+      // error handled by mutation
+    }
     setShowConfirmModal(false);
     setCourseToRegister(null);
   };
 
-  const handleDrop = (courseId: string) => {
-    setRegisteredCourses(registeredCourses.filter((c) => c.id !== courseId));
+  const handleDrop = async (enrollmentId: number) => {
+    try {
+      await dropMutation.mutate(enrollmentId);
+      await Promise.all([refetchAvailable(), refetchEnrollments()]);
+    } catch {
+      // error handled by mutation
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -240,8 +135,12 @@ export function CourseRegistration() {
   };
 
   const isAlreadyRegistered = (courseCode: string) => {
-    return registeredCourses.some((c) => c.code === courseCode);
+    return registeredCourses.some((e) => e.course?.code === courseCode);
   };
+
+  if (loadingCourses || loadingEnrollments) {
+    return <LoadingSkeleton variant="card" count={4} />;
+  }
 
   return (
     <div className="space-y-6">
@@ -352,34 +251,25 @@ export function CourseRegistration() {
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-sm font-bold text-[var(--accent-color)]">{course.code}</span>
                       <span
-                        className={`px-2 py-0.5 rounded-full text-xs font-medium border ${getStatusBadge(course.status)}`}
+                        className={`px-2 py-0.5 rounded-full text-xs font-medium border ${getStatusBadge(getSectionStatus(getFirstSection(course)))}`}
                       >
-                        {course.status === 'open'
+                        {getSectionStatus(getFirstSection(course)) === 'open'
                           ? t('open')
-                          : course.status === 'waitlist'
-                            ? t('waitlist')
-                            : t('closed')}
+                          : t('closed')}
                       </span>
                       <span
                         className={`px-2 py-0.5 ${isDark ? 'bg-white/5 text-slate-400' : 'bg-slate-50 text-slate-600'} rounded-full text-xs`}
                       >
-                        {course.level}
+                        {course.level ?? ''}
                       </span>
                     </div>
                     <h3
                       className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}
                     >
-                      {course.title}
+                      {course.name}
                     </h3>
-                    <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-                      {course.instructor}
-                    </p>
                   </div>
                   <div className="text-right">
-                    <div className="flex items-center gap-1 text-amber-500 mb-1">
-                      <Star className="w-4 h-4 fill-current" />
-                      <span className="text-sm font-medium">{course.rating}</span>
-                    </div>
                     <span
                       className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}
                     >
@@ -393,23 +283,23 @@ export function CourseRegistration() {
                 >
                   <div className="flex items-center gap-2">
                     <Clock className="w-4 h-4 text-slate-500" />
-                    <span>{course.schedule.split(' ').slice(0, 2).join(' ')}</span>
+                    <span>{formatSchedule(getFirstSection(course))}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <MapPin className="w-4 h-4 text-slate-500" />
-                    <span>{course.room}</span>
+                    <span>{formatRoom(getFirstSection(course))}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Users className="w-4 h-4 text-slate-500" />
                     <span>
-                      {course.enrolled}/{course.capacity} {t('enrolled2')}
+                      {getFirstSection(course)?.currentEnrollment ?? 0}/{getFirstSection(course)?.maxCapacity ?? 0} {t('enrolled2')}
                     </span>
                   </div>
                 </div>
 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    {course.prerequisites.length > 0 && (
+                    {(course.prerequisites?.length ?? 0) > 0 && (
                       <div className="relative">
                         <button
                           onClick={(e) => {
@@ -448,12 +338,12 @@ export function CourseRegistration() {
                               </button>
                             </div>
                             <div className="flex flex-wrap gap-1">
-                              {course.prerequisites.map((prereq) => (
+                              {(course.prerequisites || []).map((prereq) => (
                                 <span
-                                  key={prereq}
+                                  key={prereq.id}
                                   className={`px-2 py-0.5 rounded text-[10px] font-medium ${isDark ? 'bg-white/10' : 'bg-gray-100'}`}
                                 >
-                                  {prereq}
+                                  {prereq.prerequisiteCourse?.code || `Course #${prereq.prerequisiteCourseId}`}
                                 </span>
                               ))}
                             </div>
@@ -467,7 +357,7 @@ export function CourseRegistration() {
                       <Check className="w-4 h-4" />
                       {t('registered')}
                     </span>
-                  ) : course.status === 'closed' ? (
+                  ) : getSectionStatus(getFirstSection(course)) === 'closed' ? (
                     <span
                       className={`px-4 py-2 ${isDark ? 'bg-white/5' : 'bg-slate-50'} text-slate-500 rounded-lg text-sm font-medium cursor-not-allowed`}
                     >
@@ -482,7 +372,7 @@ export function CourseRegistration() {
                       className="flex items-center gap-2 px-4 py-2 bg-[var(--accent-color)] text-white rounded-lg hover:opacity-90 transition-all text-sm font-medium"
                     >
                       <Plus className="w-4 h-4" />
-                      {course.status === 'waitlist' ? t('joinWaitlist') : t('register')}
+                      {t('register')}
                     </button>
                   )}
                 </div>
@@ -518,16 +408,16 @@ export function CourseRegistration() {
                   <p className="text-sm text-slate-500">{t('browseToAdd')}</p>
                 </div>
               ) : (
-                registeredCourses.map((course) => (
+                registeredCourses.map((enrollment) => (
                   <div
-                    key={course.id}
+                    key={enrollment.id}
                     className={`p-3 border ${isDark ? 'border-white/5' : 'border-slate-100'} rounded-lg ${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'} transition-all`}
                   >
                     <div className="flex items-start justify-between mb-2">
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-bold text-[var(--accent-color)]">{course.code}</span>
-                          {course.status === 'waitlist' && (
+                          <span className="text-sm font-bold text-[var(--accent-color)]">{enrollment.course?.code}</span>
+                          {enrollment.status === 'waitlist' && (
                             <span className="px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full text-xs">
                               {t('waitlist')}
                             </span>
@@ -536,19 +426,19 @@ export function CourseRegistration() {
                         <p
                           className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'}`}
                         >
-                          {course.title}
+                          {enrollment.course?.name}
                         </p>
                       </div>
                       <span
                         className={`text-sm font-bold ${isDark ? 'text-slate-400' : 'text-slate-600'}`}
                       >
-                        {course.credits} CR
+                        {enrollment.course?.credits ?? 0} CR
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-xs text-slate-500">{course.schedule}</span>
+                      <span className="text-xs text-slate-500">{formatSchedule(enrollment.section)}</span>
                       <button
-                        onClick={() => handleDrop(course.id)}
+                        onClick={() => handleDrop(enrollment.id)}
                         className="text-red-600 hover:text-red-700 text-xs font-medium flex items-center gap-1"
                       >
                         <X className="w-3 h-3" />
@@ -577,11 +467,8 @@ export function CourseRegistration() {
                   <h4
                     className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}
                   >
-                    {selectedCourse.title}
+                    {selectedCourse.name}
                   </h4>
-                  <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-                    {selectedCourse.instructor}
-                  </p>
                 </div>
                 <p className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-700'} mb-4`}>
                   {selectedCourse.description}
@@ -592,7 +479,7 @@ export function CourseRegistration() {
                       {t('schedule')}
                     </span>
                     <span className={`${isDark ? 'text-white' : 'text-slate-800'} font-medium`}>
-                      {selectedCourse.schedule}
+                      {formatSchedule(getFirstSection(selectedCourse))}
                     </span>
                   </div>
                   <div className="flex justify-between">
@@ -600,7 +487,7 @@ export function CourseRegistration() {
                       {t('room')}
                     </span>
                     <span className={`${isDark ? 'text-white' : 'text-slate-800'} font-medium`}>
-                      {selectedCourse.room}
+                      {formatRoom(getFirstSection(selectedCourse))}
                     </span>
                   </div>
                   <div className="flex justify-between">
@@ -616,11 +503,11 @@ export function CourseRegistration() {
                       {t('capacity')}
                     </span>
                     <span className={`${isDark ? 'text-white' : 'text-slate-800'} font-medium`}>
-                      {selectedCourse.enrolled}/{selectedCourse.capacity}
+                      {getFirstSection(selectedCourse)?.currentEnrollment ?? 0}/{getFirstSection(selectedCourse)?.maxCapacity ?? 0}
                     </span>
                   </div>
                 </div>
-                {selectedCourse.prerequisites.length > 0 && (
+                {(selectedCourse.prerequisites?.length ?? 0) > 0 && (
                   <div
                     className={`mt-4 pt-4 border-t ${isDark ? 'border-white/5' : 'border-slate-100'}`}
                   >
@@ -630,12 +517,12 @@ export function CourseRegistration() {
                       {t('prerequisites')}
                     </p>
                     <div className="flex flex-wrap gap-2">
-                      {selectedCourse.prerequisites.map((prereq, idx) => (
+                      {(selectedCourse.prerequisites || []).map((prereq) => (
                         <span
-                          key={idx}
+                          key={prereq.id}
                           className={`px-2 py-1 ${isDark ? 'bg-white/5 text-slate-300' : 'bg-slate-50 text-slate-700'} rounded text-xs`}
                         >
-                          {prereq}
+                          {prereq.prerequisiteCourse?.code || `Course #${prereq.prerequisiteCourseId}`}
                         </span>
                       ))}
                     </div>
@@ -656,7 +543,7 @@ export function CourseRegistration() {
                     >
                       <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
                       <span>
-                        Core concepts and fundamentals of {selectedCourse.title.toLowerCase()}
+                      Core concepts and fundamentals of {selectedCourse.name.toLowerCase()}
                       </span>
                     </li>
                     <li
@@ -691,14 +578,10 @@ export function CourseRegistration() {
             <h2
               className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-slate-800'} text-center mb-2`}
             >
-              {courseToRegister.status === 'waitlist'
-                ? t('joinWaitlistQuestion')
-                : t('confirmRegistration')}
+              {t('confirmRegistration')}
             </h2>
             <p className={`${isDark ? 'text-slate-400' : 'text-slate-600'} text-center mb-4`}>
-              {courseToRegister.status === 'waitlist'
-                ? `${t('waitlistConfirmText')} ${courseToRegister.code} - ${courseToRegister.title}`
-                : `${t('registerConfirmText')} ${courseToRegister.code} - ${courseToRegister.title}`}
+              {`${t('registerConfirmText')} ${courseToRegister.code} - ${courseToRegister.name}`}
             </p>
 
             <div className={`${isDark ? 'bg-white/5' : 'bg-background-light'} rounded-lg p-4 mb-6`}>
@@ -716,15 +599,7 @@ export function CourseRegistration() {
                     {t('schedule')}
                   </span>
                   <span className={`${isDark ? 'text-white' : 'text-slate-800'} font-medium`}>
-                    {courseToRegister.schedule}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-                    {t('instructor')}
-                  </span>
-                  <span className={`${isDark ? 'text-white' : 'text-slate-800'} font-medium`}>
-                    {courseToRegister.instructor}
+                    {formatSchedule(getFirstSection(courseToRegister))}
                   </span>
                 </div>
               </div>
@@ -756,7 +631,7 @@ export function CourseRegistration() {
                 onClick={confirmRegistration}
                 className="flex-1 px-4 py-3 bg-gradient-to-r from-[var(--accent-color)] to-[var(--accent-color)] text-white rounded-xl hover:shadow-lg transition-all font-medium"
               >
-                {courseToRegister.status === 'waitlist' ? t('joinWaitlist') : t('confirm')}
+                {t('confirm')}
               </button>
             </div>
           </div>

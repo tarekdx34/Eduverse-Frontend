@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import {
   Bell,
@@ -20,126 +20,64 @@ import {
   FileText,
   Users
 } from 'lucide-react';
+import { useApi, useMutation } from '../../../hooks/useApi';
+import { notificationService } from '../../../services/api/notificationService';
+import { LoadingSkeleton } from '../../../components/shared';
 
-interface Notification {
-  id: string;
-  type: 'deadline' | 'grade' | 'announcement' | 'reminder' | 'achievement' | 'message' | 'warning';
+interface MappedNotification {
+  id: number;
+  type: string;
   title: string;
   description: string;
   timestamp: string;
   read: boolean;
   actionUrl?: string;
-  priority: 'low' | 'medium' | 'high' | 'urgent';
+  priority: string;
   category: string;
 }
 
-const notifications: Notification[] = [
-  {
-    id: '1',
-    type: 'deadline',
-    title: 'Assignment Due Tomorrow',
-    description: 'Database Design Project is due in 24 hours. Don\'t forget to submit!',
-    timestamp: '10 minutes ago',
-    read: false,
-    priority: 'urgent',
-    category: 'CS220'
-  },
-  {
-    id: '2',
-    type: 'warning',
-    title: 'Low Attendance Alert',
-    description: 'Your attendance in Database Management Systems is at 76%. Minimum required is 75%.',
-    timestamp: '1 hour ago',
-    read: false,
-    priority: 'high',
-    category: 'Attendance'
-  },
-  {
-    id: '3',
-    type: 'grade',
-    title: 'New Grade Posted',
-    description: 'Your grade for Web Portfolio Project has been posted. You scored 95/100.',
-    timestamp: '2 hours ago',
-    read: false,
+function formatTimestamp(createdAt: string): string {
+  const now = new Date();
+  const date = new Date(createdAt);
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  if (diffMins < 1) return 'Just now';
+  if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
+  const diffHours = Math.floor(diffMins / 60);
+  if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+  return date.toLocaleDateString();
+}
+
+function mapNotification(n: any): MappedNotification {
+  return {
+    id: n.id,
+    type: n.type || 'announcement',
+    title: n.title,
+    description: n.message,
+    timestamp: formatTimestamp(n.createdAt),
+    read: n.isRead,
+    actionUrl: n.actionUrl,
     priority: 'medium',
-    category: 'CS150'
-  },
-  {
-    id: '4',
-    type: 'achievement',
-    title: 'Achievement Unlocked! 🎉',
-    description: 'You\'ve earned the "Perfect Score" badge for getting 100% on an assignment.',
-    timestamp: '3 hours ago',
-    read: true,
-    priority: 'low',
-    category: 'Gamification'
-  },
-  {
-    id: '5',
-    type: 'announcement',
-    title: 'Class Cancelled',
-    description: 'Tomorrow\'s Software Engineering lecture has been cancelled. Check announcements for details.',
-    timestamp: '5 hours ago',
-    read: true,
-    priority: 'medium',
-    category: 'CS305'
-  },
-  {
-    id: '6',
-    type: 'message',
-    title: 'New Message from Prof. Sarah Johnson',
-    description: 'Regarding your question about the database normalization assignment...',
-    timestamp: '6 hours ago',
-    read: true,
-    priority: 'medium',
-    category: 'Messages'
-  },
-  {
-    id: '7',
-    type: 'reminder',
-    title: 'Exam in 3 Days',
-    description: 'Midterm Exam for Web Development Fundamentals is scheduled for December 6th at 1:00 PM.',
-    timestamp: '1 day ago',
-    read: true,
-    priority: 'high',
-    category: 'CS150'
-  },
-  {
-    id: '8',
-    type: 'warning',
-    title: 'Progress Alert',
-    description: 'You\'re falling behind in Data Structures & Algorithms. Complete the pending assignments to catch up.',
-    timestamp: '1 day ago',
-    read: true,
-    priority: 'high',
-    category: 'CS201'
-  },
-  {
-    id: '9',
-    type: 'deadline',
-    title: 'Quiz Deadline Approaching',
-    description: 'Core Concepts Quiz for CS201 is due in 2 days.',
-    timestamp: '2 days ago',
-    read: true,
-    priority: 'medium',
-    category: 'CS201'
-  },
-  {
-    id: '10',
-    type: 'announcement',
-    title: 'New Course Materials Available',
-    description: 'New lecture slides and resources have been uploaded for Mobile Application Development.',
-    timestamp: '3 days ago',
-    read: true,
-    priority: 'low',
-    category: 'CS350'
-  }
-];
+    category: n.category || '',
+  };
+}
 
 export function NotificationCenter() {
   const { isDark, primaryHex } = useTheme() as any;
   const accentColor = primaryHex || '#3b82f6';
-  const [notificationList, setNotificationList] = useState<Notification[]>(notifications);
+  const { data: rawNotifications, loading } = useApi(() => notificationService.list(), []);
+  const { mutate: apiMarkAsRead } = useMutation((id: number) => notificationService.markAsRead(id));
+  const { mutate: apiDelete } = useMutation((id: number) => notificationService.delete(id));
+  const [notificationList, setNotificationList] = useState<MappedNotification[]>([]);
+
+  useEffect(() => {
+    if (rawNotifications) {
+      setNotificationList(rawNotifications.map(mapNotification));
+    }
+  }, [rawNotifications]);
+
   const [filterType, setFilterType] = useState<string>('all');
   const [showSettings, setShowSettings] = useState(false);
   const [notificationSettings, setNotificationSettings] = useState({
@@ -216,22 +154,25 @@ export function NotificationCenter() {
     }
   };
 
-  const markAsRead = (id: string) => {
-    setNotificationList(notificationList.map(n => 
+  const markAsRead = (id: number) => {
+    setNotificationList(prev => prev.map(n => 
       n.id === id ? { ...n, read: true } : n
     ));
+    apiMarkAsRead(id);
   };
 
   const markAllAsRead = () => {
-    setNotificationList(notificationList.map(n => ({ ...n, read: true })));
+    setNotificationList(prev => prev.map(n => ({ ...n, read: true })));
+    notificationService.markAllAsRead();
   };
 
-  const deleteNotification = (id: string) => {
-    setNotificationList(notificationList.filter(n => n.id !== id));
+  const deleteNotification = (id: number) => {
+    setNotificationList(prev => prev.filter(n => n.id !== id));
+    apiDelete(id);
   };
 
   const clearAllRead = () => {
-    setNotificationList(notificationList.filter(n => !n.read));
+    setNotificationList(prev => prev.filter(n => !n.read));
   };
 
   const filteredNotifications = filterType === 'all' 
@@ -239,6 +180,10 @@ export function NotificationCenter() {
     : filterType === 'unread'
     ? notificationList.filter(n => !n.read)
     : notificationList.filter(n => n.type === filterType);
+
+  if (loading) {
+    return <LoadingSkeleton variant="list" count={5} />;
+  }
 
   return (
     <div className="space-y-6">

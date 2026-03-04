@@ -1,5 +1,9 @@
 import { useState } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
+import { useApi, useMutation } from '../../../hooks/useApi';
+import { labService } from '../../../services/api/labService';
+import { LoadingSkeleton } from '../../../components/shared';
+import type { Lab } from '../../../types/api';
 import {
   Beaker,
   Clock,
@@ -46,144 +50,13 @@ interface LabSession {
   resources: { name: string; type: string; size: string }[];
 }
 
-const labSessions: LabSession[] = [
-  {
-    id: '1',
-    title: 'Lab 8: Database Indexing & Query Optimization',
-    courseCode: 'CS220',
-    courseName: 'Database Management Systems',
-    instructor: 'Dr. James Wilson',
-    date: 'December 5, 2025',
-    time: '2:00 PM - 4:00 PM',
-    room: 'Lab 302',
-    status: 'upcoming',
-    deliverable: {
-      title: 'Query Optimization Report',
-      dueDate: 'December 7, 2025 11:59 PM',
-      submitted: false,
-      maxGrade: 25
-    },
-    instructions: [
-      'Create indexes on the provided database tables',
-      'Analyze query execution plans before and after indexing',
-      'Optimize at least 5 slow queries using appropriate techniques',
-      'Document your optimization strategies and performance improvements',
-      'Submit a detailed report with screenshots of execution plans'
-    ],
-    objectives: [
-      'Understand how database indexes work',
-      'Learn to analyze query execution plans',
-      'Apply optimization techniques to improve query performance',
-      'Document and present technical findings'
-    ],
-    resources: [
-      { name: 'Lab8_Instructions.pdf', type: 'pdf', size: '245 KB' },
-      { name: 'sample_database.sql', type: 'sql', size: '1.2 MB' },
-      { name: 'query_samples.txt', type: 'txt', size: '12 KB' }
-    ]
-  },
-  {
-    id: '2',
-    title: 'Lab 7: SQL Joins and Subqueries',
-    courseCode: 'CS220',
-    courseName: 'Database Management Systems',
-    instructor: 'Dr. James Wilson',
-    date: 'November 28, 2025',
-    time: '2:00 PM - 4:00 PM',
-    room: 'Lab 302',
-    status: 'completed',
-    deliverable: {
-      title: 'SQL Joins Exercise',
-      dueDate: 'November 30, 2025 11:59 PM',
-      submitted: true,
-      grade: 23,
-      maxGrade: 25
-    },
-    instructions: [
-      'Complete all join exercises in the worksheet',
-      'Write subqueries for the advanced problems',
-      'Test your queries against the sample database',
-      'Submit your SQL file with all solutions'
-    ],
-    objectives: [
-      'Master different types of SQL joins',
-      'Understand when to use subqueries',
-      'Practice writing complex queries'
-    ],
-    resources: [
-      { name: 'Lab7_Worksheet.pdf', type: 'pdf', size: '180 KB' },
-      { name: 'joins_database.sql', type: 'sql', size: '800 KB' }
-    ]
-  },
-  {
-    id: '3',
-    title: 'Lab 5: React Native Navigation',
-    courseCode: 'CS350',
-    courseName: 'Mobile Application Development',
-    instructor: 'Dr. Robert Taylor',
-    date: 'December 6, 2025',
-    time: '10:00 AM - 12:00 PM',
-    room: 'Lab 401',
-    status: 'upcoming',
-    deliverable: {
-      title: 'Navigation App Prototype',
-      dueDate: 'December 8, 2025 11:59 PM',
-      submitted: false,
-      maxGrade: 30
-    },
-    instructions: [
-      'Set up React Navigation in your project',
-      'Implement stack, tab, and drawer navigation',
-      'Create at least 5 screens with proper navigation flow',
-      'Add deep linking support for at least 2 routes',
-      'Test navigation on both iOS and Android simulators'
-    ],
-    objectives: [
-      'Understand React Navigation architecture',
-      'Implement multiple navigation patterns',
-      'Handle navigation state and parameters',
-      'Configure deep linking'
-    ],
-    resources: [
-      { name: 'Lab5_Guide.pdf', type: 'pdf', size: '320 KB' },
-      { name: 'starter_project.zip', type: 'zip', size: '2.5 MB' },
-      { name: 'navigation_cheatsheet.pdf', type: 'pdf', size: '150 KB' }
-    ]
-  },
-  {
-    id: '4',
-    title: 'Lab 4: State Management with Redux',
-    courseCode: 'CS350',
-    courseName: 'Mobile Application Development',
-    instructor: 'Dr. Robert Taylor',
-    date: 'November 22, 2025',
-    time: '10:00 AM - 12:00 PM',
-    room: 'Lab 401',
-    status: 'completed',
-    deliverable: {
-      title: 'Redux Todo App',
-      dueDate: 'November 24, 2025 11:59 PM',
-      submitted: true,
-      grade: 28,
-      maxGrade: 30
-    },
-    instructions: [
-      'Set up Redux store with proper configuration',
-      'Create actions and reducers for todo operations',
-      'Connect React components to Redux store',
-      'Implement async actions with Redux Thunk'
-    ],
-    objectives: [
-      'Understand Redux architecture and data flow',
-      'Create and manage application state',
-      'Handle asynchronous operations'
-    ],
-    resources: [
-      { name: 'Lab4_Instructions.pdf', type: 'pdf', size: '280 KB' },
-      { name: 'redux_template.zip', type: 'zip', size: '1.8 MB' }
-    ]
-  }
-];
+function mapLabStatus(status: string): 'upcoming' | 'in-progress' | 'completed' | 'missed' {
+  const s = status.toLowerCase();
+  if (s === 'completed' || s === 'graded') return 'completed';
+  if (s === 'active' || s === 'in-progress' || s === 'in_progress') return 'in-progress';
+  if (s === 'missed' || s === 'overdue') return 'missed';
+  return 'upcoming';
+}
 
 export function LabInstructions() {
   const { isDark, primaryHex } = useTheme() as any;
@@ -192,6 +65,35 @@ export function LabInstructions() {
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
+
+  const { data: apiLabs, loading, error } = useApi(() => labService.listLabs(), []);
+  const { mutate: submitLabMutation, loading: submitting } = useMutation(
+    (data: { labId: number; formData: FormData }) => labService.submitLab(data.labId, data.formData)
+  );
+
+  const labSessions: LabSession[] = (apiLabs || []).map((lab: Lab, index: number) => ({
+    id: String(lab.id),
+    title: lab.title,
+    courseCode: `CS${100 + (lab.courseId || index)}`,
+    courseName: lab.description || lab.title,
+    instructor: 'Instructor',
+    date: lab.dueDate
+      ? new Date(lab.dueDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+      : 'TBD',
+    time: 'See schedule',
+    room: lab.sectionId ? `Lab ${lab.sectionId}` : 'TBD',
+    status: mapLabStatus(lab.status),
+    deliverable: {
+      title: lab.title,
+      dueDate: lab.dueDate || 'TBD',
+      submitted: lab.status === 'completed' || lab.status === 'graded',
+      grade: undefined,
+      maxGrade: lab.totalPoints || 100,
+    },
+    instructions: (lab.instructions || []).sort((a, b) => a.stepNumber - b.stepNumber).map(i => i.content),
+    objectives: [],
+    resources: [],
+  }));
 
   const filteredLabs = filterStatus === 'all' 
     ? labSessions 
@@ -229,11 +131,22 @@ export function LabInstructions() {
     setShowSubmitModal(true);
   };
 
-  const confirmSubmit = () => {
-    alert('Lab deliverable submitted successfully!');
-    setShowSubmitModal(false);
-    setAttachedFiles([]);
+  const confirmSubmit = async () => {
+    if (!selectedLab) return;
+    const formData = new FormData();
+    attachedFiles.forEach(file => formData.append('files', file));
+    try {
+      await submitLabMutation({ labId: Number(selectedLab.id), formData });
+      setShowSubmitModal(false);
+      setAttachedFiles([]);
+    } catch {
+      // error is available via useMutation's error state
+    }
   };
+
+  if (loading) {
+    return <LoadingSkeleton variant="card" count={4} />;
+  }
 
   if (selectedLab) {
     return (

@@ -20,138 +20,12 @@ import AssignmentDetails from './AssignmentDetails';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { CustomDropdown } from '../../../components/shared';
-
-export const assignments = [
-  {
-    id: 1,
-    title: 'Database Design Project',
-    course: 'Database Management Systems',
-    courseCode: 'CS220',
-    type: 'Project',
-    dueDate: '2025-12-10',
-    dueTime: '11:59 PM',
-    status: 'pending',
-    priority: 'high',
-    description: 'Design and implement a relational database for a library management system',
-    points: 100,
-    submittedPoints: null,
-    progress: 45,
-    color: 'bg-orange-500',
-    colorLight: 'bg-orange-50',
-    colorBorder: 'border-orange-500',
-  },
-  {
-    id: 2,
-    title: 'Mobile App Prototype',
-    course: 'Mobile Application Development',
-    courseCode: 'CS350',
-    type: 'Project',
-    dueDate: '2025-12-08',
-    dueTime: '11:59 PM',
-    status: 'pending',
-    priority: 'high',
-    description: 'Create a functional prototype of a mobile application using React Native',
-    points: 150,
-    submittedPoints: null,
-    progress: 60,
-    color: 'bg-[var(--accent-color)]/100',
-    colorLight: 'bg-[var(--accent-color)]/10',
-    colorBorder: 'border-[var(--accent-color)]',
-  },
-  {
-    id: 3,
-    title: 'Algorithm Analysis Report',
-    course: 'Data Structures & Algorithms',
-    courseCode: 'CS201',
-    type: 'Report',
-    dueDate: '2025-12-06',
-    dueTime: '11:59 PM',
-    status: 'in-progress',
-    priority: 'medium',
-    description: 'Analyze time and space complexity of sorting algorithms',
-    points: 50,
-    submittedPoints: null,
-    progress: 75,
-    color: 'bg-blue-500',
-    colorLight: 'bg-blue-50',
-    colorBorder: 'border-blue-500',
-  },
-  {
-    id: 4,
-    title: 'Software Requirements Document',
-    course: 'Software Engineering Principles',
-    courseCode: 'CS305',
-    type: 'Documentation',
-    dueDate: '2025-12-05',
-    dueTime: '11:59 PM',
-    status: 'in-progress',
-    priority: 'medium',
-    description: 'Write comprehensive software requirements specification',
-    points: 75,
-    submittedPoints: null,
-    progress: 90,
-    color: 'bg-pink-500',
-    colorLight: 'bg-pink-50',
-    colorBorder: 'border-pink-500',
-  },
-  {
-    id: 5,
-    title: 'Web Portfolio Project',
-    course: 'Web Development Fundamentals',
-    courseCode: 'CS150',
-    type: 'Project',
-    dueDate: '2025-11-30',
-    dueTime: '11:59 PM',
-    status: 'submitted',
-    priority: 'low',
-    description: 'Build a personal portfolio website using HTML, CSS, and JavaScript',
-    points: 100,
-    submittedPoints: 95,
-    progress: 100,
-    color: 'bg-green-500',
-    colorLight: 'bg-green-50',
-    colorBorder: 'border-green-500',
-  },
-  {
-    id: 6,
-    title: 'Unit Testing Assignment',
-    course: 'Software Engineering Principles',
-    courseCode: 'CS305',
-    type: 'Assignment',
-    dueDate: '2025-11-28',
-    dueTime: '11:59 PM',
-    status: 'graded',
-    priority: 'low',
-    description: 'Write comprehensive unit tests for the provided codebase',
-    points: 50,
-    submittedPoints: 48,
-    progress: 100,
-    color: 'bg-pink-500',
-    colorLight: 'bg-pink-50',
-    colorBorder: 'border-pink-500',
-  },
-  {
-    id: 7,
-    title: 'SQL Query Exercises',
-    course: 'Database Management Systems',
-    courseCode: 'CS220',
-    type: 'Exercise',
-    dueDate: '2025-11-25',
-    dueTime: '11:59 PM',
-    status: 'graded',
-    priority: 'low',
-    description: 'Complete advanced SQL query exercises covering joins and subqueries',
-    points: 30,
-    submittedPoints: 30,
-    progress: 100,
-    color: 'bg-orange-500',
-    colorLight: 'bg-orange-50',
-    colorBorder: 'border-orange-500',
-  },
-];
+import { useApi } from '../../../hooks/useApi';
+import { assignmentService } from '../../../services/api/assignmentService';
+import { LoadingSkeleton } from '../../../components/shared';
 
 const getDaysUntilDue = (dueDate: string) => {
-  const today = new Date('2025-12-04');
+  const today = new Date();
   const due = new Date(dueDate);
   const diffTime = due.getTime() - today.getTime();
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -195,7 +69,43 @@ export default function Assignments() {
   const accentColor = primaryHex || '#3b82f6';
   const { t } = useLanguage();
 
-  const getUrgencyLabel = (daysUntil: number) => {
+  const { data: apiAssignments, loading } = useApi(
+    () => assignmentService.listAssignments(),
+    []
+  );
+
+  const statusColors: Record<string, { color: string; colorLight: string; colorBorder: string }> = {
+    draft: { color: 'bg-slate-500', colorLight: 'bg-slate-50', colorBorder: 'border-slate-500' },
+    published: { color: 'bg-blue-500', colorLight: 'bg-blue-50', colorBorder: 'border-blue-500' },
+    closed: { color: 'bg-green-500', colorLight: 'bg-green-50', colorBorder: 'border-green-500' },
+  };
+
+  const assignments = (apiAssignments || []).map((a: any) => {
+    const colors = statusColors[a.status] || statusColors.published;
+    const dueDateStr = a.dueDate?.split('T')[0] || '';
+    return {
+      id: a.id,
+      title: a.title,
+      course: a.course?.name || '',
+      courseCode: a.course?.code || '',
+      type: a.type || 'Assignment',
+      dueDate: dueDateStr,
+      dueTime: a.dueDate ? new Date(a.dueDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '11:59 PM',
+      status: a.status === 'published' ? 'pending' : a.status === 'closed' ? 'graded' : a.status,
+      priority: getDaysUntilDue(dueDateStr) <= 3 ? 'high' : getDaysUntilDue(dueDateStr) <= 7 ? 'medium' : 'low',
+      description: a.description || '',
+      points: a.totalPoints,
+      submittedPoints: null as number | null,
+      progress: 0,
+      ...colors,
+    };
+  });
+
+  if (loading) {
+    return <LoadingSkeleton variant="list" count={5} />;
+  }
+
+  const getUrgencyLabel= (daysUntil: number) => {
     if (daysUntil < 0)
       return {
         label: t('overdue'),

@@ -14,7 +14,8 @@ import {
 import { useState } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { assignments } from './Assignments';
+import { useApi } from '../../../hooks/useApi';
+import { assignmentService } from '../../../services/api/assignmentService';
 
 interface Todo {
   id: number | string;
@@ -29,19 +30,32 @@ interface Todo {
 }
 
 export function SmartTodoReminder() {
-  const assignmentTodos: Todo[] = assignments
-    .filter((a) => a.status === 'pending' || a.status === 'in-progress')
-    .map((a) => ({
-      id: `assign-${a.id}`,
-      title: a.title,
-      description: a.course,
-      dueDate: a.dueDate,
-      dueTime: a.dueTime,
-      priority: a.priority as 'high' | 'medium' | 'low',
-      category: 'Assignment',
-      isCompleted: false,
-      tags: [a.courseCode, a.type],
-    }));
+  const { data: apiAssignments } = useApi(
+    () => assignmentService.listAssignments(),
+    []
+  );
+
+  const assignmentTodos: Todo[] = (apiAssignments || [])
+    .filter((a: any) => a.status === 'published')
+    .map((a: any) => {
+      const dueDateStr = a.dueDate?.split('T')[0] || '';
+      const daysUntil = (() => {
+        const today = new Date();
+        const due = new Date(dueDateStr);
+        return Math.ceil((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+      })();
+      return {
+        id: `assign-${a.id}`,
+        title: a.title,
+        description: a.course?.name || '',
+        dueDate: dueDateStr,
+        dueTime: a.dueDate ? new Date(a.dueDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '11:59 PM',
+        priority: (daysUntil <= 3 ? 'high' : daysUntil <= 7 ? 'medium' : 'low') as 'high' | 'medium' | 'low',
+        category: 'Assignment',
+        isCompleted: false,
+        tags: [a.course?.code || '', a.type || 'Assignment'],
+      };
+    });
 
   const [todos, setTodos] = useState<Todo[]>([
     ...assignmentTodos,

@@ -12,34 +12,13 @@ export function ClassTabExample1() {
   return <ClassTab />;
 }
 
-// Example 2: With custom courses and stats
+// Example 2: With onViewCourse callback
 export function ClassTabExample2() {
-  const customCourses = [
-    {
-      id: '1',
-      title: 'Advanced Python Programming',
-      courseCode: 'CS401',
-      instructor: 'Dr. Advanced Instructor',
-      instructorImage: 'http://localhost:3845/assets/56d9e68ccff12413f144bdf75269165f5e84005a.png',
-      schedule: 'Mon, Wed, Fri - 09:00 AM',
-      nextClass: 'Next: Monday, 09:00 AM',
-      room: 'Lab 305',
-      students: 28,
-      credits: 4,
-      progress: 72,
-      color: '#e0e7ff',
-      progressColor: '#4f39f6',
-    },
-  ];
-
-  const customStats = {
-    totalCourses: 5,
-    completed: 2,
-    inProgress: 3,
-    totalCredits: 18,
+  const handleViewCourse = (courseId: string) => {
+    console.log('View course:', courseId);
   };
 
-  return <ClassTab courses={customCourses} stats={customStats} />;
+  return <ClassTab onViewCourse={handleViewCourse} />;
 }
 
 /**
