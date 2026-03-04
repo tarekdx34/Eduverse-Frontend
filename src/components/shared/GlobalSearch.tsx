@@ -439,7 +439,7 @@ export function GlobalSearch({
       {/* Floating Dropdown */}
       {isOpen && (
         <div
-          className={`absolute top-full left-0 right-0 mt-2 rounded-xl shadow-sm overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200 ${
+          className={`absolute top-full left-0 right-0 mt-2 rounded-xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200 ${
             isDark ? 'bg-[#1E293B] border border-white/10' : 'bg-white border border-slate-200'
           }`}
         >
