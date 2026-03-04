@@ -17,14 +17,23 @@ const login = () => {
   const { language } = useLanguage();
   const isArabic = language === 'ar';
 
-  const handleSubmit = async (e: React.FormEvent) => {
+   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
     try {
       const response = await AuthService.login({ email, password });
-      navigate('/dashboard');
+      // Navigate based on user role
+      const role = response.user?.roles?.[0]?.toLowerCase();
+      const roleRoutes: Record<string, string> = {
+        student: '/studentdashboard',
+        instructor: '/instructordashboard',
+        admin: '/admindashboard',
+        ta: '/tadashboard',
+        it_admin: '/itadmindashboard',
+      };
+      navigate(roleRoutes[role] || '/studentdashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed. Please try again.');
     } finally {

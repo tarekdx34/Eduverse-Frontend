@@ -1,79 +1,64 @@
 import { TOKEN_KEYS } from './config';
 import { ApiClient } from './client';
+import type { User, LoginRequest, LoginResponse, RegisterRequest } from '../../types/api';
 
-export interface LoginRequest {
-  email: string;
-  password: string;
-}
-
-export interface User {
-  userId: number;
-  email: string;
-  firstName: string;
-  lastName: string;
-  fullName: string;
-  phone: string;
-  profilePictureUrl: string | null;
-  campusId: string | null;
-  status: string;
-  emailVerified: boolean;
-  lastLoginAt: string;
-  roles: string[];
-  createdAt: string;
-}
-
-export interface LoginResponse {
-  accessToken: string;
-  refreshToken: string;
-  user: User;
-}
+export { type LoginRequest, type LoginResponse, type User };
 
 export class AuthService {
-  // Mock user data
-  private static MOCK_USER: User = {
-    userId: 1,
-    email: 'tarekstudent@test.com',
-    firstName: 'Tarek',
-    lastName: 'Student',
-    fullName: 'Tarek Student',
-    phone: '+20 123 456 7890',
-    profilePictureUrl: null,
-    campusId: 'CAIRO-01',
-    status: 'active',
-    emailVerified: true,
-    lastLoginAt: new Date().toISOString(),
-    roles: ['student'],
-    createdAt: '2024-01-01T00:00:00Z',
-  };
-
-  private static MOCK_TOKENS = {
-    accessToken: 'mock_access_token_' + Math.random().toString(36).substr(2, 9),
-    refreshToken: 'mock_refresh_token_' + Math.random().toString(36).substr(2, 9),
-  };
-
   static async login(credentials: LoginRequest): Promise<LoginResponse> {
+    const response = await ApiClient.post<LoginResponse>('/auth/login', credentials);
+
+    localStorage.setItem(TOKEN_KEYS.ACCESS_TOKEN, response.accessToken);
+    localStorage.setItem(TOKEN_KEYS.REFRESH_TOKEN, response.refreshToken);
+    localStorage.setItem(TOKEN_KEYS.USER, JSON.stringify(response.user));
+
+    return response;
+  }
+
+  static async register(data: RegisterRequest): Promise<LoginResponse> {
+    const response = await ApiClient.post<LoginResponse>('/auth/register', data);
+
+    localStorage.setItem(TOKEN_KEYS.ACCESS_TOKEN, response.accessToken);
+    localStorage.setItem(TOKEN_KEYS.REFRESH_TOKEN, response.refreshToken);
+    localStorage.setItem(TOKEN_KEYS.USER, JSON.stringify(response.user));
+
+    return response;
+  }
+
+  static async refreshToken(): Promise<{ accessToken: string }> {
+    const refreshToken = this.getRefreshToken();
+    if (!refreshToken) throw new Error('No refresh token available');
+
+    const response = await ApiClient.post<{ accessToken: string }>(
+      '/auth/refresh-token',
+      { refreshToken }
+    );
+
+    localStorage.setItem(TOKEN_KEYS.ACCESS_TOKEN, response.accessToken);
+    return response;
+  }
+
+  static async getCurrentUser(): Promise<User> {
+    return ApiClient.get<User>('/auth/me');
+  }
+
+  static async forgotPassword(email: string): Promise<void> {
+    await ApiClient.post('/auth/forgot-password', { email });
+  }
+
+  static async resetPassword(token: string, newPassword: string): Promise<void> {
+    await ApiClient.post('/auth/reset-password', { token, newPassword });
+  }
+
+  static logout(): void {
     try {
-      // Mock login - check for hardcoded credentials
-      if (credentials.email === 'tarekstudent@test.com' && credentials.password === '123456') {
-        const response: LoginResponse = {
-          accessToken: this.MOCK_TOKENS.accessToken,
-          refreshToken: this.MOCK_TOKENS.refreshToken,
-          user: this.MOCK_USER,
-        };
-
-        // Store tokens and user data
-        localStorage.setItem(TOKEN_KEYS.ACCESS_TOKEN, response.accessToken);
-        localStorage.setItem(TOKEN_KEYS.REFRESH_TOKEN, response.refreshToken);
-        localStorage.setItem(TOKEN_KEYS.USER, JSON.stringify(response.user));
-
-        return response;
-      } else {
-        throw new Error('Invalid email or password');
-      }
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Login failed';
-      throw new Error(errorMessage);
+      ApiClient.post('/auth/logout', {}).catch(() => {});
+    } catch {
+      // Logout even if the API call fails
     }
+    localStorage.removeItem(TOKEN_KEYS.ACCESS_TOKEN);
+    localStorage.removeItem(TOKEN_KEYS.REFRESH_TOKEN);
+    localStorage.removeItem(TOKEN_KEYS.USER);
   }
 
   static getStoredUser(): User | null {
@@ -94,13 +79,12 @@ export class AuthService {
     return localStorage.getItem(TOKEN_KEYS.REFRESH_TOKEN);
   }
 
-  static logout(): void {
-    localStorage.removeItem(TOKEN_KEYS.ACCESS_TOKEN);
-    localStorage.removeItem(TOKEN_KEYS.REFRESH_TOKEN);
-    localStorage.removeItem(TOKEN_KEYS.USER);
-  }
-
   static isAuthenticated(): boolean {
     return !!this.getAccessToken() && !!this.getStoredUser();
+  }
+
+  static getUserRole(): string | null {
+    const user = this.getStoredUser();
+    return user?.roles?.[0] || null;
   }
 }

@@ -6,6 +6,7 @@ import HomePage from './pages/home/HomePage';
 import LoginPage from './pages/auth/LoginPage';
 import ProfilePage from './pages/profile/ProfilePage';
 import { QuickNavigateModal } from './components/QuickNavigateModal';
+import { AuthProvider } from './context/AuthContext';
 
 // Lazy load dashboard components
 const StudentDashboard = lazy(() => import('./pages/student-dashboard/StudentDashboard'));
@@ -60,6 +61,7 @@ const PageFallback = () => (
 function App() {
   return (
     <Router>
+      <AuthProvider>
       <QuickNavigateModal />
       <Suspense fallback={<PageFallback />}>
         <Routes>
@@ -231,6 +233,7 @@ function App() {
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </Suspense>
+      </AuthProvider>
     </Router>
   );
 }
