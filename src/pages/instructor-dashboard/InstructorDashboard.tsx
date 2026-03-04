@@ -1,5 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import { useApi } from '../../hooks/useApi';
+import { courseService } from '../../services/api/courseService';
+import { enrollmentService } from '../../services/api/enrollmentService';
+import { assignmentService } from '../../services/api/assignmentService';
+import { gradeService } from '../../services/api/gradeService';
+import { attendanceService } from '../../services/api/attendanceService';
 import {
   LayoutGrid,
   BookOpen,
@@ -49,16 +56,7 @@ import { DashboardProfileTab } from '../../components/shared/DashboardProfileTab
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import {
-  INSTRUCTOR_INFO,
-  SECTIONS,
-  COURSES,
-  ROSTERS,
   DASHBOARD_STATS,
-  GRADES,
-  ASSIGNMENTS,
-  ATTENDANCE,
-  ANALYTICS,
-  INSTRUCTOR_PROFILE,
   UPCOMING_CLASSES,
   PENDING_TASKS,
   RECENT_ACTIVITY,
@@ -140,6 +138,7 @@ const TABS: { key: TabKey; label: string; labelAr: string; icon: any; group: str
 function InstructorDashboardContent() {
   const navigate = useNavigate();
   const params = useParams();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<TabKey>('dashboard');
   const [rosterSubTab, setRosterSubTab] = useState<'overview' | 'grades'>('overview');
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -148,13 +147,110 @@ function InstructorDashboardContent() {
   const { isDark, toggleTheme, primaryHex, primaryColor, setPrimaryColor } = useTheme() as any;
   const { language, setLanguage, isRTL, t } = useLanguage();
 
+  // --- API: Fetch instructor's courses ---
+  const { data: coursesRaw, loading: coursesLoading, refetch: refetchCourses } = useApi(
+    () => courseService.listCourses(),
+    []
+  );
+  const [coursesData, setCoursesData] = useState<any[]>([]);
+  useEffect(() => {
+    if (coursesRaw) setCoursesData(coursesRaw.map((c: any, i: number) => ({
+      id: c.id,
+      courseCode: c.code,
+      courseName: c.name,
+      semester: 'Current',
+      credits: c.credits,
+      prerequisites: (c.prerequisites || []).map((p: any) => p.prerequisiteCourseId?.toString() || ''),
+      description: c.description || '',
+      enrolled: 0,
+      capacity: 0,
+      schedule: '',
+      room: '',
+      status: c.status === 'active' ? 'active' as const : 'archived' as const,
+      averageGrade: 0,
+      attendanceRate: 0,
+    })));
+  }, [coursesRaw]);
+
+  // --- Derive sections from courses ---
+  const sections = useMemo(() =>
+    coursesData.map(c => ({
+      sectionId: c.id,
+      courseCode: c.courseCode,
+      courseName: c.courseName,
+      sectionLabel: 'Section A',
+      schedule: c.schedule || '',
+      capacity: c.capacity || 0,
+      enrolled: c.enrolled || 0,
+    })),
+    [coursesData]
+  );
+
+  // --- API: Fetch roster for active section ---
+  const { data: rosterRaw, refetch: refetchRoster } = useApi(
+    () => activeSectionId ? enrollmentService.getSectionStudents(Number(activeSectionId)) : Promise.resolve([]),
+    [activeSectionId]
+  );
+  const currentRoster = useMemo(() =>
+    (rosterRaw || []).map((e: any, i: number) => ({
+      id: e.id,
+      name: `Student ${e.studentId}`,
+      email: `student${e.studentId}@university.edu`,
+      status: e.status || 'enrolled',
+      grade: e.grade,
+    })),
+    [rosterRaw]
+  );
+
+  // --- API: Fetch assignments for active section ---
+  const { data: assignmentsRaw, refetch: refetchAssignments } = useApi(
+    () => activeSectionId ? assignmentService.listAssignments({ courseId: Number(activeSectionId) }) : Promise.resolve([]),
+    [activeSectionId]
+  );
+  const currentAssignments = useMemo(() =>
+    (assignmentsRaw || []).map((a: any) => ({
+      id: a.id,
+      title: a.title,
+      dueDate: a.dueDate?.split('T')[0] || '',
+      submissions: 0,
+      status: (a.status === 'published' ? 'open' : a.status === 'closed' ? 'closed' : 'draft') as 'draft' | 'open' | 'closed',
+    })),
+    [assignmentsRaw]
+  );
+
+  // --- API: Fetch grades for active section ---
+  const { data: gradesRaw, refetch: refetchGrades } = useApi(
+    () => activeSectionId ? gradeService.listAllGrades({ courseId: Number(activeSectionId) }) : Promise.resolve([]),
+    [activeSectionId]
+  );
+  const currentGrades = useMemo(() =>
+    (gradesRaw || []).map((g: any) => ({
+      id: g.id,
+      student: `Student ${g.studentId}`,
+      email: `student${g.studentId}@university.edu`,
+      assignment: '',
+      score: g.numericGrade || 0,
+      grade: g.letterGrade || '',
+    })),
+    [gradesRaw]
+  );
+
+  // --- API: Fetch attendance for active section ---
+  const { data: attendanceRaw, refetch: refetchAttendance } = useApi(
+    () => activeSectionId ? attendanceService.listSessions({ sectionId: Number(activeSectionId) }) : Promise.resolve([]),
+    [activeSectionId]
+  );
+  const currentAttendance = useMemo(() =>
+    (attendanceRaw || []).map((s: any) => ({
+      id: s.id,
+      date: s.date?.split('T')[0] || '',
+      present: (s.records || []).filter((r: any) => r.status === 'present').length,
+      absent: (s.records || []).filter((r: any) => r.status === 'absent').length,
+    })),
+    [attendanceRaw]
+  );
+
   // State for roster management
-  const [rosterOverrides, setRosterOverrides] = useState<
-    Record<
-      string,
-      Array<{ id: number; name: string; email: string; status: string; grade?: string }>
-    >
-  >({});
   const [editingStudent, setEditingStudent] = useState<{
     id: number;
     name: string;
@@ -165,21 +261,16 @@ function InstructorDashboardContent() {
   const [isEditOpen, setIsEditOpen] = useState(false);
 
   // State for assignments
-  const [assignmentsData, setAssignmentsData] =
-    useState<Record<string, AssignmentItem[]>>(ASSIGNMENTS);
   const [editingAssignment, setEditingAssignment] = useState<AssignmentFormData | null>(null);
   const [isAssignmentModalOpen, setIsAssignmentModalOpen] = useState(false);
   const [assignmentToDelete, setAssignmentToDelete] = useState<number | null>(null);
 
   // State for grades
-  const [gradesData, setGradesData] = useState<Record<string, GradeEntry[]>>(GRADES);
   const [editingGrade, setEditingGrade] = useState<GradeFormData | null>(null);
   const [isGradeModalOpen, setIsGradeModalOpen] = useState(false);
   const [gradeToDelete, setGradeToDelete] = useState<number | null>(null);
 
   // State for attendance
-  const [attendanceData, setAttendanceData] =
-    useState<Record<string, AttendanceSession[]>>(ATTENDANCE);
   const [editingAttendance, setEditingAttendance] = useState<AttendanceFormData | null>(null);
   const [isAttendanceModalOpen, setIsAttendanceModalOpen] = useState(false);
   const [attendanceToDelete, setAttendanceToDelete] = useState<number | null>(null);
@@ -190,7 +281,6 @@ function InstructorDashboardContent() {
   const [messageMode, setMessageMode] = useState<'create' | 'edit' | 'reply'>('create');
 
   // State for courses
-  const [coursesData, setCoursesData] = useState(COURSES);
   const selectedCourseIdFromRoute =
     params.tab === 'courses' && params.id ? Number(params.id) : null;
 
@@ -212,10 +302,10 @@ function InstructorDashboardContent() {
 
   // Set default section on mount and when entering section-dependent tabs
   useEffect(() => {
-    if (!activeSectionId && ['roster', 'assignments', 'attendance'].includes(activeTab)) {
-      setActiveSectionId(String(SECTIONS[0].sectionId));
+    if (!activeSectionId && ['roster', 'assignments', 'attendance'].includes(activeTab) && sections.length > 0) {
+      setActiveSectionId(String(sections[0].sectionId));
     }
-  }, [activeTab, activeSectionId]);
+  }, [activeTab, activeSectionId, sections]);
 
   // Navigate on tab change
   const handleTabChange = (key: TabKey) => {
@@ -229,20 +319,15 @@ function InstructorDashboardContent() {
 
   const sectionOptions = useMemo(
     () =>
-      SECTIONS.map((s) => ({
+      sections.map((s) => ({
         value: String(s.sectionId),
         label: `${s.courseCode} - ${s.sectionLabel}`,
       })),
-    []
+    [sections]
   );
 
-  const currentRosterBase = activeSectionId ? ROSTERS[activeSectionId] || [] : [];
-  const currentRoster =
-    activeSectionId && rosterOverrides[activeSectionId]
-      ? rosterOverrides[activeSectionId]!
-      : currentRosterBase;
   const selectedSection = activeSectionId
-    ? SECTIONS.find((s) => String(s.sectionId) === activeSectionId) || null
+    ? sections.find((s) => String(s.sectionId) === activeSectionId) || null
     : null;
 
   // Assignment handlers
@@ -256,27 +341,25 @@ function InstructorDashboardContent() {
     setIsAssignmentModalOpen(true);
   };
 
-  const handleSaveAssignment = (data: AssignmentFormData) => {
+  const handleSaveAssignment = async (data: AssignmentFormData) => {
     if (!activeSectionId) return;
-
-    const sectionAssignments = assignmentsData[activeSectionId] || [];
-
-    if (data.id) {
-      // Edit existing
-      const updated = sectionAssignments.map((a) =>
-        a.id === data.id ? { ...data, id: data.id } : a
-      );
-      setAssignmentsData({ ...assignmentsData, [activeSectionId]: updated });
-    } else {
-      // Create new
-      const newId = Math.max(...sectionAssignments.map((a) => a.id), 0) + 1;
-      const newAssignment: AssignmentItem = { ...data, id: newId };
-      setAssignmentsData({
-        ...assignmentsData,
-        [activeSectionId]: [...sectionAssignments, newAssignment],
-      });
+    try {
+      if (data.id) {
+        await assignmentService.updateAssignment(data.id, {
+          title: data.title,
+          dueDate: data.dueDate,
+        });
+      } else {
+        await assignmentService.createAssignment({
+          title: data.title,
+          dueDate: data.dueDate,
+          courseId: Number(activeSectionId),
+        } as any);
+      }
+      await refetchAssignments();
+    } catch (err) {
+      console.error('Failed to save assignment:', err);
     }
-
     setIsAssignmentModalOpen(false);
   };
 
@@ -284,21 +367,26 @@ function InstructorDashboardContent() {
     setAssignmentToDelete(id);
   };
 
-  const confirmDeleteAssignment = () => {
+  const confirmDeleteAssignment = async () => {
     if (!activeSectionId || !assignmentToDelete) return;
-
-    const sectionAssignments = assignmentsData[activeSectionId] || [];
-    const updated = sectionAssignments.filter((a) => a.id !== assignmentToDelete);
-    setAssignmentsData({ ...assignmentsData, [activeSectionId]: updated });
+    try {
+      await assignmentService.deleteAssignment(assignmentToDelete);
+      await refetchAssignments();
+    } catch (err) {
+      console.error('Failed to delete assignment:', err);
+    }
     setAssignmentToDelete(null);
   };
 
-  const handleAssignmentStatusChange = (id: number, newStatus: 'draft' | 'open' | 'closed') => {
+  const handleAssignmentStatusChange = async (id: number, newStatus: 'draft' | 'open' | 'closed') => {
     if (!activeSectionId) return;
-
-    const sectionAssignments = assignmentsData[activeSectionId] || [];
-    const updated = sectionAssignments.map((a) => (a.id === id ? { ...a, status: newStatus } : a));
-    setAssignmentsData({ ...assignmentsData, [activeSectionId]: updated });
+    try {
+      const apiStatus = newStatus === 'open' ? 'published' : newStatus;
+      await assignmentService.changeStatus(id, apiStatus);
+      await refetchAssignments();
+    } catch (err) {
+      console.error('Failed to change assignment status:', err);
+    }
   };
 
   // Grade handlers
@@ -307,12 +395,17 @@ function InstructorDashboardContent() {
     setIsGradeModalOpen(true);
   };
 
-  const handleSaveGrade = (data: GradeFormData) => {
-    if (!activeSectionId) return;
-
-    const sectionGrades = gradesData[activeSectionId] || [];
-    const updated = sectionGrades.map((g) => (g.id === data.id ? { ...data, id: data.id! } : g));
-    setGradesData({ ...gradesData, [activeSectionId]: updated });
+  const handleSaveGrade = async (data: GradeFormData) => {
+    if (!activeSectionId || !data.id) return;
+    try {
+      await gradeService.updateGrade(data.id, {
+        numericGrade: data.score,
+        letterGrade: data.grade,
+      });
+      await refetchGrades();
+    } catch (err) {
+      console.error('Failed to save grade:', err);
+    }
     setIsGradeModalOpen(false);
   };
 
@@ -322,10 +415,7 @@ function InstructorDashboardContent() {
 
   const confirmDeleteGrade = () => {
     if (!activeSectionId || !gradeToDelete) return;
-
-    const sectionGrades = gradesData[activeSectionId] || [];
-    const updated = sectionGrades.filter((g) => g.id !== gradeToDelete);
-    setGradesData({ ...gradesData, [activeSectionId]: updated });
+    // No delete grade API yet — keep as local state removal
     setGradeToDelete(null);
   };
 
@@ -340,27 +430,22 @@ function InstructorDashboardContent() {
     setIsAttendanceModalOpen(true);
   };
 
-  const handleSaveAttendance = (data: AttendanceFormData) => {
+  const handleSaveAttendance = async (data: AttendanceFormData) => {
     if (!activeSectionId) return;
-
-    const sectionAttendance = attendanceData[activeSectionId] || [];
-
-    if (data.id) {
-      // Edit existing
-      const updated = sectionAttendance.map((a) =>
-        a.id === data.id ? { ...data, id: data.id } : a
-      );
-      setAttendanceData({ ...attendanceData, [activeSectionId]: updated });
-    } else {
-      // Create new
-      const newId = Math.max(...sectionAttendance.map((a) => a.id), 0) + 1;
-      const newSession: AttendanceSession = { ...data, id: newId };
-      setAttendanceData({
-        ...attendanceData,
-        [activeSectionId]: [...sectionAttendance, newSession],
-      });
+    try {
+      if (data.id) {
+        await attendanceService.updateSession(data.id, data as any);
+      } else {
+        await attendanceService.createSession({
+          sectionId: Number(activeSectionId),
+          date: data.date,
+          type: 'lecture',
+        });
+      }
+      await refetchAttendance();
+    } catch (err) {
+      console.error('Failed to save attendance:', err);
     }
-
     setIsAttendanceModalOpen(false);
   };
 
@@ -368,12 +453,14 @@ function InstructorDashboardContent() {
     setAttendanceToDelete(id);
   };
 
-  const confirmDeleteAttendance = () => {
+  const confirmDeleteAttendance = async () => {
     if (!activeSectionId || !attendanceToDelete) return;
-
-    const sectionAttendance = attendanceData[activeSectionId] || [];
-    const updated = sectionAttendance.filter((a) => a.id !== attendanceToDelete);
-    setAttendanceData({ ...attendanceData, [activeSectionId]: updated });
+    try {
+      await attendanceService.deleteSession(attendanceToDelete);
+      await refetchAttendance();
+    } catch (err) {
+      console.error('Failed to delete attendance:', err);
+    }
     setAttendanceToDelete(null);
   };
 
@@ -387,48 +474,51 @@ function InstructorDashboardContent() {
   };
 
   // Course handlers
-  const handleCreateCourse = (data: any) => {
-    const newCourse = {
-      id: Math.max(...coursesData.map((c) => c.id)) + 1,
-      ...data,
-      prerequisites: data.prerequisites
-        ? data.prerequisites.split(',').map((p: string) => p.trim())
-        : [],
-      enrolled: 0,
-      status: 'active' as const,
-      averageGrade: 0,
-      attendanceRate: 0,
-    };
-    setCoursesData([...coursesData, newCourse]);
+  const handleCreateCourse = async (data: any) => {
+    try {
+      await courseService.createCourse({
+        name: data.courseName,
+        code: data.courseCode,
+        credits: data.credits,
+        description: data.description,
+      } as any);
+      await refetchCourses();
+    } catch (err) {
+      console.error('Failed to create course:', err);
+    }
   };
 
-  const handleEditCourse = (id: number, data: any) => {
-    setCoursesData(
-      coursesData.map((course) =>
-        course.id === id
-          ? {
-              ...course,
-              ...data,
-              prerequisites: data.prerequisites
-                ? data.prerequisites.split(',').map((p: string) => p.trim())
-                : [],
-            }
-          : course
-      )
-    );
+  const handleEditCourse = async (id: number, data: any) => {
+    try {
+      await courseService.updateCourse(id, {
+        name: data.courseName,
+        code: data.courseCode,
+        credits: data.credits,
+        description: data.description,
+      } as any);
+      await refetchCourses();
+    } catch (err) {
+      console.error('Failed to update course:', err);
+    }
   };
 
-  const handleDeleteCourse = (id: number) => {
-    setCoursesData(coursesData.filter((course) => course.id !== id));
+  const handleDeleteCourse = async (id: number) => {
+    try {
+      await courseService.deleteCourse(id);
+      await refetchCourses();
+    } catch (err) {
+      console.error('Failed to delete course:', err);
+    }
   };
 
   const handleDuplicateCourse = (id: number) => {
+    // UI-only action — duplicate locally
     const courseToDuplicate = coursesData.find((c) => c.id === id);
     if (!courseToDuplicate) return;
 
     const newCourse = {
       ...courseToDuplicate,
-      id: Math.max(...coursesData.map((c) => c.id)) + 1,
+      id: Math.max(...coursesData.map((c) => c.id), 0) + 1,
       courseName: `${courseToDuplicate.courseName} (Copy)`,
       enrolled: 0,
     };
@@ -474,7 +564,7 @@ function InstructorDashboardContent() {
       <main className={`flex-1 ${isRTL ? 'lg:mr-64' : 'lg:ml-64'} ${activeTab === 'chat' ? 'p-0' : 'p-4 lg:p-10'}`}>
         {activeTab !== 'chat' && (
         <DashboardHeader
-          userName="Prof. Sarah Martinez"
+          userName={user?.firstName ? `Prof. ${user.firstName} ${user.lastName}` : 'Instructor'}
           userRole="Instructor"
           isDark={isDark}
           isRTL={isRTL}
@@ -510,7 +600,7 @@ function InstructorDashboardContent() {
         {activeTab === 'dashboard' && (
           <ModernDashboard
             stats={DASHBOARD_STATS}
-            sections={SECTIONS}
+            sections={sections}
             upcomingClasses={UPCOMING_CLASSES}
             recentActivity={RECENT_ACTIVITY}
             pendingTasks={PENDING_TASKS}
@@ -544,7 +634,7 @@ function InstructorDashboardContent() {
               <CustomDropdown
                 label="Select Section"
                 options={sectionOptions}
-                value={activeSectionId || String(SECTIONS[0].sectionId)}
+                value={activeSectionId || String(sections[0]?.sectionId || '')}
                 onChange={setActiveSectionId}
                 isDark={isDark}
                 accentColor={primaryHex}
@@ -590,7 +680,7 @@ function InstructorDashboardContent() {
             {rosterSubTab === 'overview' ? (
               <RosterTable
                 data={currentRoster}
-                grades={activeSectionId ? gradesData[activeSectionId] || [] : []}
+                grades={currentGrades}
                 onEdit={(student) => {
                   setEditingStudent(student);
                   setIsEditOpen(true);
@@ -598,7 +688,7 @@ function InstructorDashboardContent() {
               />
             ) : (
               <GradesTable
-                data={activeSectionId ? gradesData[activeSectionId] || [] : []}
+                data={currentGrades}
                 onEdit={handleEditGrade}
                 onDelete={handleDeleteGrade}
               />
@@ -613,7 +703,7 @@ function InstructorDashboardContent() {
               <CustomDropdown
                 label="Select Section"
                 options={sectionOptions}
-                value={activeSectionId || String(SECTIONS[0].sectionId)}
+                value={activeSectionId || String(sections[0]?.sectionId || '')}
                 onChange={setActiveSectionId}
                 isDark={isDark}
                 accentColor={primaryHex}
@@ -621,7 +711,7 @@ function InstructorDashboardContent() {
             </div>
             <SelectedSectionSummary section={selectedSection as any} />
             <AssignmentsList
-              data={activeSectionId ? assignmentsData[activeSectionId] || [] : []}
+              data={currentAssignments}
               onEdit={handleEditAssignment}
               onDelete={handleDeleteAssignment}
               onCreate={handleCreateAssignment}
@@ -637,7 +727,7 @@ function InstructorDashboardContent() {
               <CustomDropdown
                 label="Select Section"
                 options={sectionOptions}
-                value={activeSectionId || String(SECTIONS[0].sectionId)}
+                value={activeSectionId || String(sections[0]?.sectionId || '')}
                 onChange={setActiveSectionId}
                 isDark={isDark}
                 accentColor={primaryHex}
@@ -654,7 +744,7 @@ function InstructorDashboardContent() {
                 {t('attendanceRecords') || 'Attendance Records'}
               </h3>
               <AttendanceTable
-                sessions={activeSectionId ? attendanceData[activeSectionId] || [] : []}
+                sessions={currentAttendance}
                 onCreate={handleCreateAttendance}
                 onEdit={handleEditAttendance}
                 onDelete={handleDeleteAttendance}
@@ -672,14 +762,14 @@ function InstructorDashboardContent() {
 
         {/* Discussion */}
         {activeTab === 'discussion' && (
-          <DiscussionPage userRole="instructor" userName="Prof. Sarah Martinez" />
+          <DiscussionPage userRole="instructor" userName={user?.firstName ? `Prof. ${user.firstName} ${user.lastName}` : 'Instructor'} />
         )}
 
         {/* Chat */}
         {activeTab === 'chat' && (
           <MessagingChat
             height="100vh"
-            currentUserName="Prof. Sarah Martinez"
+            currentUserName={user?.firstName ? `Prof. ${user.firstName} ${user.lastName}` : 'Instructor'}
             showVideoCall={true}
             showVoiceCall={true}
             isDark={isDark}
@@ -695,21 +785,16 @@ function InstructorDashboardContent() {
             accentColor={primaryHex || '#4F46E5'}
             bannerGradient="from-[#3b82f6] to-[#06b6d4]"
             profileData={{
-              fullName: 'Prof. Sarah Martinez',
+              fullName: user?.firstName ? `Prof. ${user.firstName} ${user.lastName}` : 'Instructor',
               role: 'Instructor',
-              department: 'Computer Science',
-              email: 'sarah.martinez@university.edu',
-              phone: '+20 100 987 6543',
-              address: 'Cairo, Egypt',
-              dateOfBirth: '1985-03-22',
-              bio: 'Associate Professor of Computer Science with 12+ years of teaching experience. Specializes in software engineering, algorithms, and distributed systems.',
-              interests: [
-                'Software Engineering',
-                'Distributed Systems',
-                'Machine Learning',
-                'Higher Education',
-              ],
-              skills: ['Java', 'Python', 'C++', 'Research', 'Curriculum Design'],
+              department: (user as any)?.department || 'Computer Science',
+              email: user?.email || '',
+              phone: (user as any)?.phone || '',
+              address: (user as any)?.address || '',
+              dateOfBirth: (user as any)?.dateOfBirth || '',
+              bio: (user as any)?.bio || '',
+              interests: (user as any)?.interests || [],
+              skills: (user as any)?.skills || [],
             }}
           />
         )}
@@ -723,8 +808,8 @@ function InstructorDashboardContent() {
           onClose={() => setIsEditOpen(false)}
           onSave={(updated) => {
             if (!activeSectionId) return;
-            const updatedRoster = currentRoster.map((r) => (r.id === updated.id ? updated : r));
-            setRosterOverrides((prev) => ({ ...prev, [String(activeSectionId)]: updatedRoster }));
+            // Refetch roster after edit
+            refetchRoster();
             setIsEditOpen(false);
           }}
         />

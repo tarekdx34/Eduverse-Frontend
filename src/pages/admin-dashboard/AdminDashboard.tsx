@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   LayoutGrid,
@@ -25,16 +25,17 @@ import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import {
   DASHBOARD_STATS,
-  USERS,
-  COURSES,
   CALENDAR_EVENTS,
   ANALYTICS,
   NOTIFICATION_TEMPLATES,
   RECENT_ACTIVITY,
-  ADMIN_DEPARTMENT,
   ENROLLMENT_PERIODS,
 } from './constants';
 import { StudentManagementPage } from './components/StudentManagementPage';
+import { useAuth } from '../../context/AuthContext';
+import { useApi } from '../../hooks/useApi';
+import { courseService } from '../../services/api/courseService';
+import { userService } from '../../services/api/userService';
 
 type TabKey =
   | 'dashboard'
@@ -100,9 +101,38 @@ function AdminDashboardContent() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { isDark, toggleTheme, primaryHex, primaryColor, setPrimaryColor } = useTheme() as any;
   const { language, setLanguage, isRTL, t } = useLanguage();
+  const { user } = useAuth();
 
-  // State for data management
-  const [coursesData, setCoursesData] = useState(COURSES);
+  // Fetch courses from API
+  const { data: coursesRaw, refetch: refetchCourses } = useApi(() => courseService.listCourses(), []);
+  const [coursesData, setCoursesData] = useState<any[]>([]);
+  useEffect(() => {
+    if (coursesRaw) setCoursesData(coursesRaw.map((c: any) => ({
+      id: c.id,
+      courseCode: c.code,
+      courseName: c.name,
+      credits: c.credits,
+      description: c.description || '',
+      department: '',
+      instructor: '',
+      enrolled: 0,
+      capacity: 0,
+      status: c.status || 'active',
+    })));
+  }, [coursesRaw]);
+
+  // Fetch users from API
+  const { data: usersRaw } = useApi(() => userService.listUsers(), []);
+  const users = useMemo(() => ((usersRaw as any)?.data || usersRaw || []).map((u: any) => ({
+    id: u.userId || u.id,
+    name: `${u.firstName || ''} ${u.lastName || ''}`.trim(),
+    email: u.email,
+    role: Array.isArray(u.roles) ? u.roles[0] || 'student' : u.role || 'student',
+    department: '',
+    status: u.status === 'active' || u.isActive !== false ? 'active' : 'inactive',
+  })), [usersRaw]);
+
+  // State for data management (mock data that has no API endpoints)
   const [calendarEvents, setCalendarEvents] = useState(CALENDAR_EVENTS);
   const [templates, setTemplates] = useState(NOTIFICATION_TEMPLATES);
   const [enrollmentPeriodsData, setEnrollmentPeriodsData] = useState(ENROLLMENT_PERIODS);
@@ -130,22 +160,41 @@ function AdminDashboardContent() {
   }));
 
   // Course management handlers
-  const handleAddCourse = (course: any) => {
-    const newCourse = {
-      id: Math.max(...coursesData.map((c) => c.id)) + 1,
-      ...course,
-      enrolled: 0,
-      status: 'active',
-    };
-    setCoursesData([...coursesData, newCourse]);
+  const handleAddCourse = async (course: any) => {
+    try {
+      await courseService.createCourse({
+        name: course.courseName,
+        code: course.courseCode,
+        credits: course.credits,
+        description: course.description,
+      });
+      await refetchCourses();
+    } catch (error) {
+      console.error('Failed to add course:', error);
+    }
   };
 
-  const handleEditCourse = (id: number, course: any) => {
-    setCoursesData(coursesData.map((c) => (c.id === id ? { ...c, ...course } : c)));
+  const handleEditCourse = async (id: number, course: any) => {
+    try {
+      await courseService.updateCourse(id, {
+        name: course.courseName,
+        code: course.courseCode,
+        credits: course.credits,
+        description: course.description,
+      });
+      await refetchCourses();
+    } catch (error) {
+      console.error('Failed to edit course:', error);
+    }
   };
 
-  const handleDeleteCourse = (id: number) => {
-    setCoursesData(coursesData.filter((c) => c.id !== id));
+  const handleDeleteCourse = async (id: number) => {
+    try {
+      await courseService.deleteCourse(id);
+      await refetchCourses();
+    } catch (error) {
+      console.error('Failed to delete course:', error);
+    }
   };
 
   // Calendar event handlers
@@ -258,7 +307,7 @@ function AdminDashboardContent() {
       <main className={`flex-1 ${isRTL ? 'lg:mr-64' : 'lg:ml-64'} ${activeTab === 'chat' ? 'p-0' : 'p-4 lg:p-10'}`}>
         {activeTab !== 'chat' && (
         <DashboardHeader
-          userName="Department Head"
+          userName={user?.firstName ? `${user.firstName} ${user.lastName}` : 'Admin'}
           userRole="Admin"
           isDark={isDark}
           isRTL={isRTL}
@@ -307,8 +356,8 @@ function AdminDashboardContent() {
         {activeTab === 'courses' && (
           <CourseManagementPage
             courses={coursesData}
-            users={USERS}
-            adminDepartment={ADMIN_DEPARTMENT}
+            users={users}
+            adminDepartment="Computer Science"
             onAddCourse={handleAddCourse}
             onEditCourse={handleEditCourse}
             onDeleteCourse={handleDeleteCourse}
@@ -320,7 +369,7 @@ function AdminDashboardContent() {
           <EnrollmentPeriodPage
             enrollmentPeriods={enrollmentPeriodsData}
             courses={coursesData}
-            adminDepartment={ADMIN_DEPARTMENT}
+            adminDepartment="Computer Science"
             onAddPeriod={handleAddEnrollmentPeriod}
             onEditPeriod={handleEditEnrollmentPeriod}
             onDeletePeriod={handleDeleteEnrollmentPeriod}
@@ -352,7 +401,7 @@ function AdminDashboardContent() {
         {activeTab === 'chat' && (
           <MessagingChat
             height="100vh"
-            currentUserName="Administrator"
+            currentUserName={user?.firstName ? `${user.firstName} ${user.lastName}` : 'Admin'}
             showVideoCall={true}
             showVoiceCall={true}
             isDark={isDark}
@@ -368,13 +417,13 @@ function AdminDashboardContent() {
             accentColor={primaryHex || '#3b82f6'}
             bannerGradient="from-[#3b82f6] to-[#06b6d4]"
             profileData={{
-              fullName: 'Dr. Ahmad Khalil',
+              fullName: user ? `${user.firstName} ${user.lastName}` : 'Admin',
               role: 'Department Head',
-              department: ADMIN_DEPARTMENT,
-              email: 'a.khalil@university.edu',
-              phone: '+1 (555) 100-0001',
+              department: 'Computer Science',
+              email: user?.email || 'admin@university.edu',
+              phone: user?.phone || '',
               address: 'Faculty Building, Office 312',
-              dateOfBirth: '1975-03-20',
+              dateOfBirth: '',
               bio: 'Department Head for Computer Science and Engineering. Responsible for managing department courses, faculty assignments, student enrollment, and academic scheduling.',
               specialization: [
                 'Academic Administration',

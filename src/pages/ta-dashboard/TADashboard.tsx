@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   LayoutGrid,
@@ -37,14 +37,14 @@ import { DashboardHeader, DashboardSidebar, MessagingChat } from '../../componen
 import { DashboardProfileTab } from '../../components/shared/DashboardProfileTab';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
+import { useAuth } from '../../context/AuthContext';
+import { useApi } from '../../hooks/useApi';
+import { courseService } from '../../services/api/courseService';
+import { labService } from '../../services/api/labService';
 import {
-  ASSIGNED_COURSES,
-  LABS,
-  SUBMISSIONS,
   DASHBOARD_STATS,
   RECENT_ACTIVITY,
   UPCOMING_LABS,
-  STUDENT_PERFORMANCE,
 } from './constants';
 
 type TabKey =
@@ -92,8 +92,46 @@ function TADashboardContent() {
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
   const [selectedLabId, setSelectedLabId] = useState<string | null>(null);
 
-  // Get all submissions from all labs
-  const allSubmissions = Object.values(SUBMISSIONS).flat();
+  const { user } = useAuth();
+  const userName = user?.firstName ? `${user.firstName} ${user.lastName}` : 'Teaching Assistant';
+
+  // Fetch courses
+  const { data: coursesRaw } = useApi(() => courseService.listCourses(), []);
+  const assignedCourses = useMemo(() =>
+    (coursesRaw || []).map((c: any) => ({
+      id: String(c.id),
+      name: c.name,
+      code: c.code,
+      instructor: '',
+      students: 0,
+      labs: 0,
+      nextClass: '',
+    })),
+    [coursesRaw]
+  );
+
+  // Fetch labs
+  const { data: labsRaw } = useApi(() => labService.listLabs(), []);
+  const labs = useMemo(() =>
+    (labsRaw || []).map((l: any) => ({
+      id: String(l.id),
+      courseId: String(l.courseId),
+      title: l.title,
+      description: l.description || '',
+      dueDate: l.dueDate?.split('T')[0] || '',
+      status: l.status || 'upcoming',
+      totalPoints: l.totalPoints || 100,
+      materials: [],
+      submissions: 0,
+    })),
+    [labsRaw]
+  );
+
+  // Derive submissions from labs (empty for now - no global submissions endpoint)
+  const allSubmissions: any[] = [];
+
+  // Derive student performance (keep empty, no endpoint)
+  const studentPerformance: any[] = [];
 
   // Map tabs for translation
   const translatedTabs = TABS.map((tab) => ({
@@ -160,7 +198,7 @@ function TADashboardContent() {
       <main className={`flex-1 ${isRTL ? 'lg:mr-64' : 'lg:ml-64'} ${activeTab === 'chat' ? 'p-0' : 'p-4 lg:p-10'}`}>
         {activeTab !== 'chat' && (
           <DashboardHeader
-            userName="Ahmed Hassan"
+            userName={userName}
             userRole="Teaching Assistant"
             isDark={isDark}
             isRTL={isRTL}
@@ -196,7 +234,7 @@ function TADashboardContent() {
         {activeTab === 'dashboard' && (
           <ModernDashboard
             stats={DASHBOARD_STATS}
-            courses={ASSIGNED_COURSES}
+            courses={assignedCourses}
             upcomingLabs={UPCOMING_LABS}
             recentActivity={RECENT_ACTIVITY}
             onNavigate={handleTabChange}
@@ -205,13 +243,13 @@ function TADashboardContent() {
 
         {/* Courses Tab */}
         {activeTab === 'courses' && (
-          <CoursesPage courses={ASSIGNED_COURSES} onViewCourse={handleViewCourse} />
+          <CoursesPage courses={assignedCourses} onViewCourse={handleViewCourse} />
         )}
 
         {/* Labs Tab */}
         {activeTab === 'labs' && (
           <LabsPage
-            labs={selectedCourseId ? LABS.filter((l) => l.courseId === selectedCourseId) : LABS}
+            labs={selectedCourseId ? labs.filter((l) => l.courseId === selectedCourseId) : labs}
             onViewLab={handleViewLab}
           />
         )}
@@ -227,9 +265,9 @@ function TADashboardContent() {
         {/* Students Tab */}
         {activeTab === 'students' && (
           <StudentPerformancePage
-            students={STUDENT_PERFORMANCE}
+            students={studentPerformance}
             readOnly
-            assignedCourseNames={ASSIGNED_COURSES.map((course) => course.name)}
+            assignedCourseNames={assignedCourses.map((c) => c.name)}
           />
         )}
 
@@ -240,7 +278,7 @@ function TADashboardContent() {
         {activeTab === 'announcements' && <AnnouncementsPage />}
 
         {/* Discussion Tab */}
-        {activeTab === 'discussion' && <DiscussionPage userRole="ta" userName="Ahmed Hassan" />}
+        {activeTab === 'discussion' && <DiscussionPage userRole="ta" userName={userName} />}
 
         {/* Communication Tab — Removed (merged into Announcements) */}
 
@@ -248,7 +286,7 @@ function TADashboardContent() {
         {activeTab === 'chat' && (
           <MessagingChat
             height="100vh"
-            currentUserName="Ahmed Hassan"
+            currentUserName={userName}
             showVideoCall={true}
             showVoiceCall={true}
             isDark={isDark}
@@ -264,22 +302,16 @@ function TADashboardContent() {
             accentColor="#2563EB"
             bannerGradient="from-blue-500 to-blue-500"
             profileData={{
-              fullName: 'Ahmed Hassan',
+              fullName: userName,
               role: 'Teaching Assistant',
-              department: 'Computer Science',
-              email: 'ahmed.hassan@university.edu',
-              phone: '+20 100 234 5678',
-              address: 'Cairo, Egypt',
-              dateOfBirth: '1998-11-10',
-              bio: 'Graduate teaching assistant pursuing M.Sc. in Computer Science. Assisting in programming and data structures courses while conducting research in distributed systems.',
-              interests: [
-                'Distributed Systems',
-                'Cloud Computing',
-                'Data Structures',
-                'Algorithms',
-                'Teaching Pedagogy',
-              ],
-              skills: ['Java', 'Python', 'C++', 'Docker', 'Kubernetes', 'Linux'],
+              department: user?.department || 'Computer Science',
+              email: user?.email || '',
+              phone: user?.phone || '',
+              address: '',
+              dateOfBirth: '',
+              bio: '',
+              interests: [],
+              skills: [],
             }}
           />
         )}
