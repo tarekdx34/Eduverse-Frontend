@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { toast } from 'sonner';
 import {
   LayoutGrid,
   BookOpen,
@@ -19,7 +20,7 @@ import {
   EnrollmentPeriodPage,
   PrerequisitesManagementPage,
 } from './components';
-import { DashboardHeader, DashboardSidebar, MessagingChat } from '../../components/shared';
+import { DashboardHeader, DashboardSidebar, MessagingChat, LoadingSkeleton, ErrorMessage } from '../../components/shared';
 import { DashboardProfileTab } from '../../components/shared/DashboardProfileTab';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
@@ -104,7 +105,7 @@ function AdminDashboardContent() {
   const { user } = useAuth();
 
   // Fetch courses from API
-  const { data: coursesRaw, refetch: refetchCourses } = useApi(() => courseService.listCourses(), []);
+  const { data: coursesRaw, refetch: refetchCourses, error: coursesError, loading: coursesLoading } = useApi(() => courseService.listCourses(), []);
   const [coursesData, setCoursesData] = useState<any[]>([]);
   useEffect(() => {
     if (coursesRaw) setCoursesData(coursesRaw.map((c: any) => ({
@@ -122,7 +123,7 @@ function AdminDashboardContent() {
   }, [coursesRaw]);
 
   // Fetch users from API
-  const { data: usersRaw } = useApi(() => userService.listUsers(), []);
+  const { data: usersRaw, error: usersError, loading: usersLoading } = useApi(() => userService.listUsers(), []);
   const users = useMemo(() => ((usersRaw as any)?.data || usersRaw || []).map((u: any) => ({
     id: u.userId || u.id,
     name: `${u.firstName || ''} ${u.lastName || ''}`.trim(),
@@ -131,6 +132,9 @@ function AdminDashboardContent() {
     department: '',
     status: u.status === 'active' || u.isActive !== false ? 'active' : 'inactive',
   })), [usersRaw]);
+
+  useEffect(() => { if (coursesError) toast.error('Failed to load courses'); }, [coursesError]);
+  useEffect(() => { if (usersError) toast.error('Failed to load users'); }, [usersError]);
 
   // State for data management (mock data that has no API endpoints)
   const [calendarEvents, setCalendarEvents] = useState(CALENDAR_EVENTS);
@@ -169,8 +173,10 @@ function AdminDashboardContent() {
         description: course.description,
       });
       await refetchCourses();
+      toast.success('Course added successfully');
     } catch (error) {
       console.error('Failed to add course:', error);
+      toast.error('Failed to add course');
     }
   };
 
@@ -183,8 +189,10 @@ function AdminDashboardContent() {
         description: course.description,
       });
       await refetchCourses();
+      toast.success('Course updated successfully');
     } catch (error) {
       console.error('Failed to edit course:', error);
+      toast.error('Failed to update course');
     }
   };
 
@@ -192,8 +200,10 @@ function AdminDashboardContent() {
     try {
       await courseService.deleteCourse(id);
       await refetchCourses();
+      toast.success('Course deleted successfully');
     } catch (error) {
       console.error('Failed to delete course:', error);
+      toast.error('Failed to delete course');
     }
   };
 
@@ -354,6 +364,8 @@ function AdminDashboardContent() {
 
         {/* Course Management */}
         {activeTab === 'courses' && (
+          coursesLoading ? <LoadingSkeleton variant="card" count={4} /> :
+          coursesError ? <ErrorMessage error={coursesError} onRetry={refetchCourses} /> :
           <CourseManagementPage
             courses={coursesData}
             users={users}

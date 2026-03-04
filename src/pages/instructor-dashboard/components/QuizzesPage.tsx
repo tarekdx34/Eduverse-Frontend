@@ -19,7 +19,8 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useApi } from '../../../hooks/useApi';
 import { quizService } from '../../../services/api/quizService';
-import { LoadingSkeleton } from '../../../components/shared';
+import { LoadingSkeleton, ErrorMessage } from '../../../components/shared';
+import { toast } from 'sonner';
 
 interface QuizQuestion {
   id: number;
@@ -80,7 +81,7 @@ export function QuizzesPage() {
   const { t, isRTL } = useLanguage();
   const { isDark, primaryHex = '#3b82f6' } = useTheme() as any;
 
-  const { data: quizzesRaw, loading, refetch } = useApi(() => quizService.listQuizzes(), []);
+  const { data: quizzesRaw, loading, error, refetch } = useApi(() => quizService.listQuizzes(), []);
   const [quizzes, setQuizzes] = useState<QuizData[]>([]);
 
   useEffect(() => {
@@ -99,6 +100,8 @@ export function QuizzesPage() {
       statusColor: q.status === 'published' ? 'bg-green-100 text-green-700' : q.status === 'closed' ? 'bg-gray-100 text-gray-700' : 'bg-blue-100 text-blue-700',
     })));
   }, [quizzesRaw]);
+
+  useEffect(() => { if (error) toast.error('Failed to load quizzes'); }, [error]);
 
   // Create / Edit quiz form state
   const [showCreateQuiz, setShowCreateQuiz] = useState(false);
@@ -147,41 +150,47 @@ export function QuizzesPage() {
   };
 
   const saveQuiz = () => {
-    const courseColorMap: Record<string, string> = {
-      'Calculus I': 'bg-blue-100 text-blue-700',
-      'Calculus II': 'bg-blue-100 text-blue-700',
-      'Physics I': '',
-    };
-    const diffColorMap: Record<string, string> = {
-      Easy: 'bg-green-100 text-green-700',
-      Medium: 'bg-yellow-100 text-yellow-700',
-      Hard: 'bg-red-100 text-red-700',
-    };
-    const newQuiz: QuizData = {
-      title: formData.title,
-      subject: formData.course,
-      subjectColor: courseColorMap[formData.course] || 'bg-blue-100 text-blue-700',
-      date: new Date().toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        hour: 'numeric',
-        minute: '2-digit',
-      }),
-      questions: formData.questions.length,
-      attempted: 0,
-      total: 52,
-      difficulty: formData.difficulty,
-      difficultyColor: diffColorMap[formData.difficulty] || 'bg-yellow-100 text-yellow-700',
-      duration: formData.duration,
-      status: 'Scheduled',
-      statusColor: 'bg-blue-100 text-blue-700',
-    };
-    if (editingIndex !== null) {
-      setQuizzes((prev) => prev.map((q, i) => (i === editingIndex ? newQuiz : q)));
-    } else {
-      setQuizzes((prev) => [...prev, newQuiz]);
+    try {
+      const courseColorMap: Record<string, string> = {
+        'Calculus I': 'bg-blue-100 text-blue-700',
+        'Calculus II': 'bg-blue-100 text-blue-700',
+        'Physics I': '',
+      };
+      const diffColorMap: Record<string, string> = {
+        Easy: 'bg-green-100 text-green-700',
+        Medium: 'bg-yellow-100 text-yellow-700',
+        Hard: 'bg-red-100 text-red-700',
+      };
+      const newQuiz: QuizData = {
+        title: formData.title,
+        subject: formData.course,
+        subjectColor: courseColorMap[formData.course] || 'bg-blue-100 text-blue-700',
+        date: new Date().toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          hour: 'numeric',
+          minute: '2-digit',
+        }),
+        questions: formData.questions.length,
+        attempted: 0,
+        total: 52,
+        difficulty: formData.difficulty,
+        difficultyColor: diffColorMap[formData.difficulty] || 'bg-yellow-100 text-yellow-700',
+        duration: formData.duration,
+        status: 'Scheduled',
+        statusColor: 'bg-blue-100 text-blue-700',
+      };
+      if (editingIndex !== null) {
+        setQuizzes((prev) => prev.map((q, i) => (i === editingIndex ? newQuiz : q)));
+        toast.success('Quiz updated successfully');
+      } else {
+        setQuizzes((prev) => [...prev, newQuiz]);
+        toast.success('Quiz created successfully');
+      }
+      setShowCreateQuiz(false);
+    } catch {
+      toast.error('Failed to save quiz');
     }
-    setShowCreateQuiz(false);
   };
 
   const addQuestion = () => {
@@ -231,11 +240,16 @@ export function QuizzesPage() {
   };
 
   const publishQuiz = (index: number) => {
-    setQuizzes((prev) =>
-      prev.map((q, i) =>
-        i === index ? { ...q, status: 'Active', statusColor: 'bg-green-100 text-green-700' } : q
-      )
-    );
+    try {
+      setQuizzes((prev) =>
+        prev.map((q, i) =>
+          i === index ? { ...q, status: 'Active', statusColor: 'bg-green-100 text-green-700' } : q
+        )
+      );
+      toast.success('Quiz published successfully');
+    } catch {
+      toast.error('Failed to publish quiz');
+    }
   };
 
   const analyzeResults = (index: number) => {
@@ -270,6 +284,7 @@ export function QuizzesPage() {
   };
 
   if (loading) return <LoadingSkeleton variant="card" count={3} />;
+  if (error) return <ErrorMessage error={error} onRetry={refetch} />;
 
   return (
     <div className="space-y-6">

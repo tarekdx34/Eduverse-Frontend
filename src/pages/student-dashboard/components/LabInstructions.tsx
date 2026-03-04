@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useApi, useMutation } from '../../../hooks/useApi';
 import { labService } from '../../../services/api/labService';
-import { LoadingSkeleton } from '../../../components/shared';
+import { LoadingSkeleton, ErrorMessage } from '../../../components/shared';
+import { toast } from 'sonner';
 import type { Lab } from '../../../types/api';
 import {
   Beaker,
@@ -66,10 +67,12 @@ export function LabInstructions() {
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
 
-  const { data: apiLabs, loading, error } = useApi(() => labService.listLabs(), []);
+  const { data: apiLabs, loading, error, refetch } = useApi(() => labService.listLabs(), []);
   const { mutate: submitLabMutation, loading: submitting } = useMutation(
     (data: { labId: number; formData: FormData }) => labService.submitLab(data.labId, data.formData)
   );
+
+  useEffect(() => { if (error) toast.error('Failed to load lab instructions'); }, [error]);
 
   const labSessions: LabSession[] = (apiLabs || []).map((lab: Lab, index: number) => ({
     id: String(lab.id),
@@ -146,6 +149,10 @@ export function LabInstructions() {
 
   if (loading) {
     return <LoadingSkeleton variant="card" count={4} />;
+  }
+
+  if (error) {
+    return <ErrorMessage error={error} onRetry={refetch} />;
   }
 
   if (selectedLab) {

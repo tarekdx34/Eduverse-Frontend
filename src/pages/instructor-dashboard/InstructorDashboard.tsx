@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { toast } from 'sonner';
 import { useAuth } from '../../context/AuthContext';
 import { useApi } from '../../hooks/useApi';
 import { courseService } from '../../services/api/courseService';
@@ -51,6 +52,8 @@ import {
   DashboardHeader,
   DashboardSidebar,
   CustomDropdown,
+  LoadingSkeleton,
+  ErrorMessage,
 } from '../../components/shared';
 import { DashboardProfileTab } from '../../components/shared/DashboardProfileTab';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
@@ -148,10 +151,11 @@ function InstructorDashboardContent() {
   const { language, setLanguage, isRTL, t } = useLanguage();
 
   // --- API: Fetch instructor's courses ---
-  const { data: coursesRaw, loading: coursesLoading, refetch: refetchCourses } = useApi(
+  const { data: coursesRaw, loading: coursesLoading, error: coursesError, refetch: refetchCourses } = useApi(
     () => courseService.listCourses(),
     []
   );
+  useEffect(() => { if (coursesError) toast.error('Failed to load courses'); }, [coursesError]);
   const [coursesData, setCoursesData] = useState<any[]>([]);
   useEffect(() => {
     if (coursesRaw) setCoursesData(coursesRaw.map((c: any, i: number) => ({
@@ -187,10 +191,11 @@ function InstructorDashboardContent() {
   );
 
   // --- API: Fetch roster for active section ---
-  const { data: rosterRaw, refetch: refetchRoster } = useApi(
+  const { data: rosterRaw, loading: rosterLoading, error: rosterError, refetch: refetchRoster } = useApi(
     () => activeSectionId ? enrollmentService.getSectionStudents(Number(activeSectionId)) : Promise.resolve([]),
     [activeSectionId]
   );
+  useEffect(() => { if (rosterError) toast.error('Failed to load roster'); }, [rosterError]);
   const currentRoster = useMemo(() =>
     (rosterRaw || []).map((e: any, i: number) => ({
       id: e.id,
@@ -203,10 +208,11 @@ function InstructorDashboardContent() {
   );
 
   // --- API: Fetch assignments for active section ---
-  const { data: assignmentsRaw, refetch: refetchAssignments } = useApi(
+  const { data: assignmentsRaw, loading: assignmentsLoading, error: assignmentsError, refetch: refetchAssignments } = useApi(
     () => activeSectionId ? assignmentService.listAssignments({ courseId: Number(activeSectionId) }) : Promise.resolve([]),
     [activeSectionId]
   );
+  useEffect(() => { if (assignmentsError) toast.error('Failed to load assignments'); }, [assignmentsError]);
   const currentAssignments = useMemo(() =>
     (assignmentsRaw || []).map((a: any) => ({
       id: a.id,
@@ -219,10 +225,11 @@ function InstructorDashboardContent() {
   );
 
   // --- API: Fetch grades for active section ---
-  const { data: gradesRaw, refetch: refetchGrades } = useApi(
+  const { data: gradesRaw, error: gradesError, refetch: refetchGrades } = useApi(
     () => activeSectionId ? gradeService.listAllGrades({ courseId: Number(activeSectionId) }) : Promise.resolve([]),
     [activeSectionId]
   );
+  useEffect(() => { if (gradesError) toast.error('Failed to load grades'); }, [gradesError]);
   const currentGrades = useMemo(() =>
     (gradesRaw || []).map((g: any) => ({
       id: g.id,
@@ -236,10 +243,11 @@ function InstructorDashboardContent() {
   );
 
   // --- API: Fetch attendance for active section ---
-  const { data: attendanceRaw, refetch: refetchAttendance } = useApi(
+  const { data: attendanceRaw, loading: attendanceLoading, error: attendanceError, refetch: refetchAttendance } = useApi(
     () => activeSectionId ? attendanceService.listSessions({ sectionId: Number(activeSectionId) }) : Promise.resolve([]),
     [activeSectionId]
   );
+  useEffect(() => { if (attendanceError) toast.error('Failed to load attendance'); }, [attendanceError]);
   const currentAttendance = useMemo(() =>
     (attendanceRaw || []).map((s: any) => ({
       id: s.id,
@@ -357,8 +365,10 @@ function InstructorDashboardContent() {
         } as any);
       }
       await refetchAssignments();
+      toast.success(data.id ? 'Assignment updated' : 'Assignment created');
     } catch (err) {
       console.error('Failed to save assignment:', err);
+      toast.error('Failed to save assignment');
     }
     setIsAssignmentModalOpen(false);
   };
@@ -372,8 +382,10 @@ function InstructorDashboardContent() {
     try {
       await assignmentService.deleteAssignment(assignmentToDelete);
       await refetchAssignments();
+      toast.success('Assignment deleted');
     } catch (err) {
       console.error('Failed to delete assignment:', err);
+      toast.error('Failed to delete assignment');
     }
     setAssignmentToDelete(null);
   };
@@ -384,8 +396,10 @@ function InstructorDashboardContent() {
       const apiStatus = newStatus === 'open' ? 'published' : newStatus;
       await assignmentService.changeStatus(id, apiStatus);
       await refetchAssignments();
+      toast.success('Assignment status updated');
     } catch (err) {
       console.error('Failed to change assignment status:', err);
+      toast.error('Failed to change assignment status');
     }
   };
 
@@ -403,8 +417,10 @@ function InstructorDashboardContent() {
         letterGrade: data.grade,
       });
       await refetchGrades();
+      toast.success('Grade updated');
     } catch (err) {
       console.error('Failed to save grade:', err);
+      toast.error('Failed to save grade');
     }
     setIsGradeModalOpen(false);
   };
@@ -443,8 +459,10 @@ function InstructorDashboardContent() {
         });
       }
       await refetchAttendance();
+      toast.success(data.id ? 'Attendance updated' : 'Attendance session created');
     } catch (err) {
       console.error('Failed to save attendance:', err);
+      toast.error('Failed to save attendance');
     }
     setIsAttendanceModalOpen(false);
   };
@@ -458,8 +476,10 @@ function InstructorDashboardContent() {
     try {
       await attendanceService.deleteSession(attendanceToDelete);
       await refetchAttendance();
+      toast.success('Attendance session deleted');
     } catch (err) {
       console.error('Failed to delete attendance:', err);
+      toast.error('Failed to delete attendance');
     }
     setAttendanceToDelete(null);
   };
@@ -483,8 +503,10 @@ function InstructorDashboardContent() {
         description: data.description,
       } as any);
       await refetchCourses();
+      toast.success('Course created');
     } catch (err) {
       console.error('Failed to create course:', err);
+      toast.error('Failed to create course');
     }
   };
 
@@ -497,8 +519,10 @@ function InstructorDashboardContent() {
         description: data.description,
       } as any);
       await refetchCourses();
+      toast.success('Course updated');
     } catch (err) {
       console.error('Failed to update course:', err);
+      toast.error('Failed to update course');
     }
   };
 
@@ -506,8 +530,10 @@ function InstructorDashboardContent() {
     try {
       await courseService.deleteCourse(id);
       await refetchCourses();
+      toast.success('Course deleted');
     } catch (err) {
       console.error('Failed to delete course:', err);
+      toast.error('Failed to delete course');
     }
   };
 
@@ -640,58 +666,66 @@ function InstructorDashboardContent() {
                 accentColor={primaryHex}
               />
             </div>
-            <SelectedSectionSummary section={selectedSection as any} />
-
-            <div className="flex gap-4 border-b border-gray-200 dark:border-white/10 mb-6">
-              <button
-                onClick={() => setRosterSubTab('overview')}
-                className={`pb-2 px-1 text-sm font-medium transition-colors relative ${
-                  rosterSubTab === 'overview'
-                    ? 'text-indigo-600'
-                    : 'text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200'
-                }`}
-              >
-                {t('overview') || 'Overview'}
-                {rosterSubTab === 'overview' && (
-                  <div
-                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600"
-                    style={{ backgroundColor: primaryHex }}
-                  />
-                )}
-              </button>
-              <button
-                onClick={() => setRosterSubTab('grades')}
-                className={`pb-2 px-1 text-sm font-medium transition-colors relative ${
-                  rosterSubTab === 'grades'
-                    ? 'text-indigo-600'
-                    : 'text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200'
-                }`}
-              >
-                {t('detailedGrades') || 'Detailed Grades'}
-                {rosterSubTab === 'grades' && (
-                  <div
-                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600"
-                    style={{ backgroundColor: primaryHex }}
-                  />
-                )}
-              </button>
-            </div>
-
-            {rosterSubTab === 'overview' ? (
-              <RosterTable
-                data={currentRoster}
-                grades={currentGrades}
-                onEdit={(student) => {
-                  setEditingStudent(student);
-                  setIsEditOpen(true);
-                }}
-              />
+            {rosterLoading ? (
+              <LoadingSkeleton variant="table" count={5} />
+            ) : rosterError ? (
+              <ErrorMessage error={rosterError} onRetry={refetchRoster} />
             ) : (
-              <GradesTable
-                data={currentGrades}
-                onEdit={handleEditGrade}
-                onDelete={handleDeleteGrade}
-              />
+              <>
+                <SelectedSectionSummary section={selectedSection as any} />
+
+                <div className="flex gap-4 border-b border-gray-200 dark:border-white/10 mb-6">
+                  <button
+                    onClick={() => setRosterSubTab('overview')}
+                    className={`pb-2 px-1 text-sm font-medium transition-colors relative ${
+                      rosterSubTab === 'overview'
+                        ? 'text-indigo-600'
+                        : 'text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200'
+                    }`}
+                  >
+                    {t('overview') || 'Overview'}
+                    {rosterSubTab === 'overview' && (
+                      <div
+                        className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600"
+                        style={{ backgroundColor: primaryHex }}
+                      />
+                    )}
+                  </button>
+                  <button
+                    onClick={() => setRosterSubTab('grades')}
+                    className={`pb-2 px-1 text-sm font-medium transition-colors relative ${
+                      rosterSubTab === 'grades'
+                        ? 'text-indigo-600'
+                        : 'text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200'
+                    }`}
+                  >
+                    {t('detailedGrades') || 'Detailed Grades'}
+                    {rosterSubTab === 'grades' && (
+                      <div
+                        className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600"
+                        style={{ backgroundColor: primaryHex }}
+                      />
+                    )}
+                  </button>
+                </div>
+
+                {rosterSubTab === 'overview' ? (
+                  <RosterTable
+                    data={currentRoster}
+                    grades={currentGrades}
+                    onEdit={(student) => {
+                      setEditingStudent(student);
+                      setIsEditOpen(true);
+                    }}
+                  />
+                ) : (
+                  <GradesTable
+                    data={currentGrades}
+                    onEdit={handleEditGrade}
+                    onDelete={handleDeleteGrade}
+                  />
+                )}
+              </>
             )}
           </div>
         )}
@@ -709,14 +743,22 @@ function InstructorDashboardContent() {
                 accentColor={primaryHex}
               />
             </div>
-            <SelectedSectionSummary section={selectedSection as any} />
-            <AssignmentsList
-              data={currentAssignments}
-              onEdit={handleEditAssignment}
-              onDelete={handleDeleteAssignment}
-              onCreate={handleCreateAssignment}
-              onStatusChange={handleAssignmentStatusChange}
-            />
+            {assignmentsLoading ? (
+              <LoadingSkeleton variant="list" count={4} />
+            ) : assignmentsError ? (
+              <ErrorMessage error={assignmentsError} onRetry={refetchAssignments} />
+            ) : (
+              <>
+                <SelectedSectionSummary section={selectedSection as any} />
+                <AssignmentsList
+                  data={currentAssignments}
+                  onEdit={handleEditAssignment}
+                  onDelete={handleDeleteAssignment}
+                  onCreate={handleCreateAssignment}
+                  onStatusChange={handleAssignmentStatusChange}
+                />
+              </>
+            )}
           </div>
         )}
 
@@ -733,24 +775,32 @@ function InstructorDashboardContent() {
                 accentColor={primaryHex}
               />
             </div>
-            <SelectedSectionSummary section={selectedSection as any} />
+            {attendanceLoading ? (
+              <LoadingSkeleton variant="table" count={5} />
+            ) : attendanceError ? (
+              <ErrorMessage error={attendanceError} onRetry={refetchAttendance} />
+            ) : (
+              <>
+                <SelectedSectionSummary section={selectedSection as any} />
 
-            <div
-              className={`rounded-xl border shadow-sm p-6 ${isDark ? 'bg-card-dark border-white/10' : 'bg-white border-gray-200'}`}
-            >
-              <h3
-                className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}
-              >
-                {t('attendanceRecords') || 'Attendance Records'}
-              </h3>
-              <AttendanceTable
-                sessions={currentAttendance}
-                onCreate={handleCreateAttendance}
-                onEdit={handleEditAttendance}
-                onDelete={handleDeleteAttendance}
-                onSwitchToAI={() => setIsAIAttendanceModalOpen(true)}
-              />
-            </div>
+                <div
+                  className={`rounded-xl border shadow-sm p-6 ${isDark ? 'bg-card-dark border-white/10' : 'bg-white border-gray-200'}`}
+                >
+                  <h3
+                    className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}
+                  >
+                    {t('attendanceRecords') || 'Attendance Records'}
+                  </h3>
+                  <AttendanceTable
+                    sessions={currentAttendance}
+                    onCreate={handleCreateAttendance}
+                    onEdit={handleEditAttendance}
+                    onDelete={handleDeleteAttendance}
+                    onSwitchToAI={() => setIsAIAttendanceModalOpen(true)}
+                  />
+                </div>
+              </>
+            )}
           </div>
         )}
 

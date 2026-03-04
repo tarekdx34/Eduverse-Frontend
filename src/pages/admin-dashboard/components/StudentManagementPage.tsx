@@ -4,7 +4,8 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useApi } from '../../../hooks/useApi';
 import { userService } from '../../../services/api/userService';
-import { LoadingSkeleton } from '../../../components/shared';
+import { LoadingSkeleton, ErrorMessage } from '../../../components/shared';
+import { toast } from 'sonner';
 
 interface Student {
   id: number;
@@ -37,8 +38,10 @@ export function StudentManagementPage() {
   const accentColor = primaryHex || '#3b82f6';
   const { t } = useLanguage();
 
-  const { data: usersRaw, loading, refetch } = useApi(() => userService.listUsers(), []);
+  const { data: usersRaw, loading, error, refetch } = useApi(() => userService.listUsers(), []);
   const [students, setStudents] = useState<Student[]>([]);
+  useEffect(() => { if (error) toast.error('Failed to load students'); }, [error]);
+
   useEffect(() => {
     if (usersRaw) {
       const users = Array.isArray(usersRaw) ? usersRaw : usersRaw.data || [];
@@ -141,6 +144,7 @@ export function StudentManagementPage() {
   const conflicts = selectedStudent ? enrollmentConflicts[selectedStudent.studentId] || [] : [];
 
   if (loading) return <LoadingSkeleton variant="table" count={5} />;
+  if (error) return <ErrorMessage error={error} onRetry={refetch} />;
 
   return (
     <div className="space-y-6">

@@ -1,6 +1,7 @@
 import { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
+import { Toaster } from 'sonner';
 
 import HomePage from './pages/home/HomePage';
 import LoginPage from './pages/auth/LoginPage';
@@ -62,6 +63,7 @@ function App() {
   return (
     <Router>
       <AuthProvider>
+      <Toaster position="top-right" richColors closeButton />
       <QuickNavigateModal />
       <Suspense fallback={<PageFallback />}>
         <Routes>
