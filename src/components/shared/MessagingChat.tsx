@@ -1,4 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { useApi } from '../../hooks/useApi';
+import { messagingService } from '../../services/api/messagingService';
 import {
   Send,
   Plus,
@@ -149,10 +151,61 @@ export function MessagingChat({
   height = '600px',
   isDark = false,
 }: MessagingChatProps) {
+  // Fetch conversations from API, fall back to prop/defaults
+  const { data: apiConversations } = useApi(() => messagingService.listConversations(), []);
+
+  const mappedConversations = useMemo(() => {
+    if (apiConversations && apiConversations.length > 0) {
+      return apiConversations.map((c: any) => ({
+        id: String(c.id),
+        name: c.name || c.participantName || 'Unknown',
+        initials: (c.name || c.participantName || 'U').slice(0, 2).toUpperCase(),
+        color: '#4f39f6',
+        lastMessage: c.lastMessage?.content || c.lastMessage || '',
+        timestamp: c.lastMessage?.createdAt ? new Date(c.lastMessage.createdAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) : '',
+        unreadCount: c.unreadCount || 0,
+        isOnline: c.isOnline || false,
+        role: c.role || '',
+        isGroup: c.isGroup || false,
+      }));
+    }
+    return conversations;
+  }, [apiConversations, conversations]);
+
   const [localConversations, setLocalConversations] = useState<Conversation[]>(conversations);
+
+  // Sync API conversations when loaded
+  useEffect(() => {
+    if (mappedConversations !== conversations) {
+      setLocalConversations(mappedConversations);
+    }
+  }, [mappedConversations]);
+
   const [selectedConversation, setSelectedConversation] = useState<string>(
     conversations[0]?.id || ''
   );
+
+  // Fetch messages for selected conversation
+  const { data: apiMessages } = useApi(
+    () => selectedConversation ? messagingService.getMessages(Number(selectedConversation)) : Promise.resolve([]),
+    [selectedConversation]
+  );
+
+  useEffect(() => {
+    if (apiMessages && apiMessages.length > 0) {
+      setMessages(apiMessages.map((m: any) => ({
+        id: String(m.id),
+        sender: m.senderName || m.sender || 'Unknown',
+        senderInitials: (m.senderName || m.sender || 'U').slice(0, 2).toUpperCase(),
+        senderColor: '#4f39f6',
+        text: m.content || m.text || '',
+        timestamp: m.createdAt ? new Date(m.createdAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) : '',
+        isCurrentUser: m.isCurrentUser || false,
+        status: m.status || 'sent',
+      })));
+    }
+  }, [apiMessages]);
+
   const [messageInput, setMessageInput] = useState('');
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [searchTerm, setSearchTerm] = useState('');
@@ -197,6 +250,9 @@ export function MessagingChat({
 
     setMessages([...messages, newMessage]);
     setMessageInput('');
+
+    // Send via API
+    messagingService.sendMessage(Number(selectedConversation), { content: messageInput }).catch(() => {});
 
     if (onSendMessage) {
       onSendMessage(selectedConversation, { text: messageInput });
