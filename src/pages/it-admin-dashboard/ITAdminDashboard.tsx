@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { toast } from 'sonner';
 import { useAuth } from '../../context/AuthContext';
 import { useApi } from '../../hooks/useApi';
 import { campusService } from '../../services/api/campusService';
@@ -38,7 +39,7 @@ import { RoleManagementPage } from './components/RoleManagementPage';
 import { BackupCenterPage } from './components/BackupCenterPage';
 import { FeedbackSupportPage } from './components/FeedbackSupportPage';
 import { SecurityLogsPage } from './components/SecurityLogsPage';
-import { DashboardHeader, DashboardSidebar, MessagingChat } from '../../components/shared';
+import { DashboardHeader, DashboardSidebar, MessagingChat, LoadingSkeleton, ErrorMessage } from '../../components/shared';
 import { DashboardProfileTab } from '../../components/shared/DashboardProfileTab';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
@@ -187,10 +188,12 @@ function ITAdminDashboardContent() {
   const [backups, setBackups] = useState(DATABASE_BACKUPS);
   const [securityEvents] = useState(SECURITY_EVENTS);
   const [sslCertificates, setSslCertificates] = useState(SSL_CERTIFICATES);
-  const { data: campusesRaw, refetch: refetchCampuses } = useApi(() => campusService.listCampuses(), []);
+  const { data: campusesRaw, error: campusesError, loading: campusesLoading, refetch: refetchCampuses } = useApi(() => campusService.listCampuses(), []);
   const [campuses, setCampuses] = useState<any[]>([]);
   const [systemSettings, setSystemSettings] = useState(SYSTEM_SETTINGS);
   const [brandingSettings, setBrandingSettings] = useState(BRANDING_SETTINGS);
+
+  useEffect(() => { if (campusesError) toast.error('Failed to load campuses'); }, [campusesError]);
 
   useEffect(() => {
     if (campusesRaw) setCampuses(campusesRaw.map((c: any) => ({
@@ -284,19 +287,34 @@ function ITAdminDashboardContent() {
 
   // Campus handlers
   const handleAddCampus = async (campus: any) => {
-    await campusService.createCampus(campus);
-    await refetchCampuses();
+    try {
+      await campusService.createCampus(campus);
+      await refetchCampuses();
+      toast.success('Campus added successfully');
+    } catch (err) {
+      toast.error('Failed to add campus');
+    }
   };
 
   const handleEditCampus = async (id: number, campus: any) => {
-    await campusService.updateCampus(id, campus);
-    await refetchCampuses();
+    try {
+      await campusService.updateCampus(id, campus);
+      await refetchCampuses();
+      toast.success('Campus updated successfully');
+    } catch (err) {
+      toast.error('Failed to update campus');
+    }
   };
 
   const handleDeleteCampus = async (id: number) => {
     if (confirm('Are you sure you want to delete this campus?')) {
-      await campusService.deleteCampus(id);
-      await refetchCampuses();
+      try {
+        await campusService.deleteCampus(id);
+        await refetchCampuses();
+        toast.success('Campus deleted successfully');
+      } catch (err) {
+        toast.error('Failed to delete campus');
+      }
     }
   };
 
@@ -447,6 +465,8 @@ function ITAdminDashboardContent() {
 
         {/* Multi-Campus */}
         {activeTab === 'campus' && (
+          campusesLoading ? <LoadingSkeleton variant="card" count={3} /> :
+          campusesError ? <ErrorMessage error={campusesError} onRetry={refetchCampuses} /> :
           <MultiCampusPage
             campuses={campuses}
             onAddCampus={handleAddCampus}

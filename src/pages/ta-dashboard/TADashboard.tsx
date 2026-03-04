@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { toast } from 'sonner';
 import {
   LayoutGrid,
   BookOpen,
@@ -33,7 +34,7 @@ import {
   LabResourcesPage,
 } from './components';
 import { QuizzesPage } from './components/QuizzesPage';
-import { DashboardHeader, DashboardSidebar, MessagingChat } from '../../components/shared';
+import { DashboardHeader, DashboardSidebar, MessagingChat, LoadingSkeleton, ErrorMessage } from '../../components/shared';
 import { DashboardProfileTab } from '../../components/shared/DashboardProfileTab';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
@@ -96,7 +97,7 @@ function TADashboardContent() {
   const userName = user?.firstName ? `${user.firstName} ${user.lastName}` : 'Teaching Assistant';
 
   // Fetch courses
-  const { data: coursesRaw } = useApi(() => courseService.listCourses(), []);
+  const { data: coursesRaw, error: coursesError, loading: coursesLoading, refetch: refetchCourses } = useApi(() => courseService.listCourses(), []);
   const assignedCourses = useMemo(() =>
     (coursesRaw || []).map((c: any) => ({
       id: String(c.id),
@@ -111,7 +112,7 @@ function TADashboardContent() {
   );
 
   // Fetch labs
-  const { data: labsRaw } = useApi(() => labService.listLabs(), []);
+  const { data: labsRaw, error: labsError, loading: labsLoading, refetch: refetchLabs } = useApi(() => labService.listLabs(), []);
   const labs = useMemo(() =>
     (labsRaw || []).map((l: any) => ({
       id: String(l.id),
@@ -126,6 +127,9 @@ function TADashboardContent() {
     })),
     [labsRaw]
   );
+
+  useEffect(() => { if (coursesError) toast.error('Failed to load courses'); }, [coursesError]);
+  useEffect(() => { if (labsError) toast.error('Failed to load labs'); }, [labsError]);
 
   // Derive submissions from labs (empty for now - no global submissions endpoint)
   const allSubmissions: any[] = [];
@@ -243,11 +247,15 @@ function TADashboardContent() {
 
         {/* Courses Tab */}
         {activeTab === 'courses' && (
+          coursesLoading ? <LoadingSkeleton variant="card" count={3} /> :
+          coursesError ? <ErrorMessage error={coursesError} onRetry={refetchCourses} /> :
           <CoursesPage courses={assignedCourses} onViewCourse={handleViewCourse} />
         )}
 
         {/* Labs Tab */}
         {activeTab === 'labs' && (
+          labsLoading ? <LoadingSkeleton variant="card" count={3} /> :
+          labsError ? <ErrorMessage error={labsError} onRetry={refetchLabs} /> :
           <LabsPage
             labs={selectedCourseId ? labs.filter((l) => l.courseId === selectedCourseId) : labs}
             onViewLab={handleViewLab}

@@ -22,7 +22,8 @@ import {
 } from 'lucide-react';
 import { useApi, useMutation } from '../../../hooks/useApi';
 import { notificationService } from '../../../services/api/notificationService';
-import { LoadingSkeleton } from '../../../components/shared';
+import { LoadingSkeleton, ErrorMessage } from '../../../components/shared';
+import { toast } from 'sonner';
 
 interface MappedNotification {
   id: number;
@@ -67,7 +68,7 @@ function mapNotification(n: any): MappedNotification {
 export function NotificationCenter() {
   const { isDark, primaryHex } = useTheme() as any;
   const accentColor = primaryHex || '#3b82f6';
-  const { data: rawNotifications, loading } = useApi(() => notificationService.list(), []);
+  const { data: rawNotifications, loading, error, refetch } = useApi(() => notificationService.list(), []);
   const { mutate: apiMarkAsRead } = useMutation((id: number) => notificationService.markAsRead(id));
   const { mutate: apiDelete } = useMutation((id: number) => notificationService.delete(id));
   const [notificationList, setNotificationList] = useState<MappedNotification[]>([]);
@@ -77,6 +78,8 @@ export function NotificationCenter() {
       setNotificationList(rawNotifications.map(mapNotification));
     }
   }, [rawNotifications]);
+
+  useEffect(() => { if (error) toast.error('Failed to load notifications'); }, [error]);
 
   const [filterType, setFilterType] = useState<string>('all');
   const [showSettings, setShowSettings] = useState(false);
@@ -183,6 +186,10 @@ export function NotificationCenter() {
 
   if (loading) {
     return <LoadingSkeleton variant="list" count={5} />;
+  }
+
+  if (error) {
+    return <ErrorMessage error={error} onRetry={refetch} />;
   }
 
   return (

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import {
   Users,
@@ -23,7 +23,8 @@ import {
 import { CustomDropdown } from '../../../components/shared/CustomDropdown';
 import { useApi, useMutation } from '../../../hooks/useApi';
 import { discussionService } from '../../../services/api/discussionService';
-import { LoadingSkeleton } from '../../../components/shared';
+import { LoadingSkeleton, ErrorMessage } from '../../../components/shared';
+import { toast } from 'sonner';
 
 interface Post {
   id: string;
@@ -136,10 +137,12 @@ export function CourseCommunity() {
   const [filterTag, setFilterTag] = useState<string>('all');
   const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
 
-  const { data: threads, loading: loadingThreads, refetch } = useApi(
+  const { data: threads, loading: loadingThreads, error: threadsError, refetch } = useApi(
     () => discussionService.listThreads(),
     []
   );
+
+  useEffect(() => { if (threadsError) toast.error('Failed to load discussions'); }, [threadsError]);
 
   const createThreadMutation = useMutation(
     (data: { title: string; content: string }) =>
@@ -237,6 +240,10 @@ export function CourseCommunity() {
 
   if (loadingThreads) {
     return <LoadingSkeleton variant="card" count={4} />;
+  }
+
+  if (threadsError) {
+    return <ErrorMessage error={threadsError} onRetry={refetch} />;
   }
 
   return (
