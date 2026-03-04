@@ -100,6 +100,16 @@ export class ApiClient {
                 : `HTTP ${retryResponse.status}`
             );
           }
+          // Auto-unwrap paginated responses on retry
+          if (
+            retryData &&
+            typeof retryData === 'object' &&
+            !Array.isArray(retryData) &&
+            'data' in retryData &&
+            Array.isArray((retryData as Record<string, unknown>).data)
+          ) {
+            return (retryData as Record<string, unknown>).data as T;
+          }
           return retryData as T;
         } catch {
           throw new Error('Session expired. Please log in again.');
@@ -123,6 +133,17 @@ export class ApiClient {
             : 'API request failed';
 
         throw new Error(String(errorMessage) || `HTTP ${response.status}`);
+      }
+
+      // Auto-unwrap paginated responses: { data: [...], meta: {...} } → [...]
+      if (
+        data &&
+        typeof data === 'object' &&
+        !Array.isArray(data) &&
+        'data' in data &&
+        Array.isArray((data as Record<string, unknown>).data)
+      ) {
+        return (data as Record<string, unknown>).data as T;
       }
 
       return data as T;

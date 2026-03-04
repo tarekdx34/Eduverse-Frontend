@@ -31,6 +31,7 @@ const login = () => {
         instructor: '/instructordashboard',
         admin: '/admindashboard',
         ta: '/tadashboard',
+        teaching_assistant: '/tadashboard',
         it_admin: '/itadmindashboard',
       };
       navigate(roleRoutes[role] || '/studentdashboard');
