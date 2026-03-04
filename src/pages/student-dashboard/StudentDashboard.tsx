@@ -45,7 +45,11 @@ import {
 import { DashboardHeader, DashboardSidebar } from '../../components/shared';
 import { DashboardProfileTab } from '../../components/shared/DashboardProfileTab';
 import CourseViewPage from './pages/CourseView';
-import { GPA_DATA, SCHEDULE_DATA } from './constants';
+import { useApi } from '../../hooks/useApi';
+import { gradeService } from '../../services/api/gradeService';
+import { enrollmentService } from '../../services/api/enrollmentService';
+import { useAuth } from '../../context/AuthContext';
+import { LoadingSkeleton, ErrorMessage } from '../../components/shared';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 
@@ -74,6 +78,20 @@ function StudentDashboardContent() {
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [viewingCourseId, setViewingCourseId] = useState<string | null>(null);
+  const { user } = useAuth();
+  const userId = user?.userId;
+
+  // Fetch GPA data for the chart
+  const { data: gpaData, loading: gpaLoading, error: gpaError, refetch: refetchGpa } = useApi(
+    () => userId ? gradeService.getGPA(userId) : Promise.resolve(null),
+    [userId]
+  );
+
+  // Fetch enrolled courses for schedule
+  const { data: enrollments, loading: enrollLoading } = useApi(
+    () => enrollmentService.getMyEnrolledCourses(),
+    []
+  );
 
   // Determine active tab and course ID from location
   const pathSegments = location.pathname.split('/').filter(Boolean);
@@ -179,8 +197,8 @@ function StudentDashboardContent() {
         {activeTab !== 'chat' && (
           <>
             <DashboardHeader
-              userName="Tarek Mohamed"
-              userRole="CS Junior"
+              userName={user ? `${user.firstName} ${user.lastName}` : 'Student'}
+              userRole={user?.roles?.[0] || 'Student'}
               isDark={isDark}
               isRTL={isRTL}
               accentColor={primaryHex || '#3b82f6'}
@@ -241,12 +259,34 @@ function StudentDashboardContent() {
                   <div className="grid grid-cols-12 gap-8">
                     {/* Left column: GPA + AI Insight */}
                     <div className="col-span-12 lg:col-span-8 space-y-8">
-                      <GpaChart data={GPA_DATA} />
+                      {gpaLoading ? (
+                        <LoadingSkeleton variant="card" />
+                      ) : gpaError ? (
+                        <ErrorMessage error={gpaError} onRetry={refetchGpa} compact />
+                      ) : (
+                        <GpaChart data={gpaData?.semesterBreakdown?.map((s: any) => ({
+                          semester: s.semesterName,
+                          yourGpa: s.gpa,
+                          avgGpa: s.gpa * 0.85,
+                        })) || []} />
+                      )}
                     </div>
 
                     {/* Right column: Schedule */}
                     <div className="col-span-12 lg:col-span-4">
-                      <DailySchedule schedules={SCHEDULE_DATA} />
+                      {enrollLoading ? (
+                        <LoadingSkeleton variant="list" count={3} />
+                      ) : (
+                        <DailySchedule schedules={enrollments?.slice(0, 3).map((e: any) => ({
+                          id: e.id,
+                          course: e.course?.name || 'Course',
+                          time: e.section?.schedules?.[0] ? `${e.section.schedules[0].startTime} - ${e.section.schedules[0].endTime}` : 'TBD',
+                          lecturer: e.instructor ? `${e.instructor.firstName} ${e.instructor.lastName}` : 'TBD',
+                          room: e.section?.location || e.section?.schedules?.[0]?.room || 'TBD',
+                          credits: e.course?.credits || 3,
+                          image: '',
+                        })) || []} />
+                      )}
                     </div>
                   </div>
 
@@ -282,10 +322,10 @@ function StudentDashboardContent() {
                   accentColor={primaryHex || '#3b82f6'}
                   bannerGradient="from-[#3b82f6] to-[#06b6d4]"
                   profileData={{
-                    fullName: 'Tarek Mohamed',
+                    fullName: user ? `${user.firstName} ${user.lastName}` : 'Student',
                     role: 'CS Junior',
                     department: 'Computer Science',
-                    email: 'tarek.mohamed@university.edu',
+                    email: user?.email || 'student@university.edu',
                     phone: '+20 123 456 7890',
                     address: 'Cairo, Egypt',
                     dateOfBirth: '2002-05-15',

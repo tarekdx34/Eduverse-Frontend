@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { useApi, useMutation } from '../../../hooks/useApi';
+import { quizService } from '../../../services/api/quizService';
+import { LoadingSkeleton } from '../../../components/shared';
 import {
   ClipboardCheck,
   Clock,
@@ -23,142 +26,29 @@ import {
   Bot,
 } from 'lucide-react';
 
-// --- Mock Data ---
+// --- Types & Helpers ---
 
-const availableQuizzes = [
-  {
-    id: 1,
-    title: 'Data Structures Midterm Review',
-    course: 'CS201',
-    questions: 15,
-    duration: '30 min',
-    difficulty: 'Medium',
-    icon: <BarChart3 className="w-6 h-6" />,
-    color: '#3B82F6',
-  },
-  {
-    id: 2,
-    title: 'Database Design Concepts',
-    course: 'CS220',
-    questions: 10,
-    duration: '20 min',
-    difficulty: 'Easy',
-    icon: <Database className="w-6 h-6" />,
-    color: '#10B981',
-  },
-  {
-    id: 3,
-    title: 'Software Engineering Principles',
-    course: 'CS305',
-    questions: 20,
-    duration: '45 min',
-    difficulty: 'Hard',
-    icon: <Settings className="w-6 h-6" />,
-    color: '#8B5CF6',
-  },
-  {
-    id: 4,
-    title: 'Machine Learning Fundamentals',
-    course: 'CS410',
-    questions: 12,
-    duration: '25 min',
-    difficulty: 'Medium',
-    icon: <Bot className="w-6 h-6" />,
-    color: '#F59E0B',
-  },
-];
+interface QuizItem {
+  id: number;
+  title: string;
+  course: string;
+  questions: number;
+  duration: string;
+  difficulty: string;
+  icon: React.ReactNode;
+  color: string;
+}
 
-const recentResults = [
-  {
-    title: 'Web Development Basics',
-    course: 'CS150',
-    score: 85,
-    total: 100,
-    grade: 'B+',
-    date: 'Feb 15, 2026',
-  },
-  {
-    title: 'Algorithm Analysis',
-    course: 'CS250',
-    score: 92,
-    total: 100,
-    grade: 'A-',
-    date: 'Feb 10, 2026',
-  },
-];
+interface QuestionItem {
+  id: number;
+  text: string;
+  type: 'mcq' | 'tf';
+  options: string[];
+  correct: number;
+}
 
-const mockQuestions = [
-  {
-    id: 1,
-    text: 'What is the time complexity of searching in a balanced BST?',
-    type: 'mcq' as const,
-    options: ['O(1)', 'O(log n)', 'O(n)', 'O(n log n)'],
-    correct: 1,
-  },
-  {
-    id: 2,
-    text: 'A stack follows FIFO (First In, First Out) principle.',
-    type: 'tf' as const,
-    options: ['True', 'False'],
-    correct: 1,
-  },
-  {
-    id: 3,
-    text: 'Which data structure is used for BFS traversal?',
-    type: 'mcq' as const,
-    options: ['Stack', 'Queue', 'Array', 'Linked List'],
-    correct: 1,
-  },
-  {
-    id: 4,
-    text: 'What is the worst-case time complexity of QuickSort?',
-    type: 'mcq' as const,
-    options: ['O(n)', 'O(n log n)', 'O(n²)', 'O(log n)'],
-    correct: 2,
-  },
-  {
-    id: 5,
-    text: 'A binary tree can have at most 2 children per node.',
-    type: 'tf' as const,
-    options: ['True', 'False'],
-    correct: 0,
-  },
-  {
-    id: 6,
-    text: 'Which sorting algorithm has the best average-case performance?',
-    type: 'mcq' as const,
-    options: ['Bubble Sort', 'Selection Sort', 'Merge Sort', 'Insertion Sort'],
-    correct: 2,
-  },
-  {
-    id: 7,
-    text: 'Hash tables provide O(1) average-case lookup time.',
-    type: 'tf' as const,
-    options: ['True', 'False'],
-    correct: 0,
-  },
-  {
-    id: 8,
-    text: 'What data structure is used to implement recursion?',
-    type: 'mcq' as const,
-    options: ['Queue', 'Stack', 'Heap', 'Graph'],
-    correct: 1,
-  },
-  {
-    id: 9,
-    text: 'In a min-heap, the parent is always smaller than its children.',
-    type: 'tf' as const,
-    options: ['True', 'False'],
-    correct: 0,
-  },
-  {
-    id: 10,
-    text: 'Which traversal visits nodes level by level?',
-    type: 'mcq' as const,
-    options: ['Inorder', 'Preorder', 'Postorder', 'Level-order'],
-    correct: 3,
-  },
-];
+const quizColors = ['#3B82F6', '#10B981', '#8B5CF6', '#F59E0B', '#EF4444', '#EC4899'];
+const quizIconComponents = [BarChart3, Database, Settings, Bot, BookOpen, ClipboardCheck];
 
 type View = 'selection' | 'active' | 'results';
 
@@ -195,16 +85,62 @@ export const QuizTaking = () => {
   const accentColor = primaryHex || '#3b82f6';
   const { isRTL } = useLanguage();
 
+  // API data
+  const { data: apiQuizzes, loading: quizzesLoading } = useApi(() => quizService.listQuizzes(), []);
+  const { data: apiAttempts, loading: attemptsLoading, refetch: refetchAttempts } = useApi(() => quizService.getMyAttempts(), []);
+  const { mutate: doStartAttempt } = useMutation((quizId: number) => quizService.startAttempt(quizId));
+  const { mutate: doSubmitAttempt } = useMutation(
+    (params: { attemptId: number; answers: { questionId: number; answer: string }[] }) =>
+      quizService.submitAttempt(params.attemptId, params.answers)
+  );
+
   const [view, setView] = useState<View>('selection');
-  const [activeQuiz, setActiveQuiz] = useState(availableQuizzes[0]);
+  const [activeQuiz, setActiveQuiz] = useState<QuizItem | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [skippedQuestions, setSkippedQuestions] = useState<Set<number>>(new Set());
   const [timeLeft, setTimeLeft] = useState(0);
   const [showNavigator, setShowNavigator] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
+  const [currentAttemptId, setCurrentAttemptId] = useState<number | null>(null);
+  const [questions, setQuestions] = useState<QuestionItem[]>([]);
 
-  const questions = mockQuestions;
+  // Map API quizzes to display format
+  const mappedQuizzes: QuizItem[] = (apiQuizzes || []).map((q, i) => {
+    const Icon = quizIconComponents[i % quizIconComponents.length];
+    return {
+      id: q.id,
+      title: q.title,
+      course: `Course ${q.courseId}`,
+      questions: q.questions?.length || 0,
+      duration: `${q.duration} min`,
+      difficulty: q.totalPoints >= 80 ? 'Hard' : q.totalPoints >= 40 ? 'Medium' : 'Easy',
+      icon: <Icon className="w-6 h-6" />,
+      color: quizColors[i % quizColors.length],
+    };
+  });
+
+  // Map API attempts to recent results
+  const mappedResults = (apiAttempts || [])
+    .filter((a) => a.submittedAt && a.score !== undefined)
+    .slice(0, 4)
+    .map((a) => {
+      const quiz = (apiQuizzes || []).find((q) => q.id === a.quizId);
+      const total = quiz?.totalPoints || 100;
+      const score = a.score || 0;
+      const pct = Math.round((score / total) * 100);
+      return {
+        title: quiz?.title || `Quiz #${a.quizId}`,
+        course: quiz ? `Course ${quiz.courseId}` : '',
+        score,
+        total,
+        grade: getLetterGrade(pct),
+        date: a.submittedAt
+          ? new Date(a.submittedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+          : '',
+      };
+    });
+
   const currentQuestion = questions[currentQuestionIndex];
 
   // Timer
@@ -221,17 +157,34 @@ export const QuizTaking = () => {
     return `${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
   };
 
-  const startQuiz = (quiz: (typeof availableQuizzes)[0]) => {
-    setActiveQuiz(quiz);
-    setCurrentQuestionIndex(0);
-    setAnswers({});
-    setSkippedQuestions(new Set());
-    const mins = parseInt(quiz.duration);
-    setTimeLeft(mins * 60);
-    setView('active');
+  const startQuiz = async (quiz: QuizItem) => {
+    try {
+      const attempt = await doStartAttempt(quiz.id);
+      setCurrentAttemptId(attempt?.id ?? null);
+
+      const fullQuiz = await quizService.getQuiz(quiz.id);
+      const mapped: QuestionItem[] = (fullQuiz.questions || []).map((q) => ({
+        id: q.id,
+        text: q.questionText,
+        type: (q.type?.toLowerCase().includes('true') || q.type?.toLowerCase() === 'tf' ? 'tf' : 'mcq') as 'mcq' | 'tf',
+        options: q.options?.map((o) => o.text) || [],
+        correct: q.options?.findIndex((o) => o.isCorrect) ?? -1,
+      }));
+
+      setQuestions(mapped);
+      setActiveQuiz(quiz);
+      setCurrentQuestionIndex(0);
+      setAnswers({});
+      setSkippedQuestions(new Set());
+      setTimeLeft(fullQuiz.duration * 60);
+      setView('active');
+    } catch (error) {
+      console.error('Failed to start quiz:', error);
+    }
   };
 
   const selectAnswer = (optionIndex: number) => {
+    if (!currentQuestion) return;
     setAnswers((prev) => ({ ...prev, [currentQuestion.id]: optionIndex }));
     setSkippedQuestions((prev) => {
       const next = new Set(prev);
@@ -241,6 +194,7 @@ export const QuizTaking = () => {
   };
 
   const skipQuestion = () => {
+    if (!currentQuestion) return;
     if (!(currentQuestion.id in answers)) {
       setSkippedQuestions((prev) => new Set(prev).add(currentQuestion.id));
     }
@@ -249,9 +203,21 @@ export const QuizTaking = () => {
     }
   };
 
-  const submitQuiz = useCallback(() => {
+  const submitQuiz = useCallback(async () => {
+    if (currentAttemptId) {
+      try {
+        const formattedAnswers = Object.entries(answers).map(([qId, optIdx]) => ({
+          questionId: Number(qId),
+          answer: String(optIdx),
+        }));
+        await doSubmitAttempt({ attemptId: currentAttemptId, answers: formattedAnswers });
+        refetchAttempts();
+      } catch (error) {
+        console.error('Failed to submit quiz:', error);
+      }
+    }
     setView('results');
-  }, []);
+  }, [currentAttemptId, answers, doSubmitAttempt, refetchAttempts]);
 
   // Auto-submit on timer end
   useEffect(() => {
@@ -270,11 +236,12 @@ export const QuizTaking = () => {
         skipped++;
       }
     });
-    const pct = Math.round((correct / questions.length) * 100);
+    const total = questions.length || 1;
+    const pct = Math.round((correct / total) * 100);
     return { correct, wrong, skipped, pct, grade: getLetterGrade(pct) };
   };
 
-  const retakeQuiz = () => startQuiz(activeQuiz);
+  const retakeQuiz = () => { if (activeQuiz) startQuiz(activeQuiz); };
   const backToQuizzes = () => setView('selection');
 
   const cardClass = isDark ? 'bg-card-dark border border-white/5' : 'glass border border-slate-100';
@@ -301,8 +268,11 @@ export const QuizTaking = () => {
         {/* Available Quizzes */}
         <div>
           <h2 className={`text-lg font-semibold mb-4 ${textPrimary}`}>Available Quizzes</h2>
+          {quizzesLoading ? (
+            <LoadingSkeleton variant="card" count={4} />
+          ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {availableQuizzes.map((quiz) => (
+            {mappedQuizzes.map((quiz) => (
               <div
                 key={quiz.id}
                 className={`${cardClass} rounded-[2.5rem] p-6 transition-all hover:shadow-lg`}
@@ -352,13 +322,17 @@ export const QuizTaking = () => {
               </div>
             ))}
           </div>
+          )}
         </div>
 
         {/* Recent Results */}
         <div>
           <h2 className={`text-lg font-semibold mb-4 ${textPrimary}`}>Recent Results</h2>
+          {attemptsLoading ? (
+            <LoadingSkeleton variant="card" count={2} />
+          ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {recentResults.map((r, idx) => {
+            {mappedResults.map((r, idx) => {
               const pct = Math.round((r.score / r.total) * 100);
               return (
                 <div key={idx} className={`${cardClass} rounded-[2.5rem] p-6`}>
@@ -394,6 +368,7 @@ export const QuizTaking = () => {
               );
             })}
           </div>
+          )}
         </div>
       </div>
     );
@@ -401,8 +376,9 @@ export const QuizTaking = () => {
 
   // ===================== VIEW 2: Quiz Active =====================
   if (view === 'active') {
+    if (!activeQuiz || !currentQuestion) return null;
     const answeredCount = Object.keys(answers).length;
-    const progressPct = (answeredCount / questions.length) * 100;
+    const progressPct = (answeredCount / (questions.length || 1)) * 100;
 
     return (
       <div className="space-y-4" dir={isRTL ? 'rtl' : 'ltr'}>

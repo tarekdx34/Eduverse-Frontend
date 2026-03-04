@@ -1,0 +1,1 @@
+const fs = require("fs"); const p = "src/pages/student-dashboard/components/LabInstructions.tsx"; let c = fs.readFileSync(p,"utf8"); console.log(c.length);

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import {
   Users,
@@ -21,6 +21,9 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { CustomDropdown } from '../../../components/shared/CustomDropdown';
+import { useApi, useMutation } from '../../../hooks/useApi';
+import { discussionService } from '../../../services/api/discussionService';
+import { LoadingSkeleton } from '../../../components/shared';
 
 interface Post {
   id: string;
@@ -111,92 +114,59 @@ const communities: Community[] = [
   },
 ];
 
-const posts: Post[] = [
-  {
-    id: '1',
-    author: 'Prof. Sarah Johnson',
-    authorAvatar: 'SJ',
-    authorRole: 'instructor',
-    content:
-      '📢 Important: The deadline for the Database Design Project has been extended to December 10th. Please make sure to review the updated requirements in the assignment description.',
-    timestamp: '2 hours ago',
-    likes: 45,
-    replies: 12,
-    isPinned: true,
-    isLiked: false,
-    courseCode: 'CS220',
-    tags: ['announcement', 'deadline'],
-  },
-  {
-    id: '2',
-    author: 'Ahmed Hassan',
-    authorAvatar: 'AH',
-    authorRole: 'student',
-    content:
-      "Can someone explain the difference between 2NF and 3NF in database normalization? I'm having trouble understanding when to apply each one.",
-    timestamp: '4 hours ago',
-    likes: 23,
-    replies: 8,
-    isPinned: false,
-    isLiked: true,
-    courseCode: 'CS220',
-    tags: ['question', 'help'],
-  },
-  {
-    id: '3',
-    author: 'TA Michael Chen',
-    authorAvatar: 'MC',
-    authorRole: 'ta',
-    content:
-      "📚 Study Session Reminder: We'll be holding a review session for the upcoming midterm on Friday at 4 PM in Lab 302. Topics will include: joins, subqueries, and normalization. All are welcome!",
-    timestamp: '6 hours ago',
-    likes: 67,
-    replies: 15,
-    isPinned: true,
-    isLiked: false,
-    courseCode: 'CS220',
-    tags: ['study-session', 'exam-prep'],
-  },
-  {
-    id: '4',
-    author: 'Emma Wilson',
-    authorAvatar: 'EW',
-    authorRole: 'student',
-    content:
-      "Just finished the SQL exercises! Here's a tip for anyone struggling with JOIN queries: always visualize your tables first and identify the common columns. It makes writing the query much easier.",
-    timestamp: '1 day ago',
-    likes: 34,
-    replies: 6,
-    isPinned: false,
-    isLiked: false,
-    courseCode: 'CS220',
-    tags: ['tips', 'sql'],
-  },
-  {
-    id: '5',
-    author: 'James Wilson',
-    authorAvatar: 'JW',
-    authorRole: 'student',
-    content:
-      'Is anyone interested in forming a study group for the final exam? I was thinking we could meet twice a week at the library.',
-    timestamp: '1 day ago',
-    likes: 28,
-    replies: 11,
-    isPinned: false,
-    isLiked: true,
-    courseCode: 'CS220',
-    tags: ['study-group'],
-  },
-];
+function formatRelativeTime(dateStr: string): string {
+  const now = new Date();
+  const date = new Date(dateStr);
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  if (diffMins < 1) return 'Just now';
+  if (diffMins < 60) return `${diffMins} min ago`;
+  const diffHours = Math.floor(diffMins / 60);
+  if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+  const diffDays = Math.floor(diffHours / 24);
+  return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+}
 
 export function CourseCommunity() {
   const { isDark, primaryHex } = useTheme() as any;
   const accentColor = primaryHex || '#3b82f6';
   const [selectedCommunity, setSelectedCommunity] = useState<string>('CS220');
-  const [postsList, setPostsList] = useState<Post[]>(posts);
   const [newPostContent, setNewPostContent] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterTag, setFilterTag] = useState<string>('all');
+  const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
+
+  const { data: threads, loading: loadingThreads, refetch } = useApi(
+    () => discussionService.listThreads(),
+    []
+  );
+
+  const createThreadMutation = useMutation(
+    (data: { title: string; content: string }) =>
+      discussionService.createThread(data)
+  );
+
+  const postsList: Post[] = useMemo(() => {
+    if (!threads) return [];
+    return threads.map((thread): Post => ({
+      id: String(thread.id),
+      author: thread.author
+        ? `${thread.author.firstName} ${thread.author.lastName}`
+        : 'Unknown User',
+      authorAvatar: thread.author
+        ? `${thread.author.firstName?.[0] || ''}${thread.author.lastName?.[0] || ''}`
+        : '??',
+      authorRole: 'student',
+      content: thread.title ? `${thread.title}\n\n${thread.content}` : thread.content,
+      timestamp: formatRelativeTime(thread.createdAt),
+      likes: likedPosts.has(String(thread.id)) ? 1 : 0,
+      replies: thread.replyCount || 0,
+      isPinned: thread.isPinned || false,
+      isLiked: likedPosts.has(String(thread.id)),
+      courseCode: selectedCommunity,
+      tags: [],
+    }));
+  }, [threads, selectedCommunity, likedPosts]);
 
   const filterOptions = [
     { value: 'all', label: 'All Posts' },
@@ -221,35 +191,26 @@ export function CourseCommunity() {
   const regularPosts = filteredPosts.filter((p) => !p.isPinned);
 
   const handleLike = (postId: string) => {
-    setPostsList(
-      postsList.map((p) =>
-        p.id === postId
-          ? { ...p, isLiked: !p.isLiked, likes: p.isLiked ? p.likes - 1 : p.likes + 1 }
-          : p
-      )
-    );
+    setLikedPosts((prev) => {
+      const next = new Set(prev);
+      if (next.has(postId)) next.delete(postId);
+      else next.add(postId);
+      return next;
+    });
   };
 
-  const handlePost = () => {
+  const handlePost = async () => {
     if (!newPostContent.trim()) return;
-
-    const newPost: Post = {
-      id: `${Date.now()}`,
-      author: 'Tarek Mohamed',
-      authorAvatar: 'TM',
-      authorRole: 'student',
-      content: newPostContent,
-      timestamp: 'Just now',
-      likes: 0,
-      replies: 0,
-      isPinned: false,
-      isLiked: false,
-      courseCode: selectedCommunity,
-      tags: [],
-    };
-
-    setPostsList([newPost, ...postsList]);
-    setNewPostContent('');
+    try {
+      await createThreadMutation.mutate({
+        title: newPostContent.slice(0, 100),
+        content: newPostContent,
+      });
+      setNewPostContent('');
+      refetch();
+    } catch {
+      // Error is captured in createThreadMutation.error
+    }
   };
 
   const getRoleBadge = (role: string) => {
@@ -273,6 +234,10 @@ export function CourseCommunity() {
         return '';
     }
   };
+
+  if (loadingThreads) {
+    return <LoadingSkeleton variant="card" count={4} />;
+  }
 
   return (
     <div className="space-y-6">

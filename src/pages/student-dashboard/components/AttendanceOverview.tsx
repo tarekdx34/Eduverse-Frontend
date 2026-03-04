@@ -12,197 +12,74 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { useApi } from '../../../hooks/useApi';
+import { attendanceService } from '../../../services/api/attendanceService';
+import { LoadingSkeleton } from '../../../components/shared';
 
-const attendanceData = [
-  {
-    id: 1,
-    courseName: 'Introduction to Computer Science',
-    courseCode: 'CS101',
-    totalClasses: 45,
-    attended: 42,
-    absent: 2,
-    late: 1,
-    percentage: 93.3,
-    status: 'excellent',
-    color: 'bg-blue-500',
-    lastClass: '2024-12-02',
-  },
-  {
-    id: 2,
-    courseName: 'Data Structures & Algorithms',
-    courseCode: 'CS201',
-    totalClasses: 40,
-    attended: 35,
-    absent: 3,
-    late: 2,
-    percentage: 87.5,
-    status: 'good',
-    color: 'bg-blue-500',
-    lastClass: '2024-12-01',
-  },
-  {
-    id: 3,
-    courseName: 'Web Development Fundamentals',
-    courseCode: 'CS150',
-    totalClasses: 38,
-    attended: 37,
-    absent: 1,
-    late: 0,
-    percentage: 97.4,
-    status: 'excellent',
-    color: 'bg-green-500',
-    lastClass: '2024-12-03',
-  },
-  {
-    id: 4,
-    courseName: 'Database Management Systems',
-    courseCode: 'CS220',
-    totalClasses: 42,
-    attended: 32,
-    absent: 7,
-    late: 3,
-    percentage: 76.2,
-    status: 'warning',
-    color: 'bg-orange-500',
-    lastClass: '2024-11-30',
-  },
-  {
-    id: 5,
-    courseName: 'Software Engineering Principles',
-    courseCode: 'CS305',
-    totalClasses: 44,
-    attended: 43,
-    absent: 0,
-    late: 1,
-    percentage: 97.7,
-    status: 'excellent',
-    color: 'bg-pink-500',
-    lastClass: '2024-12-04',
-  },
-  {
-    id: 6,
-    courseName: 'Mobile Application Development',
-    courseCode: 'CS350',
-    totalClasses: 36,
-    attended: 30,
-    absent: 4,
-    late: 2,
-    percentage: 83.3,
-    status: 'good',
-    color: 'bg-[var(--accent-color)]/100',
-    lastClass: '2024-12-02',
-  },
-];
+interface CourseAttendance {
+  id: number;
+  courseName: string;
+  courseCode: string;
+  totalClasses: number;
+  attended: number;
+  absent: number;
+  late: number;
+  percentage: number;
+  status: string;
+  color: string;
+  lastClass: string;
+}
 
-const courseDailyRecords: Record<number, { date: string; day: string; status: string }[]> = {
-  1: [
-    { date: '2024-12-04', day: 'Wednesday', status: 'present' },
-    { date: '2024-12-02', day: 'Monday', status: 'present' },
-    { date: '2024-11-27', day: 'Wednesday', status: 'present' },
-    { date: '2024-11-25', day: 'Monday', status: 'absent' },
-    { date: '2024-11-20', day: 'Wednesday', status: 'present' },
-    { date: '2024-11-18', day: 'Monday', status: 'late' },
-    { date: '2024-11-13', day: 'Wednesday', status: 'present' },
-    { date: '2024-11-11', day: 'Monday', status: 'present' },
-  ],
-  2: [
-    { date: '2024-12-01', day: 'Sunday', status: 'present' },
-    { date: '2024-11-28', day: 'Thursday', status: 'present' },
-    { date: '2024-11-24', day: 'Sunday', status: 'absent' },
-    { date: '2024-11-21', day: 'Thursday', status: 'present' },
-    { date: '2024-11-17', day: 'Sunday', status: 'late' },
-    { date: '2024-11-14', day: 'Thursday', status: 'present' },
-    { date: '2024-11-10', day: 'Sunday', status: 'absent' },
-    { date: '2024-11-07', day: 'Thursday', status: 'present' },
-  ],
-  3: [
-    { date: '2024-12-03', day: 'Tuesday', status: 'present' },
-    { date: '2024-11-29', day: 'Friday', status: 'present' },
-    { date: '2024-11-26', day: 'Tuesday', status: 'present' },
-    { date: '2024-11-22', day: 'Friday', status: 'present' },
-    { date: '2024-11-19', day: 'Tuesday', status: 'present' },
-    { date: '2024-11-15', day: 'Friday', status: 'absent' },
-    { date: '2024-11-12', day: 'Tuesday', status: 'present' },
-    { date: '2024-11-08', day: 'Friday', status: 'present' },
-  ],
-  4: [
-    { date: '2024-11-30', day: 'Saturday', status: 'absent' },
-    { date: '2024-11-27', day: 'Wednesday', status: 'present' },
-    { date: '2024-11-23', day: 'Saturday', status: 'absent' },
-    { date: '2024-11-20', day: 'Wednesday', status: 'late' },
-    { date: '2024-11-16', day: 'Saturday', status: 'present' },
-    { date: '2024-11-13', day: 'Wednesday', status: 'absent' },
-    { date: '2024-11-09', day: 'Saturday', status: 'late' },
-    { date: '2024-11-06', day: 'Wednesday', status: 'present' },
-  ],
-  5: [
-    { date: '2024-12-04', day: 'Wednesday', status: 'present' },
-    { date: '2024-12-02', day: 'Monday', status: 'present' },
-    { date: '2024-11-27', day: 'Wednesday', status: 'present' },
-    { date: '2024-11-25', day: 'Monday', status: 'present' },
-    { date: '2024-11-20', day: 'Wednesday', status: 'present' },
-    { date: '2024-11-18', day: 'Monday', status: 'late' },
-    { date: '2024-11-13', day: 'Wednesday', status: 'present' },
-    { date: '2024-11-11', day: 'Monday', status: 'present' },
-  ],
-  6: [
-    { date: '2024-12-02', day: 'Monday', status: 'late' },
-    { date: '2024-11-28', day: 'Thursday', status: 'present' },
-    { date: '2024-11-25', day: 'Monday', status: 'absent' },
-    { date: '2024-11-21', day: 'Thursday', status: 'present' },
-    { date: '2024-11-18', day: 'Monday', status: 'present' },
-    { date: '2024-11-14', day: 'Thursday', status: 'absent' },
-    { date: '2024-11-11', day: 'Monday', status: 'present' },
-    { date: '2024-11-07', day: 'Thursday', status: 'present' },
-  ],
+const COURSE_COLORS = ['bg-blue-500', 'bg-green-500', 'bg-orange-500', 'bg-pink-500', 'bg-purple-500', 'bg-cyan-500'];
+
+const getAttendanceStatus = (rate: number) => {
+  if (rate >= 90) return 'excellent';
+  if (rate >= 80) return 'good';
+  return 'warning';
 };
-
-const recentAttendance = [
-  {
-    date: '2024-12-04',
-    course: 'Software Engineering Principles',
-    status: 'present',
-    time: '11:00 AM',
-  },
-  {
-    date: '2024-12-03',
-    course: 'Web Development Fundamentals',
-    status: 'present',
-    time: '02:00 PM',
-  },
-  {
-    date: '2024-12-02',
-    course: 'Introduction to Computer Science',
-    status: 'present',
-    time: '08:30 AM',
-  },
-  {
-    date: '2024-12-02',
-    course: 'Mobile Application Development',
-    status: 'late',
-    time: '03:30 PM',
-  },
-  {
-    date: '2024-12-01',
-    course: 'Data Structures & Algorithms',
-    status: 'present',
-    time: '10:00 AM',
-  },
-  { date: '2024-11-30', course: 'Database Management Systems', status: 'absent', time: '01:30 PM' },
-];
 
 export function AttendanceOverview() {
   const { t, isRTL } = useLanguage();
   const { isDark, primaryHex } = useTheme() as any;
   const accentColor = primaryHex || '#3b82f6';
-  const [selectedCourse, setSelectedCourse] = useState<(typeof attendanceData)[number] | null>(
-    null
+  const { data: apiData, loading } = useApi(
+    () => attendanceService.getMyAttendance(),
+    []
   );
+  const [selectedCourse, setSelectedCourse] = useState<CourseAttendance | null>(null);
+
+  if (loading) {
+    return <LoadingSkeleton variant="card" count={4} />;
+  }
+
+  // Map API response to component format — handles array or object with courses/records
+  const rawCourses = Array.isArray(apiData) ? apiData : (apiData?.courses || apiData?.records || []);
+  const attendanceData: CourseAttendance[] = rawCourses.map((item: any, index: number) => ({
+    id: item.id || item.sectionId || item.courseId || index + 1,
+    courseName: item.courseName || item.course?.name || `Course ${index + 1}`,
+    courseCode: item.courseCode || item.course?.code || '',
+    totalClasses: item.totalSessions || item.totalClasses || 0,
+    attended: item.present ?? item.totalPresent ?? item.attended ?? 0,
+    absent: item.absent ?? item.totalAbsent ?? 0,
+    late: item.late ?? item.totalLate ?? 0,
+    percentage: item.attendanceRate ?? item.attendancePercentage ?? item.percentage ?? 0,
+    status: getAttendanceStatus(item.attendanceRate ?? item.attendancePercentage ?? item.percentage ?? 0),
+    color: COURSE_COLORS[index % COURSE_COLORS.length],
+    lastClass: item.lastDate || item.lastClass || '',
+  }));
+
+  // Daily records and recent activity are not available from summary API
+  const courseDailyRecords: Record<number, { date: string; day: string; status: string }[]> = {};
+  const recentAttendance: { date: string; course: string; status: string; time: string }[] = [];
+
   const totalClasses = attendanceData.reduce((sum, course) => sum + course.totalClasses, 0);
   const totalAttended = attendanceData.reduce((sum, course) => sum + course.attended, 0);
   const totalAbsent = attendanceData.reduce((sum, course) => sum + course.absent, 0);
   const totalLate = attendanceData.reduce((sum, course) => sum + course.late, 0);
-  const overallPercentage = ((totalAttended / totalClasses) * 100).toFixed(1);
+  const overallPercentage = totalClasses > 0 ? ((totalAttended / totalClasses) * 100).toFixed(1) : '0.0';
+  const lowestCourse = attendanceData.length > 0
+    ? attendanceData.reduce((min, c) => c.percentage < min.percentage ? c : min)
+    : null;
 
   const getStatusColor = (status: string) => {
     if (isDark) {
@@ -644,7 +521,9 @@ export function AttendanceOverview() {
               <div className="flex items-start gap-2">
                 <AlertCircle className="w-4 h-4 text-orange-600 mt-0.5 flex-shrink-0" />
                 <p className={isDark ? 'text-slate-400' : 'text-slate-700'}>
-                  Database Management Systems needs attention (76.2%)
+                  {lowestCourse && lowestCourse.percentage < 90
+                    ? `${lowestCourse.courseName} needs attention (${lowestCourse.percentage}%)`
+                    : 'All courses have great attendance!'}
                 </p>
               </div>
               <div className="flex items-start gap-2">

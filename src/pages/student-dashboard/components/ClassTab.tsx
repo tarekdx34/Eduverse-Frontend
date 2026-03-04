@@ -1,6 +1,9 @@
 import { MoreVertical, Clock, Users, BookOpen } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useApi } from '../../../hooks/useApi';
+import { enrollmentService } from '../../../services/api/enrollmentService';
+import { LoadingSkeleton } from '../../../components/shared';
 
 interface Course {
   id: string;
@@ -19,102 +22,8 @@ interface Course {
 }
 
 interface ClassTabProps {
-  courses?: Course[];
   onViewCourse?: (courseId: string) => void;
 }
-
-const defaultCourses: Course[] = [
-  {
-    id: '1',
-    title: 'Introduction to Computer Science',
-    courseCode: 'CS101',
-    instructor: 'Dr. Sarah Johnson',
-    instructorImage: 'http://localhost:3845/assets/56d9e68ccff12413f144bdf75269165f5e84005a.png',
-    schedule: 'Mon, Wed, Fri - 08:30 AM',
-    nextClass: 'Next: Monday, 08:30 AM',
-    room: 'Room 301',
-    students: 45,
-    credits: 3,
-    progress: 75,
-    color: '#e0e7ff',
-    progressColor: '#2b7fff',
-  },
-  {
-    id: '2',
-    title: 'Data Structures & Algorithms',
-    courseCode: 'CS201',
-    instructor: 'Prof. Michael Chen',
-    instructorImage: 'http://localhost:3845/assets/9bbdfb06a5eae3ca01387e38cee556cb0ba93eb3.png',
-    schedule: 'Tue, Thu - 10:00 AM',
-    nextClass: 'Next: Tuesday, 10:00 AM',
-    room: 'Lab 401',
-    students: 38,
-    credits: 4,
-    progress: 60,
-    color: '#fce7f3',
-    progressColor: '#ad46ff',
-  },
-  {
-    id: '3',
-    title: 'Web Development Fundamentals',
-    courseCode: 'CS150',
-    instructor: 'Dr. Emily Roberts',
-    instructorImage: 'http://localhost:3845/assets/6037748207f9c7910c91db1bd9b0f380e0225194.png',
-    schedule: 'Mon, Wed - 02:00 PM',
-    nextClass: 'Next: Monday, 02:00 PM',
-    room: 'Lab 302',
-    students: 42,
-    credits: 3,
-    progress: 85,
-    color: '#dcfce7',
-    progressColor: '#00c950',
-  },
-  {
-    id: '4',
-    title: 'Database Management Systems',
-    courseCode: 'CS220',
-    instructor: 'Dr. James Wilson',
-    instructorImage: 'http://localhost:3845/assets/8f649ffb9509e27c1a5cfa2575f93e2a1f744127.png',
-    schedule: 'Tue, Thu - 01:30 PM',
-    nextClass: 'Next: Thursday, 01:30 PM',
-    room: 'Room 201',
-    students: 35,
-    credits: 3,
-    progress: 45,
-    color: '#fed7aa',
-    progressColor: '#ff6900',
-  },
-  {
-    id: '5',
-    title: 'Software Engineering Principles',
-    courseCode: 'CS305',
-    instructor: 'Prof. Lisa Anderson',
-    instructorImage: 'http://localhost:3845/assets/c63835773a05453d6506aec39d7d54c0bc4571da.png',
-    schedule: 'Mon, Wed, Fri - 11:00 AM',
-    nextClass: 'Next: Friday, 11:00 AM',
-    room: 'Hall 1',
-    students: 40,
-    credits: 4,
-    progress: 90,
-    color: '#f3e8ff',
-    progressColor: '#f6339a',
-  },
-  {
-    id: '6',
-    title: 'Mobile Application Development',
-    courseCode: 'CS350',
-    instructor: 'Dr. Robert Taylor',
-    instructorImage: 'http://localhost:3845/assets/0d5da6ab018faf09b0940ac3e0ab4d6d514c431f.png',
-    schedule: 'Tue, Thu - 03:30 PM',
-    nextClass: 'Next: Tuesday, 03:30 PM',
-    room: 'Lab 303',
-    students: 30,
-    credits: 3,
-    progress: 55,
-    color: '#e0e7ff',
-    progressColor: '#615fff',
-  },
-];
 
 const CourseCard= ({
   course,
@@ -218,11 +127,45 @@ const CourseCard= ({
 );
 
 export default function ClassTab({
-  courses = defaultCourses,
   onViewCourse,
 }: ClassTabProps) {
   const { isDark } = useTheme();
   const { t } = useLanguage();
+
+  const { data: enrollments, loading } = useApi(
+    () => enrollmentService.getMyEnrolledCourses(),
+    []
+  );
+
+  const accentColors = ['#2b7fff', '#ad46ff', '#00c950', '#ff6900', '#f6339a', '#615fff'];
+  const bgColors = ['#e0e7ff', '#fce7f3', '#dcfce7', '#fed7aa', '#f3e8ff', '#e0e7ff'];
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const courses: Course[] = (enrollments || []).map((enrollment: any, index: number) => ({
+    id: String(enrollment.id),
+    title: enrollment.course?.name || 'Course',
+    courseCode: enrollment.course?.code || '',
+    instructor: enrollment.instructor
+      ? `${enrollment.instructor.firstName} ${enrollment.instructor.lastName}`
+      : enrollment.section?.instructor
+        ? `${enrollment.section.instructor.firstName} ${enrollment.section.instructor.lastName}`
+        : 'TBD',
+    instructorImage: '',
+    schedule: enrollment.section?.schedules?.[0]
+      ? `${enrollment.section.schedules[0].dayOfWeek} - ${enrollment.section.schedules[0].startTime}`
+      : 'TBD',
+    nextClass: 'See schedule',
+    room: enrollment.section?.location || enrollment.section?.schedules?.[0]?.room || 'TBD',
+    students: enrollment.section?.currentEnrollment || 0,
+    credits: enrollment.course?.credits || 3,
+    progress: 0,
+    color: bgColors[index % bgColors.length],
+    progressColor: accentColors[index % accentColors.length],
+  }));
+
+  if (loading) {
+    return <LoadingSkeleton variant="card" count={6} />;
+  }
 
   return (
     <div className="space-y-6">
