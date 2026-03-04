@@ -6,6 +6,58 @@ interface RequestOptions extends RequestInit {
 
 export class ApiClient {
   private static baseURL = API_BASE_URL;
+  private static isRefreshing = false;
+  private static refreshQueue: Array<{
+    resolve: (token: string) => void;
+    reject: (err: Error) => void;
+  }> = [];
+
+  private static async tryRefreshToken(): Promise<string> {
+    const refreshToken = localStorage.getItem(TOKEN_KEYS.REFRESH_TOKEN);
+    if (!refreshToken) throw new Error('No refresh token');
+
+    const response = await fetch(`${this.baseURL}/auth/refresh-token`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refreshToken }),
+    });
+
+    if (!response.ok) throw new Error('Token refresh failed');
+
+    const data = await response.json();
+    const newToken = data.accessToken;
+    localStorage.setItem(TOKEN_KEYS.ACCESS_TOKEN, newToken);
+    return newToken;
+  }
+
+  private static handleTokenRefresh(): Promise<string> {
+    if (this.isRefreshing) {
+      return new Promise((resolve, reject) => {
+        this.refreshQueue.push({ resolve, reject });
+      });
+    }
+
+    this.isRefreshing = true;
+
+    return this.tryRefreshToken()
+      .then((token) => {
+        this.refreshQueue.forEach((cb) => cb.resolve(token));
+        return token;
+      })
+      .catch((err) => {
+        this.refreshQueue.forEach((cb) => cb.reject(err));
+        // Clear auth and redirect to login
+        localStorage.removeItem(TOKEN_KEYS.ACCESS_TOKEN);
+        localStorage.removeItem(TOKEN_KEYS.REFRESH_TOKEN);
+        localStorage.removeItem(TOKEN_KEYS.USER);
+        window.location.href = '/login';
+        throw err;
+      })
+      .finally(() => {
+        this.isRefreshing = false;
+        this.refreshQueue = [];
+      });
+  }
 
   static async request<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
@@ -25,20 +77,34 @@ export class ApiClient {
       headers['Authorization'] = `Bearer ${accessToken}`;
     }
 
-    console.log(`[API] ${options.method || 'GET'} ${url}`);
-    console.log('[API Headers]', headers);
-
     try {
       const response = await fetch(url, {
         ...options,
         headers,
       });
 
-      console.log(`[API Response] Status: ${response.status}`);
-      console.log('[API Response Headers]', {
-        'content-type': response.headers.get('content-type'),
-        'access-control-allow-origin': response.headers.get('access-control-allow-origin'),
-      });
+      // Handle 401 — attempt token refresh
+      if (response.status === 401 && !endpoint.includes('/auth/login') && !endpoint.includes('/auth/refresh-token')) {
+        try {
+          const newToken = await this.handleTokenRefresh();
+          headers['Authorization'] = `Bearer ${newToken}`;
+          const retryResponse = await fetch(url, { ...options, headers });
+          const contentType = retryResponse.headers.get('content-type');
+          const retryData = contentType?.includes('application/json')
+            ? await retryResponse.json()
+            : await retryResponse.text();
+          if (!retryResponse.ok) {
+            throw new Error(
+              typeof retryData === 'object' && retryData?.message
+                ? retryData.message
+                : `HTTP ${retryResponse.status}`
+            );
+          }
+          return retryData as T;
+        } catch {
+          throw new Error('Session expired. Please log in again.');
+        }
+      }
 
       // Handle non-JSON responses
       const contentType = response.headers.get('content-type');
@@ -50,33 +116,22 @@ export class ApiClient {
         data = await response.text();
       }
 
-      console.log('[API Response Data]', data);
-
       if (!response.ok) {
         const errorMessage =
           typeof data === 'object' && data !== null && 'message' in data
             ? (data as Record<string, unknown>).message
             : 'API request failed';
 
-        console.error('[API Error]', errorMessage);
         throw new Error(String(errorMessage) || `HTTP ${response.status}`);
       }
 
       return data as T;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Network error';
-      console.error('[API Fetch Error]', errorMessage);
 
       if (errorMessage.includes('Failed to fetch')) {
         console.error(
-          '⚠️ CORS or Network Error. Possible causes:\n' +
-            '1. Backend server not running on http://localhost:8081\n' +
-            '2. Backend CORS not configured for http://localhost:5176\n' +
-            '3. Network connectivity issue\n' +
-            '\nTips:\n' +
-            '- Check if backend is running\n' +
-            '- Check browser Network tab for details\n' +
-            '- Check backend CORS configuration'
+          '⚠️ CORS or Network Error — check that backend is running on http://localhost:8081'
         );
       }
 
