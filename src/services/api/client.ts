@@ -11,9 +11,13 @@ export class ApiClient {
     const url = `${this.baseURL}${endpoint}`;
 
     const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
       ...options.headers,
     };
+
+    // Set Content-Type for non-FormData requests
+    if (!(options.body instanceof FormData) && !headers['Content-Type']) {
+      headers['Content-Type'] = 'application/json';
+    }
 
     // Add auth token if available
     const accessToken = localStorage.getItem(TOKEN_KEYS.ACCESS_TOKEN);
@@ -80,20 +84,40 @@ export class ApiClient {
     }
   }
 
-  static async get<T>(endpoint: string): Promise<T> {
-    return this.request<T>(endpoint, { method: 'GET' });
+  static async get<T>(endpoint: string, params?: Record<string, unknown>): Promise<T> {
+    let url = endpoint;
+    if (params) {
+      const query = Object.entries(params)
+        .filter(([, v]) => v !== undefined && v !== null)
+        .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(String(v))}`)
+        .join('&');
+      if (query) url += `?${query}`;
+    }
+    return this.request<T>(url, { method: 'GET' });
   }
 
   static async post<T>(endpoint: string, data?: unknown): Promise<T> {
-    return this.request<T>(endpoint, {
+    const isFormData = data instanceof FormData;
+    const options: RequestOptions = {
       method: 'POST',
-      body: data ? JSON.stringify(data) : undefined,
-    });
+      body: isFormData ? (data as BodyInit) : data ? JSON.stringify(data) : undefined,
+    };
+    if (isFormData) {
+      options.headers = {}; // let browser set Content-Type with boundary
+    }
+    return this.request<T>(endpoint, options);
   }
 
   static async put<T>(endpoint: string, data?: unknown): Promise<T> {
     return this.request<T>(endpoint, {
       method: 'PUT',
+      body: data ? JSON.stringify(data) : undefined,
+    });
+  }
+
+  static async patch<T>(endpoint: string, data?: unknown): Promise<T> {
+    return this.request<T>(endpoint, {
+      method: 'PATCH',
       body: data ? JSON.stringify(data) : undefined,
     });
   }
