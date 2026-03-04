@@ -255,7 +255,8 @@ function AdminDashboardContent() {
       />
 
       {/* Main Content */}
-      <main className={`flex-1 ${isRTL ? 'lg:mr-64' : 'lg:ml-64'} p-4 lg:p-10`}>
+      <main className={`flex-1 ${isRTL ? 'lg:mr-64' : 'lg:ml-64'} ${activeTab === 'chat' ? 'p-0' : 'p-4 lg:p-10'}`}>
+        {activeTab !== 'chat' && (
         <DashboardHeader
           userName="Department Head"
           userRole="Admin"
@@ -288,6 +289,7 @@ function AdminDashboardContent() {
             logout: t('logout'),
           }}
         />
+        )}
         {/* Dashboard Overview */}
         {activeTab === 'dashboard' && (
           <DashboardOverview
@@ -349,11 +351,13 @@ function AdminDashboardContent() {
         {/* Chat */}
         {activeTab === 'chat' && (
           <MessagingChat
-            height="calc(100vh - 160px)"
+            height="100vh"
             currentUserName="Administrator"
             showVideoCall={true}
             showVoiceCall={true}
             isDark={isDark}
+            accentColor={primaryHex || '#4f46e5'}
+            className="rounded-none border-0"
           />
         )}
 

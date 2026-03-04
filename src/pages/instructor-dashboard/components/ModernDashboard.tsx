@@ -7,6 +7,7 @@ import {
   TrendingUp,
   MapPin,
   Clock,
+  Calendar,
   BookOpen,
   Upload,
   CheckSquare,
@@ -449,6 +450,8 @@ export function ModernDashboard({
               {upcomingClasses.length > 0 ? (
                 upcomingClasses.slice(0, 4).map((cls: any, index: number) => {
                   const location = cls.room || cls.location || 'TBD';
+                  const day = cls.day || '';
+                  const time = cls.time || '';
                   return (
                     <div
                       key={index}
@@ -458,7 +461,7 @@ export function ModernDashboard({
                         <h4
                           className={`font-medium text-sm truncate ${isDark ? 'text-white' : 'text-gray-900'}`}
                         >
-                          {cls.title || cls.name}
+                          {cls.title || cls.name || cls.course}
                         </h4>
                         <div
                           className={`flex items-center gap-1 text-xs mt-1 ${isDark ? 'text-gray-500' : 'text-gray-500'}`}
@@ -466,6 +469,24 @@ export function ModernDashboard({
                           <MapPin size={12} />
                           <span className="truncate">{location}</span>
                         </div>
+                        {(day || time) && (
+                          <div
+                            className={`flex items-center gap-3 text-xs mt-1 ${isDark ? 'text-gray-500' : 'text-gray-500'}`}
+                          >
+                            {day && (
+                              <span className="flex items-center gap-1">
+                                <Calendar size={12} />
+                                {day}
+                              </span>
+                            )}
+                            {time && (
+                              <span className="flex items-center gap-1">
+                                <Clock size={12} />
+                                {time}
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                   );
