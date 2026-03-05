@@ -530,6 +530,222 @@ function InstructorDashboardContent() {
             }}
           />
         )}
+        {/* Dashboard Overview */}
+        {activeTab === 'dashboard' && (
+          <ModernDashboard
+            stats={DASHBOARD_STATS}
+            sections={SECTIONS}
+            upcomingClasses={UPCOMING_CLASSES}
+            recentActivity={RECENT_ACTIVITY}
+            pendingTasks={PENDING_TASKS}
+            onNavigate={(tab) => handleTabChange(tab as TabKey)}
+          />
+        )}
+
+        {/* Courses */}
+        {activeTab === 'courses' && (
+          <CoursesPage
+            courses={coursesData}
+            onCreateCourse={handleCreateCourse}
+            onEditCourse={handleEditCourse}
+            onDeleteCourse={handleDeleteCourse}
+            onDuplicateCourse={handleDuplicateCourse}
+            onViewCourse={handleViewCourse}
+            selectedCourseId={selectedCourseIdFromRoute}
+          />
+        )}
+
+        {/* Quizzes */}
+        {activeTab === 'quizzes' && <QuizzesPage />}
+
+        {/* Schedule */}
+        {activeTab === 'schedule' && <SchedulePage />}
+
+        {/* Roster */}
+        {activeTab === 'roster' && (
+          <div className="space-y-4">
+            <div className="max-w-xs mb-6">
+              <CustomDropdown
+                label="Select Section"
+                options={sectionOptions}
+                value={activeSectionId || String(SECTIONS[0].sectionId)}
+                onChange={setActiveSectionId}
+                isDark={isDark}
+                accentColor={primaryHex}
+              />
+            </div>
+            <SelectedSectionSummary section={selectedSection as any} />
+
+            <div className="flex gap-4 border-b border-gray-200 dark:border-white/10 mb-6">
+              <button
+                onClick={() => setRosterSubTab('overview')}
+                className={`pb-2 px-1 text-sm font-medium transition-colors relative ${
+                  rosterSubTab === 'overview'
+                    ? 'text-indigo-600'
+                    : 'text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200'
+                }`}
+              >
+                {t('overview') || 'Overview'}
+                {rosterSubTab === 'overview' && (
+                  <div
+                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600"
+                    style={{ backgroundColor: primaryHex }}
+                  />
+                )}
+              </button>
+              <button
+                onClick={() => setRosterSubTab('grades')}
+                className={`pb-2 px-1 text-sm font-medium transition-colors relative ${
+                  rosterSubTab === 'grades'
+                    ? 'text-indigo-600'
+                    : 'text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200'
+                }`}
+              >
+                {t('detailedGrades') || 'Detailed Grades'}
+                {rosterSubTab === 'grades' && (
+                  <div
+                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600"
+                    style={{ backgroundColor: primaryHex }}
+                  />
+                )}
+              </button>
+            </div>
+
+            {rosterSubTab === 'overview' ? (
+              <RosterTable
+                data={currentRoster}
+                grades={activeSectionId ? gradesData[activeSectionId] || [] : []}
+                onEdit={(student) => {
+                  setEditingStudent(student);
+                  setIsEditOpen(true);
+                }}
+              />
+            ) : (
+              <GradesTable
+                data={activeSectionId ? gradesData[activeSectionId] || [] : []}
+                onEdit={handleEditGrade}
+                onDelete={handleDeleteGrade}
+              />
+            )}
+          </div>
+        )}
+
+        {/* Assignments */}
+        {activeTab === 'assignments' && (
+          <div className="space-y-4">
+            <div className="max-w-xs mb-6">
+              <CustomDropdown
+                label="Select Section"
+                options={sectionOptions}
+                value={activeSectionId || String(SECTIONS[0].sectionId)}
+                onChange={setActiveSectionId}
+                isDark={isDark}
+                accentColor={primaryHex}
+              />
+            </div>
+            <SelectedSectionSummary section={selectedSection as any} />
+            <AssignmentsList
+              data={activeSectionId ? assignmentsData[activeSectionId] || [] : []}
+              onEdit={handleEditAssignment}
+              onDelete={handleDeleteAssignment}
+              onCreate={handleCreateAssignment}
+              onStatusChange={handleAssignmentStatusChange}
+            />
+          </div>
+        )}
+
+        {/* Attendance */}
+        {activeTab === 'attendance' && (
+          <div className="space-y-6">
+            <div className="max-w-xs mb-6">
+              <CustomDropdown
+                label="Select Section"
+                options={sectionOptions}
+                value={activeSectionId || String(SECTIONS[0].sectionId)}
+                onChange={setActiveSectionId}
+                isDark={isDark}
+                accentColor={primaryHex}
+              />
+            </div>
+            <SelectedSectionSummary section={selectedSection as any} />
+
+            <div
+              className={`rounded-xl border shadow-sm p-6 ${isDark ? 'bg-card-dark border-white/10' : 'bg-white border-gray-200'}`}
+            >
+              <h3
+                className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}
+              >
+                {t('attendanceRecords') || 'Attendance Records'}
+              </h3>
+              <AttendanceTable
+                sessions={activeSectionId ? attendanceData[activeSectionId] || [] : []}
+                onCreate={handleCreateAttendance}
+                onEdit={handleEditAttendance}
+                onDelete={handleDeleteAttendance}
+                onSwitchToAI={() => setIsAIAttendanceModalOpen(true)}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Announcements */}
+        {activeTab === 'announcements' && <AnnouncementsManager />}
+
+        {/* Notifications */}
+        {activeTab === 'notifications' && <NotificationsPage />}
+
+        {/* Discussion */}
+        {activeTab === 'discussion' && (
+          <DiscussionPage userRole="instructor" userName="Prof. Sarah Martinez" />
+        )}
+
+        {/* Chat */}
+        {activeTab === 'chat' && (
+          <MessagingChat
+            height="100vh"
+            currentUserName="Prof. Sarah Martinez"
+            showVideoCall={true}
+            showVoiceCall={true}
+            isDark={isDark}
+            accentColor={primaryHex || '#4f46e5'}
+            className="rounded-none border-0"
+          />
+        )}
+
+        {/* Profile */}
+        {activeTab === 'profile' && (
+          <DashboardProfileTab
+>>>>>>> b423bd3e5f70d41f36eea9a3464d248e299448ce
+            isDark={isDark}
+            isRTL={isRTL}
+            accentColor={primaryHex || '#4F46E5'}
+            avatarGradient="from-[#3b82f6] to-[#06b6d4]"
+            language={language}
+            onToggleTheme={toggleTheme}
+            onSetLanguage={setLanguage}
+            searchRole="instructor"
+            onProfileClick={() => handleTabChange('profile')}
+            onMenuClick={() => setSidebarOpen(true)}
+            primaryColor={primaryColor}
+            onSetPrimaryColor={setPrimaryColor}
+            availableColors={[
+              { id: 'blue', colorClass: 'bg-blue-500', hex: '#3b82f6' },
+              { id: 'emerald', colorClass: 'bg-emerald-500', hex: '#10b981' },
+              { id: 'rose', colorClass: 'bg-rose-500', hex: '#f43f5e' },
+              { id: 'amber', colorClass: 'bg-amber-500', hex: '#f59e0b' },
+            ]}
+            translations={{
+              search: t('search') || 'Search...',
+              language: t('language'),
+              english: t('english'),
+              arabic: t('arabic'),
+              darkMode: t('darkMode'),
+              lightMode: t('lightMode'),
+              viewProfile: t('viewProfile'),
+              logout: t('logout'),
+            }}
+          />
+        )}
         <div
           key={activeTab}
           className={activeTab === 'chat' ? 'h-screen overflow-hidden p-0' : 'flex-1'}

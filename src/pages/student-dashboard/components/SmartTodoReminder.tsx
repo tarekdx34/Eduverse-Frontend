@@ -141,6 +141,33 @@ export function SmartTodoReminder() {
 
   const [filter, setFilter] = useState<'all' | 'pending' | 'completed'>('all');
   const [priorityFilter, setPriorityFilter] = useState<'all' | 'high' | 'medium' | 'low'>('all');
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newTask, setNewTask] = useState({
+    title: '',
+    description: '',
+    dueDate: '',
+    dueTime: '',
+    priority: 'medium' as 'high' | 'medium' | 'low',
+    category: 'Academic',
+  });
+
+  const addTodo = () => {
+    if (!newTask.title.trim()) return;
+    const todo: Todo = {
+      id: Date.now(),
+      title: newTask.title,
+      description: newTask.description,
+      dueDate: newTask.dueDate || new Date().toISOString().split('T')[0],
+      dueTime: newTask.dueTime || '11:59 PM',
+      priority: newTask.priority,
+      category: newTask.category,
+      isCompleted: false,
+      tags: [newTask.category],
+    };
+    setTodos([todo, ...todos]);
+    setNewTask({ title: '', description: '', dueDate: '', dueTime: '', priority: 'medium', category: 'Academic' });
+    setShowAddForm(false);
+  };
 
   const toggleTodo = (id: number | string) => {
     setTodos(
@@ -348,6 +375,109 @@ export function SmartTodoReminder() {
         </div>
       </div>
 
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h2 className={`font-semibold text-xl mb-1 ${isDark ? 'text-white' : 'text-slate-800'}`}>
+            {t('smartTodo')}
+          </h2>
+          <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>
+            {isRTL
+              ? 'ابق منظماً مع إدارة المهام الذكية'
+              : 'Stay organized with AI-powered task management'}
+          </p>
+        </div>
+        <button
+          onClick={() => setShowAddForm(!showAddForm)}
+          className="flex items-center gap-2 px-4 py-2 bg-[var(--accent-color)] text-white rounded-lg hover:opacity-90 transition-colors font-medium"
+        >
+          <Plus className="w-5 h-5" />
+          {t('addTask')}
+        </button>
+      </div>
+
+      {/* Add Task Form */}
+      {showAddForm && (
+        <div className={`rounded-2xl p-5 mb-6 space-y-4 ${isDark ? 'bg-card-dark border border-white/5' : 'bg-white border border-slate-200'}`}>
+          <input
+            type="text"
+            placeholder={isRTL ? 'عنوان المهمة...' : 'Task title...'}
+            value={newTask.title}
+            onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
+            className={`w-full px-4 py-2.5 rounded-xl text-sm font-medium border focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)]/30 ${
+              isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500' : 'bg-slate-50 border-slate-200 text-slate-800 placeholder:text-slate-400'
+            }`}
+          />
+          <input
+            type="text"
+            placeholder={isRTL ? 'الوصف (اختياري)...' : 'Description (optional)...'}
+            value={newTask.description}
+            onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
+            className={`w-full px-4 py-2.5 rounded-xl text-sm border focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)]/30 ${
+              isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500' : 'bg-slate-50 border-slate-200 text-slate-800 placeholder:text-slate-400'
+            }`}
+          />
+          <div className="flex flex-wrap gap-3">
+            <input
+              type="date"
+              value={newTask.dueDate}
+              onChange={(e) => setNewTask({ ...newTask, dueDate: e.target.value })}
+              className={`px-3 py-2 rounded-xl text-sm border focus:outline-none ${
+                isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-slate-50 border-slate-200 text-slate-700'
+              }`}
+            />
+            <input
+              type="time"
+              value={newTask.dueTime}
+              onChange={(e) => setNewTask({ ...newTask, dueTime: e.target.value })}
+              className={`px-3 py-2 rounded-xl text-sm border focus:outline-none ${
+                isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-slate-50 border-slate-200 text-slate-700'
+              }`}
+            />
+            <select
+              value={newTask.priority}
+              onChange={(e) => setNewTask({ ...newTask, priority: e.target.value as 'high' | 'medium' | 'low' })}
+              className={`px-3 py-2 rounded-xl text-sm border focus:outline-none ${
+                isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-slate-50 border-slate-200 text-slate-700'
+              }`}
+            >
+              <option value="high">{isRTL ? 'عالية' : 'High'}</option>
+              <option value="medium">{isRTL ? 'متوسطة' : 'Medium'}</option>
+              <option value="low">{isRTL ? 'منخفضة' : 'Low'}</option>
+            </select>
+            <select
+              value={newTask.category}
+              onChange={(e) => setNewTask({ ...newTask, category: e.target.value })}
+              className={`px-3 py-2 rounded-xl text-sm border focus:outline-none ${
+                isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-slate-50 border-slate-200 text-slate-700'
+              }`}
+            >
+              <option value="Academic">{isRTL ? 'أكاديمي' : 'Academic'}</option>
+              <option value="Assignment">{isRTL ? 'واجب' : 'Assignment'}</option>
+              <option value="Personal">{isRTL ? 'شخصي' : 'Personal'}</option>
+              <option value="Study">{isRTL ? 'دراسة' : 'Study'}</option>
+            </select>
+          </div>
+          <div className="flex justify-end gap-2">
+            <button
+              onClick={() => setShowAddForm(false)}
+              className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
+                isDark ? 'text-slate-400 hover:bg-white/5' : 'text-slate-600 hover:bg-slate-100'
+              }`}
+            >
+              {isRTL ? 'إلغاء' : 'Cancel'}
+            </button>
+            <button
+              onClick={addTodo}
+              disabled={!newTask.title.trim()}
+              className="px-4 py-2 rounded-xl text-sm font-medium bg-[var(--accent-color)] text-white hover:opacity-90 transition-colors disabled:opacity-50"
+            >
+              {isRTL ? 'إضافة' : 'Add Task'}
+            </button>
+          </div>
+        </div>
+      )}
+
+>>>>>>> b423bd3e5f70d41f36eea9a3464d248e299448ce
       {/* Filters */}
       <div
         className={`rounded-[2.5rem] p-4 mb-6 ${isDark ? 'bg-card-dark border border-white/5' : 'glass'}`}

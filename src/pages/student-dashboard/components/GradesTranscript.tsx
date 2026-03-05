@@ -505,6 +505,82 @@ export default function GradesTranscript({
   const { isDark } = useTheme();
   const [activeView, setActiveView] = useState<'grades' | 'analysis'>('grades');
 
+  const exportGradesAsPDF = () => {
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Grades Transcript</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 20px; color: #1f2937; }
+            h1 { margin-bottom: 8px; }
+            .summary { display: flex; gap: 24px; margin: 16px 0 24px; }
+            .summary span { font-size: 14px; }
+            .summary strong { color: #4f46e5; }
+            table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+            th { background: #4f46e5; color: white; padding: 10px 12px; text-align: left; font-size: 13px; }
+            td { padding: 8px 12px; border-bottom: 1px solid #e5e7eb; font-size: 13px; }
+            tr:nth-child(even) { background: #f9fafb; }
+            .semester-title { font-size: 16px; font-weight: bold; margin: 20px 0 4px; }
+            .semester-info { font-size: 13px; color: #6b7280; margin-bottom: 8px; }
+            .footer { margin-top: 20px; color: #6b7280; font-size: 12px; }
+          </style>
+        </head>
+        <body>
+          <h1>Grades Transcript</h1>
+          <div class="summary">
+            <span>Cumulative GPA: <strong>${cumulativeGPA}</strong></span>
+            <span>Current Semester GPA: <strong>${currentSemesterGPA}</strong></span>
+            <span>Total Credits: <strong>${totalCredits}</strong></span>
+            <span>Class Rank: <strong>#${classRank}</strong></span>
+          </div>
+          ${semesters
+            .map(
+              (sem) => `
+            <div class="semester-title">${sem.semester}</div>
+            <div class="semester-info">GPA: ${sem.gpa} | Credits: ${sem.credits}</div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Code</th>
+                  <th>Course</th>
+                  <th>Credits</th>
+                  <th>%</th>
+                  <th>Grade</th>
+                  <th>Points</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${sem.courses
+                  .map(
+                    (c) =>
+                      `<tr><td>${c.code}</td><td>${c.name}</td><td>${c.credits}</td><td>${c.percentage}%</td><td>${c.grade}</td><td>${c.points}</td><td>${c.status}</td></tr>`
+                  )
+                  .join('')}
+              </tbody>
+            </table>
+          `
+            )
+            .join('')}
+          <div class="footer">
+            <p>Generated on: ${new Date().toLocaleString()}</p>
+            <p>EduVerse Grades Transcript</p>
+          </div>
+        </body>
+      </html>
+    `;
+
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(htmlContent);
+      printWindow.document.close();
+      setTimeout(() => {
+        printWindow.print();
+      }, 250);
+    }
+  };
+
   return (
     <div className="space-y-6" dir={isRTL ? 'rtl' : 'ltr'}>
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
@@ -585,7 +661,7 @@ export default function GradesTranscript({
           {/* Export as PDF */}
           <div className="flex justify-end">
             <button
-              onClick={() => window.print()}
+              onClick={() => exportGradesAsPDF()}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
                 isDark
                   ? 'bg-white/5 text-slate-400 hover:bg-white/10 border border-white/10'
@@ -614,7 +690,7 @@ export default function GradesTranscript({
           {/* Action Buttons */}
           <div className="flex justify-end gap-3">
             <button
-              onClick={() => window.print()}
+              onClick={() => exportGradesAsPDF()}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
                 isDark
                   ? 'bg-white/5 text-slate-400 hover:bg-white/10 border border-white/10'

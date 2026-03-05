@@ -157,38 +157,40 @@ function TADashboardContent() {
       />
 
       {/* Main Content */}
-      <main className={`flex-1 ${isRTL ? 'lg:mr-64' : 'lg:ml-64'} p-4 lg:p-10`}>
-        <DashboardHeader
-          userName="Ahmed Hassan"
-          userRole="Teaching Assistant"
-          isDark={isDark}
-          isRTL={isRTL}
-          accentColor={primaryHex || '#2563EB'}
-          avatarGradient="from-blue-500 to-blue-500"
-          language={language}
-          onToggleTheme={toggleTheme}
-          onSetLanguage={setLanguage}
-          onProfileClick={() => handleTabChange('profile')}
-          onMenuClick={() => setSidebarOpen(true)}
-          primaryColor={primaryColor}
-          onSetPrimaryColor={setPrimaryColor}
-          availableColors={[
-            { id: 'blue', colorClass: 'bg-blue-500', hex: '#3b82f6' },
-            { id: 'emerald', colorClass: 'bg-emerald-500', hex: '#10b981' },
-            { id: 'rose', colorClass: 'bg-rose-500', hex: '#f43f5e' },
-            { id: 'amber', colorClass: 'bg-amber-500', hex: '#f59e0b' },
-          ]}
-          translations={{
-            search: t('search') || 'Search...',
-            language: t('language'),
-            english: t('english'),
-            arabic: t('arabic'),
-            darkMode: t('darkMode'),
-            lightMode: t('lightMode'),
-            viewProfile: t('viewProfile'),
-            logout: t('logout'),
-          }}
-        />
+      <main className={`flex-1 ${isRTL ? 'lg:mr-64' : 'lg:ml-64'} ${activeTab === 'chat' ? 'p-0' : 'p-4 lg:p-10'}`}>
+        {activeTab !== 'chat' && (
+          <DashboardHeader
+            userName="Ahmed Hassan"
+            userRole="Teaching Assistant"
+            isDark={isDark}
+            isRTL={isRTL}
+            accentColor={primaryHex || '#2563EB'}
+            avatarGradient="from-blue-500 to-blue-500"
+            language={language}
+            onToggleTheme={toggleTheme}
+            onSetLanguage={setLanguage}
+            onProfileClick={() => handleTabChange('profile')}
+            onMenuClick={() => setSidebarOpen(true)}
+            primaryColor={primaryColor}
+            onSetPrimaryColor={setPrimaryColor}
+            availableColors={[
+              { id: 'blue', colorClass: 'bg-blue-500', hex: '#3b82f6' },
+              { id: 'emerald', colorClass: 'bg-emerald-500', hex: '#10b981' },
+              { id: 'rose', colorClass: 'bg-rose-500', hex: '#f43f5e' },
+              { id: 'amber', colorClass: 'bg-amber-500', hex: '#f59e0b' },
+            ]}
+            translations={{
+              search: t('search') || 'Search...',
+              language: t('language'),
+              english: t('english'),
+              arabic: t('arabic'),
+              darkMode: t('darkMode'),
+              lightMode: t('lightMode'),
+              viewProfile: t('viewProfile'),
+              logout: t('logout'),
+            }}
+          />
+        )}
 
         {/* Dashboard Tab */}
         {activeTab === 'dashboard' && (
@@ -245,12 +247,13 @@ function TADashboardContent() {
         {/* Chat Tab */}
         {activeTab === 'chat' && (
           <MessagingChat
-            height="calc(100vh - 160px)"
+            height="100vh"
             currentUserName="Ahmed Hassan"
             showVideoCall={true}
             showVoiceCall={true}
             isDark={isDark}
-            accentColor={primaryHex || '#2563EB'}
+            accentColor={primaryHex || '#4f46e5'}
+            className="rounded-none border-0"
           />
         )}
 

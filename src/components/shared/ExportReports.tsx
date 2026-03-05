@@ -88,8 +88,6 @@ export function ExportReports({
   };
 
   const exportToPDF = async (exportData: ExportableData): Promise<void> => {
-    // In a real implementation, use a library like jspdf or pdfmake
-    // For demo, we'll create an HTML that can be printed
     const { headers, rows, title = 'Report', filename = 'export' } = exportData;
 
     const htmlContent = `
@@ -128,19 +126,15 @@ export function ExportReports({
       </html>
     `;
 
-    const blob = new Blob([htmlContent], { type: 'text/html' });
-    
-    // Open in new window for printing
-    const url = URL.createObjectURL(blob);
-    const printWindow = window.open(url, '_blank');
+    // Write content directly into the new window to avoid blob URL timing issues
+    const printWindow = window.open('', '_blank');
     if (printWindow) {
-      printWindow.onload = () => {
+      printWindow.document.write(htmlContent);
+      printWindow.document.close();
+      setTimeout(() => {
         printWindow.print();
-      };
+      }, 250);
     }
-    
-    // Also download as HTML
-    downloadBlob(blob, `${filename}.html`);
   };
 
   const downloadBlob = (blob: Blob, filename: string) => {

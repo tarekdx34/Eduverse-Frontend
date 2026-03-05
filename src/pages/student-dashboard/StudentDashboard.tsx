@@ -417,7 +417,7 @@ function StudentDashboardContent() {
                         name: "Dean's List",
                         description: 'GPA above 3.5',
                         icon: 'school',
-                        color: accentColor,
+                        color: primaryHex || '#3b82f6',
                         unlocked: true,
                       },
                       {

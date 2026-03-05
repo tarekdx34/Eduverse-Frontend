@@ -333,7 +333,8 @@ function ITAdminDashboardContent() {
       />
 
       {/* Main Content */}
-      <main className={`flex-1 ${isRTL ? 'lg:mr-64' : 'lg:ml-64'} p-4 lg:p-10`}>
+      <main className={`flex-1 ${isRTL ? 'lg:mr-64' : 'lg:ml-64'} ${activeTab === 'chat' ? 'p-0' : 'p-4 lg:p-10'}`}>
+        {activeTab !== 'chat' && (
         <DashboardHeader
           userName="IT Administrator"
           userRole="IT Admin"
@@ -366,6 +367,7 @@ function ITAdminDashboardContent() {
             logout: t('logout'),
           }}
         />
+        )}
         {/* Dashboard Overview */}
         {activeTab === 'dashboard' && (
           <DashboardOverview
@@ -463,7 +465,9 @@ function ITAdminDashboardContent() {
         {/* Chat */}
         {activeTab === 'chat' && (
           <MessagingChat
-            height="calc(100vh - 160px)"
+            height="100vh"
+            accentColor={primaryHex || '#4f46e5'}
+            className="rounded-none border-0"
             currentUserName="IT Administrator"
             showVideoCall={true}
             showVoiceCall={true}

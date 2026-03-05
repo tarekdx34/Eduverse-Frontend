@@ -467,6 +467,7 @@ export const INSTRUCTOR_PROFILE = {
 export const UPCOMING_CLASSES = [
   {
     time: '10:00 AM',
+    day: 'Monday',
     course: 'Introduction to Programming',
     section: 'CS101-A',
     room: 'Room 201',
@@ -475,6 +476,7 @@ export const UPCOMING_CLASSES = [
   },
   {
     time: '12:00 PM',
+    day: 'Monday',
     course: 'Data Structures',
     section: 'CS202-B',
     room: 'Room 305',
@@ -483,6 +485,7 @@ export const UPCOMING_CLASSES = [
   },
   {
     time: '02:00 PM',
+    day: 'Tuesday',
     course: 'Advanced Algorithms',
     section: 'CS303-C',
     room: 'Lab 101',

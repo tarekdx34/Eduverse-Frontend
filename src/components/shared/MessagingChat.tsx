@@ -13,6 +13,7 @@ import {
   Mic,
   MicOff,
   ArrowLeft,
+  Mail,
 } from 'lucide-react';
 
 export interface Message {
@@ -56,6 +57,7 @@ interface MessagingChatProps {
   showVoiceMessage?: boolean;
   showEmojiPicker?: boolean;
   showNewConversation?: boolean;
+  accentColor?: string;
   className?: string;
   height?: string;
   isDark?: boolean;
@@ -143,11 +145,13 @@ export function MessagingChat({
   showVoiceMessage = true,
   showEmojiPicker = true,
   showNewConversation = true,
+  accentColor = '#4f46e5',
   className = '',
   height = '600px',
   isDark = false,
   accentColor = '#4f46e5',
 }: MessagingChatProps) {
+  const [localConversations, setLocalConversations] = useState<Conversation[]>(conversations);
   const [selectedConversation, setSelectedConversation] = useState<string>(
     conversations[0]?.id || ''
   );
@@ -157,13 +161,15 @@ export function MessagingChat({
   const [isRecording, setIsRecording] = useState(false);
   const [isPickerOpen, setIsPickerOpen] = useState(false);
   const [showChatOnMobile, setShowChatOnMobile] = useState(false);
+  const [showNewChatModal, setShowNewChatModal] = useState(false);
+  const [newChatEmail, setNewChatEmail] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const primaryHex = accentColor;
 
-  const currentConversation = conversations.find((c) => c.id === selectedConversation);
+  const currentConversation = localConversations.find((c) => c.id === selectedConversation);
 
-  const filteredConversations = conversations.filter(
+  const filteredConversations = localConversations.filter(
     (c) =>
       c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       c.lastMessage.toLowerCase().includes(searchTerm.toLowerCase())
@@ -246,9 +252,31 @@ export function MessagingChat({
 
   const emojis = ['😀', '😂', '😍', '🤔', '👍', '👎', '🎉', '❤️', '🔥', '👏'];
 
+  const startNewChatByEmail = () => {
+    if (!newChatEmail.trim() || !newChatEmail.includes('@')) return;
+    const name = newChatEmail.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+    const initials = name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase();
+    const newConv: Conversation = {
+      id: `new-${Date.now()}`,
+      name,
+      initials,
+      color: '#6366F1',
+      lastMessage: '',
+      timestamp: 'Now',
+      unreadCount: 0,
+      isOnline: false,
+      role: newChatEmail,
+    };
+    setLocalConversations((prev) => [...prev, newConv]);
+    setSelectedConversation(newConv.id);
+    setShowChatOnMobile(true);
+    setNewChatEmail('');
+    setShowNewChatModal(false);
+  };
+
   return (
     <div
-      className={`${isDark ? 'bg-gray-800 border-white/10' : 'bg-white border-gray-200'} rounded-xl border shadow-sm flex flex-col md:flex-row overflow-hidden ${className}`}
+      className={`${isDark ? 'bg-gray-800 border-white/10' : 'bg-white border-gray-200'} rounded-xl border flex flex-col md:flex-row overflow-hidden ${className}`}
       style={{ height }}
     >
       {/* Full Screen Chat View */}
@@ -303,7 +331,7 @@ export function MessagingChat({
               >
                 {!message.isCurrentUser && (
                   <div
-                    className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-semibold flex-shrink-0 shadow-md"
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-semibold flex-shrink-0"
                     style={{ backgroundColor: message.senderColor }}
                   >
                     {message.senderInitials}
@@ -321,7 +349,7 @@ export function MessagingChat({
                     <img
                       src={message.image}
                       alt="shared"
-                      className="max-w-xs rounded-lg shadow-md"
+                      className="max-w-xs rounded-lg"
                     />
                   )}
                   {message.file && (
@@ -347,7 +375,7 @@ export function MessagingChat({
                         message.isCurrentUser
                           ? 'text-white rounded-2xl rounded-br-sm'
                           : `${isDark ? 'bg-white/10 text-white border-white/10' : 'bg-white text-gray-900 border-gray-200'} border rounded-2xl rounded-tl-sm`
-                      } shadow-sm`}
+                      }`}
                       style={message.isCurrentUser ? { backgroundColor: primaryHex } : undefined}
                     >
                       <p className="text-sm">{message.text}</p>
@@ -422,7 +450,7 @@ export function MessagingChat({
                 </h3>
                 {showNewConversation && (
                   <button
-                    onClick={onStartNewConversation}
+                    onClick={() => setShowNewChatModal(true)}
                     className={`p-2 ${isDark ? 'hover:bg-white/10' : 'hover:bg-white'} rounded-lg transition-colors`}
                     title="New conversation"
                   >
@@ -430,6 +458,42 @@ export function MessagingChat({
                   </button>
                 )}
               </div>
+              {/* New Chat by Email Modal */}
+              {showNewChatModal && (
+                <div className={`mx-4 mb-3 p-3 rounded-xl border ${isDark ? 'bg-white/5 border-white/10' : 'bg-slate-50 border-slate-200'}`}>
+                  <p className={`text-xs font-medium mb-2 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                    Start a new chat by entering their email
+                  </p>
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <Mail className={`absolute left-2.5 top-2 w-4 h-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`} />
+                      <input
+                        type="email"
+                        value={newChatEmail}
+                        onChange={(e) => setNewChatEmail(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') startNewChatByEmail(); }}
+                        placeholder="name@campus.edu"
+                        className={`w-full pl-8 pr-3 py-1.5 text-sm border rounded-lg focus:outline-none ${isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500' : 'border-slate-200 text-slate-700 placeholder:text-slate-400'}`}
+                        autoFocus
+                      />
+                    </div>
+                    <button
+                      onClick={startNewChatByEmail}
+                      disabled={!newChatEmail.includes('@')}
+                      className="px-3 py-1.5 text-xs font-medium text-white rounded-lg transition-colors disabled:opacity-50"
+                      style={{ backgroundColor: primaryHex }}
+                    >
+                      Start
+                    </button>
+                  </div>
+                  <button
+                    onClick={() => { setShowNewChatModal(false); setNewChatEmail(''); }}
+                    className={`text-xs mt-2 ${isDark ? 'text-slate-500 hover:text-slate-300' : 'text-slate-400 hover:text-slate-600'} transition-colors`}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              )}
               {showSearch && (
                 <div className="relative">
                   <input
@@ -466,7 +530,7 @@ export function MessagingChat({
                   <div className="flex items-start gap-3">
                     <div className="relative">
                       <div
-                        className="w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold shadow-md"
+                        className="w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold"
                         style={{ backgroundColor: conversation.color }}
                       >
                         {conversation.initials}
@@ -573,7 +637,7 @@ export function MessagingChat({
                   >
                     {!message.isCurrentUser && (
                       <div
-                        className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-semibold flex-shrink-0 shadow-md"
+                        className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-semibold flex-shrink-0"
                         style={{ backgroundColor: message.senderColor }}
                       >
                         {message.senderInitials}
@@ -591,7 +655,7 @@ export function MessagingChat({
                         <img
                           src={message.image}
                           alt="shared"
-                          className="max-w-xs rounded-lg shadow-md"
+                          className="max-w-xs rounded-lg"
                         />
                       )}
                       {message.file && (
