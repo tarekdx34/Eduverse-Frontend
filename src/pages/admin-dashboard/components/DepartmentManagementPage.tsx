@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Search, Plus, Edit2, Trash2, Building2, Users, BookOpen, DollarSign, Download } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { CleanSelect } from '../../../components/shared';
+
 
 interface Department {
   id: number;
@@ -123,7 +125,7 @@ export function DepartmentManagementPage({ departments, onAddDepartment, onEditD
               />
             </div>
           </div>
-          <select
+          <CleanSelect
             value={facultyFilter}
             onChange={(e) => setFacultyFilter(e.target.value)}
             className={`px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}
@@ -132,7 +134,7 @@ export function DepartmentManagementPage({ departments, onAddDepartment, onEditD
             {faculties.map(faculty => (
               <option key={faculty} value={faculty}>{faculty}</option>
             ))}
-          </select>
+          </CleanSelect>
           <button className={`flex items-center gap-2 px-4 py-2 rounded-lg border ${isDark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-200 text-gray-700 hover:bg-gray-50'}`}>
             <Download size={18} />
             {t('export')}
@@ -215,13 +217,13 @@ export function DepartmentManagementPage({ departments, onAddDepartment, onEditD
               </div>
               <div>
                 <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('faculty')}</label>
-                <select defaultValue={editingDepartment?.faculty} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}>
+                <CleanSelect defaultValue={editingDepartment?.faculty} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}>
                   <option value="Engineering">Engineering</option>
                   <option value="Science">Science</option>
                   <option value="Commerce">Commerce</option>
                   <option value="Humanities">Humanities</option>
                   <option value="Medicine">Medicine</option>
-                </select>
+                </CleanSelect>
               </div>
               <div>
                 <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('headOfDepartment')}</label>

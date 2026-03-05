@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { CleanSelect } from './';
+
 import {
   Sparkles,
   Edit,
@@ -249,7 +251,7 @@ export function AIQuestionEditor({
                   <div className="grid grid-cols-3 gap-4">
                     <div>
                       <label className={`block text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'} mb-1`}>Type</label>
-                      <select
+                      <CleanSelect
                         value={editingQuestion.type}
                         onChange={(e) =>
                           setEditingQuestion({
@@ -263,11 +265,11 @@ export function AIQuestionEditor({
                         <option className={optionClass} value="true-false">True/False</option>
                         <option className={optionClass} value="short-answer">Short Answer</option>
                         <option className={optionClass} value="essay">Essay</option>
-                      </select>
+                      </CleanSelect>
                     </div>
                     <div>
                       <label className={`block text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'} mb-1`}>Difficulty</label>
-                      <select
+                      <CleanSelect
                         value={editingQuestion.difficulty}
                         onChange={(e) =>
                           setEditingQuestion({
@@ -280,7 +282,7 @@ export function AIQuestionEditor({
                         <option className={optionClass} value="easy">Easy</option>
                         <option className={optionClass} value="medium">Medium</option>
                         <option className={optionClass} value="hard">Hard</option>
-                      </select>
+                      </CleanSelect>
                     </div>
                     <div>
                       <label className={`block text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'} mb-1`}>Points</label>

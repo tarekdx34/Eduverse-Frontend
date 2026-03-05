@@ -14,7 +14,6 @@ import {
   MicOff,
   ArrowLeft,
 } from 'lucide-react';
-import { useTheme } from '../../pages/instructor-dashboard/contexts/ThemeContext';
 
 export interface Message {
   id: string;
@@ -60,6 +59,7 @@ interface MessagingChatProps {
   className?: string;
   height?: string;
   isDark?: boolean;
+  accentColor?: string;
 }
 
 const DEFAULT_CONVERSATIONS: Conversation[] = [
@@ -146,6 +146,7 @@ export function MessagingChat({
   className = '',
   height = '600px',
   isDark = false,
+  accentColor = '#4f46e5',
 }: MessagingChatProps) {
   const [selectedConversation, setSelectedConversation] = useState<string>(
     conversations[0]?.id || ''
@@ -158,7 +159,7 @@ export function MessagingChat({
   const [showChatOnMobile, setShowChatOnMobile] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { primaryHex = '#4f46e5' } = useTheme() as any;
+  const primaryHex = accentColor;
 
   const currentConversation = conversations.find((c) => c.id === selectedConversation);
 

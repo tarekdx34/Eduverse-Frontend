@@ -507,12 +507,13 @@ export default function GradesTranscript({
 
   return (
     <div className="space-y-6" dir={isRTL ? 'rtl' : 'ltr'}>
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>
-          {t('gradesAndTranscript')}
-        </h1>
-        <p className={isDark ? 'text-slate-500' : 'text-slate-600'}>{t('academicRecord')}</p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+        <div>
+          <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+            {t('gradesAndTranscript')}
+          </h1>
+          <p className={`text-slate-500 mt-1 font-medium`}>{t('academicRecord')}</p>
+        </div>
       </div>
 
       {/* View Toggle */}

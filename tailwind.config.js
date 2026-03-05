@@ -24,8 +24,8 @@ export default {
         primary: '#7C3AED',
         accent: '#ec4899',
         'background-light': '#F8FAFC',
-        'background-dark': '#0a0a0c',
-        'card-dark': '#16161a',
+        'background-dark': '#151921',
+        'card-dark': '#212530',
       },
       borderRadius: {
         '2xl': '1rem',

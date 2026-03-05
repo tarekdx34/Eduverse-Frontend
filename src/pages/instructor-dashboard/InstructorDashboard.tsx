@@ -217,14 +217,36 @@ function InstructorDashboardContent() {
     }
   }, [activeTab, activeSectionId]);
 
+  // Disable browser's native scroll restoration so it doesn't fight our scroll calls
+  useEffect(() => {
+    window.history.scrollRestoration = 'manual';
+    return () => {
+      window.history.scrollRestoration = 'auto';
+    };
+  }, []);
+
+  // Scroll to top — targets every possible scroll container
+  const scrollToTop = () => {
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    const root = document.getElementById('root');
+    if (root) root.scrollTop = 0;
+  };
+
+  useEffect(() => {
+    scrollToTop();
+  }, [activeTab]);
+
   // Navigate on tab change
   const handleTabChange = (key: TabKey) => {
     setActiveTab(key);
-    // reset section on non section-related tabs
     if (!['roster', 'attendance'].includes(key)) {
       setActiveSectionId(null);
     }
     navigate(`/instructordashboard/${key}`);
+    // Scroll after a tick so the new content has rendered
+    requestAnimationFrame(() => scrollToTop());
   };
 
   const sectionOptions = useMemo(
@@ -471,244 +493,290 @@ function InstructorDashboardContent() {
       />
 
       {/* Main Content */}
-      <main className={`flex-1 ${isRTL ? 'lg:mr-64' : 'lg:ml-64'} p-4 lg:p-10`}>
-        <DashboardHeader
-          userName="Prof. Sarah Martinez"
-          userRole="Instructor"
-          isDark={isDark}
-          isRTL={isRTL}
-          accentColor={primaryHex || '#4F46E5'}
-          avatarGradient="from-[#3b82f6] to-[#06b6d4]"
-          language={language}
-          onToggleTheme={toggleTheme}
-          onSetLanguage={setLanguage}
-          searchRole="instructor"
-          onProfileClick={() => handleTabChange('profile')}
-          onMenuClick={() => setSidebarOpen(true)}
-          primaryColor={primaryColor}
-          onSetPrimaryColor={setPrimaryColor}
-          availableColors={[
-            { id: 'blue', colorClass: 'bg-blue-500', hex: '#3b82f6' },
-            { id: 'emerald', colorClass: 'bg-emerald-500', hex: '#10b981' },
-            { id: 'rose', colorClass: 'bg-rose-500', hex: '#f43f5e' },
-            { id: 'amber', colorClass: 'bg-amber-500', hex: '#f59e0b' },
-          ]}
-          translations={{
-            search: t('search') || 'Search...',
-            language: t('language'),
-            english: t('english'),
-            arabic: t('arabic'),
-            darkMode: t('darkMode'),
-            lightMode: t('lightMode'),
-            viewProfile: t('viewProfile'),
-            logout: t('logout'),
-          }}
-        />
-        {/* Dashboard Overview */}
-        {activeTab === 'dashboard' && (
-          <ModernDashboard
-            stats={DASHBOARD_STATS}
-            sections={SECTIONS}
-            upcomingClasses={UPCOMING_CLASSES}
-            recentActivity={RECENT_ACTIVITY}
-            pendingTasks={PENDING_TASKS}
-            onNavigate={(tab) => handleTabChange(tab as TabKey)}
-          />
-        )}
-
-        {/* Courses */}
-        {activeTab === 'courses' && (
-          <CoursesPage
-            courses={coursesData}
-            onCreateCourse={handleCreateCourse}
-            onEditCourse={handleEditCourse}
-            onDeleteCourse={handleDeleteCourse}
-            onDuplicateCourse={handleDuplicateCourse}
-            onViewCourse={handleViewCourse}
-            selectedCourseId={selectedCourseIdFromRoute}
-          />
-        )}
-
-        {/* Quizzes */}
-        {activeTab === 'quizzes' && <QuizzesPage />}
-
-        {/* Schedule */}
-        {activeTab === 'schedule' && <SchedulePage />}
-
-        {/* Roster */}
-        {activeTab === 'roster' && (
-          <div className="space-y-4">
-            <div className="max-w-xs mb-6">
-              <CustomDropdown
-                label="Select Section"
-                options={sectionOptions}
-                value={activeSectionId || String(SECTIONS[0].sectionId)}
-                onChange={setActiveSectionId}
-                isDark={isDark}
-                accentColor={primaryHex}
-              />
-            </div>
-            <SelectedSectionSummary section={selectedSection as any} />
-
-            <div className="flex gap-4 border-b border-gray-200 dark:border-white/10 mb-6">
-              <button
-                onClick={() => setRosterSubTab('overview')}
-                className={`pb-2 px-1 text-sm font-medium transition-colors relative ${
-                  rosterSubTab === 'overview'
-                    ? 'text-indigo-600'
-                    : 'text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200'
-                }`}
-              >
-                {t('overview') || 'Overview'}
-                {rosterSubTab === 'overview' && (
-                  <div
-                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600"
-                    style={{ backgroundColor: primaryHex }}
-                  />
-                )}
-              </button>
-              <button
-                onClick={() => setRosterSubTab('grades')}
-                className={`pb-2 px-1 text-sm font-medium transition-colors relative ${
-                  rosterSubTab === 'grades'
-                    ? 'text-indigo-600'
-                    : 'text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200'
-                }`}
-              >
-                {t('detailedGrades') || 'Detailed Grades'}
-                {rosterSubTab === 'grades' && (
-                  <div
-                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600"
-                    style={{ backgroundColor: primaryHex }}
-                  />
-                )}
-              </button>
-            </div>
-
-            {rosterSubTab === 'overview' ? (
-              <RosterTable
-                data={currentRoster}
-                grades={activeSectionId ? gradesData[activeSectionId] || [] : []}
-                onEdit={(student) => {
-                  setEditingStudent(student);
-                  setIsEditOpen(true);
-                }}
-              />
-            ) : (
-              <GradesTable
-                data={activeSectionId ? gradesData[activeSectionId] || [] : []}
-                onEdit={handleEditGrade}
-                onDelete={handleDeleteGrade}
-              />
-            )}
-          </div>
-        )}
-
-        {/* Assignments */}
-        {activeTab === 'assignments' && (
-          <div className="space-y-4">
-            <div className="max-w-xs mb-6">
-              <CustomDropdown
-                label="Select Section"
-                options={sectionOptions}
-                value={activeSectionId || String(SECTIONS[0].sectionId)}
-                onChange={setActiveSectionId}
-                isDark={isDark}
-                accentColor={primaryHex}
-              />
-            </div>
-            <SelectedSectionSummary section={selectedSection as any} />
-            <AssignmentsList
-              data={activeSectionId ? assignmentsData[activeSectionId] || [] : []}
-              onEdit={handleEditAssignment}
-              onDelete={handleDeleteAssignment}
-              onCreate={handleCreateAssignment}
-              onStatusChange={handleAssignmentStatusChange}
-            />
-          </div>
-        )}
-
-        {/* Attendance */}
-        {activeTab === 'attendance' && (
-          <div className="space-y-6">
-            <div className="max-w-xs mb-6">
-              <CustomDropdown
-                label="Select Section"
-                options={sectionOptions}
-                value={activeSectionId || String(SECTIONS[0].sectionId)}
-                onChange={setActiveSectionId}
-                isDark={isDark}
-                accentColor={primaryHex}
-              />
-            </div>
-            <SelectedSectionSummary section={selectedSection as any} />
-
-            <div
-              className={`rounded-xl border shadow-sm p-6 ${isDark ? 'bg-card-dark border-white/10' : 'bg-white border-gray-200'}`}
-            >
-              <h3
-                className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}
-              >
-                {t('attendanceRecords') || 'Attendance Records'}
-              </h3>
-              <AttendanceTable
-                sessions={activeSectionId ? attendanceData[activeSectionId] || [] : []}
-                onCreate={handleCreateAttendance}
-                onEdit={handleEditAttendance}
-                onDelete={handleDeleteAttendance}
-                onSwitchToAI={() => setIsAIAttendanceModalOpen(true)}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Announcements */}
-        {activeTab === 'announcements' && <AnnouncementsManager />}
-
-        {/* Notifications */}
-        {activeTab === 'notifications' && <NotificationsPage />}
-
-        {/* Discussion */}
-        {activeTab === 'discussion' && (
-          <DiscussionPage userRole="instructor" userName="Prof. Sarah Martinez" />
-        )}
-
-        {/* Chat */}
-        {activeTab === 'chat' && (
-          <MessagingChat
-            height="calc(100vh - 160px)"
-            currentUserName="Prof. Sarah Martinez"
-            showVideoCall={true}
-            showVoiceCall={true}
+      <main
+        className={`flex-1 transition-all duration-300 ${isRTL ? 'lg:mr-64' : 'lg:ml-64'} ${activeTab === 'chat' ? 'p-0' : 'p-4 lg:p-10'} overflow-y-auto`}
+      >
+        {activeTab !== 'chat' && (
+          <DashboardHeader
+            userName="Prof. Sarah Martinez"
+            userRole="Instructor"
             isDark={isDark}
-          />
-        )}
-
-        {/* Profile */}
-        {activeTab === 'profile' && (
-          <DashboardProfileTab
-            isDark={isDark}
+            isRTL={isRTL}
             accentColor={primaryHex || '#4F46E5'}
-            bannerGradient="from-[#3b82f6] to-[#06b6d4]"
-            profileData={{
-              fullName: 'Prof. Sarah Martinez',
-              role: 'Instructor',
-              department: 'Computer Science',
-              email: 'sarah.martinez@university.edu',
-              phone: '+20 100 987 6543',
-              address: 'Cairo, Egypt',
-              dateOfBirth: '1985-03-22',
-              bio: 'Associate Professor of Computer Science with 12+ years of teaching experience. Specializes in software engineering, algorithms, and distributed systems.',
-              interests: [
-                'Software Engineering',
-                'Distributed Systems',
-                'Machine Learning',
-                'Higher Education',
-              ],
-              skills: ['Java', 'Python', 'C++', 'Research', 'Curriculum Design'],
+            avatarGradient="from-[#3b82f6] to-[#06b6d4]"
+            language={language}
+            onToggleTheme={toggleTheme}
+            onSetLanguage={setLanguage}
+            searchRole="instructor"
+            onProfileClick={() => handleTabChange('profile')}
+            onMenuClick={() => setSidebarOpen(true)}
+            primaryColor={primaryColor}
+            onSetPrimaryColor={setPrimaryColor}
+            availableColors={[
+              { id: 'blue', colorClass: 'bg-blue-500', hex: '#3b82f6' },
+              { id: 'emerald', colorClass: 'bg-emerald-500', hex: '#10b981' },
+              { id: 'rose', colorClass: 'bg-rose-500', hex: '#f43f5e' },
+              { id: 'amber', colorClass: 'bg-amber-500', hex: '#f59e0b' },
+            ]}
+            translations={{
+              search: t('search') || 'Search...',
+              language: t('language'),
+              english: t('english'),
+              arabic: t('arabic'),
+              darkMode: t('darkMode'),
+              lightMode: t('lightMode'),
+              viewProfile: t('viewProfile'),
+              logout: t('logout'),
             }}
           />
         )}
+        <div
+          key={activeTab}
+          className={activeTab === 'chat' ? 'h-screen overflow-hidden p-0' : 'flex-1'}
+          style={{ animation: 'tabFadeIn 0.18s ease-out' }}
+        >
+          <style>{`@keyframes tabFadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }`}</style>
+          {/* Dashboard Overview */}
+          {activeTab === 'dashboard' && (
+            <ModernDashboard
+              stats={DASHBOARD_STATS}
+              sections={SECTIONS}
+              upcomingClasses={UPCOMING_CLASSES}
+              recentActivity={RECENT_ACTIVITY}
+              pendingTasks={PENDING_TASKS}
+              onNavigate={(tab) => handleTabChange(tab as TabKey)}
+            />
+          )}
+
+          {/* Courses */}
+          {activeTab === 'courses' && (
+            <CoursesPage
+              courses={coursesData}
+              onCreateCourse={handleCreateCourse}
+              onEditCourse={handleEditCourse}
+              onDeleteCourse={handleDeleteCourse}
+              onDuplicateCourse={handleDuplicateCourse}
+              onViewCourse={handleViewCourse}
+              selectedCourseId={selectedCourseIdFromRoute}
+            />
+          )}
+
+          {/* Quizzes */}
+          {activeTab === 'quizzes' && <QuizzesPage />}
+
+          {/* Schedule */}
+          {activeTab === 'schedule' && <SchedulePage />}
+
+          {/* Roster */}
+          {activeTab === 'roster' && (
+            <div className="space-y-4">
+              {/* Page Header */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    Student Roster
+                  </h2>
+                  <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                    Manage enrolled students, view grades, and track academic performance
+                  </p>
+                </div>
+              </div>
+              <div className="max-w-xs">
+                <CustomDropdown
+                  label="Select Section"
+                  options={sectionOptions}
+                  value={activeSectionId || String(SECTIONS[0].sectionId)}
+                  onChange={setActiveSectionId}
+                  isDark={isDark}
+                  accentColor={primaryHex}
+                />
+              </div>
+              <SelectedSectionSummary section={selectedSection as any} />
+
+              <div className="flex gap-4 border-b border-gray-200 dark:border-white/10 mb-6">
+                <button
+                  onClick={() => setRosterSubTab('overview')}
+                  className={`pb-2 px-1 text-sm font-medium transition-colors relative ${
+                    rosterSubTab === 'overview'
+                      ? 'text-indigo-600'
+                      : 'text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200'
+                  }`}
+                >
+                  {t('overview') || 'Overview'}
+                  {rosterSubTab === 'overview' && (
+                    <div
+                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600"
+                      style={{ backgroundColor: primaryHex }}
+                    />
+                  )}
+                </button>
+                <button
+                  onClick={() => setRosterSubTab('grades')}
+                  className={`pb-2 px-1 text-sm font-medium transition-colors relative ${
+                    rosterSubTab === 'grades'
+                      ? 'text-indigo-600'
+                      : 'text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200'
+                  }`}
+                >
+                  {t('detailedGrades') || 'Detailed Grades'}
+                  {rosterSubTab === 'grades' && (
+                    <div
+                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600"
+                      style={{ backgroundColor: primaryHex }}
+                    />
+                  )}
+                </button>
+              </div>
+
+              {rosterSubTab === 'overview' ? (
+                <RosterTable
+                  data={currentRoster}
+                  grades={activeSectionId ? gradesData[activeSectionId] || [] : []}
+                  onEdit={(student) => {
+                    setEditingStudent(student);
+                    setIsEditOpen(true);
+                  }}
+                />
+              ) : (
+                <GradesTable
+                  data={activeSectionId ? gradesData[activeSectionId] || [] : []}
+                  onEdit={handleEditGrade}
+                  onDelete={handleDeleteGrade}
+                />
+              )}
+            </div>
+          )}
+
+          {/* Assignments */}
+          {activeTab === 'assignments' && (
+            <div className="space-y-4">
+              {/* Page Header */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    Assignments
+                  </h2>
+                  <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                    Create and manage assignments across your course sections
+                  </p>
+                </div>
+              </div>
+              <div className="max-w-xs">
+                <CustomDropdown
+                  label="Select Section"
+                  options={sectionOptions}
+                  value={activeSectionId || String(SECTIONS[0].sectionId)}
+                  onChange={setActiveSectionId}
+                  isDark={isDark}
+                  accentColor={primaryHex}
+                />
+              </div>
+              <SelectedSectionSummary section={selectedSection as any} />
+              <AssignmentsList
+                data={activeSectionId ? assignmentsData[activeSectionId] || [] : []}
+                onEdit={handleEditAssignment}
+                onDelete={handleDeleteAssignment}
+                onCreate={handleCreateAssignment}
+                onStatusChange={handleAssignmentStatusChange}
+              />
+            </div>
+          )}
+
+          {/* Attendance */}
+          {activeTab === 'attendance' && (
+            <div className="space-y-6">
+              {/* Page Header */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    Attendance
+                  </h2>
+                  <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                    Track and manage attendance records for your class sessions
+                  </p>
+                </div>
+              </div>
+              <div className="max-w-xs">
+                <CustomDropdown
+                  label="Select Section"
+                  options={sectionOptions}
+                  value={activeSectionId || String(SECTIONS[0].sectionId)}
+                  onChange={setActiveSectionId}
+                  isDark={isDark}
+                  accentColor={primaryHex}
+                />
+              </div>
+              <SelectedSectionSummary section={selectedSection as any} />
+
+              <div
+                className={`rounded-xl border shadow-sm p-6 ${isDark ? 'bg-card-dark border-white/10' : 'bg-white border-gray-200'}`}
+              >
+                <h3
+                  className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}
+                >
+                  {t('attendanceRecords') || 'Attendance Records'}
+                </h3>
+                <AttendanceTable
+                  sessions={activeSectionId ? attendanceData[activeSectionId] || [] : []}
+                  onCreate={handleCreateAttendance}
+                  onEdit={handleEditAttendance}
+                  onDelete={handleDeleteAttendance}
+                  onSwitchToAI={() => setIsAIAttendanceModalOpen(true)}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Announcements */}
+          {activeTab === 'announcements' && <AnnouncementsManager />}
+
+          {/* Notifications */}
+          {activeTab === 'notifications' && <NotificationsPage />}
+
+          {/* Discussion */}
+          {activeTab === 'discussion' && (
+            <DiscussionPage userRole="instructor" userName="Prof. Sarah Martinez" />
+          )}
+
+          {/* Chat */}
+          {activeTab === 'chat' && (
+            <MessagingChat
+              height="100vh"
+              currentUserName="Prof. Sarah Martinez"
+              showVideoCall={true}
+              showVoiceCall={true}
+              isDark={isDark}
+              accentColor={primaryHex || '#4F46E5'}
+            />
+          )}
+
+          {/* Profile */}
+          {activeTab === 'profile' && (
+            <DashboardProfileTab
+              isDark={isDark}
+              accentColor={primaryHex || '#4F46E5'}
+              bannerGradient="from-[#3b82f6] to-[#06b6d4]"
+              profileData={{
+                fullName: 'Prof. Sarah Martinez',
+                role: 'Instructor',
+                department: 'Computer Science',
+                email: 'sarah.martinez@university.edu',
+                phone: '+20 100 987 6543',
+                address: 'Cairo, Egypt',
+                dateOfBirth: '1985-03-22',
+                bio: 'Associate Professor of Computer Science with 12+ years of teaching experience. Specializes in software engineering, algorithms, and distributed systems.',
+                interests: [
+                  'Software Engineering',
+                  'Distributed Systems',
+                  'Machine Learning',
+                  'Higher Education',
+                ],
+                skills: ['Java', 'Python', 'C++', 'Research', 'Curriculum Design'],
+              }}
+            />
+          )}
+        </div>
+        {/* end key={activeTab} wrapper */}
       </main>
 
       {/* Modals */}

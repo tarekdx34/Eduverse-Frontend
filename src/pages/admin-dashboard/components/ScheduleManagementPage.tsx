@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Search, Plus, Edit2, Trash2, Clock, CalendarDays, MapPin, AlertTriangle, BookOpen, Users as UsersIcon } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { CleanSelect } from '../../../components/shared';
+
 
 interface Schedule {
   id: number;
@@ -149,17 +151,17 @@ export function ScheduleManagementPage({ schedules, courses, users, adminDepartm
               <input type="text" placeholder={t('searchSchedules')} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className={`w-full pl-10 pr-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`} />
             </div>
           </div>
-          <select value={dayFilter} onChange={(e) => setDayFilter(e.target.value)} className={`px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}>
+          <CleanSelect value={dayFilter} onChange={(e) => setDayFilter(e.target.value)} className={`px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}>
             <option value="all">{t('allDays')}</option>
             {DAYS.map(d => <option key={d} value={d}>{dayTranslations[d]}</option>)}
-          </select>
-          <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className={`px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}>
+          </CleanSelect>
+          <CleanSelect value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className={`px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}>
             <option value="all">{t('allTypes')}</option>
             <option value="lecture">{t('lecture')}</option>
             <option value="lab">{t('lab')}</option>
             <option value="section">{t('section')}</option>
             <option value="tutorial">{t('tutorial')}</option>
-          </select>
+          </CleanSelect>
           <div className="flex gap-1">
             <button onClick={() => setViewMode('list')} className={`px-3 py-2 rounded-lg text-sm ${viewMode === 'list' ? 'bg-red-600 text-white' : isDark ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-700'}`}>{t('listView')}</button>
             <button onClick={() => setViewMode('week')} className={`px-3 py-2 rounded-lg text-sm ${viewMode === 'week' ? 'bg-red-600 text-white' : isDark ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-700'}`}>{t('weeklyView')}</button>
@@ -252,47 +254,47 @@ export function ScheduleManagementPage({ schedules, courses, users, adminDepartm
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('course')}</label>
-                <select value={formData.courseId} onChange={(e) => setFormData({ ...formData, courseId: Number(e.target.value) })} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`} required>
+                <CleanSelect value={formData.courseId} onChange={(e) => setFormData({ ...formData, courseId: Number(e.target.value) })} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`} required>
                   <option value={0}>{t('selectCourse')}</option>
                   {deptCourses.map(c => <option key={c.id} value={c.id}>{c.code} - {c.name}</option>)}
-                </select>
+                </CleanSelect>
               </div>
               <div>
                 <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('courseInstructor')}</label>
-                <select value={formData.instructorId} onChange={(e) => { const staff = deptStaff.find(s => s.id === Number(e.target.value)); setFormData({ ...formData, instructorId: Number(e.target.value), instructor: staff?.name || '' }); }} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`} required>
+                <CleanSelect value={formData.instructorId} onChange={(e) => { const staff = deptStaff.find(s => s.id === Number(e.target.value)); setFormData({ ...formData, instructorId: Number(e.target.value), instructor: staff?.name || '' }); }} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`} required>
                   <option value={0}>{t('selectInstructor')}</option>
                   {deptStaff.map(s => <option key={s.id} value={s.id}>{s.name} ({t(s.role)})</option>)}
-                </select>
+                </CleanSelect>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('day')}</label>
-                  <select value={formData.day} onChange={(e) => setFormData({ ...formData, day: e.target.value })} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}>
+                  <CleanSelect value={formData.day} onChange={(e) => setFormData({ ...formData, day: e.target.value })} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}>
                     {DAYS.map(d => <option key={d} value={d}>{dayTranslations[d]}</option>)}
-                  </select>
+                  </CleanSelect>
                 </div>
                 <div>
                   <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('scheduleType')}</label>
-                  <select value={formData.type} onChange={(e) => setFormData({ ...formData, type: e.target.value as any })} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}>
+                  <CleanSelect value={formData.type} onChange={(e) => setFormData({ ...formData, type: e.target.value as any })} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}>
                     <option value="lecture">{t('lecture')}</option>
                     <option value="lab">{t('lab')}</option>
                     <option value="section">{t('section')}</option>
                     <option value="tutorial">{t('tutorial')}</option>
-                  </select>
+                  </CleanSelect>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('startTime')}</label>
-                  <select value={formData.startTime} onChange={(e) => setFormData({ ...formData, startTime: e.target.value })} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}>
+                  <CleanSelect value={formData.startTime} onChange={(e) => setFormData({ ...formData, startTime: e.target.value })} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}>
                     {TIME_SLOTS.map(ts => <option key={ts} value={ts}>{ts}</option>)}
-                  </select>
+                  </CleanSelect>
                 </div>
                 <div>
                   <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('endTime')}</label>
-                  <select value={formData.endTime} onChange={(e) => setFormData({ ...formData, endTime: e.target.value })} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}>
+                  <CleanSelect value={formData.endTime} onChange={(e) => setFormData({ ...formData, endTime: e.target.value })} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}>
                     {TIME_SLOTS.filter(ts => ts > formData.startTime).map(ts => <option key={ts} value={ts}>{ts}</option>)}
-                  </select>
+                  </CleanSelect>
                 </div>
               </div>
               <div>

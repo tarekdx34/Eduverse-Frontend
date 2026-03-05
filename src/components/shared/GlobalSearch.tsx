@@ -46,6 +46,7 @@ interface GlobalSearchProps {
   onSearch?: (query: string) => Promise<SearchResult[]>;
   isDark?: boolean;
   placeholder?: string;
+  accentColor?: string;
 }
 
 const defaultMockResults: SearchResult[] = [
@@ -141,6 +142,7 @@ export function GlobalSearch({
   onSearch,
   isDark = false,
   placeholder = 'Search...',
+  accentColor = '#3b82f6',
 }: GlobalSearchProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -378,22 +380,30 @@ export function GlobalSearch({
   };
 
   return (
-    <div className="relative w-full max-w-xl" ref={containerRef}>
+    <div className="relative w-full" ref={containerRef}>
       {/* Search Input Bar */}
       <div
-        className={`group flex items-center justify-between rounded-xl px-4 py-2 w-full transition-colors border ${
+        className={`group flex items-center justify-between rounded-2xl px-3 sm:px-4 py-2.5 w-full transition-all border outline-none focus-within:ring-2 ${
           isDark
-            ? 'bg-transparent border-white/10 hover:border-white/20 focus-within:bg-white/5 focus-within:border-white/20 text-slate-300'
-            : 'bg-slate-50 border-slate-200 hover:border-slate-300 focus-within:bg-white focus-within:border-slate-300 text-slate-700'
+            ? 'bg-card-dark border-white/5 hover:border-white/10 text-white'
+            : 'bg-white border-slate-200 hover:border-slate-300 text-slate-900 shadow-sm'
         }`}
+        style={
+          {
+            boxShadow: isDark
+              ? 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.2)'
+              : 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.02)',
+            '--tw-ring-color': `${accentColor}80`,
+          } as React.CSSProperties
+        }
         onClick={() => {
           setIsOpen(true);
           inputRef.current?.focus();
         }}
       >
-        <div className="flex items-center gap-3 w-full">
+        <div className="flex items-center gap-2 sm:gap-3 w-full">
           <Search
-            className={`w-4 h-4 transition-colors ${isOpen ? 'text-indigo-500' : 'text-slate-400 group-hover:text-slate-500'}`}
+            className={`w-4 h-4 transition-colors flex-shrink-0 ${isOpen ? 'text-slate-600 dark:text-slate-300' : 'text-slate-400 group-hover:text-slate-500'}`}
           />
           <input
             ref={inputRef}
@@ -411,15 +421,31 @@ export function GlobalSearch({
         </div>
 
         {!query && (
-          <kbd
-            className={`hidden md:inline-flex items-center justify-center h-5 px-1.5 text-[10px] sm:text-xs font-semibold rounded border ${
-              isDark
-                ? 'bg-white/10 border-white/5 text-slate-300'
-                : 'bg-slate-100 border-slate-200 text-slate-500'
+          <div
+            className={`hidden md:flex items-center gap-1.5 text-[10px] sm:text-[11px] font-medium tracking-wide transition-colors flex-shrink-0 ${
+              isDark ? 'text-slate-400' : 'text-slate-400'
             }`}
           >
-            ⌘K
-          </kbd>
+            <kbd
+              className={`px-1.5 sm:px-2 py-1 min-w-[32px] sm:min-w-[36px] flex items-center justify-center rounded-md border text-xs ${
+                isDark
+                  ? 'bg-white/5 border-white/10 shadow-[0_2px_0_0_rgba(255,255,255,0.1)] group-hover:bg-white/10 group-hover:text-slate-300'
+                  : 'bg-white border-slate-200 shadow-[0_2px_0_0_rgba(0,0,0,0.05)] group-hover:bg-slate-50 group-hover:text-slate-600'
+              } transition-colors whitespace-nowrap`}
+            >
+              Ctrl / ⌘
+            </kbd>
+            <span className="opacity-50">+</span>
+            <kbd
+              className={`px-1.5 sm:px-2 py-1 min-w-[20px] sm:min-w-[24px] flex items-center justify-center rounded-md border text-xs ${
+                isDark
+                  ? 'bg-white/5 border-white/10 shadow-[0_2px_0_0_rgba(255,255,255,0.1)] group-hover:bg-white/10 group-hover:text-slate-300'
+                  : 'bg-white border-slate-200 shadow-[0_2px_0_0_rgba(0,0,0,0.05)] group-hover:bg-slate-50 group-hover:text-slate-600'
+              } transition-colors uppercase`}
+            >
+              K
+            </kbd>
+          </div>
         )}
 
         {query && (
@@ -429,7 +455,7 @@ export function GlobalSearch({
               setQuery('');
               inputRef.current?.focus();
             }}
-            className={`p-0.5 rounded transition-colors ${isDark ? 'hover:bg-white/10' : 'hover:bg-slate-200'}`}
+            className={`p-0.5 rounded transition-colors flex-shrink-0 ${isDark ? 'hover:bg-white/10' : 'hover:bg-slate-200'}`}
           >
             <X className="w-4 h-4 text-slate-400" />
           </button>
@@ -439,44 +465,50 @@ export function GlobalSearch({
       {/* Floating Dropdown */}
       {isOpen && (
         <div
-          className={`absolute top-full left-0 right-0 mt-2 rounded-xl shadow-sm overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200 ${
+          className={`absolute top-full left-0 right-0 mt-2 rounded-xl shadow-lg z-50 animate-in fade-in slide-in-from-top-2 duration-200 max-h-[70vh] overflow-hidden flex flex-col ${
             isDark ? 'bg-[#1E293B] border border-white/10' : 'bg-white border border-slate-200'
           }`}
         >
-          {/* Filters */}
+          {/* Filters - Horizontally Scrollable on Mobile */}
           <div
-            className={`px-3 py-3 border-b overflow-x-auto flex gap-2 no-scrollbar ${isDark ? 'border-white/10' : 'border-slate-100'}`}
+            className={`border-b overflow-x-auto lg:overflow-x-visible scrollbar-thin ${isDark ? 'border-white/10' : 'border-slate-100'}`}
           >
-            {filters.map((filter) => (
-              <button
-                key={filter.id}
-                onClick={() => setSelectedFilter(filter.id)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${
-                  selectedFilter === filter.id
-                    ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300'
-                    : isDark
-                      ? 'bg-white/5 text-slate-400 hover:bg-white/10'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
-              >
-                {filter.label}
-              </button>
-            ))}
+            <div
+              className={`px-4 py-3 flex lg:flex-wrap gap-2 min-w-min lg:min-w-0`}
+            >
+              {filters.map((filter) => (
+                <button
+                  key={filter.id}
+                  onClick={() => setSelectedFilter(filter.id)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all flex-shrink-0 border-b-2 ${
+                    selectedFilter === filter.id
+                      ? isDark
+                        ? 'bg-white/5 text-white border-b-white/40'
+                        : 'bg-slate-100 text-slate-800 border-b-slate-400'
+                      : isDark
+                        ? 'bg-transparent text-slate-400 hover:bg-white/5 border-b-transparent'
+                        : 'bg-transparent text-slate-600 hover:bg-slate-50 border-b-transparent'
+                  }`}
+                >
+                  {filter.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Search Results */}
-          <div ref={resultsRef} className="max-h-[60vh] overflow-y-auto">
+          <div ref={resultsRef} className="overflow-y-auto flex-1">
             {query.trim() === '' ? (
-              <div className="p-4">
+              <div className="p-4 sm:p-5">
                 {/* Quick Links */}
-                <div className="mb-6">
+                <div className="mb-8">
                   <h3
-                    className={`text-xs font-semibold mb-3 flex items-center gap-2 uppercase tracking-wider ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                    className={`text-xs font-semibold mb-4 flex items-center gap-2 uppercase tracking-wider ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
                   >
                     <TrendingUp className="w-3.5 h-3.5" />
                     Quick Links
                   </h3>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
                     {quickLinks.map((link, idx) => (
                       <button
                         key={idx}
@@ -484,19 +516,19 @@ export function GlobalSearch({
                           link.action();
                           setIsOpen(false);
                         }}
-                        className={`flex flex-col items-center gap-2 p-3 border rounded-xl transition-colors ${
+                        className={`flex flex-col items-center gap-2 p-2 sm:p-3 border rounded-lg sm:rounded-xl transition-colors ${
                           isDark
                             ? 'bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/10 text-slate-300'
                             : 'bg-slate-50 border-slate-100 hover:bg-slate-100 hover:border-slate-200'
                         }`}
                       >
                         <div
-                          className={`w-8 h-8 rounded-lg flex items-center justify-center ${link.color}`}
+                          className={`w-8 h-8 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl flex items-center justify-center ${link.color}`}
                         >
                           <link.icon className="w-4 h-4" />
                         </div>
                         <span
-                          className={`text-[11px] font-medium text-center leading-tight ${isDark ? 'text-slate-300' : 'text-slate-600'}`}
+                          className={`text-[11px] sm:text-[12px] font-medium text-center leading-tight line-clamp-2 ${isDark ? 'text-slate-300' : 'text-slate-600'}`}
                         >
                           {link.label}
                         </span>
@@ -521,22 +553,22 @@ export function GlobalSearch({
                           setQuery(search.query);
                           inputRef.current?.focus();
                         }}
-                        className={`w-full flex items-center justify-between p-2.5 rounded-lg transition-all ${
+                        className={`w-full flex items-center justify-between p-2.5 rounded-lg transition-all text-left ${
                           isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'
                         }`}
                       >
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 min-w-0">
                           <Clock
-                            className={`w-3.5 h-3.5 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                            className={`w-3.5 h-3.5 flex-shrink-0 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
                           />
                           <span
-                            className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-600'}`}
+                            className={`text-sm truncate ${isDark ? 'text-slate-300' : 'text-slate-600'}`}
                           >
                             {search.query}
                           </span>
                         </div>
                         <span
-                          className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                          className={`text-[10px] flex-shrink-0 ml-2 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
                         >
                           {search.timestamp}
                         </span>
@@ -553,9 +585,9 @@ export function GlobalSearch({
                 </p>
               </div>
             ) : results.length > 0 ? (
-              <div className="p-2">
+              <div className="p-3 sm:p-4">
                 <p
-                  className={`text-xs px-2 py-1 mb-1 font-medium ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                  className={`text-xs px-2 py-1 mb-2 font-medium ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
                 >
                   {results.length} results found
                 </p>
@@ -571,7 +603,7 @@ export function GlobalSearch({
                             setIsOpen(false);
                           }
                         }}
-                        className={`search-result-item w-full flex items-center gap-3 p-2.5 rounded-lg transition-all text-left group ${
+                        className={`search-result-item w-full flex items-center gap-2 sm:gap-3 p-2 sm:p-2.5 rounded-lg transition-all text-left group ${
                           index === selectedIndex
                             ? isDark
                               ? 'bg-indigo-500/20 border border-indigo-500/30'
@@ -582,9 +614,9 @@ export function GlobalSearch({
                         }`}
                       >
                         <div
-                          className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${getIconColor(result.type)}`}
+                          className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${getIconColor(result.type)}`}
                         >
-                          <Icon className="w-4 h-4" />
+                          <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <p
@@ -598,15 +630,15 @@ export function GlobalSearch({
                             {highlightMatch(result.description, query)}
                           </p>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
                           <span
-                            className={`px-2 py-0.5 rounded text-[10px] font-medium ${
+                            className={`px-2 py-0.5 rounded text-[10px] font-medium whitespace-nowrap ${
                               isDark ? 'bg-white/10 text-slate-300' : 'bg-slate-100 text-slate-600'
                             }`}
                           >
                             {result.meta}
                           </span>
-                          <ChevronRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity text-slate-400" />
+                          <ChevronRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity text-slate-400 hidden sm:block" />
                         </div>
                       </button>
                     );
@@ -614,7 +646,7 @@ export function GlobalSearch({
                 </div>
               </div>
             ) : (
-              <div className="px-4 py-12 text-center">
+              <div className="px-4 py-8 sm:py-12 text-center">
                 <Search
                   className={`w-10 h-10 mx-auto mb-3 ${isDark ? 'text-slate-600' : 'text-slate-300'}`}
                 />

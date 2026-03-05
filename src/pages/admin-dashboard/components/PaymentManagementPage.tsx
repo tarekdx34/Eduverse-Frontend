@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { CleanSelect } from '../../../components/shared';
+
 import {
   DollarSign,
   CreditCard,
@@ -371,7 +373,7 @@ export function PaymentManagementPage() {
               </div>
               <div className="flex items-center gap-2">
                 <Filter size={18} className={textSecondary} />
-                <select
+                <CleanSelect
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
                   className={inputClass}
@@ -381,7 +383,7 @@ export function PaymentManagementPage() {
                   <option value="Pending">Pending</option>
                   <option value="Refunded">Refunded</option>
                   <option value="Failed">Failed</option>
-                </select>
+                </CleanSelect>
               </div>
               <input type="date" className={inputClass} style={{ width: 'auto' }} />
               <input type="date" className={inputClass} style={{ width: 'auto' }} />

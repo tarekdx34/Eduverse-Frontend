@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Search, Plus, Edit2, Trash2, FileText, Clock, MapPin, CalendarDays, AlertCircle } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { CleanSelect } from '../../../components/shared';
+
 
 interface ExamSchedule {
   id: number;
@@ -123,13 +125,13 @@ export function ExamSchedulePage({ exams, courses, adminDepartment, onAddExam, o
               <input type="text" placeholder={t('searchExams')} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className={`w-full pl-10 pr-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`} />
             </div>
           </div>
-          <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className={`px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}>
+          <CleanSelect value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className={`px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}>
             <option value="all">{t('allExamTypes')}</option>
             <option value="midterm">{t('midterm')}</option>
             <option value="final">{t('final')}</option>
             <option value="quiz">{t('quiz')}</option>
             <option value="practical">{t('practical')}</option>
-          </select>
+          </CleanSelect>
         </div>
       </div>
 
@@ -173,20 +175,20 @@ export function ExamSchedulePage({ exams, courses, adminDepartment, onAddExam, o
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('course')}</label>
-                <select value={formData.courseId} onChange={(e) => setFormData({ ...formData, courseId: Number(e.target.value) })} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`} required>
+                <CleanSelect value={formData.courseId} onChange={(e) => setFormData({ ...formData, courseId: Number(e.target.value) })} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`} required>
                   <option value={0}>{t('selectCourse')}</option>
                   {deptCourses.map(c => <option key={c.id} value={c.id}>{c.code} - {c.name}</option>)}
-                </select>
+                </CleanSelect>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('examType')}</label>
-                  <select value={formData.examType} onChange={(e) => setFormData({ ...formData, examType: e.target.value as any })} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}>
+                  <CleanSelect value={formData.examType} onChange={(e) => setFormData({ ...formData, examType: e.target.value as any })} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}>
                     <option value="midterm">{t('midterm')}</option>
                     <option value="final">{t('final')}</option>
                     <option value="quiz">{t('quiz')}</option>
                     <option value="practical">{t('practical')}</option>
-                  </select>
+                  </CleanSelect>
                 </div>
                 <div>
                   <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('examDate')}</label>

@@ -29,6 +29,10 @@ interface Todo {
 }
 
 export function SmartTodoReminder() {
+  const { t, isRTL } = useLanguage();
+  const { isDark, primaryHex } = useTheme() as any;
+  const accentColor = primaryHex || '#3b82f6';
+
   const assignmentTodos: Todo[] = assignments
     .filter((a) => a.status === 'pending' || a.status === 'in-progress')
     .map((a) => ({
@@ -149,6 +153,18 @@ export function SmartTodoReminder() {
   };
 
   const getPriorityColor = (priority: string) => {
+    if (isDark) {
+      switch (priority) {
+        case 'high':
+          return 'bg-red-900/50 text-red-400 border-red-700';
+        case 'medium':
+          return 'bg-orange-900/50 text-orange-400 border-orange-700';
+        case 'low':
+          return 'bg-blue-900/50 text-blue-400 border-blue-700';
+        default:
+          return 'bg-white/5 text-slate-500 border-white/10';
+      }
+    }
     switch (priority) {
       case 'high':
         return 'bg-red-100 text-red-700 border-red-200';
@@ -222,9 +238,6 @@ export function SmartTodoReminder() {
   const dueTodayCount = todos.filter(
     (t) => !t.isCompleted && getDaysUntilDue(t.dueDate) === 0
   ).length;
-  const { t, isRTL } = useLanguage();
-  const { isDark, primaryHex } = useTheme() as any;
-  const accentColor = primaryHex || '#3b82f6';
 
   const getPriorityText = (priority: string) => {
     switch (priority) {
@@ -239,26 +252,27 @@ export function SmartTodoReminder() {
     }
   };
 
-  const getPriorityColorDark = (priority: string) => {
-    if (isDark) {
-      switch (priority) {
-        case 'high':
-          return 'bg-red-900/50 text-red-400 border-red-700';
-        case 'medium':
-          return 'bg-orange-900/50 text-orange-400 border-orange-700';
-        case 'low':
-          return 'bg-blue-900/50 text-blue-400 border-blue-700';
-        default:
-          return 'bg-white/5 text-slate-500 border-white/10';
-      }
-    }
-    return getPriorityColor(priority);
-  };
-
   return (
-    <div className="p-6" dir={isRTL ? 'rtl' : 'ltr'}>
+    <div className="space-y-6" dir={isRTL ? 'rtl' : 'ltr'}>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 mt-6 px-1">
+        <div>
+          <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+            {t('smartTodo')}
+          </h1>
+          <p className={`text-slate-500 mt-1 font-medium`}>
+            {isRTL
+              ? 'ابق منظماً مع إدارة المهام الذكية'
+              : 'Stay organized with AI-powered task management'}
+          </p>
+        </div>
+        <button className="flex items-center gap-2 px-6 py-3 bg-[var(--accent-color)] text-white rounded-xl hover:opacity-90 transition-all font-semibold shadow-lg shadow-[var(--accent-color)]/20">
+          <Plus className="w-5 h-5" />
+          {t('addTask')}
+        </button>
+      </div>
+
       {/* Header Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
         <div
           className={`rounded-[2.5rem] p-6 ${isDark ? 'bg-card-dark border border-white/5' : 'glass'}`}
         >
@@ -266,7 +280,9 @@ export function SmartTodoReminder() {
             <div
               className={`w-10 h-10 rounded-lg flex items-center justify-center ${isDark ? 'bg-[var(--accent-color)]/20' : 'bg-[var(--accent-color)]/10'}`}
             >
-              <Circle className={`w-5 h-5 ${isDark ? 'text-[var(--accent-color)]/70' : 'text-[var(--accent-color)]'}`} />
+              <Circle
+                className={`w-5 h-5 ${isDark ? 'text-[var(--accent-color)]/70' : 'text-[var(--accent-color)]'}`}
+              />
             </div>
             <span className={`text-sm font-medium ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
               {t('pending')}
@@ -330,23 +346,6 @@ export function SmartTodoReminder() {
             {dueTodayCount}
           </p>
         </div>
-      </div>
-
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className={`font-semibold text-xl mb-1 ${isDark ? 'text-white' : 'text-slate-800'}`}>
-            {t('smartTodo')}
-          </h2>
-          <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>
-            {isRTL
-              ? 'ابق منظماً مع إدارة المهام الذكية'
-              : 'Stay organized with AI-powered task management'}
-          </p>
-        </div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-[var(--accent-color)] text-white rounded-lg hover:opacity-90 transition-colors font-medium">
-          <Plus className="w-5 h-5" />
-          {t('addTask')}
-        </button>
       </div>
 
       {/* Filters */}
@@ -458,7 +457,7 @@ export function SmartTodoReminder() {
 
                 <div className="flex items-center gap-3 flex-wrap mb-3">
                   <span
-                    className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border ${getPriorityColorDark(
+                    className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border ${getPriorityColor(
                       todo.priority
                     )}`}
                   >

@@ -354,6 +354,7 @@ function AdminDashboardContent() {
             showVideoCall={true}
             showVoiceCall={true}
             isDark={isDark}
+            accentColor={primaryHex || '#3b82f6'}
           />
         )}
 

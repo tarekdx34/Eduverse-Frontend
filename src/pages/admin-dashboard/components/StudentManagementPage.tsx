@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { GraduationCap, Search, Filter, Plus, Minus, Wrench, X, BookOpen } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { CleanSelect } from '../../../components/shared';
+
 
 interface Student {
   id: number;
@@ -160,7 +162,7 @@ export function StudentManagementPage() {
           <div className="flex gap-3">
             <div className="relative">
               <Filter className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`} />
-              <select
+              <CleanSelect
                 value={yearFilter}
                 onChange={(e) => setYearFilter(e.target.value)}
                 className={`${inputClass} pl-9 pr-8 appearance-none cursor-pointer`}
@@ -170,9 +172,9 @@ export function StudentManagementPage() {
                 <option value="2nd">2nd Year</option>
                 <option value="3rd">3rd Year</option>
                 <option value="4th">4th Year</option>
-              </select>
+              </CleanSelect>
             </div>
-            <select
+            <CleanSelect
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               className={`${inputClass} pr-8 appearance-none cursor-pointer`}
@@ -181,7 +183,7 @@ export function StudentManagementPage() {
               <option value="active">{t('active') || 'Active'}</option>
               <option value="on-hold">On Hold</option>
               <option value="graduated">Graduated</option>
-            </select>
+            </CleanSelect>
           </div>
         </div>
       </div>
@@ -293,7 +295,7 @@ export function StudentManagementPage() {
                 {coursesNotEnrolled.length > 0 ? (
                   <>
                     <label className={`block text-sm font-medium mb-2 ${labelClass}`}>Select a course to enroll</label>
-                    <select
+                    <CleanSelect
                       value={selectedCourse}
                       onChange={(e) => setSelectedCourse(e.target.value)}
                       className={`${inputClass} w-full mb-4`}
@@ -302,7 +304,7 @@ export function StudentManagementPage() {
                       {coursesNotEnrolled.map((c) => (
                         <option key={c} value={c}>{c}</option>
                       ))}
-                    </select>
+                    </CleanSelect>
                     <button
                       onClick={handleAddCourse}
                       disabled={!selectedCourse}

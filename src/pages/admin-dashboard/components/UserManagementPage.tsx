@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Search, Plus, Edit2, Trash2, MoreVertical, Filter, Download, UserPlus, Shield, Mail } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { CleanSelect } from '../../../components/shared';
+
 
 interface User {
   id: number;
@@ -88,7 +90,7 @@ export function UserManagementPage({ users, onAddUser, onEditUser, onDeleteUser 
               />
             </div>
           </div>
-          <select
+          <CleanSelect
             value={roleFilter}
             onChange={(e) => setRoleFilter(e.target.value)}
             className={`px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}
@@ -98,8 +100,8 @@ export function UserManagementPage({ users, onAddUser, onEditUser, onDeleteUser 
             <option value="instructor">Instructors</option>
             <option value="ta">Teaching Assistants</option>
             <option value="admin">Admins</option>
-          </select>
-          <select
+          </CleanSelect>
+          <CleanSelect
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             className={`px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}
@@ -108,7 +110,7 @@ export function UserManagementPage({ users, onAddUser, onEditUser, onDeleteUser 
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
             <option value="suspended">Suspended</option>
-          </select>
+          </CleanSelect>
           <button className={`flex items-center gap-2 px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500 ${isDark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-200 text-gray-700 hover:bg-gray-50'}`}>
             <Download size={18} />
             Export
@@ -216,23 +218,23 @@ export function UserManagementPage({ users, onAddUser, onEditUser, onDeleteUser 
               </div>
               <div>
                 <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Role</label>
-                <select defaultValue={editingUser?.role} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}>
+                <CleanSelect defaultValue={editingUser?.role} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}>
                   <option value="student">Student</option>
                   <option value="instructor">Instructor</option>
                   <option value="ta">Teaching Assistant</option>
                   <option value="admin">Admin</option>
-                </select>
+                </CleanSelect>
               </div>
               <div>
                 <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Department</label>
-                <select defaultValue={editingUser?.department} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}>
+                <CleanSelect defaultValue={editingUser?.department} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}>
                   <option value="Computer Science">Computer Science</option>
                   <option value="Mathematics">Mathematics</option>
                   <option value="Engineering">Engineering</option>
                   <option value="Business">Business</option>
                   <option value="Arts">Arts</option>
                   <option value="Science">Science</option>
-                </select>
+                </CleanSelect>
               </div>
               <div className="flex justify-end gap-3 mt-6">
                 <button

@@ -1,5 +1,7 @@
 import { Sparkles, Brain } from 'lucide-react';
 import { useTheme } from '../../../contexts/ThemeContext';
+import { CleanSelect } from '../../../../../components/shared';
+
 
 interface QuizContentProps {
   quizDifficulty: string;
@@ -75,26 +77,26 @@ export function QuizContent({ quizDifficulty, onDifficultyChange }: QuizContentP
           <label className={`block text-sm ${isDark ? 'text-slate-300' : 'text-slate-700'} mb-2`}>
             Questions
           </label>
-          <select
+          <CleanSelect
             className={`w-full px-4 py-3 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-slate-500' : 'border-2 border-slate-100'} rounded-lg focus:outline-none focus:border-blue-500 transition-all`}
           >
             <option>5 Questions</option>
             <option>10 Questions</option>
             <option>15 Questions</option>
             <option>20 Questions</option>
-          </select>
+          </CleanSelect>
         </div>
         <div>
           <label className={`block text-sm ${isDark ? 'text-slate-300' : 'text-slate-700'} mb-2`}>
             Question Type
           </label>
-          <select
+          <CleanSelect
             className={`w-full px-4 py-3 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-slate-500' : 'border-2 border-slate-100'} rounded-lg focus:outline-none focus:border-blue-500 transition-all`}
           >
             <option>Multiple Choice</option>
             <option>True/False</option>
             <option>Mixed</option>
-          </select>
+          </CleanSelect>
         </div>
       </div>
 

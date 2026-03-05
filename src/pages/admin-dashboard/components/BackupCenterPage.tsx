@@ -15,6 +15,8 @@ import {
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { CleanSelect } from '../../../components/shared';
+
 
 type TabId = 'overview' | 'backups' | 'export';
 type ExportFormat = 'csv' | 'xlsx' | 'pdf' | 'json';
@@ -207,7 +209,7 @@ export function BackupCenterPage() {
           {/* Frequency */}
           <div>
             <label className={`block text-sm font-medium mb-1 ${textPrimary}`}>Frequency</label>
-            <select
+            <CleanSelect
               value={backupFrequency}
               onChange={e => setBackupFrequency(e.target.value as BackupFrequency)}
               className={`w-full rounded-lg border px-3 py-2 text-sm ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
@@ -215,7 +217,7 @@ export function BackupCenterPage() {
               <option value="daily">Daily</option>
               <option value="weekly">Weekly</option>
               <option value="monthly">Monthly</option>
-            </select>
+            </CleanSelect>
           </div>
 
           {/* Retention */}

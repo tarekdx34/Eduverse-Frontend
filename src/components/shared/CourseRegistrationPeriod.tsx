@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { Calendar, Clock, Users, Check, X, AlertCircle, Settings } from 'lucide-react';
+import { CleanSelect } from './';
+
 
 export interface RegistrationPeriod {
   id: string;
@@ -406,7 +408,7 @@ export function CourseRegistrationPeriod({
               {/* Course Selection */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Course</label>
-                <select
+                <CleanSelect
                   value={newPeriod.courseId}
                   onChange={(e) => setNewPeriod({ ...newPeriod, courseId: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -417,7 +419,7 @@ export function CourseRegistrationPeriod({
                       {course.name}
                     </option>
                   ))}
-                </select>
+                </CleanSelect>
               </div>
 
               {/* Date Range */}

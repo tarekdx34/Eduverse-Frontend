@@ -14,6 +14,7 @@ import {
   File,
 } from 'lucide-react';
 import { useState } from 'react';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface AssignmentDetailsProps {
   assignmentId: number;
@@ -260,6 +261,7 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
   const [showSubmitConfirmation, setShowSubmitConfirmation] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const { isDark } = useTheme() as any;
 
   const assignment = assignmentData[assignmentId];
 
@@ -319,69 +321,92 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
           <span>Back to Assignments</span>
         </button>
 
-        <div className="bg-gradient-to-br from-[var(--accent-color)] via-blue-600 to-pink-600 rounded-2xl p-8 text-white shadow-xl">
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-3 flex-wrap">
-                <span className="px-3 py-1 bg-white/20 rounded-lg text-sm backdrop-blur-sm">
-                  Assignment #{assignment.id}
-                </span>
-                <span className="px-3 py-1 bg-white/20 rounded-lg text-sm backdrop-blur-sm">
-                  {assignment.type}
-                </span>
-                {assignment.priority === 'high' && (
-                  <span className="flex items-center gap-1 px-3 py-1 bg-red-500/30 rounded-lg text-sm backdrop-blur-sm">
-                    <AlertCircle className="w-4 h-4" />
-                    High Priority
-                  </span>
-                )}
-              </div>
-              <h1 className="text-3xl mb-2 font-bold">{assignment.title}</h1>
-              <p className="text-blue-100 text-lg mb-4">{assignment.description}</p>
-
-              <div className="flex items-center gap-6 text-sm">
-                <div className="flex items-center gap-2">
-                  <div className={`w-3 h-3 rounded-full ${assignment.color}`}></div>
-                  <span>
-                    {assignment.courseCode} - {assignment.course}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Award className="w-4 h-4" />
-                  <span>{assignment.points} Points</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 min-w-[200px] border border-white/20">
-              <div className="text-center mb-3">
-                <Calendar className="w-6 h-6 mx-auto mb-2" />
-                <p className="text-sm text-blue-100 mb-1">Due Date</p>
-                <p className="text-xl font-semibold">
-                  {new Date(assignment.dueDate).toLocaleDateString('en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                    year: 'numeric',
-                  })}
-                </p>
-                <p className="text-sm text-blue-100">{assignment.dueTime}</p>
-              </div>
-              <div
-                className={`text-center p-3 rounded-lg ${
-                  daysUntil <= 2 ? 'bg-red-500/30' : 'bg-white/10'
-                }`}
+        {/* Page Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+          <div>
+            <div className="flex items-center gap-3 mb-2 flex-wrap">
+              <span
+                className={`px-2 py-0.5 rounded-md text-xs font-medium border ${isDark ? 'bg-white/5 border-white/10 text-slate-300' : 'bg-slate-50 border-slate-200 text-slate-600'}`}
               >
-                <Clock className="w-5 h-5 mx-auto mb-1" />
-                <p className={daysUntil <= 2 ? 'text-red-100' : 'text-white'}>
-                  {daysUntil > 0
-                    ? `${daysUntil} days left`
-                    : daysUntil === 0
-                      ? 'Due today'
-                      : 'Overdue'}
-                </p>
-              </div>
+                Assignment #{assignment.id}
+              </span>
+              <span
+                className={`px-2 py-0.5 rounded-md text-xs font-medium border ${isDark ? 'bg-white/5 border-white/10 text-slate-300' : 'bg-slate-50 border-slate-200 text-slate-600'}`}
+              >
+                {assignment.type}
+              </span>
+              {assignment.priority === 'high' && (
+                <span className="flex items-center gap-1 px-2 py-0.5 bg-red-500/10 text-red-500 rounded-md text-xs font-medium border border-red-500/20">
+                  <AlertCircle className="w-3 h-3" />
+                  High Priority
+                </span>
+              )}
             </div>
+            <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              {assignment.title}
+            </h2>
+            <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+              {assignment.courseCode} - {assignment.course}
+            </p>
           </div>
+        </div>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+        <div
+          className={`${isDark ? 'bg-card-dark' : 'bg-white'} rounded-2xl p-5 border-2 ${isDark ? 'border-white/5' : 'border-slate-50'} shadow-sm`}
+        >
+          <div className="flex items-center gap-3 mb-2">
+            <div className={`p-2 rounded-lg ${isDark ? 'bg-white/5' : 'bg-slate-50'}`}>
+              <Calendar className={`w-5 h-5 text-[var(--accent-color)]`} />
+            </div>
+            <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">
+              Due Date
+            </p>
+          </div>
+          <p className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+            {new Date(assignment.dueDate).toLocaleDateString('en-US', {
+              month: 'short',
+              day: 'numeric',
+              year: 'numeric',
+            })}
+          </p>
+          <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+            {assignment.dueTime}
+          </p>
+        </div>
+
+        <div
+          className={`${isDark ? 'bg-card-dark' : 'bg-white'} rounded-2xl p-5 border-2 ${isDark ? 'border-white/5' : 'border-slate-50'} shadow-sm`}
+        >
+          <div className="flex items-center gap-3 mb-2">
+            <div className={`p-2 rounded-lg ${isDark ? 'bg-white/5' : 'bg-slate-50'}`}>
+              <Clock className={`w-5 h-5 ${daysUntil <= 2 ? 'text-red-500' : 'text-amber-500'}`} />
+            </div>
+            <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">
+              Time Left
+            </p>
+          </div>
+          <p
+            className={`text-xl font-bold ${daysUntil <= 2 ? 'text-red-500' : isDark ? 'text-white' : 'text-slate-900'}`}
+          >
+            {daysUntil > 0 ? `${daysUntil} days left` : daysUntil === 0 ? 'Due today' : 'Overdue'}
+          </p>
+        </div>
+
+        <div
+          className={`${isDark ? 'bg-card-dark' : 'bg-white'} rounded-2xl p-5 border-2 ${isDark ? 'border-white/5' : 'border-slate-50'} shadow-sm`}
+        >
+          <div className="flex items-center gap-3 mb-2">
+            <div className={`p-2 rounded-lg ${isDark ? 'bg-white/5' : 'bg-slate-50'}`}>
+              <Award className={`w-5 h-5 text-emerald-500`} />
+            </div>
+            <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Points</p>
+          </div>
+          <p className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+            {assignment.points} Points
+          </p>
         </div>
       </div>
 

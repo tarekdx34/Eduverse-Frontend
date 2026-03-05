@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Database, HardDrive, Clock, Play, Download, Upload, RefreshCw, CheckCircle, AlertCircle, Loader, Shield, Sparkles, FileText, CheckCircle2, Server, BookOpen } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { CleanSelect } from '../../../components/shared';
+
 
 interface DatabasePageProps {
   backups: any[];
@@ -237,7 +239,7 @@ export function DatabasePage({ backups, onRunBackup, onRestoreBackup, onDownload
             <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
               {t('backupType')}
             </label>
-            <select
+            <CleanSelect
               value={selectedBackupType}
               onChange={(e) => setSelectedBackupType(e.target.value)}
               className={`w-full px-3 py-2 rounded-lg border ${
@@ -249,7 +251,7 @@ export function DatabasePage({ backups, onRunBackup, onRestoreBackup, onDownload
               <option value="full">{t('fullBackup')}</option>
               <option value="incremental">{t('incrementalBackup')}</option>
               <option value="differential">{t('differentialBackup')}</option>
-            </select>
+            </CleanSelect>
           </div>
           <button
             onClick={() => onRunBackup(selectedBackupType)}

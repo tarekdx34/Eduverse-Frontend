@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Shield, AlertTriangle, Lock, Eye, Download, Filter, Clock } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { CleanSelect } from '../../../components/shared';
+
 
 type Severity = 'info' | 'warning' | 'error' | 'critical';
 type EventTypeFilter = 'all' | 'login' | 'access' | 'config_change' | 'threat';
@@ -234,7 +236,7 @@ export function SecurityLogsPage() {
           </span>
         </div>
         <div className="flex flex-wrap gap-3">
-          <select
+          <CleanSelect
             value={severityFilter}
             onChange={(e) => setSeverityFilter(e.target.value as 'all' | Severity)}
             className={`text-sm rounded-lg px-3 py-1.5 border outline-none ${
@@ -248,8 +250,8 @@ export function SecurityLogsPage() {
             <option value="warning">Warning</option>
             <option value="error">Error</option>
             <option value="critical">Critical</option>
-          </select>
-          <select
+          </CleanSelect>
+          <CleanSelect
             value={eventTypeFilter}
             onChange={(e) => setEventTypeFilter(e.target.value as EventTypeFilter)}
             className={`text-sm rounded-lg px-3 py-1.5 border outline-none ${
@@ -263,7 +265,7 @@ export function SecurityLogsPage() {
             <option value="access">Access</option>
             <option value="config_change">Config Change</option>
             <option value="threat">Threat</option>
-          </select>
+          </CleanSelect>
         </div>
       </div>
 

@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { Plus, Sparkles, Clock, FileText, Users, Eye, Edit2, BarChart3, Send, X, Trash2 } from 'lucide-react';
+import { CleanSelect } from '../../../components/shared';
+
 
 interface Question {
   id: number;
@@ -278,14 +280,14 @@ export function QuizzesPage() {
                 <label className={`block text-sm font-medium mb-1 ${secondaryText}`}>
                   {t('Course', 'المادة')}
                 </label>
-                <select
+                <CleanSelect
                   value={selectedCourse}
                   onChange={e => setSelectedCourse(e.target.value)}
                   className={inputClass}
                 >
                   <option value="">{t('Select course', 'اختر المادة')}</option>
                   {COURSES.map(c => <option key={c} value={c}>{c}</option>)}
-                </select>
+                </CleanSelect>
               </div>
               <div>
                 <label className={`block text-sm font-medium mb-1 ${secondaryText}`}>
@@ -303,7 +305,7 @@ export function QuizzesPage() {
                 <label className={`block text-sm font-medium mb-1 ${secondaryText}`}>
                   {t('Difficulty', 'الصعوبة')}
                 </label>
-                <select
+                <CleanSelect
                   value={difficulty}
                   onChange={e => setDifficulty(e.target.value as 'Easy' | 'Medium' | 'Hard')}
                   className={inputClass}
@@ -311,7 +313,7 @@ export function QuizzesPage() {
                   <option value="Easy">{t('Easy', 'سهل')}</option>
                   <option value="Medium">{t('Medium', 'متوسط')}</option>
                   <option value="Hard">{t('Hard', 'صعب')}</option>
-                </select>
+                </CleanSelect>
               </div>
             </div>
 
@@ -416,14 +418,14 @@ export function QuizzesPage() {
                 <label className={`block text-sm font-medium mb-1 ${secondaryText}`}>
                   {t('Course', 'المادة')}
                 </label>
-                <select
+                <CleanSelect
                   value={aiCourse}
                   onChange={e => { setAiCourse(e.target.value); setAiLectures([]); }}
                   className={inputClass}
                 >
                   <option value="">{t('Select course', 'اختر المادة')}</option>
                   {COURSES.map(c => <option key={c} value={c}>{c}</option>)}
-                </select>
+                </CleanSelect>
               </div>
 
               {aiCourse && (
@@ -467,7 +469,7 @@ export function QuizzesPage() {
                   <label className={`block text-sm font-medium mb-1 ${secondaryText}`}>
                     {t('Difficulty', 'الصعوبة')}
                   </label>
-                  <select
+                  <CleanSelect
                     value={aiDifficulty}
                     onChange={e => setAiDifficulty(e.target.value as 'Easy' | 'Medium' | 'Hard')}
                     className={inputClass}
@@ -475,7 +477,7 @@ export function QuizzesPage() {
                     <option value="Easy">{t('Easy', 'سهل')}</option>
                     <option value="Medium">{t('Medium', 'متوسط')}</option>
                     <option value="Hard">{t('Hard', 'صعب')}</option>
-                  </select>
+                  </CleanSelect>
                 </div>
               </div>
             </div>

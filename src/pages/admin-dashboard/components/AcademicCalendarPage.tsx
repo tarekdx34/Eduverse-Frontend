@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Calendar, Plus, Edit2, Trash2, ChevronLeft, ChevronRight, GraduationCap, BookOpen, PartyPopper, AlertCircle } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { CleanSelect } from '../../../components/shared';
+
 
 interface CalendarEvent {
   id: number;
@@ -217,7 +219,7 @@ export function AcademicCalendarPage({ events, onAddEvent, onEditEvent, onDelete
         <div className={`rounded-xl border overflow-hidden ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
           {/* Filters */}
           <div className={`p-4 border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
-            <select
+            <CleanSelect
               value={selectedType}
               onChange={(e) => setSelectedType(e.target.value)}
               className={`px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
@@ -228,7 +230,7 @@ export function AcademicCalendarPage({ events, onAddEvent, onEditEvent, onDelete
               <option value="registration" className={isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'}>{t('registration')}</option>
               <option value="holiday" className={isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'}>{t('holiday')}</option>
               <option value="examPeriod" className={isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'}>{t('examPeriod')}</option>
-            </select>
+            </CleanSelect>
           </div>
 
           {/* Events List */}
@@ -302,13 +304,13 @@ export function AcademicCalendarPage({ events, onAddEvent, onEditEvent, onDelete
               </div>
               <div>
                 <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('eventType')}</label>
-                <select defaultValue={editingEvent?.type} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200 text-gray-900'}`}>
+                <CleanSelect defaultValue={editingEvent?.type} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200 text-gray-900'}`}>
                   <option value="semesterStart" className={isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'}>{t('semesterStart')}</option>
                   <option value="semesterEnd" className={isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'}>{t('semesterEnd')}</option>
                   <option value="registration" className={isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'}>{t('registrationPeriod')}</option>
                   <option value="holiday" className={isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'}>{t('holiday')}</option>
                   <option value="examPeriod" className={isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'}>{t('examPeriod')}</option>
-                </select>
+                </CleanSelect>
               </div>
               <div className="flex justify-end gap-3 mt-6">
                 <button

@@ -21,6 +21,8 @@ import {
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { CleanSelect } from '../../../components/shared';
+
 
 type Course = {
   id: string;
@@ -476,7 +478,7 @@ function CourseDetail({
                   value={labForm.title}
                   onChange={(e) => setLabForm((prev) => ({ ...prev, title: e.target.value }))}
                 />
-                <select
+                <CleanSelect
                   className={inputClass}
                   value={labForm.sectionId}
                   onChange={(e) => setLabForm((prev) => ({ ...prev, sectionId: e.target.value }))}
@@ -486,7 +488,7 @@ function CourseDetail({
                       {section.name}
                     </option>
                   ))}
-                </select>
+                </CleanSelect>
                 <input
                   className={inputClass}
                   placeholder="Day"
@@ -715,7 +717,7 @@ function CourseDetail({
                 </div>
                 <div>
                   <label className={`block text-sm font-medium mb-1 ${subTextClass}`}>Type</label>
-                  <select
+                  <CleanSelect
                     className={inputClass}
                     value={newAssignment.type}
                     onChange={(e) => setNewAssignment({ ...newAssignment, type: e.target.value })}
@@ -723,7 +725,7 @@ function CourseDetail({
                     <option value="written">Written</option>
                     <option value="MCQ">MCQ</option>
                     <option value="project">Project</option>
-                  </select>
+                  </CleanSelect>
                 </div>
                 <div className="flex items-end">
                   <button

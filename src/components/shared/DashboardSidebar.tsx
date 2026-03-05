@@ -1,5 +1,6 @@
 import { LogOut, X, ChevronDown } from 'lucide-react';
 import { useState } from 'react';
+import './DashboardSidebar.css';
 
 interface Tab {
   id: string;
@@ -61,6 +62,15 @@ export function DashboardSidebar({
   const groups = groupTabs(tabs, groupOrder);
   const hasGroups = groups.length > 1 || groups[0]?.label !== '';
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
+  const [isClosing, setIsClosing] = useState(false);
+
+  const handleClose = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      onMobileClose?.();
+      setIsClosing(false);
+    }, 300);
+  };
 
   const toggleGroup = (label: string) => {
     setCollapsedGroups((prev) => {
@@ -83,18 +93,26 @@ export function DashboardSidebar({
         tabIndex={isActive ? 0 : -1}
         onClick={() => {
           onTabChange(tab.id);
-          onMobileClose?.();
+          handleClose();
         }}
-        className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-colors text-sm ${
+        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-sm ${
           isActive
-            ? 'font-semibold'
+            ? 'font-semibold shadow-sm'
             : isDark
-              ? 'text-slate-400 hover:bg-white/5 hover:text-slate-300'
+              ? 'text-slate-400 hover:bg-white/5 hover:text-slate-200'
               : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
         }`}
-        style={isActive ? { backgroundColor: `${accentColor}15`, color: accentColor } : undefined}
+        style={
+          isActive
+            ? {
+                backgroundColor: `${accentColor}18`,
+                color: accentColor,
+                borderLeft: `3px solid ${accentColor}`,
+              }
+            : { borderLeft: '3px solid transparent' }
+        }
       >
-        <IconComponent className="w-5 h-5 flex-shrink-0" />
+        <IconComponent className="w-4 h-4 flex-shrink-0" />
         <span className="truncate">{tab.label}</span>
       </button>
     );
@@ -115,7 +133,7 @@ export function DashboardSidebar({
         </span>
         {onMobileClose && (
           <button
-            onClick={onMobileClose}
+            onClick={handleClose}
             className={`lg:hidden p-1.5 rounded-lg transition-colors ${isDark ? 'hover:bg-white/10 text-slate-400' : 'hover:bg-slate-100 text-slate-500'}`}
             aria-label="Close sidebar"
           >
@@ -128,28 +146,28 @@ export function DashboardSidebar({
       <nav
         role="tablist"
         aria-label="Navigation tabs"
-        className="flex-1 overflow-y-auto sidebar-scroll space-y-1"
+        className={`flex-1 overflow-y-auto sidebar-scroll space-y-1 ${isRTL ? 'pl-2' : 'pr-2'}`}
       >
         {hasGroups ? (
-          groups.map((group) => (
-            <div key={group.label || 'ungrouped'} className="mb-2">
+          groups.map((group, i) => (
+            <div key={group.label || 'ungrouped'} className={i === 0 ? 'mb-1' : 'mt-6 mb-1'}>
               {group.label && (
                 <button
                   onClick={() => toggleGroup(group.label)}
-                  className={`w-full flex items-center justify-between px-4 py-2 text-xs font-semibold uppercase tracking-wider rounded-lg transition-colors ${
+                  className={`w-full flex items-center justify-between px-2 pb-2 rounded transition-colors ${
                     isDark
-                      ? 'text-slate-500 hover:text-slate-300'
-                      : 'text-slate-400 hover:text-slate-600'
+                      ? 'text-slate-400 hover:text-slate-200'
+                      : 'text-slate-500 hover:text-slate-700'
                   }`}
                 >
-                  <span>{group.label}</span>
+                  <span className="text-xs font-bold uppercase tracking-wider">{group.label}</span>
                   <ChevronDown
-                    className={`w-3.5 h-3.5 transition-transform ${collapsedGroups.has(group.label) ? '-rotate-90' : ''}`}
+                    className={`w-3.5 h-3.5 transition-transform opacity-50 ${collapsedGroups.has(group.label) ? '-rotate-90' : ''}`}
                   />
                 </button>
               )}
               {!collapsedGroups.has(group.label) && (
-                <div className="space-y-1">{group.tabs.map(renderTab)}</div>
+                <div className="space-y-0.5">{group.tabs.map(renderTab)}</div>
               )}
             </div>
           ))
@@ -163,9 +181,10 @@ export function DashboardSidebar({
         <button
           onClick={onLogout}
           aria-label="Logout"
-          className="w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-colors text-red-500 hover:bg-red-50 font-medium text-sm dark:hover:bg-red-500/10"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-red-500 hover:bg-red-50 font-medium text-sm dark:hover:bg-red-500/10"
+          style={{ borderLeft: '3px solid transparent' }}
         >
-          <LogOut className="w-5 h-5 flex-shrink-0" />
+          <LogOut className="w-4 h-4 flex-shrink-0" />
           <span>Logout</span>
         </button>
       </div>
@@ -183,11 +202,13 @@ export function DashboardSidebar({
       {isMobileOpen && (
         <div className="lg:hidden fixed inset-0 z-[60]">
           <div
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-            onClick={onMobileClose}
+            className={`absolute inset-0 bg-black/50 backdrop-blur-sm ${isClosing ? 'overlay-exit' : 'overlay-enter'}`}
+            onClick={handleClose}
             aria-hidden="true"
           />
-          <div className={`relative z-10 ${isRTL ? 'float-right' : 'float-left'}`}>
+          <div
+            className={`relative z-10 ${isClosing ? (isRTL ? 'sidebar-exit-rtl' : 'sidebar-exit') : (isRTL ? 'sidebar-enter-rtl float-right' : 'sidebar-enter float-left')}`}
+          >
             {sidebarContent}
           </div>
         </div>

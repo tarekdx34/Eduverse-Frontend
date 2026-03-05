@@ -12,6 +12,8 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { CleanSelect } from '../../../components/shared';
+
 
 export function SettingsPage() {
   const { t, isRTL } = useLanguage();
@@ -326,14 +328,14 @@ export function SettingsPage() {
                 {t('languagePreference')}
               </h3>
             </div>
-            <select
+            <CleanSelect
               className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
             >
               <option>English</option>
               <option>Spanish</option>
               <option>French</option>
               <option>Arabic</option>
-            </select>
+            </CleanSelect>
           </div>
         </div>
 
@@ -445,13 +447,13 @@ export function SettingsPage() {
               >
                 {t('preferredExplanationStyle')}
               </label>
-              <select
+              <CleanSelect
                 className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
               >
                 <option>{t('detailedWithExamples')}</option>
                 <option>{t('conciseAndDirect')}</option>
                 <option>{t('stepByStep')}</option>
-              </select>
+              </CleanSelect>
             </div>
 
             <div>
@@ -460,13 +462,13 @@ export function SettingsPage() {
               >
                 {t('defaultAiTone')}
               </label>
-              <select
+              <CleanSelect
                 className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
               >
                 <option>{t('professional')}</option>
                 <option>{t('friendly')}</option>
                 <option>{t('formal')}</option>
-              </select>
+              </CleanSelect>
             </div>
           </div>
         </div>

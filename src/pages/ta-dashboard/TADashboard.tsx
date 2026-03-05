@@ -250,6 +250,7 @@ function TADashboardContent() {
             showVideoCall={true}
             showVoiceCall={true}
             isDark={isDark}
+            accentColor={primaryHex || '#2563EB'}
           />
         )}
 

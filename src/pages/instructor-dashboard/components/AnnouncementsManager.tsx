@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { MessagingChat } from '../../../components/shared';
+import { CleanSelect } from '../../../components/shared';
+
 import {
   Megaphone,
   Plus,
@@ -288,6 +290,7 @@ export function AnnouncementsManager() {
           <button
             key={tab.key}
             onClick={() => setActiveCommTab(tab.key)}
+            style={activeCommTab === tab.key ? { backgroundColor: primaryHex } : undefined}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap flex-1 justify-center ${
               activeCommTab === tab.key
                 ? 'text-white shadow-sm'
@@ -326,11 +329,10 @@ export function AnnouncementsManager() {
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className={`text-2xl font-bold flex items-center gap-2 ${textPrimary}`}>
-                <Megaphone size={28} className="text-indigo-600" />
-                {t('announcements') !== 'announcements' ? t('announcements') : 'Announcements'}
-              </h1>
-              <p className={`mt-1 ${textSecondary}`}>Create and manage course announcements</p>
+              <h2 className={`text-2xl font-bold ${textPrimary}`}>Announcements</h2>
+              <p className={`text-sm mt-1 ${textSecondary}`}>
+                Create and manage course announcements for your students
+              </p>
             </div>
             <button
               onClick={openCreate}
@@ -670,7 +672,7 @@ export function AnnouncementsManager() {
                   <label className={`block text-sm font-medium mb-1.5 ${textPrimary}`}>
                     Course
                   </label>
-                  <select
+                  <CleanSelect
                     value={form.course}
                     onChange={(e) => setForm((f) => ({ ...f, course: e.target.value }))}
                     className={inputClass}
@@ -678,20 +680,20 @@ export function AnnouncementsManager() {
                     <option value="CS101">CS101</option>
                     <option value="CS201">CS201</option>
                     <option value="CS301">CS301</option>
-                  </select>
+                  </CleanSelect>
                 </div>
                 <div>
                   <label className={`block text-sm font-medium mb-1.5 ${textPrimary}`}>
                     Audience
                   </label>
-                  <select
+                  <CleanSelect
                     value={form.audience}
                     onChange={(e) => setForm((f) => ({ ...f, audience: e.target.value }))}
                     className={inputClass}
                   >
                     <option value="All Students">All Students</option>
                     <option value="Course Students Only">Course Students Only</option>
-                  </select>
+                  </CleanSelect>
                 </div>
               </div>
 
@@ -700,7 +702,7 @@ export function AnnouncementsManager() {
                 <label className={`block text-sm font-medium mb-1.5 ${textPrimary}`}>
                   Priority
                 </label>
-                <select
+                <CleanSelect
                   value={form.priority}
                   onChange={(e) =>
                     setForm((f) => ({ ...f, priority: e.target.value as 'normal' | 'high' }))
@@ -709,7 +711,7 @@ export function AnnouncementsManager() {
                 >
                   <option value="normal">Normal</option>
                   <option value="high">High</option>
-                </select>
+                </CleanSelect>
               </div>
 
               {/* Attachments */}

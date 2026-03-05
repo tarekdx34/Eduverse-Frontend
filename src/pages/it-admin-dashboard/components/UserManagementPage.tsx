@@ -2,6 +2,8 @@ import { useState, useMemo } from 'react';
 import { Users, Search, Plus, Edit2, Trash2, Filter, X } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { CleanSelect } from '../../../components/shared';
+
 
 interface User {
   id: number;
@@ -148,7 +150,7 @@ export function UserManagementPage() {
           </div>
           <div className="relative sm:w-48">
             <Filter className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`} />
-            <select
+            <CleanSelect
               value={roleFilter}
               onChange={(e) => setRoleFilter(e.target.value)}
               className={`pl-10 ${inputClasses} appearance-none cursor-pointer`}
@@ -158,7 +160,7 @@ export function UserManagementPage() {
                   {r === 'All' ? 'All Roles' : r}
                 </option>
               ))}
-            </select>
+            </CleanSelect>
           </div>
         </div>
       </div>
@@ -272,7 +274,7 @@ export function UserManagementPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>Role</label>
-                  <select
+                  <CleanSelect
                     value={formData.role}
                     onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                     className={`${inputClasses} appearance-none cursor-pointer`}
@@ -280,18 +282,18 @@ export function UserManagementPage() {
                     {roles.filter((r) => r !== 'All').map((r) => (
                       <option key={r} value={r}>{r}</option>
                     ))}
-                  </select>
+                  </CleanSelect>
                 </div>
                 <div>
                   <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>Status</label>
-                  <select
+                  <CleanSelect
                     value={formData.status}
                     onChange={(e) => setFormData({ ...formData, status: e.target.value as 'active' | 'inactive' })}
                     className={`${inputClasses} appearance-none cursor-pointer`}
                   >
                     <option value="active">Active</option>
                     <option value="inactive">Inactive</option>
-                  </select>
+                  </CleanSelect>
                 </div>
               </div>
               <div>
