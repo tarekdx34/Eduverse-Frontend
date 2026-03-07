@@ -715,7 +715,6 @@ function InstructorDashboardContent() {
         {/* Profile */}
         {activeTab === 'profile' && (
           <DashboardProfileTab
->>>>>>> b423bd3e5f70d41f36eea9a3464d248e299448ce
             isDark={isDark}
             isRTL={isRTL}
             accentColor={primaryHex || '#4F46E5'}

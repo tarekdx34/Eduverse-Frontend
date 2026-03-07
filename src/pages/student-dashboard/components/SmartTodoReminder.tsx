@@ -477,7 +477,6 @@ export function SmartTodoReminder() {
         </div>
       )}
 
->>>>>>> b423bd3e5f70d41f36eea9a3464d248e299448ce
       {/* Filters */}
       <div
         className={`rounded-[2.5rem] p-4 mb-6 ${isDark ? 'bg-card-dark border border-white/5' : 'glass'}`}
