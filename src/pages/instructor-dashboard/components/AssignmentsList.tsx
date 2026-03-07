@@ -42,65 +42,55 @@ export function AssignmentsList({
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-            {t('assignments')}
-          </h2>
-          <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-            {t('assignmentsDescription') || 'Manage assignments for your course sections'}
-          </p>
+      {/* Filters Bar + Create Button */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 flex-1">
+          <div className="w-full flex flex-col gap-1.5 sm:col-span-2 lg:col-span-1">
+            <span
+              className={`text-sm font-medium whitespace-nowrap ${isDark ? 'text-slate-400' : 'text-gray-600'}`}
+            >
+              {t('search')}
+            </span>
+            <div className="relative w-full">
+              <Search
+                className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}
+                size={18}
+              />
+              <input
+                type="text"
+                placeholder={t('searchAssignments')}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                  isDark
+                    ? 'bg-white/5 border-white/10 text-slate-200 placeholder:text-slate-500'
+                    : 'bg-white border-gray-300 text-gray-900'
+                }`}
+              />
+            </div>
+          </div>
+          <CustomDropdown
+            label={t('statusLabel')}
+            value={filterStatus}
+            options={[
+              { value: 'all', label: t('allStatus') },
+              { value: 'draft', label: t('draft') },
+              { value: 'open', label: t('open') },
+              { value: 'closed', label: t('closed') },
+            ]}
+            onChange={(v) => setFilterStatus(v as 'all' | 'draft' | 'open' | 'closed')}
+            stackLabel
+            fullWidth
+          />
         </div>
         <button
           onClick={onCreate}
-          className="flex items-center gap-2 px-4 py-2 text-white rounded-lg transition-colors text-sm font-medium"
+          className="flex items-center gap-2 px-4 py-2 text-white rounded-lg transition-colors text-sm font-medium self-end"
           style={{ backgroundColor: primaryHex }}
         >
           <Plus size={18} />
           {t('createAssignment')}
         </button>
-      </div>
-
-      {/* Filters Bar */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        <div className="w-full flex flex-col gap-1.5 sm:col-span-2 lg:col-span-1">
-          <span
-            className={`text-sm font-medium whitespace-nowrap ${isDark ? 'text-slate-400' : 'text-gray-600'}`}
-          >
-            {t('search')}
-          </span>
-          <div className="relative w-full">
-            <Search
-              className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}
-              size={18}
-            />
-            <input
-              type="text"
-              placeholder={t('searchAssignments')}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-                isDark
-                  ? 'bg-white/5 border-white/10 text-slate-200 placeholder:text-slate-500'
-                  : 'bg-white border-gray-300 text-gray-900'
-              }`}
-            />
-          </div>
-        </div>
-        <CustomDropdown
-          label={t('statusLabel')}
-          value={filterStatus}
-          options={[
-            { value: 'all', label: t('allStatus') },
-            { value: 'draft', label: t('draft') },
-            { value: 'open', label: t('open') },
-            { value: 'closed', label: t('closed') },
-          ]}
-          onChange={(v) => setFilterStatus(v as 'all' | 'draft' | 'open' | 'closed')}
-          stackLabel
-          fullWidth
-        />
       </div>
 
       {/* Cards Grid */}

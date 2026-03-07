@@ -13,6 +13,8 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { CleanSelect } from '../../../components/shared';
+
 
 type ScheduleEvent = {
   id: string;
@@ -639,7 +641,7 @@ export function SchedulePage() {
                 >
                   Course
                 </label>
-                <select
+                <CleanSelect
                   value={modalForm.courseCode}
                   onChange={(e) => setModalForm({ ...modalForm, courseCode: e.target.value })}
                   className={`w-full px-3 py-2 rounded-lg border text-sm ${isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
@@ -647,7 +649,7 @@ export function SchedulePage() {
                   <option value="CS101">CS101 - Introduction to Programming</option>
                   <option value="CS202">CS202 - Data Structures</option>
                   <option value="CS303">CS303 - Advanced Algorithms</option>
-                </select>
+                </CleanSelect>
               </div>
               <div>
                 <label
@@ -655,7 +657,7 @@ export function SchedulePage() {
                 >
                   Type
                 </label>
-                <select
+                <CleanSelect
                   value={modalForm.type}
                   onChange={(e) =>
                     setModalForm({ ...modalForm, type: e.target.value as ScheduleEvent['type'] })
@@ -666,7 +668,7 @@ export function SchedulePage() {
                   <option value="office-hours">Office Hours</option>
                   <option value="meeting">Meeting</option>
                   <option value="grading-deadline">Grading Deadline</option>
-                </select>
+                </CleanSelect>
               </div>
               <div>
                 <label

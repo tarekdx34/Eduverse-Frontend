@@ -15,6 +15,8 @@ import {
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { CleanSelect } from '../../../components/shared';
+
 
 interface SupportTicket {
   id: number;
@@ -155,7 +157,7 @@ export function FeedbackSupportPage({ tickets, onUpdateTicket, onReplyTicket }: 
               />
             </div>
           </div>
-          <select
+          <CleanSelect
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             className={`px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}
@@ -164,8 +166,8 @@ export function FeedbackSupportPage({ tickets, onUpdateTicket, onReplyTicket }: 
             <option value="pending">{t('pending')}</option>
             <option value="inProgress">{t('inProgress')}</option>
             <option value="resolved">{t('resolved')}</option>
-          </select>
-          <select
+          </CleanSelect>
+          <CleanSelect
             value={priorityFilter}
             onChange={(e) => setPriorityFilter(e.target.value)}
             className={`px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}
@@ -174,7 +176,7 @@ export function FeedbackSupportPage({ tickets, onUpdateTicket, onReplyTicket }: 
             <option value="high">{t('high')}</option>
             <option value="medium">{t('medium')}</option>
             <option value="low">{t('low')}</option>
-          </select>
+          </CleanSelect>
         </div>
       </div>
 

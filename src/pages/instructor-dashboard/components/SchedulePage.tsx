@@ -14,6 +14,8 @@ import {
 import { CustomDropdown } from './CustomDropdown';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { CleanSelect } from '../../../components/shared';
+
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 interface CalendarEvent {
@@ -677,7 +679,7 @@ export function SchedulePage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className={`block text-sm font-medium mb-1 ${headerText}`}>Type</label>
-                <select
+                <CleanSelect
                   value={formData.type}
                   onChange={(e) =>
                     setFormData((p) => ({ ...p, type: e.target.value as CalendarEvent['type'] }))
@@ -689,7 +691,7 @@ export function SchedulePage() {
                       {t}
                     </option>
                   ))}
-                </select>
+                </CleanSelect>
               </div>
               <div>
                 <label className={`block text-sm font-medium mb-1 ${headerText}`}>
@@ -786,173 +788,171 @@ export function SchedulePage() {
   }, [events, today]);
 
   return (
-    <div className="p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className={`text-3xl font-bold ${headerText}`}>{t('teachingSchedule')}</h1>
-            <p className={`${subtitleText} mt-1`}>{t('scheduleDescription')}</p>
-          </div>
-          <button
-            onClick={() => openCreateModal()}
-            className="flex items-center gap-2 px-4 py-2 text-white rounded-lg transition-colors text-sm"
-            style={{ backgroundColor: primaryHex }}
-          >
-            <Plus size={16} /> Add Event
-          </button>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className={`text-2xl font-bold ${headerText}`}>{t('teachingSchedule')}</h2>
+          <p className={`${subtitleText} text-sm mt-1`}>{t('scheduleDescription')}</p>
         </div>
+        <button
+          onClick={() => openCreateModal()}
+          className="flex items-center gap-2 px-4 py-2 text-white rounded-lg transition-colors text-sm"
+          style={{ backgroundColor: primaryHex }}
+        >
+          <Plus size={16} /> Add Event
+        </button>
+      </div>
 
-        {/* View toggles and filters */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 items-end">
-          <div className="sm:col-span-2 lg:col-span-1">
-            <div className={`flex items-center gap-1 ${toggleBg} rounded-xl p-1 w-full sm:w-fit`}>
-              {(['month', 'week', 'day'] as const).map((mode) => (
-                <button
-                  key={mode}
-                  onClick={() => setViewMode(mode)}
-                  className={`flex-1 sm:flex-none px-4 py-2 text-sm rounded-lg transition-all ${viewMode === mode ? 'text-white shadow-sm' : toggleInactive}`}
-                  style={viewMode === mode ? { backgroundColor: primaryHex } : undefined}
-                >
-                  {t(mode)}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <CustomDropdown
-            label={t('courseLabel')}
-            value={courseFilter}
-            options={courseOptions}
-            onChange={setCourseFilter}
-            stackLabel
-            fullWidth
-          />
-
-          <CustomDropdown
-            label={t('eventTypeLabel')}
-            value={typeFilter}
-            options={[
-              { value: 'all', label: t('allEvents') },
-              { value: 'lecture', label: t('lectures') },
-              { value: 'lab', label: t('labs') },
-              { value: 'exam', label: 'Exams' },
-              { value: 'meeting', label: 'Meetings' },
-              { value: 'officeHours', label: t('officeHours') },
-              { value: 'deadline', label: 'Deadlines' },
-              { value: 'grading', label: 'Grading' },
-            ]}
-            onChange={setTypeFilter}
-            stackLabel
-            fullWidth
-          />
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Calendar */}
-          <div className={`lg:col-span-3 rounded-xl border shadow-sm overflow-hidden ${cardBg}`}>
-            <div
-              className={`p-4 border-b ${isDark ? 'border-white/10' : 'border-gray-200'} flex items-center justify-between`}
-            >
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={navigatePrev}
-                  className={`p-1 rounded-lg ${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
-                >
-                  <ChevronLeft size={20} className={subtitleText} />
-                </button>
-                <h3 className={`font-semibold ${headerText}`}>{headerLabel}</h3>
-                <button
-                  onClick={navigateNext}
-                  className={`p-1 rounded-lg ${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
-                >
-                  <ChevronRight size={20} className={subtitleText} />
-                </button>
-              </div>
+      {/* View toggles and filters */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 items-end">
+        <div className="sm:col-span-2 lg:col-span-1">
+          <div className={`flex items-center gap-1 ${toggleBg} rounded-xl p-1 w-full sm:w-fit`}>
+            {(['month', 'week', 'day'] as const).map((mode) => (
               <button
-                onClick={goToToday}
-                className="text-sm font-medium"
-                style={{ color: primaryHex }}
+                key={mode}
+                onClick={() => setViewMode(mode)}
+                className={`flex-1 sm:flex-none px-4 py-2 text-sm rounded-lg transition-all ${viewMode === mode ? 'text-white shadow-sm' : toggleInactive}`}
+                style={viewMode === mode ? { backgroundColor: primaryHex } : undefined}
               >
-                {t('today')}
+                {t(mode)}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <CustomDropdown
+          label={t('courseLabel')}
+          value={courseFilter}
+          options={courseOptions}
+          onChange={setCourseFilter}
+          stackLabel
+          fullWidth
+        />
+
+        <CustomDropdown
+          label={t('eventTypeLabel')}
+          value={typeFilter}
+          options={[
+            { value: 'all', label: t('allEvents') },
+            { value: 'lecture', label: t('lectures') },
+            { value: 'lab', label: t('labs') },
+            { value: 'exam', label: 'Exams' },
+            { value: 'meeting', label: 'Meetings' },
+            { value: 'officeHours', label: t('officeHours') },
+            { value: 'deadline', label: 'Deadlines' },
+            { value: 'grading', label: 'Grading' },
+          ]}
+          onChange={setTypeFilter}
+          stackLabel
+          fullWidth
+        />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* Calendar */}
+        <div className={`lg:col-span-3 rounded-xl border shadow-sm overflow-hidden ${cardBg}`}>
+          <div
+            className={`p-4 border-b ${isDark ? 'border-white/10' : 'border-gray-200'} flex items-center justify-between`}
+          >
+            <div className="flex items-center gap-3">
+              <button
+                onClick={navigatePrev}
+                className={`p-1 rounded-lg ${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
+              >
+                <ChevronLeft size={20} className={subtitleText} />
+              </button>
+              <h3 className={`font-semibold ${headerText}`}>{headerLabel}</h3>
+              <button
+                onClick={navigateNext}
+                className={`p-1 rounded-lg ${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
+              >
+                <ChevronRight size={20} className={subtitleText} />
               </button>
             </div>
-            {viewMode === 'month' && renderMonthView()}
-            {viewMode === 'week' && renderWeekView()}
-            {viewMode === 'day' && renderDayView()}
+            <button
+              onClick={goToToday}
+              className="text-sm font-medium"
+              style={{ color: primaryHex }}
+            >
+              {t('today')}
+            </button>
+          </div>
+          {viewMode === 'month' && renderMonthView()}
+          {viewMode === 'week' && renderWeekView()}
+          {viewMode === 'day' && renderDayView()}
+        </div>
+
+        {/* Sidebar */}
+        <div className="space-y-6">
+          {/* Upcoming Events */}
+          <div className={`rounded-xl p-4 border shadow-sm ${cardBg}`}>
+            <h3 className={`font-semibold ${headerText} mb-4`}>{t('upcomingTeachingEvents')}</h3>
+            <div className="space-y-3">
+              {upcomingEvents.map((event) => (
+                <div
+                  key={event.id}
+                  className={`p-3 rounded-lg ${getEventClasses(event)} cursor-pointer`}
+                  style={getEventStyle(event)}
+                  onClick={() => setShowEventDetails(event)}
+                >
+                  <div className="font-medium text-sm">{event.title}</div>
+                  <div className="text-xs mt-1">{formatTime24to12(event.startTime)}</div>
+                  <div className="text-xs">
+                    {MONTH_NAMES[parseInt(event.date.split('-')[1], 10) - 1].slice(0, 3)}{' '}
+                    {parseInt(event.date.split('-')[2], 10)}
+                  </div>
+                </div>
+              ))}
+              {upcomingEvents.length === 0 && (
+                <p className={`text-sm ${subtitleText}`}>No upcoming events</p>
+              )}
+            </div>
           </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Upcoming Events */}
-            <div className={`rounded-xl p-4 border shadow-sm ${cardBg}`}>
-              <h3 className={`font-semibold ${headerText} mb-4`}>{t('upcomingTeachingEvents')}</h3>
-              <div className="space-y-3">
-                {upcomingEvents.map((event) => (
-                  <div
-                    key={event.id}
-                    className={`p-3 rounded-lg ${getEventClasses(event)} cursor-pointer`}
-                    style={getEventStyle(event)}
-                    onClick={() => setShowEventDetails(event)}
-                  >
-                    <div className="font-medium text-sm">{event.title}</div>
-                    <div className="text-xs mt-1">{formatTime24to12(event.startTime)}</div>
-                    <div className="text-xs">
-                      {MONTH_NAMES[parseInt(event.date.split('-')[1], 10) - 1].slice(0, 3)}{' '}
-                      {parseInt(event.date.split('-')[2], 10)}
-                    </div>
-                  </div>
-                ))}
-                {upcomingEvents.length === 0 && (
-                  <p className={`text-sm ${subtitleText}`}>No upcoming events</p>
-                )}
+          {/* AI Assistant */}
+          <div className={`rounded-xl p-4 border ${cardBg}`}>
+            <div className="flex items-center gap-2 mb-3">
+              <div className="p-2 rounded-lg" style={{ backgroundColor: primaryHex + '20' }}>
+                <Sparkles style={{ color: primaryHex }} size={20} />
               </div>
+              <h3 className={`font-semibold ${headerText}`}>{t('evySchedulingAssistant')}</h3>
             </div>
-
-            {/* AI Assistant */}
-            <div className={`rounded-xl p-4 border ${cardBg}`}>
-              <div className="flex items-center gap-2 mb-3">
-                <div className="p-2 rounded-lg" style={{ backgroundColor: primaryHex + '20' }}>
-                  <Sparkles style={{ color: primaryHex }} size={20} />
-                </div>
-                <h3 className={`font-semibold ${headerText}`}>{t('evySchedulingAssistant')}</h3>
-              </div>
-              <p className={`text-sm ${subtitleText} mb-4`}>{t('scheduleAssistantDescription')}</p>
-              <div className="space-y-2">
-                <button
-                  className={`w-full flex items-center justify-center gap-2 px-4 py-2 border rounded-lg transition-colors text-sm ${isDark ? 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'}`}
-                >
-                  {t('detectConflicts')}
-                </button>
-                <button
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2 text-white rounded-lg transition-colors text-sm"
-                  style={{ backgroundColor: primaryHex }}
-                >
-                  {t('optimizeSchedule')}
-                </button>
-              </div>
+            <p className={`text-sm ${subtitleText} mb-4`}>{t('scheduleAssistantDescription')}</p>
+            <div className="space-y-2">
+              <button
+                className={`w-full flex items-center justify-center gap-2 px-4 py-2 border rounded-lg transition-colors text-sm ${isDark ? 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'}`}
+              >
+                {t('detectConflicts')}
+              </button>
+              <button
+                className="w-full flex items-center justify-center gap-2 px-4 py-2 text-white rounded-lg transition-colors text-sm"
+                style={{ backgroundColor: primaryHex }}
+              >
+                {t('optimizeSchedule')}
+              </button>
             </div>
+          </div>
 
-            {/* Stats */}
-            <div className={`rounded-xl p-4 border shadow-sm ${cardBg}`}>
-              <h3 className={`font-semibold ${headerText} mb-4`}>{t('thisWeek')}</h3>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className={`text-sm ${subtitleText}`}>{t('totalHours')}</span>
-                  <span className={`text-sm font-semibold ${headerText}`}>18.5h</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className={`text-sm ${subtitleText}`}>{t('lectures')}</span>
-                  <span className={`text-sm font-semibold ${headerText}`}>6</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className={`text-sm ${subtitleText}`}>{t('labs')}</span>
-                  <span className={`text-sm font-semibold ${headerText}`}>4</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className={`text-sm ${subtitleText}`}>{t('conflicts')}</span>
-                  <span className="text-sm font-semibold text-red-600">0</span>
-                </div>
+          {/* Stats */}
+          <div className={`rounded-xl p-4 border shadow-sm ${cardBg}`}>
+            <h3 className={`font-semibold ${headerText} mb-4`}>{t('thisWeek')}</h3>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className={`text-sm ${subtitleText}`}>{t('totalHours')}</span>
+                <span className={`text-sm font-semibold ${headerText}`}>18.5h</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className={`text-sm ${subtitleText}`}>{t('lectures')}</span>
+                <span className={`text-sm font-semibold ${headerText}`}>6</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className={`text-sm ${subtitleText}`}>{t('labs')}</span>
+                <span className={`text-sm font-semibold ${headerText}`}>4</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className={`text-sm ${subtitleText}`}>{t('conflicts')}</span>
+                <span className="text-sm font-semibold text-red-600">0</span>
               </div>
             </div>
           </div>

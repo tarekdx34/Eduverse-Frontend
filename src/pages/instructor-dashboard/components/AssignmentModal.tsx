@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { X, FileText, FlaskConical, FolderKanban, Plus, Trash2 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
+import { CleanSelect } from '../../../components/shared';
+
 
 export type AssignmentFormData = {
   id?: number;
@@ -236,10 +238,10 @@ export function AssignmentModal({ open, assignment, onClose, onSave }: Assignmen
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className={labelCls}>Course</label>
-                <select value={formData.course || ''} onChange={e => update('course', e.target.value)} className={selectCls}>
+                <CleanSelect value={formData.course || ''} onChange={e => update('course', e.target.value)} className={selectCls}>
                   <option value="" style={optionStyle}>Select course</option>
                   {COURSES.map(c => <option key={c} value={c} style={optionStyle}>{c}</option>)}
-                </select>
+                </CleanSelect>
               </div>
 
               <div>
@@ -288,7 +290,7 @@ export function AssignmentModal({ open, assignment, onClose, onSave }: Assignmen
               </div>
               <div>
                 <label className={labelCls}>Status</label>
-                <select
+                <CleanSelect
                   value={formData.status}
                   onChange={e => update('status', e.target.value as 'draft' | 'open' | 'closed')}
                   className={selectCls}
@@ -296,7 +298,7 @@ export function AssignmentModal({ open, assignment, onClose, onSave }: Assignmen
                   <option value="draft" style={optionStyle}>Draft</option>
                   <option value="open" style={optionStyle}>Open</option>
                   <option value="closed" style={optionStyle}>Closed</option>
-                </select>
+                </CleanSelect>
               </div>
             </div>
 
@@ -341,10 +343,10 @@ export function AssignmentModal({ open, assignment, onClose, onSave }: Assignmen
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className={labelCls}>Lab Room</label>
-                  <select value={formData.labRoom || ''} onChange={e => update('labRoom', e.target.value)} className={selectCls}>
+                  <CleanSelect value={formData.labRoom || ''} onChange={e => update('labRoom', e.target.value)} className={selectCls}>
                     <option value="" style={optionStyle}>Select room</option>
                     {LAB_ROOMS.map(r => <option key={r} value={r} style={optionStyle}>{r}</option>)}
-                  </select>
+                  </CleanSelect>
                 </div>
                 <div>
                   <label className={labelCls}>Estimated Duration (hours)</label>

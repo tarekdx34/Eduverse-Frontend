@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { CleanSelect } from '../../../components/shared';
+
 import {
   HeadphonesIcon,
   MessageSquare,
@@ -239,7 +241,7 @@ export function FeedbackSupportPage() {
           </div>
 
           {/* Status Filter */}
-          <select
+          <CleanSelect
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as 'all' | Status)}
             className={`px-3 py-2 rounded-lg border text-sm ${inputClass} focus:outline-none focus:ring-2`}
@@ -249,10 +251,10 @@ export function FeedbackSupportPage() {
             <option value="open">Open</option>
             <option value="in-progress">In Progress</option>
             <option value="resolved">Resolved</option>
-          </select>
+          </CleanSelect>
 
           {/* Priority Filter */}
-          <select
+          <CleanSelect
             value={priorityFilter}
             onChange={(e) => setPriorityFilter(e.target.value as 'all' | Priority)}
             className={`px-3 py-2 rounded-lg border text-sm ${inputClass} focus:outline-none focus:ring-2`}
@@ -263,7 +265,7 @@ export function FeedbackSupportPage() {
             <option value="medium">Medium</option>
             <option value="high">High</option>
             <option value="critical">Critical</option>
-          </select>
+          </CleanSelect>
         </div>
       </div>
 

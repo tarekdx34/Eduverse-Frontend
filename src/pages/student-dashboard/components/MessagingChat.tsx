@@ -160,11 +160,17 @@ const MESSAGES: Message[] = [
 
 interface MessagingChatProps {
   height?: string;
+  isDark?: boolean;
+  accentColor?: string;
 }
 
-export function MessagingChat({ height = '100vh' }: MessagingChatProps) {
-  const { isDark, primaryHex } = useTheme() as any;
-  const accentColor = primaryHex || '#3b82f6';
+export function MessagingChat({
+  height = '100vh',
+  isDark: isDarkProp,
+  accentColor: accentColorProp,
+}: MessagingChatProps) {
+  const accentColor = accentColorProp || '#3b82f6';
+  const isDark = isDarkProp;
   const [selectedConversation, setSelectedConversation] = useState<string>('1');
   const [messageInput, setMessageInput] = useState('');
   const [messages, setMessages] = useState<Message[]>(MESSAGES);

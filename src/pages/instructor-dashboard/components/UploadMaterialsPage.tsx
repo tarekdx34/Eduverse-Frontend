@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { CleanSelect } from '../../../components/shared';
+
 import {
   Upload,
   FileText,
@@ -479,7 +481,7 @@ export function UploadMaterialsPage() {
           <div className="space-y-4">
             {/* Filters */}
             <div className="flex flex-wrap items-center gap-4">
-              <select
+              <CleanSelect
                 value={courseFilter}
                 onChange={(e) => setCourseFilter(e.target.value)}
                 className={`px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? 'bg-white/5 border-white/10 text-white' : 'border-gray-300 bg-white'}`}
@@ -489,7 +491,7 @@ export function UploadMaterialsPage() {
                     {opt.label}
                   </option>
                 ))}
-              </select>
+              </CleanSelect>
               <div className="flex items-center gap-2">
                 {typeFilters.map((tf) => (
                   <button
@@ -666,7 +668,7 @@ export function UploadMaterialsPage() {
                 >
                   Course
                 </label>
-                <select
+                <CleanSelect
                   value={uploadCourse}
                   onChange={(e) => {
                     setUploadCourse(e.target.value);
@@ -685,7 +687,7 @@ export function UploadMaterialsPage() {
                         {opt.label}
                       </option>
                     ))}
-                </select>
+                </CleanSelect>
               </div>
               <div>
                 <label
@@ -693,7 +695,7 @@ export function UploadMaterialsPage() {
                 >
                   Module
                 </label>
-                <select
+                <CleanSelect
                   value={uploadModule}
                   onChange={(e) => setUploadModule(e.target.value)}
                   className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? 'bg-white/5 border-white/10 text-white' : 'border-gray-300 bg-white'}`}
@@ -703,7 +705,7 @@ export function UploadMaterialsPage() {
                       {mod}
                     </option>
                   ))}
-                </select>
+                </CleanSelect>
               </div>
               <div
                 className={`border-2 border-dashed rounded-xl p-8 text-center ${isDark ? 'border-white/20 hover:border-indigo-500/50' : 'border-gray-300 hover:border-indigo-400'} transition-colors cursor-pointer`}
@@ -791,7 +793,7 @@ export function UploadMaterialsPage() {
                 >
                   Module
                 </label>
-                <select
+                <CleanSelect
                   value={editModule}
                   onChange={(e) => setEditModule(e.target.value)}
                   className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? 'bg-white/5 border-white/10 text-white' : 'border-gray-300 bg-white'}`}
@@ -801,7 +803,7 @@ export function UploadMaterialsPage() {
                       {mod}
                     </option>
                   ))}
-                </select>
+                </CleanSelect>
               </div>
               <div>
                 <label

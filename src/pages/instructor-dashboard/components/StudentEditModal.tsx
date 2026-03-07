@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { CleanSelect } from '../../../components/shared';
+
 
 export type StudentModel = {
   id: number;
@@ -57,7 +59,7 @@ export function StudentEditModal({
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-sm text-gray-600">Status</label>
-              <select
+              <CleanSelect
                 className="mt-1 w-full border rounded-md px-3 py-2 bg-white"
                 value={form.status}
                 onChange={(e) => setForm({ ...form, status: e.target.value })}
@@ -65,11 +67,11 @@ export function StudentEditModal({
                 <option value="enrolled">Enrolled</option>
                 <option value="auditing">Auditing</option>
                 <option value="inactive">Inactive</option>
-              </select>
+              </CleanSelect>
             </div>
             <div>
               <label className="text-sm text-gray-600">Grade</label>
-              <select
+              <CleanSelect
                 className="mt-1 w-full border rounded-md px-3 py-2 bg-white"
                 value={form.grade || ''}
                 onChange={(e) => setForm({ ...form, grade: e.target.value || undefined })}
@@ -80,7 +82,7 @@ export function StudentEditModal({
                     {g}
                   </option>
                 ))}
-              </select>
+              </CleanSelect>
             </div>
           </div>
         </div>

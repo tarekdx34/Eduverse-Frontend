@@ -19,6 +19,8 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { FileUploadDropzone, AutoGradingSystem, Submission } from '../../../components/shared';
 import { RosterTable } from './RosterTable';
 import { AssignmentModal, AssignmentFormData } from './AssignmentModal';
+import { CleanSelect } from '../../../components/shared';
+
 
 type Course = {
   id: number;
@@ -1073,7 +1075,7 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                 >
                   Target Lecture / Week
                 </label>
-                <select
+                <CleanSelect
                   value={materialForm.lectureId}
                   onChange={(e) => setMaterialForm({ ...materialForm, lectureId: e.target.value })}
                   className={`w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2 ${isDark ? 'bg-white/5 border-white/10 text-white focus:ring-indigo-500' : 'bg-white border-gray-300 text-gray-900 focus:ring-indigo-500'}`}
@@ -1084,7 +1086,7 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                       {lec.label}
                     </option>
                   ))}
-                </select>
+                </CleanSelect>
               </div>
             </div>
 

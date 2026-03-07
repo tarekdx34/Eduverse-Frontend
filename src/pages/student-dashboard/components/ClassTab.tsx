@@ -29,7 +29,7 @@ const defaultCourses: Course[] = [
     title: 'Introduction to Computer Science',
     courseCode: 'CS101',
     instructor: 'Dr. Sarah Johnson',
-    instructorImage: 'http://localhost:3845/assets/56d9e68ccff12413f144bdf75269165f5e84005a.png',
+    instructorImage: 'https://ui-avatars.com/api/?name=Sarah+Johnson&background=random',
     schedule: 'Mon, Wed, Fri - 08:30 AM',
     nextClass: 'Next: Monday, 08:30 AM',
     room: 'Room 301',
@@ -44,7 +44,7 @@ const defaultCourses: Course[] = [
     title: 'Data Structures & Algorithms',
     courseCode: 'CS201',
     instructor: 'Prof. Michael Chen',
-    instructorImage: 'http://localhost:3845/assets/9bbdfb06a5eae3ca01387e38cee556cb0ba93eb3.png',
+    instructorImage: 'https://ui-avatars.com/api/?name=Michael+Chen&background=random',
     schedule: 'Tue, Thu - 10:00 AM',
     nextClass: 'Next: Tuesday, 10:00 AM',
     room: 'Lab 401',
@@ -59,7 +59,7 @@ const defaultCourses: Course[] = [
     title: 'Web Development Fundamentals',
     courseCode: 'CS150',
     instructor: 'Dr. Emily Roberts',
-    instructorImage: 'http://localhost:3845/assets/6037748207f9c7910c91db1bd9b0f380e0225194.png',
+    instructorImage: 'https://ui-avatars.com/api/?name=Emily+Roberts&background=random',
     schedule: 'Mon, Wed - 02:00 PM',
     nextClass: 'Next: Monday, 02:00 PM',
     room: 'Lab 302',
@@ -74,7 +74,7 @@ const defaultCourses: Course[] = [
     title: 'Database Management Systems',
     courseCode: 'CS220',
     instructor: 'Dr. James Wilson',
-    instructorImage: 'http://localhost:3845/assets/8f649ffb9509e27c1a5cfa2575f93e2a1f744127.png',
+    instructorImage: 'https://ui-avatars.com/api/?name=James+Wilson&background=random',
     schedule: 'Tue, Thu - 01:30 PM',
     nextClass: 'Next: Thursday, 01:30 PM',
     room: 'Room 201',
@@ -89,7 +89,7 @@ const defaultCourses: Course[] = [
     title: 'Software Engineering Principles',
     courseCode: 'CS305',
     instructor: 'Prof. Lisa Anderson',
-    instructorImage: 'http://localhost:3845/assets/c63835773a05453d6506aec39d7d54c0bc4571da.png',
+    instructorImage: 'https://ui-avatars.com/api/?name=Lisa+Anderson&background=random',
     schedule: 'Mon, Wed, Fri - 11:00 AM',
     nextClass: 'Next: Friday, 11:00 AM',
     room: 'Hall 1',
@@ -104,7 +104,7 @@ const defaultCourses: Course[] = [
     title: 'Mobile Application Development',
     courseCode: 'CS350',
     instructor: 'Dr. Robert Taylor',
-    instructorImage: 'http://localhost:3845/assets/0d5da6ab018faf09b0940ac3e0ab4d6d514c431f.png',
+    instructorImage: 'https://ui-avatars.com/api/?name=Robert+Taylor&background=random',
     schedule: 'Tue, Thu - 03:30 PM',
     nextClass: 'Next: Tuesday, 03:30 PM',
     room: 'Lab 303',
@@ -116,7 +116,7 @@ const defaultCourses: Course[] = [
   },
 ];
 
-const CourseCard= ({
+const CourseCard = ({
   course,
   onViewCourse,
   isDark,
@@ -127,7 +127,9 @@ const CourseCard= ({
   isDark: boolean;
   t: (key: string) => string;
 }) => (
-  <div className={`${isDark ? 'bg-card-dark border border-white/5' : 'glass'} rounded-[2.5rem] overflow-hidden hover:shadow-lg transition-shadow`}>
+  <div
+    className={`rounded-3xl border overflow-hidden transition-all duration-300 ${isDark ? 'bg-card-dark border-white/5 shadow-xl shadow-black/20 hover:border-white/10' : 'bg-white border-slate-200 shadow-sm hover:shadow-md'}`}
+  >
     {/* Color bar */}
     <div className="h-2" style={{ backgroundColor: course.progressColor }} />
 
@@ -135,16 +137,26 @@ const CourseCard= ({
     <div className="p-6">
       <div className="flex justify-between items-start mb-4">
         <div className="flex-1 min-w-0">
-          <h3 className={`font-semibold mb-1 break-words ${isDark ? 'text-white' : 'text-slate-800'}`}>{course.title}</h3>
-          <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{course.courseCode}</p>
+          <h3
+            className={`font-semibold mb-1 break-words ${isDark ? 'text-white' : 'text-slate-800'}`}
+          >
+            {course.title}
+          </h3>
+          <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
+            {course.courseCode}
+          </p>
         </div>
-        <button className={`transition-colors ${isDark ? 'text-slate-500 hover:text-slate-400' : 'text-slate-500 hover:text-slate-600'}`}>
+        <button
+          className={`transition-colors ${isDark ? 'text-slate-500 hover:text-slate-400' : 'text-slate-500 hover:text-slate-600'}`}
+        >
           <MoreVertical size={20} />
         </button>
       </div>
 
       {/* Instructor */}
-      <div className={`flex items-center gap-3 mb-4 pb-4 border-b ${isDark ? 'border-white/5' : 'border-slate-100'}`}>
+      <div
+        className={`flex items-center gap-3 mb-4 pb-4 border-b ${isDark ? 'border-white/5' : 'border-slate-100'}`}
+      >
         <img
           src={course.instructorImage}
           alt={course.instructor}
@@ -155,8 +167,12 @@ const CourseCard= ({
           }
         />
         <div>
-          <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'}`}>{course.instructor}</p>
-          <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{t('instructor')}</p>
+          <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'}`}>
+            {course.instructor}
+          </p>
+          <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
+            {t('instructor')}
+          </p>
         </div>
       </div>
 
@@ -173,19 +189,29 @@ const CourseCard= ({
       </div>
 
       {/* Stats */}
-      <div className={`flex justify-between items-center mb-4 pt-4 border-t text-sm ${isDark ? 'border-white/5' : 'border-slate-100'}`}>
+      <div
+        className={`flex justify-between items-center mb-4 pt-4 border-t text-sm ${isDark ? 'border-white/5' : 'border-slate-100'}`}
+      >
         <div className={`flex items-center gap-1 ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
           <Users size={16} />
-          <span>{course.students} {t('students')}</span>
+          <span>
+            {course.students} {t('students')}
+          </span>
         </div>
-        <span className={isDark ? 'text-slate-500' : 'text-slate-600'}>{course.credits} {t('credits')}</span>
+        <span className={isDark ? 'text-slate-500' : 'text-slate-600'}>
+          {course.credits} {t('credits')}
+        </span>
       </div>
 
       {/* Progress */}
       <div className="mb-4">
         <div className="flex justify-between items-center mb-2">
-          <span className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{t('courseProgress')}</span>
-          <span className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>{course.progress}%</span>
+          <span className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
+            {t('courseProgress')}
+          </span>
+          <span className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>
+            {course.progress}%
+          </span>
         </div>
         <div className={`w-full rounded-full h-2 ${isDark ? 'bg-white/10' : 'bg-slate-200'}`}>
           <div
@@ -206,10 +232,11 @@ const CourseCard= ({
         <button
           onClick={() => onViewCourse?.(course.id)}
           className={`flex-1 border font-medium py-2 px-4 rounded-lg transition-colors min-w-0 ${
-          isDark 
-            ? 'border-white/10 hover:bg-white/5 text-slate-400' 
-            : 'border-slate-100 hover:bg-slate-50 text-slate-700'
-        }`}>
+            isDark
+              ? 'border-white/10 hover:bg-white/5 text-slate-400'
+              : 'border-slate-100 hover:bg-slate-50 text-slate-700'
+          }`}
+        >
           {t('materials')}
         </button>
       </div>
@@ -217,10 +244,7 @@ const CourseCard= ({
   </div>
 );
 
-export default function ClassTab({
-  courses = defaultCourses,
-  onViewCourse,
-}: ClassTabProps) {
+export default function ClassTab({ courses = defaultCourses, onViewCourse }: ClassTabProps) {
   const { isDark } = useTheme();
   const { t } = useLanguage();
 
@@ -229,14 +253,24 @@ export default function ClassTab({
       {/* Enrolled Courses Section */}
       <div>
         <div className="mb-4">
-          <h2 className={`text-xl font-semibold mb-1 ${isDark ? 'text-white' : 'text-slate-800'}`}>{t('enrolledCourses')}</h2>
-          <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{t('enrolledCoursesDesc')}</p>
+          <h2 className={`text-xl font-semibold mb-1 ${isDark ? 'text-white' : 'text-slate-800'}`}>
+            {t('enrolledCourses')}
+          </h2>
+          <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
+            {t('enrolledCoursesDesc')}
+          </p>
         </div>
 
         {/* Course Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {courses.map((course) => (
-            <CourseCard key={course.id} course={course} onViewCourse={onViewCourse} isDark={isDark} t={t} />
+            <CourseCard
+              key={course.id}
+              course={course}
+              onViewCourse={onViewCourse}
+              isDark={isDark}
+              t={t}
+            />
           ))}
         </div>
       </div>

@@ -21,41 +21,84 @@ const PageTitle = ({ title, children }) => {
   return children;
 };
 
-const PageFallback = () => (
-  <div className="flex items-center justify-center h-screen bg-slate-50">
-    <div className="flex flex-col items-center gap-6">
-      <div className="relative h-16 w-16">
-        {/* Outer pulse ring */}
-        <div className="absolute inset-0 rounded-full bg-blue-500/10 animate-pulse scale-125"></div>
+const PageFallback = () => {
+  // Check all possible theme storage keys from different dashboards
+  const themeKeys = [
+    'eduverse-student-theme',
+    'eduverse-instructor-theme',
+    'eduverse-admin-theme',
+    'eduverse-it-admin-theme',
+    'eduverse-ta-theme',
+    'theme',
+  ];
 
-        {/* Main spinning arc */}
-        <div className="absolute inset-0 rounded-full border-[3px] border-transparent border-t-blue-600 border-r-blue-600 animate-spin"></div>
+  let savedTheme = null;
+  for (const key of themeKeys) {
+    const value = localStorage.getItem(key);
+    if (value) {
+      savedTheme = value;
+      break;
+    }
+  }
 
-        {/* Static background circle */}
-        <div className="absolute inset-0 rounded-full border-[3px] border-blue-50"></div>
+  const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const isDark = savedTheme ? savedTheme === 'dark' : systemDark;
 
-        {/* Inner core circle */}
-        <div className="absolute inset-4 rounded-full bg-white shadow-sm flex items-center justify-center">
-          <div className="h-2 w-2 rounded-full bg-blue-600 animate-pulse"></div>
+  return (
+    <div
+      className={`flex items-center justify-center h-screen transition-colors duration-300 ${isDark ? 'bg-slate-900' : 'bg-slate-50'}`}
+    >
+      <div className="flex flex-col items-center gap-8">
+        {/* Bouncing Dots Animation */}
+        <div className="flex gap-2 h-12 items-end">
+          {[0, 1, 2].map((i) => (
+            <div
+              key={i}
+              className={`w-3 h-3 rounded-full transition-colors duration-300 ${
+                isDark ? 'bg-slate-400' : 'bg-slate-500'
+              }`}
+              style={{
+                animation: `bounce 1.4s infinite ease-in-out`,
+                animationDelay: `${i * 0.16}s`,
+              }}
+            />
+          ))}
+        </div>
+
+        {/* Text */}
+        <div className="flex flex-col items-center gap-2">
+          <h1
+            className={`text-3xl font-bold tracking-tight transition-colors duration-300 ${
+              isDark ? 'text-white' : 'text-slate-900'
+            }`}
+          >
+            Eduverse
+          </h1>
+          <p
+            className={`text-sm font-medium transition-colors duration-300 ${
+              isDark ? 'text-slate-400' : 'text-slate-500'
+            }`}
+          >
+            Loading your experience...
+          </p>
         </div>
       </div>
 
-      <div className="flex flex-col items-center gap-1">
-        <span className="text-sm font-semibold text-slate-700 tracking-tight">Eduverse</span>
-        <div className="flex items-center gap-1">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] ml-[0.2em]">
-            Loading
-          </span>
-          <span className="flex gap-0.5 pt-0.5">
-            <span className="w-1 h-1 bg-blue-400 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-            <span className="w-1 h-1 bg-blue-400 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
-            <span className="w-1 h-1 bg-blue-400 rounded-full animate-bounce"></span>
-          </span>
-        </div>
-      </div>
+      <style>{`
+        @keyframes bounce {
+          0%, 80%, 100% {
+            transform: translateY(0);
+            opacity: 0.7;
+          }
+          40% {
+            transform: translateY(-16px);
+            opacity: 1;
+          }
+        }
+      `}</style>
     </div>
-  </div>
-);
+  );
+};
 
 function App() {
   return (

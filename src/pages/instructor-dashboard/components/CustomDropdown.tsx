@@ -30,7 +30,9 @@ export function CustomDropdown({
 }: CustomDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const { isDark } = useTheme();
+  const theme = useTheme() as any;
+  const isDark = theme?.isDark ?? false;
+  const primaryHex = theme?.primaryHex ?? '#3b82f6';
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -61,11 +63,14 @@ export function CustomDropdown({
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
-          className={`px-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors flex items-center gap-2 ${fullWidth ? 'w-full' : 'min-w-[180px]'} justify-between ${
+          className={`px-4 py-2 border rounded-lg text-sm transition-colors flex items-center gap-2 ${fullWidth ? 'w-full' : 'min-w-[180px]'} justify-between ${
             isDark
               ? 'bg-white/5 border-white/10 hover:bg-white/10'
               : 'bg-white border-gray-300 hover:bg-gray-50'
-          }`}
+          } outline-none ${isOpen ? 'ring-2' : ''}`}
+          style={
+            isOpen ? ({ '--tw-ring-color': `${primaryHex}80` } as React.CSSProperties) : undefined
+          }
         >
           <span className={`truncate ${isDark ? 'text-slate-200' : 'text-gray-900'}`}>
             {selectedOption?.label || placeholder}
@@ -91,19 +96,24 @@ export function CustomDropdown({
                   setIsOpen(false);
                 }}
                 className={`w-full flex items-center justify-between px-4 py-2 text-sm text-left transition-colors ${
-                  option.value === value
+                  option.value !== value
                     ? isDark
-                      ? 'bg-indigo-500/20 text-indigo-300 font-medium'
-                      : 'bg-indigo-50 text-indigo-700 font-medium'
-                    : isDark
                       ? 'text-slate-300 hover:bg-white/5'
                       : 'text-gray-700 hover:bg-gray-50'
+                    : ''
                 }`}
+                style={
+                  option.value === value
+                    ? {
+                        backgroundColor: isDark ? `${primaryHex}20` : `${primaryHex}1A`,
+                        color: primaryHex,
+                        fontWeight: 500,
+                      }
+                    : undefined
+                }
               >
                 <span>{option.label}</span>
-                {option.value === value && (
-                  <Check size={16} className={isDark ? 'text-indigo-400' : 'text-indigo-600'} />
-                )}
+                {option.value === value && <Check size={16} />}
               </button>
             ))}
           </div>

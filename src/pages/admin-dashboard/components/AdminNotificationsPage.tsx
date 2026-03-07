@@ -18,6 +18,8 @@ import {
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { CleanSelect } from '../../../components/shared';
+
 
 type Tab = 'overview' | 'templates' | 'settings';
 type StatusFilter = 'All' | 'Sent' | 'Pending' | 'Failed' | 'Scheduled';
@@ -202,7 +204,7 @@ export function AdminNotificationsPage() {
             </div>
             <div className="flex items-center gap-2">
               <Filter size={18} className={textSecondary} />
-              <select
+              <CleanSelect
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
                 className={`px-3 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
@@ -210,7 +212,7 @@ export function AdminNotificationsPage() {
                 {statusFilters.map((f) => (
                   <option key={f} value={f}>{f}</option>
                 ))}
-              </select>
+              </CleanSelect>
             </div>
             <button
               onClick={() => setShowSendModal(true)}
@@ -454,7 +456,7 @@ export function AdminNotificationsPage() {
               </div>
               <div>
                 <label className={`block text-sm font-medium mb-1 ${textPrimary}`}>Recipients</label>
-                <select
+                <CleanSelect
                   value={sendForm.recipients}
                   onChange={(e) => setSendForm({ ...sendForm, recipients: e.target.value })}
                   className={inputClass}
@@ -464,11 +466,11 @@ export function AdminNotificationsPage() {
                   <option value="Instructors">Instructors</option>
                   <option value="TAs">TAs</option>
                   <option value="Admins">Admins</option>
-                </select>
+                </CleanSelect>
               </div>
               <div>
                 <label className={`block text-sm font-medium mb-1 ${textPrimary}`}>Channel</label>
-                <select
+                <CleanSelect
                   value={sendForm.channel}
                   onChange={(e) => setSendForm({ ...sendForm, channel: e.target.value })}
                   className={inputClass}
@@ -476,18 +478,18 @@ export function AdminNotificationsPage() {
                   <option value="Push">Push</option>
                   <option value="Email">Email</option>
                   <option value="Both">Both</option>
-                </select>
+                </CleanSelect>
               </div>
               <div>
                 <label className={`block text-sm font-medium mb-1 ${textPrimary}`}>Schedule</label>
-                <select
+                <CleanSelect
                   value={sendForm.schedule}
                   onChange={(e) => setSendForm({ ...sendForm, schedule: e.target.value })}
                   className={inputClass}
                 >
                   <option value="Now">Send Now</option>
                   <option value="Later">Schedule for Later</option>
-                </select>
+                </CleanSelect>
               </div>
               {sendForm.schedule === 'Later' && (
                 <div>
@@ -538,7 +540,7 @@ export function AdminNotificationsPage() {
               </div>
               <div>
                 <label className={`block text-sm font-medium mb-1 ${textPrimary}`}>Category</label>
-                <select
+                <CleanSelect
                   value={templateForm.category}
                   onChange={(e) => setTemplateForm({ ...templateForm, category: e.target.value })}
                   className={inputClass}
@@ -546,7 +548,7 @@ export function AdminNotificationsPage() {
                   <option value="Auto">Auto</option>
                   <option value="Manual">Manual</option>
                   <option value="Scheduled">Scheduled</option>
-                </select>
+                </CleanSelect>
               </div>
               <div>
                 <label className={`block text-sm font-medium mb-1 ${textPrimary}`}>Subject</label>

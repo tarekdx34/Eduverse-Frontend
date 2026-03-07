@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Search, Plus, Edit2, Trash2, CalendarDays, Users, Clock, CheckCircle2, Timer, AlertCircle, BookOpen } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { CleanSelect } from '../../../components/shared';
+
 
 interface EnrollmentPeriod {
   id: number;
@@ -117,12 +119,12 @@ export function EnrollmentPeriodPage({ enrollmentPeriods, courses, adminDepartme
       {/* Filter */}
       <div className={`p-4 rounded-xl border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
         <div className="flex items-center gap-4">
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className={`px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}>
+          <CleanSelect value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className={`px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}>
             <option value="all">{t('allStatus')}</option>
             <option value="active">{t('activePeriod')}</option>
             <option value="upcoming">{t('upcomingPeriod')}</option>
             <option value="closed">{t('closedPeriod')}</option>
-          </select>
+          </CleanSelect>
         </div>
       </div>
 
@@ -214,12 +216,12 @@ export function EnrollmentPeriodPage({ enrollmentPeriods, courses, adminDepartme
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('semester')}</label>
-                <select value={formData.semester} onChange={(e) => setFormData({ ...formData, semester: e.target.value })} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}>
+                <CleanSelect value={formData.semester} onChange={(e) => setFormData({ ...formData, semester: e.target.value })} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}>
                   <option value="Fall 2025">Fall 2025</option>
                   <option value="Spring 2026">Spring 2026</option>
                   <option value="Summer 2026">Summer 2026</option>
                   <option value="Fall 2026">Fall 2026</option>
-                </select>
+                </CleanSelect>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>

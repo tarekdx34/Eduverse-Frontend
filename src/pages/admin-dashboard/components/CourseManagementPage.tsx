@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Search, Plus, Edit2, Trash2, BookOpen, Users, Clock, Download, Calendar, ClipboardList, UserCheck } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { CleanSelect } from '../../../components/shared';
+
 
 interface Course {
   id: number;
@@ -189,7 +191,7 @@ export function CourseManagementPage({ courses, users, adminDepartment, onAddCou
                   />
                 </div>
               </div>
-              <select
+              <CleanSelect
                 value={departmentFilter}
                 onChange={(e) => setDepartmentFilter(e.target.value)}
                 className={`px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}
@@ -198,8 +200,8 @@ export function CourseManagementPage({ courses, users, adminDepartment, onAddCou
                 {departments.map(dept => (
                   <option key={dept} value={dept}>{dept}</option>
                 ))}
-              </select>
-              <select
+              </CleanSelect>
+              <CleanSelect
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
                 className={`px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}
@@ -207,7 +209,7 @@ export function CourseManagementPage({ courses, users, adminDepartment, onAddCou
                 <option value="all">{t('allStatus')}</option>
                 <option value="active">{t('active')}</option>
                 <option value="archived">{t('archived')}</option>
-              </select>
+              </CleanSelect>
               <button className={`flex items-center gap-2 px-4 py-2 rounded-lg border ${isDark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-200 text-gray-700 hover:bg-gray-50'}`}>
                 <Download size={18} />
                 {t('export')}
@@ -342,7 +344,7 @@ export function CourseManagementPage({ courses, users, adminDepartment, onAddCou
                 <div className="space-y-4">
                   <div>
                     <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Course</label>
-                    <select
+                    <CleanSelect
                       value={staffFormData.courseId}
                       onChange={(e) => setStaffFormData({ ...staffFormData, courseId: Number(e.target.value) })}
                       className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}
@@ -350,11 +352,11 @@ export function CourseManagementPage({ courses, users, adminDepartment, onAddCou
                       {deptCourses.map(c => (
                         <option key={c.id} value={c.id}>{c.code} - {c.name}</option>
                       ))}
-                    </select>
+                    </CleanSelect>
                   </div>
                   <div>
                     <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Instructor</label>
-                    <select
+                    <CleanSelect
                       value={staffFormData.instructorId}
                       onChange={(e) => setStaffFormData({ ...staffFormData, instructorId: Number(e.target.value) })}
                       className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}
@@ -363,7 +365,7 @@ export function CourseManagementPage({ courses, users, adminDepartment, onAddCou
                       {deptInstructors.map(inst => (
                         <option key={inst.id} value={inst.id}>{inst.name}</option>
                       ))}
-                    </select>
+                    </CleanSelect>
                   </div>
                   <div>
                     <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Teaching Assistants</label>
@@ -519,16 +521,16 @@ export function CourseManagementPage({ courses, users, adminDepartment, onAddCou
               </div>
               <div>
                 <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('semester')}</label>
-                <select value={formData.semester} onChange={(e) => setFormData({ ...formData, semester: e.target.value })} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}>
+                <CleanSelect value={formData.semester} onChange={(e) => setFormData({ ...formData, semester: e.target.value })} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}>
                   <option value="Fall 2025">Fall 2025</option>
                   <option value="Spring 2026">Spring 2026</option>
                   <option value="Summer 2026">Summer 2026</option>
-                </select>
+                </CleanSelect>
               </div>
               {/* Instructor Dropdown */}
               <div>
                 <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('assignInstructor')}</label>
-                <select
+                <CleanSelect
                   value={formData.instructorId}
                   onChange={(e) => {
                     const inst = deptInstructors.find(i => i.id === Number(e.target.value));
@@ -540,7 +542,7 @@ export function CourseManagementPage({ courses, users, adminDepartment, onAddCou
                   {deptInstructors.map(inst => (
                     <option key={inst.id} value={inst.id}>{inst.name}</option>
                   ))}
-                </select>
+                </CleanSelect>
               </div>
               {/* TA Multi-Select */}
               <div>

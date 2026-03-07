@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Calendar, Clock, MapPin, Users, Plus, Edit2, Trash2, Video, Check, X, Settings } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { CleanSelect } from '../../../components/shared';
+
 
 type ScheduleSlot = {
   id: string;
@@ -296,7 +298,7 @@ export function OfficeHoursPage() {
             <div className="space-y-4">
               <div>
                 <label className={`block text-sm font-medium mb-1 ${headingClass}`}>Day</label>
-                <select
+                <CleanSelect
                   value={newSlot.day}
                   onChange={(e) => setNewSlot({ ...newSlot, day: e.target.value })}
                   className={inputClass}
@@ -304,7 +306,7 @@ export function OfficeHoursPage() {
                   {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((d) => (
                     <option key={d} value={d}>{d}</option>
                   ))}
-                </select>
+                </CleanSelect>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -338,14 +340,14 @@ export function OfficeHoursPage() {
               </div>
               <div>
                 <label className={`block text-sm font-medium mb-1 ${headingClass}`}>Type</label>
-                <select
+                <CleanSelect
                   value={newSlot.type}
                   onChange={(e) => setNewSlot({ ...newSlot, type: e.target.value as 'in-person' | 'online' })}
                   className={inputClass}
                 >
                   <option value="in-person">In-person</option>
                   <option value="online">Online</option>
-                </select>
+                </CleanSelect>
               </div>
             </div>
             <div className="flex items-center justify-end gap-3 mt-6">

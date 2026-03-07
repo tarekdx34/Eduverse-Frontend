@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { CleanSelect } from '../../../components/shared';
+
 import {
   Settings,
   Shield,
@@ -253,7 +255,7 @@ export function SettingsHubPage() {
         </div>
         <div className="divide-y divide-gray-700/20">
           <SettingRow label="Current Semester">
-            <select
+            <CleanSelect
               value={settings.currentSemester}
               onChange={(e) => update('currentSemester', e.target.value)}
               className={selectClass}
@@ -261,7 +263,7 @@ export function SettingsHubPage() {
               <option>Fall 2024</option>
               <option>Spring 2025</option>
               <option>Summer 2025</option>
-            </select>
+            </CleanSelect>
           </SettingRow>
           <SettingRow label="Semester Start Date">
             <input
@@ -360,14 +362,14 @@ export function SettingsHubPage() {
         </div>
         <div className="divide-y divide-gray-700/20">
           <SettingRow label="Default Language">
-            <select
+            <CleanSelect
               value={settings.defaultLanguage}
               onChange={(e) => update('defaultLanguage', e.target.value)}
               className={selectClass}
             >
               <option>English</option>
               <option>Arabic</option>
-            </select>
+            </CleanSelect>
           </SettingRow>
           <SettingRow label="Allow User Language Override">
             <Toggle
@@ -443,7 +445,7 @@ export function SettingsHubPage() {
             <Toggle checked={settings.require2FAAll} onChange={(v) => update('require2FAAll', v)} />
           </SettingRow>
           <SettingRow label="2FA Method">
-            <select
+            <CleanSelect
               value={settings.twoFAMethod}
               onChange={(e) => update('twoFAMethod', e.target.value)}
               className={selectClass}
@@ -451,7 +453,7 @@ export function SettingsHubPage() {
               <option>App</option>
               <option>SMS</option>
               <option>Email</option>
-            </select>
+            </CleanSelect>
           </SettingRow>
         </div>
       </div>
@@ -561,14 +563,14 @@ export function SettingsHubPage() {
         </div>
         <div className="divide-y divide-gray-700/20">
           <SettingRow label="Provider">
-            <select
+            <CleanSelect
               value={settings.smsProvider}
               onChange={(e) => update('smsProvider', e.target.value)}
               className={selectClass}
             >
               <option>Twilio</option>
               <option>Vonage</option>
-            </select>
+            </CleanSelect>
           </SettingRow>
           <SettingRow label="API Key">
             <input
@@ -677,7 +679,7 @@ export function SettingsHubPage() {
             <Toggle checked={settings.paypalEnabled} onChange={(v) => update('paypalEnabled', v)} />
           </SettingRow>
           <SettingRow label="Currency">
-            <select
+            <CleanSelect
               value={settings.currency}
               onChange={(e) => update('currency', e.target.value)}
               className={selectClass}
@@ -685,7 +687,7 @@ export function SettingsHubPage() {
               <option>USD</option>
               <option>EUR</option>
               <option>GBP</option>
-            </select>
+            </CleanSelect>
           </SettingRow>
         </div>
       </div>
@@ -698,7 +700,7 @@ export function SettingsHubPage() {
         </div>
         <div className="divide-y divide-gray-700/20">
           <SettingRow label="Provider">
-            <select
+            <CleanSelect
               value={settings.videoProvider}
               onChange={(e) => update('videoProvider', e.target.value)}
               className={selectClass}
@@ -706,7 +708,7 @@ export function SettingsHubPage() {
               <option>Zoom</option>
               <option>Teams</option>
               <option>Meet</option>
-            </select>
+            </CleanSelect>
           </SettingRow>
           <SettingRow label="API Key">
             <input
@@ -807,7 +809,7 @@ export function SettingsHubPage() {
         </div>
         <div className="divide-y divide-gray-700/20">
           <SettingRow label="Log Level">
-            <select
+            <CleanSelect
               value={settings.logLevel}
               onChange={(e) => update('logLevel', e.target.value)}
               className={selectClass}
@@ -815,10 +817,10 @@ export function SettingsHubPage() {
               <option>Info</option>
               <option>Warning</option>
               <option>Error</option>
-            </select>
+            </CleanSelect>
           </SettingRow>
           <SettingRow label="Retention (days)">
-            <select
+            <CleanSelect
               value={settings.logRetention}
               onChange={(e) => update('logRetention', e.target.value)}
               className={selectClass}
@@ -826,7 +828,7 @@ export function SettingsHubPage() {
               <option value="30">30</option>
               <option value="60">60</option>
               <option value="90">90</option>
-            </select>
+            </CleanSelect>
           </SettingRow>
         </div>
         <div className="mt-4">

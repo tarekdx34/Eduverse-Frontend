@@ -75,6 +75,10 @@ function StudentDashboardContent() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [viewingCourseId, setViewingCourseId] = useState<string | null>(null);
 
+  const { isRTL, language, setLanguage, t } = useLanguage();
+  const { isDark, toggleTheme, primaryHex, primaryColor, setPrimaryColor } = useTheme() as any;
+  const accentColor = primaryHex || '#3b82f6'; // Defined here as per instruction
+
   // Determine active tab and course ID from location
   const pathSegments = location.pathname.split('/').filter(Boolean);
   // pathSegments will be like: ['studentdashboard', 'attendance'] or ['studentdashboard', 'myclass', '123']
@@ -111,10 +115,38 @@ function StudentDashboardContent() {
     { id: 'profile', label: 'Profile', icon: User, group: 'Account' },
   ];
 
+  // Disable browser's native scroll restoration
+  useEffect(() => {
+    window.history.scrollRestoration = 'manual';
+    return () => {
+      window.history.scrollRestoration = 'auto';
+    };
+  }, []);
+
+  // Scroll to top — targets every possible scroll container
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    document.documentElement.scrollTo({ top: 0, behavior: 'smooth' });
+    document.body.scrollTo({ top: 0, behavior: 'smooth' });
+    const root = document.getElementById('root');
+    if (root) root.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // Also target the main content area which might have its own scroll
+    const mainContent = document.querySelector('main');
+    if (mainContent) mainContent.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Scroll on tab change
+  useEffect(() => {
+    scrollToTop();
+  }, [activeTab]);
+
   // Handle tab navigation - clear course view when navigating to other tabs
   const handleTabChange = (tabId: string) => {
     setViewingCourseId(null); // Clear course view
     navigate(`/studentdashboard/${tabId}`);
+    // Scroll after a tick so the new content has rendered
+    requestAnimationFrame(() => scrollToTop());
   };
 
   // Handle course view
@@ -129,9 +161,6 @@ function StudentDashboardContent() {
     setViewingCourseId(null);
   };
 
-  const { isRTL, language, setLanguage, t } = useLanguage();
-  const { isDark, toggleTheme, primaryHex, primaryColor, setPrimaryColor } = useTheme() as any;
-
   const headerTranslations = {
     search: t('search') || 'Search...',
     language: t('language'),
@@ -142,6 +171,70 @@ function StudentDashboardContent() {
     viewProfile: t('viewProfile'),
     logout: t('logout'),
   };
+
+  // Dummy course data for ClassTab, including instructor images
+  const courses = [
+    {
+      id: '1',
+      title: 'Introduction to Programming',
+      code: 'CS101',
+      instructor: 'Dr. Michael Smith',
+      instructorImage: 'https://i.pravatar.cc/150?u=michael',
+      progress: 75,
+      grade: 'A-',
+      status: 'In Progress',
+      nextSession: 'Mon, Oct 26, 10:00 AM',
+      description: 'Fundamentals of programming using Python.',
+    },
+    {
+      id: '2',
+      title: 'Data Structures and Algorithms',
+      code: 'CS201',
+      instructor: 'Prof. Lisa Jones',
+      instructorImage: 'https://i.pravatar.cc/150?u=lisa',
+      progress: 90,
+      grade: 'A',
+      status: 'Completed',
+      nextSession: 'Tue, Oct 27, 1:00 PM',
+      description: 'Advanced data structures and algorithm design.',
+    },
+    {
+      id: '3',
+      title: 'Database Management Systems',
+      code: 'CS305',
+      instructor: 'Dr. Robert Brown',
+      instructorImage: 'https://i.pravatar.cc/150?u=robert',
+      progress: 60,
+      grade: 'B+',
+      status: 'In Progress',
+      nextSession: 'Wed, Oct 28, 11:00 AM',
+      description: 'Design and implementation of relational databases.',
+    },
+    {
+      id: '4',
+      title: 'Web Development Fundamentals',
+      code: 'CS301',
+      instructor: 'Prof. Sarah Davis',
+      instructorImage: 'https://i.pravatar.cc/150?u=sarah',
+      progress: 80,
+      grade: 'A-',
+      status: 'In Progress',
+      nextSession: 'Thu, Oct 29, 2:00 PM',
+      description: 'Introduction to front-end and back-end web technologies.',
+    },
+    {
+      id: '5',
+      title: 'Artificial Intelligence',
+      code: 'CS401',
+      instructor: 'Dr. Emily White',
+      instructorImage: 'https://i.pravatar.cc/150?u=emily',
+      progress: 40,
+      grade: 'B',
+      status: 'In Progress',
+      nextSession: 'Fri, Oct 30, 9:00 AM',
+      description: 'Core concepts and applications of artificial intelligence.',
+    },
+  ];
 
   return (
     <div
@@ -173,7 +266,7 @@ function StudentDashboardContent() {
 
       {/* Main Content */}
       <main
-        className={`flex-1 transition-all duration-300 ${isRTL ? 'lg:mr-64' : 'lg:ml-64'} ${activeTab === 'chat' ? 'p-0' : 'p-4 lg:p-10'}`}
+        className={`flex-1 w-full transition-all duration-300 overflow-x-hidden ${isRTL ? 'lg:mr-64' : 'lg:ml-64'} ${activeTab === 'chat' ? 'p-0' : 'p-4 lg:p-10'}`}
       >
         {/* Header - hide on chat for full-screen experience */}
         {activeTab !== 'chat' && (
@@ -205,7 +298,12 @@ function StudentDashboardContent() {
         )}
 
         {/* Content Area */}
-        <div className={activeTab === 'chat' ? 'h-screen overflow-hidden p-0' : 'flex-1'}>
+        <div
+          key={activeTab}
+          className={activeTab === 'chat' ? 'h-screen overflow-hidden p-0' : 'flex-1'}
+          style={{ animation: 'tabFadeIn 0.18s ease-out' }}
+        >
+          <style>{`@keyframes tabFadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }`}</style>
           {viewingCourseId ? (
             <CourseViewPage courseId={viewingCourseId} onBack={handleBackFromCourse} />
           ) : (
@@ -220,6 +318,7 @@ function StudentDashboardContent() {
                       maxValue="144"
                       comparison="+24 Credits"
                       isPositive={true}
+                      icon={<BookOpen size={24} />}
                     />
                     <StatsCard
                       label="Grade Point Average"
@@ -227,6 +326,7 @@ function StudentDashboardContent() {
                       maxValue="4.00"
                       comparison="-0.25 Points"
                       isPositive={false}
+                      icon={<Trophy size={24} />}
                     />
                     <StatsCard
                       label="Active Class"
@@ -234,6 +334,7 @@ function StudentDashboardContent() {
                       maxValue="18"
                       comparison="Active Course This Semester"
                       isPositive={true}
+                      icon={<GraduationCap size={24} />}
                     />
                   </div>
 
@@ -273,7 +374,12 @@ function StudentDashboardContent() {
               {activeTab === 'notifications' && <NotificationCenter />}
               {activeTab === 'payments' && <PaymentHistory />}
               {activeTab === 'chat' && (
-                <MessagingChat height="100vh" isDark={isDark} className="rounded-none border-0" />
+                <MessagingChat
+                  height="100vh"
+                  isDark={isDark}
+                  className="rounded-none border-0"
+                  accentColor={primaryHex || '#3b82f6'}
+                />
               )}
               {activeTab === 'settings' && <SettingsPreferences />}
               {activeTab === 'profile' && (

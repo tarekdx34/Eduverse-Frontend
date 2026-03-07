@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { Database, Download, Upload, Clock, HardDrive, RefreshCw, Calendar } from 'lucide-react';
+import { CleanSelect } from '../../../components/shared';
+
 
 interface Backup {
   id: number;
@@ -261,7 +263,7 @@ export function BackupCenterPage() {
             <label className={`text-sm font-medium ${label}`}>
               {t('frequency') || 'Frequency'}
             </label>
-            <select
+            <CleanSelect
               value={scheduleFrequency}
               onChange={(e) => setScheduleFrequency(e.target.value)}
               className={`rounded-xl px-3 py-2 text-sm border outline-none transition-colors ${
@@ -273,7 +275,7 @@ export function BackupCenterPage() {
               <option value="daily">{t('daily') || 'Daily'}</option>
               <option value="weekly">{t('weekly') || 'Weekly'}</option>
               <option value="monthly">{t('monthly') || 'Monthly'}</option>
-            </select>
+            </CleanSelect>
           </div>
 
           {/* Time */}

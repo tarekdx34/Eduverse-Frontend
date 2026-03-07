@@ -19,6 +19,8 @@ import {
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { CleanSelect } from '../../../components/shared';
+
 
 interface AuditLog {
   id: number;
@@ -148,7 +150,7 @@ export function SystemConfigPage({
                   />
                 </div>
               </div>
-              <select
+              <CleanSelect
                 value={logFilter}
                 onChange={(e) => setLogFilter(e.target.value)}
                 className={`px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}
@@ -157,7 +159,7 @@ export function SystemConfigPage({
                 <option value="user">{t('userActionsFilter')}</option>
                 <option value="course">{t('courseActionsFilter')}</option>
                 <option value="system">{t('systemActionsFilter')}</option>
-              </select>
+              </CleanSelect>
               <button className={`flex items-center gap-2 px-4 py-2 rounded-lg border ${isDark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-200 text-gray-700 hover:bg-gray-50'}`}>
                 <Download size={18} />
                 {t('exportLogs')}

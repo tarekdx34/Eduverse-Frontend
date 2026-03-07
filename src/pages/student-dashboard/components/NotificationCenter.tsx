@@ -18,7 +18,7 @@ import {
   MessageSquare,
   TrendingDown,
   FileText,
-  Users
+  Users,
 } from 'lucide-react';
 
 interface Notification {
@@ -38,21 +38,22 @@ const notifications: Notification[] = [
     id: '1',
     type: 'deadline',
     title: 'Assignment Due Tomorrow',
-    description: 'Database Design Project is due in 24 hours. Don\'t forget to submit!',
+    description: "Database Design Project is due in 24 hours. Don't forget to submit!",
     timestamp: '10 minutes ago',
     read: false,
     priority: 'urgent',
-    category: 'CS220'
+    category: 'CS220',
   },
   {
     id: '2',
     type: 'warning',
     title: 'Low Attendance Alert',
-    description: 'Your attendance in Database Management Systems is at 76%. Minimum required is 75%.',
+    description:
+      'Your attendance in Database Management Systems is at 76%. Minimum required is 75%.',
     timestamp: '1 hour ago',
     read: false,
     priority: 'high',
-    category: 'Attendance'
+    category: 'Attendance',
   },
   {
     id: '3',
@@ -62,7 +63,7 @@ const notifications: Notification[] = [
     timestamp: '2 hours ago',
     read: false,
     priority: 'medium',
-    category: 'CS150'
+    category: 'CS150',
   },
   {
     id: '4',
@@ -72,17 +73,18 @@ const notifications: Notification[] = [
     timestamp: '3 hours ago',
     read: true,
     priority: 'low',
-    category: 'Gamification'
+    category: 'Gamification',
   },
   {
     id: '5',
     type: 'announcement',
     title: 'Class Cancelled',
-    description: 'Tomorrow\'s Software Engineering lecture has been cancelled. Check announcements for details.',
+    description:
+      "Tomorrow's Software Engineering lecture has been cancelled. Check announcements for details.",
     timestamp: '5 hours ago',
     read: true,
     priority: 'medium',
-    category: 'CS305'
+    category: 'CS305',
   },
   {
     id: '6',
@@ -92,27 +94,29 @@ const notifications: Notification[] = [
     timestamp: '6 hours ago',
     read: true,
     priority: 'medium',
-    category: 'Messages'
+    category: 'Messages',
   },
   {
     id: '7',
     type: 'reminder',
     title: 'Exam in 3 Days',
-    description: 'Midterm Exam for Web Development Fundamentals is scheduled for December 6th at 1:00 PM.',
+    description:
+      'Midterm Exam for Web Development Fundamentals is scheduled for December 6th at 1:00 PM.',
     timestamp: '1 day ago',
     read: true,
     priority: 'high',
-    category: 'CS150'
+    category: 'CS150',
   },
   {
     id: '8',
     type: 'warning',
     title: 'Progress Alert',
-    description: 'You\'re falling behind in Data Structures & Algorithms. Complete the pending assignments to catch up.',
+    description:
+      "You're falling behind in Data Structures & Algorithms. Complete the pending assignments to catch up.",
     timestamp: '1 day ago',
     read: true,
     priority: 'high',
-    category: 'CS201'
+    category: 'CS201',
   },
   {
     id: '9',
@@ -122,18 +126,19 @@ const notifications: Notification[] = [
     timestamp: '2 days ago',
     read: true,
     priority: 'medium',
-    category: 'CS201'
+    category: 'CS201',
   },
   {
     id: '10',
     type: 'announcement',
     title: 'New Course Materials Available',
-    description: 'New lecture slides and resources have been uploaded for Mobile Application Development.',
+    description:
+      'New lecture slides and resources have been uploaded for Mobile Application Development.',
     timestamp: '3 days ago',
     read: true,
     priority: 'low',
-    category: 'CS350'
-  }
+    category: 'CS350',
+  },
 ];
 
 export function NotificationCenter() {
@@ -151,10 +156,10 @@ export function NotificationCenter() {
     warnings: true,
     emailNotifications: true,
     pushNotifications: true,
-    soundEnabled: false
+    soundEnabled: false,
   });
 
-  const unreadCount = notificationList.filter(n => !n.read).length;
+  const unreadCount = notificationList.filter((n) => !n.read).length;
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
@@ -178,26 +183,46 @@ export function NotificationCenter() {
   };
 
   const getNotificationColor = (type: string, priority: string) => {
-    if (priority === 'urgent') return isDark ? 'bg-red-900/50 text-red-400 border-red-800' : 'bg-red-100 text-red-600 border-red-200';
-    if (priority === 'high') return isDark ? 'bg-orange-900/50 text-orange-400 border-orange-800' : 'bg-orange-100 text-orange-600 border-orange-200';
-    
+    if (priority === 'urgent')
+      return isDark
+        ? 'bg-red-900/50 text-red-400 border-red-800'
+        : 'bg-red-100 text-red-600 border-red-200';
+    if (priority === 'high')
+      return isDark
+        ? 'bg-orange-900/50 text-orange-400 border-orange-800'
+        : 'bg-orange-100 text-orange-600 border-orange-200';
+
     switch (type) {
       case 'deadline':
-        return isDark ? 'bg-red-900/50 text-red-400 border-red-800' : 'bg-red-100 text-red-600 border-red-200';
+        return isDark
+          ? 'bg-red-900/50 text-red-400 border-red-800'
+          : 'bg-red-100 text-red-600 border-red-200';
       case 'grade':
-        return isDark ? 'bg-green-900/50 text-green-400 border-green-800' : 'bg-green-100 text-green-600 border-green-200';
+        return isDark
+          ? 'bg-green-900/50 text-green-400 border-green-800'
+          : 'bg-green-100 text-green-600 border-green-200';
       case 'announcement':
-        return isDark ? 'bg-blue-900/50 text-blue-400 border-blue-800' : 'bg-blue-100 text-blue-600 border-blue-200';
+        return isDark
+          ? 'bg-blue-900/50 text-blue-400 border-blue-800'
+          : 'bg-blue-100 text-blue-600 border-blue-200';
       case 'reminder':
-        return isDark ? 'bg-blue-900/50 text-blue-400 border-blue-800' : 'bg-blue-100 text-blue-600 border-blue-200';
+        return isDark
+          ? 'bg-blue-900/50 text-blue-400 border-blue-800'
+          : 'bg-blue-100 text-blue-600 border-blue-200';
       case 'achievement':
-        return isDark ? 'bg-amber-900/50 text-amber-400 border-amber-800' : 'bg-amber-100 text-amber-600 border-amber-200';
+        return isDark
+          ? 'bg-amber-900/50 text-amber-400 border-amber-800'
+          : 'bg-amber-100 text-amber-600 border-amber-200';
       case 'message':
         return 'bg-[var(--accent-color)]/10 text-[var(--accent-color)] border-[var(--accent-color)]/20';
       case 'warning':
-        return isDark ? 'bg-orange-900/50 text-orange-400 border-orange-800' : 'bg-orange-100 text-orange-600 border-orange-200';
+        return isDark
+          ? 'bg-orange-900/50 text-orange-400 border-orange-800'
+          : 'bg-orange-100 text-orange-600 border-orange-200';
       default:
-        return isDark ? 'bg-slate-800 text-slate-400 border-slate-700' : 'bg-slate-50 text-slate-600 border-slate-100';
+        return isDark
+          ? 'bg-slate-800 text-slate-400 border-slate-700'
+          : 'bg-slate-50 text-slate-600 border-slate-100';
     }
   };
 
@@ -217,36 +242,38 @@ export function NotificationCenter() {
   };
 
   const markAsRead = (id: string) => {
-    setNotificationList(notificationList.map(n => 
-      n.id === id ? { ...n, read: true } : n
-    ));
+    setNotificationList(notificationList.map((n) => (n.id === id ? { ...n, read: true } : n)));
   };
 
   const markAllAsRead = () => {
-    setNotificationList(notificationList.map(n => ({ ...n, read: true })));
+    setNotificationList(notificationList.map((n) => ({ ...n, read: true })));
   };
 
   const deleteNotification = (id: string) => {
-    setNotificationList(notificationList.filter(n => n.id !== id));
+    setNotificationList(notificationList.filter((n) => n.id !== id));
   };
 
   const clearAllRead = () => {
-    setNotificationList(notificationList.filter(n => !n.read));
+    setNotificationList(notificationList.filter((n) => !n.read));
   };
 
-  const filteredNotifications = filterType === 'all' 
-    ? notificationList 
-    : filterType === 'unread'
-    ? notificationList.filter(n => !n.read)
-    : notificationList.filter(n => n.type === filterType);
+  const filteredNotifications =
+    filterType === 'all'
+      ? notificationList
+      : filterType === 'unread'
+        ? notificationList.filter((n) => !n.read)
+        : notificationList.filter((n) => n.type === filterType);
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>Notifications</h1>
-          <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Stay updated with your courses, deadlines, and achievements</p>
+          <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+            Notifications
+          </h1>
+          <p className={`text-slate-500 mt-1 font-medium`}>
+            Stay updated with your courses, deadlines, and achievements
+          </p>
         </div>
         <button
           onClick={() => setShowSettings(!showSettings)}
@@ -308,20 +335,30 @@ export function NotificationCenter() {
             {filteredNotifications.length === 0 ? (
               <div className="glass rounded-[2.5rem] p-12 text-center">
                 <Bell className="w-16 h-16 text-slate-400 mx-auto mb-4" />
-                <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-800'} mb-2`}>No Notifications</h3>
-                <p className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}>You're all caught up!</p>
+                <h3
+                  className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-800'} mb-2`}
+                >
+                  No Notifications
+                </h3>
+                <p className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                  You're all caught up!
+                </p>
               </div>
             ) : (
               filteredNotifications.map((notification) => (
                 <div
                   key={notification.id}
                   className={`${isDark ? 'bg-card-dark' : 'bg-white'} rounded-xl border-2 p-4 transition-all hover:shadow-md ${
-                    !notification.read ? 'border-[var(--accent-color)]/20 bg-[var(--accent-color)]/10/30' : `${isDark ? 'border-white/5' : 'border-slate-100'}`
+                    !notification.read
+                      ? 'border-[var(--accent-color)]/20 bg-[var(--accent-color)]/10/30'
+                      : `${isDark ? 'border-white/5' : 'border-slate-100'}`
                   }`}
                 >
                   <div className="flex items-start gap-4">
                     {/* Icon */}
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center border ${getNotificationColor(notification.type, notification.priority)}`}>
+                    <div
+                      className={`w-12 h-12 rounded-xl flex items-center justify-center border ${getNotificationColor(notification.type, notification.priority)}`}
+                    >
                       {getNotificationIcon(notification.type)}
                     </div>
 
@@ -329,13 +366,17 @@ export function NotificationCenter() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2 mb-1">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <h4 className={`font-semibold ${!notification.read ? `${isDark ? 'text-white' : 'text-slate-800'}` : `${isDark ? 'text-slate-300' : 'text-slate-700'}`}`}>
+                          <h4
+                            className={`font-semibold ${!notification.read ? `${isDark ? 'text-white' : 'text-slate-800'}` : `${isDark ? 'text-slate-300' : 'text-slate-700'}`}`}
+                          >
                             {notification.title}
                           </h4>
                           {!notification.read && (
                             <span className="w-2 h-2 bg-[var(--accent-color)]/100 rounded-full" />
                           )}
-                          <span className={`px-2 py-0.5 rounded text-xs font-medium ${getPriorityBadge(notification.priority)}`}>
+                          <span
+                            className={`px-2 py-0.5 rounded text-xs font-medium ${getPriorityBadge(notification.priority)}`}
+                          >
                             {notification.priority}
                           </span>
                         </div>
@@ -346,11 +387,17 @@ export function NotificationCenter() {
                           <X className="w-4 h-4" />
                         </button>
                       </div>
-                      <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'} mb-2`}>{notification.description}</p>
+                      <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'} mb-2`}>
+                        {notification.description}
+                      </p>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3 text-xs text-slate-500">
                           <span>{notification.timestamp}</span>
-                          <span className={`px-2 py-0.5 ${isDark ? 'bg-white/5' : 'bg-slate-50'} rounded`}>{notification.category}</span>
+                          <span
+                            className={`px-2 py-0.5 ${isDark ? 'bg-white/5' : 'bg-slate-50'} rounded`}
+                          >
+                            {notification.category}
+                          </span>
                         </div>
                         {!notification.read && (
                           <button
@@ -373,36 +420,83 @@ export function NotificationCenter() {
         <div className="space-y-4">
           {showSettings ? (
             <div className="glass rounded-[2.5rem] overflow-hidden">
-              <div className={`${isDark ? 'bg-white/5 border-b border-white/5' : 'bg-gradient-to-r from-background-light to-white border-b border-slate-100'} p-4`}>
-                <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'} flex items-center gap-2`}>
+              <div
+                className={`${isDark ? 'bg-white/5 border-b border-white/5' : 'bg-background-light border-b border-slate-100'} p-4`}
+              >
+                <h3
+                  className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'} flex items-center gap-2`}
+                >
                   <Settings className="w-5 h-5 text-slate-600" />
                   Notification Settings
                 </h3>
               </div>
               <div className="p-4 space-y-4">
                 <div>
-                  <h4 className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'} mb-3`}>Notification Types</h4>
+                  <h4
+                    className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'} mb-3`}
+                  >
+                    Notification Types
+                  </h4>
                   <div className="space-y-3">
                     {[
-                      { key: 'deadlines', label: 'Deadline Reminders', icon: <Clock className="w-4 h-4" /> },
-                      { key: 'grades', label: 'Grade Updates', icon: <FileText className="w-4 h-4" /> },
-                      { key: 'announcements', label: 'Announcements', icon: <Info className="w-4 h-4" /> },
-                      { key: 'messages', label: 'Messages', icon: <MessageSquare className="w-4 h-4" /> },
-                      { key: 'achievements', label: 'Achievements', icon: <Award className="w-4 h-4" /> },
-                      { key: 'warnings', label: 'Progress Warnings', icon: <AlertTriangle className="w-4 h-4" /> },
+                      {
+                        key: 'deadlines',
+                        label: 'Deadline Reminders',
+                        icon: <Clock className="w-4 h-4" />,
+                      },
+                      {
+                        key: 'grades',
+                        label: 'Grade Updates',
+                        icon: <FileText className="w-4 h-4" />,
+                      },
+                      {
+                        key: 'announcements',
+                        label: 'Announcements',
+                        icon: <Info className="w-4 h-4" />,
+                      },
+                      {
+                        key: 'messages',
+                        label: 'Messages',
+                        icon: <MessageSquare className="w-4 h-4" />,
+                      },
+                      {
+                        key: 'achievements',
+                        label: 'Achievements',
+                        icon: <Award className="w-4 h-4" />,
+                      },
+                      {
+                        key: 'warnings',
+                        label: 'Progress Warnings',
+                        icon: <AlertTriangle className="w-4 h-4" />,
+                      },
                     ].map((setting) => (
-                      <label key={setting.key} className={`flex items-center justify-between p-3 ${isDark ? 'bg-white/5 hover:bg-white/10' : 'bg-background-light hover:bg-slate-50'} rounded-lg cursor-pointer transition-all`}>
+                      <label
+                        key={setting.key}
+                        className={`flex items-center justify-between p-3 ${isDark ? 'bg-white/5 hover:bg-white/10' : 'bg-background-light hover:bg-slate-50'} rounded-lg cursor-pointer transition-all`}
+                      >
                         <div className="flex items-center gap-3">
-                          <span className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}>{setting.icon}</span>
-                          <span className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{setting.label}</span>
+                          <span className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                            {setting.icon}
+                          </span>
+                          <span
+                            className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-700'}`}
+                          >
+                            {setting.label}
+                          </span>
                         </div>
                         <input
                           type="checkbox"
-                          checked={notificationSettings[setting.key as keyof typeof notificationSettings] as boolean}
-                          onChange={(e) => setNotificationSettings({
-                            ...notificationSettings,
-                            [setting.key]: e.target.checked
-                          })}
+                          checked={
+                            notificationSettings[
+                              setting.key as keyof typeof notificationSettings
+                            ] as boolean
+                          }
+                          onChange={(e) =>
+                            setNotificationSettings({
+                              ...notificationSettings,
+                              [setting.key]: e.target.checked,
+                            })
+                          }
                           className="w-5 h-5 text-[var(--accent-color)] rounded border-slate-200 focus:ring-[var(--accent-color)]"
                         />
                       </label>
@@ -411,22 +505,37 @@ export function NotificationCenter() {
                 </div>
 
                 <div className={`pt-4 border-t ${isDark ? 'border-white/5' : 'border-slate-100'}`}>
-                  <h4 className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'} mb-3`}>Delivery Methods</h4>
+                  <h4
+                    className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'} mb-3`}
+                  >
+                    Delivery Methods
+                  </h4>
                   <div className="space-y-3">
                     {[
                       { key: 'emailNotifications', label: 'Email Notifications' },
                       { key: 'pushNotifications', label: 'Push Notifications' },
                       { key: 'soundEnabled', label: 'Sound Alerts' },
                     ].map((setting) => (
-                      <label key={setting.key} className={`flex items-center justify-between p-3 ${isDark ? 'bg-white/5 hover:bg-white/10' : 'bg-background-light hover:bg-slate-50'} rounded-lg cursor-pointer transition-all`}>
-                        <span className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{setting.label}</span>
+                      <label
+                        key={setting.key}
+                        className={`flex items-center justify-between p-3 ${isDark ? 'bg-white/5 hover:bg-white/10' : 'bg-background-light hover:bg-slate-50'} rounded-lg cursor-pointer transition-all`}
+                      >
+                        <span className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                          {setting.label}
+                        </span>
                         <input
                           type="checkbox"
-                          checked={notificationSettings[setting.key as keyof typeof notificationSettings] as boolean}
-                          onChange={(e) => setNotificationSettings({
-                            ...notificationSettings,
-                            [setting.key]: e.target.checked
-                          })}
+                          checked={
+                            notificationSettings[
+                              setting.key as keyof typeof notificationSettings
+                            ] as boolean
+                          }
+                          onChange={(e) =>
+                            setNotificationSettings({
+                              ...notificationSettings,
+                              [setting.key]: e.target.checked,
+                            })
+                          }
                           className="w-5 h-5 text-[var(--accent-color)] rounded border-slate-200 focus:ring-[var(--accent-color)]"
                         />
                       </label>
@@ -442,29 +551,58 @@ export function NotificationCenter() {
           ) : (
             <>
               {/* Urgent Alerts */}
-              <div className={`rounded-[2.5rem] overflow-hidden ${isDark ? 'bg-card-dark border border-white/5' : 'glass'}`}>
-                <div className={`${isDark ? 'bg-gradient-to-r from-red-900/40 to-orange-900/40 border-b border-red-800/50' : 'bg-gradient-to-r from-red-50 to-orange-50 border-b border-red-200'} p-4`}>
-                  <h3 className={`font-semibold ${isDark ? 'text-red-400' : 'text-red-900'} flex items-center gap-2`}>
-                    <AlertTriangle className={`w-5 h-5 ${isDark ? 'text-red-400' : 'text-red-500'}`} />
+              <div
+                className={`rounded-[2.5rem] overflow-hidden ${isDark ? 'bg-card-dark border border-white/5' : 'glass'}`}
+              >
+                <div
+                  className={`${isDark ? 'bg-red-900/20 border-b border-red-800/50' : 'bg-red-50 border-b border-red-200'} p-4`}
+                >
+                  <h3
+                    className={`font-semibold ${isDark ? 'text-red-400' : 'text-red-900'} flex items-center gap-2`}
+                  >
+                    <AlertTriangle
+                      className={`w-5 h-5 ${isDark ? 'text-red-400' : 'text-red-500'}`}
+                    />
                     Urgent Alerts
                   </h3>
                 </div>
                 <div className="p-4 space-y-3">
-                  {notificationList.filter(n => n.priority === 'urgent' || n.priority === 'high').slice(0, 3).map((alert) => (
-                    <div key={alert.id} className={`p-3 ${isDark ? 'bg-red-900/20 border border-red-800/50' : 'bg-red-50 border border-red-200'} rounded-lg`}>
-                      <div className="flex items-start gap-2">
-                        <AlertTriangle className={`w-4 h-4 mt-0.5 flex-shrink-0 ${isDark ? 'text-red-400' : 'text-red-500'}`} />
-                        <div>
-                          <p className={`text-sm font-medium ${isDark ? 'text-red-300' : 'text-red-900'}`}>{alert.title}</p>
-                          <p className={`text-xs ${isDark ? 'text-red-400/70' : 'text-red-700'} mt-1`}>{alert.timestamp}</p>
+                  {notificationList
+                    .filter((n) => n.priority === 'urgent' || n.priority === 'high')
+                    .slice(0, 3)
+                    .map((alert) => (
+                      <div
+                        key={alert.id}
+                        className={`p-3 ${isDark ? 'bg-red-900/20 border border-red-800/50' : 'bg-red-50 border border-red-200'} rounded-lg`}
+                      >
+                        <div className="flex items-start gap-2">
+                          <AlertTriangle
+                            className={`w-4 h-4 mt-0.5 flex-shrink-0 ${isDark ? 'text-red-400' : 'text-red-500'}`}
+                          />
+                          <div>
+                            <p
+                              className={`text-sm font-medium ${isDark ? 'text-red-300' : 'text-red-900'}`}
+                            >
+                              {alert.title}
+                            </p>
+                            <p
+                              className={`text-xs ${isDark ? 'text-red-400/70' : 'text-red-700'} mt-1`}
+                            >
+                              {alert.timestamp}
+                            </p>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                  {notificationList.filter(n => n.priority === 'urgent' || n.priority === 'high').length === 0 && (
+                    ))}
+                  {notificationList.filter((n) => n.priority === 'urgent' || n.priority === 'high')
+                    .length === 0 && (
                     <div className="text-center py-4">
-                      <CheckCircle className={`w-8 h-8 mx-auto mb-2 ${isDark ? 'text-green-400' : 'text-green-500'}`} />
-                      <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>No urgent alerts</p>
+                      <CheckCircle
+                        className={`w-8 h-8 mx-auto mb-2 ${isDark ? 'text-green-400' : 'text-green-500'}`}
+                      />
+                      <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                        No urgent alerts
+                      </p>
                     </div>
                   )}
                 </div>
@@ -472,24 +610,38 @@ export function NotificationCenter() {
 
               {/* Upcoming Deadlines */}
               <div className="glass rounded-[2.5rem] overflow-hidden">
-                <div className={`${isDark ? 'bg-white/5 border-b border-white/5' : 'bg-gradient-to-r from-background-light to-white border-b border-slate-100'} p-4`}>
-                  <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'} flex items-center gap-2`}>
+                <div
+                  className={`${isDark ? 'bg-white/5 border-b border-white/5' : 'bg-background-light border-b border-slate-100'} p-4`}
+                >
+                  <h3
+                    className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'} flex items-center gap-2`}
+                  >
                     <Calendar className="w-5 h-5 text-[var(--accent-color)]" />
                     Upcoming Deadlines
                   </h3>
                 </div>
                 <div className="p-4 space-y-3">
-                  {notificationList.filter(n => n.type === 'deadline' || n.type === 'reminder').slice(0, 4).map((deadline) => (
-                    <div key={deadline.id} className={`flex items-center gap-3 p-3 ${isDark ? 'bg-white/5' : 'bg-background-light'} rounded-lg`}>
-                      <div className="w-10 h-10 bg-[var(--accent-color)]/10 rounded-lg flex items-center justify-center">
-                        <Clock className="w-5 h-5 text-[var(--accent-color)]" />
+                  {notificationList
+                    .filter((n) => n.type === 'deadline' || n.type === 'reminder')
+                    .slice(0, 4)
+                    .map((deadline) => (
+                      <div
+                        key={deadline.id}
+                        className={`flex items-center gap-3 p-3 ${isDark ? 'bg-white/5' : 'bg-background-light'} rounded-lg`}
+                      >
+                        <div className="w-10 h-10 bg-[var(--accent-color)]/10 rounded-lg flex items-center justify-center">
+                          <Clock className="w-5 h-5 text-[var(--accent-color)]" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p
+                            className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'} truncate`}
+                          >
+                            {deadline.title}
+                          </p>
+                          <p className="text-xs text-slate-500">{deadline.category}</p>
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'} truncate`}>{deadline.title}</p>
-                        <p className="text-xs text-slate-500">{deadline.category}</p>
-                      </div>
-                    </div>
-                  ))}
+                    ))}
                 </div>
               </div>
             </>

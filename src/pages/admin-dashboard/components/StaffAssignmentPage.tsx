@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Users, BookOpen, UserPlus, Sparkles, AlertTriangle, CheckCircle, XCircle, Eye, Grid, List } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { CleanSelect } from '../../../components/shared';
+
 
 type FilterType = 'all' | 'needs-instructor' | 'needs-ta' | 'overloaded' | 'ai-suggestions';
 type ViewMode = 'grid' | 'list';
@@ -329,7 +331,7 @@ export function StaffAssignmentPage() {
             <form onSubmit={(e) => { e.preventDefault(); setShowAssignModal(false); }} className="p-6 space-y-4">
               <div>
                 <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Course</label>
-                <select
+                <CleanSelect
                   value={modalData.courseId}
                   onChange={(e) => setModalData(prev => ({ ...prev, courseId: Number(e.target.value) }))}
                   className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}
@@ -338,22 +340,22 @@ export function StaffAssignmentPage() {
                   {courses.map(c => (
                     <option key={c.id} value={c.id}>{c.code} - {c.name}</option>
                   ))}
-                </select>
+                </CleanSelect>
               </div>
               <div>
                 <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Role</label>
-                <select
+                <CleanSelect
                   value={modalData.role}
                   onChange={(e) => setModalData(prev => ({ ...prev, role: e.target.value as 'instructor' | 'ta', staffId: 0 }))}
                   className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}
                 >
                   <option value="instructor">Instructor</option>
                   <option value="ta">TA</option>
-                </select>
+                </CleanSelect>
               </div>
               <div>
                 <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Staff Member</label>
-                <select
+                <CleanSelect
                   value={modalData.staffId}
                   onChange={(e) => setModalData(prev => ({ ...prev, staffId: Number(e.target.value) }))}
                   className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}
@@ -362,7 +364,7 @@ export function StaffAssignmentPage() {
                   {filteredStaffByRole.map(s => (
                     <option key={s.id} value={s.id}>{s.name} ({s.workload}% workload)</option>
                   ))}
-                </select>
+                </CleanSelect>
               </div>
               <div className="flex items-center justify-end gap-3 pt-2">
                 <button

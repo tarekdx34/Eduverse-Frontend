@@ -1,4 +1,4 @@
-import {
+﻿import {
   Calendar,
   Clock,
   FileText,
@@ -295,21 +295,22 @@ export default function Assignments() {
 
   return (
     <div className="space-y-8">
-      {/* Page Header */}
-      <div>
-        <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>
-          {t('stayOnTop')}
-        </h1>
-        <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-          Track your progress, manage deadlines, and achieve your academic goals
-        </p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+        <div>
+          <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+            {t('stayOnTop')}
+          </h1>
+          <p className={`text-slate-500 mt-1 font-medium`}>
+            Track your progress, manage deadlines, and achieve your academic goals
+          </p>
+        </div>
       </div>
 
       {/* Active Assignments */}
-      <div className="glass rounded-[2.5rem] shadow-sm overflow-hidden">
-        <div
-          className={`p-6 border-b ${isDark ? 'bg-white/5 border-white/5' : 'bg-gradient-to-r from-background-light to-white border-slate-100'}`}
-        >
+      <div
+        className={`rounded-3xl border overflow-hidden ${isDark ? 'bg-card-dark border-white/5 shadow-xl shadow-black/20' : 'bg-white border-slate-200 shadow-sm'}`}
+      >
+        <div className={`p-6 border-b ${isDark ? 'border-white/5' : 'border-slate-100'}`}>
           <div className="flex items-center justify-between">
             <div>
               <h2 className={`font-semibold mb-1 ${isDark ? 'text-white' : 'text-slate-800'}`}>
@@ -423,7 +424,7 @@ export default function Assignments() {
                     </div>
 
                     <div
-                      className={`grid grid-cols-1 sm:grid-cols-3 gap-2 mb-3 rounded-xl p-3 border ${isDark ? 'bg-white/5 border-white/10' : 'bg-background-light border-slate-100'}`}
+                      className={`grid grid-cols-1 sm:grid-cols-3 gap-2 mb-3 rounded-xl p-3 border ${isDark ? 'bg-white/5 border-white/10' : 'bg-slate-50 border-slate-100'}`}
                     >
                       <div>
                         <div className="flex items-center gap-1.5 mb-1">
@@ -504,7 +505,7 @@ export default function Assignments() {
                     <div className="flex gap-2">
                       <button
                         onClick={() => setSelectedAssignmentId(assignment.id)}
-                        className="flex-1 px-3 py-2 bg-gradient-to-r from-[var(--accent-color)] to-[var(--accent-color)] text-white rounded-lg hover:shadow-lg transition-all flex items-center justify-center gap-1.5 text-sm font-medium"
+                        className="flex-1 px-3 py-2 bg-[var(--accent-color)] text-white rounded-lg hover:opacity-90 transition-all flex items-center justify-center gap-1.5 text-sm font-medium"
                       >
                         <span>{t('continueWork')}</span>
                         <ChevronRight className="w-3 h-3" />
@@ -532,10 +533,10 @@ export default function Assignments() {
       </div>
 
       {/* Completed Assignments */}
-      <div className="glass rounded-[2.5rem] shadow-sm overflow-hidden">
-        <div
-          className={`p-6 border-b ${isDark ? 'bg-white/5 border-white/5' : 'bg-gradient-to-r from-background-light to-white border-slate-100'}`}
-        >
+      <div
+        className={`rounded-3xl border overflow-hidden ${isDark ? 'bg-card-dark border-white/5 shadow-xl shadow-black/20' : 'bg-white border-slate-200 shadow-sm'}`}
+      >
+        <div className={`p-6 border-b ${isDark ? 'border-white/5' : 'border-slate-100'}`}>
           <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
             <div>
               <h2 className={`font-semibold mb-1 ${isDark ? 'text-white' : 'text-slate-800'}`}>
@@ -585,11 +586,7 @@ export default function Assignments() {
 
         <div className="overflow-x-auto">
           <table className="w-full min-w-[700px]">
-            <thead
-              className={
-                isDark ? 'bg-white/5' : 'bg-gradient-to-r from-background-light to-slate-50'
-              }
-            >
+            <thead className={isDark ? 'bg-white/5' : 'bg-slate-50'}>
               <tr>
                 <th
                   className={`px-6 py-4 text-left text-sm font-semibold ${isDark ? 'text-slate-400' : 'text-slate-700'}`}
@@ -646,7 +643,7 @@ export default function Assignments() {
                 filteredCompleted.map((assignment) => (
                   <tr
                     key={assignment.id}
-                    className={`border-b transition-colors ${isDark ? 'border-white/5 hover:bg-white/5/50' : 'border-slate-100 hover:bg-slate-50'}`}
+                    className={`border-b transition-colors ${isDark ? 'border-white/5 hover:bg-white/5' : 'border-slate-100 hover:bg-slate-50'}`}
                   >
                     <td className="px-6 py-4">
                       <div>

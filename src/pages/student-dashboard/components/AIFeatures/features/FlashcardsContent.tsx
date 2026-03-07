@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useTheme } from '../../../contexts/ThemeContext';
+import { CleanSelect } from '../../../../../components/shared';
+
 import { 
   Sparkles, 
   Layers, 
@@ -278,7 +280,7 @@ export function FlashcardsContent() {
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className={`block text-sm font-medium ${isDark ? 'text-slate-300' : 'text-slate-700'} mb-2`}>Number of Cards</label>
-          <select 
+          <CleanSelect 
             value={cardCount}
             onChange={(e) => setCardCount(e.target.value)}
             className={`w-full px-4 py-3 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-slate-500' : 'border-2 border-slate-100'} rounded-lg focus:outline-none focus:border-teal-500 transition-all`}
@@ -288,15 +290,15 @@ export function FlashcardsContent() {
             <option value="15">15 Cards</option>
             <option value="20">20 Cards</option>
             <option value="30">30 Cards</option>
-          </select>
+          </CleanSelect>
         </div>
         <div>
           <label className={`block text-sm font-medium ${isDark ? 'text-slate-300' : 'text-slate-700'} mb-2`}>Card Style</label>
-          <select className={`w-full px-4 py-3 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-slate-500' : 'border-2 border-slate-100'} rounded-lg focus:outline-none focus:border-teal-500 transition-all`}>
+          <CleanSelect className={`w-full px-4 py-3 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-slate-500' : 'border-2 border-slate-100'} rounded-lg focus:outline-none focus:border-teal-500 transition-all`}>
             <option>Question & Answer</option>
             <option>Term & Definition</option>
             <option>Concept & Example</option>
-          </select>
+          </CleanSelect>
         </div>
       </div>
 

@@ -337,25 +337,21 @@ export function NotificationsPage() {
   ];
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6" dir={isRTL ? 'rtl' : 'ltr'}>
+    <div className="space-y-6" dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div
-            className={`w-10 h-10 rounded-xl flex items-center justify-center ${isDark ? 'bg-indigo-500/20' : 'bg-indigo-50'}`}
-          >
-            <Bell className="w-5 h-5 text-indigo-600" />
-          </div>
-          <div>
-            <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              Notifications
-            </h1>
+        <div>
+          <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+            Notifications
             {unreadCount > 0 && (
-              <span className="text-sm font-medium" style={{ color: primaryHex }}>
+              <span className="ml-2 text-sm font-medium align-middle" style={{ color: primaryHex }}>
                 {unreadCount} unread
               </span>
             )}
-          </div>
+          </h2>
+          <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+            Stay up to date with student submissions, deadlines, and course activity
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <button

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { CleanSelect } from '../../../components/shared';
+
 import {
   Bell, AlertTriangle, Mail, MessageSquare, Phone, Clock, Shield, Settings,
   Plus, Edit2, Trash2, Search, Sparkles, CheckCircle, XCircle, Pause, Play, ArrowRight,
@@ -469,12 +471,12 @@ export function AlertsManagementPage() {
             className={`${inputClass} pl-9`}
           />
         </div>
-        <select value={severityFilter} onChange={(e) => setSeverityFilter(e.target.value)} className={selectClass} style={{ maxWidth: 180 }}>
+        <CleanSelect value={severityFilter} onChange={(e) => setSeverityFilter(e.target.value)} className={selectClass} style={{ maxWidth: 180 }}>
           <option value="all">All Severities</option>
           <option value="Critical">Critical</option>
           <option value="Warning">Warning</option>
           <option value="Info">Info</option>
-        </select>
+        </CleanSelect>
       </div>
 
       {/* History list */}
@@ -575,21 +577,21 @@ export function AlertsManagementPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className={`block text-sm font-medium mb-1 ${textSecondary}`}>Metric</label>
-                <select value={formMetric} onChange={(e) => setFormMetric(e.target.value)} className={selectClass}>
+                <CleanSelect value={formMetric} onChange={(e) => setFormMetric(e.target.value)} className={selectClass}>
                   <option>CPU</option>
                   <option>Memory</option>
                   <option>Disk</option>
                   <option>API</option>
                   <option>Response Time</option>
-                </select>
+                </CleanSelect>
               </div>
               <div>
                 <label className={`block text-sm font-medium mb-1 ${textSecondary}`}>Condition</label>
-                <select value={formCondition} onChange={(e) => setFormCondition(e.target.value)} className={selectClass}>
+                <CleanSelect value={formCondition} onChange={(e) => setFormCondition(e.target.value)} className={selectClass}>
                   <option value=">">&gt;</option>
                   <option value="<">&lt;</option>
                   <option value="=">=</option>
-                </select>
+                </CleanSelect>
               </div>
             </div>
 
@@ -606,11 +608,11 @@ export function AlertsManagementPage() {
 
             <div>
               <label className={`block text-sm font-medium mb-1 ${textSecondary}`}>Severity</label>
-              <select value={formSeverity} onChange={(e) => setFormSeverity(e.target.value as Severity)} className={selectClass}>
+              <CleanSelect value={formSeverity} onChange={(e) => setFormSeverity(e.target.value as Severity)} className={selectClass}>
                 <option>Critical</option>
                 <option>Warning</option>
                 <option>Info</option>
-              </select>
+              </CleanSelect>
             </div>
 
             <div>

@@ -79,7 +79,7 @@ export function CustomDropdown({
           <div
             className={`absolute z-50 w-full mt-2 rounded-2xl shadow-xl border overflow-hidden animate-in fade-in zoom-in duration-150 ${
               isDark
-                ? 'bg-slate-900 border-white/10 shadow-black/50'
+                ? 'bg-card-dark border-white/10 shadow-black/50'
                 : 'bg-white border-gray-200 shadow-slate-200/50'
             }`}
           >
@@ -101,14 +101,20 @@ export function CustomDropdown({
                       setIsOpen(false);
                     }}
                     className={`w-full flex items-center justify-between px-4 py-3 text-sm font-medium transition-colors ${
-                      value === option.value
+                      value !== option.value
                         ? isDark
-                          ? 'bg-blue-600/20 text-blue-400'
-                          : 'bg-blue-50 text-blue-600'
-                        : isDark
                           ? 'text-slate-300 hover:bg-white/5'
                           : 'text-gray-700 hover:bg-gray-50'
+                        : ''
                     }`}
+                    style={
+                      value === option.value
+                        ? {
+                            backgroundColor: isDark ? `${accentColor}20` : `${accentColor}1A`,
+                            color: isDark ? accentColor : accentColor,
+                          }
+                        : {}
+                    }
                   >
                     <div className="flex items-center gap-3 truncate">
                       {option.icon && <span className="flex-shrink-0">{option.icon}</span>}

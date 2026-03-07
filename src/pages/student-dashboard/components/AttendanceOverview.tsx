@@ -394,16 +394,12 @@ export function AttendanceOverview() {
 
   return (
     <div className="space-y-8" dir={isRTL ? 'rtl' : 'ltr'}>
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
-        <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-          <BarChart3 size={20} className="text-white" />
-        </div>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>
+          <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
             {t('attendanceOverview')}
           </h1>
-          <p className={isDark ? 'text-slate-500' : 'text-slate-600'}>
+          <p className={`text-slate-500 mt-1 font-medium`}>
             {isRTL ? 'تتبع حضورك في جميع المقررات' : 'Track your attendance across all courses'}
           </p>
         </div>

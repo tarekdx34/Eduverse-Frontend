@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Upload, FileText, Film, Code, Image, Archive, Sparkles, Search, Trash2, Eye, Download, Cloud, X, Plus } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { CleanSelect } from '../../../components/shared';
+
 
 type FileType = 'All' | 'PDF' | 'Video' | 'Code' | 'Image' | 'Archive' | 'AI Generated';
 type SortOption = 'Recent' | 'By Name' | 'By Size';
@@ -127,7 +129,7 @@ export function UploadMaterialsPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className={`block text-sm font-medium mb-1 ${headingClass}`}>Course</label>
-            <select
+            <CleanSelect
               value={selectedCourse}
               onChange={(e) => setSelectedCourse(e.target.value)}
               className={inputClass}
@@ -135,11 +137,11 @@ export function UploadMaterialsPage() {
               <option value="CS101">CS101 - Introduction to Programming</option>
               <option value="CS202">CS202 - Data Structures</option>
               <option value="CS303">CS303 - Advanced Algorithms</option>
-            </select>
+            </CleanSelect>
           </div>
           <div>
             <label className={`block text-sm font-medium mb-1 ${headingClass}`}>Lab</label>
-            <select
+            <CleanSelect
               value={selectedLab}
               onChange={(e) => setSelectedLab(e.target.value)}
               className={inputClass}
@@ -148,7 +150,7 @@ export function UploadMaterialsPage() {
               <option value="Lab 2">Lab 2</option>
               <option value="Lab 3">Lab 3</option>
               <option value="Lab 4">Lab 4</option>
-            </select>
+            </CleanSelect>
           </div>
         </div>
       </div>
@@ -209,7 +211,7 @@ export function UploadMaterialsPage() {
               </button>
             ))}
           </div>
-          <select
+          <CleanSelect
             value={sortOption}
             onChange={(e) => setSortOption(e.target.value as SortOption)}
             className={`${inputClass} w-auto`}
@@ -217,7 +219,7 @@ export function UploadMaterialsPage() {
             <option value="Recent">Recent</option>
             <option value="By Name">By Name</option>
             <option value="By Size">By Size</option>
-          </select>
+          </CleanSelect>
         </div>
       </div>
 
@@ -310,7 +312,7 @@ export function UploadMaterialsPage() {
               </div>
               <div>
                 <label className={`block text-sm font-medium mb-1 ${headingClass}`}>File Type</label>
-                <select
+                <CleanSelect
                   value={uploadFileType}
                   onChange={(e) => setUploadFileType(e.target.value as Material['type'])}
                   className={inputClass}
@@ -320,7 +322,7 @@ export function UploadMaterialsPage() {
                   <option value="Code">Code</option>
                   <option value="Image">Image</option>
                   <option value="Archive">Archive</option>
-                </select>
+                </CleanSelect>
               </div>
               <div className="flex justify-end gap-3 pt-2">
                 <button

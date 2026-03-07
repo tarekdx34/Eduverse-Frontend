@@ -15,6 +15,8 @@ import {
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { MessagingChat } from '../../../components/shared';
+import { CleanSelect } from '../../../components/shared';
+
 
 type Announcement = {
   id: string;
@@ -235,7 +237,7 @@ export function AnnouncementsPage() {
                     >
                       {t('course')}
                     </label>
-                    <select
+                    <CleanSelect
                       value={newAnn.courseCode}
                       onChange={(e) => setNewAnn({ ...newAnn, courseCode: e.target.value })}
                       className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-blue-500 transition-all outline-none appearance-none ${
@@ -249,7 +251,7 @@ export function AnnouncementsPage() {
                           {c.code} - {c.name}
                         </option>
                       ))}
-                    </select>
+                    </CleanSelect>
                   </div>
 
                   <div>

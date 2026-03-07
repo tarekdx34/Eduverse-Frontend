@@ -61,6 +61,7 @@ interface MessagingChatProps {
   className?: string;
   height?: string;
   isDark?: boolean;
+  accentColor?: string;
 }
 
 const DEFAULT_CONVERSATIONS: Conversation[] = [
@@ -148,6 +149,7 @@ export function MessagingChat({
   className = '',
   height = '600px',
   isDark = false,
+  accentColor = '#4f46e5',
 }: MessagingChatProps) {
   const [localConversations, setLocalConversations] = useState<Conversation[]>(conversations);
   const [selectedConversation, setSelectedConversation] = useState<string>(

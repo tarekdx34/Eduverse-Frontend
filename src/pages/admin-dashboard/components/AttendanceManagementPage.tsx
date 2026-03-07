@@ -22,6 +22,8 @@ import {
 } from 'recharts';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { CleanSelect } from '../../../components/shared';
+
 
 const weeklyTrendsData = [
   { day: 'Mon', rate: 85 },
@@ -346,7 +348,7 @@ export function AttendanceManagementPage() {
               <Filter
                 className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${textSecondary}`}
               />
-              <select
+              <CleanSelect
                 value={departmentFilter}
                 onChange={(e) => setDepartmentFilter(e.target.value)}
                 className={`pl-10 pr-8 py-2 rounded-lg border appearance-none ${
@@ -360,7 +362,7 @@ export function AttendanceManagementPage() {
                 <option value="ENG">Engineering</option>
                 <option value="BUS">Business</option>
                 <option value="SCI">Sciences</option>
-              </select>
+              </CleanSelect>
             </div>
           </div>
 
@@ -444,7 +446,7 @@ export function AttendanceManagementPage() {
               <Filter
                 className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${textSecondary}`}
               />
-              <select
+              <CleanSelect
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
                 className={`pl-10 pr-8 py-2 rounded-lg border appearance-none ${
@@ -457,7 +459,7 @@ export function AttendanceManagementPage() {
                 <option value="Present">Present</option>
                 <option value="Absent">Absent</option>
                 <option value="Late">Late</option>
-              </select>
+              </CleanSelect>
             </div>
           </div>
 

@@ -16,6 +16,8 @@ import {
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { CleanSelect } from '../../../components/shared';
+
 
 type Tab = 'all' | 'threats' | 'sessions';
 type ActivityType = 'All' | 'Login' | 'Logout' | 'Password Change' | 'Permission Change' | 'Data Export' | 'Failed Login';
@@ -226,7 +228,7 @@ export function SecurityLogsPage() {
               </div>
               <div className="flex items-center gap-2">
                 <Filter className={`w-4 h-4 ${textSecondary}`} />
-                <select
+                <CleanSelect
                   value={activityFilter}
                   onChange={(e) => setActivityFilter(e.target.value as ActivityType)}
                   className={`px-3 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
@@ -234,7 +236,7 @@ export function SecurityLogsPage() {
                   {activityTypes.map((type) => (
                     <option key={type} value={type}>{type}</option>
                   ))}
-                </select>
+                </CleanSelect>
               </div>
             </div>
           </div>
@@ -454,14 +456,14 @@ export function SecurityLogsPage() {
               </div>
               <div>
                 <label className={`block text-sm font-medium mb-1 ${textSecondary}`}>Rule Type</label>
-                <select
+                <CleanSelect
                   value={ipForm.ruleType}
                   onChange={(e) => setIpForm({ ...ipForm, ruleType: e.target.value })}
                   className={`px-3 py-2 rounded-lg border w-full ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
                 >
                   <option value="Block">Block</option>
                   <option value="Allow">Allow</option>
-                </select>
+                </CleanSelect>
               </div>
               <div>
                 <label className={`block text-sm font-medium mb-1 ${textSecondary}`}>Reason</label>

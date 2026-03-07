@@ -17,6 +17,8 @@ import {
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { CleanSelect } from '../../../components/shared';
+
 
 type RoleId = 'student' | 'instructor' | 'ta' | 'admin' | 'custom';
 type Permission = 'view' | 'create' | 'edit' | 'delete';
@@ -338,7 +340,7 @@ export function RoleManagementPage() {
 
               <div>
                 <label className={`block text-sm font-medium mb-1 ${headingClass}`}>Base Template</label>
-                <select
+                <CleanSelect
                   value={baseTemplate}
                   onChange={e => setBaseTemplate(e.target.value as any)}
                   className={`w-full px-3 py-2 rounded-lg border text-sm ${
@@ -351,7 +353,7 @@ export function RoleManagementPage() {
                   <option value="student">Student</option>
                   <option value="instructor">Instructor</option>
                   <option value="ta">TA</option>
-                </select>
+                </CleanSelect>
               </div>
             </div>
 

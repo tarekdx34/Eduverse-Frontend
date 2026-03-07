@@ -288,14 +288,16 @@ export const QuizTaking = () => {
   if (view === 'selection') {
     return (
       <div className="space-y-6" dir={isRTL ? 'rtl' : 'ltr'}>
-        {/* Header */}
-        <div className="bg-gradient-to-br from-[var(--accent-color)] via-blue-600 to-blue-700 rounded-2xl p-8 text-white shadow-xl">
-          <div className="flex items-center gap-3 mb-3">
-            <ClipboardCheck className="w-8 h-8" />
-            <span className="text-sm bg-white/20 px-3 py-1 rounded-full">Quiz Center</span>
+        {/* Page Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              Quiz Center
+            </h2>
+            <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+              Test Your Knowledge and Track Your Progress
+            </p>
           </div>
-          <h1 className="text-3xl font-bold mb-2">Quiz Center</h1>
-          <p className="text-blue-100 text-lg">Test Your Knowledge</p>
         </div>
 
         {/* Available Quizzes */}

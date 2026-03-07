@@ -252,31 +252,17 @@ export function ModernDashboard({
     <div className="space-y-6">
       {/* ── Evy — AI Teaching Assistant ── */}
       <div
-        className={`rounded-3xl p-6 relative overflow-hidden transition-all ${
+        className={`rounded-3xl p-6 relative overflow-hidden transition-all duration-300 ${
           isDark
-            ? 'bg-gradient-to-br from-slate-800 to-slate-700 border border-transparent'
-            : `${th.bg50} border ${th.border800} border-opacity-20 shadow-sm`
+            ? 'bg-card-dark border border-white/5 shadow-2xl shadow-black/20'
+            : 'bg-white border border-slate-200 shadow-sm'
         }`}
-        style={
-          isDark
-            ? {
-                borderImage: `linear-gradient(135deg, ${th.gradientEvyDark}) 1`,
-                borderWidth: '1px',
-                borderStyle: 'solid',
-                borderRadius: '1.5rem',
-                backgroundClip: 'padding-box',
-              }
-            : undefined
-        }
+        style={{
+          borderColor: isDark ? `${th.main}40` : `${th.main}60`,
+          backgroundColor: isDark ? `${th.main}08` : `${th.main}05`,
+          borderWidth: '1.5px',
+        }}
       >
-        {isDark && (
-          <div
-            className="absolute inset-0 rounded-3xl pointer-events-none"
-            style={{
-              background: `linear-gradient(135deg, ${th.gradientEvyLight})`,
-            }}
-          />
-        )}
         <div className="relative flex items-center justify-between gap-6">
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-3">
@@ -436,7 +422,6 @@ export function ModernDashboard({
               </AreaChart>
             </ResponsiveContainer>
           </div>
-
         </div>
 
         {/* Right Column — 4 cols */}

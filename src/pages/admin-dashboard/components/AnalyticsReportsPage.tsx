@@ -30,6 +30,8 @@ import {
 } from 'recharts';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { CleanSelect } from '../../../components/shared';
+
 
 interface AnalyticsReportsPageProps {
   analytics: any;
@@ -74,7 +76,7 @@ export function AnalyticsReportsPage({ analytics, onExport }: AnalyticsReportsPa
           <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('systemWideAnalytics')}</p>
         </div>
         <div className="flex items-center gap-3">
-          <select
+          <CleanSelect
             value={dateRange}
             onChange={(e) => setDateRange(e.target.value)}
             className={`px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}
@@ -83,7 +85,7 @@ export function AnalyticsReportsPage({ analytics, onExport }: AnalyticsReportsPa
             <option value="lastMonth">{t('last30Days')}</option>
             <option value="lastQuarter">{t('last3Months')}</option>
             <option value="lastYear">{t('lastYear')}</option>
-          </select>
+          </CleanSelect>
           <div className="flex items-center gap-2">
             <button
               onClick={() => onExport('pdf')}

@@ -17,6 +17,8 @@ import {
 import { CustomDropdown } from './CustomDropdown';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { CleanSelect } from '../../../components/shared';
+
 
 interface QuizQuestion {
   id: number;
@@ -572,7 +574,7 @@ export function QuizzesPage() {
               </div>
               <div>
                 <label className={`block text-sm font-medium mb-1 ${subCls}`}>Course</label>
-                <select
+                <CleanSelect
                   value={formData.course}
                   onChange={(e) => setFormData({ ...formData, course: e.target.value })}
                   className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${inputCls}`}
@@ -581,7 +583,7 @@ export function QuizzesPage() {
                   <option value="Calculus I">Calculus I</option>
                   <option value="Calculus II">Calculus II</option>
                   <option value="Physics I">Physics I</option>
-                </select>
+                </CleanSelect>
               </div>
               <div>
                 <label className={`block text-sm font-medium mb-1 ${subCls}`}>Duration (min)</label>
@@ -595,7 +597,7 @@ export function QuizzesPage() {
               </div>
               <div>
                 <label className={`block text-sm font-medium mb-1 ${subCls}`}>Difficulty</label>
-                <select
+                <CleanSelect
                   value={formData.difficulty}
                   onChange={(e) => setFormData({ ...formData, difficulty: e.target.value })}
                   className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${inputCls}`}
@@ -603,7 +605,7 @@ export function QuizzesPage() {
                   <option value="Easy">Easy</option>
                   <option value="Medium">Medium</option>
                   <option value="Hard">Hard</option>
-                </select>
+                </CleanSelect>
               </div>
             </div>
 
@@ -617,7 +619,7 @@ export function QuizzesPage() {
                   <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-3">
                     <div className="flex items-center gap-3">
                       <span className={`text-sm font-semibold ${subCls}`}>Question {qIdx + 1}</span>
-                      <select
+                      <CleanSelect
                         value={q.type}
                         onChange={(e) => updateQuestion(q.id, 'type', e.target.value)}
                         className={`px-2 py-1 border rounded-md text-xs focus:outline-none focus:ring-1 ${inputCls}`}
@@ -625,7 +627,7 @@ export function QuizzesPage() {
                         <option value="mcq">Multiple Choice</option>
                         <option value="checkbox">Checkboxes</option>
                         <option value="text">Short Answer (Text)</option>
-                      </select>
+                      </CleanSelect>
                     </div>
                     {formData.questions.length > 1 && (
                       <button
@@ -758,7 +760,7 @@ export function QuizzesPage() {
             <div className="space-y-4">
               <div>
                 <label className={`block text-sm font-medium mb-1 ${subCls}`}>Course</label>
-                <select
+                <CleanSelect
                   value={aiCourse}
                   onChange={(e) => {
                     setAiCourse(e.target.value);
@@ -772,7 +774,7 @@ export function QuizzesPage() {
                       {c}
                     </option>
                   ))}
-                </select>
+                </CleanSelect>
               </div>
 
               {aiCourse && (
@@ -821,7 +823,7 @@ export function QuizzesPage() {
                 </div>
                 <div>
                   <label className={`block text-sm font-medium mb-1 ${subCls}`}>Difficulty</label>
-                  <select
+                  <CleanSelect
                     value={aiDifficulty}
                     onChange={(e) => setAiDifficulty(e.target.value)}
                     className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${inputCls}`}
@@ -829,7 +831,7 @@ export function QuizzesPage() {
                     <option value="Easy">Easy</option>
                     <option value="Medium">Medium</option>
                     <option value="Hard">Hard</option>
-                  </select>
+                  </CleanSelect>
                 </div>
               </div>
             </div>

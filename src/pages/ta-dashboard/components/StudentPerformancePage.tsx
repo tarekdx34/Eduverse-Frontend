@@ -28,6 +28,8 @@ import {
 } from 'recharts';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { CleanSelect } from '../../../components/shared';
+
 
 type StudentPerformance = {
   studentId: string;
@@ -325,7 +327,7 @@ export function StudentPerformancePage({
             <Filter
               className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? 'text-slate-400' : 'text-gray-400'}`}
             />
-            <select
+            <CleanSelect
               value={courseFilter}
               onChange={(e) => setCourseFilter(e.target.value)}
               className={`w-full pl-9 pr-3 py-2 rounded-lg border text-sm ${isDark ? 'bg-white/5 border-white/10 text-white' : 'border-gray-300 bg-white text-gray-900'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
@@ -336,7 +338,7 @@ export function StudentPerformancePage({
                   {course}
                 </option>
               ))}
-            </select>
+            </CleanSelect>
           </div>
           <div className="space-y-2">
             {filteredStudents.map((student) => {

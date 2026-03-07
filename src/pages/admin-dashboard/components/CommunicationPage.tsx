@@ -15,6 +15,8 @@ import {
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { CleanSelect } from '../../../components/shared';
+
 
 interface NotificationTemplate {
   id: number;
@@ -367,11 +369,11 @@ export function CommunicationPage({ templates, onCreateTemplate, onEditTemplate,
               </div>
               <div>
                 <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('type')}</label>
-                <select defaultValue={editingTemplate?.type} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}>
+                <CleanSelect defaultValue={editingTemplate?.type} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}>
                   <option value="email">Email</option>
                   <option value="push">Push Notification</option>
                   <option value="broadcast">Broadcast</option>
-                </select>
+                </CleanSelect>
               </div>
               <div>
                 <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('messageSubject')}</label>
