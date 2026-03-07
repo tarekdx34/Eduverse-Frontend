@@ -1,8 +1,10 @@
-import { ChevronLeft, ChevronRight, Calendar, Clock, MapPin, User } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar, Clock, MapPin, User, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { useApi } from '../../../hooks/useApi';
+import { ScheduleService } from '../../../services/api/scheduleService';
 
 const weekDaysEn = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 const weekDaysAr = ['الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت', 'الأحد'];
@@ -12,7 +14,7 @@ const timeSlots = [
   '04:00 PM', '05:00 PM', '06:00 PM'
 ];
 
-const classes = [
+const defaultClasses = [
   {
     id: 1,
     name: 'Introduction to Computer Science',
@@ -212,7 +214,7 @@ const classes = [
 ];
 
 // Get upcoming classes (next 5)
-const upcomingClasses = [
+const defaultUpcomingClasses = [
   {
     id: 1,
     name: 'Introduction to Computer Science',
@@ -277,11 +279,61 @@ export default function ClassSchedule() {
   const navigate = useNavigate();
   const [currentWeek, setCurrentWeek] = useState('Week of Dec 4 - Dec 10, 2025');
   const [scheduleType, setScheduleType] = useState<'daily' | 'weekly' | 'monthly'>('weekly');
-  const [currentDayIndex, setCurrentDayIndex] = useState(0); // For daily view navigation
+  const [currentDayIndex, setCurrentDayIndex] = useState(0);
   const weekDays = language === 'ar' ? weekDaysAr : weekDaysEn;
 
+  const { data: weeklyData, loading } = useApi(() => ScheduleService.getWeekly(), []);
+
+  const SCHEDULE_COLORS = [
+    { color: 'bg-blue-500', textColor: 'text-blue-700', bgLight: 'bg-blue-50', borderColor: 'border-blue-500' },
+    { color: 'bg-green-500', textColor: 'text-green-700', bgLight: 'bg-green-50', borderColor: 'border-green-500' },
+    { color: 'bg-pink-500', textColor: 'text-pink-700', bgLight: 'bg-pink-50', borderColor: 'border-pink-500' },
+    { color: 'bg-orange-500', textColor: 'text-orange-700', bgLight: 'bg-orange-50', borderColor: 'border-orange-500' },
+    { color: 'bg-purple-500', textColor: 'text-purple-700', bgLight: 'bg-purple-50', borderColor: 'border-purple-500' },
+    { color: 'bg-teal-500', textColor: 'text-teal-700', bgLight: 'bg-teal-50', borderColor: 'border-teal-500' },
+  ];
+
+  // Map API data to component's expected shape
+  const apiClasses = (() => {
+    if (!weeklyData?.days) return [];
+    const courseColorMap: Record<string, number> = {};
+    let colorIdx = 0;
+    const result: typeof defaultClasses = [];
+    let id = 1;
+    for (const day of weeklyData.days) {
+      for (const s of day.schedules) {
+        if (!(s.courseCode in courseColorMap)) {
+          courseColorMap[s.courseCode] = colorIdx++;
+        }
+        const ci = courseColorMap[s.courseCode] % SCHEDULE_COLORS.length;
+        result.push({
+          id: id++,
+          name: s.courseName,
+          code: s.courseCode,
+          instructor: s.instructorName || 'TBD',
+          room: s.room || 'TBD',
+          day: day.dayOfWeek,
+          startTime: s.startTime,
+          endTime: s.endTime,
+          ...SCHEDULE_COLORS[ci],
+        });
+      }
+    }
+    return result;
+  })();
+
+  const classes = apiClasses.length > 0 ? apiClasses : defaultClasses;
+  const upcomingClasses = defaultUpcomingClasses;
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+      </div>
+    );
+  }
+
   const getClassesForDay = (day: string) => {
-    // Map Arabic days back to English for data lookup
     const dayMap: Record<string, string> = {
       'الاثنين': 'Monday',
       'الثلاثاء': 'Tuesday',

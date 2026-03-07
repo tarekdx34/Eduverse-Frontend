@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import {
   Bell,
@@ -19,7 +19,10 @@ import {
   TrendingDown,
   FileText,
   Users,
+  Loader2,
 } from 'lucide-react';
+import { useApi } from '../../../hooks/useApi';
+import { NotificationService } from '../../../services/api/notificationService';
 
 interface Notification {
   id: string;
@@ -33,7 +36,7 @@ interface Notification {
   category: string;
 }
 
-const notifications: Notification[] = [
+const defaultNotifications: Notification[] = [
   {
     id: '1',
     type: 'deadline',
@@ -144,7 +147,27 @@ const notifications: Notification[] = [
 export function NotificationCenter() {
   const { isDark, primaryHex } = useTheme() as any;
   const accentColor = primaryHex || '#3b82f6';
-  const [notificationList, setNotificationList] = useState<Notification[]>(notifications);
+
+  const { data: apiNotifications, loading, refetch } = useApi(() => NotificationService.getAll(), []);
+
+  // Map API notifications to component's expected shape
+  const mappedNotifications: Notification[] = (() => {
+    if (!apiNotifications || apiNotifications.length === 0) return [];
+    return apiNotifications.map((n) => ({
+      id: String(n.notificationId),
+      type: (n.type || 'announcement') as Notification['type'],
+      title: n.title,
+      description: n.message,
+      timestamp: n.createdAt ? new Date(n.createdAt).toLocaleString() : '',
+      read: n.read,
+      priority: (n.priority || 'medium') as Notification['priority'],
+      category: (n.data?.category as string) || 'General',
+    }));
+  })();
+
+  const initialNotifications = mappedNotifications.length > 0 ? mappedNotifications : defaultNotifications;
+
+  const [notificationList, setNotificationList] = useState<Notification[]>(initialNotifications);
   const [filterType, setFilterType] = useState<string>('all');
   const [showSettings, setShowSettings] = useState(false);
   const [notificationSettings, setNotificationSettings] = useState({
@@ -158,6 +181,21 @@ export function NotificationCenter() {
     pushNotifications: true,
     soundEnabled: false,
   });
+
+  // Sync API data to state when it arrives
+  useEffect(() => {
+    if (mappedNotifications.length > 0) {
+      setNotificationList(mappedNotifications);
+    }
+  }, [apiNotifications]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+      </div>
+    );
+  }
 
   const unreadCount = notificationList.filter((n) => !n.read).length;
 
@@ -243,14 +281,17 @@ export function NotificationCenter() {
 
   const markAsRead = (id: string) => {
     setNotificationList(notificationList.map((n) => (n.id === id ? { ...n, read: true } : n)));
+    NotificationService.markAsRead(Number(id)).catch(() => {});
   };
 
   const markAllAsRead = () => {
     setNotificationList(notificationList.map((n) => ({ ...n, read: true })));
+    NotificationService.markAllAsRead().catch(() => {});
   };
 
   const deleteNotification = (id: string) => {
     setNotificationList(notificationList.filter((n) => n.id !== id));
+    NotificationService.deleteNotification(Number(id)).catch(() => {});
   };
 
   const clearAllRead = () => {

@@ -7,11 +7,15 @@ import {
   TrendingUp,
   BookOpen,
   Award,
+  Loader2,
 } from 'lucide-react';
 import { useState } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { GradeAnalysis } from './GradeAnalysis';
+import { useApi } from '../../../hooks/useApi';
+import { GradesService, GradeRecord as ApiGradeRecord } from '../../../services/api/gradesService';
+import { useAuth } from '../../../context/AuthContext';
 
 interface GradeRecord {
   code: string;
@@ -495,15 +499,67 @@ const GradeTable = ({
 };
 
 export default function GradesTranscript({
-  cumulativeGPA = 3.75,
-  currentSemesterGPA = 3.62,
-  totalCredits = 120,
+  cumulativeGPA: propCumulativeGPA = 3.75,
+  currentSemesterGPA: propCurrentSemesterGPA = 3.62,
+  totalCredits: propTotalCredits = 120,
   classRank = 15,
-  semesters = defaultSemesters,
+  semesters: propSemesters = defaultSemesters,
 }: GradesTranscriptProps) {
   const { t, isRTL } = useLanguage();
   const { isDark } = useTheme();
+  const { user } = useAuth();
   const [activeView, setActiveView] = useState<'grades' | 'analysis'>('grades');
+
+  const { data: apiGrades, loading: gradesLoading } = useApi(() => GradesService.getMyGrades(), []);
+  const { data: gpaData, loading: gpaLoading } = useApi(
+    () => GradesService.getGpa(user?.userId ?? 0),
+    [user?.userId]
+  );
+
+  // Map API grades into semester groups
+  const apiSemesters: SemesterData[] = (() => {
+    if (!apiGrades || apiGrades.length === 0) return [];
+    const grouped: Record<string, ApiGradeRecord[]> = {};
+    for (const g of apiGrades) {
+      const sem = g.semesterName || 'Current Semester';
+      if (!grouped[sem]) grouped[sem] = [];
+      grouped[sem].push(g);
+    }
+    return Object.entries(grouped).map(([semester, courses]) => {
+      const totalPoints = courses.reduce((s, c) => s + (c.gradePoints ?? 0) * c.credits, 0);
+      const totalCreds = courses.reduce((s, c) => s + c.credits, 0);
+      return {
+        semester,
+        gpa: totalCreds > 0 ? Math.round((totalPoints / totalCreds) * 100) / 100 : 0,
+        credits: totalCreds,
+        courses: courses.map(c => ({
+          code: c.courseCode,
+          name: c.courseName,
+          credits: c.credits,
+          percentage: c.percentage ?? 0,
+          grade: c.letterGrade ?? 'N/A',
+          points: c.gradePoints ?? 0,
+          status: (c.status === 'Completed' ? 'Completed' : 'In Progress') as 'Completed' | 'In Progress',
+        })),
+      };
+    });
+  })();
+
+  const semesters = apiSemesters.length > 0 ? apiSemesters : propSemesters;
+  const cumulativeGPA = gpaData?.cumulativeGpa ?? propCumulativeGPA;
+  const currentSemesterGPA = gpaData?.semesterGpa ?? propCurrentSemesterGPA;
+  const totalCredits = apiSemesters.length > 0
+    ? apiSemesters.reduce((s, sem) => s + sem.credits, 0)
+    : propTotalCredits;
+  const loading = gradesLoading || gpaLoading;
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+      </div>
+    );
+  }
 
   const exportGradesAsPDF = () => {
     const htmlContent = `

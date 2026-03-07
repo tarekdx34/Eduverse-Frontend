@@ -9,11 +9,15 @@ import {
   Users,
   BarChart3,
   ChevronLeft,
+  Loader2,
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { useApi } from '../../../hooks/useApi';
+import { AttendanceService } from '../../../services/api/attendanceService';
+import { useAuth } from '../../../context/AuthContext';
 
-const attendanceData = [
+const defaultAttendanceData = [
   {
     id: 1,
     courseName: 'Introduction to Computer Science',
@@ -94,7 +98,7 @@ const attendanceData = [
   },
 ];
 
-const courseDailyRecords: Record<number, { date: string; day: string; status: string }[]> = {
+const defaultCourseDailyRecords: Record<number, { date: string; day: string; status: string }[]> = {
   1: [
     { date: '2024-12-04', day: 'Wednesday', status: 'present' },
     { date: '2024-12-02', day: 'Monday', status: 'present' },
@@ -157,7 +161,7 @@ const courseDailyRecords: Record<number, { date: string; day: string; status: st
   ],
 };
 
-const recentAttendance = [
+const defaultRecentAttendance = [
   {
     date: '2024-12-04',
     course: 'Software Engineering Principles',
@@ -195,14 +199,61 @@ export function AttendanceOverview() {
   const { t, isRTL } = useLanguage();
   const { isDark, primaryHex } = useTheme() as any;
   const accentColor = primaryHex || '#3b82f6';
+  const { user } = useAuth();
+
+  const { data: apiAttendance, loading } = useApi(
+    () => AttendanceService.getByStudent(user?.userId ?? 0),
+    [user?.userId]
+  );
+
+  const ATTENDANCE_COLORS = [
+    'bg-blue-500', 'bg-green-500', 'bg-orange-500', 'bg-pink-500', 'bg-purple-500', 'bg-teal-500',
+  ];
+
+  // Map API data to component's expected shape
+  const apiAttendanceData = (() => {
+    if (!apiAttendance) return [];
+    const records = Array.isArray(apiAttendance) ? apiAttendance : apiAttendance.summary ?? [];
+    if (records.length === 0) return [];
+    return records.map((r, i) => {
+      const pct = r.percentage ?? (r.totalClasses > 0 ? (r.attended / r.totalClasses) * 100 : 0);
+      return {
+        id: r.courseId,
+        courseName: r.courseName,
+        courseCode: r.courseCode,
+        totalClasses: r.totalClasses,
+        attended: r.attended,
+        absent: r.absent,
+        late: r.late,
+        percentage: Math.round(pct * 10) / 10,
+        status: pct >= 90 ? 'excellent' : pct >= 80 ? 'good' : 'warning',
+        color: ATTENDANCE_COLORS[i % ATTENDANCE_COLORS.length],
+        lastClass: r.lastClassDate || '',
+      };
+    });
+  })();
+
+  const attendanceData = apiAttendanceData.length > 0 ? apiAttendanceData : defaultAttendanceData;
+  const courseDailyRecords = defaultCourseDailyRecords;
+  const recentAttendance = defaultRecentAttendance;
+
   const [selectedCourse, setSelectedCourse] = useState<(typeof attendanceData)[number] | null>(
     null
   );
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+      </div>
+    );
+  }
+
   const totalClasses = attendanceData.reduce((sum, course) => sum + course.totalClasses, 0);
   const totalAttended = attendanceData.reduce((sum, course) => sum + course.attended, 0);
   const totalAbsent = attendanceData.reduce((sum, course) => sum + course.absent, 0);
   const totalLate = attendanceData.reduce((sum, course) => sum + course.late, 0);
-  const overallPercentage = ((totalAttended / totalClasses) * 100).toFixed(1);
+  const overallPercentage = totalClasses > 0 ? ((totalAttended / totalClasses) * 100).toFixed(1) : '0.0';
 
   const getStatusColor = (status: string) => {
     if (isDark) {

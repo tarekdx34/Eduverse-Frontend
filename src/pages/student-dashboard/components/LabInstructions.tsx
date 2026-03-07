@@ -22,7 +22,10 @@ import {
   Eye,
   Code,
   Terminal,
+  Loader2,
 } from 'lucide-react';
+import { useApi } from '../../../hooks/useApi';
+import { LabService } from '../../../services/api/labService';
 
 interface LabSession {
   id: string;
@@ -46,7 +49,7 @@ interface LabSession {
   resources: { name: string; type: string; size: string }[];
 }
 
-const labSessions: LabSession[] = [
+const defaultLabSessions: LabSession[] = [
   {
     id: '1',
     title: 'Lab 8: Database Indexing & Query Optimization',
@@ -192,6 +195,45 @@ export function LabInstructions() {
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
+
+  const { data: apiLabs, loading } = useApi(() => LabService.getAll(), []);
+
+  const mappedLabs: LabSession[] = (() => {
+    if (!apiLabs || apiLabs.length === 0) return [];
+    return apiLabs.map((lab) => ({
+      id: String(lab.labId),
+      title: lab.title,
+      courseCode: lab.courseCode || `C${lab.courseId}`,
+      courseName: lab.courseName || '',
+      instructor: lab.instructorName || 'TBD',
+      date: lab.date || '',
+      time: lab.startTime && lab.endTime ? `${lab.startTime} - ${lab.endTime}` : '',
+      room: lab.room || 'TBD',
+      status: (lab.status === 'completed' ? 'completed'
+        : lab.status === 'in-progress' ? 'in-progress'
+        : lab.status === 'missed' ? 'missed'
+        : 'upcoming') as LabSession['status'],
+      instructions: [],
+      objectives: [],
+      resources: [],
+      deliverable: lab.totalPoints ? {
+        title: lab.title,
+        dueDate: '',
+        submitted: false,
+        maxGrade: lab.totalPoints,
+      } : undefined,
+    }));
+  })();
+
+  const labSessions = mappedLabs.length > 0 ? mappedLabs : defaultLabSessions;
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+      </div>
+    );
+  }
 
   const filteredLabs =
     filterStatus === 'all' ? labSessions : labSessions.filter((lab) => lab.status === filterStatus);

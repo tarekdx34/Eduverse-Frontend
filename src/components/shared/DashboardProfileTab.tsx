@@ -13,6 +13,7 @@ import {
   TrendingUp,
   Download,
 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 interface ProfileData {
   fullName: string;
@@ -51,12 +52,22 @@ export function DashboardProfileTab({
   bannerGradient = 'from-[#3b82f6] to-[#06b6d4]',
   profileData,
 }: DashboardProfileTabProps) {
+  const { user } = useAuth();
+  const mergedProfileData: ProfileData = {
+    ...profileData,
+    ...(user ? {
+      fullName: user.fullName || `${user.firstName} ${user.lastName}`,
+      email: user.email,
+      role: user.roles?.[0] || profileData.role,
+      studentId: String(user.userId),
+    } : {}),
+  };
   const [isEditing, setIsEditing] = useState(false);
-  const [data, setData] = useState(profileData);
+  const [data, setData] = useState(mergedProfileData);
 
   const handleSave = () => setIsEditing(false);
   const handleCancel = () => {
-    setData(profileData);
+    setData(mergedProfileData);
     setIsEditing(false);
   };
 

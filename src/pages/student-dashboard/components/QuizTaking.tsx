@@ -21,11 +21,14 @@ import {
   Database,
   Settings,
   Bot,
+  Loader2,
 } from 'lucide-react';
+import { useApi } from '../../../hooks/useApi';
+import { QuizService } from '../../../services/api/quizService';
 
 // --- Mock Data ---
 
-const availableQuizzes = [
+const defaultAvailableQuizzes = [
   {
     id: 1,
     title: 'Data Structures Midterm Review',
@@ -68,7 +71,7 @@ const availableQuizzes = [
   },
 ];
 
-const recentResults = [
+const defaultRecentResults = [
   {
     title: 'Web Development Basics',
     course: 'CS150',
@@ -195,6 +198,33 @@ export const QuizTaking = () => {
   const accentColor = primaryHex || '#3b82f6';
   const { isRTL } = useLanguage();
 
+  const { data: apiQuizzes, loading } = useApi(() => QuizService.getAll(), []);
+
+  const QUIZ_ICONS = [
+    <BarChart3 className="w-6 h-6" />,
+    <Database className="w-6 h-6" />,
+    <Settings className="w-6 h-6" />,
+    <Bot className="w-6 h-6" />,
+  ];
+  const QUIZ_COLORS = ['#3B82F6', '#10B981', '#8B5CF6', '#F59E0B', '#EF4444', '#06B6D4'];
+
+  const mappedQuizzes = (() => {
+    if (!apiQuizzes || apiQuizzes.length === 0) return [];
+    return apiQuizzes.map((q, i) => ({
+      id: q.quizId,
+      title: q.title,
+      course: q.courseCode || q.courseName || `Course ${q.courseId}`,
+      questions: q.totalQuestions,
+      duration: `${q.duration} min`,
+      difficulty: q.type === 'hard' ? 'Hard' : q.type === 'easy' ? 'Easy' : 'Medium',
+      icon: QUIZ_ICONS[i % QUIZ_ICONS.length],
+      color: QUIZ_COLORS[i % QUIZ_COLORS.length],
+    }));
+  })();
+
+  const availableQuizzes = mappedQuizzes.length > 0 ? mappedQuizzes : defaultAvailableQuizzes;
+  const recentResults = defaultRecentResults;
+
   const [view, setView] = useState<View>('selection');
   const [activeQuiz, setActiveQuiz] = useState(availableQuizzes[0]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -206,6 +236,14 @@ export const QuizTaking = () => {
 
   const questions = mockQuestions;
   const currentQuestion = questions[currentQuestionIndex];
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+      </div>
+    );
+  }
 
   // Timer
   useEffect(() => {
