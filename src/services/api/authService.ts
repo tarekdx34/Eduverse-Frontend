@@ -4,6 +4,7 @@ import { ApiClient } from './client';
 export interface LoginRequest {
   email: string;
   password: string;
+  rememberMe?: boolean;
 }
 
 export interface User {
@@ -14,7 +15,7 @@ export interface User {
   fullName: string;
   phone: string;
   profilePictureUrl: string | null;
-  campusId: string | null;
+  campusId: number | null;
   status: string;
   emailVerified: boolean;
   lastLoginAt: string;
@@ -29,51 +30,39 @@ export interface LoginResponse {
 }
 
 export class AuthService {
-  // Mock user data
-  private static MOCK_USER: User = {
-    userId: 1,
-    email: 'tarekstudent@test.com',
-    firstName: 'Tarek',
-    lastName: 'Student',
-    fullName: 'Tarek Student',
-    phone: '+20 123 456 7890',
-    profilePictureUrl: null,
-    campusId: 'CAIRO-01',
-    status: 'active',
-    emailVerified: true,
-    lastLoginAt: new Date().toISOString(),
-    roles: ['student'],
-    createdAt: '2024-01-01T00:00:00Z',
-  };
-
-  private static MOCK_TOKENS = {
-    accessToken: 'mock_access_token_' + Math.random().toString(36).substr(2, 9),
-    refreshToken: 'mock_refresh_token_' + Math.random().toString(36).substr(2, 9),
-  };
-
   static async login(credentials: LoginRequest): Promise<LoginResponse> {
+    const response = await ApiClient.post<LoginResponse>('/auth/login', credentials);
+    localStorage.setItem(TOKEN_KEYS.ACCESS_TOKEN, response.accessToken);
+    localStorage.setItem(TOKEN_KEYS.REFRESH_TOKEN, response.refreshToken);
+    localStorage.setItem(TOKEN_KEYS.USER, JSON.stringify(response.user));
+    return response;
+  }
+
+  static async serverLogout(): Promise<void> {
+    const refreshToken = this.getRefreshToken();
     try {
-      // Mock login - check for hardcoded credentials
-      if (credentials.email === 'tarekstudent@test.com' && credentials.password === '123456') {
-        const response: LoginResponse = {
-          accessToken: this.MOCK_TOKENS.accessToken,
-          refreshToken: this.MOCK_TOKENS.refreshToken,
-          user: this.MOCK_USER,
-        };
-
-        // Store tokens and user data
-        localStorage.setItem(TOKEN_KEYS.ACCESS_TOKEN, response.accessToken);
-        localStorage.setItem(TOKEN_KEYS.REFRESH_TOKEN, response.refreshToken);
-        localStorage.setItem(TOKEN_KEYS.USER, JSON.stringify(response.user));
-
-        return response;
-      } else {
-        throw new Error('Invalid email or password');
+      if (refreshToken) {
+        await ApiClient.post('/auth/logout', { refreshToken });
       }
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Login failed';
-      throw new Error(errorMessage);
+    } catch {
+      // Ignore server errors on logout — always clear local state
+    } finally {
+      this.clearLocalAuth();
     }
+  }
+
+  static async refreshAccessToken(): Promise<LoginResponse> {
+    const refreshToken = this.getRefreshToken();
+    if (!refreshToken) throw new Error('No refresh token available');
+    const response = await ApiClient.post<LoginResponse>('/auth/refresh-token', { refreshToken });
+    localStorage.setItem(TOKEN_KEYS.ACCESS_TOKEN, response.accessToken);
+    localStorage.setItem(TOKEN_KEYS.REFRESH_TOKEN, response.refreshToken);
+    localStorage.setItem(TOKEN_KEYS.USER, JSON.stringify(response.user));
+    return response;
+  }
+
+  static async getMe(): Promise<User> {
+    return ApiClient.get<User>('/auth/me');
   }
 
   static getStoredUser(): User | null {
@@ -94,13 +83,37 @@ export class AuthService {
     return localStorage.getItem(TOKEN_KEYS.REFRESH_TOKEN);
   }
 
-  static logout(): void {
+  /** Clear only local storage (use serverLogout() for full logout including server-side session) */
+  static clearLocalAuth(): void {
     localStorage.removeItem(TOKEN_KEYS.ACCESS_TOKEN);
     localStorage.removeItem(TOKEN_KEYS.REFRESH_TOKEN);
     localStorage.removeItem(TOKEN_KEYS.USER);
   }
 
+  /** @deprecated Use serverLogout() or clearLocalAuth() instead */
+  static logout(): void {
+    this.clearLocalAuth();
+  }
+
   static isAuthenticated(): boolean {
     return !!this.getAccessToken() && !!this.getStoredUser();
+  }
+
+  static getDashboardPath(user: User): string {
+    const rawRole = user.roles?.[0];
+    // Defensive: handle both string roles and object roles { roleName: '...' }
+    const role =
+      rawRole && typeof rawRole === 'object' && 'roleName' in (rawRole as object)
+        ? (rawRole as unknown as { roleName: string }).roleName
+        : (rawRole as string);
+
+    switch (role) {
+      case 'instructor': return '/instructordashboard';
+      case 'admin': return '/admindashboard';
+      case 'it_admin': return '/itadmindashboard';
+      case 'teaching_assistant': return '/tadashboard';
+      case 'department_head': return '/admindashboard';
+      default: return '/studentdashboard';
+    }
   }
 }

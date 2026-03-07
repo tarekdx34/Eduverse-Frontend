@@ -4,6 +4,7 @@ import { Mail, Lock, Eye, EyeOff, LogIn } from 'lucide-react';
 import { Input } from '../../components/ui/input';
 import { Button } from '../../components/ui/button';
 import { useLanguage } from '../home/contexts/LanguageContext';
+import { useAuth } from '../../context/AuthContext';
 import { AuthService } from '../../services/api/authService';
 import backgroundImage from '../../assets/images/pexels-mart-production-8471990.jpg';
 
@@ -16,6 +17,7 @@ const login = () => {
   const navigate = useNavigate();
   const { language } = useLanguage();
   const isArabic = language === 'ar';
+  const { login: authLogin } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,8 +25,9 @@ const login = () => {
     setLoading(true);
 
     try {
-      const response = await AuthService.login({ email, password });
-      navigate('/dashboard');
+      const user = await authLogin(email, password);
+      // Use the returned user directly — avoids stale React state closure
+      navigate(AuthService.getDashboardPath(user));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed. Please try again.');
     } finally {
