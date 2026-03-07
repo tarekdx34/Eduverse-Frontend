@@ -1,6 +1,17 @@
-import { MoreVertical, Clock, Users, BookOpen } from 'lucide-react';
+import { MoreVertical, Clock, Users, BookOpen, Loader2 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useApi } from '../../../hooks/useApi';
+import { EnrollmentService, EnrolledCourse } from '../../../services/api/enrollmentService';
+
+const COURSE_COLORS = [
+  { bg: '#e0e7ff', accent: '#4f46e5' },
+  { bg: '#dcfce7', accent: '#16a34a' },
+  { bg: '#fef3c7', accent: '#d97706' },
+  { bg: '#fce7f3', accent: '#db2777' },
+  { bg: '#e0f2fe', accent: '#0284c7' },
+  { bg: '#f3e8ff', accent: '#9333ea' },
+];
 
 interface Course {
   id: string;
@@ -244,9 +255,41 @@ const CourseCard = ({
   </div>
 );
 
-export default function ClassTab({ courses = defaultCourses, onViewCourse }: ClassTabProps) {
+export default function ClassTab({ courses: propCourses, onViewCourse }: ClassTabProps) {
   const { isDark } = useTheme();
   const { t } = useLanguage();
+  const { data: enrollments, loading } = useApi(() => EnrollmentService.getMyCourses(), []);
+
+  const apiCourses: Course[] = (enrollments && enrollments.length > 0)
+    ? enrollments.map((e: EnrolledCourse, i: number) => {
+        const color = COURSE_COLORS[i % COURSE_COLORS.length];
+        return {
+          id: e.id,
+          title: e.course.name,
+          courseCode: e.course.code,
+          instructor: 'Instructor',
+          instructorImage: `https://ui-avatars.com/api/?name=${encodeURIComponent(e.course.name)}&background=random`,
+          schedule: `Section ${e.section.sectionNumber}`,
+          nextClass: e.semester.name,
+          room: e.section.location || 'TBD',
+          students: e.section.currentEnrollment,
+          credits: e.course.credits,
+          progress: 0,
+          color: color.bg,
+          progressColor: color.accent,
+        };
+      })
+    : [];
+
+  const courses = apiCourses.length > 0 ? apiCourses : (propCourses ?? defaultCourses);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

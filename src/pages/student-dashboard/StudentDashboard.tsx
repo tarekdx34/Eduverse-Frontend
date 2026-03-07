@@ -48,6 +48,10 @@ import CourseViewPage from './pages/CourseView';
 import { GPA_DATA, SCHEDULE_DATA } from './constants';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
+import { useApi } from '../../hooks/useApi';
+import { useAuth } from '../../context/AuthContext';
+import { EnrollmentService } from '../../services/api/enrollmentService';
+import { GradesService } from '../../services/api/gradesService';
 
 const tabTranslationKeys: Record<string, string> = {
   dashboard: 'dashboard',
@@ -78,6 +82,17 @@ function StudentDashboardContent() {
   const { isRTL, language, setLanguage, t } = useLanguage();
   const { isDark, toggleTheme, primaryHex, primaryColor, setPrimaryColor } = useTheme() as any;
   const accentColor = primaryHex || '#3b82f6'; // Defined here as per instruction
+
+  const { user } = useAuth();
+  const { data: enrollments } = useApi(() => EnrollmentService.getMyCourses(), []);
+  const { data: gpaSummary } = useApi(
+    () => (user ? GradesService.getGpa(user.userId) : Promise.resolve({ semesterGpa: 0, cumulativeGpa: 0 })),
+    [user?.userId]
+  );
+
+  const totalCredits = enrollments?.reduce((sum, e) => sum + (e.course?.credits ?? 0), 0) ?? 0;
+  const activeClasses = enrollments?.filter((e) => e.status === 'enrolled').length ?? 0;
+  const gpaValue = gpaSummary?.cumulativeGpa ?? 0;
 
   // Determine active tab and course ID from location
   const pathSegments = location.pathname.split('/').filter(Boolean);
@@ -272,8 +287,8 @@ function StudentDashboardContent() {
         {activeTab !== 'chat' && (
           <>
             <DashboardHeader
-              userName="Tarek Mohamed"
-              userRole="CS Junior"
+              userName={user?.fullName || "Tarek Mohamed"}
+              userRole={user?.roles?.[0] || "CS Junior"}
               isDark={isDark}
               isRTL={isRTL}
               accentColor={primaryHex || '#3b82f6'}
@@ -314,23 +329,23 @@ function StudentDashboardContent() {
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
                     <StatsCard
                       label="Credits Completed"
-                      value="120"
+                      value={String(totalCredits || 120)}
                       maxValue="144"
-                      comparison="+24 Credits"
+                      comparison={totalCredits ? `${totalCredits} Credits Enrolled` : '+24 Credits'}
                       isPositive={true}
                       icon={<BookOpen size={24} />}
                     />
                     <StatsCard
                       label="Grade Point Average"
-                      value="3.75"
+                      value={gpaValue ? gpaValue.toFixed(2) : '3.75'}
                       maxValue="4.00"
-                      comparison="-0.25 Points"
-                      isPositive={false}
+                      comparison={gpaValue ? `Semester: ${(gpaSummary?.semesterGpa ?? 0).toFixed(2)}` : '-0.25 Points'}
+                      isPositive={gpaValue ? gpaValue >= 3.0 : false}
                       icon={<Trophy size={24} />}
                     />
                     <StatsCard
                       label="Active Class"
-                      value="15"
+                      value={String(activeClasses || 15)}
                       maxValue="18"
                       comparison="Active Course This Semester"
                       isPositive={true}

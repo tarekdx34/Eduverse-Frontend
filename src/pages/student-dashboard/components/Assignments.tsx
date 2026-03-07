@@ -14,14 +14,26 @@
   SlidersHorizontal,
   Download,
   Eye,
+  Loader2,
 } from 'lucide-react';
 import { useState } from 'react';
 import AssignmentDetails from './AssignmentDetails';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { CustomDropdown } from '../../../components/shared';
+import { useApi } from '../../../hooks/useApi';
+import { AssignmentService, Assignment as ApiAssignment } from '../../../services/api/assignmentService';
 
-export const assignments = [
+const ASSIGNMENT_COLORS = [
+  { color: 'bg-orange-500', colorLight: 'bg-orange-50', colorBorder: 'border-orange-500' },
+  { color: 'bg-blue-500', colorLight: 'bg-blue-50', colorBorder: 'border-blue-500' },
+  { color: 'bg-pink-500', colorLight: 'bg-pink-50', colorBorder: 'border-pink-500' },
+  { color: 'bg-green-500', colorLight: 'bg-green-50', colorBorder: 'border-green-500' },
+  { color: 'bg-purple-500', colorLight: 'bg-purple-50', colorBorder: 'border-purple-500' },
+  { color: 'bg-amber-500', colorLight: 'bg-amber-50', colorBorder: 'border-amber-500' },
+];
+
+export const defaultAssignments = [
   {
     id: 1,
     title: 'Database Design Project',
@@ -195,6 +207,32 @@ export default function Assignments() {
   const accentColor = primaryHex || '#3b82f6';
   const { t } = useLanguage();
 
+  const { data: apiResponse, loading: apiLoading } = useApi(() => AssignmentService.getAll({ limit: 50 }), []);
+
+  const apiAssignments = (apiResponse?.data && apiResponse.data.length > 0)
+    ? apiResponse.data.map((a: ApiAssignment, i: number) => {
+        const colors = ASSIGNMENT_COLORS[i % ASSIGNMENT_COLORS.length];
+        return {
+          id: Number(a.id),
+          title: a.title,
+          course: a.course?.name || 'Unknown Course',
+          courseCode: a.course?.code || '',
+          type: a.submissionType || 'Assignment',
+          dueDate: a.dueDate?.split('T')[0] || '',
+          dueTime: '11:59 PM',
+          status: a.status === 'published' ? 'pending' : a.status,
+          priority: 'medium' as const,
+          description: a.description || '',
+          points: parseFloat(a.maxScore) || 100,
+          submittedPoints: null as number | null,
+          progress: 0,
+          ...colors,
+        };
+      })
+    : [];
+
+  const assignments = apiAssignments.length > 0 ? apiAssignments : defaultAssignments;
+
   const getUrgencyLabel = (daysUntil: number) => {
     if (daysUntil < 0)
       return {
@@ -238,6 +276,14 @@ export default function Assignments() {
   const completedAssignments = assignments.filter(
     (a) => a.status === 'submitted' || a.status === 'graded'
   );
+
+  if (apiLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+      </div>
+    );
+  }
 
   if (selectedAssignmentId !== null) {
     return (

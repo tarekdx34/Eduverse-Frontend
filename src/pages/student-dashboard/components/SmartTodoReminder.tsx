@@ -14,7 +14,7 @@ import {
 import { useState } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { assignments } from './Assignments';
+import { defaultAssignments as assignments } from './Assignments';
 
 interface Todo {
   id: number | string;

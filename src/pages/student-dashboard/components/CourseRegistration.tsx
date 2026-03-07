@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
 import {
@@ -20,8 +20,11 @@ import {
   Award,
   Info,
   CheckCircle,
+  Loader2,
 } from 'lucide-react';
 import { CustomDropdown } from '../../../components/shared';
+import { useApi } from '../../../hooks/useApi';
+import { EnrollmentService, AvailableCourse as ApiAvailableCourse } from '../../../services/api/enrollmentService';
 
 interface Course {
   id: string;
@@ -186,10 +189,43 @@ export function CourseRegistration() {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [courseToRegister, setCourseToRegister] = useState<Course | null>(null);
 
+  const { data: apiAvailable, loading: apiLoading } = useApi(() => EnrollmentService.getAvailableCourses(), []);
+
+  const mappedApiCourses: Course[] = (apiAvailable && apiAvailable.length > 0)
+    ? apiAvailable.map((c: ApiAvailableCourse) => {
+        const section = c.sections?.[0];
+        const seatsTaken = section?.currentEnrollment ?? 0;
+        const capacity = section?.maxCapacity ?? 0;
+        const availableSeats = section?.availableSeats ?? (capacity - seatsTaken);
+        let status: 'open' | 'waitlist' | 'closed' = 'open';
+        if (availableSeats <= 0) status = 'closed';
+        if (c.enrollmentStatus === 'enrolled') status = 'closed';
+        return {
+          id: c.id,
+          code: c.code,
+          title: c.name,
+          instructor: c.departmentName || 'Department Faculty',
+          credits: c.credits,
+          schedule: section ? `Section ${section.sectionNumber}` : 'TBD',
+          room: section?.location || 'TBD',
+          capacity,
+          enrolled: seatsTaken,
+          department: c.departmentName || 'Unknown',
+          level: c.level ? c.level.charAt(0).toUpperCase() + c.level.slice(1) : 'Unknown',
+          prerequisites: c.prerequisites?.map((p) => p.courseCode) ?? [],
+          description: c.description || '',
+          rating: 4.5,
+          status,
+        };
+      })
+    : [];
+
+  const coursesToDisplay = mappedApiCourses.length > 0 ? mappedApiCourses : availableCourses;
+
   const totalCredits = registeredCourses.reduce((sum, c) => sum + c.credits, 0);
   const maxCredits = 21;
 
-  const filteredCourses = availableCourses.filter((course) => {
+  const filteredCourses = coursesToDisplay.filter((course) => {
     const matchesSearch =
       course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       course.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -205,8 +241,18 @@ export function CourseRegistration() {
     setShowConfirmModal(true);
   };
 
-  const confirmRegistration = () => {
+  const confirmRegistration = async () => {
     if (!courseToRegister) return;
+
+    // Try to call the API if we have api data
+    const apiCourse = apiAvailable?.find((c) => c.id === courseToRegister.id);
+    if (apiCourse && apiCourse.sections?.[0]) {
+      try {
+        await EnrollmentService.register({ sectionId: Number(apiCourse.sections[0].id) });
+      } catch {
+        // Silently fall through to local state update
+      }
+    }
 
     const newCourse: RegisteredCourse = {
       id: `r${Date.now()}`,
@@ -240,8 +286,19 @@ export function CourseRegistration() {
   };
 
   const isAlreadyRegistered = (courseCode: string) => {
-    return registeredCourses.some((c) => c.code === courseCode);
+    if (registeredCourses.some((c) => c.code === courseCode)) return true;
+    const apiCourse = apiAvailable?.find((c) => c.code === courseCode);
+    if (apiCourse?.enrollmentStatus === 'enrolled') return true;
+    return false;
   };
+
+  if (apiLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

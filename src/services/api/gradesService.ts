@@ -15,24 +15,13 @@ export interface GradeRecord {
 }
 
 export interface GpaSummary {
+  semesterGpa: number;
   cumulativeGpa: number;
-  totalCredits: number;
-  totalCreditsEarned: number;
-  semesters: SemesterGpa[];
-}
-
-export interface SemesterGpa {
-  semesterId: number;
-  semesterName: string;
-  gpa: number;
-  credits: number;
-  courses?: GradeRecord[];
 }
 
 export interface TranscriptData {
   studentId: number;
   studentName: string;
-  semesters: SemesterGpa[];
   cumulativeGpa: number;
   totalCredits: number;
 }

@@ -14,6 +14,20 @@ export interface ScheduleItem {
   type?: string;
 }
 
+export interface WeeklyDaySchedule {
+  date: string;
+  dayOfWeek: string;
+  schedules: ScheduleItem[];
+  events: unknown[];
+  exams: unknown[];
+}
+
+export interface WeeklyScheduleResponse {
+  weekStart: string;
+  weekEnd: string;
+  days: WeeklyDaySchedule[];
+}
+
 export interface AcademicEvent {
   id: number;
   title: string;
@@ -30,10 +44,9 @@ export class ScheduleService {
     return Array.isArray(response) ? response : response.data ?? [];
   }
 
-  static async getWeekly(date?: string): Promise<ScheduleItem[]> {
+  static async getWeekly(date?: string): Promise<WeeklyScheduleResponse> {
     const query = date ? `?date=${date}` : '';
-    const response = await ApiClient.get<ScheduleItem[] | { data: ScheduleItem[] }>(`/schedule/my/weekly${query}`);
-    return Array.isArray(response) ? response : response.data ?? [];
+    return ApiClient.get<WeeklyScheduleResponse>(`/schedule/my/weekly${query}`);
   }
 
   static async getRange(startDate: string, endDate: string): Promise<ScheduleItem[]> {

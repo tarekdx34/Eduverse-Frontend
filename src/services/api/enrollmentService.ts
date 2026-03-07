@@ -1,47 +1,74 @@
 import { ApiClient } from './client';
 
 export interface EnrolledCourse {
-  enrollmentId: number;
-  courseId: number;
-  sectionId: number;
-  courseName: string;
-  courseCode: string;
-  sectionNumber?: string;
-  instructorName?: string;
-  instructorImage?: string;
-  schedule?: string;
-  room?: string;
-  credits: number;
+  id: string;
+  userId: number;
+  sectionId: string;
   status: string;
-  enrolledAt: string;
-  grade?: string;
-  // These may come from backend or be enriched client-side
-  progress?: number;
-  totalStudents?: number;
+  grade: string | null;
+  finalScore: number | null;
+  enrollmentDate: string;
+  droppedAt: string | null;
+  completedAt: string | null;
+  canDrop: boolean;
+  dropDeadline: string | null;
+  course: {
+    id: string;
+    name: string;
+    code: string;
+    description: string;
+    credits: number;
+    level: string;
+  };
+  section: {
+    id: string;
+    sectionNumber: string;
+    maxCapacity: number;
+    currentEnrollment: number;
+    location: string;
+  };
+  semester: {
+    id: string;
+    name: string;
+    startDate: string;
+    endDate: string;
+  };
+  prerequisites: unknown[];
+}
+
+export interface AvailableCourseSection {
+  id: string;
+  sectionNumber: string;
+  maxCapacity: number;
+  currentEnrollment: number;
+  availableSeats: number;
+  location: string;
+  semesterId: string;
+  semesterName: string;
+}
+
+export interface AvailableCoursePrerequisite {
+  id: string;
+  courseId: string;
+  prerequisiteCourseId: string;
+  courseCode: string;
+  courseName: string;
+  isMandatory: boolean;
 }
 
 export interface AvailableCourse {
-  courseId: number;
-  courseCode: string;
-  courseName: string;
-  description?: string;
+  id: string;
+  name: string;
+  code: string;
+  description: string;
   credits: number;
-  departmentId?: number;
-  departmentName?: string;
-  level?: string;
-  prerequisites?: string[];
-  sections: AvailableSection[];
-}
-
-export interface AvailableSection {
-  sectionId: number;
-  sectionNumber: string;
-  instructorName: string;
-  schedule: string;
-  room: string;
-  capacity: number;
-  enrolledCount: number;
-  status: 'open' | 'waitlist' | 'closed';
+  level: string;
+  departmentId: string;
+  departmentName: string;
+  sections: AvailableCourseSection[];
+  prerequisites: AvailableCoursePrerequisite[];
+  canEnroll: boolean;
+  enrollmentStatus: string;
 }
 
 export interface EnrollRequest {

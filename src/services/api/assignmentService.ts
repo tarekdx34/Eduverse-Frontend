@@ -1,23 +1,42 @@
 import { ApiClient } from './client';
 
 export interface Assignment {
-  assignmentId: number;
+  id: string;
+  courseId: string;
   title: string;
-  description?: string;
-  courseId: number;
-  courseName?: string;
-  courseCode?: string;
-  type?: string;
+  description: string;
+  instructions: string;
+  maxScore: string;
+  weight: string;
   dueDate: string;
+  availableFrom: string;
+  lateSubmissionAllowed: number;
+  latePenaltyPercent: string;
+  submissionType: string;
+  maxFileSizeMb: number;
+  allowedFileTypes: string;
   status: string;
-  totalPoints: number;
-  createdAt?: string;
+  createdBy: number;
+  createdAt: string;
+  updatedAt: string;
+  course?: {
+    id: string;
+    name: string;
+    code: string;
+    description?: string;
+    credits?: number;
+    level?: string;
+  };
 }
 
-export interface AssignmentDetails extends Assignment {
-  instructions?: string;
-  attachments?: { fileId: number; fileName: string; fileUrl: string }[];
-  rubric?: unknown;
+export interface PaginatedResponse<T> {
+  data: T[];
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
 }
 
 export interface AssignmentSubmission {
@@ -32,26 +51,31 @@ export interface AssignmentSubmission {
 }
 
 export class AssignmentService {
-  static async getAll(params?: { courseId?: number; status?: string }): Promise<Assignment[]> {
+  static async getAll(params?: { courseId?: string; status?: string; page?: number; limit?: number }): Promise<PaginatedResponse<Assignment>> {
     const query = new URLSearchParams();
-    if (params?.courseId) query.set('courseId', String(params.courseId));
+    if (params?.courseId) query.set('courseId', params.courseId);
     if (params?.status) query.set('status', params.status);
+    if (params?.page) query.set('page', String(params.page));
+    if (params?.limit) query.set('limit', String(params.limit));
     const qs = query.toString();
-    const response = await ApiClient.get<Assignment[] | { data: Assignment[] }>(
+    const response = await ApiClient.get<PaginatedResponse<Assignment> | Assignment[]>(
       `/assignments${qs ? `?${qs}` : ''}`
     );
-    return Array.isArray(response) ? response : response.data ?? [];
+    if (Array.isArray(response)) {
+      return { data: response, meta: { total: response.length, page: 1, limit: response.length, totalPages: 1 } };
+    }
+    return response;
   }
 
-  static async getById(id: number): Promise<AssignmentDetails> {
+  static async getById(id: string): Promise<Assignment> {
     return ApiClient.get(`/assignments/${id}`);
   }
 
-  static async submit(id: number, data: FormData | { content: string }): Promise<AssignmentSubmission> {
+  static async submit(id: string, data: FormData | { content: string }): Promise<AssignmentSubmission> {
     return ApiClient.post(`/assignments/${id}/submit`, data);
   }
 
-  static async getMySubmission(assignmentId: number): Promise<AssignmentSubmission> {
+  static async getMySubmission(assignmentId: string): Promise<AssignmentSubmission> {
     return ApiClient.get(`/assignments/${assignmentId}/submissions/my`);
   }
 }
