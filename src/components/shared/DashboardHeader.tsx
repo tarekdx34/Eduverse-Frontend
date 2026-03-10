@@ -262,6 +262,7 @@ export function DashboardHeader({
 
               {showNotifications && (
                 <div
+                  onMouseDown={(e) => e.stopPropagation()}
                   className={`absolute rounded-2xl shadow-lg z-[100] overflow-hidden ${
                     isDark
                       ? 'bg-card-dark border border-white/10'
@@ -412,6 +413,7 @@ export function DashboardHeader({
 
             {showDropdown && (
               <div
+                onMouseDown={(e) => e.stopPropagation()}
                 className={`absolute rounded-2xl shadow-lg z-[100] py-2 ${
                   isDark
                     ? 'bg-card-dark border border-white/10'
@@ -431,7 +433,10 @@ export function DashboardHeader({
                   <p className="text-xs mb-2 text-slate-400">{t.language}</p>
                   <div className="flex gap-2">
                     <button
-                      onClick={() => onSetLanguage('en')}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onSetLanguage('en');
+                      }}
                       className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-sm transition-colors ${
                         language === 'en'
                           ? 'border'
@@ -453,7 +458,10 @@ export function DashboardHeader({
                       {t.english}
                     </button>
                     <button
-                      onClick={() => onSetLanguage('ar')}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onSetLanguage('ar');
+                      }}
                       className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-sm transition-colors ${
                         language === 'ar'
                           ? 'border'
@@ -482,7 +490,10 @@ export function DashboardHeader({
                   className={`px-4 py-3 border-b ${isDark ? 'border-white/5' : 'border-slate-200'}`}
                 >
                   <button
-                    onClick={onToggleTheme}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onToggleTheme();
+                    }}
                     className={`w-full flex items-center justify-between rounded-xl px-3 py-2 transition-colors ${
                       isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'
                     }`}
@@ -522,7 +533,10 @@ export function DashboardHeader({
                       {availableColors.map((color) => (
                         <button
                           key={color.id}
-                          onClick={() => onSetPrimaryColor(color.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onSetPrimaryColor(color.id);
+                          }}
                           className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full transition-all ${color.colorClass} border-2 ${
                             primaryColor === color.id
                               ? `${isDark ? 'border-white' : 'border-slate-800'} scale-110 shadow-md`
@@ -607,6 +621,7 @@ export function DashboardHeader({
 
                 {showNotifications && (
                   <div
+                    onMouseDown={(e) => e.stopPropagation()}
                     className={`fixed rounded-2xl shadow-lg z-[100] overflow-hidden ${
                       isDark
                         ? 'bg-card-dark border border-white/10'
@@ -760,6 +775,7 @@ export function DashboardHeader({
 
                 {showDropdown && (
                   <div
+                    onMouseDown={(e) => e.stopPropagation()}
                     className={`absolute rounded-2xl shadow-lg z-[100] py-2 ${
                       isDark
                         ? 'bg-card-dark border border-white/10'
@@ -779,7 +795,10 @@ export function DashboardHeader({
                       <p className="text-xs mb-2 text-slate-400">{t.language}</p>
                       <div className="flex gap-2">
                         <button
-                          onClick={() => onSetLanguage('en')}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onSetLanguage('en');
+                          }}
                           className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-sm transition-colors ${
                             language === 'en'
                               ? 'border'
@@ -801,7 +820,10 @@ export function DashboardHeader({
                           {t.english}
                         </button>
                         <button
-                          onClick={() => onSetLanguage('ar')}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onSetLanguage('ar');
+                          }}
                           className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-sm transition-colors ${
                             language === 'ar'
                               ? 'border'
@@ -830,7 +852,10 @@ export function DashboardHeader({
                       className={`px-4 py-3 border-b ${isDark ? 'border-white/5' : 'border-slate-200'}`}
                     >
                       <button
-                        onClick={onToggleTheme}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onToggleTheme();
+                        }}
                         className={`w-full flex items-center justify-between rounded-xl px-3 py-2 transition-colors ${
                           isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'
                         }`}
@@ -868,7 +893,10 @@ export function DashboardHeader({
                           {availableColors.map((color) => (
                             <button
                               key={color.id}
-                              onClick={() => onSetPrimaryColor?.(color.hex)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onSetPrimaryColor?.(color.id);
+                              }}
                               className={`w-6 h-6 rounded-full border-2 transition-transform hover:scale-110 ${
                                 accentColor === color.hex ? 'border-slate-800' : 'border-transparent'
                               }`}

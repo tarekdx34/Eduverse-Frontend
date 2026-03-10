@@ -275,7 +275,7 @@ function AdminDashboardContent() {
           availableColors={[
             { id: 'blue', colorClass: 'bg-blue-500', hex: '#3b82f6' },
             { id: 'emerald', colorClass: 'bg-emerald-500', hex: '#10b981' },
-            { id: 'rose', colorClass: 'bg-blue-500', hex: '#f43f5e' },
+            { id: 'rose', colorClass: 'bg-rose-500', hex: '#f43f5e' },
             { id: 'amber', colorClass: 'bg-amber-500', hex: '#f59e0b' },
           ]}
           translations={{
