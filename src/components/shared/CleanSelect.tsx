@@ -1,6 +1,10 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { CustomDropdown } from './CustomDropdown';
-import { useTheme } from '../../pages/student-dashboard/contexts/ThemeContext';
+import StudentThemeContext from '../../pages/student-dashboard/contexts/ThemeContext';
+import InstructorThemeContext from '../../pages/instructor-dashboard/contexts/ThemeContext';
+import TaThemeContext from '../../pages/ta-dashboard/contexts/ThemeContext';
+import AdminThemeContext from '../../pages/admin-dashboard/contexts/ThemeContext';
+import ItAdminThemeContext from '../../pages/it-admin-dashboard/contexts/ThemeContext';
 
 export interface CleanSelectProps
   extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, 'onChange' | 'value'> {
@@ -9,7 +13,13 @@ export interface CleanSelectProps
 }
 
 export function CleanSelect({ value, onChange, children, className }: CleanSelectProps) {
-  const theme = useTheme() as any;
+  const studentTheme = useContext(StudentThemeContext) as any;
+  const instructorTheme = useContext(InstructorThemeContext) as any;
+  const taTheme = useContext(TaThemeContext) as any;
+  const adminTheme = useContext(AdminThemeContext) as any;
+  const itAdminTheme = useContext(ItAdminThemeContext) as any;
+
+  const theme = studentTheme || instructorTheme || taTheme || adminTheme || itAdminTheme || {};
   const isDark = theme?.isDark ?? false;
   const accentColor = theme?.primaryHex ?? '#3b82f6';
 
