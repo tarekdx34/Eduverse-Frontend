@@ -49,6 +49,16 @@ export class ApiClient {
       console.log('[API Response Data]', data);
 
       if (!response.ok) {
+        if (response.status === 401) {
+          console.warn('[API Auth] Session expired or invalid. Clearing auth and redirecting...');
+          localStorage.removeItem(TOKEN_KEYS.ACCESS_TOKEN);
+          localStorage.removeItem(TOKEN_KEYS.REFRESH_TOKEN);
+          localStorage.removeItem(TOKEN_KEYS.USER);
+          if (window.location.pathname !== '/login') {
+            window.location.href = '/login';
+          }
+        }
+
         const errorMessage =
           typeof data === 'object' && data !== null && 'message' in data
             ? (data as Record<string, unknown>).message

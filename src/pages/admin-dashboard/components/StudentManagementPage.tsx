@@ -1,8 +1,12 @@
-import { useState } from 'react';
-import { GraduationCap, Search, Filter, Plus, Minus, Wrench, X, BookOpen } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { adminService } from '../../../services/adminService';
+import { GraduationCap, Search, Filter, Plus, Minus, Wrench, X, BookOpen, Loader2 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useAuth } from '../../../context/AuthContext';
 import { CleanSelect } from '../../../components/shared';
+
 
 
 interface Student {
@@ -45,25 +49,47 @@ type ModalType = 'add-course' | 'remove-course' | 'fix-enrollment' | null;
 export function StudentManagementPage() {
   const { isDark, primaryHex } = useTheme() as any;
   const accentColor = primaryHex || '#3b82f6';
-  const { t } = useLanguage();
+  const { language, setLanguage, isRTL, t } = useLanguage();
+  const { isAuthenticated } = useAuth();
+  const isMockMode = !isAuthenticated;
 
-  const [students, setStudents] = useState<Student[]>(mockStudents);
   const [searchTerm, setSearchTerm] = useState('');
   const [yearFilter, setYearFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [activeModal, setActiveModal] = useState<ModalType>(null);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [selectedCourse, setSelectedCourse] = useState('');
+  const [page, setPage] = useState(1);
 
-  const filteredStudents = students.filter((s) => {
-    const matchesSearch =
-      s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      s.studentId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      s.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesYear = yearFilter === 'all' || s.year === yearFilter;
-    const matchesStatus = statusFilter === 'all' || s.status === statusFilter;
-    return matchesSearch && matchesYear && matchesStatus;
+  const { data: studentsData, isLoading } = useQuery({
+    queryKey: ['admin-students', page, searchTerm, statusFilter],
+    queryFn: () => adminService.getStudents(page, 10, searchTerm),
+    enabled: !isMockMode,
   });
+
+  const students = useMemo(() => {
+    if (isMockMode) return mockStudents;
+    if (!studentsData) return [];
+    const list = studentsData.data || (Array.isArray(studentsData) ? studentsData : []);
+    return list.map((user: any) => ({
+      id: user.userId,
+      studentId: user.studentId || `STU-2026-${user.userId.toString().padStart(3, '0')}`,
+      name: `${user.firstName} ${user.lastName}`,
+      email: user.email,
+      year: user.year || '4th',
+      enrolledCourses: user.enrolledCourses || [],
+      status: user.status === 'active' ? 'active' : (user.status === 'graduated' ? 'graduated' : 'on-hold'),
+    }));
+  }, [studentsData, isMockMode]);
+
+  const filteredStudents = useMemo(() => {
+    return students.filter((s) => {
+      const matchesYear = yearFilter === 'all' || s.year === yearFilter;
+      const matchesStatus = statusFilter === 'all' || s.status === statusFilter;
+      return matchesYear && matchesStatus;
+    });
+  }, [students, yearFilter, statusFilter]);
+
 
   const openModal = (type: ModalType, student: Student) => {
     setSelectedStudent(student);
@@ -204,63 +230,72 @@ export function StudentManagementPage() {
               </tr>
             </thead>
             <tbody className={`${isDark ? 'divide-white/5' : 'divide-slate-100'} divide-y`}>
-              {filteredStudents.map((student) => (
-                <tr key={student.id} className={`${rowHoverClass} transition-colors`}>
-                  <td className={`px-4 py-3 font-medium ${headingClass}`}>{student.name}</td>
-                  <td className={`px-4 py-3 ${labelClass} font-mono text-xs`}>{student.studentId}</td>
-                  <td className={`px-4 py-3 ${labelClass}`}>{student.email}</td>
-                  <td className={`px-4 py-3 ${labelClass}`}>{student.year}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex flex-wrap gap-1">
-                      {student.enrolledCourses.length > 0 ? (
-                        student.enrolledCourses.map((c) => (
-                          <span
-                            key={c}
-                            className={`px-2 py-0.5 rounded text-xs font-medium ${
-                              isDark ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-50 text-blue-600'
-                            }`}
-                          >
-                            {c}
-                          </span>
-                        ))
-                      ) : (
-                        <span className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>None</span>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">{statusBadge(student.status)}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={() => openModal('add-course', student)}
-                        title="Add Course"
-                        className="p-1.5 rounded-lg hover:opacity-90 text-white transition-colors"
-                      >
-                        <Plus className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        onClick={() => openModal('remove-course', student)}
-                        title="Remove Course"
-                        className={`p-1.5 rounded-lg transition-colors ${
-                          isDark ? 'hover:bg-white/10 text-slate-400 hover:text-white' : 'hover:bg-slate-100 text-slate-500 hover:text-slate-700'
-                        }`}
-                      >
-                        <Minus className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        onClick={() => openModal('fix-enrollment', student)}
-                        title="Fix Enrollment"
-                        className={`p-1.5 rounded-lg transition-colors ${
-                          isDark ? 'hover:bg-white/10 text-slate-400 hover:text-white' : 'hover:bg-slate-100 text-slate-500 hover:text-slate-700'
-                        }`}
-                      >
-                        <Wrench className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
+              {isLoading ? (
+                <tr>
+                  <td colSpan={7} className="px-4 py-12 text-center text-slate-500">
+                    <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2 text-blue-500" />
+                    Loading students...
                   </td>
                 </tr>
-              ))}
-              {filteredStudents.length === 0 && (
+              ) : filteredStudents.length > 0 ? (
+                filteredStudents.map((student) => (
+                  <tr key={student.id} className={`${rowHoverClass} transition-colors`}>
+                    <td className={`px-4 py-3 font-medium ${headingClass}`}>{student.name}</td>
+                    <td className={`px-4 py-3 ${labelClass} font-mono text-xs`}>{student.studentId}</td>
+                    <td className={`px-4 py-3 ${labelClass}`}>{student.email}</td>
+                    <td className={`px-4 py-3 ${labelClass}`}>{student.year}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex flex-wrap gap-1">
+                        {student.enrolledCourses.length > 0 ? (
+                          student.enrolledCourses.map((c) => (
+                            <span
+                              key={c}
+                              className={`px-2 py-0.5 rounded text-xs font-medium ${
+                                isDark ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-50 text-blue-600'
+                              }`}
+                            >
+                              {c}
+                            </span>
+                          ))
+                        ) : (
+                          <span className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>None</span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">{statusBadge(student.status)}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => openModal('add-course', student)}
+                          style={{ backgroundColor: accentColor }}
+                          title="Add Course"
+                          className="p-1.5 rounded-lg hover:opacity-90 text-white transition-colors"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => openModal('remove-course', student)}
+                          title="Remove Course"
+                          className={`p-1.5 rounded-lg transition-colors ${
+                            isDark ? 'hover:bg-white/10 text-slate-400 hover:text-white' : 'hover:bg-slate-100 text-slate-500 hover:text-slate-700'
+                          }`}
+                        >
+                          <Minus className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => openModal('fix-enrollment', student)}
+                          title="Fix Enrollment"
+                          className={`p-1.5 rounded-lg transition-colors ${
+                            isDark ? 'hover:bg-white/10 text-slate-400 hover:text-white' : 'hover:bg-slate-100 text-slate-500 hover:text-slate-700'
+                          }`}
+                        >
+                          <Wrench className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
                 <tr>
                   <td colSpan={7} className={`px-4 py-12 text-center ${labelClass}`}>
                     {t('noData') || 'No students found'}
@@ -268,6 +303,7 @@ export function StudentManagementPage() {
                 </tr>
               )}
             </tbody>
+
           </table>
         </div>
       </div>

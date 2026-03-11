@@ -17,7 +17,7 @@ const login = () => {
   const navigate = useNavigate();
   const { language } = useLanguage();
   const isArabic = language === 'ar';
-  const { login: authLogin } = useAuth();
+  const { login: authLogin, logout: authLogout } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -178,31 +178,31 @@ const login = () => {
           {/* Development / Quick Access Buttons - Redesigned more subtly */}
           <div className="grid grid-cols-2 gap-3 mt-6">
             <button
-              onClick={() => navigate('/studentdashboard')}
+              onClick={async () => { await authLogout(); navigate('/studentdashboard', { state: { isMock: true } }); }}
               className="flex items-center justify-center px-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/5 bg-gray-50/50 dark:bg-white/5 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white transition-all text-[11px] font-bold uppercase tracking-wider"
             >
               Student
             </button>
             <button
-              onClick={() => navigate('/instructordashboard')}
+              onClick={async () => { await authLogout(); navigate('/instructordashboard', { state: { isMock: true } }); }}
               className="flex items-center justify-center px-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/5 bg-gray-50/50 dark:bg-white/5 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white transition-all text-[11px] font-bold uppercase tracking-wider"
             >
               Instructor
             </button>
             <button
-              onClick={() => navigate('/admindashboard')}
+              onClick={async () => { await authLogout(); navigate('/admindashboard', { state: { isMock: true } }); }}
               className="flex items-center justify-center px-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/5 bg-gray-50/50 dark:bg-white/5 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white transition-all text-[11px] font-bold uppercase tracking-wider"
             >
               Admin
             </button>
             <button
-              onClick={() => navigate('/itadmindashboard')}
+              onClick={async () => { await authLogout(); navigate('/itadmindashboard', { state: { isMock: true } }); }}
               className="flex items-center justify-center px-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/5 bg-gray-50/50 dark:bg-white/5 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white transition-all text-[11px] font-bold uppercase tracking-wider"
             >
               IT Admin
             </button>
             <button
-              onClick={() => navigate('/tadashboard')}
+              onClick={async () => { await authLogout(); navigate('/tadashboard', { state: { isMock: true } }); }}
               className="col-span-2 flex items-center justify-center px-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/5 bg-gray-50/50 dark:bg-white/5 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white transition-all text-[11px] font-bold uppercase tracking-wider"
             >
               Teaching Assistant

@@ -1,5 +1,8 @@
-import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useEffect, useState, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { adminService } from '../../services/adminService';
+
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import {
   LayoutGrid,
   BookOpen,
@@ -23,6 +26,7 @@ import { DashboardHeader, DashboardSidebar, MessagingChat } from '../../componen
 import { DashboardProfileTab } from '../../components/shared/DashboardProfileTab';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
+import { useAuth } from '../../context/AuthContext';
 import {
   DASHBOARD_STATS,
   USERS,
@@ -95,17 +99,109 @@ const TABS: { key: TabKey; label: string; labelAr: string; icon: any; group: str
 
 function AdminDashboardContent() {
   const navigate = useNavigate();
+  const location = useLocation();
   const params = useParams();
   const [activeTab, setActiveTab] = useState<TabKey>('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { isDark, toggleTheme, primaryHex, primaryColor, setPrimaryColor } = useTheme() as any;
   const { language, setLanguage, isRTL, t } = useLanguage();
+  const { isAuthenticated } = useAuth();
+  const isMockMode = !isAuthenticated || location.state?.isMock;
+
+  // Fetch live stats
+  const { data: liveStats, isLoading: statsLoading } = useQuery({
+    queryKey: ['admin-stats'],
+    queryFn: () => adminService.getStats(),
+    enabled: !isMockMode,
+  });
+
+  // Fetch live courses
+  const { data: coursesDataLive, isLoading: coursesLoading } = useQuery({
+    queryKey: ['admin-courses'],
+    queryFn: () => adminService.getCourses(),
+    enabled: !isMockMode && activeTab === 'courses',
+  });
 
   // State for data management
   const [coursesData, setCoursesData] = useState(COURSES);
+
+  // Sync courses with live data
+  useEffect(() => {
+    if (coursesDataLive) {
+      const liveItems = coursesDataLive.data || (Array.isArray(coursesDataLive) ? coursesDataLive : []);
+      if (liveItems.length > 0) {
+        console.log('[AdminDashboard] Mapping live courses:', liveItems.length);
+        // Map backend courses to match the interface expected by components
+        const mapped = liveItems.map((c: any) => ({
+          ...c,
+          id: Number(c.id || c.course_id || c.courseId),
+          name: c.name || c.course_name || c.courseName || 'Unnamed Course',
+          code: c.code || c.course_code || c.courseCode || 'N/A',
+          // Ensure department string exists for filtering (fall back to CSE for admin demo)
+          department: (typeof c.department === 'string' ? c.department : c.department?.name) || ADMIN_DEPARTMENT,
+          enrolled: Number(c.enrolled || c.currentEnrollment || 0),
+          capacity: Number(c.capacity || c.maxCapacity || 100),
+          status: (c.status?.toLowerCase() || 'active'),
+          instructor: c.instructor || 'TBA',
+          semester: c.semester || 'Spring 2026',
+          taIds: c.taIds || [],
+          prerequisites: Array.isArray(c.prerequisites) 
+            ? c.prerequisites.map((p: any) => typeof p === 'string' ? p : (p.code || p.course_code || p.prerequisiteCourse?.code || ''))
+            : []
+        }));
+        setCoursesData(mapped);
+      }
+    } else if (isMockMode) {
+      setCoursesData(COURSES);
+    }
+  }, [coursesDataLive, isMockMode]);
+
+
+  // Fetch calendar events
+  const { data: calendarDataLive } = useQuery({
+    queryKey: ['admin-calendar'],
+    queryFn: () => adminService.getCalendarEvents(),
+    enabled: !isMockMode && activeTab === 'calendar',
+  });
+
   const [calendarEvents, setCalendarEvents] = useState(CALENDAR_EVENTS);
+
+  // Sync calendar
+  useEffect(() => {
+    if (calendarDataLive) {
+      const list = calendarDataLive.data || (Array.isArray(calendarDataLive) ? calendarDataLive : []);
+      const mappedEvents = list.map((item: any) => ({
+        id: item.id,
+        title: `${item.name} ${item.year}`,
+        date: item.startDate || item.date,
+        endDate: item.endDate,
+        type: 'semester',
+        color: '#10b981'
+      }));
+      setCalendarEvents(mappedEvents.length > 0 ? mappedEvents : CALENDAR_EVENTS);
+    }
+  }, [calendarDataLive]);
+
   const [templates, setTemplates] = useState(NOTIFICATION_TEMPLATES);
+
+  // Fetch enrollment periods
+  const { data: periodsDataLive } = useQuery({
+    queryKey: ['admin-periods'],
+    queryFn: () => adminService.getEnrollmentPeriods(),
+    enabled: !isMockMode && activeTab === 'periods',
+  });
+
   const [enrollmentPeriodsData, setEnrollmentPeriodsData] = useState(ENROLLMENT_PERIODS);
+
+  // Sync with live data
+  useEffect(() => {
+    if (periodsDataLive) {
+      setEnrollmentPeriodsData(periodsDataLive.data || (Array.isArray(periodsDataLive) ? periodsDataLive : ENROLLMENT_PERIODS));
+    } else if (isMockMode) {
+      setEnrollmentPeriodsData(ENROLLMENT_PERIODS);
+    }
+  }, [periodsDataLive, isMockMode]);
+
 
   // Sync tab from URL
   useEffect(() => {
@@ -293,12 +389,13 @@ function AdminDashboardContent() {
         {/* Dashboard Overview */}
         {activeTab === 'dashboard' && (
           <DashboardOverview
-            stats={DASHBOARD_STATS}
+            stats={liveStats || DASHBOARD_STATS}
             analytics={ANALYTICS}
             recentActivity={RECENT_ACTIVITY}
             onNavigate={(tab) => handleTabChange(tab as TabKey)}
           />
         )}
+
 
         {/* Student Management */}
         {activeTab === 'students' && <StudentManagementPage />}

@@ -181,7 +181,7 @@ export function EnrollmentPeriodPage({ enrollmentPeriods, courses, adminDepartme
                           <div>
                             <span className={`text-xs font-semibold ${isDark ? 'text-red-400' : 'text-red-600'}`}>{course.code}</span>
                             <p className={`text-xs ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{course.name}</p>
-                            {course.prerequisites.length > 0 && (
+                            {course.prerequisites?.length > 0 && (
                               <p className={`text-[10px] mt-0.5 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
                                 Prereq: {course.prerequisites.join(', ')}
                               </p>
