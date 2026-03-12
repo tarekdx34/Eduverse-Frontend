@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminService } from '../../services/adminService';
+import { toast } from 'sonner';
 
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import {
@@ -106,6 +107,7 @@ function AdminDashboardContent() {
   const { isDark, toggleTheme, primaryHex, primaryColor, setPrimaryColor } = useTheme() as any;
   const { language, setLanguage, isRTL, t } = useLanguage();
   const { isAuthenticated } = useAuth();
+  const queryClient = useQueryClient();
   const isMockMode = !isAuthenticated || location.state?.isMock;
 
   // Fetch live stats
@@ -122,39 +124,54 @@ function AdminDashboardContent() {
     enabled: !isMockMode && activeTab === 'courses',
   });
 
+  // Fetch live users for staff assignment
+  const { data: usersDataLive } = useQuery({
+    queryKey: ['admin-all-users'],
+    queryFn: () => adminService.getUsers(),
+    enabled: !isMockMode && activeTab === 'courses',
+  });
+
   // State for data management
   const [coursesData, setCoursesData] = useState(COURSES);
+  const [usersList, setUsersList] = useState(USERS);
+
+  // Sync users list
+  useEffect(() => {
+    if (usersDataLive?.data) {
+      setUsersList(usersDataLive.data);
+    } else if (isMockMode) {
+      setUsersList(USERS);
+    }
+  }, [usersDataLive, isMockMode]);
 
   // Sync courses with live data
   useEffect(() => {
     if (coursesDataLive) {
       const liveItems = coursesDataLive.data || (Array.isArray(coursesDataLive) ? coursesDataLive : []);
-      if (liveItems.length > 0) {
-        console.log('[AdminDashboard] Mapping live courses:', liveItems.length);
-        // Map backend courses to match the interface expected by components
-        const mapped = liveItems.map((c: any) => ({
-          ...c,
-          id: Number(c.id || c.course_id || c.courseId),
-          name: c.name || c.course_name || c.courseName || 'Unnamed Course',
-          code: c.code || c.course_code || c.courseCode || 'N/A',
-          // Ensure department string exists for filtering (fall back to CSE for admin demo)
-          department: (typeof c.department === 'string' ? c.department : c.department?.name) || ADMIN_DEPARTMENT,
-          enrolled: Number(c.enrolled || c.currentEnrollment || 0),
-          capacity: Number(c.capacity || c.maxCapacity || 100),
-          status: (c.status?.toLowerCase() || 'active'),
-          instructor: c.instructor || 'TBA',
-          semester: c.semester || 'Spring 2026',
-          taIds: c.taIds || [],
-          prerequisites: Array.isArray(c.prerequisites) 
-            ? c.prerequisites.map((p: any) => typeof p === 'string' ? p : (p.code || p.course_code || p.prerequisiteCourse?.code || ''))
-            : []
-        }));
-        setCoursesData(mapped);
-      }
+      console.log('[AdminDashboard] Mapping live courses:', liveItems.length);
+      // Map backend courses to match the interface expected by components
+      const mapped = liveItems.map((c: any) => ({
+        ...c,
+        id: Number(c.id || c.course_id || c.courseId),
+        name: c.name || c.course_name || c.courseName || 'Unnamed Course',
+        code: c.code || c.course_code || c.courseCode || 'N/A',
+        department: (typeof c.department === 'string' ? c.department : c.department?.name) || ADMIN_DEPARTMENT,
+        enrolled: Number(c.enrolled || c.currentEnrollment || 0),
+        capacity: Number(c.capacity || c.maxCapacity || 100),
+        status: (c.status?.toLowerCase() || 'active'),
+        instructorId: Number(c.instructorId || c.instructor_id || 0),
+        instructor: c.instructor || usersList.find(u => u.id === Number(c.instructorId || c.instructor_id))?.name || 'TBA',
+        semester: c.semester || 'Spring 2026',
+        taIds: Array.isArray(c.taIds || c.ta_ids) ? (c.taIds || c.ta_ids).map(Number) : [],
+        prerequisites: Array.isArray(c.prerequisites) 
+          ? c.prerequisites.map((p: any) => typeof p === 'string' ? p : (p.code || p.course_code || p.prerequisiteCourse?.code || ''))
+          : []
+      }));
+      setCoursesData(mapped);
     } else if (isMockMode) {
       setCoursesData(COURSES);
     }
-  }, [coursesDataLive, isMockMode]);
+  }, [coursesDataLive, isMockMode, usersList]);
 
 
   // Fetch calendar events
@@ -225,29 +242,98 @@ function AdminDashboardContent() {
     label: language === 'ar' ? tab.labelAr : tab.label,
   }));
 
+  // Course Mutations
+  const addCourseMutation = useMutation({
+    mutationFn: (newCourse: any) => adminService.createCourse(newCourse),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-courses'] });
+      toast.success(t('courseAdded') || 'Course created successfully');
+    },
+    onError: (error: any) => {
+      toast.error('Failed to create course: ' + (error.message || 'Unknown error'));
+    }
+  });
+
+  const updateCourseMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: any }) => adminService.updateCourse(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-courses'] });
+      toast.success(t('courseUpdated') || 'Course updated successfully');
+    },
+    onError: (error: any) => {
+      toast.error('Failed to update course: ' + (error.message || 'Unknown error'));
+    }
+  });
+
+  const deleteCourseMutation = useMutation({
+    mutationFn: (id: number) => adminService.deleteCourse(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-courses'] });
+      toast.success(t('courseDeleted') || 'Course deleted successfully');
+    },
+    onError: (error: any) => {
+      toast.error('Failed to delete course: ' + (error.message || 'Unknown error'));
+    }
+  });
+
   // Course management handlers
   const handleAddCourse = (course: any) => {
-    const newCourse = {
-      id: Math.max(...coursesData.map((c) => c.id)) + 1,
-      ...course,
-      enrolled: 0,
-      status: 'active',
+    if (isMockMode) {
+      const newCourse = {
+        id: Math.max(0, ...coursesData.map((c: any) => c.id)) + 1,
+        ...course,
+        enrolled: 0,
+        status: 'active',
+      };
+      setCoursesData([...coursesData, newCourse]);
+      toast.info('Mock mode: added locally');
+      return;
+    }
+
+    // Map UI data to backend DTO
+    const dto = {
+      departmentId: 1, // Defaulting to CSE (id: 1) for this admin
+      name: course.name,
+      code: course.code,
+      description: course.description || `Course for ${course.semester}`,
+      credits: Number(course.credits),
+      level: (course.level || 'FRESHMAN').toUpperCase(),
     };
-    setCoursesData([...coursesData, newCourse]);
+    addCourseMutation.mutate(dto);
   };
 
   const handleEditCourse = (id: number, course: any) => {
-    setCoursesData(coursesData.map((c) => (c.id === id ? { ...c, ...course } : c)));
+    if (isMockMode) {
+      setCoursesData(coursesData.map((c: any) => (c.id === id ? { ...c, ...course } : c)));
+      toast.info('Mock mode: updated locally');
+      return;
+    }
+
+    const dto = {
+      name: course.name,
+      credits: Number(course.credits),
+      description: course.description,
+      status: (course.status || 'ACTIVE').toUpperCase(),
+      level: (course.level || 'FRESHMAN').toUpperCase(),
+      instructorId: course.instructorId,
+      taIds: course.taIds,
+    };
+    updateCourseMutation.mutate({ id, data: dto });
   };
 
   const handleDeleteCourse = (id: number) => {
-    setCoursesData(coursesData.filter((c) => c.id !== id));
+    if (isMockMode) {
+      setCoursesData(coursesData.filter((c: any) => c.id !== id));
+      toast.info('Mock mode: deleted locally');
+      return;
+    }
+    deleteCourseMutation.mutate(id);
   };
 
   // Calendar event handlers
   const handleAddEvent = (event: any) => {
     const newEvent = {
-      id: Math.max(...calendarEvents.map((e) => e.id)) + 1,
+      id: Math.max(...calendarEvents.map((e: any) => e.id)) + 1,
       ...event,
       color: getEventColor(event.type),
     };
@@ -255,17 +341,17 @@ function AdminDashboardContent() {
   };
 
   const handleEditEvent = (id: number, event: any) => {
-    setCalendarEvents(calendarEvents.map((e) => (e.id === id ? { ...e, ...event } : e)));
+    setCalendarEvents(calendarEvents.map((e: any) => (e.id === id ? { ...e, ...event } : e)));
   };
 
   const handleDeleteEvent = (id: number) => {
-    setCalendarEvents(calendarEvents.filter((e) => e.id !== id));
+    setCalendarEvents(calendarEvents.filter((e: any) => e.id !== id));
   };
 
   // Enrollment period handlers
   const handleAddEnrollmentPeriod = (period: any) => {
     const newPeriod = {
-      id: Math.max(0, ...enrollmentPeriodsData.map((p) => p.id)) + 1,
+      id: Math.max(0, ...enrollmentPeriodsData.map((p: any) => p.id)) + 1,
       ...period,
     };
     setEnrollmentPeriodsData([...enrollmentPeriodsData, newPeriod]);
@@ -273,12 +359,12 @@ function AdminDashboardContent() {
 
   const handleEditEnrollmentPeriod = (id: number, period: any) => {
     setEnrollmentPeriodsData(
-      enrollmentPeriodsData.map((p) => (p.id === id ? { ...p, ...period } : p))
+      enrollmentPeriodsData.map((p: any) => (p.id === id ? { ...p, ...period } : p))
     );
   };
 
   const handleDeleteEnrollmentPeriod = (id: number) => {
-    setEnrollmentPeriodsData(enrollmentPeriodsData.filter((p) => p.id !== id));
+    setEnrollmentPeriodsData(enrollmentPeriodsData.filter((p: any) => p.id !== id));
   };
 
   const getEventColor = (type: string) => {
@@ -404,7 +490,7 @@ function AdminDashboardContent() {
         {activeTab === 'courses' && (
           <CourseManagementPage
             courses={coursesData}
-            users={USERS}
+            users={usersList}
             adminDepartment={ADMIN_DEPARTMENT}
             onAddCourse={handleAddCourse}
             onEditCourse={handleEditCourse}

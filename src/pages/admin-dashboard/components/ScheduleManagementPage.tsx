@@ -101,7 +101,15 @@ export function ScheduleManagementPage({ schedules, courses, users, adminDepartm
     setConflictError('');
   };
 
-  const typeColors: Record<string, string> = { lecture: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400', lab: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400', section: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400', tutorial: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' };
+  const getStatusStyles = (type: string) => {
+    switch (type) {
+      case 'lecture': return { bg: isDark ? 'bg-indigo-500/10' : 'bg-indigo-50', text: isDark ? 'text-indigo-400' : 'text-indigo-700', border: isDark ? 'border-indigo-500/20' : 'border-indigo-200' };
+      case 'lab': return { bg: isDark ? 'bg-emerald-500/10' : 'bg-emerald-50', text: isDark ? 'text-emerald-400' : 'text-emerald-700', border: isDark ? 'border-emerald-500/20' : 'border-emerald-200' };
+      case 'section': return { bg: isDark ? 'bg-blue-500/10' : 'bg-blue-50', text: isDark ? 'text-blue-400' : 'text-blue-700', border: isDark ? 'border-blue-500/20' : 'border-blue-200' };
+      case 'tutorial': return { bg: isDark ? 'bg-amber-500/10' : 'bg-amber-50', text: isDark ? 'text-amber-500' : 'text-amber-700', border: isDark ? 'border-amber-500/20' : 'border-amber-200' };
+      default: return { bg: isDark ? 'bg-slate-500/10' : 'bg-slate-50', text: isDark ? 'text-slate-400' : 'text-slate-700', border: isDark ? 'border-slate-500/20' : 'border-slate-200' };
+    }
+  };
 
   const dayTranslations: Record<string, string> = { Sunday: t('sunday'), Monday: t('monday'), Tuesday: t('tuesday'), Wednesday: t('wednesday'), Thursday: t('thursday'), Saturday: t('saturday') };
 
@@ -114,7 +122,10 @@ export function ScheduleManagementPage({ schedules, courses, users, adminDepartm
         <div>
           <div className="flex items-center gap-2">
             <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('scheduleManagement')}</h1>
-            <span className="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">{adminDepartment}</span>
+            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-full border ${isDark ? 'bg-red-500/10 border-red-500/20 text-red-400' : 'bg-red-50 border-red-200 text-red-700'}`}>
+              <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+              {adminDepartment}
+            </span>
           </div>
           <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('manageScheduleSub')}</p>
         </div>
@@ -178,7 +189,14 @@ export function ScheduleManagementPage({ schedules, courses, users, adminDepartm
               <div className="p-5">
                 <div className="flex items-start justify-between mb-3">
                   <div>
-                    <span className={`text-xs font-semibold px-2 py-1 rounded ${typeColors[schedule.type] || ''}`}>{t(schedule.type)}</span>
+                    {(() => {
+                      const styles = getStatusStyles(schedule.type);
+                      return (
+                        <span className={`inline-flex items-center text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border ${styles.bg} ${styles.text} ${styles.border}`}>
+                          {t(schedule.type)}
+                        </span>
+                      );
+                    })()}
                     <h3 className={`font-semibold mt-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>{schedule.courseCode} - {schedule.courseName}</h3>
                   </div>
                 </div>

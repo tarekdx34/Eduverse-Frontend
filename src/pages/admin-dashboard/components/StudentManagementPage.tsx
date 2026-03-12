@@ -1,11 +1,13 @@
-import { useState, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useState, useMemo, useRef } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { adminService } from '../../../services/adminService';
-import { GraduationCap, Search, Filter, Plus, Minus, Wrench, X, BookOpen, Loader2 } from 'lucide-react';
+import { GraduationCap, Search, Filter, Plus, Minus, Wrench, X, Trash2, BookOpen, Loader2, Eye, EyeOff, AlertCircle, Pencil } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../../../context/AuthContext';
 import { CleanSelect } from '../../../components/shared';
+import { ADMIN_DEPARTMENT } from '../constants';
 
 
 
@@ -44,7 +46,7 @@ const enrollmentConflicts: Record<string, { course: string; conflict: string; re
   ],
 };
 
-type ModalType = 'add-course' | 'remove-course' | 'fix-enrollment' | null;
+type ModalType = 'add-course' | 'remove-course' | 'fix-enrollment' | 'edit-student' | 'delete-student' | null;
 
 export function StudentManagementPage() {
   const { isDark, primaryHex } = useTheme() as any;
@@ -60,6 +62,19 @@ export function StudentManagementPage() {
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [selectedCourse, setSelectedCourse] = useState('');
   const [page, setPage] = useState(1);
+  const [localEnrollments, setLocalEnrollments] = useState<Record<number, string[]>>({});
+  const [showAddStudentModal, setShowAddStudentModal] = useState(false);
+  const [newStudent, setNewStudent] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    password: '',
+    phone: '',
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+
+  const queryClient = useQueryClient();
 
   const { data: studentsData, isLoading } = useQuery({
     queryKey: ['admin-students', page, searchTerm, statusFilter],
@@ -67,20 +82,84 @@ export function StudentManagementPage() {
     enabled: !isMockMode,
   });
 
+  const updateStudentMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: any }) => adminService.updateUser(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-students'] });
+      toast.success('Student updated', {
+        description: 'Profile information has been saved successfully.',
+      });
+      closeModal();
+    },
+    onError: (error: any) => {
+      toast.error('Update failed', {
+        description: error?.response?.data?.message || 'Failed to update student profile',
+      });
+    }
+  });
+
+  const createStudentMutation = useMutation({
+    mutationFn: (data: any) => adminService.createStudent(data),
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-students'] });
+      setShowAddStudentModal(false);
+      setNewStudent({ firstName: '', lastName: '', email: '', password: '', phone: '' });
+      setFormError(null);
+      toast.success('Student account created successfully!', {
+        description: `${data.user.firstName} ${data.user.lastName} has been registered.`,
+      });
+    },
+    onError: (error: any) => {
+      const message = error?.response?.data?.message || error?.message || 'Failed to create student';
+      setFormError(message);
+      toast.error('Registration failed', {
+        description: message,
+      });
+    }
+  });
+
+  const deleteStudentMutation = useMutation({
+    mutationFn: (id: number) => adminService.deleteUser(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-students'] });
+      toast.success('Student deleted', {
+        description: 'The student record has been permanently removed.',
+      });
+      closeModal();
+    },
+    onError: (error: any) => {
+      if (error?.response?.status === 404) {
+        queryClient.invalidateQueries({ queryKey: ['admin-students'] });
+        toast.info('Account already removed', {
+          description: 'The student record had already been deleted.',
+        });
+        closeModal();
+      } else {
+        toast.error('Delete failed', {
+          description: error?.response?.data?.message || 'Failed to delete student',
+        });
+      }
+    }
+  });
+
   const students = useMemo(() => {
     if (isMockMode) return mockStudents;
     if (!studentsData) return [];
     const list = studentsData.data || (Array.isArray(studentsData) ? studentsData : []);
-    return list.map((user: any) => ({
-      id: user.userId,
-      studentId: user.studentId || `STU-2026-${user.userId.toString().padStart(3, '0')}`,
-      name: `${user.firstName} ${user.lastName}`,
-      email: user.email,
-      year: user.year || '4th',
-      enrolledCourses: user.enrolledCourses || [],
-      status: user.status === 'active' ? 'active' : (user.status === 'graduated' ? 'graduated' : 'on-hold'),
-    }));
-  }, [studentsData, isMockMode]);
+    return list.map((user: any) => {
+      const id = user.userId;
+      const baseEnrolled = user.enrolledCourses || [];
+      return {
+        id,
+        studentId: user.studentId || `STU-2026-${id.toString().padStart(3, '0')}`,
+        name: `${user.firstName} ${user.lastName}`,
+        email: user.email,
+        year: user.year || '4th',
+        enrolledCourses: localEnrollments[id] || baseEnrolled,
+        status: user.status === 'active' ? 'active' : (user.status === 'graduated' ? 'graduated' : 'on-hold'),
+      };
+    });
+  }, [studentsData, isMockMode, localEnrollments]);
 
   const filteredStudents = useMemo(() => {
     return students.filter((s) => {
@@ -105,25 +184,25 @@ export function StudentManagementPage() {
 
   const handleAddCourse = () => {
     if (!selectedStudent || !selectedCourse) return;
-    setStudents((prev) =>
-      prev.map((s) =>
-        s.id === selectedStudent.id
-          ? { ...s, enrolledCourses: [...s.enrolledCourses, selectedCourse] }
-          : s
-      )
-    );
+    setLocalEnrollments((prev) => ({
+      ...prev,
+      [selectedStudent.id]: [...(prev[selectedStudent.id] || selectedStudent.enrolledCourses), selectedCourse]
+    }));
+    toast.success('Course added', {
+      description: `${selectedCourse} has been added to ${selectedStudent.name}'s schedule.`
+    });
     closeModal();
   };
 
   const handleRemoveCourse = (course: string) => {
     if (!selectedStudent) return;
-    setStudents((prev) =>
-      prev.map((s) =>
-        s.id === selectedStudent.id
-          ? { ...s, enrolledCourses: s.enrolledCourses.filter((c) => c !== course) }
-          : s
-      )
-    );
+    setLocalEnrollments((prev) => ({
+      ...prev,
+      [selectedStudent.id]: (prev[selectedStudent.id] || selectedStudent.enrolledCourses).filter((c) => c !== course)
+    }));
+    toast.success('Course removed', {
+      description: `${course} has been removed from ${selectedStudent.name}'s schedule.`
+    });
     closeModal();
   };
 
@@ -150,8 +229,16 @@ export function StudentManagementPage() {
   const cardClass = `${isDark ? 'bg-[#1e293b]/80 border border-white/5' : 'bg-white border border-slate-200 shadow-sm'} rounded-2xl`;
   const headingClass = `${isDark ? 'text-white' : 'text-slate-900'}`;
   const labelClass = `${isDark ? 'text-slate-300' : 'text-slate-600'}`;
-  const inputClass = `${isDark ? 'bg-slate-800/50 border-slate-700 text-white placeholder-slate-500' : 'bg-white border-slate-300 text-slate-900 placeholder-slate-400'} border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40`;
-  const rowHoverClass = `${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'}`;
+  const inputClass = `${isDark ? 'bg-slate-800/50 border-slate-700 text-white placeholder-slate-500' : 'bg-white border-slate-300 text-slate-900 placeholder-slate-400'} border rounded-lg px-3 py-2 text-sm focus:outline-none transition-all duration-200`;
+  
+  // Custom focus ring style using the accent color
+  const getFocusStyle = (isFocused: boolean) => ({
+    borderColor: isFocused ? accentColor : undefined,
+    boxShadow: isFocused ? `0 0 0 2px ${accentColor}33` : undefined,
+  });
+
+  const rowHoverClass = `${isDark ? 'hover:bg-blue-500/5' : 'hover:bg-slate-50'}`;
+  const thClass = `px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400 border-b border-white/5' : 'text-slate-500 border-b border-slate-100'}`;
 
   const coursesNotEnrolled = selectedStudent
     ? availableCourses.filter((c) => !selectedStudent.enrolledCourses.includes(c))
@@ -164,18 +251,37 @@ export function StudentManagementPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className={`text-2xl font-bold ${headingClass} flex items-center gap-2`}>
-            <GraduationCap className="w-7 h-7 text-blue-500" />
-            {t('students') || 'Student Management'}
-          </h1>
-          <p className={`text-sm mt-1 ${labelClass}`}>Manage department student enrollments and records</p>
+          <div className="flex items-center gap-3">
+            <h1 className={`text-2xl font-bold leading-none m-0 ${headingClass}`}>
+              {t('students') || 'Students'}
+            </h1>
+            <span 
+              className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-full border flex-shrink-0"
+              style={{ 
+                backgroundColor: `${accentColor}10`, 
+                color: accentColor,
+                borderColor: `${accentColor}20`
+              }}
+            >
+              {ADMIN_DEPARTMENT}
+            </span>
+          </div>
+          <p className={`text-sm mt-2.5 ${labelClass}`}>Manage department student enrollments and records</p>
         </div>
+        <button
+          onClick={() => setShowAddStudentModal(true)}
+          style={{ backgroundColor: accentColor }}
+          className="flex items-center gap-2 px-4 py-2 text-white rounded-lg hover:opacity-90 transition-all active:scale-95 text-sm font-semibold"
+        >
+          <Plus className="w-4 h-4" />
+          Add Student
+        </button>
       </div>
 
-      {/* Filters */}
-      <div className={`${cardClass} p-4`}>
-        <div className="flex flex-col sm:flex-row gap-3">
-          <div className="relative flex-1">
+      {/* Filters - Minimal & Clean */}
+      <div className="w-full">
+        <div className="flex flex-col sm:flex-row gap-4 items-center">
+          <div className="relative flex-1 w-full">
             <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`} />
             <input
               type="text"
@@ -183,27 +289,31 @@ export function StudentManagementPage() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className={`${inputClass} pl-9 w-full`}
+              onFocus={(e) => {
+                e.target.style.borderColor = accentColor;
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = '';
+              }}
             />
           </div>
-          <div className="flex gap-3">
-            <div className="relative">
-              <Filter className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`} />
-              <CleanSelect
-                value={yearFilter}
-                onChange={(e) => setYearFilter(e.target.value)}
-                className={`${inputClass} pl-9 pr-8 appearance-none cursor-pointer`}
-              >
-                <option value="all">All Years</option>
-                <option value="1st">1st Year</option>
-                <option value="2nd">2nd Year</option>
-                <option value="3rd">3rd Year</option>
-                <option value="4th">4th Year</option>
-              </CleanSelect>
-            </div>
+          <div className="flex gap-3 w-full sm:w-auto">
+            <CleanSelect
+              value={yearFilter}
+              onChange={(e: any) => setYearFilter(e.target.value)}
+              className={`${inputClass} cursor-pointer min-w-[120px]`}
+            >
+              <option value="all">All Years</option>
+              <option value="1st">1st Year</option>
+              <option value="2nd">2nd Year</option>
+              <option value="3rd">3rd Year</option>
+              <option value="4th">4th Year</option>
+            </CleanSelect>
+
             <CleanSelect
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className={`${inputClass} pr-8 appearance-none cursor-pointer`}
+              onChange={(e: any) => setStatusFilter(e.target.value)}
+              className={`${inputClass} cursor-pointer min-w-[120px]`}
             >
               <option value="all">{t('allStatus') || 'All Status'}</option>
               <option value="active">{t('active') || 'Active'}</option>
@@ -219,14 +329,14 @@ export function StudentManagementPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className={`${isDark ? 'bg-slate-800/50 text-slate-400' : 'bg-slate-50 text-slate-500'} text-left`}>
-                <th className="px-4 py-3 font-medium">Name</th>
-                <th className="px-4 py-3 font-medium">Student ID</th>
-                <th className="px-4 py-3 font-medium">{t('email') || 'Email'}</th>
-                <th className="px-4 py-3 font-medium">Year</th>
-                <th className="px-4 py-3 font-medium">Enrolled Courses</th>
-                <th className="px-4 py-3 font-medium">{t('status') || 'Status'}</th>
-                <th className="px-4 py-3 font-medium">{t('actions') || 'Actions'}</th>
+              <tr className={`${isDark ? 'bg-slate-800/30' : 'bg-slate-50/50'}`}>
+                <th className={thClass}>Name</th>
+                <th className={thClass}>Student ID</th>
+                <th className={thClass}>{t('email') || 'Email'}</th>
+                <th className={thClass}>Year</th>
+                <th className={thClass}>Enrolled Courses</th>
+                <th className={thClass}>{t('status') || 'Status'}</th>
+                <th className={thClass}>{t('actions') || 'Actions'}</th>
               </tr>
             </thead>
             <tbody className={`${isDark ? 'divide-white/5' : 'divide-slate-100'} divide-y`}>
@@ -264,33 +374,66 @@ export function StudentManagementPage() {
                     </td>
                     <td className="px-4 py-3">{statusBadge(student.status)}</td>
                     <td className="px-4 py-3">
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={() => openModal('add-course', student)}
-                          style={{ backgroundColor: accentColor }}
-                          title="Add Course"
-                          className="p-1.5 rounded-lg hover:opacity-90 text-white transition-colors"
-                        >
-                          <Plus className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={() => openModal('remove-course', student)}
-                          title="Remove Course"
-                          className={`p-1.5 rounded-lg transition-colors ${
-                            isDark ? 'hover:bg-white/10 text-slate-400 hover:text-white' : 'hover:bg-slate-100 text-slate-500 hover:text-slate-700'
-                          }`}
-                        >
-                          <Minus className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={() => openModal('fix-enrollment', student)}
-                          title="Fix Enrollment"
-                          className={`p-1.5 rounded-lg transition-colors ${
-                            isDark ? 'hover:bg-white/10 text-slate-400 hover:text-white' : 'hover:bg-slate-100 text-slate-500 hover:text-slate-700'
-                          }`}
-                        >
-                          <Wrench className="w-3.5 h-3.5" />
-                        </button>
+                      <div className="flex items-center gap-4">
+                        {/* Info & Settings */}
+                        <div className="flex items-center gap-1.5">
+                          <Tooltip text="Edit Student" accentColor={accentColor}>
+                            <button
+                              onClick={() => openModal('edit-student', student)}
+                              className={`p-1.5 rounded-lg transition-all duration-200 active:scale-95 ${
+                                isDark ? 'hover:bg-slate-700/50 text-slate-400 hover:text-white' : 'hover:bg-slate-100 text-slate-500 hover:text-slate-900'
+                              }`}
+                            >
+                              <Pencil className="w-4 h-4" />
+                            </button>
+                          </Tooltip>
+
+                          <Tooltip text="Fix Enrollment" accentColor={accentColor}>
+                            <button
+                              onClick={() => openModal('fix-enrollment', student)}
+                              className={`p-1.5 rounded-lg transition-all duration-200 active:scale-95 ${
+                                isDark ? 'hover:bg-amber-500/10 text-slate-400 hover:text-amber-500' : 'hover:bg-amber-50 text-slate-500 hover:text-amber-600'
+                              }`}
+                            >
+                              <Wrench className="w-4 h-4" />
+                            </button>
+                          </Tooltip>
+                        </div>
+
+                        {/* Course Operations */}
+                        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-500/5">
+                          <Tooltip text="Add Course" accentColor={accentColor}>
+                            <button
+                              onClick={() => openModal('add-course', student)}
+                              style={{ backgroundColor: `${accentColor}15`, color: accentColor }}
+                              className="p-1.5 rounded-lg hover:bg-opacity-25 transition-all duration-200 active:scale-95"
+                            >
+                              <Plus className="w-4 h-4" />
+                            </button>
+                          </Tooltip>
+
+                          <Tooltip text="Remove Course" accentColor={accentColor}>
+                            <button
+                              onClick={() => openModal('remove-course', student)}
+                              style={{ backgroundColor: isDark ? 'rgba(239, 68, 68, 0.15)' : 'rgba(239, 68, 68, 0.08)', color: '#ef4444' }}
+                              className="p-1.5 rounded-lg hover:bg-opacity-25 transition-all duration-200 active:scale-95"
+                            >
+                              <Minus className="w-4 h-4" />
+                            </button>
+                          </Tooltip>
+                        </div>
+
+                        {/* Danger Zone */}
+                        <Tooltip text="Delete Student" accentColor={accentColor}>
+                          <button
+                            onClick={() => openModal('delete-student', student)}
+                            className={`p-1.5 rounded-lg transition-all duration-200 active:scale-95 ${
+                              isDark ? 'hover:bg-red-500/20 text-slate-400 hover:text-red-400' : 'hover:bg-red-50 text-slate-500 hover:text-red-600'
+                            }`}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </Tooltip>
                       </div>
                     </td>
                   </tr>
@@ -325,7 +468,7 @@ export function StudentManagementPage() {
             {activeModal === 'add-course' && (
               <>
                 <h2 className={`text-lg font-semibold ${headingClass} flex items-center gap-2 mb-4`}>
-                  <BookOpen className="w-5 h-5 text-blue-500" />
+                  <BookOpen className="w-5 h-5" style={{ color: accentColor }} />
                   Add Course — {selectedStudent.name}
                 </h2>
                 {coursesNotEnrolled.length > 0 ? (
@@ -344,7 +487,11 @@ export function StudentManagementPage() {
                     <button
                       onClick={handleAddCourse}
                       disabled={!selectedCourse}
-                      className="w-full py-2 rounded-lg hover:opacity-90 text-white font-medium text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      style={{ 
+                        backgroundColor: accentColor,
+                        boxShadow: `0 10px 15px -3px ${accentColor}33, 0 4px 6px -4px ${accentColor}33`
+                      }}
+                      className="w-full py-2.5 rounded-xl hover:opacity-90 text-white font-bold text-sm transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed mt-2"
                     >
                       Enroll Student
                     </button>
@@ -359,7 +506,7 @@ export function StudentManagementPage() {
             {activeModal === 'remove-course' && (
               <>
                 <h2 className={`text-lg font-semibold ${headingClass} flex items-center gap-2 mb-4`}>
-                  <Minus className="w-5 h-5 text-blue-500" />
+                  <Minus className="w-5 h-5" style={{ color: accentColor }} />
                   Remove Course — {selectedStudent.name}
                 </h2>
                 {selectedStudent.enrolledCourses.length > 0 ? (
@@ -390,7 +537,7 @@ export function StudentManagementPage() {
             {activeModal === 'fix-enrollment' && (
               <>
                 <h2 className={`text-lg font-semibold ${headingClass} flex items-center gap-2 mb-4`}>
-                  <Wrench className="w-5 h-5 text-blue-500" />
+                  <Wrench className="w-5 h-5" style={{ color: accentColor }} />
                   Fix Enrollment — {selectedStudent.name}
                 </h2>
                 {conflicts.length > 0 ? (
@@ -404,6 +551,7 @@ export function StudentManagementPage() {
                         <p className={`text-xs mt-1 ${isDark ? 'text-yellow-400' : 'text-yellow-700'}`}>{item.conflict}</p>
                         <button
                           onClick={() => handleFixConflict(item.resolution)}
+                          style={{ backgroundColor: accentColor }}
                           className="mt-2 px-3 py-1.5 rounded-lg hover:opacity-90 text-white text-xs font-medium transition-colors"
                         >
                           {item.resolution}
@@ -419,9 +567,397 @@ export function StudentManagementPage() {
                 )}
               </>
             )}
+
+            {/* Delete Confirmation Modal */}
+            {activeModal === 'delete-student' && (
+              <div className="py-2">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2.5 rounded-xl bg-red-500/10 text-red-500">
+                    <Trash2 className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h2 className={`text-lg font-bold ${headingClass}`}>Confirm Deletion</h2>
+                    <p className="text-sm text-slate-500">This action cannot be undone.</p>
+                  </div>
+                </div>
+                
+                <p className={`text-sm mb-6 ${labelClass} leading-relaxed`}>
+                  Are you sure you want to delete <span className="font-bold text-red-500">{selectedStudent.name}</span>? 
+                  All their academic records and enrollment history will be permanently removed from the system.
+                </p>
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={closeModal}
+                    className={`flex-1 py-2.5 rounded-xl font-semibold text-sm transition-all ${
+                      isDark ? 'bg-slate-800 text-white hover:bg-slate-700' : 'bg-slate-100 text-slate-900 hover:bg-slate-200'
+                    }`}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => deleteStudentMutation.mutate(selectedStudent.id)}
+                    disabled={deleteStudentMutation.isPending}
+                    className="flex-1 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white font-bold text-sm transition-all shadow-lg shadow-red-500/20 flex items-center justify-center gap-2"
+                  >
+                    {deleteStudentMutation.isPending ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      'Delete Student'
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Edit Student Modal */}
+            {activeModal === 'edit-student' && (
+              <EditStudentContent 
+                student={selectedStudent} 
+                onSave={(data: any) => {
+                  const { email, ...updateData } = data;
+                  updateStudentMutation.mutate({ id: selectedStudent.id, data: updateData });
+                }}
+                isSubmitting={updateStudentMutation.isPending}
+                accentColor={accentColor}
+                isDark={isDark}
+                labelClass={labelClass}
+                inputClass={inputClass}
+                headingClass={headingClass}
+              />
+            )}
+          </div>
+        </div>
+      )}
+      {/* Add Student Modal */}
+      {showAddStudentModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4 animate-in fade-in duration-200">
+          <div className={`${cardClass} w-full max-w-lg shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200`}>
+            {/* Modal Header */}
+            <div className={`px-6 py-4 border-b flex items-center justify-between ${isDark ? 'border-white/5 bg-slate-800/50' : 'border-slate-100 bg-slate-50/50'}`}>
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-[accentColor]/10" style={{ color: accentColor, backgroundColor: `${accentColor}15` }}>
+                  <Plus className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className={`text-lg font-bold ${headingClass}`}>Register New Student</h2>
+                  <p className="text-xs text-slate-500">Create a new student account in the system</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => {
+                  setShowAddStudentModal(false);
+                  setFormError(null);
+                }}
+                className={`p-2 rounded-full transition-colors ${isDark ? 'hover:bg-white/5 text-slate-400' : 'hover:bg-slate-200 text-slate-500'}`}
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <form 
+              onSubmit={(e) => {
+                e.preventDefault();
+                setFormError(null);
+                
+                // Fix: Skip phone if empty to avoid validation errors
+                const submitData = { ...newStudent };
+                if (!submitData.phone || !submitData.phone.trim()) {
+                  delete submitData.phone;
+                }
+                
+                createStudentMutation.mutate(submitData);
+              }} 
+              className="p-6 space-y-4"
+            >
+              {formError && (
+                <div className={`p-3 rounded-lg flex gap-3 text-sm animate-in slide-in-from-top-2 duration-300 ${
+                  isDark ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 'bg-red-50 text-red-700 border border-red-100'
+                }`}>
+                  <AlertCircle className="w-5 h-5 shrink-0" />
+                  <p>{formError}</p>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className={`text-xs font-bold uppercase tracking-wider ${labelClass}`}>First Name</label>
+                  <input
+                    required
+                    type="text"
+                    placeholder="e.g. Sara"
+                    value={newStudent.firstName}
+                    onChange={(e) => setNewStudent({ ...newStudent, firstName: e.target.value })}
+                    className={inputClass}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = accentColor;
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = '';
+                    }}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className={`text-xs font-bold uppercase tracking-wider ${labelClass}`}>Last Name</label>
+                  <input
+                    required
+                    type="text"
+                    placeholder="e.g. Mohamed"
+                    value={newStudent.lastName}
+                    onChange={(e) => setNewStudent({ ...newStudent, lastName: e.target.value })}
+                    className={inputClass}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = accentColor;
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = '';
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className={`text-xs font-bold uppercase tracking-wider ${labelClass}`}>Email Address</label>
+                <div className="relative group">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-[accentColor]" style={{ color: undefined }} />
+                  <input
+                    required
+                    type="email"
+                    placeholder="student@university.edu"
+                    value={newStudent.email}
+                    onChange={(e) => setNewStudent({ ...newStudent, email: e.target.value })}
+                    className={`${inputClass} w-full pl-9`}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = accentColor;
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = '';
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className={`text-xs font-bold uppercase tracking-wider ${labelClass}`}>Password</label>
+                  <div className="relative group">
+                    <input
+                      required
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Minimum 8 chars"
+                      value={newStudent.password}
+                      onChange={(e) => setNewStudent({ ...newStudent, password: e.target.value })}
+                      className={`${inputClass} w-full pr-10`}
+                      onFocus={(e) => {
+                        e.target.style.borderColor = accentColor;
+                      }}
+                      onBlur={(e) => {
+                        e.target.style.borderColor = '';
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-slate-500 mt-1">Must include Upper, Lower, Number & Special</p>
+                </div>
+                <div className="space-y-1.5">
+                  <label className={`text-xs font-bold uppercase tracking-wider ${labelClass}`}>Phone (Optional)</label>
+                  <input
+                    type="tel"
+                    placeholder="+201234567890"
+                    value={newStudent.phone}
+                    onChange={(e) => setNewStudent({ ...newStudent, phone: e.target.value })}
+                    className={inputClass}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = accentColor;
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = '';
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className={`p-3 rounded-lg flex gap-3 text-xs border`} style={{ 
+                backgroundColor: `${accentColor}08`, 
+                borderColor: `${accentColor}15`,
+                color: isDark ? '#cbd5e1' : '#475569'
+              }}>
+                <div className="p-1 rounded text-white h-fit" style={{ backgroundColor: accentColor }}>
+                  <BookOpen className="w-3 h-3" />
+                </div>
+                <p>New students are automatically assigned to the <strong>{ADMIN_DEPARTMENT}</strong> department and given the default student role.</p>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAddStudentModal(false);
+                    setFormError(null);
+                  }}
+                  className={`flex-1 py-2.5 rounded-lg border font-semibold text-sm transition-all ${
+                    isDark ? 'border-white/10 text-slate-300 hover:bg-white/5' : 'border-slate-200 text-slate-600 hover:bg-slate-50 shadow-sm'
+                  }`}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={createStudentMutation.isPending}
+                  style={{ 
+                    backgroundColor: accentColor,
+                    boxShadow: `0 10px 15px -3px ${accentColor}33, 0 4px 6px -4px ${accentColor}33`
+                  }}
+                  className="flex-1 py-2.5 rounded-lg text-white font-semibold text-sm hover:opacity-90 transition-all active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {createStudentMutation.isPending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Creating...
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="w-4 h-4" />
+                      Create Account
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
     </div>
+  );
+}
+
+function Tooltip({ children, text, accentColor }: { children: React.ReactNode; text: string; accentColor: string }) {
+  const { isDark } = useTheme() as any;
+  const [show, setShow] = useState(false);
+  const timeoutRef = useRef<any>(null);
+
+  const onEnter = () => {
+    timeoutRef.current = setTimeout(() => setShow(true), 150);
+  };
+
+  const onLeave = () => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    setShow(false);
+  };
+
+  return (
+    <div className="relative flex items-center justify-center" onMouseEnter={onEnter} onMouseLeave={onLeave}>
+      {children}
+      {show && (
+        <div className="absolute bottom-full mb-2 z-[60] pointer-events-none animate-in fade-in slide-in-from-bottom-1 duration-150">
+          <div 
+            className={`px-2.5 py-1 rounded-lg text-[10px] font-bold whitespace-nowrap border shadow-xl ${
+              isDark 
+                ? 'bg-slate-800 text-slate-200 border-white/10 shadow-black/20' 
+                : 'bg-white text-slate-600 border-slate-100 shadow-slate-200/50'
+            }`}
+          >
+            {/* Minimal accent line */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-4 h-[2px] rounded-full" style={{ backgroundColor: accentColor }} />
+            {text}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// --- Sub-components ---
+
+function EditStudentContent({ student, onSave, isSubmitting, accentColor, isDark, labelClass, inputClass, headingClass }: any) {
+  const [formData, setFormData] = useState({
+    firstName: student.name.split(' ')[0] || '',
+    lastName: student.name.split(' ').slice(1).join(' ') || '',
+    email: student.email,
+    phone: student.studentId ? '' : '', // phone isn't in mock, but we'll allow editing
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSave(formData);
+  };
+
+  return (
+    <>
+      <h2 className={`text-lg font-semibold ${headingClass} flex items-center gap-2 mb-4`}>
+        <Pencil className="w-5 h-5" style={{ color: accentColor }} />
+        Edit Profile — {student.name}
+      </h2>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className={`block text-xs font-semibold uppercase tracking-wider mb-1.5 ${labelClass}`}>First Name</label>
+            <input
+              type="text"
+              required
+              value={formData.firstName}
+              onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+              className={`${inputClass} w-full`}
+              onFocus={(e) => { e.target.style.borderColor = accentColor; }}
+              onBlur={(e) => { e.target.style.borderColor = ''; }}
+            />
+          </div>
+          <div>
+            <label className={`block text-xs font-semibold uppercase tracking-wider mb-1.5 ${labelClass}`}>Last Name</label>
+            <input
+              type="text"
+              required
+              value={formData.lastName}
+              onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+              className={`${inputClass} w-full`}
+              onFocus={(e) => { e.target.style.borderColor = accentColor; }}
+              onBlur={(e) => { e.target.style.borderColor = ''; }}
+            />
+          </div>
+        </div>
+        <div>
+          <label className={`block text-xs font-semibold uppercase tracking-wider mb-1.5 ${labelClass}`}>Email Address</label>
+          <div className="relative">
+            <input
+              type="email"
+              disabled
+              value={formData.email}
+              className={`${inputClass} w-full opacity-60 cursor-not-allowed pr-10`}
+            />
+            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+              <Tooltip text="Email cannot be changed" accentColor={accentColor}>
+                <AlertCircle className="w-4 h-4 text-slate-400" />
+              </Tooltip>
+            </div>
+          </div>
+        </div>
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          style={{ 
+            backgroundColor: accentColor,
+            boxShadow: `0 10px 15px -3px ${accentColor}33`
+          }}
+          className="w-full py-2.5 rounded-xl hover:opacity-90 text-white font-bold text-sm transition-all active:scale-[0.98] disabled:opacity-50 mt-2 flex items-center justify-center gap-2"
+        >
+          {isSubmitting ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Saving Changes...
+            </>
+          ) : (
+            'Save Profile'
+          )}
+        </button>
+      </form>
+    </>
   );
 }

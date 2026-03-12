@@ -1,11 +1,13 @@
 import { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
+import { Toaster } from 'sonner';
 
 import HomePage from './pages/home/HomePage';
 import LoginPage from './pages/auth/LoginPage';
 import ProfilePage from './pages/profile/ProfilePage';
 import { QuickNavigateModal } from './components/QuickNavigateModal';
+import { useTheme } from './context/ThemeContext';
 
 // Lazy load dashboard components
 const StudentDashboard = lazy(() => import('./pages/student-dashboard/StudentDashboard'));
@@ -101,8 +103,22 @@ const PageFallback = () => {
 };
 
 function App() {
+  const theme = useTheme();
+  const isDark = theme && typeof theme === 'object' && 'isDark' in theme ? theme.isDark : false;
+
   return (
     <Router>
+      <Toaster 
+        position="top-right" 
+        expand={false} 
+        richColors 
+        theme={isDark ? 'dark' : 'light'}
+        toastOptions={{
+          style: {
+            fontFamily: "'Montserrat', sans-serif",
+          },
+        }}
+      />
       <QuickNavigateModal />
       <Suspense fallback={<PageFallback />}>
         <Routes>

@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Search, Plus, Edit2, Trash2, CalendarDays, Users, Clock, CheckCircle2, Timer, AlertCircle, BookOpen } from 'lucide-react';
+import { Search, Plus, Edit2, Trash2, CalendarDays, Users, Clock, CheckCircle2, Timer, AlertCircle, BookOpen, Pencil, X } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
-import { CleanSelect } from '../../../components/shared';
+import { CleanSelect, Tooltip } from '../../../components/shared';
 
 
 interface EnrollmentPeriod {
@@ -27,15 +27,23 @@ interface EnrollmentPeriodPageProps {
 }
 
 export function EnrollmentPeriodPage({ enrollmentPeriods, courses, adminDepartment, onAddPeriod, onEditPeriod, onDeletePeriod }: EnrollmentPeriodPageProps) {
-  const { isDark } = useTheme();
+  const { isDark, primaryHex } = useTheme() as any;
+  const accentColor = primaryHex || '#3b82f6';
   const { t } = useLanguage();
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [editingPeriod, setEditingPeriod] = useState<EnrollmentPeriod | null>(null);
+
+  type ModalType = 'add-period' | 'edit-period' | 'delete-period';
+  const [activeModal, setActiveModal] = useState<ModalType | null>(null);
+  const [selectedPeriod, setSelectedPeriod] = useState<EnrollmentPeriod | null>(null);
+
   const [statusFilter, setStatusFilter] = useState('all');
 
   const [formData, setFormData] = useState({
     semester: 'Spring 2026', startDate: '', endDate: '', description: '',
   });
+
+  const headingClass = `${isDark ? 'text-white' : 'text-slate-900'}`;
+  const labelClass = `${isDark ? 'text-slate-300' : 'text-slate-600'}`;
+  const inputClass = `${isDark ? 'bg-slate-800/50 border-slate-700 text-white placeholder-slate-500' : 'bg-white border-slate-300 text-slate-900 placeholder-slate-400'} border rounded-lg px-3 py-2 text-sm focus:outline-none transition-all duration-200`;
 
   const deptPeriods = enrollmentPeriods.filter(p => p.department === adminDepartment);
   const deptCourses = courses.filter(c => c.department === adminDepartment);
@@ -44,20 +52,57 @@ export function EnrollmentPeriodPage({ enrollmentPeriods, courses, adminDepartme
   const activePeriods = deptPeriods.filter(p => p.status === 'active').length;
   const totalRegistered = deptPeriods.filter(p => p.status === 'active').reduce((s, p) => s + p.registeredStudents, 0);
 
-  const statusConfig: Record<string, { color: string; icon: React.ReactNode; gradient: string }> = {
-    active: { color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400', icon: <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />, gradient: 'from-green-500 to-emerald-500' },
-    closed: { color: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400', icon: <CheckCircle2 size={12} />, gradient: 'from-gray-400 to-gray-500' },
-    upcoming: { color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400', icon: <Timer size={12} />, gradient: 'from-blue-500 to-blue-500' },
+  const statusConfig: Record<string, { bg: string; text: string; border: string; icon: React.ReactNode; gradient: string }> = {
+    active: { 
+      bg: isDark ? 'bg-emerald-500/10' : 'bg-emerald-50', 
+      text: isDark ? 'text-emerald-400' : 'text-emerald-700', 
+      border: isDark ? 'border-emerald-500/20' : 'border-emerald-200',
+      icon: <div className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </div>, 
+      gradient: 'from-emerald-500 to-teal-500' 
+    },
+    closed: { 
+      bg: isDark ? 'bg-slate-700/50' : 'bg-slate-100', 
+      text: isDark ? 'text-slate-400' : 'text-slate-600', 
+      border: isDark ? 'border-slate-600' : 'border-slate-200',
+      icon: <CheckCircle2 size={12} />, 
+      gradient: 'from-slate-400 to-slate-500' 
+    },
+    upcoming: { 
+      bg: isDark ? 'bg-amber-500/10' : 'bg-amber-50', 
+      text: isDark ? 'text-amber-500' : 'text-amber-700', 
+      border: isDark ? 'border-amber-500/20' : 'border-amber-200',
+      icon: <Timer size={12} />, 
+      gradient: 'from-amber-400 to-amber-500' 
+    },
   };
 
-  const openAddModal = () => {
-    setFormData({ semester: 'Spring 2026', startDate: '', endDate: '', description: '' });
-    setShowAddModal(true);
+  const openModal = (type: ModalType, period?: EnrollmentPeriod) => {
+    if (period) {
+      setSelectedPeriod(period);
+      setFormData({
+        semester: period.semester,
+        startDate: period.startDate,
+        endDate: period.endDate,
+        description: period.description,
+      });
+    } else {
+      setSelectedPeriod(null);
+      setFormData({
+        semester: 'Spring 2026',
+        startDate: '',
+        endDate: '',
+        description: '',
+      });
+    }
+    setActiveModal(type);
   };
 
-  const openEditModal = (period: EnrollmentPeriod) => {
-    setFormData({ semester: period.semester, startDate: period.startDate, endDate: period.endDate, description: period.description });
-    setEditingPeriod(period);
+  const closeModal = () => {
+    setActiveModal(null);
+    setSelectedPeriod(null);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -69,30 +114,48 @@ export function EnrollmentPeriodPage({ enrollmentPeriods, courses, adminDepartme
 
     const payload = {
       ...formData, department: adminDepartment, status,
-      totalStudents: 150, registeredStudents: editingPeriod?.registeredStudents || 0,
+      totalStudents: 150, registeredStudents: selectedPeriod?.registeredStudents || 0,
     };
-    if (editingPeriod) {
-      onEditPeriod(editingPeriod.id, payload);
-      setEditingPeriod(null);
-    } else {
+    if (activeModal === 'edit-period' && selectedPeriod) {
+      onEditPeriod(selectedPeriod.id, payload);
+      closeModal();
+    } else if (activeModal === 'add-period') {
       onAddPeriod(payload);
-      setShowAddModal(false);
+      closeModal();
     }
   };
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('enrollmentPeriods')}</h1>
-            <span className="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">{adminDepartment}</span>
+          <div className="flex items-center gap-3">
+            <h1 className={`text-2xl font-bold leading-none m-0 ${headingClass}`}>
+              {t('enrollmentPeriods') || 'Enrollment Periods'}
+            </h1>
+            <span 
+              className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-full border flex-shrink-0"
+              style={{ 
+                backgroundColor: `${accentColor}10`, 
+                color: accentColor,
+                borderColor: `${accentColor}20`
+              }}
+            >
+              {adminDepartment}
+            </span>
           </div>
-          <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('manageEnrollmentSub')}</p>
+          <p className={`text-sm mt-2.5 ${labelClass}`}>
+            {t('manageEnrollmentSub') || 'Configure and manage course registration windows for students.'}
+          </p>
         </div>
-        <button onClick={openAddModal} className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
-          <Plus size={18} /> {t('openEnrollmentPeriod')}
+        <button
+          onClick={() => openModal('add-period')}
+          style={{ backgroundColor: accentColor }}
+          className="flex items-center gap-2 px-4 py-2 text-white rounded-lg hover:opacity-90 transition-all active:scale-95 text-sm font-semibold"
+        >
+          <Plus className="w-4 h-4" />
+          {t('openEnrollmentPeriod') || 'Open Period'}
         </button>
       </div>
 
@@ -117,9 +180,16 @@ export function EnrollmentPeriodPage({ enrollmentPeriods, courses, adminDepartme
       </div>
 
       {/* Filter */}
-      <div className={`p-4 rounded-xl border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+      <div className="p-0">
         <div className="flex items-center gap-4">
-          <CleanSelect value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className={`px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}>
+          <CleanSelect
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className={`${inputClass} cursor-pointer min-w-[120px]`}
+            style={{ borderColor: statusFilter !== 'all' ? accentColor : undefined }}
+            onFocus={(e) => (e.target.style.borderColor = accentColor)}
+            onBlur={(e) => (e.target.style.borderColor = statusFilter !== 'all' ? accentColor : (isDark ? '#334155' : '#e2e8f0'))}
+          >
             <option value="all">{t('allStatus')}</option>
             <option value="active">{t('activePeriod')}</option>
             <option value="upcoming">{t('upcomingPeriod')}</option>
@@ -134,14 +204,19 @@ export function EnrollmentPeriodPage({ enrollmentPeriods, courses, adminDepartme
           const regPercent = period.totalStudents > 0 ? Math.round((period.registeredStudents / period.totalStudents) * 100) : 0;
           const cfg = statusConfig[period.status] || statusConfig.closed;
           return (
-            <div key={period.id} className={`rounded-xl border overflow-hidden ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-              <div className={`h-2 bg-gradient-to-r ${cfg.gradient}`} />
-              <div className="p-6">
+            <div key={period.id} className={`rounded-2xl border transition-all duration-300 hover:shadow-lg ${isDark ? 'bg-[#1e293b]/80 border-white/5' : 'bg-white border-slate-200 shadow-sm'}`}>
+              <div className={`h-1.5 bg-gradient-to-r rounded-t-2xl ${cfg.gradient}`} />
+              <div className="p-5">
                 <div className="flex items-start justify-between mb-4">
                   <div>
-                    <div className="flex items-center gap-3 mb-2">
-                      <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded ${cfg.color}`}>{cfg.icon} {t(period.status === 'active' ? 'activePeriod' : period.status === 'upcoming' ? 'upcomingPeriod' : 'closedPeriod')}</span>
-                      <span className={`text-xs font-medium px-2 py-1 rounded ${isDark ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-700'}`}>{period.semester}</span>
+                    <div className="flex items-center gap-3 mb-2.5">
+                      <span className={`inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border ${cfg.bg} ${cfg.text} ${cfg.border}`}>
+                        {cfg.icon} 
+                        {t(period.status === 'active' ? 'activePeriod' : period.status === 'upcoming' ? 'upcomingPeriod' : 'closedPeriod')}
+                      </span>
+                      <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border ${isDark ? 'bg-slate-800 border-slate-700 text-slate-400' : 'bg-slate-50 border-slate-200 text-slate-500'}`}>
+                        {period.semester}
+                      </span>
                     </div>
                     <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
                       {period.semester} — Course Registration
@@ -149,8 +224,27 @@ export function EnrollmentPeriodPage({ enrollmentPeriods, courses, adminDepartme
                     <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{period.description}</p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <button onClick={() => openEditModal(period)} className={`flex items-center gap-1 px-3 py-2 rounded-lg border ${isDark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-200 text-gray-700 hover:bg-gray-50'}`}><Edit2 size={14} />{t('edit')}</button>
-                    <button onClick={() => onDeletePeriod(period.id)} className={`p-2 rounded-lg border text-red-500 hover:bg-red-50 ${isDark ? 'border-gray-600 hover:bg-red-900/20' : 'border-gray-200'}`}><Trash2 size={14} /></button>
+                    <Tooltip text="Edit Period" accentColor={accentColor}>
+                      <button
+                        onClick={() => openModal('edit-period', period)}
+                        className={`p-1.5 rounded-lg transition-all duration-200 active:scale-95 ${
+                          isDark ? 'hover:bg-slate-700/50 text-slate-400 hover:text-white' : 'hover:bg-slate-100 text-slate-500 hover:text-slate-900'
+                        }`}
+                      >
+                        <Pencil size={18} />
+                      </button>
+                    </Tooltip>
+                    
+                    <Tooltip text="Delete Period" accentColor={accentColor}>
+                      <button
+                        onClick={() => openModal('delete-period', period)}
+                        className={`p-1.5 rounded-lg transition-all duration-200 active:scale-95 ${
+                          isDark ? 'hover:bg-red-500/20 text-slate-400 hover:text-red-400' : 'hover:bg-red-50 text-slate-500 hover:text-red-600'
+                        }`}
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </Tooltip>
                   </div>
                 </div>
 
@@ -205,48 +299,151 @@ export function EnrollmentPeriodPage({ enrollmentPeriods, courses, adminDepartme
         )}
       </div>
 
-      {/* Add/Edit Modal */}
-      {(showAddModal || editingPeriod) && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className={`w-full max-w-lg rounded-xl p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
-            <h2 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>{editingPeriod ? t('editEnrollmentPeriod') : t('openEnrollmentPeriod')}</h2>
-            <p className={`text-sm mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-              Open a registration window for all <strong>{adminDepartment}</strong> students to select their courses for the semester. Prerequisites will be enforced automatically.
-            </p>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('semester')}</label>
-                <CleanSelect value={formData.semester} onChange={(e) => setFormData({ ...formData, semester: e.target.value })} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}>
-                  <option value="Fall 2025">Fall 2025</option>
-                  <option value="Spring 2026">Spring 2026</option>
-                  <option value="Summer 2026">Summer 2026</option>
-                  <option value="Fall 2026">Fall 2026</option>
-                </CleanSelect>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('startDate')}</label>
-                  <input type="date" value={formData.startDate} onChange={(e) => setFormData({ ...formData, startDate: e.target.value })} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`} required />
+      {/* Unified Modal Rendering */}
+      {activeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className={`${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} border w-full max-w-lg rounded-2xl shadow-2xl relative`}>
+            {/* Modal Header */}
+            <div className={`px-6 py-4 border-b ${isDark ? 'border-slate-800 bg-slate-800/50' : 'border-slate-100 bg-slate-50/50'} flex items-center justify-between rounded-t-2xl`}>
+              <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                {activeModal === 'add-period' && t('openEnrollmentPeriod')}
+                {activeModal === 'edit-period' && t('editEnrollmentPeriod')}
+                {activeModal === 'delete-period' && 'Delete Period'}
+              </h2>
+              <button
+                onClick={closeModal}
+                className={`p-2 rounded-xl transition-all ${isDark ? 'hover:bg-slate-700 text-slate-400' : 'hover:bg-slate-100 text-slate-500'}`}
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6">
+              {/* Add/Edit Content */}
+              {(activeModal === 'add-period' || activeModal === 'edit-period') && (
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <p className={`text-sm mb-4 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                    Open a registration window for all <strong>{adminDepartment}</strong> students to select their courses for the semester. Prerequisites will be enforced automatically.
+                  </p>
+                  <div>
+                    <label className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{t('semester')}</label>
+                    <CleanSelect
+                      value={formData.semester}
+                      onChange={(e) => setFormData({ ...formData, semester: e.target.value })}
+                      className={`w-full px-4 py-2 rounded-xl border focus:ring-0 outline-none transition-all ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200 text-slate-900'}`}
+                      onFocus={(e) => (e.target.style.borderColor = accentColor)}
+                      onBlur={(e) => (e.target.style.borderColor = isDark ? '#334155' : '#e2e8f0')}
+                    >
+                      <option value="Fall 2025">Fall 2025</option>
+                      <option value="Spring 2026">Spring 2026</option>
+                      <option value="Summer 2026">Summer 2026</option>
+                      <option value="Fall 2026">Fall 2026</option>
+                    </CleanSelect>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{t('startDate')}</label>
+                      <input
+                        type="date"
+                        value={formData.startDate}
+                        onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                        className={`w-full px-4 py-2 rounded-xl border focus:ring-0 outline-none transition-all ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200 text-slate-900'}`}
+                        onFocus={(e) => (e.target.style.borderColor = accentColor)}
+                        onBlur={(e) => (e.target.style.borderColor = isDark ? '#334155' : '#e2e8f0')}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{t('endDate')}</label>
+                      <input
+                        type="date"
+                        value={formData.endDate}
+                        onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                        className={`w-full px-4 py-2 rounded-xl border focus:ring-0 outline-none transition-all ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200 text-slate-900'}`}
+                        onFocus={(e) => (e.target.style.borderColor = accentColor)}
+                        onBlur={(e) => (e.target.style.borderColor = isDark ? '#334155' : '#e2e8f0')}
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{t('eventDescription')}</label>
+                    <textarea
+                      value={formData.description}
+                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      rows={2}
+                      placeholder="e.g., Spring 2026 registration — students select courses"
+                      className={`w-full px-4 py-2 rounded-xl border focus:ring-0 outline-none transition-all ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200 text-slate-900'}`}
+                      onFocus={(e) => (e.target.style.borderColor = accentColor)}
+                      onBlur={(e) => (e.target.style.borderColor = isDark ? '#334155' : '#e2e8f0')}
+                    />
+                  </div>
+                  <div className={`p-3 rounded-xl ${isDark ? 'bg-blue-900/20 border border-blue-800' : 'bg-blue-50 border border-blue-200'}`}>
+                    <p className={`text-xs ${isDark ? 'text-blue-400' : 'text-blue-700'}`}>
+                      ℹ️ During this period, all {adminDepartment} students can register for courses. Prerequisites are checked automatically — students can only enroll in courses whose prerequisites they have completed.
+                    </p>
+                  </div>
+                  <div className="flex justify-end gap-3 mt-6">
+                    <button
+                      type="button"
+                      onClick={closeModal}
+                      className={`px-4 py-2 rounded-xl font-semibold transition-all ${isDark ? 'bg-slate-800 text-slate-300 hover:bg-slate-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                    >
+                      {t('cancel')}
+                    </button>
+                    <button
+                      type="submit"
+                      style={{ backgroundColor: accentColor }}
+                      className="px-6 py-2 rounded-xl font-bold text-white shadow-lg shadow-blue-500/20 hover:opacity-90 active:scale-95 transition-all"
+                    >
+                      {activeModal === 'edit-period' ? t('save') : t('openEnrollmentPeriod')}
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              {/* Delete Period Content */}
+              {activeModal === 'delete-period' && selectedPeriod && (
+                <div className="space-y-6">
+                  <div className="flex items-center gap-4 p-4 rounded-2xl bg-red-500/10 border border-red-500/20">
+                    <div className="p-3 rounded-xl bg-red-500/20 text-red-500">
+                      <AlertCircle className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-red-500">Irreversible Action</h3>
+                      <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                        Closing this period will stop all active registrations.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className={`p-4 rounded-2xl ${isDark ? 'bg-slate-800/50' : 'bg-slate-50'} border ${isDark ? 'border-slate-800' : 'border-slate-100'}`}>
+                    <p className={`text-sm mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Deleting Period</p>
+                    <p className={`font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                      {selectedPeriod.semester} ({selectedPeriod.startDate} - {selectedPeriod.endDate})
+                    </p>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <button
+                      onClick={closeModal}
+                      className={`flex-1 px-4 py-3 rounded-xl font-semibold transition-all ${isDark ? 'bg-slate-800 text-slate-300 hover:bg-slate-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                    >
+                      Keep Period
+                    </button>
+                    <button
+                      onClick={() => {
+                        onDeletePeriod(selectedPeriod.id);
+                        closeModal();
+                      }}
+                      className="flex-1 px-4 py-3 rounded-xl font-bold bg-red-600 text-white shadow-lg shadow-red-500/20 hover:bg-red-700 active:scale-95 transition-all"
+                    >
+                      Delete Period
+                    </button>
+                  </div>
                 </div>
-                <div>
-                  <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('endDate')}</label>
-                  <input type="date" value={formData.endDate} onChange={(e) => setFormData({ ...formData, endDate: e.target.value })} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`} required />
-                </div>
-              </div>
-              <div>
-                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('eventDescription')}</label>
-                <textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} rows={2} placeholder="e.g., Spring 2026 registration — students select courses" className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`} />
-              </div>
-              <div className={`p-3 rounded-lg ${isDark ? 'bg-blue-900/20 border border-blue-800' : 'bg-blue-50 border border-blue-200'}`}>
-                <p className={`text-xs ${isDark ? 'text-blue-400' : 'text-blue-700'}`}>
-                  ℹ️ During this period, all {adminDepartment} students can register for courses. Prerequisites are checked automatically — students can only enroll in courses whose prerequisites they have completed.
-                </p>
-              </div>
-              <div className="flex justify-end gap-3 mt-6">
-                <button type="button" onClick={() => { setShowAddModal(false); setEditingPeriod(null); }} className={`px-4 py-2 rounded-lg ${isDark ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-700'}`}>{t('cancel')}</button>
-                <button type="submit" className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">{editingPeriod ? t('save') : t('openEnrollmentPeriod')}</button>
-              </div>
-            </form>
+              )}
+            </div>
           </div>
         </div>
       )}

@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Search, Plus, Edit2, Trash2, BookOpen, Users, Clock, Download, Calendar, ClipboardList, UserCheck } from 'lucide-react';
+import { Search, Plus, Edit2, Trash2, BookOpen, Users, Clock, Download, Calendar, ClipboardList, UserCheck, Pencil, AlertCircle, X } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
-import { CleanSelect } from '../../../components/shared';
+import { CleanSelect, Tooltip } from '../../../components/shared';
 
 
 interface Course {
@@ -18,6 +18,7 @@ interface Course {
   instructor: string;
   instructorId: number;
   taIds: number[];
+  level: string;
   prerequisites: string[];
 }
 
@@ -37,17 +38,22 @@ export function CourseManagementPage({ courses, users, adminDepartment, onAddCou
   const [searchTerm, setSearchTerm] = useState('');
   const [departmentFilter, setDepartmentFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [editingCourse, setEditingCourse] = useState<Course | null>(null);
+
+  type ModalType = 'add-course' | 'edit-course' | 'staff-assign' | 'delete-course';
+  const [activeModal, setActiveModal] = useState<ModalType | null>(null);
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+
   const [activeSubTab, setActiveSubTab] = useState<'courses' | 'staff' | 'schedule' | 'exams'>('courses');
-  const [showStaffModal, setShowStaffModal] = useState(false);
   const [staffFormData, setStaffFormData] = useState({ courseId: 0, instructorId: 0, taIds: [] as number[] });
 
-  // Form state for controlled form
   const [formData, setFormData] = useState({
     code: '', name: '', department: adminDepartment, semester: 'Fall 2025',
-    credits: 3, capacity: 100, instructorId: 0, instructor: '', taIds: [] as number[],
+    credits: 3, capacity: 100, level: 'FRESHMAN', status: 'ACTIVE', instructorId: 0, instructor: '', taIds: [] as number[],
   });
+
+  const headingClass = `${isDark ? 'text-white' : 'text-slate-900'}`;
+  const labelClass = `${isDark ? 'text-slate-300' : 'text-slate-600'}`;
+  const inputClass = `${isDark ? 'bg-slate-800/50 border-slate-700 text-white placeholder-slate-500' : 'bg-white border-slate-300 text-slate-900 placeholder-slate-400'} border rounded-lg px-3 py-2 text-sm focus:outline-none transition-all duration-200`;
 
   const deptCourses = courses.filter(c => c.department === adminDepartment);
   const deptInstructors = users.filter(u => u.role === 'instructor' && u.department === adminDepartment);
@@ -56,31 +62,67 @@ export function CourseManagementPage({ courses, users, adminDepartment, onAddCou
   const filteredCourses = deptCourses.filter(course => {
     const matchesSearch = course.name.toLowerCase().includes(searchTerm.toLowerCase()) || course.code.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesDepartment = departmentFilter === 'all' || course.department === departmentFilter;
-    const matchesStatus = statusFilter === 'all' || course.status === statusFilter;
+    const matchesStatus = statusFilter === 'all' || course.status?.toUpperCase() === statusFilter.toUpperCase();
     return matchesSearch && matchesDepartment && matchesStatus;
   });
 
   const departments = [...new Set(deptCourses.map(c => c.department))];
 
-  const openAddModal = () => {
-    setFormData({ code: '', name: '', department: adminDepartment, semester: 'Fall 2025', credits: 3, capacity: 100, instructorId: 0, instructor: '', taIds: [] });
-    setShowAddModal(true);
+  const openModal = (type: ModalType, course?: Course) => {
+    if (course) {
+      setSelectedCourse(course);
+      setFormData({
+        code: course.code,
+        name: course.name,
+        department: course.department,
+        semester: course.semester,
+        credits: course.credits,
+        capacity: course.capacity,
+        level: (course as any).level || 'FRESHMAN',
+        status: (course as any).status || 'ACTIVE',
+        instructorId: course.instructorId || 0,
+        instructor: course.instructor,
+        taIds: course.taIds || []
+      });
+      if (type === 'staff-assign') {
+        setStaffFormData({
+          courseId: course.id,
+          instructorId: course.instructorId || 0,
+          taIds: course.taIds || []
+        });
+      }
+    } else {
+      setSelectedCourse(null);
+      setFormData({
+        code: '',
+        name: '',
+        department: adminDepartment,
+        semester: 'Fall 2025',
+        credits: 3,
+        capacity: 100,
+        level: 'FRESHMAN',
+        instructorId: 0,
+        instructor: '',
+        taIds: []
+      });
+    }
+    setActiveModal(type);
   };
 
-  const openEditModal = (course: Course) => {
-    setFormData({ code: course.code, name: course.name, department: course.department, semester: course.semester, credits: course.credits, capacity: course.capacity, instructorId: course.instructorId || 0, instructor: course.instructor, taIds: course.taIds || [] });
-    setEditingCourse(course);
+  const closeModal = () => {
+    setActiveModal(null);
+    setSelectedCourse(null);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const payload = { ...formData, prerequisites: editingCourse?.prerequisites || [] };
-    if (editingCourse) {
-      onEditCourse(editingCourse.id, payload);
-      setEditingCourse(null);
-    } else {
+    const payload = { ...formData, prerequisites: selectedCourse?.prerequisites || [] };
+    if (activeModal === 'edit-course' && selectedCourse) {
+      onEditCourse(selectedCourse.id, payload);
+      closeModal();
+    } else if (activeModal === 'add-course') {
       onAddCourse(payload);
-      setShowAddModal(false);
+      closeModal();
     }
   };
 
@@ -117,35 +159,86 @@ export function CourseManagementPage({ courses, users, adminDepartment, onAddCou
   };
 
   const handleStaffAssign = () => {
-    const course = deptCourses.find(c => c.id === staffFormData.courseId);
-    if (course) {
-      const inst = deptInstructors.find(i => i.id === staffFormData.instructorId);
-      onEditCourse(course.id, { ...course, instructorId: staffFormData.instructorId, instructor: inst?.name || course.instructor, taIds: staffFormData.taIds });
-    }
-    setShowStaffModal(false);
+    const courseId = selectedCourse ? selectedCourse.id : staffFormData.courseId;
+    if (!courseId) return;
+    
+    const targetCourse = deptCourses.find(c => c.id === courseId);
+    if (!targetCourse && !selectedCourse) return;
+    
+    const inst = deptInstructors.find(i => i.id === staffFormData.instructorId);
+    
+    onEditCourse(courseId, {
+      ...(targetCourse || selectedCourse),
+      instructorId: staffFormData.instructorId,
+      instructor: inst?.name || (targetCourse || selectedCourse).instructor,
+      taIds: staffFormData.taIds
+    });
+    closeModal();
   };
 
   const thClass = `px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-gray-400' : 'text-gray-500'}`;
   const tdClass = `px-4 py-3 text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`;
+  
+  const getExamStyles = (type: string) => {
+    const t = type.toLowerCase();
+    switch (t) {
+      case 'midterm': return { bg: isDark ? 'bg-amber-500/10' : 'bg-amber-50', text: isDark ? 'text-amber-500' : 'text-amber-700', border: isDark ? 'border-amber-500/20' : 'border-amber-200' };
+      case 'final': return { bg: isDark ? 'bg-rose-500/10' : 'bg-rose-50', text: isDark ? 'text-rose-500' : 'text-rose-700', border: isDark ? 'border-rose-500/20' : 'border-rose-200' };
+      default: return { bg: isDark ? 'bg-slate-500/10' : 'bg-slate-50', text: isDark ? 'text-slate-400' : 'text-slate-700', border: isDark ? 'border-slate-500/20' : 'border-slate-200' };
+    }
+  };
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('courseManagement')}</h1>
-            <span className="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">{adminDepartment}</span>
+          <div className="flex items-center gap-3">
+            <h1 className={`text-2xl font-bold leading-none m-0 ${headingClass}`}>
+              {t('courseManagement') || 'Course Management'}
+            </h1>
+            <span 
+              className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-full border flex-shrink-0 flex items-center gap-1.5"
+              style={{ 
+                backgroundColor: `${accentColor}10`, 
+                color: accentColor,
+                borderColor: `${accentColor}20`
+              }}
+            >
+              <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: accentColor }} />
+              {adminDepartment}
+            </span>
           </div>
-          <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('manageCoursesSub')}</p>
+          <p className={`text-sm mt-2.5 ${labelClass}`}>
+            {t('manageCoursesSub') || 'Manage and organize academic courses, staff assignments, and schedules.'}
+          </p>
         </div>
         {activeSubTab === 'courses' && (
           <button
-            onClick={openAddModal}
-            className="flex items-center gap-2 px-4 py-2  text-white rounded-lg hover:bg-blue-700 transition-colors"
+            onClick={() => openModal('add-course')}
+            style={{ backgroundColor: accentColor }}
+            className="flex items-center gap-2 px-4 py-2 text-white rounded-lg hover:opacity-90 transition-all active:scale-95 text-sm font-semibold"
           >
-            <Plus size={18} />
-            {t('addCourse')}
+            <Plus className="w-4 h-4" />
+            {t('addCourse') || 'Add Course'}
+          </button>
+        )}
+        {activeSubTab === 'schedule' && (
+          <button
+            style={{ backgroundColor: accentColor }}
+            className="flex items-center gap-2 px-4 py-2 text-white rounded-lg hover:opacity-90 transition-all active:scale-95 text-sm font-semibold"
+          >
+            <Plus className="w-4 h-4" />
+            {t('addSchedule') || 'Add Schedule'}
+          </button>
+        )}
+        {activeSubTab === 'exams' && (
+          <button
+            style={{ backgroundColor: accentColor }}
+            className="flex items-center gap-2 px-4 py-2 text-white rounded-lg hover:opacity-90 transition-all active:scale-95 text-sm font-semibold"
+          >
+            <Plus className="w-4 h-4" />
+            {t('addExam') || 'Add Exam'}
           </button>
         )}
       </div>
@@ -153,19 +246,20 @@ export function CourseManagementPage({ courses, users, adminDepartment, onAddCou
       {/* Sub-Tab Bar */}
       <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
         {([
-          { key: 'courses' as const, label: 'Courses', icon: BookOpen },
-          { key: 'staff' as const, label: 'Staff Assignment', icon: UserCheck },
-          { key: 'schedule' as const, label: 'Schedule', icon: Calendar },
-          { key: 'exams' as const, label: 'Exam Schedule', icon: ClipboardList },
+          { key: 'courses' as const, label: t('coursesTab'), icon: BookOpen },
+          { key: 'staff' as const, label: t('staffAssignmentTab'), icon: UserCheck },
+          { key: 'schedule' as const, label: t('scheduleTab'), icon: Calendar },
+          { key: 'exams' as const, label: t('examsTab'), icon: ClipboardList },
         ]).map(tab => (
           <button
             key={tab.key}
             onClick={() => setActiveSubTab(tab.key)}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition-all ${
               activeSubTab === tab.key
-                ? ''
+                ? 'text-white'
                 : isDark ? 'bg-white/5 text-slate-300 hover:bg-white/10' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
             }`}
+            style={activeSubTab === tab.key ? { backgroundColor: accentColor } : {}}
           >
             <tab.icon size={16} />
             {tab.label}
@@ -177,7 +271,7 @@ export function CourseManagementPage({ courses, users, adminDepartment, onAddCou
       {activeSubTab === 'courses' && (
         <>
           {/* Filters */}
-          <div className={`p-4 rounded-xl border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+          <div className="p-0 mb-6">
             <div className="flex flex-wrap items-center gap-4">
               <div className="flex-1 min-w-[200px]">
                 <div className="relative">
@@ -187,14 +281,20 @@ export function CourseManagementPage({ courses, users, adminDepartment, onAddCou
                     placeholder={t('searchCourses')}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className={`w-full pl-10 pr-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}
+                    className={`${inputClass} w-full pl-10 pr-4`}
+                    style={{ borderColor: searchTerm ? accentColor : undefined }}
+                    onFocus={(e) => (e.target.style.borderColor = accentColor)}
+                    onBlur={(e) => (e.target.style.borderColor = searchTerm ? accentColor : (isDark ? '#334155' : '#e2e8f0'))}
                   />
                 </div>
               </div>
               <CleanSelect
                 value={departmentFilter}
                 onChange={(e) => setDepartmentFilter(e.target.value)}
-                className={`px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}
+                className={`${inputClass} cursor-pointer min-w-[120px]`}
+                style={{ borderColor: departmentFilter !== 'all' ? accentColor : undefined }}
+                onFocus={(e) => (e.target.style.borderColor = accentColor)}
+                onBlur={(e) => (e.target.style.borderColor = departmentFilter !== 'all' ? accentColor : (isDark ? '#334155' : '#e2e8f0'))}
               >
                 <option value="all">{t('allDepartments')}</option>
                 {departments.map(dept => (
@@ -204,13 +304,16 @@ export function CourseManagementPage({ courses, users, adminDepartment, onAddCou
               <CleanSelect
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className={`px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}
+                className={`${inputClass} cursor-pointer min-w-[120px]`}
+                style={{ borderColor: statusFilter !== 'all' ? accentColor : undefined }}
+                onFocus={(e) => (e.target.style.borderColor = accentColor)}
+                onBlur={(e) => (e.target.style.borderColor = statusFilter !== 'all' ? accentColor : (isDark ? '#334155' : '#e2e8f0'))}
               >
                 <option value="all">{t('allStatus')}</option>
-                <option value="active">{t('active')}</option>
-                <option value="archived">{t('archived')}</option>
+                <option value="ACTIVE">{t('active')}</option>
+                <option value="ARCHIVED">{t('archived')}</option>
               </CleanSelect>
-              <button className={`flex items-center gap-2 px-4 py-2 rounded-lg border ${isDark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-200 text-gray-700 hover:bg-gray-50'}`}>
+              <button className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-all ${isDark ? 'border-slate-700 text-slate-300 hover:bg-slate-800' : 'border-slate-200 text-slate-700 hover:bg-slate-50'}`}>
                 <Download size={18} />
                 {t('export')}
               </button>
@@ -218,16 +321,22 @@ export function CourseManagementPage({ courses, users, adminDepartment, onAddCou
           </div>
 
           {/* Course Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {filteredCourses.map((course) => (
-              <div key={course.id} className={`rounded-xl border overflow-hidden ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-                <div className="h-24 bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center">
-                  <BookOpen className="text-white opacity-50" size={48} />
+              <div key={course.id} className={`rounded-2xl border transition-all duration-300 hover:shadow-lg ${isDark ? 'bg-[#1e293b]/80 border-white/5' : 'bg-white border-slate-200 shadow-sm'}`}>
+                <div 
+                  className="h-20 flex items-center justify-center relative rounded-t-2xl"
+                  style={{ background: `linear-gradient(135deg, ${accentColor}, ${accentColor}dd)` }}
+                >
+                  <div className="absolute inset-0 opacity-10 flex items-center justify-center">
+                    <BookOpen size={80} strokeWidth={1} />
+                  </div>
+                  <BookOpen className="text-white relative z-10" size={32} />
                 </div>
-                <div className="p-6">
+                <div className="p-5">
                   <div className="flex items-start justify-between mb-4">
                     <div>
-                      <span className={`text-xs font-semibold px-2 py-1 rounded ${course.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
+                      <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border ${isDark ? 'bg-slate-800 border-slate-700 text-blue-400' : 'bg-slate-50 border-slate-200 text-blue-700'}`}>
                         {course.code}
                       </span>
                       <h3 className={`font-semibold mt-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>{course.name}</h3>
@@ -255,32 +364,43 @@ export function CourseManagementPage({ courses, users, adminDepartment, onAddCou
 
                   {/* Enrollment Progress */}
                   <div className="mb-4">
-                    <div className="flex justify-between text-xs mb-1">
-                      <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>{t('enrollment')}</span>
-                      <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>{Math.round((course.enrolled / course.capacity) * 100)}%</span>
+                    <div className="flex justify-between text-[10px] uppercase font-bold tracking-wider mb-1.5">
+                      <span className={isDark ? 'text-slate-400' : 'text-slate-500'}>{t('enrollment')}</span>
+                      <span style={{ color: accentColor }}>{Math.round((course.enrolled / course.capacity) * 100)}%</span>
                     </div>
-                    <div className={`h-2 rounded-full ${isDark ? 'bg-gray-700' : 'bg-gray-200'}`}>
+                    <div className={`h-1.5 rounded-full ${isDark ? 'bg-slate-700' : 'bg-slate-100'}`}>
                       <div 
-                        className="h-full bg-red-500 rounded-full transition-all"
-                        style={{ width: `${(course.enrolled / course.capacity) * 100}%` }}
+                        className="h-full rounded-full transition-all duration-500"
+                        style={{ 
+                          width: `${(course.enrolled / course.capacity) * 100}%`,
+                          backgroundColor: accentColor
+                        }}
                       />
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => openEditModal(course)}
-                      className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg border ${isDark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-200 text-gray-700 hover:bg-gray-50'}`}
-                    >
-                      <Edit2 size={14} />
-                      {t('edit')}
-                    </button>
-                    <button
-                      onClick={() => onDeleteCourse(course.id)}
-                      className={`p-2 rounded-lg border text-red-500 hover:bg-red-50 ${isDark ? 'border-gray-600 hover:bg-red-900/20' : 'border-gray-200'}`}
-                    >
-                      <Trash2 size={14} />
-                    </button>
+                  <div className="flex items-center gap-2 pt-2 border-t border-slate-500/10">
+                    <Tooltip text="Edit Course" accentColor={accentColor}>
+                      <button
+                        onClick={() => openModal('edit-course', course)}
+                        className={`p-1.5 rounded-lg transition-all duration-200 active:scale-95 ${
+                          isDark ? 'hover:bg-slate-700/50 text-slate-400 hover:text-white' : 'hover:bg-slate-100 text-slate-500 hover:text-slate-900'
+                        }`}
+                      >
+                        <Pencil size={18} />
+                      </button>
+                    </Tooltip>
+                    
+                    <Tooltip text="Delete Course" accentColor={accentColor}>
+                      <button
+                        onClick={() => openModal('delete-course', course)}
+                        className={`p-1.5 rounded-lg transition-all duration-200 active:scale-95 ${
+                          isDark ? 'hover:bg-red-500/20 text-slate-400 hover:text-red-400' : 'hover:bg-red-50 text-slate-500 hover:text-red-600'
+                        }`}
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </Tooltip>
                   </div>
                 </div>
               </div>
@@ -293,25 +413,18 @@ export function CourseManagementPage({ courses, users, adminDepartment, onAddCou
       {activeSubTab === 'staff' && (
         <>
           <div className="flex items-center justify-between mb-4">
-            <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Staff Assignment</h2>
-            <button
-              onClick={() => { setStaffFormData({ courseId: deptCourses[0]?.id || 0, instructorId: 0, taIds: [] }); setShowStaffModal(true); }}
-              className="flex items-center gap-2 px-4 py-2  text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              <UserCheck size={18} />
-              Assign Staff
-            </button>
+            <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('staffAssignment') || 'Staff Assignment'}</h2>
           </div>
           <div className={`rounded-xl border overflow-hidden ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className={isDark ? 'bg-gray-700/50' : 'bg-gray-50'}>
                   <tr>
-                    <th className={thClass}>Course</th>
-                    <th className={thClass}>Code</th>
-                    <th className={thClass}>Instructor</th>
-                    <th className={thClass}>Teaching Assistants</th>
-                    <th className={thClass}>Actions</th>
+                    <th className={thClass}>{t('course') || 'Course'}</th>
+                    <th className={thClass}>{t('courseCode') || 'Code'}</th>
+                    <th className={thClass}>{t('instructor') || 'Instructor'}</th>
+                    <th className={thClass}>{t('assignedTAs') || 'Teaching Assistants'}</th>
+                    <th className={thClass}>{t('actions') || 'Actions'}</th>
                   </tr>
                 </thead>
                 <tbody className={`divide-y ${isDark ? 'divide-gray-700' : 'divide-gray-200'}`}>
@@ -319,14 +432,15 @@ export function CourseManagementPage({ courses, users, adminDepartment, onAddCou
                     <tr key={course.id} className={isDark ? 'hover:bg-gray-700/30' : 'hover:bg-gray-50'}>
                       <td className={tdClass + ' font-medium'}>{course.name}</td>
                       <td className={tdClass}>{course.code}</td>
-                      <td className={tdClass}>{course.instructor || <span className="text-gray-400 italic">Unassigned</span>}</td>
-                      <td className={tdClass}>{course.taIds?.length ? getTANames(course.taIds) : <span className="text-gray-400 italic">None</span>}</td>
+                      <td className={tdClass}>{course.instructor || <span className="text-gray-400 italic">{t('unassigned')}</span>}</td>
+                      <td className={tdClass}>{course.taIds?.length ? getTANames(course.taIds) : <span className="text-gray-400 italic">{t('none')}</span>}</td>
                       <td className={tdClass}>
                         <button
-                          onClick={() => { setStaffFormData({ courseId: course.id, instructorId: course.instructorId || 0, taIds: course.taIds || [] }); setShowStaffModal(true); }}
-                          className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                          onClick={() => openModal('staff-assign', course)}
+                          className="px-4 py-1.5 rounded-lg text-xs font-bold text-white shadow-sm transition-all active:scale-95 hover:opacity-90"
+                          style={{ backgroundColor: accentColor }}
                         >
-                          Edit
+                          {t('assign')}
                         </button>
                       </td>
                     </tr>
@@ -336,78 +450,6 @@ export function CourseManagementPage({ courses, users, adminDepartment, onAddCou
             </div>
           </div>
 
-          {/* Staff Assignment Modal */}
-          {showStaffModal && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-              <div className={`w-full max-w-lg rounded-xl p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
-                <h2 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Assign Staff</h2>
-                <div className="space-y-4">
-                  <div>
-                    <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Course</label>
-                    <CleanSelect
-                      value={staffFormData.courseId}
-                      onChange={(e) => setStaffFormData({ ...staffFormData, courseId: Number(e.target.value) })}
-                      className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}
-                    >
-                      {deptCourses.map(c => (
-                        <option key={c.id} value={c.id}>{c.code} - {c.name}</option>
-                      ))}
-                    </CleanSelect>
-                  </div>
-                  <div>
-                    <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Instructor</label>
-                    <CleanSelect
-                      value={staffFormData.instructorId}
-                      onChange={(e) => setStaffFormData({ ...staffFormData, instructorId: Number(e.target.value) })}
-                      className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}
-                    >
-                      <option value={0}>Select Instructor</option>
-                      {deptInstructors.map(inst => (
-                        <option key={inst.id} value={inst.id}>{inst.name}</option>
-                      ))}
-                    </CleanSelect>
-                  </div>
-                  <div>
-                    <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Teaching Assistants</label>
-                    <div className={`p-3 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
-                      {deptTAs.length === 0 ? (
-                        <p className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>No TAs available</p>
-                      ) : (
-                        <div className="flex flex-wrap gap-2">
-                          {deptTAs.map(ta => (
-                            <button
-                              key={ta.id}
-                              type="button"
-                              onClick={() => toggleStaffTA(ta.id)}
-                              className={`px-3 py-1 rounded-full text-sm transition-colors ${
-                                staffFormData.taIds.includes(ta.id)
-                                  ? ''
-                                  : isDark ? 'bg-gray-600 text-gray-300 hover:bg-gray-500' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                              }`}
-                            >
-                              {ta.name}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex justify-end gap-3 mt-6">
-                    <button
-                      type="button"
-                      onClick={() => setShowStaffModal(false)}
-                      className={`px-4 py-2 rounded-lg ${isDark ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-700'}`}
-                    >
-                      Cancel
-                    </button>
-                    <button onClick={handleStaffAssign} className="px-4 py-2  text-white rounded-lg hover:bg-blue-700">
-                      Assign
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
         </>
       )}
 
@@ -415,22 +457,18 @@ export function CourseManagementPage({ courses, users, adminDepartment, onAddCou
       {activeSubTab === 'schedule' && (
         <>
           <div className="flex items-center justify-between mb-4">
-            <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Class Schedule</h2>
-            <button className="flex items-center gap-2 px-4 py-2  text-white rounded-lg hover:bg-blue-700 transition-colors">
-              <Plus size={18} />
-              Add Schedule
-            </button>
+            <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('classSchedule')}</h2>
           </div>
           <div className={`rounded-xl border overflow-hidden ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className={isDark ? 'bg-gray-700/50' : 'bg-gray-50'}>
                   <tr>
-                    <th className={thClass}>Course</th>
-                    <th className={thClass}>Day</th>
-                    <th className={thClass}>Time</th>
-                    <th className={thClass}>Room</th>
-                    <th className={thClass}>Instructor</th>
+                    <th className={thClass}>{t('course') || 'Course'}</th>
+                    <th className={thClass}>{t('day') || 'Day'}</th>
+                    <th className={thClass}>{t('time') || 'Time'}</th>
+                    <th className={thClass}>{t('room') || 'Room'}</th>
+                    <th className={thClass}>{t('instructor') || 'Instructor'}</th>
                   </tr>
                 </thead>
                 <tbody className={`divide-y ${isDark ? 'divide-gray-700' : 'divide-gray-200'}`}>
@@ -454,22 +492,18 @@ export function CourseManagementPage({ courses, users, adminDepartment, onAddCou
       {activeSubTab === 'exams' && (
         <>
           <div className="flex items-center justify-between mb-4">
-            <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Exam Schedule</h2>
-            <button className="flex items-center gap-2 px-4 py-2  text-white rounded-lg hover:bg-blue-700 transition-colors">
-              <Plus size={18} />
-              Add Exam
-            </button>
+            <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('examScheduleTitle')}</h2>
           </div>
           <div className={`rounded-xl border overflow-hidden ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className={isDark ? 'bg-gray-700/50' : 'bg-gray-50'}>
                   <tr>
-                    <th className={thClass}>Course</th>
-                    <th className={thClass}>Date</th>
-                    <th className={thClass}>Time</th>
-                    <th className={thClass}>Room</th>
-                    <th className={thClass}>Type</th>
+                    <th className={thClass}>{t('course') || 'Course'}</th>
+                    <th className={thClass}>{t('date') || 'Date'}</th>
+                    <th className={thClass}>{t('time') || 'Time'}</th>
+                    <th className={thClass}>{t('room') || 'Room'}</th>
+                    <th className={thClass}>{t('type') || 'Type'}</th>
                   </tr>
                 </thead>
                 <tbody className={`divide-y ${isDark ? 'divide-gray-700' : 'divide-gray-200'}`}>
@@ -480,13 +514,14 @@ export function CourseManagementPage({ courses, users, adminDepartment, onAddCou
                       <td className={tdClass}>{row.time}</td>
                       <td className={tdClass}>{row.room}</td>
                       <td className={tdClass}>
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          row.type === 'Midterm'
-                            ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
-                            : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                        }`}>
-                          {row.type}
-                        </span>
+                        {(() => {
+                          const styles = getExamStyles(row.type);
+                          return (
+                            <span className={`inline-flex items-center text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border ${styles.bg} ${styles.text} ${styles.border}`}>
+                              {row.type}
+                            </span>
+                          );
+                        })()}
                       </td>
                     </tr>
                   ))}
@@ -497,96 +532,265 @@ export function CourseManagementPage({ courses, users, adminDepartment, onAddCou
         </>
       )}
 
-      {/* Add/Edit Course Modal (visible from Courses tab) */}
-      {(showAddModal || editingCourse) && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className={`w-full max-w-lg rounded-xl p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
-            <h2 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              {editingCourse ? t('editCourse') : t('addCourse')}
-            </h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('courseCode')}</label>
-                  <input type="text" value={formData.code} onChange={(e) => setFormData({ ...formData, code: e.target.value })} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`} required />
-                </div>
-                <div>
-                  <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('credits')}</label>
-                  <input type="number" value={formData.credits} onChange={(e) => setFormData({ ...formData, credits: Number(e.target.value) })} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`} required />
-                </div>
-              </div>
-              <div>
-                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('courseName')}</label>
-                <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`} required />
-              </div>
-              <div>
-                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('semester')}</label>
-                <CleanSelect value={formData.semester} onChange={(e) => setFormData({ ...formData, semester: e.target.value })} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}>
-                  <option value="Fall 2025">Fall 2025</option>
-                  <option value="Spring 2026">Spring 2026</option>
-                  <option value="Summer 2026">Summer 2026</option>
-                </CleanSelect>
-              </div>
-              {/* Instructor Dropdown */}
-              <div>
-                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('assignInstructor')}</label>
-                <CleanSelect
-                  value={formData.instructorId}
-                  onChange={(e) => {
-                    const inst = deptInstructors.find(i => i.id === Number(e.target.value));
-                    setFormData({ ...formData, instructorId: Number(e.target.value), instructor: inst?.name || '' });
-                  }}
-                  className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}
-                >
-                  <option value={0}>{t('selectInstructor')}</option>
-                  {deptInstructors.map(inst => (
-                    <option key={inst.id} value={inst.id}>{inst.name}</option>
-                  ))}
-                </CleanSelect>
-              </div>
-              {/* TA Multi-Select */}
-              <div>
-                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('assignTA')}</label>
-                <div className={`p-3 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
-                  {deptTAs.length === 0 ? (
-                    <p className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>No TAs available in this department</p>
+      {/* Unified Modal Rendering */}
+      {activeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className={`${isDark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} border w-full max-w-lg rounded-2xl shadow-2xl relative`}>
+            {/* Modal Header */}
+            <div className={`px-6 py-4 border-b ${isDark ? 'border-slate-800 bg-slate-800/50' : 'border-slate-100 bg-slate-50/50'} flex items-center justify-between rounded-t-2xl`}>
+              <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                {activeModal === 'add-course' && t('addCourse')}
+                {activeModal === 'edit-course' && t('editCourse')}
+                {activeModal === 'staff-assign' && t('staffAssignment')}
+                {activeModal === 'delete-course' && t('deleteCourse')}
+              </h2>
+              <button
+                onClick={closeModal}
+                className={`p-2 rounded-xl transition-all ${isDark ? 'hover:bg-slate-700 text-slate-400' : 'hover:bg-slate-100 text-slate-500'}`}
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6">
+              {/* Add/Edit Course Content */}
+              {(activeModal === 'add-course' || activeModal === 'edit-course') && (
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{t('courseCode')}</label>
+                      <input
+                        type="text"
+                        value={formData.code}
+                        onChange={(e) => setFormData({ ...formData, code: e.target.value })}
+                        className={`w-full px-4 py-2 rounded-xl border focus:ring-0 outline-none transition-all ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200 text-slate-900'}`}
+                        onFocus={(e) => (e.target.style.borderColor = accentColor)}
+                        onBlur={(e) => (e.target.style.borderColor = isDark ? '#334155' : '#e2e8f0')}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{t('credits')}</label>
+                      <input
+                        type="number"
+                        value={formData.credits}
+                        onChange={(e) => setFormData({ ...formData, credits: Number(e.target.value) })}
+                        className={`w-full px-4 py-2 rounded-xl border focus:ring-0 outline-none transition-all ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200 text-slate-900'}`}
+                        onFocus={(e) => (e.target.style.borderColor = accentColor)}
+                        onBlur={(e) => (e.target.style.borderColor = isDark ? '#334155' : '#e2e8f0')}
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{t('courseName')}</label>
+                    <input
+                      type="text"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      className={`w-full px-4 py-2 rounded-xl border focus:ring-0 outline-none transition-all ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200 text-slate-900'}`}
+                      onFocus={(e) => (e.target.style.borderColor = accentColor)}
+                      onBlur={(e) => (e.target.style.borderColor = isDark ? '#334155' : '#e2e8f0')}
+                      required
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{t('semester')}</label>
+                      <CleanSelect
+                        value={formData.semester}
+                        onChange={(e) => setFormData({ ...formData, semester: e.target.value })}
+                        className={`w-full px-4 py-2 rounded-xl border focus:ring-0 outline-none transition-all ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200 text-slate-900'}`}
+                        onFocus={(e) => (e.target.style.borderColor = accentColor)}
+                        onBlur={(e) => (e.target.style.borderColor = isDark ? '#334155' : '#e2e8f0')}
+                      >
+                        <option value="Fall 2025">Fall 2025</option>
+                        <option value="Spring 2026">Spring 2026</option>
+                        <option value="Summer 2026">Summer 2026</option>
+                      </CleanSelect>
+                    </div>
+                    <div>
+                      <label className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{t('capacity')}</label>
+                      <input
+                        type="number"
+                        value={formData.capacity}
+                        onChange={(e) => setFormData({ ...formData, capacity: Number(e.target.value) })}
+                        className={`w-full px-4 py-2 rounded-xl border focus:ring-0 outline-none transition-all ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200 text-slate-900'}`}
+                        onFocus={(e) => (e.target.style.borderColor = accentColor)}
+                        onBlur={(e) => (e.target.style.borderColor = isDark ? '#334155' : '#e2e8f0')}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Course Level</label>
+                    <CleanSelect
+                      value={formData.level}
+                      onChange={(e) => setFormData({ ...formData, level: e.target.value })}
+                      className={`${inputClass} w-full cursor-pointer`}
+                      onFocus={(e) => (e.target.style.borderColor = accentColor)}
+                      onBlur={(e) => (e.target.style.borderColor = '')}
+                    >
+                      <option value="FRESHMAN">Freshman</option>
+                      <option value="SOPHOMORE">Sophomore</option>
+                      <option value="JUNIOR">Junior</option>
+                      <option value="SENIOR">Senior</option>
+                      <option value="GRADUATE">Graduate</option>
+                    </CleanSelect>
+                  </div>
+
+                  <div className="flex justify-end gap-3 mt-6">
+                    <button
+                      type="button"
+                      onClick={closeModal}
+                      className={`px-4 py-2 rounded-xl font-semibold transition-all ${isDark ? 'bg-slate-800 text-slate-300 hover:bg-slate-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                    >
+                      {t('cancel')}
+                    </button>
+                    <button
+                      type="submit"
+                      style={{ backgroundColor: accentColor }}
+                      className="px-6 py-2 rounded-xl font-bold text-white shadow-lg shadow-blue-500/20 hover:opacity-90 active:scale-95 transition-all"
+                    >
+                      {activeModal === 'edit-course' ? t('save') : t('addCourse')}
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              {/* Staff Assign Content */}
+              {activeModal === 'staff-assign' && (
+                <div className="space-y-4">
+                  {selectedCourse ? (
+                    <div className={`p-4 rounded-2xl ${isDark ? 'bg-slate-800/50' : 'bg-slate-50'} border ${isDark ? 'border-slate-800' : 'border-slate-100'}`}>
+                      <p className={`text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Assigning Staff For</p>
+                      <p className={`font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                        {selectedCourse.code}: {selectedCourse.name}
+                      </p>
+                    </div>
                   ) : (
-                    <div className="flex flex-wrap gap-2">
-                      {deptTAs.map(ta => (
-                        <button
-                          key={ta.id}
-                          type="button"
-                          onClick={() => toggleTA(ta.id)}
-                          className={`px-3 py-1 rounded-full text-sm transition-colors ${
-                            formData.taIds.includes(ta.id)
-                              ? 'bg-red-600 text-white'
-                              : isDark ? 'bg-gray-600 text-gray-300 hover:bg-gray-500' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                          }`}
-                        >
-                          {ta.name}
-                        </button>
-                      ))}
+                    <div>
+                      <label className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Select Course</label>
+                      <CleanSelect
+                        value={staffFormData.courseId}
+                        onChange={(e) => setStaffFormData({ ...staffFormData, courseId: Number(e.target.value) })}
+                        className={`w-full px-4 py-2 rounded-xl border focus:ring-0 outline-none transition-all ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200 text-slate-900'}`}
+                        onFocus={(e) => (e.target.style.borderColor = accentColor)}
+                        onBlur={(e) => (e.target.style.borderColor = isDark ? '#334155' : '#e2e8f0')}
+                      >
+                        <option value={0}>Choose a course...</option>
+                        {deptCourses.map(c => (
+                          <option key={c.id} value={c.id}>{c.code}: {c.name}</option>
+                        ))}
+                      </CleanSelect>
                     </div>
                   )}
+                  <div>
+                    <label className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Instructor</label>
+                    <CleanSelect
+                      value={staffFormData.instructorId}
+                      onChange={(e) => setStaffFormData({ ...staffFormData, instructorId: Number(e.target.value) })}
+                      className={`w-full px-4 py-2 rounded-xl border focus:ring-0 outline-none transition-all ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200 text-slate-900'}`}
+                      onFocus={(e) => (e.target.style.borderColor = accentColor)}
+                      onBlur={(e) => (e.target.style.borderColor = isDark ? '#334155' : '#e2e8f0')}
+                    >
+                      <option value={0}>Select Instructor</option>
+                      {deptInstructors.map(inst => (
+                        <option key={inst.id} value={inst.id}>{inst.name}</option>
+                      ))}
+                    </CleanSelect>
+                  </div>
+                  <div>
+                    <label className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Teaching Assistants</label>
+                    <div className={`p-4 rounded-xl border ${isDark ? 'bg-slate-800/50 border-slate-700' : 'bg-slate-50 border-slate-100'}`}>
+                      {deptTAs.length === 0 ? (
+                        <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No TAs available</p>
+                      ) : (
+                        <div className="flex flex-wrap gap-2">
+                          {deptTAs.map(ta => (
+                            <button
+                              key={ta.id}
+                              type="button"
+                              onClick={() => toggleStaffTA(ta.id)}
+                              className={`px-3 py-1 rounded-full text-sm font-medium transition-all ${
+                                staffFormData.taIds.includes(ta.id)
+                                  ? 'text-white'
+                                  : isDark ? 'bg-slate-700 text-slate-400 hover:bg-slate-600' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                              }`}
+                              style={staffFormData.taIds.includes(ta.id) ? { backgroundColor: accentColor } : {}}
+                            >
+                              {ta.name}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex justify-end gap-3 mt-6">
+                    <button
+                      type="button"
+                      onClick={closeModal}
+                      className={`px-4 py-2 rounded-xl font-semibold transition-all ${isDark ? 'bg-slate-800 text-slate-300 hover:bg-slate-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleStaffAssign}
+                      style={{ backgroundColor: accentColor }}
+                      className="px-6 py-2 rounded-xl font-bold text-white shadow-lg shadow-blue-500/20 hover:opacity-90 active:scale-95 transition-all"
+                    >
+                      Assign Staff
+                    </button>
+                  </div>
                 </div>
-              </div>
-              <div>
-                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('capacity')}</label>
-                <input type="number" value={formData.capacity} onChange={(e) => setFormData({ ...formData, capacity: Number(e.target.value) })} className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`} required />
-              </div>
-              <div className="flex justify-end gap-3 mt-6">
-                <button
-                  type="button"
-                  onClick={() => { setShowAddModal(false); setEditingCourse(null); }}
-                  className={`px-4 py-2 rounded-lg ${isDark ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-700'}`}
-                >
-                  {t('cancel')}
-                </button>
-                <button type="submit" className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
-                  {editingCourse ? t('save') : t('addCourse')}
-                </button>
-              </div>
-            </form>
+              )}
+
+              {/* Delete Course Content */}
+              {activeModal === 'delete-course' && selectedCourse && (
+                <div className="space-y-6">
+                  <div className="flex items-center gap-4 p-4 rounded-2xl bg-red-500/10 border border-red-500/20">
+                    <div className="p-3 rounded-xl bg-red-500/20 text-red-500">
+                      <AlertCircle className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-red-500">Irreversible Action</h3>
+                      <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                        All enrollments for this course will be permanently lost.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className={`p-4 rounded-2xl ${isDark ? 'bg-slate-800/50' : 'bg-slate-50'} border ${isDark ? 'border-slate-800' : 'border-slate-100'}`}>
+                    <p className={`text-sm mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Deleting Course</p>
+                    <p className={`font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                      {selectedCourse.code}: {selectedCourse.name}
+                    </p>
+                    <p className={`text-xs mt-2 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                      This course currently has {selectedCourse.enrolled} students enrolled.
+                    </p>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <button
+                      onClick={closeModal}
+                      className={`flex-1 px-4 py-3 rounded-xl font-semibold transition-all ${isDark ? 'bg-slate-800 text-slate-300 hover:bg-slate-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                    >
+                      Keep Course
+                    </button>
+                    <button
+                      onClick={() => {
+                        onDeleteCourse(selectedCourse.id);
+                        closeModal();
+                      }}
+                      className="flex-1 px-4 py-3 rounded-xl font-bold bg-red-600 text-white shadow-lg shadow-red-500/20 hover:bg-red-700 active:scale-95 transition-all"
+                    >
+                      Delete Course
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}

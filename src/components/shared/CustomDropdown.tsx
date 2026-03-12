@@ -61,10 +61,10 @@ export function CustomDropdown({
           onClick={() => setIsOpen(!isOpen)}
           className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl border transition-all text-sm font-medium ${
             isDark
-              ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500 hover:bg-white/10'
+              ? 'bg-slate-800/40 border-slate-700 text-white placeholder:text-slate-500 hover:bg-slate-800/60'
               : 'bg-white border-gray-200 text-gray-900 hover:bg-gray-50'
-          } ${isOpen ? `ring-2` : ''}`}
-          style={{ '--tw-ring-color': `${accentColor}40` } as React.CSSProperties}
+          }`}
+          style={{ borderColor: isOpen ? accentColor : undefined }}
         >
           <div className="flex items-center gap-2 truncate">
             {selectedOption?.icon && <span className="flex-shrink-0">{selectedOption.icon}</span>}
@@ -79,7 +79,7 @@ export function CustomDropdown({
           <div
             className={`absolute z-50 w-full mt-2 rounded-2xl shadow-xl border overflow-hidden animate-in fade-in zoom-in duration-150 ${
               isDark
-                ? 'bg-card-dark border-white/10 shadow-black/50'
+                ? 'bg-[#1e293b] border-slate-700 shadow-black/50'
                 : 'bg-white border-gray-200 shadow-slate-200/50'
             }`}
           >

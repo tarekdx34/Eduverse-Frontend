@@ -36,15 +36,40 @@ export const adminService = {
     };
   },
 
+  getUsers: async (params?: { role?: string, department?: string }) => {
+    let url = '/admin/users?size=1000';
+    if (params?.role) url += `&role=${params.role}`;
+    if (params?.department) url += `&department=${params.department}`;
+    return ApiClient.get<{ data: any[], total: number }>(url);
+  },
+
   // Student management
   getStudents: async (page = 1, size = 10, search = '') => {
     let endpoint = `/admin/users?role=student&page=${page}&size=${size}`;
     if (search) {
-      // If the backend search endpoint is preferred:
-      // endpoint = `/admin/users/search?query=${search}`;
-      // But standard list might handle filtering too. Let's stick to the paginated list.
+      // Standard search endpoint
+      endpoint = `/admin/users/search?query=${search}`;
     }
     return ApiClient.get<{ data: User[], total: number }>(endpoint);
+  },
+
+  createStudent: async (data: any) => {
+    return ApiClient.post('/auth/register', {
+      ...data,
+      role: 'student'
+    });
+  },
+  
+  updateUser: async (id: number, data: any) => {
+    return ApiClient.put(`/admin/users/${id}`, data);
+  },
+
+  updateUserStatus: async (id: number, status: string) => {
+    return ApiClient.put(`/admin/users/${id}/status`, { status });
+  },
+
+  deleteUser: async (id: number) => {
+    return ApiClient.delete(`/admin/users/${id}`);
   },
 
   // Course management
@@ -52,9 +77,31 @@ export const adminService = {
     return ApiClient.get<any>(`/courses?page=${page}&limit=${limit}`);
   },
 
+  createCourse: async (data: any) => {
+    return ApiClient.post('/courses', data);
+  },
+
+  updateCourse: async (id: number, data: any) => {
+    return ApiClient.patch(`/courses/${id}`, data);
+  },
+
+  deleteCourse: async (id: number) => {
+    return ApiClient.delete(`/courses/${id}`);
+  },
+
   // Campus management
   getCampuses: async () => {
     return ApiClient.get<any[]>('/campuses');
+  },
+
+  getDepartments: async () => {
+    return ApiClient.get<any[]>('/departments');
+  },
+
+  getInstructors: async (deptId?: number) => {
+    let url = '/admin/users?role=instructor';
+    if (deptId) url += `&departmentId=${deptId}`;
+    return ApiClient.get<any>(url);
   },
 
   // Semester management
