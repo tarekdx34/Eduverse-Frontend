@@ -21,8 +21,8 @@ export class ApiClient {
       headers['Authorization'] = `Bearer ${accessToken}`;
     }
 
-    console.log(`[API] ${options.method || 'GET'} ${url}`);
-    console.log('[API Headers]', headers);
+    // console.log(`[API] ${options.method || 'GET'} ${url}`);
+    // console.log('[API Headers]', headers);
 
     try {
       const response = await fetch(url, {
@@ -30,11 +30,13 @@ export class ApiClient {
         headers,
       });
 
+      /*
       console.log(`[API Response] Status: ${response.status}`);
       console.log('[API Response Headers]', {
         'content-type': response.headers.get('content-type'),
         'access-control-allow-origin': response.headers.get('access-control-allow-origin'),
       });
+      */
 
       // Handle non-JSON responses
       const contentType = response.headers.get('content-type');
@@ -46,7 +48,7 @@ export class ApiClient {
         data = await response.text();
       }
 
-      console.log('[API Response Data]', data);
+      // console.log('[API Response Data]', data);
 
       if (!response.ok) {
         if (response.status === 401) {

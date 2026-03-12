@@ -12,9 +12,9 @@ interface DashboardOverviewProps {
 }
 
 const cardClass = (isDark: boolean) =>
-  `${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`;
+  `${isDark ? 'bg-slate-800/50 border-white/10' : 'bg-white border-slate-200'} rounded-3xl p-6 border`;
 
-const headingClass = (isDark: boolean) => `${isDark ? 'text-white' : 'text-gray-900'}`;
+const headingClass = (isDark: boolean) => `${isDark ? 'text-white' : 'text-slate-900'}`;
 
 const enrollmentData = [
   { course: 'CS101', enrolled: 45, capacity: 50 },
@@ -62,36 +62,36 @@ export function DashboardOverview({ stats, recentActivity }: DashboardOverviewPr
       value: stats.totalCourses ?? 24,
       sub: `${stats.activeCourses ?? 18} ${t('activeCourses')}`,
       icon: BookOpen,
-      iconBg: isDark ? 'bg-blue-900/50' : 'bg-blue-50',
-      iconColor: 'text-blue-600',
-      subColor: 'text-green-600',
+      iconBg: isDark ? `${primaryHex}20` : `${primaryHex}10`,
+      iconColor: primaryHex,
+      subColor: primaryHex,
     },
     {
       label: 'Enrolled Students',
       value: 342,
       sub: '+26 this semester',
       icon: GraduationCap,
-      iconBg: isDark ? 'bg-blue-900/50' : 'bg-blue-50',
-      iconColor: 'text-blue-600',
-      subColor: 'text-green-600',
+      iconBg: isDark ? `${primaryHex}20` : `${primaryHex}10`,
+      iconColor: primaryHex,
+      subColor: primaryHex,
     },
     {
       label: 'Enrollment Period',
       value: 'Spring 2025',
       sub: 'Ends Apr 15',
       icon: Calendar,
-      iconBg: isDark ? 'bg-amber-900/50' : 'bg-amber-50',
-      iconColor: 'text-amber-600',
-      subColor: 'text-amber-600',
+      iconBg: isDark ? `${primaryHex}20` : `${primaryHex}10`,
+      iconColor: primaryHex,
+      subColor: primaryHex,
     },
     {
       label: 'Pending Requests',
       value: 8,
       sub: '3 course overrides',
       icon: Clock,
-      iconBg: isDark ? 'bg-blue-900/50' : 'bg-blue-50',
-      iconColor: 'text-blue-600',
-      subColor: 'text-blue-600',
+      iconBg: isDark ? `${primaryHex}20` : `${primaryHex}10`,
+      iconColor: primaryHex,
+      subColor: primaryHex,
     },
   ];
 
@@ -100,49 +100,95 @@ export function DashboardOverview({ stats, recentActivity }: DashboardOverviewPr
       {/* Top Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {topStats.map((stat) => (
-          <div key={stat.label} className={cardClass(isDark)}>
+          <div 
+            key={stat.label} 
+            className={cardClass(isDark)}
+            style={{ 
+              transition: 'border-color 0.2s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = primaryHex;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0';
+            }}
+          >
             <div className="flex items-center gap-3 mb-3">
-              <div className={`p-2 rounded-lg ${stat.iconBg}`}>
-                <stat.icon className={stat.iconColor} size={20} />
+              <div 
+                className="p-2 rounded-lg"
+                style={{ backgroundColor: stat.iconBg }}
+              >
+                <stat.icon size={20} style={{ color: stat.iconColor }} />
               </div>
             </div>
-            <div className={`text-3xl font-bold mb-1 ${headingClass(isDark)}`}>
+            <div className={`text-4xl font-bold mb-1 ${headingClass(isDark)}`} style={{ letterSpacing: '-0.02em' }}>
               {typeof stat.value === 'number' ? stat.value.toLocaleString() : stat.value}
             </div>
-            <div className={`text-sm mb-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+            <div className={`text-sm mb-2 font-medium ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
               {stat.label}
             </div>
-            <div className={`text-xs font-medium ${stat.subColor}`}>{stat.sub}</div>
+            <div className="text-xs font-semibold" style={{ color: stat.subColor.startsWith('text-') ? undefined : stat.subColor }} className={stat.subColor.startsWith('text-') ? stat.subColor : ''}>
+              {stat.sub}
+            </div>
           </div>
         ))}
       </div>
 
       {/* Department Overview Banner */}
       <div
-        className="rounded-xl p-6 text-white relative overflow-hidden"
+        className={`rounded-3xl p-8 relative overflow-hidden transition-all duration-300 ${
+          isDark
+            ? 'bg-card-dark border border-white/5 shadow-2xl shadow-black/20'
+            : 'bg-white border border-slate-200 shadow-sm'
+        }`}
         style={{
-          background: isDark
-            ? `linear-gradient(135deg, ${primaryHex || '#3b82f6'}90 0%, ${primaryHex || '#3b82f6'}60 100%)`
-            : `linear-gradient(135deg, ${primaryHex || '#3b82f6'} 0%, ${primaryHex || '#3b82f6'}cc 100%)`,
+          borderColor: isDark ? `${primaryHex}30` : `${primaryHex}50`,
+          backgroundColor: isDark ? `${primaryHex}08` : `${primaryHex}05`,
+          borderWidth: '1.5px',
         }}
       >
-        <div className="flex items-center gap-2 mb-2">
-          <GraduationCap size={20} />
-          <h3 className="text-lg font-semibold">Computer Science and Engineering</h3>
-        </div>
-        <p className="text-blue-100 text-sm mb-4 max-w-lg">Spring 2025 Semester — Week 8 of 16</p>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[
-            { label: 'Instructors', value: 12 },
-            { label: 'Teaching Assistants', value: 24 },
-            { label: 'Active Courses', value: stats.activeCourses ?? 18 },
-            { label: 'Avg. Enrollment', value: '38/course' },
-          ].map((item) => (
-            <div key={item.label} className="bg-white/10 rounded-lg p-3 backdrop-blur-sm">
-              <div className="text-xs text-blue-100 mb-1">{item.label}</div>
-              <div className="text-xl font-bold">{item.value}</div>
+        <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-8">
+          <div className="flex-1">
+            <div className="flex items-center gap-3 mb-2">
+              <div
+                className={`p-2.5 rounded-xl backdrop-blur-sm ${isDark ? 'bg-white/10' : 'bg-white shadow-sm'}`}
+              >
+                <GraduationCap size={22} style={{ color: primaryHex }} />
+              </div>
+              <h3
+                className={`text-2xl font-bold tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}
+              >
+                Computer Science and Engineering
+              </h3>
             </div>
-          ))}
+            <p className={`text-sm mb-8 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+              Spring 2025 Semester — Week 8 of 16
+            </p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[
+                { label: 'Instructors', value: 12 },
+                { label: 'Teaching Assistants', value: 24 },
+                { label: 'Active Courses', value: stats.activeCourses ?? 18 },
+                { label: 'Avg. Enrollment', value: '38/course' },
+              ].map((item) => (
+                <div
+                  key={item.label}
+                  className={`rounded-2xl p-5 transition-all duration-300 ${
+                    isDark
+                      ? 'bg-white/5 border border-white/5 hover:bg-white/10'
+                      : 'bg-slate-50/50 border border-slate-100 hover:bg-slate-50 hover:border-slate-200'
+                  }`}
+                >
+                  <div className={`text-xs font-medium mb-1.5 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                    {item.label}
+                  </div>
+                  <div className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                    {item.value}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -152,45 +198,64 @@ export function DashboardOverview({ stats, recentActivity }: DashboardOverviewPr
         <div className="lg:col-span-2 space-y-6">
           {/* Course Enrollment Status */}
           <div className={cardClass(isDark)}>
-            <div className="flex items-center justify-between mb-6">
-              <h3 className={`text-lg font-semibold ${headingClass(isDark)}`}>
+            <div className="flex items-center justify-between mb-8">
+              <h3 className={`text-lg font-bold ${headingClass(isDark)}`}>
                 Course Enrollment Status
               </h3>
-              <div className="flex items-center gap-2">
-                <TrendingUp className="text-green-600" size={16} />
-                <span className="text-sm text-green-600 font-medium">87% avg. fill rate</span>
+              <div className={`flex items-center gap-2 px-3 py-1 rounded-full`} style={{ backgroundColor: `${primaryHex}15` }}>
+                <TrendingUp style={{ color: primaryHex }} size={14} />
+                <span className="text-xs font-bold uppercase tracking-wider" style={{ color: primaryHex }}>87% avg. fill rate</span>
               </div>
             </div>
-            <ResponsiveContainer width="100%" height={280}>
-              <BarChart data={enrollmentData} barGap={4}>
-                <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#374151' : '#f0f0f0'} />
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={enrollmentData} barGap={8}>
+                <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#ffffff08' : '#f1f5f9'} vertical={false} />
                 <XAxis
                   dataKey="course"
-                  tick={{ fill: isDark ? '#9ca3af' : '#6b7280', fontSize: 12 }}
-                  axisLine={{ stroke: isDark ? '#374151' : '#e5e7eb' }}
+                  tick={{ fill: isDark ? '#e2e8f0' : '#1e293b', fontSize: 13, fontWeight: 700 }}
+                  axisLine={false}
+                  tickLine={false}
+                  dy={12}
                 />
                 <YAxis
-                  tick={{ fill: isDark ? '#9ca3af' : '#6b7280', fontSize: 12 }}
-                  axisLine={{ stroke: isDark ? '#374151' : '#e5e7eb' }}
+                  tick={{ fill: isDark ? '#9ca3af' : '#475569', fontSize: 11, fontWeight: 600 }}
+                  axisLine={false}
+                  tickLine={false}
                 />
                 <Tooltip
+                  cursor={{ fill: isDark ? '#ffffff08' : '#f1f5f9' }}
                   contentStyle={{
-                    backgroundColor: isDark ? '#1f2937' : 'white',
-                    border: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`,
-                    borderRadius: '8px',
+                    backgroundColor: isDark ? '#1e293b' : '#ffffff',
+                    border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid #e2e8f0',
+                    borderRadius: '16px',
+                    boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)',
+                    padding: '12px 16px',
+                  }}
+                  itemStyle={{
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    padding: '2px 0',
+                  }}
+                  labelStyle={{
+                    fontSize: '14px',
+                    fontWeight: 800,
+                    color: isDark ? '#ffffff' : '#0f172a',
+                    marginBottom: '8px',
                   }}
                 />
                 <Bar
                   dataKey="enrolled"
-                  fill={primaryHex || '#3b82f6'}
-                  radius={[4, 4, 0, 0]}
+                  fill={primaryHex}
+                  radius={[6, 6, 0, 0]}
                   name="Enrolled"
+                  barSize={28}
                 />
                 <Bar
                   dataKey="capacity"
-                  fill={isDark ? '#374151' : '#e5e7eb'}
-                  radius={[4, 4, 0, 0]}
+                  fill={isDark ? '#475569' : '#cbd5e1'}
+                  radius={[6, 6, 0, 0]}
                   name="Capacity"
+                  barSize={28}
                 />
               </BarChart>
             </ResponsiveContainer>
@@ -198,31 +263,43 @@ export function DashboardOverview({ stats, recentActivity }: DashboardOverviewPr
 
           {/* Upcoming Schedule */}
           <div className={cardClass(isDark)}>
-            <h3 className={`text-lg font-semibold mb-4 ${headingClass(isDark)}`}>
-              Upcoming Schedule
-            </h3>
-            <div className="space-y-3">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className={`text-lg font-bold ${headingClass(isDark)}`}>
+                Upcoming Schedule
+              </h3>
+              <button className={`text-sm font-semibold transition-colors`} style={{ color: primaryHex }}>
+                View Full Calendar
+              </button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {upcomingSchedule.map((item, index) => (
                 <div
                   key={index}
-                  className={`flex items-center gap-4 p-4 rounded-lg ${isDark ? 'bg-gray-700' : 'bg-gray-50'}`}
+                  className={`flex flex-col gap-3 p-5 rounded-2xl transition-all duration-300 ${
+                    isDark ? 'bg-slate-800/50 hover:bg-slate-800' : 'bg-slate-50 hover:bg-slate-100/80'
+                  }`}
                 >
-                  <div
-                    className={`p-2 rounded-lg ${isDark ? 'bg-blue-900/30 text-blue-400' : 'bg-blue-50 text-blue-600'}`}
-                  >
-                    <Calendar size={18} />
+                  <div className="flex items-start justify-between">
+                    <div
+                      className={`p-2 rounded-xl ${isDark ? 'bg-slate-700/50 text-slate-300' : 'bg-white text-slate-600 shadow-sm'}`}
+                    >
+                      <Calendar size={18} />
+                    </div>
+                    <span
+                      className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                    >
+                      {item.time}
+                    </span>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <h4 className={`font-medium text-sm ${headingClass(isDark)}`}>{item.course}</h4>
-                    <p className={`text-xs mt-0.5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                      {item.instructor} · {item.room}
-                    </p>
+                  <div>
+                    <h4 className={`font-bold text-sm leading-tight ${headingClass(isDark)}`}>{item.course}</h4>
+                    <div className="flex items-center gap-2 mt-2">
+                       <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: primaryHex }}></div>
+                       <p className={`text-xs font-medium ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                        {item.instructor} · <span className="font-bold">{item.room}</span>
+                      </p>
+                    </div>
                   </div>
-                  <span
-                    className={`text-xs font-medium whitespace-nowrap ${isDark ? 'text-gray-400' : 'text-gray-500'}`}
-                  >
-                    {item.time}
-                  </span>
                 </div>
               ))}
             </div>
@@ -232,47 +309,70 @@ export function DashboardOverview({ stats, recentActivity }: DashboardOverviewPr
         {/* Right Column - 1/3: Recent Activity */}
         <div className="space-y-6">
           <div className={cardClass(isDark)}>
-            <h3 className={`text-lg font-semibold mb-4 ${headingClass(isDark)}`}>
+            <h3 className={`text-lg font-bold mb-6 ${headingClass(isDark)}`}>
               {t('recentActivity')}
             </h3>
-            <div className="space-y-4">
+            <div className="space-y-6">
               {recentActivity
                 .filter((a) => a.type === 'course' || a.type === 'user')
                 .slice(0, 5)
                 .map((activity, index) => (
                   <div
                     key={index}
-                    className={`flex items-start gap-3 p-3 rounded-lg ${isDark ? 'bg-gray-700' : 'bg-gray-50'}`}
+                    className="flex items-start gap-4 relative"
                   >
+                    {index < 4 && (
+                      <div className={`absolute left-[17px] top-10 bottom-[-24px] w-0.5 ${isDark ? 'bg-slate-700' : 'bg-slate-100'}`}></div>
+                    )}
                     <div
-                      className={`p-2 rounded-lg ${
+                      className={`relative z-10 p-2 rounded-full border-2 ${
                         activity.type === 'course'
                           ? isDark
-                            ? 'bg-green-500/20 text-green-400'
-                            : 'bg-green-100 text-green-600'
+                            ? `bg-slate-800 border-white/10`
+                            : `bg-white border-slate-100 shadow-sm`
                           : isDark
-                            ? 'bg-blue-500/20 text-blue-400'
-                            : 'bg-blue-100 text-blue-600'
+                            ? `bg-slate-800 border-white/10`
+                            : `bg-white border-slate-100 shadow-sm`
                       }`}
+                      style={{ color: primaryHex, borderColor: `${primaryHex}30` }}
                     >
-                      {activity.type === 'course' ? <BookOpen size={14} /> : <Users size={14} />}
+                      {activity.type === 'course' ? <BookOpen size={16} /> : <Users size={16} />}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h4 className={`font-medium text-sm ${headingClass(isDark)}`}>
-                        {activity.title}
-                      </h4>
-                      <p className={`text-xs mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                      <div className="flex items-center justify-between mb-1">
+                        <h4 className={`font-bold text-sm ${headingClass(isDark)}`}>
+                          {activity.title}
+                        </h4>
+                        <span
+                          className={`text-[10px] font-bold uppercase tracking-widest ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                        >
+                          {activity.time}
+                        </span>
+                      </div>
+                      <p className={`text-xs leading-relaxed ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                         {activity.description}
                       </p>
                     </div>
-                    <span
-                      className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'} whitespace-nowrap`}
-                    >
-                      {activity.time}
-                    </span>
                   </div>
                 ))}
             </div>
+            <button 
+              className="w-full mt-8 py-4 rounded-2xl text-[10px] font-extrabold uppercase tracking-[0.2em] transition-all duration-300 border bg-transparent"
+              style={{ 
+                color: primaryHex,
+                borderColor: `${primaryHex}30`,
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = `${primaryHex}08`;
+                e.currentTarget.style.borderColor = `${primaryHex}50`;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent';
+                e.currentTarget.style.borderColor = `${primaryHex}30`;
+              }}
+            >
+              View All Activity
+            </button>
           </div>
         </div>
       </div>

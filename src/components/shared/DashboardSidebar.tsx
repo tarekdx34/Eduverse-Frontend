@@ -122,7 +122,7 @@ export function DashboardSidebar({
     <aside
       role="navigation"
       aria-label="Dashboard navigation"
-      className={`w-64 h-screen flex flex-col ${isDark ? 'bg-card-dark border-white/5' : 'bg-white border-slate-200'} ${isRTL ? 'border-l' : 'border-r'} p-6`}
+      className={`w-72 h-screen flex flex-col ${isDark ? 'bg-card-dark border-white/5' : 'bg-white border-slate-200'} ${isRTL ? 'border-l' : 'border-r'} p-6`}
     >
       {/* Branding + Mobile Close */}
       <div className="flex items-center justify-between mb-10 px-2">

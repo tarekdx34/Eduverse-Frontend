@@ -281,7 +281,7 @@ function StudentDashboardContent() {
 
       {/* Main Content */}
       <main
-        className={`flex-1 w-full transition-all duration-300 overflow-x-hidden ${isRTL ? 'lg:mr-64' : 'lg:ml-64'} ${activeTab === 'chat' ? 'p-0' : 'p-4 lg:p-10'}`}
+        className={`flex-1 w-full transition-all duration-300 overflow-x-hidden ${isRTL ? 'lg:mr-72' : 'lg:ml-72'} ${activeTab === 'chat' ? 'p-0' : 'p-4 lg:p-10'}`}
       >
         {/* Header - hide on chat for full-screen experience */}
         {activeTab !== 'chat' && (

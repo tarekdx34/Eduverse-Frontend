@@ -494,7 +494,7 @@ function InstructorDashboardContent() {
 
       {/* Main Content */}
       <main
-        className={`flex-1 transition-all duration-300 ${isRTL ? 'lg:mr-64' : 'lg:ml-64'} ${activeTab === 'chat' ? 'p-0' : 'p-4 lg:p-10'} overflow-y-auto`}
+        className={`flex-1 transition-all duration-300 ${isRTL ? 'lg:mr-72' : 'lg:ml-72'} ${activeTab === 'chat' ? 'p-0' : 'p-4 lg:p-10'} overflow-y-auto`}
       >
         {activeTab !== 'chat' && (
           <DashboardHeader
