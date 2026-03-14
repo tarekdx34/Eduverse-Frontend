@@ -106,7 +106,7 @@ function AdminDashboardContent() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { isDark, toggleTheme, primaryHex, primaryColor, setPrimaryColor } = useTheme() as any;
   const { language, setLanguage, isRTL, t } = useLanguage();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const queryClient = useQueryClient();
   const isMockMode = !isAuthenticated || location.state?.isMock;
 
@@ -147,7 +147,8 @@ function AdminDashboardContent() {
   // Sync courses with live data
   useEffect(() => {
     if (coursesDataLive) {
-      const liveItems = coursesDataLive.data || (Array.isArray(coursesDataLive) ? coursesDataLive : []);
+      const liveItems =
+        coursesDataLive.data || (Array.isArray(coursesDataLive) ? coursesDataLive : []);
       console.log('[AdminDashboard] Mapping live courses:', liveItems.length);
       // Map backend courses to match the interface expected by components
       const mapped = liveItems.map((c: any) => ({
@@ -155,24 +156,32 @@ function AdminDashboardContent() {
         id: Number(c.id || c.course_id || c.courseId),
         name: c.name || c.course_name || c.courseName || 'Unnamed Course',
         code: c.code || c.course_code || c.courseCode || 'N/A',
-        department: (typeof c.department === 'string' ? c.department : c.department?.name) || ADMIN_DEPARTMENT,
+        department:
+          (typeof c.department === 'string' ? c.department : c.department?.name) ||
+          ADMIN_DEPARTMENT,
         enrolled: Number(c.enrolled || c.currentEnrollment || 0),
         capacity: Number(c.capacity || c.maxCapacity || 100),
-        status: (c.status?.toLowerCase() || 'active'),
+        status: c.status?.toLowerCase() || 'active',
         instructorId: Number(c.instructorId || c.instructor_id || 0),
-        instructor: c.instructor || usersList.find(u => u.id === Number(c.instructorId || c.instructor_id))?.name || 'TBA',
+        instructor:
+          c.instructor ||
+          usersList.find((u) => u.id === Number(c.instructorId || c.instructor_id))?.name ||
+          'TBA',
         semester: c.semester || 'Spring 2026',
         taIds: Array.isArray(c.taIds || c.ta_ids) ? (c.taIds || c.ta_ids).map(Number) : [],
-        prerequisites: Array.isArray(c.prerequisites) 
-          ? c.prerequisites.map((p: any) => typeof p === 'string' ? p : (p.code || p.course_code || p.prerequisiteCourse?.code || ''))
-          : []
+        prerequisites: Array.isArray(c.prerequisites)
+          ? c.prerequisites.map((p: any) =>
+              typeof p === 'string'
+                ? p
+                : p.code || p.course_code || p.prerequisiteCourse?.code || ''
+            )
+          : [],
       }));
       setCoursesData(mapped);
     } else if (isMockMode) {
       setCoursesData(COURSES);
     }
   }, [coursesDataLive, isMockMode, usersList]);
-
 
   // Fetch calendar events
   const { data: calendarDataLive } = useQuery({
@@ -186,14 +195,15 @@ function AdminDashboardContent() {
   // Sync calendar
   useEffect(() => {
     if (calendarDataLive) {
-      const list = calendarDataLive.data || (Array.isArray(calendarDataLive) ? calendarDataLive : []);
+      const list =
+        calendarDataLive.data || (Array.isArray(calendarDataLive) ? calendarDataLive : []);
       const mappedEvents = list.map((item: any) => ({
         id: item.id,
         title: `${item.name} ${item.year}`,
         date: item.startDate || item.date,
         endDate: item.endDate,
         type: 'semester',
-        color: '#10b981'
+        color: '#10b981',
       }));
       setCalendarEvents(mappedEvents.length > 0 ? mappedEvents : CALENDAR_EVENTS);
     }
@@ -213,12 +223,14 @@ function AdminDashboardContent() {
   // Sync with live data
   useEffect(() => {
     if (periodsDataLive) {
-      setEnrollmentPeriodsData(periodsDataLive.data || (Array.isArray(periodsDataLive) ? periodsDataLive : ENROLLMENT_PERIODS));
+      setEnrollmentPeriodsData(
+        periodsDataLive.data ||
+          (Array.isArray(periodsDataLive) ? periodsDataLive : ENROLLMENT_PERIODS)
+      );
     } else if (isMockMode) {
       setEnrollmentPeriodsData(ENROLLMENT_PERIODS);
     }
   }, [periodsDataLive, isMockMode]);
-
 
   // Sync tab from URL
   useEffect(() => {
@@ -251,7 +263,7 @@ function AdminDashboardContent() {
     },
     onError: (error: any) => {
       toast.error('Failed to create course: ' + (error.message || 'Unknown error'));
-    }
+    },
   });
 
   const updateCourseMutation = useMutation({
@@ -262,7 +274,7 @@ function AdminDashboardContent() {
     },
     onError: (error: any) => {
       toast.error('Failed to update course: ' + (error.message || 'Unknown error'));
-    }
+    },
   });
 
   const deleteCourseMutation = useMutation({
@@ -273,7 +285,7 @@ function AdminDashboardContent() {
     },
     onError: (error: any) => {
       toast.error('Failed to delete course: ' + (error.message || 'Unknown error'));
-    }
+    },
   });
 
   // Course management handlers
@@ -437,40 +449,42 @@ function AdminDashboardContent() {
       />
 
       {/* Main Content */}
-      <main className={`flex-1 ${isRTL ? 'lg:mr-72' : 'lg:ml-72'} ${activeTab === 'chat' ? 'p-0' : 'p-4 lg:p-10'}`}>
+      <main
+        className={`flex-1 ${isRTL ? 'lg:mr-72' : 'lg:ml-72'} ${activeTab === 'chat' ? 'p-0' : 'p-4 lg:p-10'}`}
+      >
         {activeTab !== 'chat' && (
-        <DashboardHeader
-          userName="Department Head"
-          userRole="Admin"
-          isDark={isDark}
-          isRTL={isRTL}
-          accentColor={primaryHex || '#3b82f6'}
-          avatarGradient="from-[#3b82f6] to-[#06b6d4]"
-          language={language}
-          onToggleTheme={toggleTheme}
-          onSetLanguage={setLanguage}
-          searchRole="admin"
-          onProfileClick={() => handleTabChange('profile')}
-          onMenuClick={() => setSidebarOpen(true)}
-          primaryColor={primaryColor}
-          onSetPrimaryColor={setPrimaryColor}
-          availableColors={[
-            { id: 'blue', colorClass: 'bg-blue-500', hex: '#3b82f6' },
-            { id: 'emerald', colorClass: 'bg-emerald-500', hex: '#10b981' },
-            { id: 'rose', colorClass: 'bg-rose-500', hex: '#f43f5e' },
-            { id: 'amber', colorClass: 'bg-amber-500', hex: '#f59e0b' },
-          ]}
-          translations={{
-            search: t('search') || 'Search...',
-            language: t('language'),
-            english: t('english'),
-            arabic: t('arabic'),
-            darkMode: t('darkMode'),
-            lightMode: t('lightMode'),
-            viewProfile: t('viewProfile'),
-            logout: t('logout'),
-          }}
-        />
+          <DashboardHeader
+            userName="Department Head"
+            userRole="Admin"
+            isDark={isDark}
+            isRTL={isRTL}
+            accentColor={primaryHex || '#3b82f6'}
+            avatarGradient="from-[#3b82f6] to-[#06b6d4]"
+            language={language}
+            onToggleTheme={toggleTheme}
+            onSetLanguage={setLanguage}
+            searchRole="admin"
+            onProfileClick={() => handleTabChange('profile')}
+            onMenuClick={() => setSidebarOpen(true)}
+            primaryColor={primaryColor}
+            onSetPrimaryColor={setPrimaryColor}
+            availableColors={[
+              { id: 'blue', colorClass: 'bg-blue-500', hex: '#3b82f6' },
+              { id: 'emerald', colorClass: 'bg-emerald-500', hex: '#10b981' },
+              { id: 'rose', colorClass: 'bg-rose-500', hex: '#f43f5e' },
+              { id: 'amber', colorClass: 'bg-amber-500', hex: '#f59e0b' },
+            ]}
+            translations={{
+              search: t('search') || 'Search...',
+              language: t('language'),
+              english: t('english'),
+              arabic: t('arabic'),
+              darkMode: t('darkMode'),
+              lightMode: t('lightMode'),
+              viewProfile: t('viewProfile'),
+              logout: t('logout'),
+            }}
+          />
         )}
         {/* Dashboard Overview */}
         {activeTab === 'dashboard' && (
@@ -481,7 +495,6 @@ function AdminDashboardContent() {
             onNavigate={(tab) => handleTabChange(tab as TabKey)}
           />
         )}
-
 
         {/* Student Management */}
         {activeTab === 'students' && <StudentManagementPage />}
@@ -535,7 +548,7 @@ function AdminDashboardContent() {
         {activeTab === 'chat' && (
           <MessagingChat
             height="100vh"
-            currentUserName="Administrator"
+            currentUserName={user?.fullName || 'Administrator'}
             showVideoCall={true}
             showVoiceCall={true}
             isDark={isDark}

@@ -86,7 +86,10 @@ function StudentDashboardContent() {
   const { user } = useAuth();
   const { data: enrollments } = useApi(() => EnrollmentService.getMyCourses(), []);
   const { data: gpaSummary } = useApi(
-    () => (user ? GradesService.getGpa(user.userId) : Promise.resolve({ semesterGpa: 0, cumulativeGpa: 0 })),
+    () =>
+      user
+        ? GradesService.getGpa(user.userId)
+        : Promise.resolve({ semesterGpa: 0, cumulativeGpa: 0 }),
     [user?.userId]
   );
 
@@ -287,8 +290,8 @@ function StudentDashboardContent() {
         {activeTab !== 'chat' && (
           <>
             <DashboardHeader
-              userName={user?.fullName || "Tarek Mohamed"}
-              userRole={user?.roles?.[0] || "CS Junior"}
+              userName={user?.fullName || 'Tarek Mohamed'}
+              userRole={user?.roles?.[0] || 'CS Junior'}
               isDark={isDark}
               isRTL={isRTL}
               accentColor={primaryHex || '#3b82f6'}
@@ -339,7 +342,11 @@ function StudentDashboardContent() {
                       label="Grade Point Average"
                       value={gpaValue ? gpaValue.toFixed(2) : '3.75'}
                       maxValue="4.00"
-                      comparison={gpaValue ? `Semester: ${(gpaSummary?.semesterGpa ?? 0).toFixed(2)}` : '-0.25 Points'}
+                      comparison={
+                        gpaValue
+                          ? `Semester: ${(gpaSummary?.semesterGpa ?? 0).toFixed(2)}`
+                          : '-0.25 Points'
+                      }
                       isPositive={gpaValue ? gpaValue >= 3.0 : false}
                       icon={<Trophy size={24} />}
                     />
@@ -391,6 +398,7 @@ function StudentDashboardContent() {
               {activeTab === 'chat' && (
                 <MessagingChat
                   height="100vh"
+                  currentUserName={user?.fullName || 'Student'}
                   isDark={isDark}
                   className="rounded-none border-0"
                   accentColor={primaryHex || '#3b82f6'}

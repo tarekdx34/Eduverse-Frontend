@@ -46,6 +46,7 @@ import {
   UPCOMING_LABS,
   STUDENT_PERFORMANCE,
 } from './constants';
+import { useAuth } from '../../context/AuthContext';
 
 type TabKey =
   | 'dashboard'
@@ -83,6 +84,7 @@ const TABS: { key: TabKey; label: string; icon: any; group: string }[] = [
 ];
 
 function TADashboardContent() {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const params = useParams();
   const { isDark, toggleTheme, primaryHex, primaryColor, setPrimaryColor } = useTheme() as any;
@@ -157,7 +159,9 @@ function TADashboardContent() {
       />
 
       {/* Main Content */}
-      <main className={`flex-1 ${isRTL ? 'lg:mr-72' : 'lg:ml-72'} ${activeTab === 'chat' ? 'p-0' : 'p-4 lg:p-10'}`}>
+      <main
+        className={`flex-1 ${isRTL ? 'lg:mr-72' : 'lg:ml-72'} ${activeTab === 'chat' ? 'p-0' : 'p-4 lg:p-10'}`}
+      >
         {activeTab !== 'chat' && (
           <DashboardHeader
             userName="Ahmed Hassan"
@@ -248,7 +252,7 @@ function TADashboardContent() {
         {activeTab === 'chat' && (
           <MessagingChat
             height="100vh"
-            currentUserName="Ahmed Hassan"
+            currentUserName={user?.fullName || 'Ahmed Hassan'}
             showVideoCall={true}
             showVoiceCall={true}
             isDark={isDark}

@@ -378,7 +378,7 @@ export function MessagingChat({
                 onChange={(e) => setMessageInput(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                 placeholder="Type a message..."
-                className={`flex-1 px-4 py-2 ${isDark ? 'bg-white/5 border-white/10 text-white' : 'border-slate-100'} border rounded-lg text-sm focus:outline-none focus:border-[var(--accent-color)]`}
+                className={`flex-1 px-4 py-2 ${isDark ? 'bg-white/5 border-white/10 text-white' : 'border-slate-100 text-slate-800'} border rounded-lg text-sm focus:outline-none focus:border-[var(--accent-color)]`}
               />
               <button
                 className={`p-2 ${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'} rounded-lg transition-colors`}

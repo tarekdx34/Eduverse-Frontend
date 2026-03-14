@@ -39,6 +39,7 @@ import { DashboardHeader, DashboardSidebar, MessagingChat } from '../../componen
 import { DashboardProfileTab } from '../../components/shared/DashboardProfileTab';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
+import { useAuth } from '../../context/AuthContext';
 import {
   IT_DASHBOARD_STATS,
   SERVER_STATUS,
@@ -171,6 +172,7 @@ const TABS: { key: TabKey; label: string; labelAr: string; icon: any; group: str
 ];
 
 function ITAdminDashboardContent() {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const params = useParams();
   const [activeTab, setActiveTab] = useState<TabKey>('dashboard');
@@ -333,40 +335,42 @@ function ITAdminDashboardContent() {
       />
 
       {/* Main Content */}
-      <main className={`flex-1 ${isRTL ? 'lg:mr-72' : 'lg:ml-72'} ${activeTab === 'chat' ? 'p-0' : 'p-4 lg:p-10'}`}>
+      <main
+        className={`flex-1 ${isRTL ? 'lg:mr-72' : 'lg:ml-72'} ${activeTab === 'chat' ? 'p-0' : 'p-4 lg:p-10'}`}
+      >
         {activeTab !== 'chat' && (
-        <DashboardHeader
-          userName="IT Administrator"
-          userRole="IT Admin"
-          isDark={isDark}
-          isRTL={isRTL}
-          accentColor={primaryHex || '#3b82f6'}
-          avatarGradient="from-[#3b82f6] to-[#06b6d4]"
-          language={language}
-          onToggleTheme={toggleTheme}
-          onSetLanguage={setLanguage}
-          searchRole="admin"
-          onProfileClick={() => handleTabChange('profile')}
-          onMenuClick={() => setSidebarOpen(true)}
-          primaryColor={primaryColor}
-          onSetPrimaryColor={setPrimaryColor}
-          availableColors={[
-            { id: 'blue', colorClass: 'bg-blue-500', hex: '#3b82f6' },
-            { id: 'emerald', colorClass: 'bg-emerald-500', hex: '#10b981' },
-            { id: 'rose', colorClass: 'bg-blue-500', hex: '#f43f5e' },
-            { id: 'amber', colorClass: 'bg-amber-500', hex: '#f59e0b' },
-          ]}
-          translations={{
-            search: t('search') || 'Search...',
-            language: t('language'),
-            english: t('english'),
-            arabic: t('arabic'),
-            darkMode: t('darkMode'),
-            lightMode: t('lightMode'),
-            viewProfile: t('viewProfile'),
-            logout: t('logout'),
-          }}
-        />
+          <DashboardHeader
+            userName="IT Administrator"
+            userRole="IT Admin"
+            isDark={isDark}
+            isRTL={isRTL}
+            accentColor={primaryHex || '#3b82f6'}
+            avatarGradient="from-[#3b82f6] to-[#06b6d4]"
+            language={language}
+            onToggleTheme={toggleTheme}
+            onSetLanguage={setLanguage}
+            searchRole="admin"
+            onProfileClick={() => handleTabChange('profile')}
+            onMenuClick={() => setSidebarOpen(true)}
+            primaryColor={primaryColor}
+            onSetPrimaryColor={setPrimaryColor}
+            availableColors={[
+              { id: 'blue', colorClass: 'bg-blue-500', hex: '#3b82f6' },
+              { id: 'emerald', colorClass: 'bg-emerald-500', hex: '#10b981' },
+              { id: 'rose', colorClass: 'bg-blue-500', hex: '#f43f5e' },
+              { id: 'amber', colorClass: 'bg-amber-500', hex: '#f59e0b' },
+            ]}
+            translations={{
+              search: t('search') || 'Search...',
+              language: t('language'),
+              english: t('english'),
+              arabic: t('arabic'),
+              darkMode: t('darkMode'),
+              lightMode: t('lightMode'),
+              viewProfile: t('viewProfile'),
+              logout: t('logout'),
+            }}
+          />
         )}
         {/* Dashboard Overview */}
         {activeTab === 'dashboard' && (
@@ -466,9 +470,8 @@ function ITAdminDashboardContent() {
         {activeTab === 'chat' && (
           <MessagingChat
             height="100vh"
-            accentColor={primaryHex || '#4f46e5'}
             className="rounded-none border-0"
-            currentUserName="IT Administrator"
+            currentUserName={user?.fullName || 'IT Administrator'}
             showVideoCall={true}
             showVoiceCall={true}
             isDark={isDark}

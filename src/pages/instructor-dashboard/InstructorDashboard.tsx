@@ -45,6 +45,7 @@ import {
   DashboardSidebar,
   CustomDropdown,
 } from '../../components/shared';
+import { useAuth } from '../../context/AuthContext';
 import { DashboardProfileTab } from '../../components/shared/DashboardProfileTab';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
@@ -138,6 +139,7 @@ const TABS: { key: TabKey; label: string; labelAr: string; icon: any; group: str
 ];
 
 function InstructorDashboardContent() {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const params = useParams();
   const [activeTab, setActiveTab] = useState<TabKey>('dashboard');
@@ -703,7 +705,7 @@ function InstructorDashboardContent() {
         {activeTab === 'chat' && (
           <MessagingChat
             height="100vh"
-            currentUserName="Prof. Sarah Martinez"
+            currentUserName={user?.fullName || 'Prof. Sarah Martinez'}
             showVideoCall={true}
             showVoiceCall={true}
             isDark={isDark}
@@ -957,7 +959,7 @@ function InstructorDashboardContent() {
           {activeTab === 'chat' && (
             <MessagingChat
               height="100vh"
-              currentUserName="Prof. Sarah Martinez"
+              currentUserName={user?.fullName || 'Prof. Sarah Martinez'}
               showVideoCall={true}
               showVoiceCall={true}
               isDark={isDark}
