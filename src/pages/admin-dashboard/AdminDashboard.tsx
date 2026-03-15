@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminService } from '../../services/adminService';
+import { ApiClient as api } from '../../services/api/client';
 import { toast } from 'sonner';
 
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
@@ -117,13 +118,6 @@ function AdminDashboardContent() {
     enabled: !isMockMode,
   });
 
-  // Fetch live courses
-  const { data: coursesDataLive, isLoading: coursesLoading } = useQuery({
-    queryKey: ['admin-courses'],
-    queryFn: () => adminService.getCourses(),
-    enabled: !isMockMode && activeTab === 'courses',
-  });
-
   // Fetch live users for staff assignment
   const { data: usersDataLive } = useQuery({
     queryKey: ['admin-all-users'],
@@ -135,53 +129,122 @@ function AdminDashboardContent() {
   const [coursesData, setCoursesData] = useState(COURSES);
   const [usersList, setUsersList] = useState(USERS);
 
+  const refreshCourses = async () => {
+    if (isMockMode) {
+      setCoursesData(COURSES);
+      return;
+    }
+
+    try {
+      const coursesRes = await api.get<any>('/courses');
+      const apiCourses = Array.isArray(coursesRes?.data)
+        ? coursesRes.data
+        : Array.isArray(coursesRes?.data?.data)
+          ? coursesRes.data.data
+          : Array.isArray(coursesRes)
+            ? coursesRes
+            : [];
+
+      console.log('[DEBUG] courses count:', apiCourses.length);
+
+      const enrichedCourses = await Promise.all(
+        apiCourses.map(async (c: any) => {
+          const courseId = c.id;
+          const base = {
+            id: Number(courseId),
+            code: c.code,
+            name: c.name,
+            department: c.department?.name || 'Unknown',
+            semester: 'Fall 2025',
+            credits: c.credits || 3,
+            enrolled: 0,
+            capacity: 100,
+            status: (c.status || 'ACTIVE').toUpperCase(),
+            instructor: '',
+            instructorId: 0,
+            taIds: [] as number[],
+            taNames: [] as string[],
+            level: (c.level || 'FRESHMAN').toUpperCase(),
+            prerequisites: [],
+            sectionId: null as number | null,
+          };
+
+          try {
+            const sectionsRes = await api.get<any>(`/sections/course/${courseId}`);
+            const sections = Array.isArray(sectionsRes?.data)
+              ? sectionsRes.data
+              : Array.isArray(sectionsRes)
+                ? sectionsRes
+                : [];
+
+            if (sections.length === 0) {
+              return base;
+            }
+
+            const section = sections[0];
+            const sectionId = Number(section.id || section.sectionId);
+            base.sectionId = sectionId;
+            base.enrolled = section.currentEnrollment || 0;
+            base.capacity = section.maxCapacity || 100;
+
+            try {
+              const instRes = await api.get<any>(`/enrollments/section/${sectionId}/instructor`);
+              const instructorPayload = instRes?.data ?? instRes;
+              if (instructorPayload?.instructor?.fullName) {
+                base.instructor = instructorPayload.instructor.fullName;
+                base.instructorId = Number(instructorPayload.instructorId) || 0;
+              }
+            } catch {
+              // No instructor assigned.
+            }
+
+            try {
+              const tasRes = await api.get<any>(`/enrollments/section/${sectionId}/tas`);
+              const tas = Array.isArray(tasRes?.data)
+                ? tasRes.data
+                : Array.isArray(tasRes)
+                  ? tasRes
+                  : [];
+              base.taIds = tas.map((t: any) => Number(t.userId));
+              base.taNames = tas.map((t: any) => t.fullName);
+            } catch {
+              // No TAs assigned.
+            }
+          } catch (err) {
+            console.warn(`[WARN] Failed to enrich course ${courseId}:`, err);
+          }
+
+          return base;
+        })
+      );
+
+      setCoursesData(enrichedCourses);
+      queryClient.setQueryData(['admin-courses'], { data: apiCourses });
+    } catch (error: any) {
+      console.error('[ERROR] refreshCourses failed:', error);
+      toast.error('Failed to refresh courses: ' + (error.message || 'Unknown error'));
+    }
+  };
+
   // Sync users list
   useEffect(() => {
     if (usersDataLive?.data) {
-      setUsersList(usersDataLive.data);
+      const apiUsers = usersDataLive.data;
+      const mappedUsers = apiUsers.map((u: any) => ({
+        id: Number(u.userId),
+        name: u.fullName || `${u.firstName || ''} ${u.lastName || ''}`.trim(),
+        role: u.roles?.[0]?.roleName?.toLowerCase() || '',
+        department: '',
+      }));
+      setUsersList(mappedUsers);
     } else if (isMockMode) {
       setUsersList(USERS);
     }
   }, [usersDataLive, isMockMode]);
 
-  // Sync courses with live data
   useEffect(() => {
-    if (coursesDataLive) {
-      const liveItems =
-        coursesDataLive.data || (Array.isArray(coursesDataLive) ? coursesDataLive : []);
-      console.log('[AdminDashboard] Mapping live courses:', liveItems.length);
-      // Map backend courses to match the interface expected by components
-      const mapped = liveItems.map((c: any) => ({
-        ...c,
-        id: Number(c.id || c.course_id || c.courseId),
-        name: c.name || c.course_name || c.courseName || 'Unnamed Course',
-        code: c.code || c.course_code || c.courseCode || 'N/A',
-        department:
-          (typeof c.department === 'string' ? c.department : c.department?.name) ||
-          ADMIN_DEPARTMENT,
-        enrolled: Number(c.enrolled || c.currentEnrollment || 0),
-        capacity: Number(c.capacity || c.maxCapacity || 100),
-        status: c.status?.toLowerCase() || 'active',
-        instructorId: Number(c.instructorId || c.instructor_id || 0),
-        instructor:
-          c.instructor ||
-          usersList.find((u) => u.id === Number(c.instructorId || c.instructor_id))?.name ||
-          'TBA',
-        semester: c.semester || 'Spring 2026',
-        taIds: Array.isArray(c.taIds || c.ta_ids) ? (c.taIds || c.ta_ids).map(Number) : [],
-        prerequisites: Array.isArray(c.prerequisites)
-          ? c.prerequisites.map((p: any) =>
-              typeof p === 'string'
-                ? p
-                : p.code || p.course_code || p.prerequisiteCourse?.code || ''
-            )
-          : [],
-      }));
-      setCoursesData(mapped);
-    } else if (isMockMode) {
-      setCoursesData(COURSES);
-    }
-  }, [coursesDataLive, isMockMode, usersList]);
+    refreshCourses();
+  }, [isMockMode]);
 
   // Fetch calendar events
   const { data: calendarDataLive } = useQuery({
@@ -257,7 +320,8 @@ function AdminDashboardContent() {
   // Course Mutations
   const addCourseMutation = useMutation({
     mutationFn: (newCourse: any) => adminService.createCourse(newCourse),
-    onSuccess: () => {
+    onSuccess: async () => {
+      await refreshCourses();
       queryClient.invalidateQueries({ queryKey: ['admin-courses'] });
       toast.success(t('courseAdded') || 'Course created successfully');
     },
@@ -268,7 +332,8 @@ function AdminDashboardContent() {
 
   const updateCourseMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: any }) => adminService.updateCourse(id, data),
-    onSuccess: () => {
+    onSuccess: async () => {
+      await refreshCourses();
       queryClient.invalidateQueries({ queryKey: ['admin-courses'] });
       toast.success(t('courseUpdated') || 'Course updated successfully');
     },
@@ -279,7 +344,8 @@ function AdminDashboardContent() {
 
   const deleteCourseMutation = useMutation({
     mutationFn: (id: number) => adminService.deleteCourse(id),
-    onSuccess: () => {
+    onSuccess: async () => {
+      await refreshCourses();
       queryClient.invalidateQueries({ queryKey: ['admin-courses'] });
       toast.success(t('courseDeleted') || 'Course deleted successfully');
     },
@@ -508,6 +574,7 @@ function AdminDashboardContent() {
             onAddCourse={handleAddCourse}
             onEditCourse={handleEditCourse}
             onDeleteCourse={handleDeleteCourse}
+            onRefreshCourses={refreshCourses}
           />
         )}
 
