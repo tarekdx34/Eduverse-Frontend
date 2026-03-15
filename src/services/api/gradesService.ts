@@ -40,8 +40,13 @@ export class GradesService {
     return ApiClient.get(`/grades/transcript/${studentId}`);
   }
 
-  static async getSectionGrades(sectionId: number): Promise<any> {
-    return ApiClient.get(`/grades/section/${sectionId}`);
+  static async getCourseGrades(courseId: number): Promise<any> {
+    return ApiClient.get('/grades', { params: { courseId } });
+  }
+
+  static async getSectionGrades(sectionId: number, courseId?: number): Promise<any> {
+    const resolvedCourseId = courseId ?? sectionId;
+    return GradesService.getCourseGrades(resolvedCourseId);
   }
 
   static async updateStudentGrade(gradeId: number, data: { percentage: number; notes?: string }): Promise<GradeRecord> {

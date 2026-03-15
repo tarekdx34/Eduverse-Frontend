@@ -20,6 +20,8 @@ import { FileUploadDropzone, AutoGradingSystem, Submission } from '../../../comp
 import { RosterTable } from './RosterTable';
 import { AssignmentModal, AssignmentFormData } from './AssignmentModal';
 import { CleanSelect } from '../../../components/shared';
+import { useApi } from '../../../hooks/useApi';
+import { courseService } from '../../../services/api/courseService';
 
 
 type Course = {
@@ -54,6 +56,21 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
   const [assignmentForm, setAssignmentForm] = useState<AssignmentFormData | null>(null);
   const [editingAssignmentIndex, setEditingAssignmentIndex] = useState<number | null>(null);
   const [gradingSubTab, setGradingSubTab] = useState<'manual' | 'auto'>('manual');
+
+  const {
+    data: sectionSchedules,
+    loading: schedulesLoading,
+  } = useApi(
+    async () => {
+      try {
+        return await courseService.getSectionSchedules(String(courseId));
+      } catch (error) {
+        console.error('Failed to fetch section schedules', error);
+        throw error;
+      }
+    },
+    [courseId]
+  );
 
   // Materials state
   const [showMaterialModal, setShowMaterialModal] = useState(false);
@@ -407,6 +424,52 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                     <div className="text-2xl font-bold text-green-600">
                       {course.attendanceRate}%
                     </div>
+                  </div>
+                  <div>
+                    <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'} mb-2`}>
+                      Section Schedule
+                    </div>
+                    {schedulesLoading ? (
+                      <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                        Loading schedule...
+                      </div>
+                    ) : sectionSchedules && sectionSchedules.length > 0 ? (
+                      <div className="space-y-2">
+                        {sectionSchedules.slice(0, 3).map((schedule) => {
+                          const dayLabel =
+                            schedule.dayOfWeek.charAt(0).toUpperCase() +
+                            schedule.dayOfWeek.slice(1);
+                          const formatTime = (value: string) => {
+                            const [hourRaw, minute] = value.split(':');
+                            const hourNumber = Number(hourRaw);
+                            const period = hourNumber >= 12 ? 'PM' : 'AM';
+                            const hour = hourNumber % 12 || 12;
+                            return `${hour}:${minute} ${period}`;
+                          };
+                          const location = schedule.building
+                            ? `${schedule.room}, ${schedule.building}`
+                            : schedule.room;
+
+                          return (
+                            <div key={schedule.id} className="text-sm">
+                              <div className={isDark ? 'text-white' : 'text-gray-900'}>
+                                {dayLabel} • {formatTime(schedule.startTime)} - {formatTime(schedule.endTime)}
+                              </div>
+                              <div className={isDark ? 'text-slate-400' : 'text-gray-600'}>
+                                {location} •
+                                <span className="ml-1 px-2 py-0.5 rounded-full text-xs bg-indigo-100 text-indigo-700 capitalize">
+                                  {schedule.scheduleType}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                        No schedule available.
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -984,21 +1047,7 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
           <div
             className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}
           >
-            <RosterTable
-              data={Array.from({ length: Math.min(10, course.enrolled) }).map((_, index) => ({
-                id: index + 1,
-                name: `Student ${index + 1}`,
-                email: `student${index + 1}@edu.com`,
-                status: 'Enrolled',
-                grades: {
-                  assignments: `${80 + Math.floor(Math.random() * 20)}%`,
-                  quizzes: `${75 + Math.floor(Math.random() * 25)}%`,
-                  midterm: `${85 + Math.floor(Math.random() * 15)}%`,
-                  final: '-',
-                  total: 'A-',
-                },
-              }))}
-            />
+            <RosterTable sectionId={String(course.id)} />
           </div>
         )}
 

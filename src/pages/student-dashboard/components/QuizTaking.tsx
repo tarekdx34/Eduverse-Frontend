@@ -198,7 +198,14 @@ export const QuizTaking = () => {
   const accentColor = primaryHex || '#3b82f6';
   const { isRTL } = useLanguage();
 
-  const { data: apiQuizzes, loading } = useApi(() => QuizService.getAll(), []);
+  const { data: apiQuizzes, loading } = useApi(async () => {
+    try {
+      return await QuizService.getAll();
+    } catch (error) {
+      console.error('Failed to fetch quizzes', error);
+      throw error;
+    }
+  }, []);
 
   const QUIZ_ICONS = [
     <BarChart3 className="w-6 h-6" />,
@@ -236,14 +243,6 @@ export const QuizTaking = () => {
 
   const questions = mockQuestions;
   const currentQuestion = questions[currentQuestionIndex];
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
-      </div>
-    );
-  }
 
   // Timer
   useEffect(() => {
@@ -295,6 +294,14 @@ export const QuizTaking = () => {
   useEffect(() => {
     if (view === 'active' && timeLeft === 0) submitQuiz();
   }, [view, timeLeft, submitQuiz]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+      </div>
+    );
+  }
 
   const computeResults = () => {
     let correct = 0;

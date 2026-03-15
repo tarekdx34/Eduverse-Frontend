@@ -26,7 +26,7 @@ export interface StudentAttendance {
 
 export class AttendanceService {
   static async getMyAttendance(): Promise<StudentAttendance | AttendanceRecord[]> {
-    const response = await ApiClient.get<StudentAttendance | AttendanceRecord[] | { data: AttendanceRecord[] }>('/attendance/my');
+    const response = await ApiClient.get<StudentAttendance | AttendanceRecord[] | { data: AttendanceRecord[] }>('~/attendance/my');
     if (Array.isArray(response)) return response;
     if ('data' in (response as object) && Array.isArray((response as { data: unknown }).data)) {
       return (response as { data: AttendanceRecord[] }).data;
@@ -35,7 +35,7 @@ export class AttendanceService {
   }
 
   static async getByStudent(studentId: number): Promise<StudentAttendance> {
-    return ApiClient.get(`/attendance/by-student/${studentId}`);
+    return ApiClient.get(`~/attendance/by-student/${studentId}`);
   }
 
   static async getSessions(params: {
@@ -43,7 +43,7 @@ export class AttendanceService {
     courseId?: number;
     status?: string;
   }): Promise<any> {
-    return ApiClient.get('/attendance/sessions', { params });
+    return ApiClient.get('~/attendance/sessions', { params });
   }
 
   static async createSession(data: {
@@ -52,29 +52,29 @@ export class AttendanceService {
     sessionType: 'lecture' | 'lab' | 'tutorial';
     totalMinutes?: number;
   }): Promise<any> {
-    return ApiClient.post('/attendance/sessions', data);
+    return ApiClient.post('~/attendance/sessions', data);
   }
 
   static async updateSession(id: number, data: any): Promise<any> {
-    return ApiClient.put(`/attendance/sessions/${id}`, data);
+    return ApiClient.put(`~/attendance/sessions/${id}`, data);
   }
 
   static async deleteSession(id: number): Promise<void> {
-    return ApiClient.delete(`/attendance/sessions/${id}`);
+    return ApiClient.delete(`~/attendance/sessions/${id}`);
   }
 
   static async getSessionDetails(id: number): Promise<any> {
-    return ApiClient.get(`/attendance/sessions/${id}`);
+    return ApiClient.get(`~/attendance/sessions/${id}`);
   }
 
   static async markBatchAttendance(data: {
     sessionId: number;
     records: Array<{ studentId: number; status: string; notes?: string }>;
   }): Promise<any> {
-    return ApiClient.post('/attendance/records/batch', data);
+    return ApiClient.post('~/attendance/records/batch', data);
   }
 
   static async getSectionSummary(sectionId: number): Promise<any> {
-    return ApiClient.get(`/attendance/summary/${sectionId}`);
+    return ApiClient.get(`~/attendance/summary/${sectionId}`);
   }
 }

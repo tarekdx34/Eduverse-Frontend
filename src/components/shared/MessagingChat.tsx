@@ -91,7 +91,7 @@ interface MessagingChatProps {
 
 const DEFAULT_CONVERSATIONS: Conversation[] = [
   {
-    id: '1',
+    id: 'default-conversation',
     name: 'Prof. Sarah Johnson',
     searchName: 'Prof. Sarah Johnson',
     searchEmail: '',
@@ -477,7 +477,7 @@ export function MessagingChat({
 
   const [localConversations, setLocalConversations] = useState<Conversation[]>(conversations);
   const [selectedConversation, setSelectedConversation] = useState<string>(
-    conversations[0]?.id || ''
+    token ? '' : conversations[0]?.id || ''
   );
   const [messageInput, setMessageInput] = useState('');
   const [messages, setMessages] = useState<Message[]>(initialMessages);

@@ -118,7 +118,7 @@ function makePerson(index: number) {
 
 export const SECTIONS = [
   {
-    sectionId: 101,
+    sectionId: 1,
     courseCode: 'CS101',
     courseName: 'Introduction to Programming',
     sectionLabel: 'Section A',
@@ -127,7 +127,7 @@ export const SECTIONS = [
     enrolled: 120,
   },
   {
-    sectionId: 202,
+    sectionId: 2,
     courseCode: 'CS202',
     courseName: 'Data Structures',
     sectionLabel: 'Section B',
@@ -136,7 +136,7 @@ export const SECTIONS = [
     enrolled: 100,
   },
   {
-    sectionId: 303,
+    sectionId: 3,
     courseCode: 'CS303',
     courseName: 'Databases',
     sectionLabel: 'Section C',
@@ -164,16 +164,16 @@ export const ROSTERS: Record<
   string,
   Array<{ id: number; name: string; email: string; status: string; grade?: string }>
 > = {
-  '101': generateRoster(SECTIONS[0].enrolled, 1),
-  '202': generateRoster(SECTIONS[1].enrolled, 1001),
-  '303': generateRoster(SECTIONS[2].enrolled, 2001),
+  '1': generateRoster(SECTIONS[0].enrolled, 1),
+  '2': generateRoster(SECTIONS[1].enrolled, 1001),
+  '3': generateRoster(SECTIONS[2].enrolled, 2001),
 };
 
 export const WAITLISTS: Record<
   string,
   Array<{ id: number; name: string; email: string; requestedAt: string }>
 > = {
-  '101': Array.from({ length: 12 }).map((_, idx) => {
+  '1': Array.from({ length: 12 }).map((_, idx) => {
     const p = makePerson(3000 + idx);
     return {
       id: 3000 + idx,
@@ -182,7 +182,7 @@ export const WAITLISTS: Record<
       requestedAt: `2025-11-${String(10 + (idx % 20)).padStart(2, '0')}`,
     };
   }),
-  '202': Array.from({ length: 7 }).map((_, idx) => {
+  '2': Array.from({ length: 7 }).map((_, idx) => {
     const p = makePerson(4000 + idx);
     return {
       id: 4000 + idx,
@@ -191,7 +191,7 @@ export const WAITLISTS: Record<
       requestedAt: `2025-10-${String(5 + (idx % 20)).padStart(2, '0')}`,
     };
   }),
-  '303': Array.from({ length: 10 }).map((_, idx) => {
+  '3': Array.from({ length: 10 }).map((_, idx) => {
     const p = makePerson(5000 + idx);
     return {
       id: 5000 + idx,
@@ -240,7 +240,7 @@ export const ASSIGNMENTS: Record<
     status: 'draft' | 'open' | 'closed';
   }>
 > = {
-  '101': [
+  '1': [
     {
       id: 11,
       title: 'Quiz 1: Variables & IO',
@@ -261,7 +261,7 @@ export const ASSIGNMENTS: Record<
     { id: 16, title: 'Midterm', dueDate: '2026-01-20', submissions: 0, status: 'draft' },
     { id: 17, title: 'Quiz 4: Recursion', dueDate: '2026-01-23', submissions: 0, status: 'draft' },
   ],
-  '202': [
+  '2': [
     { id: 21, title: 'Quiz 1: Complexity', dueDate: '2026-01-01', submissions: 96, status: 'open' },
     {
       id: 22,
@@ -287,7 +287,7 @@ export const ASSIGNMENTS: Record<
     },
     { id: 26, title: 'Midterm', dueDate: '2026-01-22', submissions: 0, status: 'draft' },
   ],
-  '303': [
+  '3': [
     {
       id: 31,
       title: 'Quiz 1: SQL Basics',
@@ -314,9 +314,9 @@ export const GRADES: Record<
     grade: string;
   }>
 > = {
-  '101': (() => {
-    const roster = ROSTERS['101'];
-    const titles = ASSIGNMENTS['101'].slice(0, 4).map((a) => a.title);
+  '1': (() => {
+    const roster = ROSTERS['1'] ?? [];
+    const titles = (ASSIGNMENTS['1'] ?? []).slice(0, 4).map((a) => a.title);
     const rows: any[] = [];
     let id = 1;
     for (const st of roster) {
@@ -334,9 +334,9 @@ export const GRADES: Record<
     }
     return rows;
   })(),
-  '202': (() => {
-    const roster = ROSTERS['202'];
-    const titles = ASSIGNMENTS['202'].slice(0, 4).map((a) => a.title);
+  '2': (() => {
+    const roster = ROSTERS['2'] ?? [];
+    const titles = (ASSIGNMENTS['2'] ?? []).slice(0, 4).map((a) => a.title);
     const rows: any[] = [];
     let id = 100000;
     for (const st of roster) {
@@ -354,9 +354,9 @@ export const GRADES: Record<
     }
     return rows;
   })(),
-  '303': (() => {
-    const roster = ROSTERS['303'];
-    const titles = ASSIGNMENTS['303'].slice(0, 4).map((a) => a.title);
+  '3': (() => {
+    const roster = ROSTERS['3'] ?? [];
+    const titles = (ASSIGNMENTS['3'] ?? []).slice(0, 4).map((a) => a.title);
     const rows: any[] = [];
     let id = 200000;
     for (const st of roster) {
@@ -380,19 +380,19 @@ export const ATTENDANCE: Record<
   string,
   Array<{ id: number; date: string; present: number; absent: number }>
 > = {
-  '101': [
+  '1': [
     { id: 1011, date: '2025-12-03', present: 116, absent: 4 },
     { id: 1012, date: '2025-12-10', present: 115, absent: 5 },
     { id: 1013, date: '2025-12-17', present: 114, absent: 6 },
     { id: 1014, date: '2025-12-24', present: 112, absent: 8 },
   ],
-  '202': [
+  '2': [
     { id: 2021, date: '2025-12-04', present: 95, absent: 5 },
     { id: 2022, date: '2025-12-11', present: 96, absent: 4 },
     { id: 2023, date: '2025-12-18', present: 94, absent: 6 },
     { id: 2024, date: '2025-12-25', present: 92, absent: 8 },
   ],
-  '303': [
+  '3': [
     { id: 3031, date: '2025-12-05', present: 86, absent: 4 },
     { id: 3032, date: '2025-12-12', present: 84, absent: 6 },
     { id: 3033, date: '2025-12-19', present: 83, absent: 7 },

@@ -12,6 +12,14 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, '/api'),
       },
+      '/quizzes': {
+        target: 'http://localhost:8081',
+        changeOrigin: true,
+      },
+      '/attendance': {
+        target: 'http://localhost:8081',
+        changeOrigin: true,
+      },
     },
   },
 });

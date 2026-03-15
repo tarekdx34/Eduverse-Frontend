@@ -269,7 +269,10 @@ export function CourseManagementPage({
         location: sectionFormData.location,
       });
       sectionId = Number(
-        sectionRes?.id || sectionRes?.sectionId || sectionRes?.data?.id || sectionRes?.data?.sectionId
+        sectionRes?.id ||
+          sectionRes?.sectionId ||
+          sectionRes?.data?.id ||
+          sectionRes?.data?.sectionId
       );
     } else {
       await api.patch(`/sections/${sectionId}`, {
@@ -290,7 +293,9 @@ export function CourseManagementPage({
         : [];
 
     if (existingSchedules.length > 0) {
-      await Promise.all(existingSchedules.map((schedule: any) => api.delete(`/schedules/${schedule.id}`)));
+      await Promise.all(
+        existingSchedules.map((schedule: any) => api.delete(`/schedules/${schedule.id}`))
+      );
     }
 
     await api.post(`/schedules/section/${sectionId}`, {
@@ -304,11 +309,7 @@ export function CourseManagementPage({
     return Number(sectionId);
   };
 
-  const syncStaffAssignments = async (
-    sectionId: number,
-    instructorId: number,
-    taIds: number[]
-  ) => {
+  const syncStaffAssignments = async (sectionId: number, instructorId: number, taIds: number[]) => {
     const [currentInstructorsRes, currentTAsRes] = await Promise.all([
       api.get<any>(`/enrollments/sections/${sectionId}/instructors`).catch(() => []),
       api.get<any>(`/enrollments/sections/${sectionId}/tas`).catch(() => []),
@@ -342,11 +343,15 @@ export function CourseManagementPage({
     await Promise.all(
       currentTAs
         .filter((assignment: any) => !taIds.includes(Number(assignment.userId)))
-        .map((assignment: any) => api.delete(`/enrollments/sections/${sectionId}/tas/${assignment.id}`))
+        .map((assignment: any) =>
+          api.delete(`/enrollments/sections/${sectionId}/tas/${assignment.id}`)
+        )
     );
 
     for (const taId of taIds) {
-      const exists = currentTAs.some((assignment: any) => Number(assignment.userId) === Number(taId));
+      const exists = currentTAs.some(
+        (assignment: any) => Number(assignment.userId) === Number(taId)
+      );
       if (!exists) {
         await api.post(`/enrollments/sections/${sectionId}/tas`, { userId: taId });
       }
@@ -368,7 +373,10 @@ export function CourseManagementPage({
         level: (formData.level || 'FRESHMAN').toUpperCase(),
       });
 
-      const sectionId = await ensureSectionWithSchedule(selectedCourse.id, selectedCourse.sectionId);
+      const sectionId = await ensureSectionWithSchedule(
+        selectedCourse.id,
+        selectedCourse.sectionId
+      );
       await syncStaffAssignments(sectionId, addStaffFormData.instructorId, addStaffFormData.taIds);
 
       await onRefreshCourses();
@@ -1640,7 +1648,9 @@ export function CourseManagementPage({
               {/* Edit Course Content */}
               {activeModal === 'edit-course' && (
                 <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className={`p-3 rounded-xl border text-sm ${isDark ? 'bg-slate-800/50 border-slate-700 text-slate-300' : 'bg-slate-50 border-slate-200 text-slate-600'}`}>
+                  <div
+                    className={`p-3 rounded-xl border text-sm ${isDark ? 'bg-slate-800/50 border-slate-700 text-slate-300' : 'bg-slate-50 border-slate-200 text-slate-600'}`}
+                  >
                     Edit course details, section setup, and staff assignment in one flow.
                   </div>
 
@@ -1653,7 +1663,11 @@ export function CourseManagementPage({
                       <div
                         key={step.id}
                         className={`rounded-xl px-3 py-2 text-center text-xs font-bold tracking-wide border ${editStep === step.id ? 'text-white' : isDark ? 'text-slate-400 border-slate-700 bg-slate-800/40' : 'text-slate-500 border-slate-200 bg-slate-50'}`}
-                        style={editStep === step.id ? { backgroundColor: accentColor, borderColor: accentColor } : {}}
+                        style={
+                          editStep === step.id
+                            ? { backgroundColor: accentColor, borderColor: accentColor }
+                            : {}
+                        }
                       >
                         {step.label}
                       </div>
@@ -1664,7 +1678,9 @@ export function CourseManagementPage({
                     <div className="space-y-4">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                          <label className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                          <label
+                            className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                          >
                             {t('courseCode')}
                           </label>
                           <input
@@ -1675,19 +1691,25 @@ export function CourseManagementPage({
                           />
                         </div>
                         <div>
-                          <label className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                          <label
+                            className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                          >
                             {t('credits')}
                           </label>
                           <input
                             type="number"
                             value={formData.credits}
-                            onChange={(e) => setFormData({ ...formData, credits: Number(e.target.value) })}
+                            onChange={(e) =>
+                              setFormData({ ...formData, credits: Number(e.target.value) })
+                            }
                             className={`${inputClass} w-full`}
                           />
                         </div>
                       </div>
                       <div>
-                        <label className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                        <label
+                          className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                        >
                           {t('courseName')}
                         </label>
                         <input
@@ -1699,7 +1721,9 @@ export function CourseManagementPage({
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                          <label className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                          <label
+                            className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                          >
                             Status
                           </label>
                           <CleanSelect
@@ -1713,7 +1737,9 @@ export function CourseManagementPage({
                           </CleanSelect>
                         </div>
                         <div>
-                          <label className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                          <label
+                            className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                          >
                             Course Level
                           </label>
                           <CleanSelect
@@ -1733,41 +1759,115 @@ export function CourseManagementPage({
                   )}
 
                   {editStep === 2 && (
-                    <div className={`p-4 rounded-2xl border ${isDark ? 'bg-slate-800/40 border-slate-700' : 'bg-slate-50 border-slate-200'}`}>
-                      <p className={`text-xs font-semibold uppercase tracking-wider mb-3 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                    <div
+                      className={`p-4 rounded-2xl border ${isDark ? 'bg-slate-800/40 border-slate-700' : 'bg-slate-50 border-slate-200'}`}
+                    >
+                      <p
+                        className={`text-xs font-semibold uppercase tracking-wider mb-3 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                      >
                         Section & Schedule
                       </p>
                       {!selectedCourse?.sectionId && (
-                        <div className={`mb-3 p-3 rounded-xl border text-sm ${isDark ? 'bg-amber-500/10 text-amber-300 border-amber-500/20' : 'bg-amber-50 text-amber-700 border-amber-200'}`}>
-                          This course has no section yet. Saving will create the first section and schedule.
+                        <div
+                          className={`mb-3 p-3 rounded-xl border text-sm ${isDark ? 'bg-amber-500/10 text-amber-300 border-amber-500/20' : 'bg-amber-50 text-amber-700 border-amber-200'}`}
+                        >
+                          This course has no section yet. Saving will create the first section and
+                          schedule.
                         </div>
                       )}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                          <label className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Section Number</label>
-                          <input type="text" value={sectionFormData.sectionNumber} onChange={(e) => setSectionFormData({ ...sectionFormData, sectionNumber: e.target.value })} className={`${inputClass} w-full`} />
+                          <label
+                            className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                          >
+                            Section Number
+                          </label>
+                          <input
+                            type="text"
+                            value={sectionFormData.sectionNumber}
+                            onChange={(e) =>
+                              setSectionFormData({
+                                ...sectionFormData,
+                                sectionNumber: e.target.value,
+                              })
+                            }
+                            className={`${inputClass} w-full`}
+                          />
                         </div>
                         <div>
-                          <label className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Max Capacity</label>
-                          <input type="number" value={sectionFormData.maxCapacity} onChange={(e) => setSectionFormData({ ...sectionFormData, maxCapacity: Number(e.target.value) })} className={`${inputClass} w-full`} />
+                          <label
+                            className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                          >
+                            Max Capacity
+                          </label>
+                          <input
+                            type="number"
+                            value={sectionFormData.maxCapacity}
+                            onChange={(e) =>
+                              setSectionFormData({
+                                ...sectionFormData,
+                                maxCapacity: Number(e.target.value),
+                              })
+                            }
+                            className={`${inputClass} w-full`}
+                          />
                         </div>
                       </div>
                       <div className="mt-4">
-                        <label className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Location</label>
-                        <input type="text" value={sectionFormData.location} onChange={(e) => setSectionFormData({ ...sectionFormData, location: e.target.value })} className={`${inputClass} w-full`} />
+                        <label
+                          className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                        >
+                          Location
+                        </label>
+                        <input
+                          type="text"
+                          value={sectionFormData.location}
+                          onChange={(e) =>
+                            setSectionFormData({ ...sectionFormData, location: e.target.value })
+                          }
+                          className={`${inputClass} w-full`}
+                        />
                       </div>
                       <div className="mt-4">
-                        <label className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Semester</label>
-                        <CleanSelect value={sectionFormData.semesterId} onChange={(e) => setSectionFormData({ ...sectionFormData, semesterId: Number(e.target.value) })} className={`${inputClass} w-full`}>
+                        <label
+                          className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                        >
+                          Semester
+                        </label>
+                        <CleanSelect
+                          value={sectionFormData.semesterId}
+                          onChange={(e) =>
+                            setSectionFormData({
+                              ...sectionFormData,
+                              semesterId: Number(e.target.value),
+                            })
+                          }
+                          className={`${inputClass} w-full`}
+                        >
                           {semesters.map((semester) => (
-                            <option key={semester.id} value={semester.id}>{semester.name}</option>
+                            <option key={semester.id} value={semester.id}>
+                              {semester.name}
+                            </option>
                           ))}
                         </CleanSelect>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
                         <div>
-                          <label className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Day</label>
-                          <CleanSelect value={sectionFormData.scheduleDay} onChange={(e) => setSectionFormData({ ...sectionFormData, scheduleDay: e.target.value })} className={`${inputClass} w-full`}>
+                          <label
+                            className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                          >
+                            Day
+                          </label>
+                          <CleanSelect
+                            value={sectionFormData.scheduleDay}
+                            onChange={(e) =>
+                              setSectionFormData({
+                                ...sectionFormData,
+                                scheduleDay: e.target.value,
+                              })
+                            }
+                            className={`${inputClass} w-full`}
+                          >
                             <option value="Monday">Monday</option>
                             <option value="Tuesday">Tuesday</option>
                             <option value="Wednesday">Wednesday</option>
@@ -1778,36 +1878,87 @@ export function CourseManagementPage({
                           </CleanSelect>
                         </div>
                         <div>
-                          <label className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Start Time</label>
-                          <input type="time" value={sectionFormData.startTime} onChange={(e) => setSectionFormData({ ...sectionFormData, startTime: e.target.value })} className={`${inputClass} w-full`} />
+                          <label
+                            className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                          >
+                            Start Time
+                          </label>
+                          <input
+                            type="time"
+                            value={sectionFormData.startTime}
+                            onChange={(e) =>
+                              setSectionFormData({ ...sectionFormData, startTime: e.target.value })
+                            }
+                            className={`${inputClass} w-full`}
+                          />
                         </div>
                         <div>
-                          <label className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>End Time</label>
-                          <input type="time" value={sectionFormData.endTime} onChange={(e) => setSectionFormData({ ...sectionFormData, endTime: e.target.value })} className={`${inputClass} w-full`} />
+                          <label
+                            className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                          >
+                            End Time
+                          </label>
+                          <input
+                            type="time"
+                            value={sectionFormData.endTime}
+                            onChange={(e) =>
+                              setSectionFormData({ ...sectionFormData, endTime: e.target.value })
+                            }
+                            className={`${inputClass} w-full`}
+                          />
                         </div>
                       </div>
                     </div>
                   )}
 
                   {editStep === 3 && (
-                    <div className={`p-4 rounded-2xl border ${isDark ? 'bg-slate-800/40 border-slate-700' : 'bg-slate-50 border-slate-200'}`}>
-                      <p className={`text-xs font-semibold uppercase tracking-wider mb-3 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                    <div
+                      className={`p-4 rounded-2xl border ${isDark ? 'bg-slate-800/40 border-slate-700' : 'bg-slate-50 border-slate-200'}`}
+                    >
+                      <p
+                        className={`text-xs font-semibold uppercase tracking-wider mb-3 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                      >
                         Staff Assignment
                       </p>
                       <div>
-                        <label className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Instructor</label>
-                        <CleanSelect value={addStaffFormData.instructorId} onChange={(e) => setAddStaffFormData({ ...addStaffFormData, instructorId: Number(e.target.value) })} className={`${inputClass} w-full`}>
+                        <label
+                          className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                        >
+                          Instructor
+                        </label>
+                        <CleanSelect
+                          value={addStaffFormData.instructorId}
+                          onChange={(e) =>
+                            setAddStaffFormData({
+                              ...addStaffFormData,
+                              instructorId: Number(e.target.value),
+                            })
+                          }
+                          className={`${inputClass} w-full`}
+                        >
                           <option value={0}>Select Instructor</option>
                           {deptInstructors.map((inst) => (
-                            <option key={inst.id} value={inst.id}>{inst.name}</option>
+                            <option key={inst.id} value={inst.id}>
+                              {inst.name}
+                            </option>
                           ))}
                         </CleanSelect>
                       </div>
                       <div className="mt-4">
-                        <label className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Teaching Assistants</label>
-                        <div className={`p-4 rounded-xl border ${isDark ? 'bg-slate-900/40 border-slate-700' : 'bg-white border-slate-200'}`}>
+                        <label
+                          className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                        >
+                          Teaching Assistants
+                        </label>
+                        <div
+                          className={`p-4 rounded-xl border ${isDark ? 'bg-slate-900/40 border-slate-700' : 'bg-white border-slate-200'}`}
+                        >
                           {deptTAs.length === 0 ? (
-                            <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>No TAs available</p>
+                            <p
+                              className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                            >
+                              No TAs available
+                            </p>
                           ) : (
                             <div className="flex flex-wrap gap-2">
                               {deptTAs.map((ta) => (
@@ -1816,7 +1967,11 @@ export function CourseManagementPage({
                                   type="button"
                                   onClick={() => toggleAddStaffTA(ta.id)}
                                   className={`px-3 py-1 rounded-full text-sm font-medium transition-all ${addStaffFormData.taIds.includes(ta.id) ? 'text-white' : isDark ? 'bg-slate-700 text-slate-400 hover:bg-slate-600' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'}`}
-                                  style={addStaffFormData.taIds.includes(ta.id) ? { backgroundColor: accentColor } : {}}
+                                  style={
+                                    addStaffFormData.taIds.includes(ta.id)
+                                      ? { backgroundColor: accentColor }
+                                      : {}
+                                  }
                                 >
                                   {ta.name}
                                 </button>
@@ -1840,7 +1995,9 @@ export function CourseManagementPage({
                       {editStep > 1 && (
                         <button
                           type="button"
-                          onClick={() => setEditStep((prev) => (prev === 1 ? 1 : ((prev - 1) as 1 | 2 | 3)))}
+                          onClick={() =>
+                            setEditStep((prev) => (prev === 1 ? 1 : ((prev - 1) as 1 | 2 | 3)))
+                          }
                           className={`px-4 py-2 rounded-xl font-semibold transition-all ${isDark ? 'bg-slate-800 text-slate-300 hover:bg-slate-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
                         >
                           Back
@@ -1850,7 +2007,9 @@ export function CourseManagementPage({
                     {editStep < 3 ? (
                       <button
                         type="button"
-                        onClick={() => setEditStep((prev) => (prev === 3 ? 3 : ((prev + 1) as 1 | 2 | 3)))}
+                        onClick={() =>
+                          setEditStep((prev) => (prev === 3 ? 3 : ((prev + 1) as 1 | 2 | 3)))
+                        }
                         style={{ backgroundColor: accentColor }}
                         className="px-6 py-2 rounded-xl font-bold text-white shadow-lg shadow-blue-500/20 hover:opacity-90 active:scale-95 transition-all"
                       >
@@ -1914,36 +2073,107 @@ export function CourseManagementPage({
                     </div>
                   )}
                   {!selectedCourse?.sectionId && (
-                    <div className={`p-4 rounded-2xl border ${isDark ? 'bg-amber-500/10 border-amber-500/20' : 'bg-amber-50 border-amber-200'}`}>
-                      <p className={`text-xs font-semibold uppercase tracking-wider mb-3 ${isDark ? 'text-amber-300' : 'text-amber-700'}`}>
+                    <div
+                      className={`p-4 rounded-2xl border ${isDark ? 'bg-amber-500/10 border-amber-500/20' : 'bg-amber-50 border-amber-200'}`}
+                    >
+                      <p
+                        className={`text-xs font-semibold uppercase tracking-wider mb-3 ${isDark ? 'text-amber-300' : 'text-amber-700'}`}
+                      >
                         Add Section First
                       </p>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Section Number</label>
-                          <input type="text" value={sectionFormData.sectionNumber} onChange={(e) => setSectionFormData({ ...sectionFormData, sectionNumber: e.target.value })} className={`${inputClass} w-full`} />
+                          <label
+                            className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                          >
+                            Section Number
+                          </label>
+                          <input
+                            type="text"
+                            value={sectionFormData.sectionNumber}
+                            onChange={(e) =>
+                              setSectionFormData({
+                                ...sectionFormData,
+                                sectionNumber: e.target.value,
+                              })
+                            }
+                            className={`${inputClass} w-full`}
+                          />
                         </div>
                         <div>
-                          <label className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Max Capacity</label>
-                          <input type="number" value={sectionFormData.maxCapacity} onChange={(e) => setSectionFormData({ ...sectionFormData, maxCapacity: Number(e.target.value) })} className={`${inputClass} w-full`} />
+                          <label
+                            className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                          >
+                            Max Capacity
+                          </label>
+                          <input
+                            type="number"
+                            value={sectionFormData.maxCapacity}
+                            onChange={(e) =>
+                              setSectionFormData({
+                                ...sectionFormData,
+                                maxCapacity: Number(e.target.value),
+                              })
+                            }
+                            className={`${inputClass} w-full`}
+                          />
                         </div>
                       </div>
                       <div className="mt-4">
-                        <label className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Location</label>
-                        <input type="text" value={sectionFormData.location} onChange={(e) => setSectionFormData({ ...sectionFormData, location: e.target.value })} className={`${inputClass} w-full`} />
+                        <label
+                          className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                        >
+                          Location
+                        </label>
+                        <input
+                          type="text"
+                          value={sectionFormData.location}
+                          onChange={(e) =>
+                            setSectionFormData({ ...sectionFormData, location: e.target.value })
+                          }
+                          className={`${inputClass} w-full`}
+                        />
                       </div>
                       <div className="mt-4">
-                        <label className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Semester</label>
-                        <CleanSelect value={sectionFormData.semesterId} onChange={(e) => setSectionFormData({ ...sectionFormData, semesterId: Number(e.target.value) })} className={`${inputClass} w-full`}>
+                        <label
+                          className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                        >
+                          Semester
+                        </label>
+                        <CleanSelect
+                          value={sectionFormData.semesterId}
+                          onChange={(e) =>
+                            setSectionFormData({
+                              ...sectionFormData,
+                              semesterId: Number(e.target.value),
+                            })
+                          }
+                          className={`${inputClass} w-full`}
+                        >
                           {semesters.map((semester) => (
-                            <option key={semester.id} value={semester.id}>{semester.name}</option>
+                            <option key={semester.id} value={semester.id}>
+                              {semester.name}
+                            </option>
                           ))}
                         </CleanSelect>
                       </div>
                       <div className="grid grid-cols-3 gap-4 mt-4">
                         <div>
-                          <label className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Day</label>
-                          <CleanSelect value={sectionFormData.scheduleDay} onChange={(e) => setSectionFormData({ ...sectionFormData, scheduleDay: e.target.value })} className={`${inputClass} w-full`}>
+                          <label
+                            className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                          >
+                            Day
+                          </label>
+                          <CleanSelect
+                            value={sectionFormData.scheduleDay}
+                            onChange={(e) =>
+                              setSectionFormData({
+                                ...sectionFormData,
+                                scheduleDay: e.target.value,
+                              })
+                            }
+                            className={`${inputClass} w-full`}
+                          >
                             <option value="Monday">Monday</option>
                             <option value="Tuesday">Tuesday</option>
                             <option value="Wednesday">Wednesday</option>
@@ -1954,12 +2184,34 @@ export function CourseManagementPage({
                           </CleanSelect>
                         </div>
                         <div>
-                          <label className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Start Time</label>
-                          <input type="time" value={sectionFormData.startTime} onChange={(e) => setSectionFormData({ ...sectionFormData, startTime: e.target.value })} className={`${inputClass} w-full`} />
+                          <label
+                            className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                          >
+                            Start Time
+                          </label>
+                          <input
+                            type="time"
+                            value={sectionFormData.startTime}
+                            onChange={(e) =>
+                              setSectionFormData({ ...sectionFormData, startTime: e.target.value })
+                            }
+                            className={`${inputClass} w-full`}
+                          />
                         </div>
                         <div>
-                          <label className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>End Time</label>
-                          <input type="time" value={sectionFormData.endTime} onChange={(e) => setSectionFormData({ ...sectionFormData, endTime: e.target.value })} className={`${inputClass} w-full`} />
+                          <label
+                            className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                          >
+                            End Time
+                          </label>
+                          <input
+                            type="time"
+                            value={sectionFormData.endTime}
+                            onChange={(e) =>
+                              setSectionFormData({ ...sectionFormData, endTime: e.target.value })
+                            }
+                            className={`${inputClass} w-full`}
+                          />
                         </div>
                       </div>
                     </div>

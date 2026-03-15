@@ -2,7 +2,7 @@ import { MoreVertical, Clock, Users, BookOpen, Loader2 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useApi } from '../../../hooks/useApi';
-import { EnrollmentService, EnrolledCourse } from '../../../services/api/enrollmentService';
+import { enrollmentService, EnrolledCourse } from '../../../services/api/enrollmentService';
 
 const COURSE_COLORS = [
   { bg: '#e0e7ff', accent: '#4f46e5' },
@@ -17,7 +17,10 @@ interface Course {
   id: string;
   title: string;
   courseCode: string;
-  instructor: string;
+  status?: string;
+  sectionNumber?: string;
+  semesterName?: string;
+  grade?: string;
   instructorImage: string;
   schedule: string;
   nextClass: string;
@@ -149,7 +152,7 @@ const CourseCard = ({
       <div className="flex justify-between items-start mb-4">
         <div className="flex-1 min-w-0">
           <h3
-            className={`font-semibold mb-1 break-words ${isDark ? 'text-white' : 'text-slate-800'}`}
+            className={`font-semibold mb-1 wrap-break-word ${isDark ? 'text-white' : 'text-slate-800'}`}
           >
             {course.title}
           </h3>
@@ -164,7 +167,7 @@ const CourseCard = ({
         </button>
       </div>
 
-      {/* Instructor */}
+      {/* Enrollment info */}
       <div
         className={`flex items-center gap-3 mb-4 pb-4 border-b ${isDark ? 'border-white/5' : 'border-slate-100'}`}
       >
@@ -179,10 +182,10 @@ const CourseCard = ({
         />
         <div>
           <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'}`}>
-            {course.instructor}
+            Section {course.sectionNumber || '-'} • {course.semesterName || '-'}
           </p>
           <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
-            {t('instructor')}
+            {course.status || 'enrolled'}
           </p>
         </div>
       </div>
@@ -195,7 +198,7 @@ const CourseCard = ({
         </div>
         <div className="flex items-center gap-2">
           <BookOpen size={16} />
-          <span>{course.nextClass}</span>
+          <span>Grade: {course.grade || 'N/A'}</span>
         </div>
       </div>
 
@@ -258,7 +261,18 @@ const CourseCard = ({
 export default function ClassTab({ courses: propCourses, onViewCourse }: ClassTabProps) {
   const { isDark } = useTheme();
   const { t } = useLanguage();
-  const { data: enrollments, loading } = useApi(() => EnrollmentService.getMyCourses(), []);
+  const {
+    data: enrollments,
+    loading,
+    error,
+  } = useApi(async () => {
+    try {
+      return await enrollmentService.getMyCourses();
+    } catch (err) {
+      console.error('Failed to fetch my courses', err);
+      throw err;
+    }
+  }, []);
 
   const apiCourses: Course[] = (enrollments && enrollments.length > 0)
     ? enrollments.map((e: EnrolledCourse, i: number) => {
@@ -267,7 +281,10 @@ export default function ClassTab({ courses: propCourses, onViewCourse }: ClassTa
           id: e.id,
           title: e.course.name,
           courseCode: e.course.code,
-          instructor: 'Instructor',
+          status: e.status,
+          sectionNumber: e.section.sectionNumber,
+          semesterName: e.semester.name,
+          grade: e.grade || 'N/A',
           instructorImage: `https://ui-avatars.com/api/?name=${encodeURIComponent(e.course.name)}&background=random`,
           schedule: `Section ${e.section.sectionNumber}`,
           nextClass: e.semester.name,
@@ -291,6 +308,14 @@ export default function ClassTab({ courses: propCourses, onViewCourse }: ClassTa
     );
   }
 
+  if (error) {
+    return (
+      <div className={`rounded-xl border p-4 ${isDark ? 'border-red-500/30 bg-red-500/10 text-red-200' : 'border-red-200 bg-red-50 text-red-700'}`}>
+        Failed to load my courses: {error}
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Enrolled Courses Section */}
@@ -306,9 +331,9 @@ export default function ClassTab({ courses: propCourses, onViewCourse }: ClassTa
 
         {/* Course Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {courses.map((course) => (
+          {courses.map((course, index) => (
             <CourseCard
-              key={course.id}
+              key={course.id || course.courseCode || index}
               course={course}
               onViewCourse={onViewCourse}
               isDark={isDark}

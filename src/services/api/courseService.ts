@@ -1,5 +1,17 @@
 import { ApiClient } from './client';
 
+type PaginatedResponse<T> = {
+  data?: T[];
+  total?: number;
+};
+
+const extractArray = <T>(payload: T[] | PaginatedResponse<T> | null | undefined): T[] => {
+  if (!payload) return [];
+  if (Array.isArray(payload)) return payload;
+  if (Array.isArray(payload.data)) return payload.data;
+  return [];
+};
+
 export interface Course {
   courseId: number;
   courseCode: string;
@@ -33,6 +45,45 @@ export interface CourseStructure {
   materials?: CourseMaterial[];
 }
 
+export interface SectionSchedule {
+  id: string;
+  sectionId: string;
+  dayOfWeek: string;
+  startTime: string;
+  endTime: string;
+  room: string;
+  building: string | null;
+  scheduleType: string;
+  createdAt?: string;
+}
+
+export interface CourseSection {
+  id: string;
+  courseId: string;
+  semesterId: string;
+  sectionNumber: string;
+  maxCapacity: number;
+  currentEnrollment: number;
+  location: string;
+  status: string;
+  course: {
+    id: string;
+    name: string;
+    code: string;
+    credits: number;
+    level: string;
+  };
+  semester: {
+    id: string;
+    name: string;
+    code: string;
+    startDate: string;
+    endDate: string;
+    status: string;
+  };
+  schedules: SectionSchedule[];
+}
+
 export class CourseService {
   static async getAll(params?: { search?: string; departmentId?: number; page?: number; limit?: number }): Promise<Course[]> {
     const query = new URLSearchParams();
@@ -62,4 +113,27 @@ export class CourseService {
     );
     return Array.isArray(response) ? response : response.data ?? [];
   }
+
+  static async getCourseSections(courseId: string): Promise<CourseSection[]> {
+    const response = await ApiClient.get<CourseSection[] | PaginatedResponse<CourseSection>>(
+      `/sections/course/${courseId}`
+    );
+    return extractArray(response);
+  }
+
+  static async getSectionSchedules(sectionId: string): Promise<SectionSchedule[]> {
+    const response = await ApiClient.get<SectionSchedule[] | PaginatedResponse<SectionSchedule>>(
+      `/schedules/section/${sectionId}`
+    );
+    return extractArray(response);
+  }
 }
+
+export const courseService = {
+  getAll: CourseService.getAll,
+  getById: CourseService.getById,
+  getMaterials: CourseService.getMaterials,
+  getStructure: CourseService.getStructure,
+  getCourseSections: CourseService.getCourseSections,
+  getSectionSchedules: CourseService.getSectionSchedules,
+};

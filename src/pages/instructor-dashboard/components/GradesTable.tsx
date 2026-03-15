@@ -38,19 +38,19 @@ export function GradesTable({ data, onEdit, onDelete }: GradesTableProps) {
     .filter((grade) => {
       const searchLower = searchTerm.toLowerCase();
       return (
-        grade.student.toLowerCase().includes(searchLower) ||
-        grade.assignment.toLowerCase().includes(searchLower) ||
-        grade.email.toLowerCase().includes(searchLower)
+        (grade.student || '').toLowerCase().includes(searchLower) ||
+        (grade.assignment || '').toLowerCase().includes(searchLower) ||
+        (grade.email || '').toLowerCase().includes(searchLower)
       );
     })
     .sort((a, b) => {
       let comparison = 0;
       if (sortField === 'student') {
-        comparison = a.student.localeCompare(b.student);
+        comparison = (a.student || '').localeCompare(b.student || '');
       } else if (sortField === 'assignment') {
-        comparison = a.assignment.localeCompare(b.assignment);
+        comparison = (a.assignment || '').localeCompare(b.assignment || '');
       } else if (sortField === 'score') {
-        comparison = a.score - b.score;
+        comparison = Number(a.score || 0) - Number(b.score || 0);
       }
       return sortDirection === 'asc' ? comparison : -comparison;
     });

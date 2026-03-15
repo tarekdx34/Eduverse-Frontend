@@ -7,9 +7,16 @@ interface RequestOptions extends RequestInit {
 
 export class ApiClient {
   private static baseURL = API_BASE_URL;
+  private static rawBaseURL = API_BASE_URL.replace(/\/api\/?$/, '');
 
   static async request<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
-    let url = `${this.baseURL}${endpoint}`;
+    const isAbsoluteUrl = /^https?:\/\//i.test(endpoint);
+    const isRawPath = endpoint.startsWith('~/');
+    let url = isAbsoluteUrl
+      ? endpoint
+      : isRawPath
+        ? `${this.rawBaseURL}${endpoint.slice(1)}`
+        : `${this.baseURL}${endpoint}`;
 
     if (options.params) {
       const query = new URLSearchParams();

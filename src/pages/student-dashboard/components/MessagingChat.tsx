@@ -29,7 +29,7 @@ interface Conversation {
 
 const CONVERSATIONS: Conversation[] = [
   {
-    id: '1',
+    id: 'c-prof-sarah',
     name: 'Prof. Sarah Johnson',
     initials: 'SJ',
     color: '#4f39f6',
@@ -40,7 +40,7 @@ const CONVERSATIONS: Conversation[] = [
     role: 'Database Systems Instructor',
   },
   {
-    id: '2',
+    id: 'c-dr-chen',
     name: 'Dr. Michael Chen',
     initials: 'MC',
     color: '#432dd7',
@@ -50,7 +50,7 @@ const CONVERSATIONS: Conversation[] = [
     isOnline: true,
   },
   {
-    id: '3',
+    id: 'c-emma',
     name: 'Emma Wilson',
     initials: 'EW',
     color: '#fe9a00',
@@ -60,7 +60,7 @@ const CONVERSATIONS: Conversation[] = [
     isOnline: false,
   },
   {
-    id: '4',
+    id: 'c-prof-martinez',
     name: 'Prof. David Martinez',
     initials: 'DM',
     color: '#99a1af',
@@ -70,7 +70,7 @@ const CONVERSATIONS: Conversation[] = [
     isOnline: false,
   },
   {
-    id: '5',
+    id: 'c-cs-group',
     name: 'CS Study Group',
     initials: 'CS',
     color: '#ad46ff',
@@ -80,7 +80,7 @@ const CONVERSATIONS: Conversation[] = [
     isOnline: true,
   },
   {
-    id: '6',
+    id: 'c-lisa',
     name: 'Lisa Anderson',
     initials: 'LA',
     color: '#99a1af',
@@ -171,7 +171,9 @@ export function MessagingChat({
 }: MessagingChatProps) {
   const accentColor = accentColorProp || '#3b82f6';
   const isDark = isDarkProp;
-  const [selectedConversation, setSelectedConversation] = useState<string>('1');
+  const [selectedConversation, setSelectedConversation] = useState<string>(
+    CONVERSATIONS[0]?.id || ''
+  );
   const [messageInput, setMessageInput] = useState('');
   const [messages, setMessages] = useState<Message[]>(MESSAGES);
   const [showChatOnMobile, setShowChatOnMobile] = useState(false);
@@ -228,7 +230,7 @@ export function MessagingChat({
               }}
               className={`w-full p-4 border-l-4 transition-colors text-left ${
                 selectedConversation === conversation.id
-                  ? 'bg-[var(--accent-color)]/10 border-l-[var(--accent-color)]'
+                  ? 'bg-(--accent-color)/10 border-l-(--accent-color)'
                   : `border-l-transparent ${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'}`
               }`}
             >
@@ -261,7 +263,7 @@ export function MessagingChat({
 
                 {/* Unread Badge */}
                 {conversation.unreadCount > 0 && (
-                  <div className="bg-[var(--accent-color)] text-white text-xs font-semibold rounded-full w-6 h-6 flex items-center justify-center">
+                  <div className="bg-(--accent-color) text-white text-xs font-semibold rounded-full w-6 h-6 flex items-center justify-center">
                     {conversation.unreadCount}
                   </div>
                 )}
@@ -319,7 +321,7 @@ export function MessagingChat({
               >
                 {!message.isCurrentUser && (
                   <div
-                    className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-semibold flex-shrink-0 shadow-md"
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-semibold shrink-0 shadow-md"
                     style={{ backgroundColor: message.senderColor }}
                   >
                     {message.senderInitials}
@@ -343,7 +345,7 @@ export function MessagingChat({
                     <div
                       className={`px-4 py-3 rounded-2xl max-w-xs ${
                         message.isCurrentUser
-                          ? 'bg-[var(--accent-color)] text-white rounded-br-sm'
+                          ? 'bg-(--accent-color) text-white rounded-br-sm'
                           : `${isDark ? 'bg-card-dark text-white border-white/5' : 'bg-white text-slate-800 border-slate-100'} border rounded-tl-sm`
                       }`}
                     >
@@ -378,7 +380,7 @@ export function MessagingChat({
                 onChange={(e) => setMessageInput(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                 placeholder="Type a message..."
-                className={`flex-1 px-4 py-2 ${isDark ? 'bg-white/5 border-white/10 text-white' : 'border-slate-100 text-slate-800'} border rounded-lg text-sm focus:outline-none focus:border-[var(--accent-color)]`}
+                className={`flex-1 px-4 py-2 ${isDark ? 'bg-white/5 border-white/10 text-white' : 'border-slate-100 text-slate-800'} border rounded-lg text-sm focus:outline-none focus:border-(--accent-color)`}
               />
               <button
                 className={`p-2 ${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'} rounded-lg transition-colors`}
@@ -387,7 +389,7 @@ export function MessagingChat({
               </button>
               <button
                 onClick={handleSendMessage}
-                className="p-2 bg-gradient-to-r from-[var(--accent-color)] to-blue-700 hover:from-[var(--accent-color)] hover:to-blue-800 text-white rounded-lg transition-colors"
+                className="p-2 bg-linear-to-r from-(--accent-color) to-blue-700 hover:from-(--accent-color) hover:to-blue-800 text-white rounded-lg transition-colors"
               >
                 <Send size={20} />
               </button>

@@ -156,7 +156,7 @@ function InstructorDashboardContent() {
   const [isAIAttendanceModalOpen, setIsAIAttendanceModalOpen] = useState(false);
   const { isDark, toggleTheme, primaryHex, primaryColor, setPrimaryColor } = useTheme() as any;
   const { language, setLanguage, isRTL, t } = useLanguage();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
   const isMockMode = !isAuthenticated || location.state?.isMock;
 
@@ -221,10 +221,26 @@ function InstructorDashboardContent() {
     enabled: !isMockMode && !!activeSectionId && activeTab === 'assignments',
   });
 
+  const selectedLiveSection = useMemo(
+    () =>
+      activeSectionId
+        ? (teachingCoursesLive || []).find(
+            (s: any) => String(s.sectionId ?? s.id) === activeSectionId
+          )
+        : null,
+    [activeSectionId, teachingCoursesLive]
+  );
+
+  const selectedCourseId = useMemo(() => {
+    if (selectedLiveSection?.courseId) return Number(selectedLiveSection.courseId);
+    if (selectedLiveSection?.id) return Number(selectedLiveSection.id);
+    return activeSectionId ? Number(activeSectionId) : null;
+  }, [selectedLiveSection, activeSectionId]);
+
   const { data: sectionGradesLive } = useQuery({
     queryKey: ['section-grades', activeSectionId],
-    queryFn: () => GradesService.getSectionGrades(Number(activeSectionId)),
-    enabled: !isMockMode && !!activeSectionId && activeTab === 'roster',
+    queryFn: () => GradesService.getCourseGrades(Number(selectedCourseId)),
+    enabled: !isMockMode && !!activeSectionId && !!selectedCourseId && activeTab === 'roster',
   });
 
   const { data: sectionStudentsLive } = useQuery({
@@ -297,10 +313,14 @@ function InstructorDashboardContent() {
 
   // Set default section on mount and when entering section-dependent tabs
   useEffect(() => {
-    if (!activeSectionId && ['roster', 'assignments', 'attendance'].includes(activeTab)) {
-      setActiveSectionId(String(SECTIONS[0].sectionId));
-    }
-  }, [activeTab, activeSectionId]);
+    if (activeSectionId || !['roster', 'assignments', 'attendance'].includes(activeTab)) return;
+    const firstLive =
+      !isMockMode && teachingCoursesLive?.length
+        ? String(teachingCoursesLive[0].sectionId ?? teachingCoursesLive[0].id)
+        : null;
+    const firstMock = SECTIONS.length ? String(SECTIONS[0].sectionId) : null;
+    setActiveSectionId(firstLive || firstMock);
+  }, [activeTab, activeSectionId, isMockMode, teachingCoursesLive]);
 
   // Disable browser's native scroll restoration so it doesn't fight our scroll calls
   useEffect(() => {
@@ -338,9 +358,9 @@ function InstructorDashboardContent() {
   useEffect(() => {
     if (teachingCoursesLive && !isMockMode) {
       const mappedCourses = teachingCoursesLive.map((s: any) => ({
-        id: s.sectionId,
-        courseName: s.courseName,
-        courseCode: s.courseCode,
+        id: s.sectionId ?? s.id,
+        courseName: s.courseName ?? s.course?.name ?? s.name ?? 'Course',
+        courseCode: s.courseCode ?? s.course?.code ?? '',
         enrolled: s.enrolledCount || 0,
         status: (s.status?.toLowerCase() || 'active') as 'active' | 'archived',
         averageGrade: s.averageGrade || 0,
@@ -402,6 +422,28 @@ function InstructorDashboardContent() {
     }
   }, [sectionStudentsLive, isMockMode, activeSectionId]);
 
+  useEffect(() => {
+    if (!sectionGradesLive || isMockMode || !activeSectionId) return;
+    const list = Array.isArray(sectionGradesLive)
+      ? sectionGradesLive
+      : Array.isArray((sectionGradesLive as any)?.data)
+        ? (sectionGradesLive as any).data
+        : [];
+
+    setGradesData((prev) => ({
+      ...prev,
+      [activeSectionId]: list.map((g: any, index: number) => ({
+        id: Number(g.gradeId ?? g.id ?? index + 1),
+        studentId: Number(g.studentId ?? g.userId ?? 0),
+        name: g.studentName ?? g.fullName ?? `Student ${g.studentId ?? g.userId ?? index + 1}`,
+        assignment: g.assessmentName ?? g.componentName ?? 'Course Grade',
+        score: Number(g.percentage ?? g.score ?? 0),
+        maxScore: Number(g.maxScore ?? 100),
+        date: g.updatedAt ? new Date(g.updatedAt).toLocaleDateString() : '-',
+      })),
+    }));
+  }, [sectionGradesLive, isMockMode, activeSectionId]);
+
   const sectionOptions = useMemo(
     () => {
       if (isMockMode) {
@@ -411,8 +453,8 @@ function InstructorDashboardContent() {
         }));
       }
       return (teachingCoursesLive || []).map((s: any) => ({
-        value: String(s.sectionId),
-        label: `${s.courseCode} - ${s.sectionLabel || `Sec ${s.sectionId}`}`,
+        value: String(s.sectionId ?? s.id),
+        label: `${s.course?.name || s.course?.code || s.courseName || s.courseCode || 'Course'} - Sec ${s.sectionNumber || s.sectionLabel || s.sectionId || s.id}`,
       }));
     },
     [isMockMode, teachingCoursesLive]
@@ -430,7 +472,9 @@ function InstructorDashboardContent() {
       return SECTIONS.find((s) => String(s.sectionId) === activeSectionId) || null;
     }
     return (
-      (teachingCoursesLive || []).find((s: any) => String(s.sectionId) === activeSectionId) || null
+      (teachingCoursesLive || []).find(
+        (s: any) => String(s.sectionId ?? s.id) === activeSectionId
+      ) || null
     );
   }, [isMockMode, activeSectionId, teachingCoursesLive]);
 
@@ -829,7 +873,7 @@ function InstructorDashboardContent() {
                 <CustomDropdown
                   label="Select Section"
                   options={sectionOptions}
-                  value={activeSectionId || String(SECTIONS[0].sectionId)}
+                  value={activeSectionId || sectionOptions[0]?.value || ''}
                   onChange={setActiveSectionId}
                   isDark={isDark}
                   accentColor={primaryHex}
@@ -874,6 +918,7 @@ function InstructorDashboardContent() {
 
               {rosterSubTab === 'overview' ? (
                 <RosterTable
+                  sectionId={activeSectionId || undefined}
                   data={currentRoster}
                   grades={activeSectionId ? gradesData[activeSectionId] || [] : []}
                   onEdit={(student) => {
@@ -909,7 +954,7 @@ function InstructorDashboardContent() {
                 <CustomDropdown
                   label="Select Section"
                   options={sectionOptions}
-                  value={activeSectionId || String(SECTIONS[0].sectionId)}
+                  value={activeSectionId || sectionOptions[0]?.value || ''}
                   onChange={setActiveSectionId}
                   isDark={isDark}
                   accentColor={primaryHex}
@@ -944,7 +989,7 @@ function InstructorDashboardContent() {
                 <CustomDropdown
                   label="Select Section"
                   options={sectionOptions}
-                  value={activeSectionId || String(SECTIONS[0].sectionId)}
+                  value={activeSectionId || sectionOptions[0]?.value || ''}
                   onChange={setActiveSectionId}
                   isDark={isDark}
                   accentColor={primaryHex}

@@ -1,47 +1,82 @@
-import React, { useState } from 'react';
-import {
-  Search,
-  Edit2,
-  Trash2,
-  ArrowUpDown,
-  Mail,
-  StickyNote,
-  ChevronDown,
-  ChevronUp,
-  X,
-} from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Search, ArrowUpDown, Calendar, Loader2, StickyNote, X } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { enrollmentService, EnrolledCourse } from '../../../services/api/enrollmentService';
 
 export type RosterEntry = {
-  id: number;
-  name: string;
-  email: string;
+  id: string;
+  userId: number;
+  enrollmentDate: string;
   status: string;
-  grades?: {
-    assignments: string;
-    quizzes: string;
-    midterm: string;
-    final: string;
-    total: string;
-  };
+  grade: string;
+  finalScore: string;
 };
 
 type RosterTableProps = {
-  data: RosterEntry[];
+  sectionId?: string;
+  data?: Array<{ id: number; name?: string; email?: string; status: string; grades?: { total?: string } }>;
+  grades?: unknown[];
+  onEdit?: (student: { id: number; name: string; email: string; status: string; grade?: string }) => void;
 };
 
-export function RosterTable({ data }: RosterTableProps) {
+export function RosterTable({ sectionId, data = [] }: RosterTableProps) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortField, setSortField] = useState<'name' | 'email' | 'status'>('name');
+  const [sortField, setSortField] = useState<'userId' | 'enrollmentDate' | 'status'>('userId');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
-  const [notes, setNotes] = useState<Record<number, string>>({});
-  const [noteStudentId, setNoteStudentId] = useState<number | null>(null);
+  const [rows, setRows] = useState<RosterEntry[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [notes, setNotes] = useState<Record<string, string>>({});
+  const [noteStudentId, setNoteStudentId] = useState<string | null>(null);
   const [noteText, setNoteText] = useState('');
   const { isDark } = useTheme();
   const { t } = useLanguage();
 
-  const handleSort = (field: 'name' | 'email' | 'status') => {
+  useEffect(() => {
+    if (!sectionId) {
+      const fallbackRows = data.map((student) => ({
+        id: String(student.id),
+        userId: student.id,
+        enrollmentDate: new Date().toISOString(),
+        status: student.status,
+        grade: student.grades?.total || 'N/A',
+        finalScore: 'N/A',
+      }));
+      setRows(fallbackRows);
+      return;
+    }
+
+    const fetchRoster = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const enrollments = await enrollmentService.getSectionStudents(sectionId);
+        const mapped = enrollments.map((enrollment: EnrolledCourse) => ({
+          id: enrollment.id,
+          userId: enrollment.userId,
+          enrollmentDate: enrollment.enrollmentDate,
+          status: enrollment.status,
+          grade: enrollment.grade || 'N/A',
+          finalScore:
+            enrollment.finalScore === null || enrollment.finalScore === undefined
+              ? 'N/A'
+              : String(enrollment.finalScore),
+        }));
+        setRows(mapped);
+      } catch (err) {
+        console.error('Failed to fetch section students', err);
+        const message = err instanceof Error ? err.message : 'Failed to load section students';
+        setError(message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRoster();
+  }, [sectionId, data]);
+
+  const handleSort = (field: 'userId' | 'enrollmentDate' | 'status') => {
     if (sortField === field) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
     } else {
@@ -50,7 +85,7 @@ export function RosterTable({ data }: RosterTableProps) {
     }
   };
 
-  const openNoteModal = (studentId: number) => {
+  const openNoteModal = (studentId: string) => {
     setNoteStudentId(studentId);
     setNoteText(notes[studentId] || '');
   };
@@ -63,27 +98,36 @@ export function RosterTable({ data }: RosterTableProps) {
     }
   };
 
-  const enrolledStudents = data.filter((s) => s.status.toLowerCase() === 'enrolled');
-
-  const filteredAndSortedData = enrolledStudents
-    .filter((student) => {
-      const searchLower = searchTerm.toLowerCase();
-      return (
-        student.name.toLowerCase().includes(searchLower) ||
-        student.email.toLowerCase().includes(searchLower)
-      );
-    })
-    .sort((a, b) => {
-      let comparison = 0;
-      if (sortField === 'name') {
-        comparison = a.name.localeCompare(b.name);
-      } else if (sortField === 'email') {
-        comparison = a.email.localeCompare(b.email);
-      } else if (sortField === 'status') {
-        comparison = a.status.localeCompare(b.status);
-      }
-      return sortDirection === 'asc' ? comparison : -comparison;
+  const formatDate = (value: string) =>
+    new Date(value).toLocaleDateString('en-US', {
+      month: 'short',
+      day: '2-digit',
+      year: 'numeric',
     });
+
+  const filteredAndSortedData = useMemo(
+    () =>
+      rows
+        .filter((student) => {
+          const searchLower = searchTerm.toLowerCase();
+          return (
+            String(student.userId).toLowerCase().includes(searchLower) ||
+            student.status.toLowerCase().includes(searchLower)
+          );
+        })
+        .sort((a, b) => {
+          let comparison = 0;
+          if (sortField === 'userId') {
+            comparison = a.userId - b.userId;
+          } else if (sortField === 'enrollmentDate') {
+            comparison = new Date(a.enrollmentDate).getTime() - new Date(b.enrollmentDate).getTime();
+          } else {
+            comparison = a.status.localeCompare(b.status);
+          }
+          return sortDirection === 'asc' ? comparison : -comparison;
+        }),
+    [rows, searchTerm, sortField, sortDirection]
+  );
 
   return (
     <div
@@ -91,9 +135,22 @@ export function RosterTable({ data }: RosterTableProps) {
     >
       <div className="mb-4">
         <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-          {t('enrolledStudents')}
+          {filteredAndSortedData.length} students enrolled
         </h3>
       </div>
+
+      {loading && (
+        <div className="flex items-center gap-2 py-3 text-sm text-slate-500">
+          <Loader2 size={16} className="animate-spin" />
+          Loading roster...
+        </div>
+      )}
+
+      {error && (
+        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
 
       <div className="mb-4 relative w-full">
         <Search
@@ -119,75 +176,75 @@ export function RosterTable({ data }: RosterTableProps) {
             <tr className={isDark ? 'bg-white/5 text-slate-300' : 'bg-gray-100 text-gray-700'}>
               <th className="p-3 text-left">
                 <button
-                  onClick={() => handleSort('name')}
+                  onClick={() => handleSort('userId')}
                   className="flex items-center gap-1 hover:text-indigo-600 font-semibold"
                 >
-                  {t('studentName')}
+                  Student ID
                   <ArrowUpDown size={14} />
                 </button>
               </th>
-              <th className="p-3 text-left hidden md:table-cell">
+              <th className="p-3 text-left">
                 <button
-                  onClick={() => handleSort('email')}
+                  onClick={() => handleSort('enrollmentDate')}
                   className="flex items-center gap-1 hover:text-indigo-600 font-semibold"
                 >
-                  {t('email')}
+                  Enrollment Date
                   <ArrowUpDown size={14} />
                 </button>
               </th>
-              <th className="p-3 text-left font-semibold">Assignments</th>
-              <th className="p-3 text-left font-semibold">Quizzes</th>
-              <th className="p-3 text-left font-semibold">Midterm</th>
-              <th className="p-3 text-left font-semibold">Total Grade</th>
-              <th className="p-3 text-left font-semibold text-right">Notes</th>
+              <th className="p-3 text-left">
+                <button
+                  onClick={() => handleSort('status')}
+                  className="flex items-center gap-1 hover:text-indigo-600 font-semibold"
+                >
+                  Status
+                  <ArrowUpDown size={14} />
+                </button>
+              </th>
+              <th className="p-3 text-left font-semibold">Grade</th>
+              <th className="p-3 text-left font-semibold">Final Score</th>
+              <th className="p-3 text-right font-semibold">Notes</th>
             </tr>
           </thead>
           <tbody>
-            {filteredAndSortedData.slice(0, 100).map((student) => (
+            {filteredAndSortedData.slice(0, 100).map((student, index) => (
               <tr
-                key={student.id}
+                key={student.id || `${student.userId}-${index}`}
                 className={`border-t transition-colors ${isDark ? 'border-white/5 hover:bg-white/5' : 'hover:bg-gray-50'}`}
               >
                 <td className="p-3">
                   <div className={`font-medium ${isDark ? 'text-slate-200' : 'text-gray-900'}`}>
-                    {student.name}
+                    {student.userId}
                   </div>
                   {notes[student.id] && (
                     <div
                       className={`text-xs mt-1 italic ${isDark ? 'text-slate-400' : 'text-gray-500'}`}
                     >
-                      📝 {notes[student.id]}
+                      Note: {notes[student.id]}
                     </div>
                   )}
                 </td>
-                <td className="p-3 hidden md:table-cell">
+                <td className="p-3">
                   <div
                     className={`flex items-center gap-2 text-xs ${isDark ? 'text-slate-400' : 'text-gray-600'}`}
                   >
-                    <Mail size={14} className={isDark ? 'text-slate-500' : 'text-gray-400'} />
-                    {student.email}
+                    <Calendar size={14} className={isDark ? 'text-slate-500' : 'text-gray-400'} />
+                    {formatDate(student.enrollmentDate)}
                   </div>
                 </td>
                 <td className="p-3">
-                  <span className={`text-sm ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>
-                    {student.grades?.assignments || '-'}
+                  <span className="px-3 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700 capitalize">
+                    {student.status}
                   </span>
                 </td>
                 <td className="p-3">
                   <span className={`text-sm ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>
-                    {student.grades?.quizzes || '-'}
+                    {student.grade || 'N/A'}
                   </span>
                 </td>
                 <td className="p-3">
                   <span className={`text-sm ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>
-                    {student.grades?.midterm || '-'}
-                  </span>
-                </td>
-                <td className="p-3">
-                  <span
-                    className={`font-medium px-2 py-1 rounded-full text-xs ${isDark ? 'bg-indigo-500/20 text-indigo-300' : 'bg-indigo-100 text-indigo-700'}`}
-                  >
-                    {student.grades?.total || '-'}
+                    {student.finalScore || 'N/A'}
                   </span>
                 </td>
                 <td className="p-3 text-right">
@@ -211,7 +268,7 @@ export function RosterTable({ data }: RosterTableProps) {
               <tr>
                 <td
                   className={`p-6 text-center ${isDark ? 'text-slate-500' : 'text-gray-500'}`}
-                  colSpan={4}
+                  colSpan={6}
                 >
                   {searchTerm ? t('noStudentsMatch') : t('noStudentsEnrolled')}
                 </td>
@@ -228,7 +285,6 @@ export function RosterTable({ data }: RosterTableProps) {
         )}
       </div>
 
-      {/* Add Note Modal */}
       {noteStudentId !== null && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div

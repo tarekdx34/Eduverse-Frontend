@@ -1,30 +1,68 @@
-import React, { useState } from 'react';
-import { Search, ArrowUpDown, UserCheck, UserX, Mail, Calendar } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Search, ArrowUpDown, UserCheck, UserX, Mail, Calendar, Loader2 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { enrollmentService, EnrolledCourse } from '../../../services/api/enrollmentService';
 
 export type WaitlistEntry = {
-  id: number;
+  id: string;
   name: string;
   email: string;
   requestedAt: string;
+  status: string;
   priority?: number;
 };
 
 type WaitlistTableProps = {
-  data: WaitlistEntry[];
-  onApprove?: (id: number) => void;
-  onReject?: (id: number) => void;
+  sectionId?: string;
+  data?: WaitlistEntry[];
+  onApprove?: (id: string) => void;
+  onReject?: (id: string) => void;
 };
 
-export function WaitlistTable({ data, onApprove, onReject }: WaitlistTableProps) {
+export function WaitlistTable({ sectionId, data = [], onApprove, onReject }: WaitlistTableProps) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortField, setSortField] = useState<'name' | 'email' | 'requestedAt'>('requestedAt');
+  const [sortField, setSortField] = useState<'name' | 'requestedAt' | 'status'>('requestedAt');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [waitlistData, setWaitlistData] = useState<WaitlistEntry[]>(data);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { isDark } = useTheme();
   const { t } = useLanguage();
 
-  const handleSort = (field: 'name' | 'email' | 'requestedAt') => {
+  useEffect(() => {
+    if (!sectionId) {
+      setWaitlistData(data);
+      return;
+    }
+
+    const fetchWaitlist = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const enrollments = await enrollmentService.getSectionWaitlist(sectionId);
+        const mapped = enrollments.map((enrollment: EnrolledCourse, index) => ({
+          id: enrollment.id,
+          name: `Student ${enrollment.userId}`,
+          email: `ID: ${enrollment.userId}`,
+          requestedAt: enrollment.enrollmentDate,
+          status: enrollment.status,
+          priority: index + 1,
+        }));
+        setWaitlistData(mapped);
+      } catch (err) {
+        console.error('Failed to fetch section waitlist', err);
+        const message = err instanceof Error ? err.message : 'Failed to load waitlist';
+        setError(message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchWaitlist();
+  }, [sectionId, data]);
+
+  const handleSort = (field: 'name' | 'requestedAt' | 'status') => {
     if (sortField === field) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
     } else {
@@ -33,26 +71,37 @@ export function WaitlistTable({ data, onApprove, onReject }: WaitlistTableProps)
     }
   };
 
-  const filteredAndSortedData = data
-    .filter((student) => {
-      const searchLower = searchTerm.toLowerCase();
-      return (
-        student.name.toLowerCase().includes(searchLower) ||
-        student.email.toLowerCase().includes(searchLower) ||
-        student.requestedAt.toLowerCase().includes(searchLower)
-      );
-    })
-    .sort((a, b) => {
-      let comparison = 0;
-      if (sortField === 'name') {
-        comparison = a.name.localeCompare(b.name);
-      } else if (sortField === 'email') {
-        comparison = a.email.localeCompare(b.email);
-      } else if (sortField === 'requestedAt') {
-        comparison = new Date(a.requestedAt).getTime() - new Date(b.requestedAt).getTime();
-      }
-      return sortDirection === 'asc' ? comparison : -comparison;
+  const formatDate = (value: string) =>
+    new Date(value).toLocaleDateString('en-US', {
+      month: 'short',
+      day: '2-digit',
+      year: 'numeric',
     });
+
+  const filteredAndSortedData = useMemo(
+    () =>
+      waitlistData
+        .filter((student) => {
+          const searchLower = searchTerm.toLowerCase();
+          return (
+            student.name.toLowerCase().includes(searchLower) ||
+            student.email.toLowerCase().includes(searchLower) ||
+            student.status.toLowerCase().includes(searchLower)
+          );
+        })
+        .sort((a, b) => {
+          let comparison = 0;
+          if (sortField === 'name') {
+            comparison = a.name.localeCompare(b.name);
+          } else if (sortField === 'requestedAt') {
+            comparison = new Date(a.requestedAt).getTime() - new Date(b.requestedAt).getTime();
+          } else {
+            comparison = a.status.localeCompare(b.status);
+          }
+          return sortDirection === 'asc' ? comparison : -comparison;
+        }),
+    [waitlistData, searchTerm, sortField, sortDirection]
+  );
 
   return (
     <div className={`rounded-lg border p-6 shadow-sm ${isDark ? 'bg-card-dark border-white/10' : 'bg-white border-gray-200'}`}>
@@ -60,10 +109,23 @@ export function WaitlistTable({ data, onApprove, onReject }: WaitlistTableProps)
         <div>
           <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('waitlist')}</h3>
           <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-            {data.length} {t('waitingForEnrollment')}
+            {waitlistData.length} {t('waitingForEnrollment')}
           </p>
         </div>
       </div>
+
+      {loading && (
+        <div className="flex items-center gap-2 py-3 text-sm text-slate-500">
+          <Loader2 size={16} className="animate-spin" />
+          Loading waitlist...
+        </div>
+      )}
+
+      {error && (
+        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
 
       <div className="mb-4 relative">
         <Search
@@ -96,10 +158,10 @@ export function WaitlistTable({ data, onApprove, onReject }: WaitlistTableProps)
               </th>
               <th className="p-3 text-left">
                 <button
-                  onClick={() => handleSort('email')}
+                  onClick={() => handleSort('status')}
                   className="flex items-center gap-1 hover:text-indigo-600 font-semibold"
                 >
-                  {t('email')}
+                  {t('status') || 'Status'}
                   <ArrowUpDown size={14} />
                 </button>
               </th>
@@ -118,20 +180,23 @@ export function WaitlistTable({ data, onApprove, onReject }: WaitlistTableProps)
           </thead>
           <tbody>
             {filteredAndSortedData.slice(0, 100).map((student, index) => (
-              <tr key={student.id} className={`border-t transition-colors ${isDark ? 'border-white/5 hover:bg-white/5' : 'hover:bg-gray-50'}`}>
+              <tr key={student.id || `${student.email}-${index}`} className={`border-t transition-colors ${isDark ? 'border-white/5 hover:bg-white/5' : 'hover:bg-gray-50'}`}>
                 <td className="p-3">
                   <div className={`font-medium ${isDark ? 'text-slate-200' : 'text-gray-900'}`}>{student.name}</div>
-                </td>
-                <td className="p-3">
-                  <div className={`flex items-center gap-2 text-xs ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                  <div className={`flex items-center gap-2 text-xs mt-1 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
                     <Mail size={14} className={isDark ? 'text-slate-500' : 'text-gray-400'} />
                     {student.email}
                   </div>
                 </td>
                 <td className="p-3">
+                  <span className="px-3 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700 capitalize">
+                    {student.status}
+                  </span>
+                </td>
+                <td className="p-3">
                   <div className={`flex items-center gap-2 text-xs ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
                     <Calendar size={14} className={isDark ? 'text-slate-500' : 'text-gray-400'} />
-                    {student.requestedAt}
+                    {formatDate(student.requestedAt)}
                   </div>
                 </td>
                 <td className="p-3">
@@ -168,7 +233,7 @@ export function WaitlistTable({ data, onApprove, onReject }: WaitlistTableProps)
             {filteredAndSortedData.length === 0 && (
               <tr>
                 <td className={`p-6 text-center ${isDark ? 'text-slate-500' : 'text-gray-500'}`} colSpan={5}>
-                  {searchTerm ? t('noStudentsMatch') : t('noStudentsOnWaitlist')}
+                  {searchTerm ? t('noStudentsMatch') : 'No students on waitlist'}
                 </td>
               </tr>
             )}
