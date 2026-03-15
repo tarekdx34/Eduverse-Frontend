@@ -2,13 +2,27 @@ import { API_BASE_URL, TOKEN_KEYS } from './config';
 
 interface RequestOptions extends RequestInit {
   headers?: Record<string, string>;
+  params?: Record<string, any>;
 }
 
 export class ApiClient {
   private static baseURL = API_BASE_URL;
 
   static async request<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
-    const url = `${this.baseURL}${endpoint}`;
+    let url = `${this.baseURL}${endpoint}`;
+
+    if (options.params) {
+      const query = new URLSearchParams();
+      Object.entries(options.params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          query.append(key, String(value));
+        }
+      });
+      const qs = query.toString();
+      if (qs) {
+        url += `${url.includes('?') ? '&' : '?'}${qs}`;
+      }
+    }
 
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
@@ -92,8 +106,8 @@ export class ApiClient {
     }
   }
 
-  static async get<T>(endpoint: string): Promise<T> {
-    return this.request<T>(endpoint, { method: 'GET' });
+  static async get<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
+    return this.request<T>(endpoint, { ...options, method: 'GET' });
   }
 
   static async post<T>(endpoint: string, data?: unknown): Promise<T> {

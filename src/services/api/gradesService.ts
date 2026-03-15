@@ -39,4 +39,12 @@ export class GradesService {
   static async getTranscript(studentId: number): Promise<TranscriptData> {
     return ApiClient.get(`/grades/transcript/${studentId}`);
   }
+
+  static async getSectionGrades(sectionId: number): Promise<any> {
+    return ApiClient.get(`/grades/section/${sectionId}`);
+  }
+
+  static async updateStudentGrade(gradeId: number, data: { percentage: number; notes?: string }): Promise<GradeRecord> {
+    return ApiClient.patch(`/grades/${gradeId}`, data);
+  }
 }

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Users,
   FileText,
@@ -177,48 +177,42 @@ export function ModernDashboard({
 
   const th = themeColors[primaryColor] || themeColors.blue;
 
-  const courses = [
-    {
-      id: 1,
-      name: 'Introduction to Programming',
-      code: 'CS101',
-      students: 120,
-      assignments: 7,
-      background: th.coursesGradient1,
-      icon: GraduationCap,
-      color: th.main,
-    },
-    {
-      id: 2,
-      name: 'Data Structures',
-      code: 'CS202',
-      students: 100,
-      assignments: 6,
-      background: th.coursesGradient1,
-      icon: BarChart2,
-      color: th.main,
-    },
-    {
-      id: 3,
-      name: 'Advanced Algorithms',
-      code: 'CS303',
-      students: 90,
-      assignments: 5,
-      background: th.coursesGradient1,
-      icon: Zap,
-      color: th.main,
-    },
-    {
-      id: 4,
-      name: 'Databases',
-      code: 'CS303',
-      students: 90,
-      assignments: 5,
-      background: th.coursesGradient1,
-      icon: Database,
-      color: th.main,
-    },
-  ];
+  const courses = useMemo(() => {
+    if (sections && sections.length > 0) {
+      return sections.map((s, idx) => ({
+        id: s.id || s.sectionId,
+        name: s.courseName || s.name || 'Course',
+        code: s.courseCode || s.code || 'N/A',
+        students: s.enrolled || 0,
+        assignments: 0, // Could be fetched
+        background: idx % 2 === 0 ? th.coursesGradient1 : th.coursesGradient2,
+        icon: idx % 2 === 0 ? GraduationCap : BarChart2,
+        color: th.main,
+      }));
+    }
+    return [
+      {
+        id: 1,
+        name: 'Introduction to Programming',
+        code: 'CS101',
+        students: 120,
+        assignments: 7,
+        background: th.coursesGradient1,
+        icon: GraduationCap,
+        color: th.main,
+      },
+      {
+        id: 2,
+        name: 'Data Structures',
+        code: 'CS202',
+        students: 100,
+        assignments: 6,
+        background: th.coursesGradient1,
+        icon: BarChart2,
+        color: th.main,
+      },
+    ];
+  }, [sections, th]);
 
   const performanceData = [
     { course: 'Calc I', value: 85 },

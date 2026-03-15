@@ -78,4 +78,24 @@ export class AssignmentService {
   static async getMySubmission(assignmentId: string): Promise<AssignmentSubmission> {
     return ApiClient.get(`/assignments/${assignmentId}/submissions/my`);
   }
+
+  static async create(data: Partial<Assignment>): Promise<Assignment> {
+    return ApiClient.post('/assignments', data);
+  }
+
+  static async update(id: string, data: Partial<Assignment>): Promise<Assignment> {
+    return ApiClient.patch(`/assignments/${id}`, data);
+  }
+
+  static async delete(id: string): Promise<void> {
+    return ApiClient.delete(`/assignments/${id}`);
+  }
+
+  static async getSubmissions(assignmentId: string): Promise<AssignmentSubmission[]> {
+    return ApiClient.get(`/assignments/${assignmentId}/submissions`);
+  }
+
+  static async gradeSubmission(assignmentId: string, submissionId: number, data: { grade: number; feedback?: string }): Promise<AssignmentSubmission> {
+    return ApiClient.patch(`/assignments/${assignmentId}/submissions/${submissionId}/grade`, data);
+  }
 }

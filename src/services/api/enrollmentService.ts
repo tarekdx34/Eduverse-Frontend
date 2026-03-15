@@ -103,4 +103,12 @@ export class EnrollmentService {
   static async getEnrollmentDetails(enrollmentId: number): Promise<EnrolledCourse> {
     return ApiClient.get(`/enrollments/${enrollmentId}`);
   }
+
+  static async getTeachingCourses(): Promise<any[]> {
+    return ApiClient.get('/enrollments/teaching');
+  }
+
+  static async getSectionStudents(sectionId: number): Promise<any[]> {
+    return ApiClient.get(`/enrollments/section/${sectionId}/students`);
+  }
 }

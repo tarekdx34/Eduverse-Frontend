@@ -16,6 +16,13 @@ import {
   Megaphone,
   Bell,
 } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '../../context/AuthContext';
+import { EnrollmentService } from '../../services/api/enrollmentService';
+import { AttendanceService } from '../../services/api/attendanceService';
+import { AssignmentService } from '../../services/api/assignmentService';
+import { GradesService } from '../../services/api/gradesService';
+import { toast } from 'sonner';
 import {
   StatsCard,
   GradesTable,
@@ -45,7 +52,6 @@ import {
   DashboardSidebar,
   CustomDropdown,
 } from '../../components/shared';
-import { useAuth } from '../../context/AuthContext';
 import { DashboardProfileTab } from '../../components/shared/DashboardProfileTab';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
@@ -139,9 +145,10 @@ const TABS: { key: TabKey; label: string; labelAr: string; icon: any; group: str
 ];
 
 function InstructorDashboardContent() {
-  const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const params = useParams();
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<TabKey>('dashboard');
   const [rosterSubTab, setRosterSubTab] = useState<'overview' | 'grades'>('overview');
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -149,6 +156,82 @@ function InstructorDashboardContent() {
   const [isAIAttendanceModalOpen, setIsAIAttendanceModalOpen] = useState(false);
   const { isDark, toggleTheme, primaryHex, primaryColor, setPrimaryColor } = useTheme() as any;
   const { language, setLanguage, isRTL, t } = useLanguage();
+  const { isAuthenticated } = useAuth();
+
+  const isMockMode = !isAuthenticated || location.state?.isMock;
+
+  // Live Data Queries
+  const { data: teachingCoursesLive } = useQuery({
+    queryKey: ['teaching-courses'],
+    queryFn: () => EnrollmentService.getTeachingCourses(),
+    enabled: !isAuthenticated && !isMockMode ? false : !isMockMode, // Ensure auth before query
+  });
+
+  const liveStats = useMemo(() => {
+    if (isMockMode || !teachingCoursesLive) return DASHBOARD_STATS;
+    
+    const totalStudents = teachingCoursesLive.reduce((acc: number, s: any) => acc + (s.enrolledCount || 0), 0);
+    const activeSections = teachingCoursesLive.length;
+    
+    return [
+      {
+        label: t('totalStudents'),
+        value: String(totalStudents),
+        change: t('currentlyEnrolled'),
+        trend: 'up',
+        icon: Users,
+        color: primaryColor,
+      },
+      {
+        label: t('activeCourses'),
+        value: String(activeSections),
+        change: t('thisSemester'),
+        trend: 'up',
+        icon: BookOpen,
+        color: primaryColor,
+      },
+      {
+        label: t('avgAttendance'),
+        value: '94%', // Placeholder from backend logic
+        change: '+2%',
+        trend: 'up',
+        icon: CheckSquare,
+        color: primaryColor,
+      },
+      {
+        label: t('pendingGrades'),
+        value: '12',
+        change: t('awaitingReview'),
+        trend: 'down',
+        icon: FileText,
+        color: primaryColor,
+      },
+    ];
+  }, [isMockMode, teachingCoursesLive, primaryColor, t]);
+
+  const { data: attendanceSessionsLive } = useQuery({
+    queryKey: ['attendance-sessions', activeSectionId],
+    queryFn: () => AttendanceService.getSessions({ sectionId: Number(activeSectionId) }),
+    enabled: !isMockMode && !!activeSectionId && activeTab === 'attendance',
+  });
+
+  const { data: assignmentsLive } = useQuery({
+    queryKey: ['course-assignments', activeSectionId],
+    queryFn: () => AssignmentService.getAll({ courseId: activeSectionId! }),
+    enabled: !isMockMode && !!activeSectionId && activeTab === 'assignments',
+  });
+
+  const { data: sectionGradesLive } = useQuery({
+    queryKey: ['section-grades', activeSectionId],
+    queryFn: () => GradesService.getSectionGrades(Number(activeSectionId)),
+    enabled: !isMockMode && !!activeSectionId && activeTab === 'roster',
+  });
+
+  const { data: sectionStudentsLive } = useQuery({
+    queryKey: ['section-students', activeSectionId],
+    queryFn: () => EnrollmentService.getSectionStudents(Number(activeSectionId)),
+    enabled: !isMockMode && !!activeSectionId && activeTab === 'roster',
+  });
 
   // State for roster management
   const [rosterOverrides, setRosterOverrides] = useState<
@@ -251,13 +334,88 @@ function InstructorDashboardContent() {
     requestAnimationFrame(() => scrollToTop());
   };
 
+  // Sync live data with local states
+  useEffect(() => {
+    if (teachingCoursesLive && !isMockMode) {
+      const mappedCourses = teachingCoursesLive.map((s: any) => ({
+        id: s.sectionId,
+        courseName: s.courseName,
+        courseCode: s.courseCode,
+        enrolled: s.enrolledCount || 0,
+        status: (s.status?.toLowerCase() || 'active') as 'active' | 'archived',
+        averageGrade: s.averageGrade || 0,
+        attendanceRate: s.attendanceRate || 0,
+        semester: s.semesterName || 'N/A',
+        credits: s.credits || 3,
+        capacity: s.maxCapacity || 0,
+        schedule: s.schedule || 'TBD',
+        room: s.location || 'TBD',
+        prerequisites: [],
+        description: s.courseDescription || '',
+      }));
+      setCoursesData(mappedCourses);
+    }
+  }, [teachingCoursesLive, isMockMode]);
+
+  useEffect(() => {
+    if (attendanceSessionsLive && !isMockMode && activeSectionId) {
+      setAttendanceData((prev) => ({
+        ...prev,
+        [activeSectionId]: (attendanceSessionsLive.data || attendanceSessionsLive).map((s: any) => ({
+          id: Number(s.id),
+          date: s.sessionDate,
+          present: Number(s.presentCount || 0),
+          absent: Number(s.absentCount || 0),
+          type: s.sessionType,
+          status: s.status,
+        })),
+      }));
+    }
+  }, [attendanceSessionsLive, isMockMode, activeSectionId]);
+
+  useEffect(() => {
+    if (assignmentsLive?.data && !isMockMode && activeSectionId) {
+      setAssignmentsData((prev) => ({
+        ...prev,
+        [activeSectionId]: assignmentsLive.data.map((a: any) => ({
+          id: Number(a.id),
+          title: a.title,
+          dueDate: a.dueDate ? new Date(a.dueDate).toLocaleDateString() : 'No date',
+          submissions: a.submissionsCount || 0,
+          status: a.status?.toLowerCase() || 'draft',
+        })),
+      }));
+    }
+  }, [assignmentsLive, isMockMode, activeSectionId]);
+
+  useEffect(() => {
+    if (sectionStudentsLive && !isMockMode && activeSectionId) {
+      setRosterOverrides((prev) => ({
+        ...prev,
+        [activeSectionId]: sectionStudentsLive.map((s: any) => ({
+          id: s.userId,
+          name: s.fullName,
+          email: s.email,
+          status: s.status,
+        })),
+      }));
+    }
+  }, [sectionStudentsLive, isMockMode, activeSectionId]);
+
   const sectionOptions = useMemo(
-    () =>
-      SECTIONS.map((s) => ({
+    () => {
+      if (isMockMode) {
+        return SECTIONS.map((s) => ({
+          value: String(s.sectionId),
+          label: `${s.courseCode} - ${s.sectionLabel}`,
+        }));
+      }
+      return (teachingCoursesLive || []).map((s: any) => ({
         value: String(s.sectionId),
-        label: `${s.courseCode} - ${s.sectionLabel}`,
-      })),
-    []
+        label: `${s.courseCode} - ${s.sectionLabel || `Sec ${s.sectionId}`}`,
+      }));
+    },
+    [isMockMode, teachingCoursesLive]
   );
 
   const currentRosterBase = activeSectionId ? ROSTERS[activeSectionId] || [] : [];
@@ -265,9 +423,16 @@ function InstructorDashboardContent() {
     activeSectionId && rosterOverrides[activeSectionId]
       ? rosterOverrides[activeSectionId]!
       : currentRosterBase;
-  const selectedSection = activeSectionId
-    ? SECTIONS.find((s) => String(s.sectionId) === activeSectionId) || null
-    : null;
+
+  const selectedSection = useMemo(() => {
+    if (!activeSectionId) return null;
+    if (isMockMode) {
+      return SECTIONS.find((s) => String(s.sectionId) === activeSectionId) || null;
+    }
+    return (
+      (teachingCoursesLive || []).find((s: any) => String(s.sectionId) === activeSectionId) || null
+    );
+  }, [isMockMode, activeSectionId, teachingCoursesLive]);
 
   // Assignment handlers
   const handleCreateAssignment = () => {
@@ -280,25 +445,41 @@ function InstructorDashboardContent() {
     setIsAssignmentModalOpen(true);
   };
 
-  const handleSaveAssignment = (data: AssignmentFormData) => {
+  const handleSaveAssignment = async (data: AssignmentFormData) => {
     if (!activeSectionId) return;
 
-    const sectionAssignments = assignmentsData[activeSectionId] || [];
-
-    if (data.id) {
-      // Edit existing
-      const updated = sectionAssignments.map((a) =>
-        a.id === data.id ? { ...data, id: data.id } : a
-      );
-      setAssignmentsData({ ...assignmentsData, [activeSectionId]: updated });
+    if (!isMockMode) {
+      try {
+        if (data.id) {
+          await AssignmentService.update(String(data.id), data as any);
+          toast.success('Assignment updated successfully');
+        } else {
+          await AssignmentService.create({ ...data, courseId: activeSectionId } as any);
+          toast.success('Assignment created successfully');
+        }
+        queryClient.invalidateQueries({ queryKey: ['course-assignments', activeSectionId] });
+      } catch (err) {
+        toast.error('Failed to save assignment');
+        return;
+      }
     } else {
-      // Create new
-      const newId = Math.max(...sectionAssignments.map((a) => a.id), 0) + 1;
-      const newAssignment: AssignmentItem = { ...data, id: newId };
-      setAssignmentsData({
-        ...assignmentsData,
-        [activeSectionId]: [...sectionAssignments, newAssignment],
-      });
+      const sectionAssignments = assignmentsData[activeSectionId] || [];
+
+      if (data.id) {
+        // Edit existing
+        const updated = sectionAssignments.map((a) =>
+          a.id === data.id ? { ...data, id: data.id } : a
+        );
+        setAssignmentsData({ ...assignmentsData, [activeSectionId]: updated });
+      } else {
+        // Create new
+        const newId = Math.max(...sectionAssignments.map((a) => a.id), 0) + 1;
+        const newAssignment: AssignmentItem = { ...data, id: newId };
+        setAssignmentsData({
+          ...assignmentsData,
+          [activeSectionId]: [...sectionAssignments, newAssignment],
+        });
+      }
     }
 
     setIsAssignmentModalOpen(false);
@@ -308,12 +489,22 @@ function InstructorDashboardContent() {
     setAssignmentToDelete(id);
   };
 
-  const confirmDeleteAssignment = () => {
+  const confirmDeleteAssignment = async () => {
     if (!activeSectionId || !assignmentToDelete) return;
 
-    const sectionAssignments = assignmentsData[activeSectionId] || [];
-    const updated = sectionAssignments.filter((a) => a.id !== assignmentToDelete);
-    setAssignmentsData({ ...assignmentsData, [activeSectionId]: updated });
+    if (!isMockMode) {
+      try {
+        await AssignmentService.delete(String(assignmentToDelete));
+        toast.success('Assignment deleted successfully');
+        queryClient.invalidateQueries({ queryKey: ['course-assignments', activeSectionId] });
+      } catch (err) {
+        toast.error('Failed to delete assignment');
+      }
+    } else {
+      const sectionAssignments = assignmentsData[activeSectionId] || [];
+      const updated = sectionAssignments.filter((a) => a.id !== assignmentToDelete);
+      setAssignmentsData({ ...assignmentsData, [activeSectionId]: updated });
+    }
     setAssignmentToDelete(null);
   };
 
@@ -331,12 +522,26 @@ function InstructorDashboardContent() {
     setIsGradeModalOpen(true);
   };
 
-  const handleSaveGrade = (data: GradeFormData) => {
+  const handleSaveGrade = async (data: GradeFormData) => {
     if (!activeSectionId) return;
 
-    const sectionGrades = gradesData[activeSectionId] || [];
-    const updated = sectionGrades.map((g) => (g.id === data.id ? { ...data, id: data.id! } : g));
-    setGradesData({ ...gradesData, [activeSectionId]: updated });
+    if (!isMockMode) {
+      try {
+        await GradesService.updateStudentGrade(data.id!, {
+          percentage: data.percentage,
+          notes: data.notes,
+        });
+        toast.success('Grade updated successfully');
+        queryClient.invalidateQueries({ queryKey: ['section-grades', activeSectionId] });
+      } catch (err) {
+        toast.error('Failed to update grade');
+        return;
+      }
+    } else {
+      const sectionGrades = gradesData[activeSectionId] || [];
+      const updated = sectionGrades.map((g) => (g.id === data.id ? { ...data, id: data.id! } : g));
+      setGradesData({ ...gradesData, [activeSectionId]: updated });
+    }
     setIsGradeModalOpen(false);
   };
 
@@ -364,25 +569,48 @@ function InstructorDashboardContent() {
     setIsAttendanceModalOpen(true);
   };
 
-  const handleSaveAttendance = (data: AttendanceFormData) => {
+  const handleSaveAttendance = async (data: AttendanceFormData) => {
     if (!activeSectionId) return;
 
-    const sectionAttendance = attendanceData[activeSectionId] || [];
-
-    if (data.id) {
-      // Edit existing
-      const updated = sectionAttendance.map((a) =>
-        a.id === data.id ? { ...data, id: data.id } : a
-      );
-      setAttendanceData({ ...attendanceData, [activeSectionId]: updated });
+    if (!isMockMode) {
+      try {
+        if (data.id) {
+          await AttendanceService.updateSession(data.id, {
+            sessionDate: data.date,
+            sessionType: data.type,
+          });
+          toast.success('Attendance session updated');
+        } else {
+          await AttendanceService.createSession({
+            sectionId: Number(activeSectionId),
+            sessionDate: data.date,
+            sessionType: data.type as any,
+          });
+          toast.success('Attendance session created');
+        }
+        queryClient.invalidateQueries({ queryKey: ['attendance-sessions', activeSectionId] });
+      } catch (err) {
+        toast.error('Failed to save attendance session');
+        return;
+      }
     } else {
-      // Create new
-      const newId = Math.max(...sectionAttendance.map((a) => a.id), 0) + 1;
-      const newSession: AttendanceSession = { ...data, id: newId };
-      setAttendanceData({
-        ...attendanceData,
-        [activeSectionId]: [...sectionAttendance, newSession],
-      });
+      const sectionAttendance = attendanceData[activeSectionId] || [];
+
+      if (data.id) {
+        // Edit existing
+        const updated = sectionAttendance.map((a) =>
+          a.id === data.id ? { ...data, id: data.id } : a
+        );
+        setAttendanceData({ ...attendanceData, [activeSectionId]: updated });
+      } else {
+        // Create new
+        const newId = Math.max(...sectionAttendance.map((a) => a.id), 0) + 1;
+        const newSession: AttendanceSession = { ...data, id: newId };
+        setAttendanceData({
+          ...attendanceData,
+          [activeSectionId]: [...sectionAttendance, newSession],
+        });
+      }
     }
 
     setIsAttendanceModalOpen(false);
@@ -392,12 +620,22 @@ function InstructorDashboardContent() {
     setAttendanceToDelete(id);
   };
 
-  const confirmDeleteAttendance = () => {
+  const confirmDeleteAttendance = async () => {
     if (!activeSectionId || !attendanceToDelete) return;
 
-    const sectionAttendance = attendanceData[activeSectionId] || [];
-    const updated = sectionAttendance.filter((a) => a.id !== attendanceToDelete);
-    setAttendanceData({ ...attendanceData, [activeSectionId]: updated });
+    if (!isMockMode) {
+      try {
+        await AttendanceService.deleteSession(attendanceToDelete);
+        toast.success('Attendance session deleted');
+        queryClient.invalidateQueries({ queryKey: ['attendance-sessions', activeSectionId] });
+      } catch (err) {
+        toast.error('Failed to delete attendance session');
+      }
+    } else {
+      const sectionAttendance = attendanceData[activeSectionId] || [];
+      const updated = sectionAttendance.filter((a) => a.id !== attendanceToDelete);
+      setAttendanceData({ ...attendanceData, [activeSectionId]: updated });
+    }
     setAttendanceToDelete(null);
   };
 
@@ -532,221 +770,6 @@ function InstructorDashboardContent() {
             }}
           />
         )}
-        {/* Dashboard Overview */}
-        {activeTab === 'dashboard' && (
-          <ModernDashboard
-            stats={DASHBOARD_STATS}
-            sections={SECTIONS}
-            upcomingClasses={UPCOMING_CLASSES}
-            recentActivity={RECENT_ACTIVITY}
-            pendingTasks={PENDING_TASKS}
-            onNavigate={(tab) => handleTabChange(tab as TabKey)}
-          />
-        )}
-
-        {/* Courses */}
-        {activeTab === 'courses' && (
-          <CoursesPage
-            courses={coursesData}
-            onCreateCourse={handleCreateCourse}
-            onEditCourse={handleEditCourse}
-            onDeleteCourse={handleDeleteCourse}
-            onDuplicateCourse={handleDuplicateCourse}
-            onViewCourse={handleViewCourse}
-            selectedCourseId={selectedCourseIdFromRoute}
-          />
-        )}
-
-        {/* Quizzes */}
-        {activeTab === 'quizzes' && <QuizzesPage />}
-
-        {/* Schedule */}
-        {activeTab === 'schedule' && <SchedulePage />}
-
-        {/* Roster */}
-        {activeTab === 'roster' && (
-          <div className="space-y-4">
-            <div className="max-w-xs mb-6">
-              <CustomDropdown
-                label="Select Section"
-                options={sectionOptions}
-                value={activeSectionId || String(SECTIONS[0].sectionId)}
-                onChange={setActiveSectionId}
-                isDark={isDark}
-                accentColor={primaryHex}
-              />
-            </div>
-            <SelectedSectionSummary section={selectedSection as any} />
-
-            <div className="flex gap-4 border-b border-gray-200 dark:border-white/10 mb-6">
-              <button
-                onClick={() => setRosterSubTab('overview')}
-                className={`pb-2 px-1 text-sm font-medium transition-colors relative ${
-                  rosterSubTab === 'overview'
-                    ? 'text-indigo-600'
-                    : 'text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200'
-                }`}
-              >
-                {t('overview') || 'Overview'}
-                {rosterSubTab === 'overview' && (
-                  <div
-                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600"
-                    style={{ backgroundColor: primaryHex }}
-                  />
-                )}
-              </button>
-              <button
-                onClick={() => setRosterSubTab('grades')}
-                className={`pb-2 px-1 text-sm font-medium transition-colors relative ${
-                  rosterSubTab === 'grades'
-                    ? 'text-indigo-600'
-                    : 'text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200'
-                }`}
-              >
-                {t('detailedGrades') || 'Detailed Grades'}
-                {rosterSubTab === 'grades' && (
-                  <div
-                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600"
-                    style={{ backgroundColor: primaryHex }}
-                  />
-                )}
-              </button>
-            </div>
-
-            {rosterSubTab === 'overview' ? (
-              <RosterTable
-                data={currentRoster}
-                grades={activeSectionId ? gradesData[activeSectionId] || [] : []}
-                onEdit={(student) => {
-                  setEditingStudent(student);
-                  setIsEditOpen(true);
-                }}
-              />
-            ) : (
-              <GradesTable
-                data={activeSectionId ? gradesData[activeSectionId] || [] : []}
-                onEdit={handleEditGrade}
-                onDelete={handleDeleteGrade}
-              />
-            )}
-          </div>
-        )}
-
-        {/* Assignments */}
-        {activeTab === 'assignments' && (
-          <div className="space-y-4">
-            <div className="max-w-xs mb-6">
-              <CustomDropdown
-                label="Select Section"
-                options={sectionOptions}
-                value={activeSectionId || String(SECTIONS[0].sectionId)}
-                onChange={setActiveSectionId}
-                isDark={isDark}
-                accentColor={primaryHex}
-              />
-            </div>
-            <SelectedSectionSummary section={selectedSection as any} />
-            <AssignmentsList
-              data={activeSectionId ? assignmentsData[activeSectionId] || [] : []}
-              onEdit={handleEditAssignment}
-              onDelete={handleDeleteAssignment}
-              onCreate={handleCreateAssignment}
-              onStatusChange={handleAssignmentStatusChange}
-            />
-          </div>
-        )}
-
-        {/* Attendance */}
-        {activeTab === 'attendance' && (
-          <div className="space-y-6">
-            <div className="max-w-xs mb-6">
-              <CustomDropdown
-                label="Select Section"
-                options={sectionOptions}
-                value={activeSectionId || String(SECTIONS[0].sectionId)}
-                onChange={setActiveSectionId}
-                isDark={isDark}
-                accentColor={primaryHex}
-              />
-            </div>
-            <SelectedSectionSummary section={selectedSection as any} />
-
-            <div
-              className={`rounded-xl border shadow-sm p-6 ${isDark ? 'bg-card-dark border-white/10' : 'bg-white border-gray-200'}`}
-            >
-              <h3
-                className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}
-              >
-                {t('attendanceRecords') || 'Attendance Records'}
-              </h3>
-              <AttendanceTable
-                sessions={activeSectionId ? attendanceData[activeSectionId] || [] : []}
-                onCreate={handleCreateAttendance}
-                onEdit={handleEditAttendance}
-                onDelete={handleDeleteAttendance}
-                onSwitchToAI={() => setIsAIAttendanceModalOpen(true)}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Announcements */}
-        {activeTab === 'announcements' && <AnnouncementsManager />}
-
-        {/* Notifications */}
-        {activeTab === 'notifications' && <NotificationsPage />}
-
-        {/* Discussion */}
-        {activeTab === 'discussion' && (
-          <DiscussionPage userRole="instructor" userName="Prof. Sarah Martinez" />
-        )}
-
-        {/* Chat */}
-        {activeTab === 'chat' && (
-          <MessagingChat
-            height="100vh"
-            currentUserName={user?.fullName || 'Prof. Sarah Martinez'}
-            showVideoCall={true}
-            showVoiceCall={true}
-            isDark={isDark}
-            accentColor={primaryHex || '#4f46e5'}
-            className="rounded-none border-0"
-          />
-        )}
-
-        {/* Profile */}
-        {activeTab === 'profile' && (
-          <DashboardProfileTab
-            isDark={isDark}
-            isRTL={isRTL}
-            accentColor={primaryHex || '#4F46E5'}
-            avatarGradient="from-[#3b82f6] to-[#06b6d4]"
-            language={language}
-            onToggleTheme={toggleTheme}
-            onSetLanguage={setLanguage}
-            searchRole="instructor"
-            onProfileClick={() => handleTabChange('profile')}
-            onMenuClick={() => setSidebarOpen(true)}
-            primaryColor={primaryColor}
-            onSetPrimaryColor={setPrimaryColor}
-            availableColors={[
-              { id: 'blue', colorClass: 'bg-blue-500', hex: '#3b82f6' },
-              { id: 'emerald', colorClass: 'bg-emerald-500', hex: '#10b981' },
-              { id: 'rose', colorClass: 'bg-rose-500', hex: '#f43f5e' },
-              { id: 'amber', colorClass: 'bg-amber-500', hex: '#f59e0b' },
-            ]}
-            translations={{
-              search: t('search') || 'Search...',
-              language: t('language'),
-              english: t('english'),
-              arabic: t('arabic'),
-              darkMode: t('darkMode'),
-              lightMode: t('lightMode'),
-              viewProfile: t('viewProfile'),
-              logout: t('logout'),
-            }}
-          />
-        )}
         <div
           key={activeTab}
           className={activeTab === 'chat' ? 'h-screen overflow-hidden p-0' : 'flex-1'}
@@ -756,8 +779,8 @@ function InstructorDashboardContent() {
           {/* Dashboard Overview */}
           {activeTab === 'dashboard' && (
             <ModernDashboard
-              stats={DASHBOARD_STATS}
-              sections={SECTIONS}
+              stats={liveStats}
+              sections={coursesData}
               upcomingClasses={UPCOMING_CLASSES}
               recentActivity={RECENT_ACTIVITY}
               pendingTasks={PENDING_TASKS}
@@ -773,7 +796,11 @@ function InstructorDashboardContent() {
               onEditCourse={handleEditCourse}
               onDeleteCourse={handleDeleteCourse}
               onDuplicateCourse={handleDuplicateCourse}
-              onViewCourse={handleViewCourse}
+              onViewCourse={(id) => {
+                setActiveSectionId(String(id));
+                setActiveTab('assignments'); // Or another appropriate tab for detail
+                navigate(`/instructordashboard/assignments`);
+              }}
               selectedCourseId={selectedCourseIdFromRoute}
             />
           )}
@@ -963,7 +990,8 @@ function InstructorDashboardContent() {
               showVideoCall={true}
               showVoiceCall={true}
               isDark={isDark}
-              accentColor={primaryHex || '#4F46E5'}
+              accentColor={primaryHex || '#4f46e5'}
+              className="rounded-none border-0"
             />
           )}
 
