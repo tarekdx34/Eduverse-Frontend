@@ -57,6 +57,7 @@ type CoursesPageProps = {
   onDuplicateCourse: (id: number) => void;
   onViewCourse: (id: number) => void;
   selectedCourseId?: number | null;
+  isMockMode?: boolean;
 };
 
 // Course Lucide icons (replacing emojis)
@@ -70,6 +71,7 @@ export function CoursesPage({
   onDuplicateCourse,
   onViewCourse,
   selectedCourseId,
+  isMockMode = false,
 }: CoursesPageProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'archived'>('all');
@@ -84,11 +86,15 @@ export function CoursesPage({
 
   // If viewing course detail, show that instead
   if (selectedCourseId !== null) {
+    const activeCourse = courses.find((c: any) => c.id === selectedCourseId) as any;
+    const realCourseId = activeCourse?.courseId || selectedCourseId;
+
     return (
       <CourseDetail
-        courseId={selectedCourseId}
+        courseId={realCourseId}
         onBack={() => navigate('/instructordashboard/courses')}
         courses={courses}
+        isMockMode={isMockMode}
       />
     );
   }

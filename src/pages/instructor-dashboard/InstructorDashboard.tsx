@@ -355,7 +355,7 @@ function InstructorDashboardContent() {
 
     // Determine performanceData from the courseBreakdown
     const calculatedPerformance = analyticsLive.courseBreakdown.slice(0, 5).map(course => ({
-      course: course.id ? `Course ${course.courseId}` : 'Unknown', // Ideally map via teachingCoursesLive for names
+      course: (course.courseId || course.analyticsId || course.id) ? `Course ${course.courseId || course.id || course.analyticsId}` : 'Unknown',
       value: course.averageGrade ? Number(course.averageGrade) : 0,
     }));
 
@@ -541,6 +541,7 @@ function InstructorDashboardContent() {
     if (teachingCoursesLive && !isMockMode) {
       const mappedCourses = teachingCoursesLive.map((s: any) => ({
         id: s.sectionId || s.section?.id,
+        courseId: s.courseId || s.course?.id,
         courseName: s.course?.name || s.courseName || 'Unknown Course',
         courseCode: s.course?.code || s.courseCode || 'UNK',
         enrolled: s.section?.currentEnrollment || s.enrolledCount || 0,
@@ -628,22 +629,16 @@ function InstructorDashboardContent() {
     }));
   }, [sectionGradesLive, isMockMode, activeSectionId]);
 
-  const sectionOptions = useMemo(
-    () => {
-      if (isMockMode) {
-        return SECTIONS.map((s) => ({
-          value: String(s.sectionId),
-          label: `${s.courseCode} - ${s.sectionLabel}`,
-        }));
-      }
-      return (teachingCoursesLive || []).map((s: any) => ({
-        value: String(s.section?.id || s.sectionId),
-        label: `${s.course?.code || s.courseCode} - ${s.section?.sectionNumber || s.sectionLabel || `Sec ${s.section?.id || s.sectionId}`}`,
+  const sectionOptions = useMemo(() => {
+    if (isMockMode) {
+      return SECTIONS.map((s) => ({
+        value: String(s.sectionId),
+        label: `${s.courseCode} - ${s.sectionLabel}`,
       }));
     }
     return (teachingCoursesLive || []).map((s: any) => ({
-      value: String(s.sectionId ?? s.id),
-      label: `${s.course?.name || s.course?.code || s.courseName || s.courseCode || 'Course'} - Sec ${s.sectionNumber || s.sectionLabel || s.sectionId || s.id}`,
+      value: String(s.section?.id || s.sectionId || s.id),
+      label: `${s.course?.name || s.course?.code || s.courseName || s.courseCode || 'Course'} - Sec ${s.section?.sectionNumber || s.sectionNumber || s.sectionLabel || s.section?.id || s.sectionId || s.id}`,
     }));
   }, [isMockMode, teachingCoursesLive]);
 
@@ -896,7 +891,7 @@ function InstructorDashboardContent() {
   const handleEditCourse = (id: number, data: any) => {
     setCoursesData(
       coursesData.map((course) =>
-        course.id === id
+        String(course.id) === String(id)
           ? {
               ...course,
               ...data,
@@ -910,11 +905,11 @@ function InstructorDashboardContent() {
   };
 
   const handleDeleteCourse = (id: number) => {
-    setCoursesData(coursesData.filter((course) => course.id !== id));
+    setCoursesData(coursesData.filter((course) => String(course.id) !== String(id)));
   };
 
   const handleDuplicateCourse = (id: number) => {
-    const courseToDuplicate = coursesData.find((c) => c.id === id);
+    const courseToDuplicate = coursesData.find((c) => String(c.id) === String(id));
     if (!courseToDuplicate) return;
 
     const newCourse = {
@@ -1031,6 +1026,7 @@ function InstructorDashboardContent() {
                 navigate(`/instructordashboard/courses/${id}`);
               }}
               selectedCourseId={selectedCourseIdFromRoute}
+              isMockMode={isMockMode}
             />
           )}
 
