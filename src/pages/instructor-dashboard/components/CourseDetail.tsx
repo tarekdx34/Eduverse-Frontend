@@ -17,6 +17,7 @@ import {
   CheckCircle,
   Bell,
   Plus,
+  Loader2,
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -48,9 +49,10 @@ type CourseDetailProps = {
   courseId: number;
   onBack: () => void;
   courses: Course[];
+  isMockMode?: boolean;
 };
 
-export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
+export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: CourseDetailProps) {
   const { isDark, primaryHex = '#3b82f6' } = useTheme() as any;
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('overview');
@@ -69,21 +71,22 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
     }
   }, [courseId]);
 
-  // Materials state
   const [showMaterialModal, setShowMaterialModal] = useState(false);
-  const [materialForm, setMaterialForm] = useState({
+  const [isUploading, setIsUploading] = useState(false);
+  const [materialForm, setMaterialForm] = useState<{ title: string; lectureId: string; file: File | null }>({
     title: '',
     lectureId: '',
+    file: null,
   });
 
   // Get actual course data
-  const course = courses.find((c) => c.id === courseId);
+  const course = courses.find((c) => String(c.id) === String(courseId));
 
   const queryClient = useQueryClient();
   const { data: courseMaterials = [], isLoading: isLoadingMaterials } = useQuery({
     queryKey: ['course-materials', course?.id],
     queryFn: () => CourseService.getMaterials(course!.id),
-    enabled: !!course?.id,
+    enabled: !!course?.id && !isMockMode,
   });
 
   const createMaterialMutation = useMutation({
@@ -91,16 +94,25 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['course-materials', course?.id] });
       setShowMaterialModal(false);
-      setMaterialForm({ title: '', lectureId: '' });
+      setMaterialForm({ title: '', lectureId: '', file: null });
     },
   });
 
   const { data: assignmentsResponse, isLoading: isLoadingAssignments } = useQuery({
     queryKey: ['course-assignments', course?.id],
     queryFn: () => AssignmentService.getAll({ courseId: String(course!.id) }),
-    enabled: !!course?.id,
+    enabled: !!course?.id && !isMockMode,
   });
-  const courseAssignments = assignmentsResponse?.data || [];
+  const courseAssignments = Array.isArray(assignmentsResponse?.data)
+    ? assignmentsResponse.data
+    : Array.isArray(assignmentsResponse)
+      ? assignmentsResponse
+      : [];
+
+  const upcomingDeadlines = courseAssignments
+    .filter((a: any) => a.dueDate && new Date(a.dueDate) > new Date())
+    .sort((a: any, b: any) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
+    .slice(0, 3);
 
   const createAssignmentMutation = useMutation({
     mutationFn: (newAssignment: any) => AssignmentService.create(newAssignment),
@@ -125,7 +137,7 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
   const { data: sectionStudents = [], isLoading: isLoadingStudents } = useQuery({
     queryKey: ['section-students', course?.id],
     queryFn: () => EnrollmentService.getSectionStudents(course!.id),
-    enabled: !!course?.id,
+    enabled: !!course?.id && !isMockMode,
   });
 
 
@@ -138,22 +150,15 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
     };
   };
 
-  if (!course) {
-    return (
-      <div className={`flex items-center justify-center`}>
-        <div className="text-center">
-          <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'} mb-2`}>
-            {t('courseNotFound')}
-          </h2>
-          <button onClick={onBack} className="text-indigo-600 hover:text-indigo-700 font-medium">
-            {t('backToCourses')}
-          </button>
-        </div>
-      </div>
-    );
-  }
+  // Derive unique weeks dynamically
+  const dynamicWeeks = Array.from(
+    new Set(courseMaterials.map((m: any) => m.weekNumber || 1))
+  ).sort((a: any, b: any) => a - b);
 
-  const lectures = [1, 2, 3, 4].map((week) => ({
+  // Fallback to static 4 weeks for Mock Mode if empty
+  const weeksToRender = isMockMode || dynamicWeeks.length === 0 ? [1, 2, 3, 4] : dynamicWeeks;
+
+  const lectures = weeksToRender.map((week) => ({
     id: `${week}.1`,
     label: `Lecture ${week}.1 - Introduction`,
   }));
@@ -174,7 +179,7 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
   const { data: assignmentSubmissions = [], isLoading: isLoadingSubmissions } = useQuery({
     queryKey: ['assignment-submissions', selectedAssignmentIdForGrading],
     queryFn: () => AssignmentService.getSubmissions(selectedAssignmentIdForGrading!),
-    enabled: !!selectedAssignmentIdForGrading,
+    enabled: !!selectedAssignmentIdForGrading && !isMockMode,
   });
 
   const gradeSubmissionMutation = useMutation({
@@ -185,6 +190,21 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
       setDraftGrades({});
     },
   });
+
+  if (!course) {
+    return (
+      <div className={`flex items-center justify-center`}>
+        <div className="text-center">
+          <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'} mb-2`}>
+            {t('courseNotFound')}
+          </h2>
+          <button onClick={onBack} className="text-indigo-600 hover:text-indigo-700 font-medium">
+            {t('backToCourses')}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const handleInlineGrade = (submissionId: number, newGrade: string) => {
     setDraftGrades((prev) => ({ ...prev, [submissionId]: newGrade }));
@@ -254,15 +274,36 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
     updateAssignmentMutation.mutate({ id: String(assignment.id), data: { status: 'PUBLISHED' } });
   };
 
-  const handleSaveMaterial = () => {
+  const handleSaveMaterial = async () => {
     if (!materialForm.title.trim() || !materialForm.lectureId || !course) return;
 
-    createMaterialMutation.mutate({
-      title: materialForm.title,
-      materialType: 'document',
-      weekNumber: parseInt(materialForm.lectureId.split('.')[0]) || 1,
-      isPublished: true,
-    });
+    if (materialForm.file) {
+      setIsUploading(true);
+      try {
+        const formData = new FormData();
+        formData.append('document', materialForm.file);
+        formData.append('title', materialForm.title.trim());
+        formData.append('materialType', 'document');
+        formData.append('weekNumber', String(parseInt(materialForm.lectureId.split('.')[0]) || 1));
+        formData.append('isPublished', 'true');
+
+        await courseService.uploadDocument(course.id, formData);
+        queryClient.invalidateQueries({ queryKey: ['course-materials', course.id] });
+        setShowMaterialModal(false);
+        setMaterialForm({ title: '', lectureId: '', file: null });
+      } catch (error) {
+        console.error('Failed to upload document', error);
+      } finally {
+        setIsUploading(false);
+      }
+    } else {
+      createMaterialMutation.mutate({
+        title: materialForm.title,
+        materialType: 'document',
+        weekNumber: parseInt(materialForm.lectureId.split('.')[0]) || 1,
+        isPublished: true,
+      });
+    }
   };
 
   return (
@@ -432,36 +473,25 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                 </div>
 
                 <div className="space-y-3">
-                  <div
-                    className={`flex items-center justify-between p-3 ${isDark ? 'bg-transparent' : 'bg-gray-50'} rounded-lg`}
-                  >
-                    <span className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                      Lecture
-                    </span>
-                    <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-                      May 12
-                    </span>
-                  </div>
-                  <div
-                    className={`flex items-center justify-between p-3 ${isDark ? 'bg-transparent' : 'bg-gray-50'} rounded-lg`}
-                  >
-                    <span className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                      Quiz
-                    </span>
-                    <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-                      May 13
-                    </span>
-                  </div>
-                  <div
-                    className={`flex items-center justify-between p-3 ${isDark ? 'bg-transparent' : 'bg-gray-50'} rounded-lg`}
-                  >
-                    <span className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                      Office Hour
-                    </span>
-                    <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-                      May 14
-                    </span>
-                  </div>
+                  {upcomingDeadlines.length > 0 ? (
+                    upcomingDeadlines.map((assignment: any) => (
+                      <div
+                        key={assignment.id}
+                        className={`flex items-center justify-between p-3 ${isDark ? 'bg-transparent' : 'bg-gray-50'} rounded-lg`}
+                      >
+                        <span className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                          {assignment.title}
+                        </span>
+                        <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                          {new Date(assignment.dueDate).toLocaleDateString()}
+                        </span>
+                      </div>
+                    ))
+                  ) : (
+                    <div className={`text-sm text-center py-4 ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
+                      No upcoming deadlines
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -503,60 +533,8 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                 {t('recentActivity')}
               </h3>
               <div className="space-y-4">
-                <div
-                  className={`flex items-center gap-4 p-4 ${isDark ? 'bg-transparent' : 'bg-gray-50'} rounded-lg`}
-                >
-                  <div
-                    className={`px-3 py-1 rounded-full text-xs font-medium ${isDark ? 'bg-blue-500/20 text-blue-300' : 'bg-blue-100 text-blue-700'}`}
-                  >
-                    New assignment submitted
-                  </div>
-                  <span className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                    John Smith
-                  </span>
-                  <span
-                    className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-500'} ml-auto`}
-                  >
-                    2 hours ago
-                  </span>
-                </div>
-                <div
-                  className={`flex items-center gap-4 p-4 ${isDark ? 'bg-transparent' : 'bg-gray-50'} rounded-lg`}
-                >
-                  <div
-                    className={`px-3 py-1 rounded-full text-xs font-medium`}
-                    style={{
-                      backgroundColor: isDark ? `${primaryHex}26` : `${primaryHex}1A`,
-                      color: primaryHex,
-                    }}
-                  >
-                    Quiz completed
-                  </div>
-                  <span className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                    15 students
-                  </span>
-                  <span
-                    className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-500'} ml-auto`}
-                  >
-                    4 hours ago
-                  </span>
-                </div>
-                <div
-                  className={`flex items-center gap-4 p-4 ${isDark ? 'bg-transparent' : 'bg-gray-50'} rounded-lg`}
-                >
-                  <div
-                    className={`px-3 py-1 rounded-full text-xs font-medium ${isDark ? 'bg-green-500/20 text-green-300' : 'bg-green-100 text-green-700'}`}
-                  >
-                    Material uploaded
-                  </div>
-                  <span className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                    Prof. Martinez
-                  </span>
-                  <span
-                    className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-500'} ml-auto`}
-                  >
-                    Yesterday
-                  </span>
+                <div className={`text-sm text-center py-4 ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
+                  No recent activity found.
                 </div>
               </div>
             </div>
@@ -580,7 +558,7 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
             </div>
 
             <div className="space-y-4">
-              {[1, 2, 3, 4].map((week) => {
+              {weeksToRender.map((week) => {
                 const weekMaterials = courseMaterials.filter(
                   (m: any) => m.weekNumber === week || (!m.weekNumber && week === 1)
                 );
@@ -608,24 +586,24 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                             <div
                               className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}
                             >
-                              {course.schedule}
+                              {course.schedule || 'Scheduled via portal'}
                             </div>
                           </div>
                         </div>
                         <CheckCircle size={20} className="text-green-600" />
                       </div>
 
-                      {weekMaterials.length > 0 && (
+                      {weekMaterials.length > 0 ? (
                         <div className="mt-4 space-y-2 pl-4 border-l-2 border-indigo-100 dark:border-indigo-900/30 ml-4">
                           <h4
                             className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-500' : 'text-gray-500'} mb-2`}
                           >
                             Materials
                           </h4>
-                          {weekMaterials.map((material) => (
+                          {weekMaterials.map((material: any) => (
                             <div
-                              key={material.id}
-                              className={`flex items-center justify-between p-3 rounded-lg ${isDark ? 'bg-white/5' : 'bg-white border text-gray-700'} text-sm`}
+                              key={material.materialId || material.id}
+                              className={`flex items-center justify-between p-3 rounded-lg ${isDark ? 'bg-white/5 border-transparent' : 'bg-white border text-gray-700'} text-sm`}
                             >
                               <div className="flex items-center gap-2">
                                 <FileText size={16} className="text-indigo-500" />
@@ -640,6 +618,10 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                               </span>
                             </div>
                           ))}
+                        </div>
+                      ) : (
+                        <div className={`mt-4 pl-4 text-xs italic ${isDark ? 'text-slate-500' : 'text-gray-500'}`}>
+                          No materials uploaded yet for this week.
                         </div>
                       )}
                     </div>
@@ -1056,6 +1038,19 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                 <label
                   className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-300' : 'text-gray-700'}`}
                 >
+                  Document File (Optional)
+                </label>
+                <input
+                  type="file"
+                  onChange={(e) => setMaterialForm({ ...materialForm, file: e.target.files?.[0] || null })}
+                  className={`w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2 ${isDark ? 'bg-white/5 border-white/10 text-white focus:ring-indigo-500' : 'bg-white border-gray-300 text-gray-900 focus:ring-indigo-500'}`}
+                />
+              </div>
+
+              <div>
+                <label
+                  className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-300' : 'text-gray-700'}`}
+                >
                   Target Lecture / Week
                 </label>
                 <CleanSelect
@@ -1082,10 +1077,16 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
               </button>
               <button
                 onClick={handleSaveMaterial}
-                disabled={!materialForm.title.trim() || !materialForm.lectureId}
-                className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={!materialForm.title.trim() || !materialForm.lectureId || isUploading}
+                className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               >
-                Upload
+                {isUploading ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" /> Uploading...
+                  </>
+                ) : (
+                  'Upload'
+                )}
               </button>
             </div>
           </div>

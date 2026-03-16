@@ -184,6 +184,19 @@ export class CourseService {
     return response.data;
   }
 
+  static async uploadDocument(courseId: number, formData: FormData): Promise<CourseMaterial> {
+    const response = await ApiClient.post<{ data: CourseMaterial }>(
+      `/courses/${courseId}/materials/document`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+    return response.data;
+  }
+
   static async create(data: any): Promise<Course> {
     const response = await ApiClient.post<{ data: Course }>('/courses', data);
     return response.data;
@@ -229,6 +242,13 @@ export const materialService = {
       isPublished?: boolean;
     }
   ) => ApiClient.post<CourseMaterial>(`/courses/${courseId}/materials`, data),
+
+  uploadDocument: (courseId: string, formData: FormData) =>
+    ApiClient.post<CourseMaterial>(`/courses/${courseId}/materials/document`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }),
 
   updateMaterial: (courseId: string, materialId: string, data: unknown) =>
     ApiClient.put<CourseMaterial>(`/courses/${courseId}/materials/${materialId}`, data),
@@ -286,6 +306,8 @@ export const courseService = {
   getAll: CourseService.getAll,
   getById: CourseService.getById,
   getMaterials: CourseService.getMaterials,
+  createMaterial: CourseService.createMaterial,
+  uploadDocument: CourseService.uploadDocument,
   getStructure: CourseService.getStructure,
   getCourseSections: CourseService.getCourseSections,
   getSectionSchedules: CourseService.getSectionSchedules,

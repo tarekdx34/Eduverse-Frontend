@@ -36,6 +36,10 @@ export class ApiClient {
       ...options.headers,
     };
 
+    if (options.body instanceof FormData) {
+      delete headers['Content-Type'];
+    }
+
     // Add auth token if available
     const accessToken = localStorage.getItem(TOKEN_KEYS.ACCESS_TOKEN);
     if (accessToken) {
@@ -117,24 +121,27 @@ export class ApiClient {
     return this.request<T>(endpoint, { ...options, method: 'GET' });
   }
 
-  static async post<T>(endpoint: string, data?: unknown): Promise<T> {
+  static async post<T>(endpoint: string, data?: unknown, options: RequestOptions = {}): Promise<T> {
     return this.request<T>(endpoint, {
+      ...options,
       method: 'POST',
-      body: data ? JSON.stringify(data) : undefined,
+      body: data instanceof FormData ? data : data ? JSON.stringify(data) : undefined,
     });
   }
 
-  static async put<T>(endpoint: string, data?: unknown): Promise<T> {
+  static async put<T>(endpoint: string, data?: unknown, options: RequestOptions = {}): Promise<T> {
     return this.request<T>(endpoint, {
+      ...options,
       method: 'PUT',
-      body: data ? JSON.stringify(data) : undefined,
+      body: data instanceof FormData ? data : data ? JSON.stringify(data) : undefined,
     });
   }
 
-  static async patch<T>(endpoint: string, data?: unknown): Promise<T> {
+  static async patch<T>(endpoint: string, data?: unknown, options: RequestOptions = {}): Promise<T> {
     return this.request<T>(endpoint, {
+      ...options,
       method: 'PATCH',
-      body: data ? JSON.stringify(data) : undefined,
+      body: data instanceof FormData ? data : data ? JSON.stringify(data) : undefined,
     });
   }
 
