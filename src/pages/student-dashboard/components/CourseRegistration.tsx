@@ -144,7 +144,9 @@ export function CourseRegistration() {
   const maxCredits = 21;
 
   const departmentOptions = useMemo(() => {
-    const departments = Array.from(new Set(mappedApiCourses.map((c) => c.department).filter(Boolean)));
+    const departments = Array.from(
+      new Set(mappedApiCourses.map((c) => c.department).filter(Boolean))
+    );
     return [{ value: 'all', label: t('allDepartments') || 'All Departments' }].concat(
       departments.map((department) => ({ value: department, label: department }))
     );
@@ -231,7 +233,9 @@ export function CourseRegistration() {
 
   const selectedCourseSections = courseToRegister?.sections || [];
 
-  const selectedSection = selectedCourseSections.find((section) => section.id === selectedSectionId);
+  const selectedSection = selectedCourseSections.find(
+    (section) => section.id === selectedSectionId
+  );
 
   const isLoading = availableLoading || myCoursesLoading;
   const combinedError = availableError || myCoursesError;
@@ -242,7 +246,7 @@ export function CourseRegistration() {
         <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
       </div>
     );
-  };
+  }
 
   if (combinedError) {
     return (
@@ -379,9 +383,7 @@ export function CourseRegistration() {
                 <div className="flex items-start justify-between mb-3">
                   <div>
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-sm font-bold text-(--accent-color)">
-                        {course.code}
-                      </span>
+                      <span className="text-sm font-bold text-(--accent-color)">{course.code}</span>
                       <span
                         className={`px-2 py-0.5 rounded-full text-xs font-medium border ${getStatusBadge(course.enrollmentStatus)}`}
                       >

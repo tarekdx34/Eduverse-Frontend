@@ -15,9 +15,21 @@ export type RosterEntry = {
 
 type RosterTableProps = {
   sectionId?: string;
-  data?: Array<{ id: number; name?: string; email?: string; status: string; grades?: { total?: string } }>;
+  data?: Array<{
+    id: number;
+    name?: string;
+    email?: string;
+    status: string;
+    grades?: { total?: string };
+  }>;
   grades?: unknown[];
-  onEdit?: (student: { id: number; name: string; email: string; status: string; grade?: string }) => void;
+  onEdit?: (student: {
+    id: number;
+    name: string;
+    email: string;
+    status: string;
+    grade?: string;
+  }) => void;
 };
 
 export function RosterTable({ sectionId, data = [] }: RosterTableProps) {
@@ -120,7 +132,8 @@ export function RosterTable({ sectionId, data = [] }: RosterTableProps) {
           if (sortField === 'userId') {
             comparison = a.userId - b.userId;
           } else if (sortField === 'enrollmentDate') {
-            comparison = new Date(a.enrollmentDate).getTime() - new Date(b.enrollmentDate).getTime();
+            comparison =
+              new Date(a.enrollmentDate).getTime() - new Date(b.enrollmentDate).getTime();
           } else {
             comparison = a.status.localeCompare(b.status);
           }

@@ -274,29 +274,30 @@ export default function ClassTab({ courses: propCourses, onViewCourse }: ClassTa
     }
   }, []);
 
-  const apiCourses: Course[] = (enrollments && enrollments.length > 0)
-    ? enrollments.map((e: EnrolledCourse, i: number) => {
-        const color = COURSE_COLORS[i % COURSE_COLORS.length];
-        return {
-          id: e.id,
-          title: e.course.name,
-          courseCode: e.course.code,
-          status: e.status,
-          sectionNumber: e.section.sectionNumber,
-          semesterName: e.semester.name,
-          grade: e.grade || 'N/A',
-          instructorImage: `https://ui-avatars.com/api/?name=${encodeURIComponent(e.course.name)}&background=random`,
-          schedule: `Section ${e.section.sectionNumber}`,
-          nextClass: e.semester.name,
-          room: e.section.location || 'TBD',
-          students: e.section.currentEnrollment,
-          credits: e.course.credits,
-          progress: 0,
-          color: color.bg,
-          progressColor: color.accent,
-        };
-      })
-    : [];
+  const apiCourses: Course[] =
+    enrollments && enrollments.length > 0
+      ? enrollments.map((e: EnrolledCourse, i: number) => {
+          const color = COURSE_COLORS[i % COURSE_COLORS.length];
+          return {
+            id: e.id,
+            title: e.course.name,
+            courseCode: e.course.code,
+            status: e.status,
+            sectionNumber: e.section.sectionNumber,
+            semesterName: e.semester.name,
+            grade: e.grade || 'N/A',
+            instructorImage: `https://ui-avatars.com/api/?name=${encodeURIComponent(e.course.name)}&background=random`,
+            schedule: `Section ${e.section.sectionNumber}`,
+            nextClass: e.semester.name,
+            room: e.section.location || 'TBD',
+            students: e.section.currentEnrollment,
+            credits: e.course.credits,
+            progress: 0,
+            color: color.bg,
+            progressColor: color.accent,
+          };
+        })
+      : [];
 
   const courses = apiCourses.length > 0 ? apiCourses : (propCourses ?? defaultCourses);
 
@@ -310,7 +311,9 @@ export default function ClassTab({ courses: propCourses, onViewCourse }: ClassTa
 
   if (error) {
     return (
-      <div className={`rounded-xl border p-4 ${isDark ? 'border-red-500/30 bg-red-500/10 text-red-200' : 'border-red-200 bg-red-50 text-red-700'}`}>
+      <div
+        className={`rounded-xl border p-4 ${isDark ? 'border-red-500/30 bg-red-500/10 text-red-200' : 'border-red-200 bg-red-50 text-red-700'}`}
+      >
         Failed to load my courses: {error}
       </div>
     );

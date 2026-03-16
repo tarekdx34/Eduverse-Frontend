@@ -26,23 +26,67 @@ export interface Course {
 }
 
 export interface CourseMaterial {
-  materialId: number;
+  materialId: string;
+  courseId: string;
+  course?: {
+    id: string;
+    name: string;
+    code: string;
+    credits: number;
+    level: string;
+  } | null;
+  fileId?: string | null;
+  file?: unknown | null;
+  driveFileId?: string | null;
+  materialType: 'document' | 'video' | 'lecture' | 'slide' | 'link';
   title: string;
   description?: string;
-  type: string;
-  fileUrl?: string;
-  embedUrl?: string;
-  orderNumber?: number;
-  isVisible: boolean;
+  externalUrl?: string | null;
+  youtubeVideoId?: string | null;
+  orderIndex?: number;
+  weekNumber?: number | null;
+  viewCount?: number;
+  downloadCount?: number;
+  uploadedBy?: number;
+  uploader?: {
+    userId: number;
+    firstName: string;
+    lastName: string;
+    email: string;
+  } | null;
+  isPublished: number;
+  publishedAt?: string | null;
   createdAt: string;
+  updatedAt?: string;
 }
 
 export interface CourseStructure {
-  structureId: number;
+  organizationId: string;
+  courseId: string;
+  materialId: string | null;
+  material: CourseMaterial | null;
+  organizationType: 'lecture' | 'lab' | 'section' | 'tutorial';
   title: string;
-  type: string;
-  orderNumber: number;
-  materials?: CourseMaterial[];
+  weekNumber: number;
+  orderIndex: number;
+  description?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CourseMaterialsResponse {
+  data: CourseMaterial[];
+  meta?: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+}
+
+export interface CourseStructureResponse {
+  data: CourseStructure[];
+  byWeek: Record<string, CourseStructure[]>;
 }
 
 export interface SectionSchedule {
@@ -85,15 +129,22 @@ export interface CourseSection {
 }
 
 export class CourseService {
-  static async getAll(params?: { search?: string; departmentId?: number; page?: number; limit?: number }): Promise<Course[]> {
+  static async getAll(params?: {
+    search?: string;
+    departmentId?: number;
+    page?: number;
+    limit?: number;
+  }): Promise<Course[]> {
     const query = new URLSearchParams();
     if (params?.search) query.set('search', params.search);
     if (params?.departmentId) query.set('departmentId', String(params.departmentId));
     if (params?.page) query.set('page', String(params.page));
     if (params?.limit) query.set('limit', String(params.limit));
     const qs = query.toString();
-    const response = await ApiClient.get<Course[] | { data: Course[] }>(`/courses${qs ? `?${qs}` : ''}`);
-    return Array.isArray(response) ? response : response.data ?? [];
+    const response = await ApiClient.get<Course[] | { data: Course[] }>(
+      `/courses${qs ? `?${qs}` : ''}`
+    );
+    return Array.isArray(response) ? response : (response.data ?? []);
   }
 
   static async getById(id: number): Promise<Course> {
@@ -101,17 +152,17 @@ export class CourseService {
   }
 
   static async getMaterials(courseId: number): Promise<CourseMaterial[]> {
-    const response = await ApiClient.get<CourseMaterial[] | { data: CourseMaterial[] }>(
+    const response = await ApiClient.get<CourseMaterialsResponse | CourseMaterial[]>(
       `/courses/${courseId}/materials`
     );
-    return Array.isArray(response) ? response : response.data ?? [];
+    return Array.isArray(response) ? response : (response.data ?? []);
   }
 
   static async getStructure(courseId: number): Promise<CourseStructure[]> {
-    const response = await ApiClient.get<CourseStructure[] | { data: CourseStructure[] }>(
+    const response = await ApiClient.get<CourseStructureResponse | CourseStructure[]>(
       `/courses/${courseId}/structure`
     );
-    return Array.isArray(response) ? response : response.data ?? [];
+    return Array.isArray(response) ? response : (response.data ?? []);
   }
 
   static async getCourseSections(courseId: string): Promise<CourseSection[]> {
@@ -129,6 +180,89 @@ export class CourseService {
   }
 }
 
+type MaterialQueryParams = {
+  materialType?: string;
+  weekNumber?: number;
+  page?: number;
+  limit?: number;
+  search?: string;
+};
+
+const normalizeApiBase = (base: string): string => {
+  const trimmed = (base || 'http://localhost:8081').replace(/\/$/, '');
+  return trimmed.endsWith('/api') ? trimmed : `${trimmed}/api`;
+};
+
+export const materialService = {
+  getMaterials: (courseId: string, params?: MaterialQueryParams) =>
+    ApiClient.get<CourseMaterialsResponse>(`/courses/${courseId}/materials`, { params }),
+
+  getMaterial: (courseId: string, materialId: string) =>
+    ApiClient.get<CourseMaterial>(`/courses/${courseId}/materials/${materialId}`),
+
+  createMaterial: (
+    courseId: string,
+    data: {
+      title: string;
+      materialType: string;
+      description?: string;
+      weekNumber?: number;
+      isPublished?: boolean;
+    }
+  ) => ApiClient.post<CourseMaterial>(`/courses/${courseId}/materials`, data),
+
+  updateMaterial: (courseId: string, materialId: string, data: unknown) =>
+    ApiClient.put<CourseMaterial>(`/courses/${courseId}/materials/${materialId}`, data),
+
+  deleteMaterial: (courseId: string, materialId: string) =>
+    ApiClient.delete<{ message: string }>(`/courses/${courseId}/materials/${materialId}`),
+
+  toggleVisibility: (courseId: string, materialId: string, isPublished: boolean) =>
+    ApiClient.patch<CourseMaterial>(`/courses/${courseId}/materials/${materialId}/visibility`, {
+      isPublished,
+    }),
+
+  trackView: (courseId: string, materialId: string) =>
+    ApiClient.post<{ message: string; materialId: string; viewCount: number }>(
+      `/courses/${courseId}/materials/${materialId}/view`
+    ),
+
+  getEmbed: (courseId: string, materialId: string) =>
+    ApiClient.get<{ videoId: string; embedUrl: string; iframeHtml: string }>(
+      `/courses/${courseId}/materials/${materialId}/embed`
+    ),
+
+  getDownloadUrl: (courseId: string, materialId: string) => {
+    const base = normalizeApiBase(import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081');
+    return `${base}/courses/${courseId}/materials/${materialId}/download`;
+  },
+};
+
+export const structureService = {
+  getStructure: (courseId: string) =>
+    ApiClient.get<CourseStructureResponse>(`/courses/${courseId}/structure`),
+
+  createStructureItem: (
+    courseId: string,
+    data: {
+      title: string;
+      organizationType: string;
+      weekNumber: number;
+      orderIndex?: number;
+      description?: string;
+    }
+  ) => ApiClient.post<CourseStructure>(`/courses/${courseId}/structure`, data),
+
+  updateStructureItem: (courseId: string, organizationId: string, data: unknown) =>
+    ApiClient.put<CourseStructure>(`/courses/${courseId}/structure/${organizationId}`, data),
+
+  deleteStructureItem: (courseId: string, organizationId: string) =>
+    ApiClient.delete<{ message: string }>(`/courses/${courseId}/structure/${organizationId}`),
+
+  reorderStructure: (courseId: string, orderIds: number[]) =>
+    ApiClient.patch<{ message: string }>(`/courses/${courseId}/structure/reorder`, { orderIds }),
+};
+
 export const courseService = {
   getAll: CourseService.getAll,
   getById: CourseService.getById,
@@ -136,4 +270,6 @@ export const courseService = {
   getStructure: CourseService.getStructure,
   getCourseSections: CourseService.getCourseSections,
   getSectionSchedules: CourseService.getSectionSchedules,
+  materialService,
+  structureService,
 };

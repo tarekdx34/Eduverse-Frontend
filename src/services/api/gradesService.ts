@@ -29,7 +29,7 @@ export interface TranscriptData {
 export class GradesService {
   static async getMyGrades(): Promise<GradeRecord[]> {
     const response = await ApiClient.get<GradeRecord[] | { data: GradeRecord[] }>('/grades/my');
-    return Array.isArray(response) ? response : response.data ?? [];
+    return Array.isArray(response) ? response : (response.data ?? []);
   }
 
   static async getGpa(studentId: number): Promise<GpaSummary> {
@@ -49,7 +49,10 @@ export class GradesService {
     return GradesService.getCourseGrades(resolvedCourseId);
   }
 
-  static async updateStudentGrade(gradeId: number, data: { percentage: number; notes?: string }): Promise<GradeRecord> {
+  static async updateStudentGrade(
+    gradeId: number,
+    data: { percentage: number; notes?: string }
+  ): Promise<GradeRecord> {
     return ApiClient.patch(`/grades/${gradeId}`, data);
   }
 }

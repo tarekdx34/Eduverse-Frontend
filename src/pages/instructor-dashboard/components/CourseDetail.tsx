@@ -23,7 +23,6 @@ import { CleanSelect } from '../../../components/shared';
 import { useApi } from '../../../hooks/useApi';
 import { courseService } from '../../../services/api/courseService';
 
-
 type Course = {
   id: number;
   courseCode: string;
@@ -57,20 +56,14 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
   const [editingAssignmentIndex, setEditingAssignmentIndex] = useState<number | null>(null);
   const [gradingSubTab, setGradingSubTab] = useState<'manual' | 'auto'>('manual');
 
-  const {
-    data: sectionSchedules,
-    loading: schedulesLoading,
-  } = useApi(
-    async () => {
-      try {
-        return await courseService.getSectionSchedules(String(courseId));
-      } catch (error) {
-        console.error('Failed to fetch section schedules', error);
-        throw error;
-      }
-    },
-    [courseId]
-  );
+  const { data: sectionSchedules, loading: schedulesLoading } = useApi(async () => {
+    try {
+      return await courseService.getSectionSchedules(String(courseId));
+    } catch (error) {
+      console.error('Failed to fetch section schedules', error);
+      throw error;
+    }
+  }, [courseId]);
 
   // Materials state
   const [showMaterialModal, setShowMaterialModal] = useState(false);
@@ -453,7 +446,8 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                           return (
                             <div key={schedule.id} className="text-sm">
                               <div className={isDark ? 'text-white' : 'text-gray-900'}>
-                                {dayLabel} • {formatTime(schedule.startTime)} - {formatTime(schedule.endTime)}
+                                {dayLabel} • {formatTime(schedule.startTime)} -{' '}
+                                {formatTime(schedule.endTime)}
                               </div>
                               <div className={isDark ? 'text-slate-400' : 'text-gray-600'}>
                                 {location} •

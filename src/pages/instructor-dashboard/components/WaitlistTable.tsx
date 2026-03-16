@@ -104,10 +104,14 @@ export function WaitlistTable({ sectionId, data = [], onApprove, onReject }: Wai
   );
 
   return (
-    <div className={`rounded-lg border p-6 shadow-sm ${isDark ? 'bg-card-dark border-white/10' : 'bg-white border-gray-200'}`}>
+    <div
+      className={`rounded-lg border p-6 shadow-sm ${isDark ? 'bg-card-dark border-white/10' : 'bg-white border-gray-200'}`}
+    >
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('waitlist')}</h3>
+          <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+            {t('waitlist')}
+          </h3>
           <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
             {waitlistData.length} {t('waitingForEnrollment')}
           </p>
@@ -138,7 +142,9 @@ export function WaitlistTable({ sectionId, data = [], onApprove, onReject }: Wai
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-            isDark ? 'bg-white/5 border-white/10 text-slate-200 placeholder:text-slate-500' : 'bg-white border-gray-300 text-gray-900'
+            isDark
+              ? 'bg-white/5 border-white/10 text-slate-200 placeholder:text-slate-500'
+              : 'bg-white border-gray-300 text-gray-900'
           }`}
         />
       </div>
@@ -180,10 +186,17 @@ export function WaitlistTable({ sectionId, data = [], onApprove, onReject }: Wai
           </thead>
           <tbody>
             {filteredAndSortedData.slice(0, 100).map((student, index) => (
-              <tr key={student.id || `${student.email}-${index}`} className={`border-t transition-colors ${isDark ? 'border-white/5 hover:bg-white/5' : 'hover:bg-gray-50'}`}>
+              <tr
+                key={student.id || `${student.email}-${index}`}
+                className={`border-t transition-colors ${isDark ? 'border-white/5 hover:bg-white/5' : 'hover:bg-gray-50'}`}
+              >
                 <td className="p-3">
-                  <div className={`font-medium ${isDark ? 'text-slate-200' : 'text-gray-900'}`}>{student.name}</div>
-                  <div className={`flex items-center gap-2 text-xs mt-1 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                  <div className={`font-medium ${isDark ? 'text-slate-200' : 'text-gray-900'}`}>
+                    {student.name}
+                  </div>
+                  <div
+                    className={`flex items-center gap-2 text-xs mt-1 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}
+                  >
                     <Mail size={14} className={isDark ? 'text-slate-500' : 'text-gray-400'} />
                     {student.email}
                   </div>
@@ -194,7 +207,9 @@ export function WaitlistTable({ sectionId, data = [], onApprove, onReject }: Wai
                   </span>
                 </td>
                 <td className="p-3">
-                  <div className={`flex items-center gap-2 text-xs ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                  <div
+                    className={`flex items-center gap-2 text-xs ${isDark ? 'text-slate-400' : 'text-gray-600'}`}
+                  >
                     <Calendar size={14} className={isDark ? 'text-slate-500' : 'text-gray-400'} />
                     {formatDate(student.requestedAt)}
                   </div>
@@ -232,7 +247,10 @@ export function WaitlistTable({ sectionId, data = [], onApprove, onReject }: Wai
             ))}
             {filteredAndSortedData.length === 0 && (
               <tr>
-                <td className={`p-6 text-center ${isDark ? 'text-slate-500' : 'text-gray-500'}`} colSpan={5}>
+                <td
+                  className={`p-6 text-center ${isDark ? 'text-slate-500' : 'text-gray-500'}`}
+                  colSpan={5}
+                >
                   {searchTerm ? t('noStudentsMatch') : 'No students on waitlist'}
                 </td>
               </tr>
@@ -240,7 +258,9 @@ export function WaitlistTable({ sectionId, data = [], onApprove, onReject }: Wai
           </tbody>
         </table>
         {filteredAndSortedData.length > 100 && (
-          <div className={`mt-4 text-sm text-center ${isDark ? 'text-slate-500' : 'text-gray-500'}`}>
+          <div
+            className={`mt-4 text-sm text-center ${isDark ? 'text-slate-500' : 'text-gray-500'}`}
+          >
             {t('showingFirst100')} {filteredAndSortedData.length} {t('results')}
           </div>
         )}

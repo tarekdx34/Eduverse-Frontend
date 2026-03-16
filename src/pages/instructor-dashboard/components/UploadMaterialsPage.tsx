@@ -1,328 +1,473 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useParams } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { CleanSelect } from '../../../components/shared';
-
 import {
   Upload,
-  FileText,
-  Video,
-  Presentation,
-  Table,
   Search,
   X,
-  RotateCcw,
   Trash2,
   Edit,
   Download,
   Eye,
   EyeOff,
-  AlertTriangle,
   CheckCircle,
-  Clock,
-  Loader,
-  XCircle,
-  CloudUpload,
-  FolderOpen,
+  Loader2,
+  Video,
+  FileText,
+  Presentation,
+  Link as LinkIcon,
+  BookOpen,
 } from 'lucide-react';
+import { EnrollmentService } from '../../../services/api/enrollmentService';
+import {
+  CourseMaterial,
+  CourseMaterialsResponse,
+  CourseStructureResponse,
+  materialService,
+  structureService,
+} from '../../../services/api/courseService';
+import { toast } from 'sonner';
 
-const uploadQueue = [
-  {
-    id: 1,
-    name: 'Lecture_Notes_Week5.pdf',
-    size: '2.5 MB',
-    status: 'completed',
-    progress: 100,
-    course: 'CS101',
-  },
-  {
-    id: 2,
-    name: 'Assignment_Template.docx',
-    size: '156 KB',
-    status: 'uploading',
-    progress: 65,
-    course: 'CS201',
-  },
-  {
-    id: 3,
-    name: 'Lab_Instructions.pdf',
-    size: '1.8 MB',
-    status: 'processing',
-    progress: 100,
-    course: 'CS301',
-  },
-  {
-    id: 4,
-    name: 'Video_Tutorial_Part2.mp4',
-    size: '245 MB',
-    status: 'pending',
-    progress: 0,
-    course: 'CS101',
-  },
-  {
-    id: 5,
-    name: 'Midterm_Review.pptx',
-    size: '8.2 MB',
-    status: 'failed',
-    progress: 45,
-    course: 'CS201',
-  },
-];
-
-const materialsLibrary = [
-  {
-    id: 1,
-    name: 'Course Syllabus',
-    type: 'document',
-    size: '256 KB',
-    course: 'CS101',
-    module: 'General',
-    visibility: true,
-    downloads: 45,
-    date: 'Feb 1, 2026',
-    tags: ['syllabus', 'important'],
-  },
-  {
-    id: 2,
-    name: 'Lecture 1 - Introduction',
-    type: 'video',
-    size: '125 MB',
-    course: 'CS101',
-    module: 'Week 1',
-    visibility: true,
-    downloads: 32,
-    date: 'Feb 3, 2026',
-    tags: ['lecture'],
-  },
-  {
-    id: 3,
-    name: 'Week 1 Slides',
-    type: 'presentation',
-    size: '4.5 MB',
-    course: 'CS101',
-    module: 'Week 1',
-    visibility: true,
-    downloads: 28,
-    date: 'Feb 3, 2026',
-    tags: ['slides'],
-  },
-  {
-    id: 4,
-    name: 'Programming Exercise Dataset',
-    type: 'spreadsheet',
-    size: '890 KB',
-    course: 'CS201',
-    module: 'Week 1',
-    visibility: false,
-    downloads: 0,
-    date: 'Feb 5, 2026',
-    tags: ['exercise'],
-  },
-  {
-    id: 5,
-    name: 'Data Structures Overview',
-    type: 'document',
-    size: '1.2 MB',
-    course: 'CS201',
-    module: 'Week 2',
-    visibility: true,
-    downloads: 56,
-    date: 'Feb 8, 2026',
-    tags: ['notes'],
-  },
-  {
-    id: 6,
-    name: 'Sorting Algorithms Demo',
-    type: 'video',
-    size: '89 MB',
-    course: 'CS201',
-    module: 'Week 3',
-    visibility: true,
-    downloads: 41,
-    date: 'Feb 10, 2026',
-    tags: ['demo'],
-  },
-  {
-    id: 7,
-    name: 'ER Diagram Tutorial',
-    type: 'presentation',
-    size: '3.2 MB',
-    course: 'CS301',
-    module: 'Week 1',
-    visibility: true,
-    downloads: 18,
-    date: 'Feb 12, 2026',
-    tags: ['tutorial'],
-  },
-  {
-    id: 8,
-    name: 'SQL Practice Problems',
-    type: 'document',
-    size: '450 KB',
-    course: 'CS301',
-    module: 'Week 2',
-    visibility: true,
-    downloads: 23,
-    date: 'Feb 14, 2026',
-    tags: ['practice'],
-  },
-];
-
-const courseOptions = [
-  { value: 'all', label: 'All Courses' },
-  { value: 'CS101', label: 'CS101 - Intro to CS' },
-  { value: 'CS201', label: 'CS201 - Data Structures' },
-  { value: 'CS301', label: 'CS301 - Database Systems' },
-];
-
-const moduleOptions: Record<string, string[]> = {
-  CS101: ['General', 'Week 1', 'Week 2', 'Week 3'],
-  CS201: ['General', 'Week 1', 'Week 2', 'Week 3'],
-  CS301: ['General', 'Week 1', 'Week 2', 'Week 3'],
+type UploadMaterialsPageProps = {
+  courseId?: string;
 };
 
-const typeFilters = ['All', 'Documents', 'Videos', 'Presentations', 'Spreadsheets'];
-
-const typeToFilter: Record<string, string> = {
-  document: 'Documents',
-  video: 'Videos',
-  presentation: 'Presentations',
-  spreadsheet: 'Spreadsheets',
+type MaterialFormState = {
+  title: string;
+  materialType: 'document' | 'video' | 'lecture' | 'slide' | 'link';
+  description: string;
+  weekNumber: string;
+  isPublished: boolean;
 };
 
-function getFileTypeIcon(type: string, size = 20) {
+type ActivityItem = {
+  id: number;
+  title: string;
+  status: 'completed' | 'processing';
+  time: string;
+};
+
+const defaultFormState: MaterialFormState = {
+  title: '',
+  materialType: 'document',
+  description: '',
+  weekNumber: '',
+  isPublished: false,
+};
+
+const materialBadgeClasses: Record<string, string> = {
+  video: 'bg-blue-100 text-blue-700',
+  document: 'bg-green-100 text-green-700',
+  lecture: 'bg-purple-100 text-purple-700',
+  slide: 'bg-orange-100 text-orange-700',
+  link: 'bg-slate-100 text-slate-700',
+};
+
+const materialTypeOptions = [
+  { value: 'all', label: 'All Types' },
+  { value: 'document', label: 'Document' },
+  { value: 'video', label: 'Video' },
+  { value: 'lecture', label: 'Lecture' },
+  { value: 'slide', label: 'Slide' },
+  { value: 'link', label: 'Link' },
+];
+
+const materialIcon = (type: string) => {
   switch (type) {
     case 'video':
-      return <Video size={size} className="text-red-500" />;
-    case 'presentation':
-      return <Presentation size={size} className="text-amber-500" />;
-    case 'spreadsheet':
-      return <Table size={size} className="text-green-500" />;
+      return <Video size={18} className="text-blue-500" />;
+    case 'slide':
+      return <Presentation size={18} className="text-orange-500" />;
+    case 'lecture':
+      return <BookOpen size={18} className="text-purple-500" />;
+    case 'link':
+      return <LinkIcon size={18} className="text-slate-500" />;
     default:
-      return <FileText size={size} className="text-blue-500" />;
+      return <FileText size={18} className="text-green-500" />;
   }
-}
+};
 
-function getFileTypeFromName(name: string): string {
-  const ext = name.split('.').pop()?.toLowerCase();
-  if (['mp4', 'avi', 'mov', 'mkv'].includes(ext || '')) return 'video';
-  if (['pptx', 'ppt'].includes(ext || '')) return 'presentation';
-  if (['xlsx', 'xls', 'csv'].includes(ext || '')) return 'spreadsheet';
-  return 'document';
-}
+const parseWeekNumber = (value: string): number | undefined => {
+  const trimmed = value.trim();
+  if (!trimmed) return undefined;
+  const parsed = Number(trimmed);
+  return Number.isFinite(parsed) ? parsed : undefined;
+};
 
-function StatusBadge({ status, isDark }: { status: string; isDark: boolean }) {
-  const config: Record<string, { bg: string; text: string; icon: JSX.Element; label: string }> = {
-    completed: {
-      bg: isDark ? 'bg-green-500/20' : 'bg-green-100',
-      text: isDark ? 'text-green-300' : 'text-green-700',
-      icon: <CheckCircle size={14} />,
-      label: 'Completed',
-    },
-    uploading: {
-      bg: isDark ? 'bg-blue-500/20' : 'bg-blue-100',
-      text: isDark ? 'text-blue-300' : 'text-blue-700',
-      icon: <Loader size={14} className="animate-spin" />,
-      label: 'Uploading',
-    },
-    processing: {
-      bg: isDark ? 'bg-amber-500/20' : 'bg-amber-100',
-      text: isDark ? 'text-amber-300' : 'text-amber-700',
-      icon: <Loader size={14} className="animate-spin" />,
-      label: 'Processing',
-    },
-    pending: {
-      bg: isDark ? 'bg-gray-500/20' : 'bg-gray-100',
-      text: isDark ? 'text-gray-300' : 'text-gray-700',
-      icon: <Clock size={14} />,
-      label: 'Pending',
-    },
-    failed: {
-      bg: isDark ? 'bg-red-500/20' : 'bg-red-100',
-      text: isDark ? 'text-red-300' : 'text-red-700',
-      icon: <XCircle size={14} />,
-      label: 'Failed',
-    },
-  };
+const uploaderName = (material: CourseMaterial): string => {
+  if (material.uploader?.firstName || material.uploader?.lastName) {
+    return `${material.uploader?.firstName || ''} ${material.uploader?.lastName || ''}`.trim();
+  }
+  return 'Unknown';
+};
 
-  const c = config[status] || config.pending;
-  return (
-    <span
-      className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${c.bg} ${c.text}`}
-    >
-      {c.icon}
-      {c.label}
-    </span>
-  );
-}
-
-export function UploadMaterialsPage() {
+export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
+  const { id: routeId } = useParams();
   const { isDark, primaryHex = '#3b82f6' } = useTheme() as any;
   const { isRTL } = useLanguage();
 
-  const [activeTab, setActiveTab] = useState<'queue' | 'library'>('queue');
-  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [activeTab, setActiveTab] = useState<'queue' | 'library'>('library');
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [selectedMaterial, setSelectedMaterial] = useState<(typeof materialsLibrary)[0] | null>(
-    null
-  );
+  const [selectedMaterial, setSelectedMaterial] = useState<CourseMaterial | null>(null);
 
-  // Library filters
-  const [courseFilter, setCourseFilter] = useState('all');
-  const [typeFilter, setTypeFilter] = useState('All');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [createForm, setCreateForm] = useState<MaterialFormState>(defaultFormState);
+  const [editForm, setEditForm] = useState<MaterialFormState>(defaultFormState);
 
-  // Upload modal state
-  const [uploadCourse, setUploadCourse] = useState('CS101');
-  const [uploadModule, setUploadModule] = useState('General');
-
-  // Edit modal state
-  const [editName, setEditName] = useState('');
-  const [editDescription, setEditDescription] = useState('');
-  const [editModule, setEditModule] = useState('');
-  const [editTags, setEditTags] = useState('');
-
-  // Visibility toggles
-  const [visibilityState, setVisibilityState] = useState<Record<number, boolean>>(
-    Object.fromEntries(materialsLibrary.map((m) => [m.id, m.visibility]))
-  );
-
-  const filteredMaterials = materialsLibrary.filter((m) => {
-    if (courseFilter !== 'all' && m.course !== courseFilter) return false;
-    if (typeFilter !== 'All' && typeToFilter[m.type] !== typeFilter) return false;
-    if (searchQuery && !m.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
-    return true;
+  const [materialsResponse, setMaterialsResponse] = useState<CourseMaterialsResponse>({ data: [] });
+  const [structureResponse, setStructureResponse] = useState<CourseStructureResponse>({
+    data: [],
+    byWeek: {},
   });
+  const [loading, setLoading] = useState(false);
+  const [mutating, setMutating] = useState(false);
 
-  const openEdit = (material: (typeof materialsLibrary)[0]) => {
+  const [courseOptions, setCourseOptions] = useState<Array<{ value: string; label: string }>>([]);
+  const [selectedCourseId, setSelectedCourseId] = useState<string>(courseId || routeId || '');
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const [typeFilter, setTypeFilter] = useState('all');
+  const [weekFilter, setWeekFilter] = useState('all');
+
+  const [embedUrls, setEmbedUrls] = useState<Record<string, string>>({});
+  const [activities, setActivities] = useState<ActivityItem[]>([]);
+
+  const activeCourseId = selectedCourseId || courseId || routeId || '';
+
+  const addActivity = useCallback((title: string, status: 'completed' | 'processing') => {
+    setActivities((prev) =>
+      [{ id: Date.now(), title, status, time: new Date().toLocaleTimeString() }, ...prev].slice(
+        0,
+        8
+      )
+    );
+  }, []);
+
+  const loadCourseOptions = useCallback(async () => {
+    try {
+      const teaching = await EnrollmentService.getTeachingCourses();
+      const mapped = (Array.isArray(teaching) ? teaching : [])
+        .map((c: any) => {
+          const value = String(c.courseId || c.id || c.sectionId || '');
+          const name = c.course?.name || c.courseName || c.name || 'Course';
+          const code = c.course?.code || c.courseCode || '';
+          return value ? { value, label: code ? `${code} - ${name}` : name } : null;
+        })
+        .filter(Boolean) as Array<{ value: string; label: string }>;
+
+      setCourseOptions(mapped);
+      if (!selectedCourseId && mapped.length > 0) {
+        setSelectedCourseId(mapped[0].value);
+      }
+    } catch {
+      setCourseOptions([]);
+    }
+  }, [selectedCourseId]);
+
+  const loadStructure = useCallback(async (targetCourseId: string) => {
+    const response = await structureService.getStructure(targetCourseId);
+    setStructureResponse(response || { data: [], byWeek: {} });
+  }, []);
+
+  const loadMaterials = useCallback(
+    async (targetCourseId: string) => {
+      const params: {
+        materialType?: string;
+        weekNumber?: number;
+        search?: string;
+        page?: number;
+        limit?: number;
+      } = {
+        page: 1,
+        limit: 100,
+      };
+
+      if (typeFilter !== 'all') params.materialType = typeFilter;
+      if (weekFilter !== 'all') params.weekNumber = Number(weekFilter);
+      if (searchQuery.trim()) params.search = searchQuery.trim();
+
+      const response = await materialService.getMaterials(targetCourseId, params);
+      setMaterialsResponse(response || { data: [] });
+    },
+    [searchQuery, typeFilter, weekFilter]
+  );
+
+  const refetchAll = useCallback(async () => {
+    if (!activeCourseId) return;
+    setLoading(true);
+    try {
+      await Promise.all([loadMaterials(activeCourseId), loadStructure(activeCourseId)]);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to load materials';
+      toast.error(message);
+    } finally {
+      setLoading(false);
+    }
+  }, [activeCourseId, loadMaterials, loadStructure]);
+
+  useEffect(() => {
+    loadCourseOptions();
+  }, [loadCourseOptions]);
+
+  useEffect(() => {
+    refetchAll();
+  }, [refetchAll]);
+
+  const weekOptions = useMemo(() => {
+    const dynamic = Object.keys(structureResponse.byWeek || {})
+      .sort((a, b) => Number(a) - Number(b))
+      .map((week) => ({ value: week, label: `Week ${week}` }));
+    return [{ value: 'all', label: 'All Weeks' }, ...dynamic];
+  }, [structureResponse.byWeek]);
+
+  const groupedMaterials = useMemo(() => {
+    const groups: Record<string, CourseMaterial[]> = {};
+
+    for (const material of materialsResponse.data || []) {
+      const key = material.weekNumber == null ? 'general' : String(material.weekNumber);
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(material);
+    }
+
+    Object.keys(groups).forEach((key) => {
+      groups[key].sort((a, b) => Number(a.orderIndex || 0) - Number(b.orderIndex || 0));
+    });
+
+    return groups;
+  }, [materialsResponse.data]);
+
+  const openCreateModal = () => {
+    setCreateForm(defaultFormState);
+    setShowCreateModal(true);
+  };
+
+  const openEditModal = (material: CourseMaterial) => {
     setSelectedMaterial(material);
-    setEditName(material.name);
-    setEditDescription('');
-    setEditModule(material.module);
-    setEditTags(material.tags.join(', '));
+    setEditForm({
+      title: material.title || '',
+      materialType: (material.materialType || 'document') as MaterialFormState['materialType'],
+      description: material.description || '',
+      weekNumber: material.weekNumber == null ? '' : String(material.weekNumber),
+      isPublished: material.isPublished === 1,
+    });
     setShowEditModal(true);
   };
 
-  const openDelete = (material: (typeof materialsLibrary)[0]) => {
-    setSelectedMaterial(material);
-    setShowDeleteDialog(true);
+  const onCreateMaterial = async () => {
+    if (!activeCourseId || !createForm.title.trim()) return;
+    setMutating(true);
+    addActivity(`Creating: ${createForm.title}`, 'processing');
+    try {
+      await materialService.createMaterial(activeCourseId, {
+        title: createForm.title.trim(),
+        materialType: createForm.materialType,
+        description: createForm.description || undefined,
+        weekNumber: parseWeekNumber(createForm.weekNumber),
+        isPublished: createForm.isPublished,
+      });
+      toast.success('Material created');
+      addActivity(`Created: ${createForm.title}`, 'completed');
+      setShowCreateModal(false);
+      await loadMaterials(activeCourseId);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to create material';
+      toast.error(message);
+    } finally {
+      setMutating(false);
+    }
   };
 
-  const toggleVisibility = (id: number) => {
-    setVisibilityState((prev) => ({ ...prev, [id]: !prev[id] }));
+  const onUpdateMaterial = async () => {
+    if (!activeCourseId || !selectedMaterial) return;
+    setMutating(true);
+    try {
+      await materialService.updateMaterial(activeCourseId, selectedMaterial.materialId, {
+        title: editForm.title.trim(),
+        description: editForm.description || undefined,
+        weekNumber: parseWeekNumber(editForm.weekNumber),
+        isPublished: editForm.isPublished,
+      });
+      toast.success('Material updated');
+      setShowEditModal(false);
+      await loadMaterials(activeCourseId);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to update material';
+      toast.error(message);
+    } finally {
+      setMutating(false);
+    }
   };
 
-  const tabs = [
-    { key: 'queue' as const, label: 'Upload Queue', count: uploadQueue.length },
-    { key: 'library' as const, label: 'Materials Library', count: materialsLibrary.length },
-  ];
+  const onDeleteMaterial = async () => {
+    if (!activeCourseId || !selectedMaterial) return;
+    setMutating(true);
+    try {
+      await materialService.deleteMaterial(activeCourseId, selectedMaterial.materialId);
+      toast.success('Material deleted');
+      setShowDeleteDialog(false);
+      await loadMaterials(activeCourseId);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to delete material';
+      toast.error(message);
+    } finally {
+      setMutating(false);
+    }
+  };
+
+  const onToggleVisibility = async (material: CourseMaterial) => {
+    if (!activeCourseId) return;
+    try {
+      await materialService.toggleVisibility(
+        activeCourseId,
+        material.materialId,
+        material.isPublished !== 1
+      );
+      await loadMaterials(activeCourseId);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to update visibility';
+      toast.error(message);
+    }
+  };
+
+  const onLoadEmbed = async (material: CourseMaterial) => {
+    if (!activeCourseId) return;
+    try {
+      const embed = await materialService.getEmbed(activeCourseId, material.materialId);
+      if (embed?.embedUrl) {
+        setEmbedUrls((prev) => ({ ...prev, [material.materialId]: embed.embedUrl }));
+      }
+    } catch {
+      // Keep UI quiet for optional embed loading.
+    }
+  };
+
+  const onDownload = (material: CourseMaterial) => {
+    if (!activeCourseId || !material.fileId) return;
+    const url = materialService.getDownloadUrl(activeCourseId, material.materialId);
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  const renderMaterialCard = (material: CourseMaterial) => {
+    const badgeClass = materialBadgeClasses[material.materialType] || materialBadgeClasses.document;
+    const videoSrc = embedUrls[material.materialId] || material.externalUrl || '';
+
+    return (
+      <div
+        key={material.materialId}
+        className={`rounded-xl p-4 border shadow-sm ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}
+      >
+        <div className="flex items-start gap-3">
+          <div
+            className={`w-9 h-9 rounded-lg flex items-center justify-center ${isDark ? 'bg-white/10' : 'bg-slate-100'}`}
+          >
+            {materialIcon(material.materialType)}
+          </div>
+
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap mb-1">
+              <h4 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                {material.title}
+              </h4>
+              <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${badgeClass}`}>
+                {material.materialType}
+              </span>
+              <span
+                className={`px-2 py-0.5 rounded-full text-xs font-medium ${material.isPublished === 1 ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}`}
+              >
+                {material.isPublished === 1 ? 'Published' : 'Draft'}
+              </span>
+            </div>
+
+            <p className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+              {material.description || 'No description'}
+            </p>
+
+            <div
+              className={`mt-2 text-xs flex flex-wrap gap-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}
+            >
+              <span>{material.weekNumber == null ? 'General' : `Week ${material.weekNumber}`}</span>
+              <span>{material.viewCount || 0} views</span>
+              <span>{material.downloadCount || 0} downloads</span>
+              <span>Uploader: {uploaderName(material)}</span>
+            </div>
+
+            {material.materialType === 'video' && videoSrc && (
+              <div className="mt-3 rounded-lg overflow-hidden border border-slate-200">
+                <iframe
+                  src={videoSrc}
+                  width="100%"
+                  height="315"
+                  allowFullScreen
+                  title={`video-${material.materialId}`}
+                />
+              </div>
+            )}
+          </div>
+
+          <div className="flex items-center gap-1">
+            {material.materialType === 'video' && !videoSrc && (
+              <button
+                onClick={() => onLoadEmbed(material)}
+                className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-white/10 text-slate-300' : 'hover:bg-slate-100 text-slate-600'}`}
+                title="Load embed"
+              >
+                <Eye size={16} />
+              </button>
+            )}
+
+            <button
+              onClick={() => onToggleVisibility(material)}
+              className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-white/10' : 'hover:bg-slate-100'}`}
+              title="Toggle visibility"
+            >
+              {material.isPublished === 1 ? (
+                <Eye size={16} className="text-green-500" />
+              ) : (
+                <EyeOff size={16} className="text-slate-500" />
+              )}
+            </button>
+
+            <button
+              onClick={() => openEditModal(material)}
+              className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-white/10 text-slate-300' : 'hover:bg-slate-100 text-slate-600'}`}
+              title="Edit"
+            >
+              <Edit size={16} />
+            </button>
+
+            <button
+              onClick={() => {
+                setSelectedMaterial(material);
+                setShowDeleteDialog(true);
+              }}
+              className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-white/10 text-red-300' : 'hover:bg-red-50 text-red-600'}`}
+              title="Delete"
+            >
+              <Trash2 size={16} />
+            </button>
+
+            {material.fileId && (
+              <button
+                onClick={() => onDownload(material)}
+                className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-white/10 text-slate-300' : 'hover:bg-slate-100 text-slate-600'}`}
+                title="Download"
+              >
+                <Download size={16} />
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="p-6" dir={isRTL ? 'rtl' : 'ltr'}>
       <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-4">
           <div>
             <h1
               className={`text-3xl font-bold flex items-center gap-3 ${isDark ? 'text-white' : 'text-gray-900'}`}
@@ -335,46 +480,38 @@ export function UploadMaterialsPage() {
             </p>
           </div>
           <button
-            onClick={() => setShowUploadModal(true)}
+            onClick={openCreateModal}
             className="flex items-center gap-2 px-4 py-2 text-white rounded-lg transition-colors"
             style={{ backgroundColor: primaryHex }}
           >
             <Upload size={20} />
-            Upload Files
+            Add Material
           </button>
         </div>
 
-        {/* Tab Navigation */}
-        <div
-          className={`flex items-center gap-2 border-b ${isDark ? 'border-white/10' : 'border-gray-200'}`}
-        >
-          {tabs.map((tab) => (
+        <div className="flex items-center gap-2 border-b border-slate-200/60">
+          {[
+            {
+              key: 'library' as const,
+              label: 'Materials Library',
+              count: materialsResponse.meta?.total ?? materialsResponse.data.length,
+            },
+            { key: 'queue' as const, label: 'Activity', count: activities.length },
+          ].map((tab) => (
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`px-4 py-2 font-medium text-sm transition-colors flex items-center gap-2 ${
-                activeTab === tab.key
-                  ? 'border-b-2'
-                  : isDark
-                    ? 'text-gray-400 hover:text-white'
-                    : 'text-gray-600 hover:text-gray-900'
-              }`}
+              className={`px-4 py-2 font-medium text-sm transition-colors flex items-center gap-2 ${activeTab === tab.key ? 'border-b-2' : isDark ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'}`}
               style={
                 activeTab === tab.key ? { color: primaryHex, borderColor: primaryHex } : undefined
               }
             >
               {tab.label}
               <span
-                className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                  activeTab === tab.key
-                    ? ''
-                    : isDark
-                      ? 'bg-white/10 text-gray-400'
-                      : 'bg-gray-100 text-gray-600'
-                }`}
+                className={`px-2 py-0.5 rounded-full text-xs font-medium ${activeTab === tab.key ? '' : isDark ? 'bg-white/10 text-slate-400' : 'bg-slate-100 text-slate-600'}`}
                 style={
                   activeTab === tab.key
-                    ? { backgroundColor: primaryHex + '20', color: primaryHex }
+                    ? { backgroundColor: `${primaryHex}20`, color: primaryHex }
                     : undefined
                 }
               >
@@ -384,258 +521,129 @@ export function UploadMaterialsPage() {
           ))}
         </div>
 
-        {/* Upload Queue Tab */}
-        {activeTab === 'queue' && (
-          <div className="space-y-4">
-            {uploadQueue.map((item) => {
-              const fileType = getFileTypeFromName(item.name);
-              return (
-                <div
-                  key={item.id}
-                  className={`rounded-xl p-4 border shadow-sm ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}
-                >
-                  <div className="flex items-center gap-4">
-                    <div
-                      className={`w-10 h-10 rounded-lg flex items-center justify-center ${isDark ? 'bg-white/10' : 'bg-gray-100'}`}
-                    >
-                      {getFileTypeIcon(fileType)}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-3 mb-1">
-                        <span
-                          className={`font-medium truncate ${isDark ? 'text-white' : 'text-gray-900'}`}
-                        >
-                          {item.name}
-                        </span>
-                        <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                          {item.size}
-                        </span>
-                        <span
-                          className={`px-2 py-0.5 rounded-full text-xs font-medium ${isDark ? 'bg-indigo-500/20 text-indigo-300' : 'bg-indigo-100 text-indigo-700'}`}
-                        >
-                          {item.course}
-                        </span>
-                      </div>
-                      {(item.status === 'uploading' ||
-                        item.status === 'processing' ||
-                        item.status === 'failed') && (
-                        <div className="mt-2">
-                          <div
-                            className={`w-full h-2 rounded-full ${isDark ? 'bg-white/10' : 'bg-gray-200'}`}
-                          >
-                            <div
-                              className={`h-2 rounded-full transition-all ${
-                                item.status === 'failed'
-                                  ? 'bg-red-500'
-                                  : item.status === 'processing'
-                                    ? 'bg-amber-500'
-                                    : 'bg-indigo-600'
-                              }`}
-                              style={{ width: `${item.progress}%` }}
-                            />
-                          </div>
-                          <span
-                            className={`text-xs mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}
-                          >
-                            {item.progress}%
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                    <StatusBadge status={item.status} isDark={isDark} />
-                    <div className="flex items-center gap-2">
-                      {(item.status === 'pending' || item.status === 'uploading') && (
-                        <button
-                          className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-white/10 text-gray-400' : 'hover:bg-gray-100 text-gray-500'}`}
-                          title="Cancel"
-                        >
-                          <X size={16} />
-                        </button>
-                      )}
-                      {item.status === 'failed' && (
-                        <button
-                          className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-white/10 text-amber-400' : 'hover:bg-amber-50 text-amber-600'}`}
-                          title="Retry"
-                        >
-                          <RotateCcw size={16} />
-                        </button>
-                      )}
-                      {item.status === 'completed' && (
-                        <button
-                          className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-white/10 text-gray-400' : 'hover:bg-gray-100 text-gray-500'}`}
-                          title="Remove"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Materials Library Tab */}
         {activeTab === 'library' && (
-          <div className="space-y-4">
-            {/* Filters */}
-            <div className="flex flex-wrap items-center gap-4">
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
               <CleanSelect
-                value={courseFilter}
-                onChange={(e) => setCourseFilter(e.target.value)}
-                className={`px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? 'bg-white/5 border-white/10 text-white' : 'border-gray-300 bg-white'}`}
+                value={activeCourseId}
+                onChange={(e) => setSelectedCourseId(e.target.value)}
+                className={`px-3 py-2 border rounded-lg text-sm ${isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-slate-300'}`}
               >
+                {courseOptions.length === 0 && <option value="">Select Course</option>}
                 {courseOptions.map((opt) => (
-                  <option key={opt.value} value={opt.value} className={isDark ? 'bg-gray-800' : ''}>
+                  <option key={opt.value} value={opt.value}>
                     {opt.label}
                   </option>
                 ))}
               </CleanSelect>
-              <div className="flex items-center gap-2">
-                {typeFilters.map((tf) => (
-                  <button
-                    key={tf}
-                    onClick={() => setTypeFilter(tf)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                      typeFilter === tf
-                        ? 'text-white'
-                        : isDark
-                          ? 'bg-white/5 text-gray-400 hover:bg-white/10'
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }`}
-                    style={typeFilter === tf ? { backgroundColor: primaryHex } : undefined}
-                  >
-                    {tf}
-                  </button>
+
+              <CleanSelect
+                value={typeFilter}
+                onChange={(e) => setTypeFilter(e.target.value)}
+                className={`px-3 py-2 border rounded-lg text-sm ${isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-slate-300'}`}
+              >
+                {materialTypeOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
                 ))}
-              </div>
-              <div className="relative flex-1 max-w-md">
+              </CleanSelect>
+
+              <CleanSelect
+                value={weekFilter}
+                onChange={(e) => setWeekFilter(e.target.value)}
+                className={`px-3 py-2 border rounded-lg text-sm ${isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-slate-300'}`}
+              >
+                {weekOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </CleanSelect>
+
+              <div className="relative">
                 <Search
-                  className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}
+                  className={`absolute left-3 top-1/2 -translate-y-1/2 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
                   size={18}
                 />
                 <input
                   type="text"
-                  placeholder="Search materials..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className={`w-full pl-10 pr-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500' : 'border-gray-300 bg-white'}`}
+                  placeholder="Search by title"
+                  className={`w-full pl-10 pr-3 py-2 border rounded-lg text-sm ${isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500' : 'bg-white border-slate-300'}`}
                 />
               </div>
             </div>
 
-            {/* Materials List */}
-            {filteredMaterials.length === 0 ? (
+            {loading ? (
+              <div
+                className={`rounded-xl p-8 border ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-slate-200'}`}
+              >
+                <div className="flex items-center gap-2 text-sm text-slate-500">
+                  <Loader2 size={16} className="animate-spin" />
+                  Loading materials...
+                </div>
+              </div>
+            ) : Object.keys(groupedMaterials).length === 0 ? (
               <div
                 className={`rounded-xl p-12 border text-center ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}
               >
-                <FolderOpen
-                  size={48}
-                  className={`mx-auto mb-4 ${isDark ? 'text-gray-600' : 'text-gray-300'}`}
-                />
                 <h3
                   className={`text-lg font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}
                 >
                   No materials found
                 </h3>
                 <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                  Try adjusting your filters or upload new materials.
+                  Try adjusting filters or create a new material.
                 </p>
               </div>
             ) : (
-              <div className="space-y-4">
-                {filteredMaterials.map((material) => (
-                  <div
-                    key={material.id}
-                    className={`rounded-xl p-4 border shadow-sm ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}
-                  >
-                    <div className="flex items-center gap-4">
-                      <div
-                        className={`w-10 h-10 rounded-lg flex items-center justify-center ${isDark ? 'bg-white/10' : 'bg-gray-100'}`}
-                      >
-                        {getFileTypeIcon(material.type)}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-3 mb-1 flex-wrap">
-                          <span
-                            className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}
-                          >
-                            {material.name}
-                          </span>
-                          <span
-                            className={`px-2 py-0.5 rounded-full text-xs font-medium ${isDark ? 'bg-indigo-500/20 text-indigo-300' : 'bg-indigo-100 text-indigo-700'}`}
-                          >
-                            {material.course}
-                          </span>
-                          <span
-                            className={`px-2 py-0.5 rounded-full text-xs font-medium ${isDark ? 'bg-white/10 text-gray-300' : 'bg-gray-100 text-gray-600'}`}
-                          >
-                            {material.module}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 flex-wrap">
-                          {material.tags.map((tag) => (
-                            <span
-                              key={tag}
-                              className={`px-2 py-0.5 rounded text-xs ${isDark ? 'bg-white/5 text-gray-400' : 'bg-gray-50 text-gray-500'}`}
-                            >
-                              #{tag}
-                            </span>
-                          ))}
-                        </div>
-                        <div
-                          className={`flex items-center gap-4 mt-2 text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}
-                        >
-                          <span>{material.size}</span>
-                          <span className="flex items-center gap-1">
-                            <Download size={12} />
-                            {material.downloads} downloads
-                          </span>
-                          <span>{material.date}</span>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => toggleVisibility(material.id)}
-                          className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`}
-                          title={
-                            visibilityState[material.id]
-                              ? 'Visible to students'
-                              : 'Hidden from students'
-                          }
-                        >
-                          {visibilityState[material.id] ? (
-                            <Eye size={16} className="text-green-500" />
-                          ) : (
-                            <EyeOff
-                              size={16}
-                              className={isDark ? 'text-gray-500' : 'text-gray-400'}
-                            />
-                          )}
-                        </button>
-                        <button
-                          onClick={() => openEdit(material)}
-                          className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-white/10 text-gray-400' : 'hover:bg-gray-100 text-gray-500'}`}
-                          title="Edit"
-                        >
-                          <Edit size={16} />
-                        </button>
-                        <button
-                          onClick={() => openDelete(material)}
-                          className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-white/10 text-red-400' : 'hover:bg-red-50 text-red-500'}`}
-                          title="Delete"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                        <button
-                          className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-white/10 text-gray-400' : 'hover:bg-gray-100 text-gray-500'}`}
-                          title="Download"
-                        >
-                          <Download size={16} />
-                        </button>
-                      </div>
+              <div className="space-y-6">
+                {Object.entries(groupedMaterials)
+                  .sort(([a], [b]) => {
+                    if (a === 'general') return -1;
+                    if (b === 'general') return 1;
+                    return Number(a) - Number(b);
+                  })
+                  .map(([week, items]) => (
+                    <section key={week} className="space-y-3">
+                      <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                        {week === 'general' ? 'General / No Week' : `Week ${week}`}
+                      </h3>
+                      {items.map(renderMaterialCard)}
+                    </section>
+                  ))}
+              </div>
+            )}
+          </>
+        )}
+
+        {activeTab === 'queue' && (
+          <div
+            className={`rounded-xl p-4 border ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-slate-200'}`}
+          >
+            {activities.length === 0 ? (
+              <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                No recent activity yet.
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {activities.map((item) => (
+                  <div key={item.id} className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                      {item.status === 'completed' ? (
+                        <CheckCircle size={16} className="text-green-500" />
+                      ) : (
+                        <Loader2 size={16} className="text-blue-500 animate-spin" />
+                      )}
+                      <span className={`${isDark ? 'text-slate-200' : 'text-slate-700'}`}>
+                        {item.title}
+                      </span>
                     </div>
+                    <span className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                      {item.time}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -644,233 +652,141 @@ export function UploadMaterialsPage() {
         )}
       </div>
 
-      {/* Upload Modal */}
-      {showUploadModal && (
+      {(showCreateModal || showEditModal) && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div
-            className={`w-full max-w-lg rounded-xl p-6 shadow-xl ${isDark ? 'bg-gray-800 border border-white/10' : 'bg-white'}`}
+            className={`w-full max-w-lg rounded-xl p-6 shadow-xl ${isDark ? 'bg-slate-800 border border-white/10' : 'bg-white'}`}
           >
-            <div className="flex items-center justify-between mb-6">
-              <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                Upload Materials
+            <div className="flex items-center justify-between mb-4">
+              <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                {showCreateModal ? 'Add Material' : 'Edit Material'}
               </h2>
               <button
-                onClick={() => setShowUploadModal(false)}
-                className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-white/10 text-gray-400' : 'hover:bg-gray-100 text-gray-500'}`}
+                onClick={() => {
+                  setShowCreateModal(false);
+                  setShowEditModal(false);
+                }}
+                className={`p-2 rounded-lg ${isDark ? 'hover:bg-white/10 text-slate-300' : 'hover:bg-slate-100 text-slate-600'}`}
               >
-                <X size={20} />
+                <X size={18} />
               </button>
             </div>
-            <div className="space-y-4">
-              <div>
-                <label
-                  className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}
-                >
-                  Course
-                </label>
-                <CleanSelect
-                  value={uploadCourse}
-                  onChange={(e) => {
-                    setUploadCourse(e.target.value);
-                    setUploadModule(moduleOptions[e.target.value]?.[0] || 'General');
-                  }}
-                  className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? 'bg-white/5 border-white/10 text-white' : 'border-gray-300 bg-white'}`}
-                >
-                  {courseOptions
-                    .filter((o) => o.value !== 'all')
-                    .map((opt) => (
-                      <option
-                        key={opt.value}
-                        value={opt.value}
-                        className={isDark ? 'bg-gray-800' : ''}
-                      >
-                        {opt.label}
-                      </option>
-                    ))}
-                </CleanSelect>
-              </div>
-              <div>
-                <label
-                  className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}
-                >
-                  Module
-                </label>
-                <CleanSelect
-                  value={uploadModule}
-                  onChange={(e) => setUploadModule(e.target.value)}
-                  className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? 'bg-white/5 border-white/10 text-white' : 'border-gray-300 bg-white'}`}
-                >
-                  {(moduleOptions[uploadCourse] || ['General']).map((mod) => (
-                    <option key={mod} value={mod} className={isDark ? 'bg-gray-800' : ''}>
-                      {mod}
-                    </option>
-                  ))}
-                </CleanSelect>
-              </div>
-              <div
-                className={`border-2 border-dashed rounded-xl p-8 text-center ${isDark ? 'border-white/20 hover:border-indigo-500/50' : 'border-gray-300 hover:border-indigo-400'} transition-colors cursor-pointer`}
-              >
-                <CloudUpload
-                  size={40}
-                  className={`mx-auto mb-3 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}
-                />
-                <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-700'}`}>
-                  Drag & drop files here
-                </p>
-                <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                  or <span className="text-indigo-600 hover:underline">browse files</span>
-                </p>
-                <p className={`text-xs mt-3 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
-                  Supported: PDF, DOCX, PPTX, XLSX, MP4, AVI, MOV (max 500 MB)
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center justify-end gap-3 mt-6">
-              <button
-                onClick={() => setShowUploadModal(false)}
-                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${isDark ? 'text-gray-300 hover:bg-white/10' : 'text-gray-700 hover:bg-gray-100'}`}
-              >
-                Close
-              </button>
-              <button
-                className="px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors"
-                style={{ backgroundColor: primaryHex }}
-              >
-                Upload
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
-      {/* Edit Material Modal */}
-      {showEditModal && selectedMaterial && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div
-            className={`w-full max-w-lg rounded-xl p-6 shadow-xl ${isDark ? 'bg-gray-800 border border-white/10' : 'bg-white'}`}
-          >
-            <div className="flex items-center justify-between mb-6">
-              <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                Edit Material
-              </h2>
-              <button
-                onClick={() => setShowEditModal(false)}
-                className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-white/10 text-gray-400' : 'hover:bg-gray-100 text-gray-500'}`}
-              >
-                <X size={20} />
-              </button>
+            <div className="space-y-3">
+              {(() => {
+                const form = showCreateModal ? createForm : editForm;
+                const setForm = showCreateModal ? setCreateForm : setEditForm;
+                return (
+                  <>
+                    <input
+                      type="text"
+                      value={form.title}
+                      onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))}
+                      placeholder="Title"
+                      className={`w-full px-3 py-2 border rounded-lg ${isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500' : 'bg-white border-slate-300'}`}
+                    />
+
+                    <CleanSelect
+                      value={form.materialType}
+                      onChange={(e) =>
+                        setForm((prev) => ({
+                          ...prev,
+                          materialType: e.target.value as MaterialFormState['materialType'],
+                        }))
+                      }
+                      className={`w-full px-3 py-2 border rounded-lg ${isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-slate-300'}`}
+                    >
+                      {materialTypeOptions
+                        .filter((o) => o.value !== 'all')
+                        .map((opt) => (
+                          <option key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </option>
+                        ))}
+                    </CleanSelect>
+
+                    <input
+                      type="number"
+                      value={form.weekNumber}
+                      onChange={(e) => setForm((prev) => ({ ...prev, weekNumber: e.target.value }))}
+                      placeholder="Week Number (optional)"
+                      className={`w-full px-3 py-2 border rounded-lg ${isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500' : 'bg-white border-slate-300'}`}
+                    />
+
+                    <textarea
+                      rows={3}
+                      value={form.description}
+                      onChange={(e) =>
+                        setForm((prev) => ({ ...prev, description: e.target.value }))
+                      }
+                      placeholder="Description"
+                      className={`w-full px-3 py-2 border rounded-lg resize-none ${isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500' : 'bg-white border-slate-300'}`}
+                    />
+
+                    <label
+                      className={`flex items-center gap-2 text-sm ${isDark ? 'text-slate-300' : 'text-slate-700'}`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={form.isPublished}
+                        onChange={(e) =>
+                          setForm((prev) => ({ ...prev, isPublished: e.target.checked }))
+                        }
+                      />
+                      Publish immediately
+                    </label>
+                  </>
+                );
+              })()}
             </div>
-            <div className="space-y-4">
-              <div>
-                <label
-                  className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}
-                >
-                  Material Name
-                </label>
-                <input
-                  type="text"
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
-                  className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? 'bg-white/5 border-white/10 text-white' : 'border-gray-300 bg-white'}`}
-                />
-              </div>
-              <div>
-                <label
-                  className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}
-                >
-                  Description
-                </label>
-                <textarea
-                  value={editDescription}
-                  onChange={(e) => setEditDescription(e.target.value)}
-                  rows={3}
-                  className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none ${isDark ? 'bg-white/5 border-white/10 text-white' : 'border-gray-300 bg-white'}`}
-                />
-              </div>
-              <div>
-                <label
-                  className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}
-                >
-                  Module
-                </label>
-                <CleanSelect
-                  value={editModule}
-                  onChange={(e) => setEditModule(e.target.value)}
-                  className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? 'bg-white/5 border-white/10 text-white' : 'border-gray-300 bg-white'}`}
-                >
-                  {(moduleOptions[selectedMaterial.course] || ['General']).map((mod) => (
-                    <option key={mod} value={mod} className={isDark ? 'bg-gray-800' : ''}>
-                      {mod}
-                    </option>
-                  ))}
-                </CleanSelect>
-              </div>
-              <div>
-                <label
-                  className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}
-                >
-                  Tags
-                </label>
-                <input
-                  type="text"
-                  value={editTags}
-                  onChange={(e) => setEditTags(e.target.value)}
-                  placeholder="Comma-separated tags"
-                  className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500' : 'border-gray-300 bg-white'}`}
-                />
-              </div>
-            </div>
-            <div className="flex items-center justify-end gap-3 mt-6">
+
+            <div className="flex justify-end gap-2 mt-6">
               <button
-                onClick={() => setShowEditModal(false)}
-                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${isDark ? 'text-gray-300 hover:bg-white/10' : 'text-gray-700 hover:bg-gray-100'}`}
+                onClick={() => {
+                  setShowCreateModal(false);
+                  setShowEditModal(false);
+                }}
+                className={`px-4 py-2 rounded-lg ${isDark ? 'text-slate-300 hover:bg-white/10' : 'text-slate-700 hover:bg-slate-100'}`}
               >
                 Cancel
               </button>
               <button
-                onClick={() => setShowEditModal(false)}
-                className="px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors"
+                disabled={mutating}
+                onClick={showCreateModal ? onCreateMaterial : onUpdateMaterial}
+                className="px-4 py-2 text-white rounded-lg disabled:opacity-60"
                 style={{ backgroundColor: primaryHex }}
               >
-                Save Changes
+                {mutating ? 'Saving...' : showCreateModal ? 'Create' : 'Save'}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Delete Confirmation Dialog */}
       {showDeleteDialog && selectedMaterial && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div
-            className={`w-full max-w-sm rounded-xl p-6 shadow-xl ${isDark ? 'bg-gray-800 border border-white/10' : 'bg-white'}`}
+            className={`w-full max-w-sm rounded-xl p-6 shadow-xl ${isDark ? 'bg-slate-800 border border-white/10' : 'bg-white'}`}
           >
-            <div className="text-center">
-              <div
-                className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 ${isDark ? 'bg-red-500/20' : 'bg-red-100'}`}
-              >
-                <AlertTriangle size={24} className="text-red-500" />
-              </div>
-              <h3 className={`text-lg font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                Delete Material?
-              </h3>
-              <p className={`text-sm mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                This action cannot be undone. The following material will be permanently deleted:
-              </p>
-              <p className={`text-sm font-medium mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                {selectedMaterial.name}
-              </p>
-            </div>
-            <div className="flex items-center justify-center gap-3">
+            <h3
+              className={`text-lg font-semibold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}
+            >
+              Delete material?
+            </h3>
+            <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+              {selectedMaterial.title}
+            </p>
+            <div className="flex justify-end gap-2 mt-6">
               <button
                 onClick={() => setShowDeleteDialog(false)}
-                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${isDark ? 'text-gray-300 hover:bg-white/10' : 'text-gray-700 hover:bg-gray-100'}`}
+                className={`px-4 py-2 rounded-lg ${isDark ? 'text-slate-300 hover:bg-white/10' : 'text-slate-700 hover:bg-slate-100'}`}
               >
                 Cancel
               </button>
               <button
-                onClick={() => setShowDeleteDialog(false)}
-                className="px-4 py-2 text-sm font-medium bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                disabled={mutating}
+                onClick={onDeleteMaterial}
+                className="px-4 py-2 rounded-lg bg-red-600 text-white disabled:opacity-60"
               >
                 Delete
               </button>

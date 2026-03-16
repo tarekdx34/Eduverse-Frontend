@@ -56,8 +56,12 @@ export function GradesTable({ data, onEdit, onDelete }: GradesTableProps) {
     });
 
   return (
-    <div className={`rounded-lg border p-6 ${isDark ? 'bg-card-dark border-white/10' : 'bg-white border-gray-200'}`}>
-      <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('grades')}</h3>
+    <div
+      className={`rounded-lg border p-6 ${isDark ? 'bg-card-dark border-white/10' : 'bg-white border-gray-200'}`}
+    >
+      <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+        {t('grades')}
+      </h3>
 
       <div className="mb-4 relative">
         <Search
@@ -70,7 +74,9 @@ export function GradesTable({ data, onEdit, onDelete }: GradesTableProps) {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className={`w-full pl-10 pr-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-            isDark ? 'bg-white/5 border-white/10 text-slate-200 placeholder:text-slate-500' : 'bg-white border-gray-300 text-gray-900'
+            isDark
+              ? 'bg-white/5 border-white/10 text-slate-200 placeholder:text-slate-500'
+              : 'bg-white border-gray-300 text-gray-900'
           }`}
         />
       </div>
@@ -113,9 +119,14 @@ export function GradesTable({ data, onEdit, onDelete }: GradesTableProps) {
           </thead>
           <tbody>
             {filteredAndSortedData.slice(0, 100).map((g) => (
-              <tr key={g.id} className={`border-t ${isDark ? 'border-white/5 hover:bg-white/5' : 'hover:bg-gray-50'}`}>
+              <tr
+                key={g.id}
+                className={`border-t ${isDark ? 'border-white/5 hover:bg-white/5' : 'hover:bg-gray-50'}`}
+              >
                 <td className={`p-2 ${isDark ? 'text-slate-200' : ''}`}>{g.student}</td>
-                <td className={`p-2 text-xs ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>{g.email}</td>
+                <td className={`p-2 text-xs ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                  {g.email}
+                </td>
                 <td className={`p-2 ${isDark ? 'text-slate-200' : ''}`}>{g.assignment}</td>
                 <td className={`p-2 font-medium ${isDark ? 'text-slate-200' : ''}`}>{g.score}</td>
                 <td className="p-2">
@@ -145,7 +156,10 @@ export function GradesTable({ data, onEdit, onDelete }: GradesTableProps) {
             ))}
             {filteredAndSortedData.length === 0 && (
               <tr>
-                <td className={`p-4 text-center ${isDark ? 'text-slate-500' : 'text-gray-500'}`} colSpan={6}>
+                <td
+                  className={`p-4 text-center ${isDark ? 'text-slate-500' : 'text-gray-500'}`}
+                  colSpan={6}
+                >
                   {searchTerm ? t('noGradesMatch') : t('noGradesRecorded')}
                 </td>
               </tr>
@@ -153,7 +167,9 @@ export function GradesTable({ data, onEdit, onDelete }: GradesTableProps) {
           </tbody>
         </table>
         {filteredAndSortedData.length > 100 && (
-          <div className={`mt-4 text-sm text-center ${isDark ? 'text-slate-500' : 'text-gray-500'}`}>
+          <div
+            className={`mt-4 text-sm text-center ${isDark ? 'text-slate-500' : 'text-gray-500'}`}
+          >
             {t('showingFirst100')} {filteredAndSortedData.length} {t('results')}
           </div>
         )}

@@ -3,6 +3,7 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import {
   LayoutGrid,
   BookOpen,
+  Upload,
   Users,
   FileText,
   CheckSquare,
@@ -45,6 +46,7 @@ import {
   AnnouncementsManager,
   SelectedSectionSummary,
   AIAttendanceModal,
+  UploadMaterialsPage,
 } from './components';
 import {
   MessagingChat,
@@ -86,6 +88,7 @@ type TabKey =
   | 'assignments'
   | 'quizzes'
   | 'schedule'
+  | 'materials'
   | 'attendance'
   | 'discussion'
   | 'chat'
@@ -114,6 +117,13 @@ const TABS: { key: TabKey; label: string; labelAr: string; icon: any; group: str
     label: 'Assignments',
     labelAr: 'الواجبات',
     icon: CheckSquare,
+    group: 'Teaching',
+  },
+  {
+    key: 'materials',
+    label: 'Materials',
+    labelAr: 'المواد',
+    icon: Upload,
     group: 'Teaching',
   },
   { key: 'schedule', label: 'Schedule', labelAr: 'الجدول', icon: CalendarDays, group: 'Teaching' },
@@ -169,10 +179,13 @@ function InstructorDashboardContent() {
 
   const liveStats = useMemo(() => {
     if (isMockMode || !teachingCoursesLive) return DASHBOARD_STATS;
-    
-    const totalStudents = teachingCoursesLive.reduce((acc: number, s: any) => acc + (s.enrolledCount || 0), 0);
+
+    const totalStudents = teachingCoursesLive.reduce(
+      (acc: number, s: any) => acc + (s.enrolledCount || 0),
+      0
+    );
     const activeSections = teachingCoursesLive.length;
-    
+
     return [
       {
         label: t('totalStudents'),
@@ -295,6 +308,15 @@ function InstructorDashboardContent() {
   const selectedCourseIdFromRoute =
     params.tab === 'courses' && params.id ? Number(params.id) : null;
 
+  const materialsCourseId = useMemo(() => {
+    if (selectedLiveSection?.courseId) return String(selectedLiveSection.courseId);
+    if (!isMockMode && Array.isArray(teachingCoursesLive) && teachingCoursesLive.length > 0) {
+      const first = teachingCoursesLive[0];
+      return String(first.courseId ?? first.id ?? '');
+    }
+    return activeSectionId || '';
+  }, [selectedLiveSection, isMockMode, teachingCoursesLive, activeSectionId]);
+
   // Sync tab from URL
   useEffect(() => {
     const tabParam = (params.tab as TabKey) || 'dashboard';
@@ -381,14 +403,16 @@ function InstructorDashboardContent() {
     if (attendanceSessionsLive && !isMockMode && activeSectionId) {
       setAttendanceData((prev) => ({
         ...prev,
-        [activeSectionId]: (attendanceSessionsLive.data || attendanceSessionsLive).map((s: any) => ({
-          id: Number(s.id),
-          date: s.sessionDate,
-          present: Number(s.presentCount || 0),
-          absent: Number(s.absentCount || 0),
-          type: s.sessionType,
-          status: s.status,
-        })),
+        [activeSectionId]: (attendanceSessionsLive.data || attendanceSessionsLive).map(
+          (s: any) => ({
+            id: Number(s.id),
+            date: s.sessionDate,
+            present: Number(s.presentCount || 0),
+            absent: Number(s.absentCount || 0),
+            type: s.sessionType,
+            status: s.status,
+          })
+        ),
       }));
     }
   }, [attendanceSessionsLive, isMockMode, activeSectionId]);
@@ -444,21 +468,18 @@ function InstructorDashboardContent() {
     }));
   }, [sectionGradesLive, isMockMode, activeSectionId]);
 
-  const sectionOptions = useMemo(
-    () => {
-      if (isMockMode) {
-        return SECTIONS.map((s) => ({
-          value: String(s.sectionId),
-          label: `${s.courseCode} - ${s.sectionLabel}`,
-        }));
-      }
-      return (teachingCoursesLive || []).map((s: any) => ({
-        value: String(s.sectionId ?? s.id),
-        label: `${s.course?.name || s.course?.code || s.courseName || s.courseCode || 'Course'} - Sec ${s.sectionNumber || s.sectionLabel || s.sectionId || s.id}`,
+  const sectionOptions = useMemo(() => {
+    if (isMockMode) {
+      return SECTIONS.map((s) => ({
+        value: String(s.sectionId),
+        label: `${s.courseCode} - ${s.sectionLabel}`,
       }));
-    },
-    [isMockMode, teachingCoursesLive]
-  );
+    }
+    return (teachingCoursesLive || []).map((s: any) => ({
+      value: String(s.sectionId ?? s.id),
+      label: `${s.course?.name || s.course?.code || s.courseName || s.courseCode || 'Course'} - Sec ${s.sectionNumber || s.sectionLabel || s.sectionId || s.id}`,
+    }));
+  }, [isMockMode, teachingCoursesLive]);
 
   const currentRosterBase = activeSectionId ? ROSTERS[activeSectionId] || [] : [];
   const currentRoster =
@@ -854,6 +875,9 @@ function InstructorDashboardContent() {
 
           {/* Schedule */}
           {activeTab === 'schedule' && <SchedulePage />}
+
+          {/* Materials */}
+          {activeTab === 'materials' && <UploadMaterialsPage courseId={materialsCourseId} />}
 
           {/* Roster */}
           {activeTab === 'roster' && (
