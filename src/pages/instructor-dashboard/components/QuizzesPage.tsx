@@ -38,6 +38,8 @@ interface QuizFormData {
 }
 
 interface QuizData {
+  id?: number;
+  raw?: any;
   title: string;
   subject: string;
   subjectColor: string;
@@ -68,6 +70,24 @@ const defaultFormData = (): QuizFormData => ({
   difficulty: 'Medium',
   questions: [defaultQuestion()],
 });
+
+const deriveQuizStatus = (quiz: any): { label: string; color: string } => {
+  const now = new Date();
+  const availableFrom = quiz?.availableFrom ? new Date(quiz.availableFrom) : null;
+  const availableUntil = quiz?.availableUntil ? new Date(quiz.availableUntil) : null;
+
+  if (!availableFrom) {
+    return { label: 'Draft', color: 'bg-gray-100 text-gray-700' };
+  }
+  if (availableFrom > now) {
+    return { label: 'Scheduled', color: 'bg-blue-100 text-blue-700' };
+  }
+  if (availableUntil && availableUntil < now) {
+    return { label: 'Closed', color: 'bg-gray-100 text-gray-700' };
+  }
+
+  return { label: 'Active', color: 'bg-green-100 text-green-700' };
+};
 
 const courseLectures: Record<string, string[]> = {
   'Calculus I': ['Lecture 1: Limits', 'Lecture 2: Continuity', 'Lecture 3: Derivatives Intro'],
@@ -156,8 +176,29 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
   const { t, isRTL } = useLanguage();
   const { isDark, primaryHex = '#3b82f6' } = useTheme() as any;
 
+  const liveCourseOptions = React.useMemo(() => {
+    const seen = new Set<string>();
+    const mapped = courses
+      .map((c: any) => {
+        const value = c.courseId ?? c.id;
+        const label = c.courseName || c.course?.name || c.name;
+        if (value === undefined || value === null || !label) return null;
+        return { value: String(value), label: String(label) };
+      })
+      .filter((item): item is { value: string; label: string } => !!item)
+      .filter((item) => {
+        if (seen.has(item.value)) return false;
+        seen.add(item.value);
+        return true;
+      });
+
+    return mapped;
+  }, [courses]);
+
   const [quizzes, setQuizzes] = useState<QuizData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [listError, setListError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
   
   // Filters
@@ -168,9 +209,11 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
   // Fetch quizzes
   React.useEffect(() => {
     async function fetchQuizzes() {
+      const hasToken = !!localStorage.getItem('accessToken');
+
       try {
         setLoading(true);
-        const hasToken = !!localStorage.getItem('accessToken');
+        setListError(null);
         if (!hasToken) {
           // Fallback to mock data in Demo Mode
           setQuizzes(MOCK_QUIZZES);
@@ -184,33 +227,43 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
         const liveQuizzes = await QuizService.getAll(params);
         
         // Map backend Quiz model to UI QuizData model
-        const mapped = liveQuizzes.map((q: any) => ({
-          id: q.quizId || q.id,
-          title: q.title,
-          subject: q.course?.name || q.courseName || 'Unknown Course',
-          subjectColor: 'bg-indigo-100 text-indigo-700',
-          date: new Date(q.availableFrom || q.createdAt || Date.now()).toLocaleDateString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            hour: 'numeric',
-            minute: '2-digit',
-          }),
-          questions: q.totalQuestions || 0,
-          attempted: 0, // We'll need another call to get stats per quiz or add it to endpoint
-          total: 0,
-          difficulty: q.difficulty || 'Medium',
-          difficultyColor: 'bg-yellow-100 text-yellow-700',
-          duration: q.timeLimitMinutes || q.duration || 30,
-          status: q.status === 'published' ? 'Active' : (q.status || 'Draft'),
-          statusColor: q.status === 'published' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700',
-          raw: q,
-        }));
+        const mapped = liveQuizzes.map((q: any) => {
+          const statusMeta = deriveQuizStatus(q);
+          return {
+            id: q.quizId || q.id,
+            title: q.title,
+            subject: q.course?.name || q.courseName || 'Unknown Course',
+            subjectColor: 'bg-indigo-100 text-indigo-700',
+            date: new Date(q.availableFrom || q.createdAt || Date.now()).toLocaleDateString('en-US', {
+              month: 'short',
+              day: 'numeric',
+              hour: 'numeric',
+              minute: '2-digit',
+            }),
+            questions: q.totalQuestions || 0,
+            attempted: 0, // We'll need another call to get stats per quiz or add it to endpoint
+            total: 0,
+            difficulty: q.difficulty || 'Medium',
+            difficultyColor: 'bg-yellow-100 text-yellow-700',
+            duration: q.timeLimitMinutes || q.duration || 30,
+            status: statusMeta.label,
+            statusColor: statusMeta.color,
+            raw: q,
+          };
+        });
         
         setQuizzes(mapped);
       } catch (err) {
         console.error('Failed to load quizzes', err);
-        // Fallback to mock data if API fails completely
-        setQuizzes(MOCK_QUIZZES);
+        if (hasToken) {
+          setQuizzes([]);
+          setListError(
+            err instanceof Error ? err.message : 'Failed to load quizzes in Live Mode.'
+          );
+        } else {
+          // Keep demo fallback if no auth token is present.
+          setQuizzes(MOCK_QUIZZES);
+        }
       } finally {
         setLoading(false);
       }
@@ -223,6 +276,8 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
   const [showCreateQuiz, setShowCreateQuiz] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [formData, setFormData] = useState<QuizFormData>(defaultFormData());
+  const [formError, setFormError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   // AI generation modal state
   const [showAIModal, setShowAIModal] = useState(false);
@@ -241,15 +296,18 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
   const [viewAnalysisIndex, setViewAnalysisIndex] = useState<number | null>(null);
   const [statsData, setStatsData] = useState<any>(null);
   const [loadingStats, setLoadingStats] = useState(false);
+  const [publishingIndex, setPublishingIndex] = useState<number | null>(null);
 
   // --- Helpers ---
   const openCreateForm = () => {
     setFormData(defaultFormData());
     setEditingIndex(null);
+    setFormError(null);
     setShowCreateQuiz(true);
   };
 
   const openEditForm = async (index: number) => {
+    setFormError(null);
     try {
       const { QuizService } = await import('../../../services/api/quizService');
       const quiz = quizzes[index];
@@ -267,9 +325,9 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
       }));
       
       setFormData({
-        title: quiz.title,
-        course: String(quiz.raw?.courseId || ''),
-        duration: quiz.duration,
+        title: fullQuiz.title || quiz.title,
+        course: String(fullQuiz.courseId || quiz.raw?.courseId || ''),
+        duration: Number(fullQuiz.timeLimitMinutes || quiz.duration || 30),
         difficulty: quiz.difficulty,
         questions: questions.length ? questions : [defaultQuestion()],
       });
@@ -281,12 +339,38 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
   };
 
   const saveQuiz = async () => {
+    const title = formData.title.trim();
+    const courseId = Number(formData.course);
+    const hasInvalidQuestion = formData.questions.some((q) => {
+      if (!q.text.trim()) return true;
+      if (q.type === 'mcq' || q.type === 'checkbox') {
+        const nonEmptyOptions = q.options.filter((opt) => opt.trim().length > 0);
+        return nonEmptyOptions.length < 2;
+      }
+      return false;
+    });
+
+    if (!title) {
+      setFormError('Quiz title is required.');
+      return;
+    }
+    if (!Number.isFinite(courseId) || courseId <= 0) {
+      setFormError('Please select a valid course from the dropdown.');
+      return;
+    }
+    if (hasInvalidQuestion) {
+      setFormError('Each question needs text, and MCQ/checkbox questions need at least two options.');
+      return;
+    }
+
     try {
+      setFormError(null);
+      setIsSaving(true);
       const { QuizService } = await import('../../../services/api/quizService');
       
       const payload = {
-        title: formData.title,
-        courseId: Number(formData.course),
+        title,
+        courseId,
         timeLimitMinutes: formData.duration,
         quizType: 'graded',
         maxAttempts: 1,
@@ -316,9 +400,13 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
       }
       
       setShowCreateQuiz(false);
+      setFormData(defaultFormData());
       setRefreshKey(r => r + 1); // trigger list refresh
     } catch (err) {
       console.error('Failed to save quiz', err);
+      setFormError(err instanceof Error ? err.message : 'Failed to save quiz in Live Mode.');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -346,6 +434,7 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
   const handleAIGenerate = () => {
     setAiGenerating(true);
     setTimeout(() => {
+      const matchedCourse = liveCourseOptions.find((course) => course.label === aiCourse);
       const generated: QuizQuestion[] = Array.from({ length: aiNumQuestions }, (_, i) => ({
         id: Date.now() + i,
         type: i % 3 === 0 ? 'text' : i % 2 === 0 ? 'checkbox' : 'mcq',
@@ -356,11 +445,12 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
       }));
       setFormData({
         title: `AI Quiz — ${aiCourse}`,
-        course: aiCourse,
+        course: matchedCourse?.value || '',
         duration: aiNumQuestions * 3,
         difficulty: aiDifficulty,
         questions: generated,
       });
+      setFormError(null);
       setAiGenerating(false);
       setShowAIModal(false);
       setEditingIndex(null);
@@ -370,13 +460,18 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
 
   const publishQuiz = async (index: number) => {
     try {
+      setActionError(null);
+      setPublishingIndex(index);
       const { QuizService } = await import('../../../services/api/quizService');
       const quiz = quizzes[index];
       const quizId = quiz.raw?.quizId || quiz.raw?.id || quiz.id;
-      await QuizService.updateQuiz(quizId, { status: 'published' });
+      await QuizService.updateQuiz(quizId, { availableFrom: new Date().toISOString() });
       setRefreshKey(r => r + 1);
     } catch (err) {
       console.error('Failed to publish', err);
+      setActionError(err instanceof Error ? err.message : 'Failed to publish quiz.');
+    } finally {
+      setPublishingIndex(null);
     }
   };
 
@@ -385,6 +480,7 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
       setViewAttemptsIndex(null);
       return;
     }
+    setActionError(null);
     setViewAttemptsIndex(index);
     setViewAnalysisIndex(null);
     setLoadingAttempts(true);
@@ -395,6 +491,7 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
       setAttemptsData(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error('Failed to load attempts', err);
+      setActionError(err instanceof Error ? err.message : 'Failed to load attempts.');
     } finally {
       setLoadingAttempts(false);
     }
@@ -405,6 +502,7 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
       setViewAnalysisIndex(null);
       return;
     }
+    setActionError(null);
     setViewAnalysisIndex(index);
     setViewAttemptsIndex(null);
     setLoadingStats(true);
@@ -415,6 +513,7 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
       setStatsData(data);
     } catch (err) {
       console.error('Failed to load stats', err);
+      setActionError(err instanceof Error ? err.message : 'Failed to load statistics.');
     } finally {
       setLoadingStats(false);
     }
@@ -483,7 +582,7 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
             value={selectedCourse}
             options={[
               { value: 'all', label: t('allCourses') || 'All Courses' },
-              ...courses.map((c: any) => ({ value: String(c.id), label: c.courseName }))
+              ...liveCourseOptions
             ]}
             onChange={(val) => setSelectedCourse(val as string)}
             stackLabel
@@ -525,9 +624,18 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
 
       {/* Quiz Cards */}
       <div className="space-y-4">
+        {actionError && (
+          <div className={`p-4 rounded-lg border ${isDark ? 'border-red-500/40 bg-red-500/10 text-red-200' : 'border-red-200 bg-red-50 text-red-700'}`}>
+            {actionError}
+          </div>
+        )}
         {loading ? (
           <div className="flex justify-center p-8">
             <Loader2 className="animate-spin text-indigo-500" size={32} />
+          </div>
+        ) : listError ? (
+          <div className={`p-4 rounded-lg border ${isDark ? 'border-red-500/40 bg-red-500/10 text-red-200' : 'border-red-200 bg-red-50 text-red-700'}`}>
+            {listError}
           </div>
         ) : quizzes.filter(q => {
             const matchesSearch = q.title.toLowerCase().includes(searchQuery.toLowerCase());
@@ -619,9 +727,10 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
                 {quiz.status !== 'Active' && quiz.status !== 'published' && (
                   <button
                     onClick={() => publishQuiz(index)}
+                    disabled={publishingIndex === index}
                     className="flex items-center gap-2 px-3 py-2 text-sm text-green-600 hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-green-500 rounded-lg transition-colors ml-auto"
                   >
-                    {t('publish') || 'Publish'}
+                    {publishingIndex === index ? 'Publishing...' : t('publish') || 'Publish'}
                   </button>
                 )}
               </div>
@@ -645,23 +754,33 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
                           <tr><td colSpan={4} className="py-4 text-center">Loading attempts...</td></tr>
                         ) : attemptsData?.length === 0 ? (
                           <tr><td colSpan={4} className="py-4 text-center text-gray-500">No attempts found for this quiz</td></tr>
-                        ) : attemptsData?.map((a, i) => (
-                          <tr
-                            key={i}
-                            className={`border-t ${isDark ? 'border-white/10' : 'border-gray-100'}`}
-                          >
-                            <td className={`py-2 ${headingCls}`}>{a.user?.firstName || 'Unknown'} {a.user?.lastName || ''}</td>
-                            <td
-                              className={`py-2 ${a.percentage >= 90 ? 'text-green-500' : a.percentage >= 70 ? 'text-yellow-500' : 'text-red-500'} font-medium`}
+                        ) : attemptsData?.map((a, i) => {
+                          const scoreValue = Number(a.percentage ?? a.score);
+                          const hasScore = Number.isFinite(scoreValue);
+                          const scoreClass = !hasScore
+                            ? subCls
+                            : scoreValue >= 90
+                              ? 'text-green-500'
+                              : scoreValue >= 70
+                                ? 'text-yellow-500'
+                                : 'text-red-500';
+
+                          return (
+                            <tr
+                              key={i}
+                              className={`border-t ${isDark ? 'border-white/10' : 'border-gray-100'}`}
                             >
-                              {a.percentage !== undefined ? `${a.percentage.toFixed(1)}%` : '-'}
-                            </td>
-                            <td className={`py-2 ${subCls}`}>
-                              {a.startedAt && a.submittedAt ? Math.round((new Date(a.submittedAt).getTime() - new Date(a.startedAt).getTime()) / 60000) : '-'}
-                            </td>
-                            <td className={`py-2 ${subCls}`}>{new Date(a.submittedAt || a.startedAt).toLocaleDateString()}</td>
-                          </tr>
-                        ))}
+                              <td className={`py-2 ${headingCls}`}>{a.user?.firstName || 'Unknown'} {a.user?.lastName || ''}</td>
+                              <td className={`py-2 ${scoreClass} font-medium`}>
+                                {hasScore ? `${scoreValue.toFixed(1)}%` : '-'}
+                              </td>
+                              <td className={`py-2 ${subCls}`}>
+                                {a.startedAt && a.submittedAt ? Math.round((new Date(a.submittedAt).getTime() - new Date(a.startedAt).getTime()) / 60000) : '-'}
+                              </td>
+                              <td className={`py-2 ${subCls}`}>{new Date(a.submittedAt || a.startedAt).toLocaleDateString()}</td>
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
                   </div>
@@ -700,7 +819,7 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
                         <div className="p-3 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-100 dark:border-yellow-800">
                           <p className={`text-xs ${subCls} mb-1`}>Pass Rate</p>
                           <p className={`text-lg font-bold text-yellow-600 dark:text-yellow-400`}>
-                            {statsData.passRatePercentage?.toFixed(0) || 0}%
+                            {(Number(statsData.passRatePercentage ?? statsData.passRate ?? 0)).toFixed(0)}%
                           </p>
                         </div>
                       </div>
@@ -709,7 +828,7 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
                       >
                         <p className={`text-sm ${subCls}`}>
                           <span className={`font-medium ${headingCls}`}>{statsData.totalAttempts || 0}</span> total attempts from{' '}
-                          <span className={`font-medium ${headingCls}`}>{statsData.uniqueStudents || 0}</span> unique students.
+                          <span className={`font-medium ${headingCls}`}>{statsData.uniqueStudents ?? statsData.completedAttempts ?? 0}</span> unique students.
                         </p>
                       </div>
                     </>
@@ -756,9 +875,11 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
                   className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${inputCls}`}
                 >
                   <option value="">Select course</option>
-                  <option value="Calculus I">Calculus I</option>
-                  <option value="Calculus II">Calculus II</option>
-                  <option value="Physics I">Physics I</option>
+                  {liveCourseOptions.map((course) => (
+                    <option key={course.value} value={course.value}>
+                      {course.label}
+                    </option>
+                  ))}
                 </CleanSelect>
               </div>
               <div>
@@ -897,19 +1018,33 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
             </div>
 
             {/* Actions */}
+            {formError && (
+              <div className={`mb-4 p-3 rounded-lg border ${isDark ? 'border-red-500/40 bg-red-500/10 text-red-200' : 'border-red-200 bg-red-50 text-red-700'}`}>
+                {formError}
+              </div>
+            )}
             <div className="flex items-center justify-end gap-3">
               <button
-                onClick={() => setShowCreateQuiz(false)}
+                onClick={() => {
+                  setShowCreateQuiz(false);
+                  setFormError(null);
+                }}
+                disabled={isSaving}
                 className={`px-4 py-2 text-sm rounded-lg border ${isDark ? 'border-white/10 text-slate-300 hover:bg-white/10' : 'border-gray-300 text-gray-700 hover:bg-gray-50'} transition-colors`}
               >
                 Cancel
               </button>
               <button
                 onClick={saveQuiz}
+                disabled={isSaving}
                 className="px-6 py-2 text-sm text-white rounded-lg transition-colors"
-                style={{ backgroundColor: primaryHex }}
+                style={{ backgroundColor: isSaving ? '#94a3b8' : primaryHex }}
               >
-                {editingIndex !== null ? 'Update Quiz' : 'Save Quiz'}
+                {isSaving
+                  ? 'Saving...'
+                  : editingIndex !== null
+                    ? 'Update Quiz'
+                    : 'Save Quiz'}
               </button>
             </div>
           </div>
