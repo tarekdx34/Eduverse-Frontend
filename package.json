@@ -45,6 +45,7 @@
     "@radix-ui/react-tooltip": "^1.2.8",
     "@tailwindcss/vite": "^4.1.17",
     "@tanstack/react-query": "^5.90.21",
+    "axios": "^1.13.6",
     "class-variance-authority": "^0.7.1",
     "clx": "^1.0.0",
     "embla-carousel-react": "^8.6.0",

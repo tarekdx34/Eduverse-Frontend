@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -19,6 +19,10 @@ import {
   Presentation,
   Link as LinkIcon,
   BookOpen,
+  Film,
+  FolderOpen,
+  Youtube,
+  AlertTriangle,
 } from 'lucide-react';
 import { EnrollmentService } from '../../../services/api/enrollmentService';
 import {
@@ -34,9 +38,11 @@ type UploadMaterialsPageProps = {
   courseId?: string;
 };
 
+type UploadType = 'text' | 'file' | 'video';
+
 type MaterialFormState = {
   title: string;
-  materialType: 'document' | 'video' | 'lecture' | 'slide' | 'link';
+  materialType: 'document' | 'video' | 'lecture' | 'slide' | 'link' | 'reading' | 'other';
   description: string;
   weekNumber: string;
   isPublished: boolean;
@@ -116,6 +122,15 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
 
   const [createForm, setCreateForm] = useState<MaterialFormState>(defaultFormState);
   const [editForm, setEditForm] = useState<MaterialFormState>(defaultFormState);
+
+  // Upload-specific state
+  const [uploadType, setUploadType] = useState<UploadType>('text');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadError, setUploadError] = useState('');
+  const [youtubeAuthUrl, setYoutubeAuthUrl] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
 
   const [materialsResponse, setMaterialsResponse] = useState<CourseMaterialsResponse>({ data: [] });
   const [structureResponse, setStructureResponse] = useState<CourseStructureResponse>({
@@ -241,7 +256,17 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
 
   const openCreateModal = () => {
     setCreateForm(defaultFormState);
+    setUploadType('text');
+    setSelectedFile(null);
+    setUploadProgress(0);
+    setUploadError('');
+    setYoutubeAuthUrl('');
     setShowCreateModal(true);
+  };
+
+  const closeCreateModal = () => {
+    if (mutating) return; // prevent close during upload
+    setShowCreateModal(false);
   };
 
   const openEditModal = (material: CourseMaterial) => {
@@ -258,6 +283,88 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
 
   const onCreateMaterial = async () => {
     if (!activeCourseId || !createForm.title.trim()) return;
+
+    // --- File Upload ---
+    if (uploadType === 'file') {
+      if (!selectedFile) { setUploadError('Please select a file to upload.'); return; }
+      setMutating(true);
+      setUploadError('');
+      setUploadProgress(0);
+      addActivity(`Uploading file: ${createForm.title}`, 'processing');
+      try {
+        await materialService.uploadFile(
+          activeCourseId,
+          selectedFile,
+          {
+            title: createForm.title.trim(),
+            materialType: createForm.materialType as 'document' | 'lecture' | 'slide' | 'reading' | 'other',
+            description: createForm.description || undefined,
+            weekNumber: parseWeekNumber(createForm.weekNumber),
+            isPublished: createForm.isPublished,
+          },
+          (pct) => setUploadProgress(pct)
+        );
+        toast.success('File uploaded successfully');
+        addActivity(`Uploaded: ${createForm.title}`, 'completed');
+        setShowCreateModal(false);
+        await loadMaterials(activeCourseId);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Failed to upload file';
+        setUploadError(message);
+        addActivity(`Failed: ${createForm.title}`, 'completed');
+      } finally {
+        setMutating(false);
+      }
+      return;
+    }
+
+    // --- YouTube Video Upload ---
+    if (uploadType === 'video') {
+      if (!selectedFile) { setUploadError('Please select a video file to upload.'); return; }
+      setMutating(true);
+      setUploadError('');
+      setUploadProgress(0);
+      addActivity(`Uploading to YouTube: ${createForm.title}`, 'processing');
+      try {
+        // Check YouTube is configured
+        try {
+          const authData = await materialService.getYouTubeAuthUrl();
+          if (authData?.authUrl) setYoutubeAuthUrl(authData.authUrl);
+        } catch {
+          // Not fatal — proceed and let the upload fail with a clear message
+        }
+
+        await materialService.uploadVideo(
+          activeCourseId,
+          selectedFile,
+          {
+            title: createForm.title.trim(),
+            description: createForm.description || undefined,
+            weekNumber: parseWeekNumber(createForm.weekNumber),
+            isPublished: createForm.isPublished,
+          },
+          (pct) => setUploadProgress(pct)
+        );
+        toast.success('Video uploaded to YouTube successfully');
+        addActivity(`YouTube upload done: ${createForm.title}`, 'completed');
+        setShowCreateModal(false);
+        await loadMaterials(activeCourseId);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Failed to upload video';
+        const isOAuthError = /oauth|token|authoriz/i.test(message);
+        setUploadError(
+          isOAuthError
+            ? 'YouTube not authorized. Please contact admin to set up YouTube integration.'
+            : message
+        );
+        addActivity(`Failed: ${createForm.title}`, 'completed');
+      } finally {
+        setMutating(false);
+      }
+      return;
+    }
+
+    // --- Text / Link (existing) ---
     setMutating(true);
     addActivity(`Creating: ${createForm.title}`, 'processing');
     try {
@@ -353,6 +460,9 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
   const renderMaterialCard = (material: CourseMaterial) => {
     const badgeClass = materialBadgeClasses[material.materialType] || materialBadgeClasses.document;
     const videoSrc = embedUrls[material.materialId] || material.externalUrl || '';
+    const ytThumb = material.youtubeVideoId
+      ? `https://img.youtube.com/vi/${material.youtubeVideoId}/mqdefault.jpg`
+      : null;
 
     return (
       <div
@@ -360,11 +470,21 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
         className={`rounded-xl p-4 border shadow-sm ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}
       >
         <div className="flex items-start gap-3">
-          <div
-            className={`w-9 h-9 rounded-lg flex items-center justify-center ${isDark ? 'bg-white/10' : 'bg-slate-100'}`}
-          >
-            {materialIcon(material.materialType)}
-          </div>
+          {/* YouTube thumbnail or icon */}
+          {ytThumb ? (
+            <div className="w-20 h-14 rounded-lg overflow-hidden flex-shrink-0 relative">
+              <img src={ytThumb} alt={material.title} className="w-full h-full object-cover" />
+              <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                <Youtube size={16} className="text-white" />
+              </div>
+            </div>
+          ) : (
+            <div
+              className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${isDark ? 'bg-white/10' : 'bg-slate-100'}`}
+            >
+              {materialIcon(material.materialType)}
+            </div>
+          )}
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap mb-1">
@@ -374,6 +494,11 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
               <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${badgeClass}`}>
                 {material.materialType}
               </span>
+              {material.youtubeVideoId && (
+                <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700 flex items-center gap-1">
+                  <Youtube size={10} /> YouTube
+                </span>
+              )}
               <span
                 className={`px-2 py-0.5 rounded-full text-xs font-medium ${material.isPublished === 1 ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}`}
               >
@@ -453,7 +578,7 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
               <button
                 onClick={() => onDownload(material)}
                 className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-white/10 text-slate-300' : 'hover:bg-slate-100 text-slate-600'}`}
-                title="Download"
+                title="Download file"
               >
                 <Download size={16} />
               </button>
@@ -653,110 +778,291 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
       </div>
 
       {(showCreateModal || showEditModal) && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div
-            className={`w-full max-w-lg rounded-xl p-6 shadow-xl ${isDark ? 'bg-slate-800 border border-white/10' : 'bg-white'}`}
+            className={`w-full max-w-lg rounded-xl p-6 shadow-xl max-h-[90vh] overflow-y-auto ${isDark ? 'bg-slate-800 border border-white/10' : 'bg-white'}`}
           >
+            {/* Header */}
             <div className="flex items-center justify-between mb-4">
               <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
                 {showCreateModal ? 'Add Material' : 'Edit Material'}
               </h2>
               <button
-                onClick={() => {
-                  setShowCreateModal(false);
-                  setShowEditModal(false);
-                }}
-                className={`p-2 rounded-lg ${isDark ? 'hover:bg-white/10 text-slate-300' : 'hover:bg-slate-100 text-slate-600'}`}
+                onClick={showCreateModal ? closeCreateModal : () => setShowEditModal(false)}
+                disabled={mutating}
+                className={`p-2 rounded-lg disabled:opacity-40 ${isDark ? 'hover:bg-white/10 text-slate-300' : 'hover:bg-slate-100 text-slate-600'}`}
               >
                 <X size={18} />
               </button>
             </div>
 
+            {/* Upload Type Selector — Create mode only */}
+            {showCreateModal && (
+              <div className="flex gap-2 mb-4">
+                {([
+                  { type: 'text' as UploadType, icon: <FileText size={15} />, label: 'Text / Link' },
+                  { type: 'file' as UploadType, icon: <FolderOpen size={15} />, label: 'File Upload' },
+                  { type: 'video' as UploadType, icon: <Film size={15} />, label: 'YouTube Video' },
+                ]).map(({ type, icon, label }) => (
+                  <button
+                    key={type}
+                    disabled={mutating}
+                    onClick={() => { setUploadType(type); setSelectedFile(null); setUploadError(''); setUploadProgress(0); }}
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg text-xs font-medium border transition-all disabled:opacity-40 ${
+                      uploadType === type
+                        ? 'text-white border-transparent'
+                        : isDark
+                        ? 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10'
+                        : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                    }`}
+                    style={uploadType === type ? { backgroundColor: primaryHex, borderColor: primaryHex } : {}}
+                  >
+                    {icon} {label}
+                  </button>
+                ))}
+              </div>
+            )}
+
             <div className="space-y-3">
               {(() => {
                 const form = showCreateModal ? createForm : editForm;
                 const setForm = showCreateModal ? setCreateForm : setEditForm;
-                return (
+                const isFileMode = showCreateModal && uploadType === 'file';
+                const isVideoMode = showCreateModal && uploadType === 'video';
+
+                const commonFields = (
                   <>
+                    {/* Title */}
                     <input
                       type="text"
                       value={form.title}
                       onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))}
-                      placeholder="Title"
-                      className={`w-full px-3 py-2 border rounded-lg ${isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500' : 'bg-white border-slate-300'}`}
+                      placeholder="Title *"
+                      disabled={mutating}
+                      className={`w-full px-3 py-2 border rounded-lg disabled:opacity-60 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500' : 'bg-white border-slate-300'}`}
                     />
 
-                    <CleanSelect
-                      value={form.materialType}
-                      onChange={(e) =>
-                        setForm((prev) => ({
-                          ...prev,
-                          materialType: e.target.value as MaterialFormState['materialType'],
-                        }))
-                      }
-                      className={`w-full px-3 py-2 border rounded-lg ${isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-slate-300'}`}
-                    >
-                      {materialTypeOptions
-                        .filter((o) => o.value !== 'all')
-                        .map((opt) => (
-                          <option key={opt.value} value={opt.value}>
-                            {opt.label}
+                    {/* Material type dropdown — hide for video mode (type fixed to 'video') */}
+                    {!isVideoMode && (
+                      <CleanSelect
+                        value={form.materialType}
+                        disabled={mutating}
+                        onChange={(e) =>
+                          setForm((prev) => ({
+                            ...prev,
+                            materialType: e.target.value as MaterialFormState['materialType'],
+                          }))
+                        }
+                        className={`w-full px-3 py-2 border rounded-lg disabled:opacity-60 ${isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-slate-300'}`}
+                      >
+                        {(isFileMode
+                          ? ['document', 'lecture', 'slide', 'reading', 'other']
+                          : materialTypeOptions.filter((o) => o.value !== 'all').map((o) => o.value)
+                        ).map((v) => (
+                          <option key={v} value={v}>
+                            {v.charAt(0).toUpperCase() + v.slice(1)}
                           </option>
                         ))}
-                    </CleanSelect>
+                      </CleanSelect>
+                    )}
 
+                    {/* Week number */}
                     <input
                       type="number"
                       value={form.weekNumber}
                       onChange={(e) => setForm((prev) => ({ ...prev, weekNumber: e.target.value }))}
                       placeholder="Week Number (optional)"
-                      className={`w-full px-3 py-2 border rounded-lg ${isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500' : 'bg-white border-slate-300'}`}
+                      disabled={mutating}
+                      className={`w-full px-3 py-2 border rounded-lg disabled:opacity-60 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500' : 'bg-white border-slate-300'}`}
                     />
 
+                    {/* Description */}
                     <textarea
-                      rows={3}
+                      rows={2}
                       value={form.description}
-                      onChange={(e) =>
-                        setForm((prev) => ({ ...prev, description: e.target.value }))
-                      }
-                      placeholder="Description"
-                      className={`w-full px-3 py-2 border rounded-lg resize-none ${isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500' : 'bg-white border-slate-300'}`}
+                      onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
+                      placeholder="Description (optional)"
+                      disabled={mutating}
+                      className={`w-full px-3 py-2 border rounded-lg resize-none disabled:opacity-60 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500' : 'bg-white border-slate-300'}`}
                     />
 
-                    <label
-                      className={`flex items-center gap-2 text-sm ${isDark ? 'text-slate-300' : 'text-slate-700'}`}
-                    >
+                    {/* Publish toggle */}
+                    <label className={`flex items-center gap-2 text-sm ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
                       <input
                         type="checkbox"
                         checked={form.isPublished}
-                        onChange={(e) =>
-                          setForm((prev) => ({ ...prev, isPublished: e.target.checked }))
-                        }
+                        disabled={mutating}
+                        onChange={(e) => setForm((prev) => ({ ...prev, isPublished: e.target.checked }))}
                       />
                       Publish immediately
                     </label>
                   </>
                 );
+
+                // ── File Upload mode ──────────────────────────────────────
+                if (isFileMode) return (
+                  <>
+                    {commonFields}
+
+                    {/* File dropzone */}
+                    <div
+                      onClick={() => !mutating && fileInputRef.current?.click()}
+                      className={`mt-1 border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors ${
+                        mutating ? 'opacity-50 cursor-not-allowed' :
+                        isDark ? 'border-white/20 hover:border-white/40 text-slate-400' : 'border-slate-300 hover:border-slate-400 text-slate-500'
+                      }`}
+                    >
+                      <FolderOpen size={28} className="mx-auto mb-2 opacity-60" />
+                      {selectedFile ? (
+                        <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                          📄 {selectedFile.name}
+                        </p>
+                      ) : (
+                        <>
+                          <p className="text-sm font-medium">Click to select a file</p>
+                          <p className="text-xs mt-1 opacity-70">PDF, DOC, DOCX, PPT, PPTX, XLS, XLSX, TXT</p>
+                        </>
+                      )}
+                    </div>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt"
+                      className="hidden"
+                      onChange={(e) => { setSelectedFile(e.target.files?.[0] ?? null); setUploadError(''); }}
+                    />
+
+                    {/* Progress bar */}
+                    {uploadProgress > 0 && (
+                      <div>
+                        <div className={`w-full rounded-full h-2 ${isDark ? 'bg-white/10' : 'bg-slate-100'}`}>
+                          <div
+                            className="h-2 rounded-full transition-all duration-300"
+                            style={{ width: `${uploadProgress}%`, backgroundColor: primaryHex }}
+                          />
+                        </div>
+                        <p className={`text-xs mt-1 text-center ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                          Uploading... {uploadProgress}%
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Inline error */}
+                    {uploadError && (
+                      <p className="text-sm text-red-500 flex items-center gap-1">
+                        <AlertTriangle size={14} /> {uploadError}
+                      </p>
+                    )}
+                  </>
+                );
+
+                // ── YouTube Video mode ────────────────────────────────────
+                if (isVideoMode) return (
+                  <>
+                    {commonFields}
+
+                    {/* Warning banner */}
+                    <div className={`flex items-start gap-2 p-3 rounded-lg text-sm ${isDark ? 'bg-yellow-500/10 text-yellow-300 border border-yellow-500/20' : 'bg-yellow-50 text-yellow-700 border border-yellow-200'}`}>
+                      <AlertTriangle size={16} className="flex-shrink-0 mt-0.5" />
+                      <span>Video will be uploaded to YouTube. This may take several minutes depending on file size.</span>
+                    </div>
+
+                    {/* Video dropzone */}
+                    <div
+                      onClick={() => !mutating && videoInputRef.current?.click()}
+                      className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors ${
+                        mutating ? 'opacity-50 cursor-not-allowed' :
+                        isDark ? 'border-white/20 hover:border-white/40 text-slate-400' : 'border-slate-300 hover:border-slate-400 text-slate-500'
+                      }`}
+                    >
+                      <Film size={28} className="mx-auto mb-2 opacity-60" />
+                      {selectedFile ? (
+                        <>
+                          <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                            🎬 {selectedFile.name}
+                          </p>
+                          <p className="text-xs mt-1 opacity-70">
+                            {(selectedFile.size / 1024 / 1024).toFixed(1)} MB
+                          </p>
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-sm font-medium">Click to select a video file</p>
+                          <p className="text-xs mt-1 opacity-70">MP4, MOV, AVI, MKV, WebM</p>
+                        </>
+                      )}
+                    </div>
+                    <input
+                      ref={videoInputRef}
+                      type="file"
+                      accept=".mp4,.mov,.avi,.mkv,.webm,video/*"
+                      className="hidden"
+                      onChange={(e) => { setSelectedFile(e.target.files?.[0] ?? null); setUploadError(''); }}
+                    />
+
+                    {/* Progress bar */}
+                    {uploadProgress > 0 && (
+                      <div>
+                        <div className={`w-full rounded-full h-2 ${isDark ? 'bg-white/10' : 'bg-slate-100'}`}>
+                          <div
+                            className="h-2 rounded-full transition-all duration-300"
+                            style={{ width: `${uploadProgress}%`, backgroundColor: '#ef4444' }}
+                          />
+                        </div>
+                        <p className="text-xs mt-1 text-center text-red-500">
+                          Uploading to YouTube... {uploadProgress}%
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Inline error */}
+                    {uploadError && (
+                      <div className="text-sm text-red-500">
+                        <p className="flex items-center gap-1"><AlertTriangle size={14} /> {uploadError}</p>
+                        {youtubeAuthUrl && (
+                          <a
+                            href={youtubeAuthUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mt-1 inline-block text-blue-500 underline text-xs"
+                          >
+                            Open YouTube OAuth Authorization →
+                          </a>
+                        )}
+                      </div>
+                    )}
+                  </>
+                );
+
+                // ── Text / Link mode (default) ────────────────────────────
+                return commonFields;
               })()}
             </div>
 
             <div className="flex justify-end gap-2 mt-6">
               <button
-                onClick={() => {
-                  setShowCreateModal(false);
-                  setShowEditModal(false);
-                }}
-                className={`px-4 py-2 rounded-lg ${isDark ? 'text-slate-300 hover:bg-white/10' : 'text-slate-700 hover:bg-slate-100'}`}
+                disabled={mutating}
+                onClick={showCreateModal ? closeCreateModal : () => setShowEditModal(false)}
+                className={`px-4 py-2 rounded-lg disabled:opacity-40 ${isDark ? 'text-slate-300 hover:bg-white/10' : 'text-slate-700 hover:bg-slate-100'}`}
               >
                 Cancel
               </button>
               <button
                 disabled={mutating}
                 onClick={showCreateModal ? onCreateMaterial : onUpdateMaterial}
-                className="px-4 py-2 text-white rounded-lg disabled:opacity-60"
+                className="px-4 py-2 text-white rounded-lg disabled:opacity-60 flex items-center gap-2"
                 style={{ backgroundColor: primaryHex }}
               >
-                {mutating ? 'Saving...' : showCreateModal ? 'Create' : 'Save'}
+                {mutating && <Loader2 size={15} className="animate-spin" />}
+                {mutating
+                  ? uploadType === 'video'
+                    ? `Uploading ${uploadProgress}%`
+                    : uploadType === 'file'
+                    ? `Uploading ${uploadProgress}%`
+                    : 'Saving...'
+                  : showCreateModal
+                  ? 'Create'
+                  : 'Save'}
               </button>
             </div>
           </div>
