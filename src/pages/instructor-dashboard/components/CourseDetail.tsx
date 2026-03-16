@@ -1,4 +1,8 @@
 import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { CourseService } from '../../../services/api/courseService';
+import { AssignmentService, Assignment } from '../../../services/api/assignmentService';
+import { EnrollmentService } from '../../../services/api/enrollmentService';
 import {
   ArrowLeft,
   Users,
@@ -71,61 +75,60 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
     title: '',
     lectureId: '',
   });
-  const [courseMaterials, setCourseMaterials] = useState<
-    Array<{ id: string; title: string; lectureId: string; type: string; date: string }>
-  >([
-    {
-      id: 'm1',
-      title: 'Syllabus.pdf',
-      lectureId: '1.1',
-      type: 'pdf',
-      date: 'May 10',
-    },
-  ]);
-
-  const [courseAssignments, setCourseAssignments] = useState([
-    {
-      title: 'Assignment 03 — Derivatives Practice',
-      subject: 'Calculus I',
-      subjectColor: 'bg-blue-100 text-blue-700',
-      dueDate: 'Due May 15, 2025',
-      submitted: 32,
-      total: 52,
-      description:
-        'Complete problems 1-20 on derivatives, including chain rule and implicit differentiation.',
-      files: ['Problem-Set.pdf', 'Formula-Sheet.pdf'],
-      status: 'Published',
-      statusColor: 'bg-green-100 text-green-700',
-    },
-    {
-      title: 'Lab Report 02 — Projectile Motion',
-      subject: 'Physics I',
-      subjectColor: '',
-      dueDate: 'Due May 14, 2025',
-      submitted: 28,
-      total: 43,
-      description:
-        'Analyze projectile motion data collected during lab session and write a comprehensive report.',
-      files: ['Lab-Instructions.pdf'],
-      status: 'Published',
-      statusColor: 'bg-green-100 text-green-700',
-    },
-    {
-      title: 'Programming Assignment 04 — Sorting Algorithms',
-      subject: 'Intro to Computer Science',
-      subjectColor: 'bg-emerald-100 text-emerald-700',
-      dueDate: 'Due May 20, 2025',
-      submitted: 0,
-      total: 48,
-      description: 'Implement and compare quicksort, mergesort, and heapsort algorithms.',
-      files: ['Starter-Code.zip', 'Requirements.pdf'],
-      status: 'Draft',
-      statusColor: 'bg-yellow-100 text-yellow-700',
-    },
-  ]);
 
   // Get actual course data
   const course = courses.find((c) => c.id === courseId);
+
+  const queryClient = useQueryClient();
+  const { data: courseMaterials = [], isLoading: isLoadingMaterials } = useQuery({
+    queryKey: ['course-materials', course?.id],
+    queryFn: () => CourseService.getMaterials(course!.id),
+    enabled: !!course?.id,
+  });
+
+  const createMaterialMutation = useMutation({
+    mutationFn: (newMaterial: any) => CourseService.createMaterial(course!.id, newMaterial),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['course-materials', course?.id] });
+      setShowMaterialModal(false);
+      setMaterialForm({ title: '', lectureId: '' });
+    },
+  });
+
+  const { data: assignmentsResponse, isLoading: isLoadingAssignments } = useQuery({
+    queryKey: ['course-assignments', course?.id],
+    queryFn: () => AssignmentService.getAll({ courseId: String(course!.id) }),
+    enabled: !!course?.id,
+  });
+  const courseAssignments = assignmentsResponse?.data || [];
+
+  const createAssignmentMutation = useMutation({
+    mutationFn: (newAssignment: any) => AssignmentService.create(newAssignment),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['course-assignments', course?.id] });
+      setShowAssignmentForm(false);
+      setAssignmentForm(null);
+      setEditingAssignmentIndex(null);
+    },
+  });
+
+  const updateAssignmentMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) => AssignmentService.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['course-assignments', course?.id] });
+      setShowAssignmentForm(false);
+      setAssignmentForm(null);
+      setEditingAssignmentIndex(null);
+    },
+  });
+
+  const { data: sectionStudents = [], isLoading: isLoadingStudents } = useQuery({
+    queryKey: ['section-students', course?.id],
+    queryFn: () => EnrollmentService.getSectionStudents(course!.id),
+    enabled: !!course?.id,
+  });
+
+
 
   const getPrimaryBadgeStyle = (colorClass: string): React.CSSProperties | undefined => {
     if (colorClass) return undefined;
@@ -161,113 +164,74 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
     { id: 'assignments', label: t('assignments'), icon: FileText },
     { id: 'grading', label: t('grading'), icon: CheckCircle },
     { id: 'students', label: t('students'), icon: Users },
-    { id: 'announcements', label: t('announcements'), icon: MessageSquare },
   ];
 
-  const [sampleSubmissions, setSampleSubmissions] = useState([
-    {
-      id: '1',
-      studentId: 'stu-1',
-      studentName: 'John Smith',
-      assignmentTitle: 'Assignment 03 — Derivatives Practice',
-      type: 'written',
-      submittedAt: new Date('2025-05-10T14:30:00'),
-      totalScore: 0,
-      maxTotalScore: 100,
-      status: 'pending review',
-      fileName: 'JohnSmith_Assignment3.pdf',
-      fileUrl: '#',
-      grade: '',
-    },
-    {
-      id: '2',
-      studentId: 'stu-2',
-      studentName: 'Emily Chen',
-      assignmentTitle: 'Assignment 03 — Derivatives Practice',
-      type: 'written',
-      submittedAt: new Date('2025-05-10T15:15:00'),
-      totalScore: 92,
-      maxTotalScore: 100,
-      status: 'graded',
-      fileName: 'EmilyChen_Derivatives.pdf',
-      fileUrl: '#',
-      grade: '92',
-    },
-  ]);
+  const [sampleSubmissions, setSampleSubmissions] = useState([]);
 
-  const handleInlineGrade = (id: string, newGrade: string) => {
-    setSampleSubmissions((prev) =>
-      prev.map((sub) => (sub.id === id ? { ...sub, grade: newGrade } : sub))
-    );
+  const [selectedAssignmentIdForGrading, setSelectedAssignmentIdForGrading] = useState<string | null>(null);
+  const [draftGrades, setDraftGrades] = useState<Record<number, string>>({});
+
+  const { data: assignmentSubmissions = [], isLoading: isLoadingSubmissions } = useQuery({
+    queryKey: ['assignment-submissions', selectedAssignmentIdForGrading],
+    queryFn: () => AssignmentService.getSubmissions(selectedAssignmentIdForGrading!),
+    enabled: !!selectedAssignmentIdForGrading,
+  });
+
+  const gradeSubmissionMutation = useMutation({
+    mutationFn: ({ assignmentId, submissionId, grade }: { assignmentId: string; submissionId: number; grade: number }) =>
+      AssignmentService.gradeSubmission(assignmentId, submissionId, { grade }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['assignment-submissions', selectedAssignmentIdForGrading] });
+      setDraftGrades({});
+    },
+  });
+
+  const handleInlineGrade = (submissionId: number, newGrade: string) => {
+    setDraftGrades((prev) => ({ ...prev, [submissionId]: newGrade }));
   };
 
-  const saveInlineGrade = (id: string) => {
-    setSampleSubmissions((prev) =>
-      prev.map((sub) =>
-        sub.id === id ? { ...sub, status: 'graded', totalScore: Number(sub.grade) || 0 } : sub
-      )
-    );
+  const saveInlineGrade = (submissionId: number) => {
+    const grade = parseFloat(draftGrades[submissionId]);
+    if (!isNaN(grade) && selectedAssignmentIdForGrading) {
+      gradeSubmissionMutation.mutate({
+        assignmentId: selectedAssignmentIdForGrading,
+        submissionId,
+        grade,
+      });
+    }
   };
+
 
   const handleSaveAssignment = (data: AssignmentFormData) => {
-    const formattedDueDate = `Due ${new Date(data.dueDate).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    })}`;
+    const formattedDueDate = data.dueDate ? new Date(data.dueDate).toISOString() : new Date().toISOString();
+
+    const payload = {
+      title: data.title,
+      description: data.description || '',
+      dueDate: formattedDueDate,
+      status: data.status === 'draft' ? 'DRAFT' : 'PUBLISHED',
+      courseId: String(course!.id),
+      maxScore: String(100),
+      submissionType: 'ONLINE',
+    };
 
     if (editingAssignmentIndex !== null) {
-      setCourseAssignments((prev) =>
-        prev.map((assignment, index) =>
-          index === editingAssignmentIndex
-            ? {
-                ...assignment,
-                title: data.title,
-                description: data.description || '',
-                dueDate: formattedDueDate,
-                status: data.status === 'draft' ? 'Draft' : 'Published',
-                statusColor:
-                  data.status === 'draft'
-                    ? 'bg-yellow-100 text-yellow-700'
-                    : 'bg-green-100 text-green-700',
-              }
-            : assignment
-        )
-      );
+      const assignmentToEdit = courseAssignments[editingAssignmentIndex];
+      updateAssignmentMutation.mutate({ id: String(assignmentToEdit.id), data: payload });
     } else {
-      setCourseAssignments((prev) => [
-        ...prev,
-        {
-          title: data.title,
-          subject: course.courseName,
-          subjectColor: 'bg-indigo-100 text-indigo-700',
-          dueDate: formattedDueDate,
-          submitted: 0,
-          total: course.enrolled,
-          description: data.description || '',
-          files: ['Instructions.pdf'],
-          status: data.status === 'draft' ? 'Draft' : 'Published',
-          statusColor:
-            data.status === 'draft'
-              ? 'bg-yellow-100 text-yellow-700'
-              : 'bg-green-100 text-green-700',
-        },
-      ]);
+      createAssignmentMutation.mutate(payload);
     }
-
-    setAssignmentForm(null);
-    setEditingAssignmentIndex(null);
-    setShowAssignmentForm(false);
   };
 
   const handleEditAssignment = (index: number) => {
     const assignment = courseAssignments[index];
     let dueDateValue = '';
     try {
-      const dateStr = assignment.dueDate.replace('Due ', '');
-      const date = new Date(dateStr);
-      if (!isNaN(date.getTime())) {
-        dueDateValue = date.toISOString().split('T')[0];
+      if (assignment.dueDate) {
+        const date = new Date(assignment.dueDate);
+        if (!isNaN(date.getTime())) {
+          dueDateValue = date.toISOString().split('T')[0];
+        }
       }
     } catch (e) {
       console.error('Error parsing date:', e);
@@ -275,10 +239,10 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
 
     setAssignmentForm({
       title: assignment.title,
-      description: assignment.description,
+      description: assignment.description || '',
       dueDate: dueDateValue,
-      status: assignment.status.toLowerCase() as any,
-      submissions: assignment.submitted,
+      status: (assignment.status || 'draft').toLowerCase() as any,
+      submissions: 0,
       assignmentType: 'assignment',
     });
     setEditingAssignmentIndex(index);
@@ -286,33 +250,19 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
   };
 
   const handlePublishAssignment = (index: number) => {
-    setCourseAssignments((prev) =>
-      prev.map((assignment, idx) =>
-        idx === index
-          ? {
-              ...assignment,
-              status: 'Published',
-              statusColor: 'bg-green-100 text-green-700',
-            }
-          : assignment
-      )
-    );
+    const assignment = courseAssignments[index];
+    updateAssignmentMutation.mutate({ id: String(assignment.id), data: { status: 'PUBLISHED' } });
   };
 
   const handleSaveMaterial = () => {
-    if (!materialForm.title.trim() || !materialForm.lectureId) return;
+    if (!materialForm.title.trim() || !materialForm.lectureId || !course) return;
 
-    const newMaterial = {
-      id: `m${Date.now()}`,
+    createMaterialMutation.mutate({
       title: materialForm.title,
-      lectureId: materialForm.lectureId,
-      type: materialForm.title.split('.').pop() || 'pdf',
-      date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-    };
-
-    setCourseMaterials([...courseMaterials, newMaterial]);
-    setMaterialForm({ title: '', lectureId: '' });
-    setShowMaterialModal(false);
+      materialType: 'document',
+      weekNumber: parseInt(materialForm.lectureId.split('.')[0]) || 1,
+      isPublished: true,
+    });
   };
 
   return (
@@ -631,8 +581,9 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
 
             <div className="space-y-4">
               {[1, 2, 3, 4].map((week) => {
-                const weekLectureId = `${week}.1`;
-                const weekMaterials = courseMaterials.filter((m) => m.lectureId === weekLectureId);
+                const weekMaterials = courseMaterials.filter(
+                  (m: any) => m.weekNumber === week || (!m.weekNumber && week === 1)
+                );
 
                 return (
                   <div
@@ -685,7 +636,7 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                               <span
                                 className={`text-xs ${isDark ? 'text-slate-400' : 'text-gray-500'}`}
                               >
-                                {material.date}
+                                {material.createdAt ? new Date(material.createdAt).toLocaleDateString() : 'Just now'}
                               </span>
                             </div>
                           ))}
@@ -744,10 +695,10 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                           {assignment.title}
                         </h3>
                         <span
-                          className={`px-2 py-1 rounded-full text-xs font-medium ${assignment.subjectColor}`}
-                          style={getPrimaryBadgeStyle(assignment.subjectColor)}
+                          className={`px-2 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700`}
+                          style={getPrimaryBadgeStyle('bg-indigo-100 text-indigo-700')}
                         >
-                          {assignment.subject}
+                          {course.courseName}
                         </span>
                       </div>
                       <div
@@ -755,34 +706,21 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                       >
                         <div className="flex items-center gap-1">
                           <Calendar size={14} />
-                          <span>{assignment.dueDate}</span>
+                          <span>{assignment.dueDate ? new Date(assignment.dueDate).toLocaleDateString() : 'No due date'}</span>
                         </div>
                         <div className="flex items-center gap-1">
                           <Users size={14} />
-                          <span>
-                            {assignment.submitted}/{assignment.total} Submitted
-                          </span>
+                          <span>0/{course.enrolled} Submitted</span>
                         </div>
                       </div>
                       <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'} mb-4`}>
                         {assignment.description}
                       </p>
-                      <div className="flex items-center gap-2">
-                        {assignment.files.map((file, fileIndex) => (
-                          <div
-                            key={fileIndex}
-                            className={`flex items-center gap-2 px-3 py-1 ${isDark ? 'bg-transparent' : 'bg-gray-50'} rounded-lg text-sm ${isDark ? 'text-slate-400' : 'text-gray-700'}`}
-                          >
-                            <FileText size={14} />
-                            <span>{file}</span>
-                          </div>
-                        ))}
-                      </div>
                     </div>
                     <span
-                      className={`px-3 py-1 rounded-full text-xs font-medium ${assignment.statusColor}`}
+                      className={`px-3 py-1 rounded-full text-xs font-medium ${assignment.status === 'PUBLISHED' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}
                     >
-                      {assignment.status}
+                      {assignment.status || 'DRAFT'}
                     </span>
                   </div>
                   <div
@@ -792,6 +730,7 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                       onClick={() => {
                         setActiveTab('grading');
                         setGradingSubTab('manual');
+                        setSelectedAssignmentIdForGrading(String(assignment.id));
                       }}
                       className={`flex items-center gap-2 px-3 py-2 text-sm ${isDark ? 'text-slate-400 hover:bg-white/10' : 'text-gray-700 hover:bg-gray-50'} rounded-lg transition-colors`}
                     >
@@ -807,6 +746,7 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                       onClick={() => {
                         setActiveTab('grading');
                         setGradingSubTab('manual');
+                        setSelectedAssignmentIdForGrading(String(assignment.id));
                       }}
                       className={`flex items-center gap-2 px-3 py-2 text-sm ${isDark ? 'text-slate-400 hover:bg-white/10' : 'text-gray-700 hover:bg-gray-50'} rounded-lg transition-colors`}
                     >
@@ -822,7 +762,7 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                       <Sparkles size={16} />
                       AI Auto-Grading
                     </button>
-                    {assignment.status === 'Draft' && (
+                    {assignment.status !== 'PUBLISHED' && (
                       <button
                         onClick={() => handlePublishAssignment(index)}
                         className="flex items-center gap-2 px-3 py-2 text-sm text-green-600 hover:bg-green-50 rounded-lg transition-colors ml-auto"
@@ -872,14 +812,38 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
 
             {gradingSubTab === 'manual' && (
               <div className="space-y-4">
-                <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-                  Written and uploaded assignments that require manual review and grading.
-                </p>
-                {sampleSubmissions
-                  .filter((s) => s.type === 'written')
-                  .map((sub) => (
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                    Written and uploaded assignments that require manual review and grading.
+                  </p>
+                  <div className="w-full sm:w-64">
+                    <select
+                      value={selectedAssignmentIdForGrading || ''}
+                      onChange={(e) => setSelectedAssignmentIdForGrading(e.target.value)}
+                      className={`w-full p-2.5 rounded-xl border text-sm focus:ring-2 focus:ring-indigo-500 transition-all ${isDark ? 'bg-white/5 border-white/10 text-white [&>option]:bg-gray-800' : 'bg-gray-50 border-gray-200 text-gray-900'} outline-none`}
+                    >
+                      <option value="">Select an Assignment</option>
+                      {courseAssignments.map((a: any) => (
+                        <option key={a.id} value={a.id}>
+                          {a.title}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {!selectedAssignmentIdForGrading ? (
+                  <div className={`p-8 text-center rounded-xl border ${isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
+                    <p className={isDark ? 'text-slate-400' : 'text-gray-500'}>Please select an assignment above to view submissions.</p>
+                  </div>
+                ) : assignmentSubmissions.length === 0 ? (
+                  <div className={`p-8 text-center rounded-xl border ${isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
+                    <p className={isDark ? 'text-slate-400' : 'text-gray-500'}>No submissions yet for this assignment.</p>
+                  </div>
+                ) : (
+                  assignmentSubmissions.map((sub: any) => (
                     <div
-                      key={sub.id}
+                      key={sub.submissionId}
                       className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-4 sm:p-6 border shadow-sm`}
                     >
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
@@ -887,21 +851,21 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                           <h4
                             className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}
                           >
-                            {sub.studentName}
+                            {sub.studentName || `Student ID: ${sub.studentId}`}
                           </h4>
                           <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-                            {sub.studentId} • {sub.assignmentTitle}
+                            Submitted: {new Date(sub.submittedAt).toLocaleDateString()}
                           </p>
                         </div>
                         <span
                           className={`px-3 py-1 rounded-full text-xs font-medium ${
-                            sub.status === 'graded'
+                            sub.status === 'GRADED'
                               ? 'bg-green-100 text-green-700'
                               : 'bg-yellow-100 text-yellow-700'
                           }`}
                         >
-                          {sub.status === 'graded'
-                            ? `Graded: ${sub.grade}/${sub.maxTotalScore}`
+                          {sub.status === 'GRADED'
+                            ? `Graded: ${sub.grade}/100`
                             : 'Pending Review'}
                         </span>
                       </div>
@@ -909,10 +873,10 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                         <div className="flex gap-2">
                           {sub.fileUrl && (
                             <button
-                              onClick={() => alert(`Downloading ${sub.fileName}`)}
+                              onClick={() => window.open(sub.fileUrl, '_blank')}
                               className={`flex items-center gap-1 px-3 py-2 text-sm rounded-lg transition-colors ${isDark ? 'bg-white/5 text-slate-300 hover:bg-white/10' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
                             >
-                              <Download size={14} /> {sub.fileName}
+                              <Download size={14} /> Download Submission
                             </button>
                           )}
                         </div>
@@ -924,18 +888,18 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                           </label>
                           <input
                             type="number"
-                            value={sub.grade}
-                            onChange={(e) => handleInlineGrade(sub.id, e.target.value)}
+                            value={draftGrades[sub.submissionId] !== undefined ? draftGrades[sub.submissionId] : (sub.grade || '')}
+                            onChange={(e) => handleInlineGrade(sub.submissionId, e.target.value)}
                             placeholder="e.g. 85"
                             className={`w-20 px-3 py-1.5 text-sm rounded-lg border focus:outline-none focus:ring-2 ${isDark ? 'bg-white/5 border-white/10 text-white focus:ring-indigo-500' : 'bg-white border-gray-300 text-gray-900 focus:ring-indigo-500'}`}
                           />
                           <span
                             className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-500'} mr-2`}
                           >
-                            / {sub.maxTotalScore}
+                            / 100
                           </span>
                           <button
-                            onClick={() => saveInlineGrade(sub.id)}
+                            onClick={() => saveInlineGrade(sub.submissionId)}
                             className="px-4 py-1.5 text-sm font-medium bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
                           >
                             Save Grade
@@ -943,7 +907,8 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                         </div>
                       </div>
                     </div>
-                  ))}
+                  ))
+                )}
               </div>
             )}
 
@@ -1041,49 +1006,24 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
           <div
             className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}
           >
-            <RosterTable sectionId={String(course.id)} />
+            <RosterTable
+              data={sectionStudents.map((student: any, index: number) => ({
+                id: student.id || student.userId || index + 1,
+                name: `${student.firstName || ''} ${student.lastName || ''}`.trim() || `Student ${index + 1}`,
+                email: student.email || `student${index + 1}@edu.com`,
+                status: 'Enrolled',
+                grades: {
+                  assignments: '-',
+                  quizzes: '-',
+                  midterm: '-',
+                  final: '-',
+                  total: '-',
+                },
+              }))}
+            />
           </div>
         )}
 
-        {/* Announcements Tab */}
-        {activeTab === 'announcements' && (
-          <div
-            className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}
-          >
-            <div className="flex items-center justify-between mb-6">
-              <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                {t('announcements')}
-              </h3>
-              <button className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm">
-                <Bell size={16} />
-                New Announcement
-              </button>
-            </div>
-            <div className="space-y-4">
-              {[
-                { title: 'Midterm Schedule', date: 'May 10', content: 'Midterm exam on June 1st' },
-                { title: 'Office Hours Update', date: 'May 8', content: 'New office hours posted' },
-              ].map((announcement, index) => (
-                <div
-                  key={index}
-                  className={`p-4 ${isDark ? 'bg-transparent' : 'bg-gray-50'} rounded-lg`}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <div className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                      {announcement.title}
-                    </div>
-                    <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-                      {announcement.date}
-                    </div>
-                  </div>
-                  <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-                    {announcement.content}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Upload Material Modal */}

@@ -75,54 +75,149 @@ const courseLectures: Record<string, string[]> = {
   'Physics I': ['Lecture 1: Kinematics', 'Lecture 2: Dynamics', 'Lecture 3: Energy'],
 };
 
-export function QuizzesPage() {
+const MOCK_QUIZZES: QuizData[] = [
+  {
+    title: 'Midterm Review Quiz',
+    subject: 'Data Structures',
+    subjectColor: 'bg-indigo-100 text-indigo-700',
+    date: '2025-01-10',
+    questions: 15,
+    attempted: 42,
+    total: 45,
+    difficulty: 'Medium',
+    difficultyColor: 'bg-yellow-100 text-yellow-700',
+    duration: 30,
+    status: 'Active',
+    statusColor: 'bg-green-100 text-green-700',
+  },
+  {
+    title: 'Sorting Algorithms',
+    subject: 'Algorithms',
+    subjectColor: 'bg-blue-100 text-blue-700',
+    date: '2024-12-20',
+    questions: 10,
+    attempted: 38,
+    total: 40,
+    difficulty: 'Easy',
+    difficultyColor: 'bg-green-100 text-green-700',
+    duration: 20,
+    status: 'Closed',
+    statusColor: 'bg-gray-100 text-gray-700',
+  },
+  {
+    title: 'OOP Concepts',
+    subject: 'Object-Oriented Programming',
+    subjectColor: 'bg-purple-100 text-purple-700',
+    date: '2025-01-15',
+    questions: 12,
+    attempted: 0,
+    total: 35,
+    difficulty: 'Medium',
+    difficultyColor: 'bg-yellow-100 text-yellow-700',
+    duration: 25,
+    status: 'Draft',
+    statusColor: 'bg-orange-100 text-orange-700',
+  },
+  {
+    title: 'Database Normalization',
+    subject: 'Database Systems',
+    subjectColor: 'bg-teal-100 text-teal-700',
+    date: '2025-01-08',
+    questions: 8,
+    attempted: 35,
+    total: 35,
+    difficulty: 'Easy',
+    difficultyColor: 'bg-green-100 text-green-700',
+    duration: 15,
+    status: 'Active',
+    statusColor: 'bg-green-100 text-green-700',
+  },
+  {
+    title: 'Graph Theory Basics',
+    subject: 'Discrete Mathematics',
+    subjectColor: 'bg-pink-100 text-pink-700',
+    date: '2025-01-18',
+    questions: 20,
+    attempted: 0,
+    total: 50,
+    difficulty: 'Hard',
+    difficultyColor: 'bg-red-100 text-red-700',
+    duration: 40,
+    status: 'Scheduled',
+    statusColor: 'bg-blue-100 text-blue-700',
+  },
+];
+
+export interface QuizzesPageProps {
+  courses?: any[]; // Passed from InstructorDashboard to populate the filter and create form
+}
+
+export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
   const { t, isRTL } = useLanguage();
   const { isDark, primaryHex = '#3b82f6' } = useTheme() as any;
 
-  const [quizzes, setQuizzes] = useState<QuizData[]>([
-    {
-      title: 'Quiz 3 — Derivatives',
-      subject: 'Calculus II',
-      subjectColor: 'bg-blue-100 text-blue-700',
-      date: 'May 14, 10:00 AM',
-      questions: 12,
-      attempted: 52,
-      total: 52,
-      difficulty: 'Medium',
-      difficultyColor: 'bg-yellow-100 text-yellow-700',
-      duration: 30,
-      status: 'Active',
-      statusColor: 'bg-green-100 text-green-700',
-    },
-    {
-      title: 'Quiz 2 — Limits and Continuity',
-      subject: 'Calculus I',
-      subjectColor: 'bg-blue-100 text-blue-700',
-      date: 'May 10, 10:00 AM',
-      questions: 10,
-      attempted: 52,
-      total: 52,
-      difficulty: 'Easy',
-      difficultyColor: 'bg-green-100 text-green-700',
-      duration: 25,
-      status: 'Closed',
-      statusColor: 'bg-gray-100 text-gray-700',
-    },
-    {
-      title: 'Quiz 4 — Kinematics',
-      subject: 'Physics I',
-      subjectColor: '',
-      date: 'May 18, 2:00 PM',
-      questions: 15,
-      attempted: 0,
-      total: 43,
-      difficulty: 'Hard',
-      difficultyColor: 'bg-red-100 text-red-700',
-      duration: 45,
-      status: 'Scheduled',
-      statusColor: 'bg-blue-100 text-blue-700',
-    },
-  ]);
+  const [quizzes, setQuizzes] = useState<QuizData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
+  
+  // Filters
+  const [selectedCourse, setSelectedCourse] = useState('all');
+  const [selectedStatus, setSelectedStatus] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Fetch quizzes
+  React.useEffect(() => {
+    async function fetchQuizzes() {
+      try {
+        setLoading(true);
+        const hasToken = !!localStorage.getItem('accessToken');
+        if (!hasToken) {
+          // Fallback to mock data in Demo Mode
+          setQuizzes(MOCK_QUIZZES);
+          setLoading(false);
+          return;
+        }
+
+        const { QuizService } = await import('../../../services/api/quizService');
+        // If "all" course is selected, fetch all quizzes, otherwise by course ID
+        const params = selectedCourse !== 'all' ? { courseId: Number(selectedCourse) } : undefined;
+        const liveQuizzes = await QuizService.getAll(params);
+        
+        // Map backend Quiz model to UI QuizData model
+        const mapped = liveQuizzes.map((q: any) => ({
+          id: q.quizId || q.id,
+          title: q.title,
+          subject: q.course?.name || q.courseName || 'Unknown Course',
+          subjectColor: 'bg-indigo-100 text-indigo-700',
+          date: new Date(q.availableFrom || q.createdAt || Date.now()).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit',
+          }),
+          questions: q.totalQuestions || 0,
+          attempted: 0, // We'll need another call to get stats per quiz or add it to endpoint
+          total: 0,
+          difficulty: q.difficulty || 'Medium',
+          difficultyColor: 'bg-yellow-100 text-yellow-700',
+          duration: q.timeLimitMinutes || q.duration || 30,
+          status: q.status === 'published' ? 'Active' : (q.status || 'Draft'),
+          statusColor: q.status === 'published' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700',
+          raw: q,
+        }));
+        
+        setQuizzes(mapped);
+      } catch (err) {
+        console.error('Failed to load quizzes', err);
+        // Fallback to mock data if API fails completely
+        setQuizzes(MOCK_QUIZZES);
+      } finally {
+        setLoading(false);
+      }
+    }
+    
+    fetchQuizzes();
+  }, [selectedCourse, refreshKey]);
 
   // Create / Edit quiz form state
   const [showCreateQuiz, setShowCreateQuiz] = useState(false);
@@ -139,8 +234,13 @@ export function QuizzesPage() {
 
   // View attempts state
   const [viewAttemptsIndex, setViewAttemptsIndex] = useState<number | null>(null);
+  const [attemptsData, setAttemptsData] = useState<any[]>([]);
+  const [loadingAttempts, setLoadingAttempts] = useState(false);
+
   // View analysis state
   const [viewAnalysisIndex, setViewAnalysisIndex] = useState<number | null>(null);
+  const [statsData, setStatsData] = useState<any>(null);
+  const [loadingStats, setLoadingStats] = useState(false);
 
   // --- Helpers ---
   const openCreateForm = () => {
@@ -149,63 +249,77 @@ export function QuizzesPage() {
     setShowCreateQuiz(true);
   };
 
-  const openEditForm = (index: number) => {
-    const quiz = quizzes[index];
-    const questions: QuizQuestion[] = Array.from({ length: quiz.questions }, (_, i) => ({
-      id: Date.now() + i,
-      type: 'mcq',
-      text: `Sample question ${i + 1} for ${quiz.title}`,
-      options: ['Option A', 'Option B', 'Option C', 'Option D'],
-      correctOption: 0,
-      correctOptions: [],
-    }));
-    setFormData({
-      title: quiz.title,
-      course: quiz.subject,
-      duration: quiz.duration,
-      difficulty: quiz.difficulty,
-      questions,
-    });
-    setEditingIndex(index);
-    setShowCreateQuiz(true);
+  const openEditForm = async (index: number) => {
+    try {
+      const { QuizService } = await import('../../../services/api/quizService');
+      const quiz = quizzes[index];
+      const quizId = quiz.raw?.quizId || quiz.raw?.id || quiz.id;
+      
+      const fullQuiz = await QuizService.getById(quizId);
+      
+      const questions: QuizQuestion[] = (fullQuiz.questions || []).map((q: any) => ({
+        id: q.questionId || q.id,
+        type: q.questionType === 'short_answer' ? 'text' : 'mcq',
+        text: q.questionText,
+        options: q.options ? q.options.map((opt: any) => opt.optionText || opt) : ['', '', '', ''],
+        correctOption: q.correctAnswer !== undefined ? Number(q.correctAnswer) : 0,
+        correctOptions: Array.isArray(q.correctAnswer) ? q.correctAnswer : [],
+      }));
+      
+      setFormData({
+        title: quiz.title,
+        course: String(quiz.raw?.courseId || ''),
+        duration: quiz.duration,
+        difficulty: quiz.difficulty,
+        questions: questions.length ? questions : [defaultQuestion()],
+      });
+      setEditingIndex(index);
+      setShowCreateQuiz(true);
+    } catch (err) {
+      console.error('Failed to load quiz details', err);
+    }
   };
 
-  const saveQuiz = () => {
-    const courseColorMap: Record<string, string> = {
-      'Calculus I': 'bg-blue-100 text-blue-700',
-      'Calculus II': 'bg-blue-100 text-blue-700',
-      'Physics I': '',
-    };
-    const diffColorMap: Record<string, string> = {
-      Easy: 'bg-green-100 text-green-700',
-      Medium: 'bg-yellow-100 text-yellow-700',
-      Hard: 'bg-red-100 text-red-700',
-    };
-    const newQuiz: QuizData = {
-      title: formData.title,
-      subject: formData.course,
-      subjectColor: courseColorMap[formData.course] || 'bg-blue-100 text-blue-700',
-      date: new Date().toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        hour: 'numeric',
-        minute: '2-digit',
-      }),
-      questions: formData.questions.length,
-      attempted: 0,
-      total: 52,
-      difficulty: formData.difficulty,
-      difficultyColor: diffColorMap[formData.difficulty] || 'bg-yellow-100 text-yellow-700',
-      duration: formData.duration,
-      status: 'Scheduled',
-      statusColor: 'bg-blue-100 text-blue-700',
-    };
-    if (editingIndex !== null) {
-      setQuizzes((prev) => prev.map((q, i) => (i === editingIndex ? newQuiz : q)));
-    } else {
-      setQuizzes((prev) => [...prev, newQuiz]);
+  const saveQuiz = async () => {
+    try {
+      const { QuizService } = await import('../../../services/api/quizService');
+      
+      const payload = {
+        title: formData.title,
+        courseId: Number(formData.course),
+        timeLimitMinutes: formData.duration,
+        quizType: 'graded',
+        maxAttempts: 1,
+        passingScore: 50,
+      };
+
+      if (editingIndex !== null) {
+        const existingQuiz = quizzes[editingIndex];
+        const quizId = existingQuiz.raw?.quizId || existingQuiz.raw?.id || existingQuiz.id;
+        await QuizService.updateQuiz(quizId, payload);
+        // Updating questions correctly is complex for this MVP, assuming user creates new ones instead
+      } else {
+        const newQuiz = await QuizService.createQuiz(payload);
+        const quizId = newQuiz.quizId || (newQuiz as any).id;
+        
+        // Add questions
+        for (const [index, q] of formData.questions.entries()) {
+          await QuizService.addQuestion(quizId, {
+            questionText: q.text,
+            questionType: q.type === 'text' ? 'short_answer' : q.type === 'checkbox' ? 'mcq' : 'mcq',
+            points: 10,
+            options: q.type === 'mcq' || q.type === 'checkbox' ? q.options : undefined,
+            correctAnswer: q.type === 'mcq' ? q.correctOption : q.type === 'checkbox' ? q.correctOptions : null,
+            orderIndex: index
+          });
+        }
+      }
+      
+      setShowCreateQuiz(false);
+      setRefreshKey(r => r + 1); // trigger list refresh
+    } catch (err) {
+      console.error('Failed to save quiz', err);
     }
-    setShowCreateQuiz(false);
   };
 
   const addQuestion = () => {
@@ -254,17 +368,56 @@ export function QuizzesPage() {
     }, 2000);
   };
 
-  const publishQuiz = (index: number) => {
-    setQuizzes((prev) =>
-      prev.map((q, i) =>
-        i === index ? { ...q, status: 'Active', statusColor: 'bg-green-100 text-green-700' } : q
-      )
-    );
+  const publishQuiz = async (index: number) => {
+    try {
+      const { QuizService } = await import('../../../services/api/quizService');
+      const quiz = quizzes[index];
+      const quizId = quiz.raw?.quizId || quiz.raw?.id || quiz.id;
+      await QuizService.updateQuiz(quizId, { status: 'published' });
+      setRefreshKey(r => r + 1);
+    } catch (err) {
+      console.error('Failed to publish', err);
+    }
   };
 
-  const analyzeResults = (index: number) => {
-    setViewAnalysisIndex(viewAnalysisIndex === index ? null : index);
+  const loadAttempts = async (index: number) => {
+    if (viewAttemptsIndex === index) {
+      setViewAttemptsIndex(null);
+      return;
+    }
+    setViewAttemptsIndex(index);
+    setViewAnalysisIndex(null);
+    setLoadingAttempts(true);
+    try {
+      const { QuizService } = await import('../../../services/api/quizService');
+      const quizId = quizzes[index].raw?.quizId || quizzes[index].raw?.id || quizzes[index].id;
+      const data = await QuizService.getAttempts({ quizId });
+      setAttemptsData(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error('Failed to load attempts', err);
+    } finally {
+      setLoadingAttempts(false);
+    }
+  };
+
+  const analyzeResults = async (index: number) => {
+    if (viewAnalysisIndex === index) {
+      setViewAnalysisIndex(null);
+      return;
+    }
+    setViewAnalysisIndex(index);
     setViewAttemptsIndex(null);
+    setLoadingStats(true);
+    try {
+      const { QuizService } = await import('../../../services/api/quizService');
+      const quizId = quizzes[index].raw?.quizId || quizzes[index].raw?.id || quizzes[index].id;
+      const data = await QuizService.getStatistics(quizId);
+      setStatsData(data);
+    } catch (err) {
+      console.error('Failed to load stats', err);
+    } finally {
+      setLoadingStats(false);
+    }
   };
 
   // Mock attempts data
@@ -326,26 +479,25 @@ export function QuizzesPage() {
       {/* Filters */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           <CustomDropdown
-            label={t('courseLabel')}
-            value="all"
+            label={t('courseLabel') || 'Course'}
+            value={selectedCourse}
             options={[
-              { value: 'all', label: t('allCourses') },
-              { value: 'calculus', label: 'Calculus I' },
-              { value: 'physics', label: 'Physics I' },
+              { value: 'all', label: t('allCourses') || 'All Courses' },
+              ...courses.map((c: any) => ({ value: String(c.id), label: c.courseName }))
             ]}
-            onChange={() => {}}
+            onChange={(val) => setSelectedCourse(val as string)}
             stackLabel
             fullWidth
           />
           <CustomDropdown
-            label={t('statusLabel')}
-            value="active"
+            label={t('statusLabel') || 'Status'}
+            value={selectedStatus}
             options={[
-              { value: 'all', label: t('all') },
-              { value: 'active', label: t('active') },
-              { value: 'closed', label: t('closed') },
+              { value: 'all', label: t('all') || 'All' },
+              { value: 'active', label: t('active') || 'Active' },
+              { value: 'closed', label: t('closed') || 'Closed' },
             ]}
-            onChange={() => {}}
+            onChange={(val) => setSelectedStatus(val as string)}
             stackLabel
             fullWidth
           />
@@ -362,7 +514,9 @@ export function QuizzesPage() {
               />
               <input
                 type="text"
-                placeholder={t('searchQuizzes')}
+                placeholder={t('searchQuizzes') || 'Search quizzes...'}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${inputCls}`}
               />
             </div>
@@ -371,7 +525,15 @@ export function QuizzesPage() {
 
       {/* Quiz Cards */}
       <div className="space-y-4">
-        {quizzes.map((quiz, index) => (
+        {loading ? (
+          <div className="flex justify-center p-8">
+            <Loader2 className="animate-spin text-indigo-500" size={32} />
+          </div>
+        ) : quizzes.filter(q => {
+            const matchesSearch = q.title.toLowerCase().includes(searchQuery.toLowerCase());
+            const matchesStatus = selectedStatus === 'all' || q.status.toLowerCase() === selectedStatus.toLowerCase();
+            return matchesSearch && matchesStatus;
+        }).map((quiz, index) => (
             <div key={index} className={`rounded-xl p-4 sm:p-6 border shadow-sm ${cardCls}`}>
               <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-4">
                 <div className="flex-1 min-w-0">
@@ -427,10 +589,7 @@ export function QuizzesPage() {
                 className={`flex flex-wrap items-center gap-2 pt-4 border-t ${isDark ? 'border-white/10' : 'border-gray-200'}`}
               >
                 <button
-                  onClick={() => {
-                    setViewAttemptsIndex(viewAttemptsIndex === index ? null : index);
-                    setViewAnalysisIndex(null);
-                  }}
+                  onClick={() => loadAttempts(index)}
                   className={`flex items-center gap-2 px-3 py-2 text-sm ${btnSecCls} focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-500 rounded-lg transition-colors`}
                 >
                   <Eye size={16} />
@@ -457,12 +616,12 @@ export function QuizzesPage() {
                   <BarChart3 size={16} />
                   {t('analyzeResults')}
                 </button>
-                {quiz.status === 'Scheduled' && (
+                {quiz.status !== 'Active' && quiz.status !== 'published' && (
                   <button
                     onClick={() => publishQuiz(index)}
-                    className="flex items-center gap-2 px-3 py-2 text-sm text-green-600 hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-500 rounded-lg transition-colors ml-auto"
+                    className="flex items-center gap-2 px-3 py-2 text-sm text-green-600 hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-green-500 rounded-lg transition-colors ml-auto"
                   >
-                    {t('publish')}
+                    {t('publish') || 'Publish'}
                   </button>
                 )}
               </div>
@@ -477,24 +636,30 @@ export function QuizzesPage() {
                         <tr className={subCls}>
                           <th className="text-left pb-2 font-medium">Student</th>
                           <th className="text-left pb-2 font-medium">Score</th>
-                          <th className="text-left pb-2 font-medium">Time</th>
+                          <th className="text-left pb-2 font-medium">Time (min)</th>
                           <th className="text-left pb-2 font-medium">Date</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {mockAttempts.map((a, i) => (
+                        {loadingAttempts ? (
+                          <tr><td colSpan={4} className="py-4 text-center">Loading attempts...</td></tr>
+                        ) : attemptsData?.length === 0 ? (
+                          <tr><td colSpan={4} className="py-4 text-center text-gray-500">No attempts found for this quiz</td></tr>
+                        ) : attemptsData?.map((a, i) => (
                           <tr
                             key={i}
                             className={`border-t ${isDark ? 'border-white/10' : 'border-gray-100'}`}
                           >
-                            <td className={`py-2 ${headingCls}`}>{a.name}</td>
+                            <td className={`py-2 ${headingCls}`}>{a.user?.firstName || 'Unknown'} {a.user?.lastName || ''}</td>
                             <td
-                              className={`py-2 ${a.score >= 90 ? 'text-green-500' : a.score >= 70 ? 'text-yellow-500' : 'text-red-500'} font-medium`}
+                              className={`py-2 ${a.percentage >= 90 ? 'text-green-500' : a.percentage >= 70 ? 'text-yellow-500' : 'text-red-500'} font-medium`}
                             >
-                              {a.score}%
+                              {a.percentage !== undefined ? `${a.percentage.toFixed(1)}%` : '-'}
                             </td>
-                            <td className={`py-2 ${subCls}`}>{a.time}</td>
-                            <td className={`py-2 ${subCls}`}>{a.date}</td>
+                            <td className={`py-2 ${subCls}`}>
+                              {a.startedAt && a.submittedAt ? Math.round((new Date(a.submittedAt).getTime() - new Date(a.startedAt).getTime()) / 60000) : '-'}
+                            </td>
+                            <td className={`py-2 ${subCls}`}>{new Date(a.submittedAt || a.startedAt).toLocaleDateString()}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -507,37 +672,48 @@ export function QuizzesPage() {
               {viewAnalysisIndex === index && (
                 <div className={`mt-4 p-4 rounded-lg border ${cardCls}`}>
                   <h4 className={`font-semibold mb-3 ${headingCls}`}>{t('analyzeResults')}</h4>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                    <div className="p-3 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800">
-                      <p className={`text-xs ${subCls} mb-1`}>Average Score</p>
-                      <p className={`text-lg font-bold text-indigo-600 dark:text-indigo-400`}>
-                        78%
-                      </p>
-                    </div>
-                    <div className="p-3 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800">
-                      <p className={`text-xs ${subCls} mb-1`}>Highest Score</p>
-                      <p className={`text-lg font-bold text-green-600 dark:text-green-400`}>96%</p>
-                    </div>
-                    <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800">
-                      <p className={`text-xs ${subCls} mb-1`}>Lowest Score</p>
-                      <p className={`text-lg font-bold text-red-600 dark:text-red-400`}>42%</p>
-                    </div>
-                    <div className="p-3 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-100 dark:border-yellow-800">
-                      <p className={`text-xs ${subCls} mb-1`}>Median Score</p>
-                      <p className={`text-lg font-bold text-yellow-600 dark:text-yellow-400`}>
-                        80%
-                      </p>
-                    </div>
-                  </div>
-                  <div
-                    className={`mt-4 pt-4 border-t ${isDark ? 'border-white/10' : 'border-gray-100'}`}
-                  >
-                    <p className={`text-sm ${subCls}`}>
-                      <span className={`font-medium ${headingCls}`}>{quiz.attempted}</span> out of{' '}
-                      <span className={`font-medium ${headingCls}`}>{quiz.total}</span> students
-                      have attempted this quiz.
-                    </p>
-                  </div>
+                  {loadingStats ? (
+                    <div className="flex justify-center py-4 text-indigo-500"><Loader2 className="animate-spin" size={24} /></div>
+                  ) : !statsData ? (
+                    <div className="py-4 text-center text-gray-500">Stats not available yet</div>
+                  ) : (
+                    <>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        <div className="p-3 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800">
+                          <p className={`text-xs ${subCls} mb-1`}>Average Score</p>
+                          <p className={`text-lg font-bold text-indigo-600 dark:text-indigo-400`}>
+                            {statsData.averageScore?.toFixed(0) || 0}%
+                          </p>
+                        </div>
+                        <div className="p-3 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800">
+                          <p className={`text-xs ${subCls} mb-1`}>Highest Score</p>
+                          <p className={`text-lg font-bold text-green-600 dark:text-green-400`}>
+                            {statsData.highestScore?.toFixed(0) || 0}%
+                          </p>
+                        </div>
+                        <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800">
+                          <p className={`text-xs ${subCls} mb-1`}>Lowest Score</p>
+                          <p className={`text-lg font-bold text-red-600 dark:text-red-400`}>
+                            {statsData.lowestScore?.toFixed(0) || 0}%
+                          </p>
+                        </div>
+                        <div className="p-3 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-100 dark:border-yellow-800">
+                          <p className={`text-xs ${subCls} mb-1`}>Pass Rate</p>
+                          <p className={`text-lg font-bold text-yellow-600 dark:text-yellow-400`}>
+                            {statsData.passRatePercentage?.toFixed(0) || 0}%
+                          </p>
+                        </div>
+                      </div>
+                      <div
+                        className={`mt-4 pt-4 border-t ${isDark ? 'border-white/10' : 'border-gray-100'}`}
+                      >
+                        <p className={`text-sm ${subCls}`}>
+                          <span className={`font-medium ${headingCls}`}>{statsData.totalAttempts || 0}</span> total attempts from{' '}
+                          <span className={`font-medium ${headingCls}`}>{statsData.uniqueStudents || 0}</span> unique students.
+                        </p>
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
             </div>

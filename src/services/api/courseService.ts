@@ -178,6 +178,25 @@ export class CourseService {
     );
     return extractArray(response);
   }
+
+  static async createMaterial(courseId: number, data: any): Promise<CourseMaterial> {
+    const response = await ApiClient.post<{ data: CourseMaterial }>(`/courses/${courseId}/materials`, data);
+    return response.data;
+  }
+
+  static async create(data: any): Promise<Course> {
+    const response = await ApiClient.post<{ data: Course }>('/courses', data);
+    return response.data;
+  }
+
+  static async update(id: number, data: any): Promise<Course> {
+    const response = await ApiClient.patch<{ data: Course }>(`/courses/${id}`, data);
+    return response.data;
+  }
+
+  static async delete(id: number): Promise<void> {
+    await ApiClient.delete(`/courses/${id}`);
+  }
 }
 
 type MaterialQueryParams = {
