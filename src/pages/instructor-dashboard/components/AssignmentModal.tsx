@@ -45,6 +45,7 @@ export type AssignmentFormData = {
 type AssignmentModalProps = {
   open: boolean;
   assignment: AssignmentFormData | null;
+  courseOptions?: Array<{ value: string; label: string }>;
   onClose: () => void;
   onSave: (data: AssignmentFormData) => void;
 };
@@ -67,7 +68,7 @@ const TYPE_CONFIG = {
   project: { label: 'Project', icon: FolderKanban, color: 'amber' },
 } as const;
 
-const COURSES = ['CS101', 'CS201', 'CS301'];
+const MOCK_COURSES = ['CS101', 'CS201', 'CS301'];
 const LAB_ROOMS = ['Lab A-101', 'Lab A-102', 'Lab B-201', 'Lab C-301', 'Virtual Lab'];
 const DELIVERABLE_OPTIONS = ['Documentation', 'Code', 'Report', 'Presentation'];
 
@@ -105,9 +106,14 @@ const defaultFormData: AssignmentFormData = {
   enablePeerReview: false,
 };
 
-export function AssignmentModal({ open, assignment, onClose, onSave }: AssignmentModalProps) {
+export function AssignmentModal({ open, assignment, courseOptions, onClose, onSave }: AssignmentModalProps) {
   const { isDark } = useTheme();
   const [formData, setFormData] = useState<AssignmentFormData>({ ...defaultFormData });
+
+  const resolvedCourseOptions =
+    courseOptions && courseOptions.length > 0
+      ? courseOptions
+      : MOCK_COURSES.map((course) => ({ value: course, label: course }));
 
   useEffect(() => {
     if (assignment) {
@@ -116,6 +122,13 @@ export function AssignmentModal({ open, assignment, onClose, onSave }: Assignmen
       setFormData({ ...defaultFormData });
     }
   }, [assignment, open]);
+
+  useEffect(() => {
+    if (!open || assignment) return;
+    if ((formData.course || '').trim()) return;
+    if (resolvedCourseOptions.length === 0) return;
+    setFormData((prev) => ({ ...prev, course: resolvedCourseOptions[0].value }));
+  }, [open, assignment, formData.course, resolvedCourseOptions]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -153,7 +166,7 @@ export function AssignmentModal({ open, assignment, onClose, onSave }: Assignmen
 
   const assignmentType = formData.assignmentType || 'assignment';
   const labelCls = `block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`;
-  const inputCls = `w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-gray-500' : 'border-gray-300 bg-white'}`;
+  const inputCls = `w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-gray-500' : 'border-gray-300 bg-white text-gray-900 placeholder:text-gray-400'}`;
   const selectCls = `w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? 'bg-gray-700 border-white/10 text-white' : 'border-gray-300 bg-white text-gray-900'}`;
   const optionStyle: React.CSSProperties = { backgroundColor: isDark ? '#1f2937' : '#ffffff', color: isDark ? '#ffffff' : '#111827' };
   const sectionTitle = `text-sm font-semibold mb-3 ${isDark ? 'text-gray-200' : 'text-gray-800'}`;
@@ -162,9 +175,9 @@ export function AssignmentModal({ open, assignment, onClose, onSave }: Assignmen
 
   return (
     <div className="fixed inset-0 bg-black/10 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className={`rounded-lg shadow-xl w-full max-w-2xl mx-4 flex flex-col max-h-[90vh] ${isDark ? 'bg-gray-800 text-white' : 'bg-white'}`}>
+      <div className={`rounded-lg shadow-xl w-full max-w-2xl mx-4 flex flex-col max-h-[90vh] ${isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'}`}>
         <div className={`flex items-center justify-between p-6 border-b shrink-0 ${isDark ? 'border-white/10' : ''}`}>
-          <h2 className="text-xl font-semibold">
+          <h2 className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
             {assignment ? `Edit ${typeLabel}` : `Create New ${typeLabel}`}
           </h2>
           <button onClick={onClose} className={`transition-colors ${isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'}`}>
@@ -240,7 +253,11 @@ export function AssignmentModal({ open, assignment, onClose, onSave }: Assignmen
                 <label className={labelCls}>Course</label>
                 <CleanSelect value={formData.course || ''} onChange={e => update('course', e.target.value)} className={selectCls}>
                   <option value="" style={optionStyle}>Select course</option>
-                  {COURSES.map(c => <option key={c} value={c} style={optionStyle}>{c}</option>)}
+                  {resolvedCourseOptions.map((course) => (
+                    <option key={course.value} value={course.value} style={optionStyle}>
+                      {course.label}
+                    </option>
+                  ))}
                 </CleanSelect>
               </div>
 

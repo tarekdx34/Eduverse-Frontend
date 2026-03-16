@@ -21,7 +21,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../../context/AuthContext';
 import { EnrollmentService } from '../../services/api/enrollmentService';
 import { AttendanceService } from '../../services/api/attendanceService';
-import { AssignmentService } from '../../services/api/assignmentService';
+import {
+  AssignmentService,
+  type AssignmentStatus as ApiAssignmentStatus,
+  type AssignmentSubmission,
+} from '../../services/api/assignmentService';
 import { GradesService } from '../../services/api/gradesService';
 import { ScheduleService } from '../../services/api/scheduleService';
 import { NotificationService } from '../../services/api/notificationService';
@@ -390,7 +394,13 @@ function InstructorDashboardContent() {
 
   const { data: assignmentsLive } = useQuery({
     queryKey: ['course-assignments', activeSectionId],
-    queryFn: () => AssignmentService.getAll({ courseId: activeSectionId! }),
+    queryFn: () => {
+      const section = (teachingCoursesLive || []).find(
+        (s: any) => String(s.sectionId ?? s.id) === activeSectionId
+      );
+      const resolvedCourseId = section?.courseId ?? section?.id ?? activeSectionId;
+      return AssignmentService.getAll({ courseId: String(resolvedCourseId) });
+    },
     enabled: !isMockMode && !!activeSectionId && activeTab === 'assignments',
   });
 
@@ -444,6 +454,9 @@ function InstructorDashboardContent() {
   const [editingAssignment, setEditingAssignment] = useState<AssignmentFormData | null>(null);
   const [isAssignmentModalOpen, setIsAssignmentModalOpen] = useState(false);
   const [assignmentToDelete, setAssignmentToDelete] = useState<number | null>(null);
+  const [selectedAssignmentForSubmissions, setSelectedAssignmentForSubmissions] =
+    useState<AssignmentItem | null>(null);
+  const [draftSubmissionScores, setDraftSubmissionScores] = useState<Record<number, string>>({});
 
   // State for grades
   const [gradesData, setGradesData] = useState<Record<string, GradeEntry[]>>(GRADES);
@@ -476,6 +489,30 @@ function InstructorDashboardContent() {
     }
     return activeSectionId || '';
   }, [selectedLiveSection, isMockMode, teachingCoursesLive, activeSectionId]);
+
+  const { data: assignmentSubmissions = [], isLoading: isLoadingAssignmentSubmissions } = useQuery({
+    queryKey: ['assignment-submissions', selectedAssignmentForSubmissions?.id],
+    queryFn: () => AssignmentService.getSubmissions(String(selectedAssignmentForSubmissions!.id)),
+    enabled: !isMockMode && !!selectedAssignmentForSubmissions?.id && activeTab === 'assignments',
+  });
+
+  const gradeAssignmentSubmissionMutation = useMutation({
+    mutationFn: ({ assignmentId, submissionId, score }: { assignmentId: number; submissionId: number; score: number }) =>
+      AssignmentService.gradeSubmission(String(assignmentId), submissionId, { score }),
+    onSuccess: (_response, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['assignment-submissions', variables.assignmentId] });
+      queryClient.invalidateQueries({ queryKey: ['course-assignments', activeSectionId] });
+      setDraftSubmissionScores((prev) => {
+        const next = { ...prev };
+        delete next[variables.submissionId];
+        return next;
+      });
+      toast.success('Submission graded successfully');
+    },
+    onError: () => {
+      toast.error('Failed to grade submission');
+    },
+  });
 
   // Sync tab from URL
   useEffect(() => {
@@ -580,6 +617,13 @@ function InstructorDashboardContent() {
 
   useEffect(() => {
     if (assignmentsLive?.data && !isMockMode && activeSectionId) {
+      const toUiStatus = (status?: string): 'draft' | 'open' | 'closed' => {
+        const normalized = (status || '').toLowerCase();
+        if (normalized === 'published' || normalized === 'open') return 'open';
+        if (normalized === 'closed' || normalized === 'archived') return 'closed';
+        return 'draft';
+      };
+
       setAssignmentsData((prev) => ({
         ...prev,
         [activeSectionId]: assignmentsLive.data.map((a: any) => ({
@@ -587,11 +631,16 @@ function InstructorDashboardContent() {
           title: a.title,
           dueDate: a.dueDate ? new Date(a.dueDate).toLocaleDateString() : 'No date',
           submissions: a.submissionsCount || 0,
-          status: a.status?.toLowerCase() || 'draft',
+          status: toUiStatus(a.status),
         })),
       }));
     }
   }, [assignmentsLive, isMockMode, activeSectionId]);
+
+  useEffect(() => {
+    setSelectedAssignmentForSubmissions(null);
+    setDraftSubmissionScores({});
+  }, [activeSectionId]);
 
   useEffect(() => {
     if (sectionStudentsLive && !isMockMode && activeSectionId) {
@@ -642,6 +691,26 @@ function InstructorDashboardContent() {
     }));
   }, [isMockMode, teachingCoursesLive]);
 
+  const assignmentCourseOptions = useMemo(() => {
+    if (isMockMode) {
+      return SECTIONS.map((s) => ({
+        value: String(s.sectionId),
+        label: `${s.courseCode} - ${s.courseName}`,
+      }));
+    }
+
+    const unique = new Map<string, string>();
+    (teachingCoursesLive || []).forEach((s: any) => {
+      const value = String(s.courseId ?? s.course?.id ?? s.id ?? '');
+      if (!value || unique.has(value)) return;
+      const code = s.course?.code || s.courseCode || 'COURSE';
+      const name = s.course?.name || s.courseName || 'Untitled Course';
+      unique.set(value, `${code} - ${name}`);
+    });
+
+    return Array.from(unique.entries()).map(([value, label]) => ({ value, label }));
+  }, [isMockMode, teachingCoursesLive]);
+
   const currentRosterBase = activeSectionId ? ROSTERS[activeSectionId] || [] : [];
   const currentRoster =
     activeSectionId && rosterOverrides[activeSectionId]
@@ -653,15 +722,33 @@ function InstructorDashboardContent() {
     if (isMockMode) {
       return SECTIONS.find((s) => String(s.sectionId) === activeSectionId) || null;
     }
-    return (
-      (teachingCoursesLive || []).find((s: any) => String(s.section?.id || s.sectionId) === activeSectionId) || null
-    );
+    const liveSection =
+      (teachingCoursesLive || []).find((s: any) => String(s.section?.id || s.sectionId || s.id) === activeSectionId) ||
+      null;
+    if (!liveSection) return null;
+
+    const sectionNumber =
+      liveSection.section?.sectionNumber || liveSection.sectionNumber || liveSection.sectionLabel || liveSection.section?.id || activeSectionId;
+
+    return {
+      courseCode: liveSection.course?.code || liveSection.courseCode || 'N/A',
+      courseName: liveSection.course?.name || liveSection.courseName || 'Unknown Course',
+      sectionLabel: `Sec ${sectionNumber}`,
+      schedule: liveSection.schedule || liveSection.section?.schedule || 'TBD',
+      capacity: Number(liveSection.section?.maxCapacity ?? liveSection.capacity ?? 0),
+      enrolled: Number(liveSection.section?.currentEnrollment ?? liveSection.enrolledCount ?? 0),
+    };
   }, [isMockMode, activeSectionId, teachingCoursesLive]);
 
   // Assignment handlers
   const handleCreateAssignment = () => {
     setEditingAssignment(null);
     setIsAssignmentModalOpen(true);
+  };
+
+  const handleViewAssignmentSubmissions = (assignment: AssignmentItem) => {
+    setSelectedAssignmentForSubmissions(assignment);
+    setDraftSubmissionScores({});
   };
 
   const handleEditAssignment = (assignment: AssignmentItem) => {
@@ -672,16 +759,39 @@ function InstructorDashboardContent() {
   const handleSaveAssignment = async (data: AssignmentFormData) => {
     if (!activeSectionId) return;
 
+    const toApiStatus = (uiStatus: AssignmentFormData['status']): ApiAssignmentStatus => {
+      if (uiStatus === 'open') return 'published';
+      if (uiStatus === 'closed') return 'closed';
+      return 'draft';
+    };
+
+    const selectedModalCourseId = Number(data.course);
+    const resolvedCourseId = Number.isFinite(selectedModalCourseId) && selectedModalCourseId > 0
+      ? selectedModalCourseId
+      : Number(selectedCourseId ?? activeSectionId);
+
+    const payload = {
+      title: data.title,
+      description: data.description || '',
+      instructions: data.description || '',
+      dueDate: data.dueDate ? new Date(data.dueDate).toISOString() : undefined,
+      courseId: resolvedCourseId,
+      status: toApiStatus(data.status),
+      submissionType: 'file',
+      maxScore: 100,
+      weight: 10,
+    };
+
     if (!isMockMode) {
       try {
         if (data.id) {
-          await AssignmentService.update(String(data.id), data as any);
+          await AssignmentService.update(String(data.id), payload as any);
           toast.success('Assignment updated successfully');
         } else {
-          await AssignmentService.create({ ...data, courseId: activeSectionId } as any);
+          await AssignmentService.create(payload as any);
           toast.success('Assignment created successfully');
         }
-        queryClient.invalidateQueries({ queryKey: ['course-assignments', activeSectionId] });
+        queryClient.invalidateQueries({ queryKey: ['course-assignments', selectedCourseId] });
       } catch (err) {
         toast.error('Failed to save assignment');
         return;
@@ -720,7 +830,7 @@ function InstructorDashboardContent() {
       try {
         await AssignmentService.delete(String(assignmentToDelete));
         toast.success('Assignment deleted successfully');
-        queryClient.invalidateQueries({ queryKey: ['course-assignments', activeSectionId] });
+        queryClient.invalidateQueries({ queryKey: ['course-assignments', selectedCourseId] });
       } catch (err) {
         toast.error('Failed to delete assignment');
       }
@@ -732,12 +842,59 @@ function InstructorDashboardContent() {
     setAssignmentToDelete(null);
   };
 
-  const handleAssignmentStatusChange = (id: number, newStatus: 'draft' | 'open' | 'closed') => {
+  const handleAssignmentStatusChange = async (id: number, newStatus: 'draft' | 'open' | 'closed') => {
     if (!activeSectionId) return;
-
     const sectionAssignments = assignmentsData[activeSectionId] || [];
+    const current = sectionAssignments.find((a) => a.id === id);
+
+    const toApiStatus = (status: 'draft' | 'open' | 'closed'): ApiAssignmentStatus => {
+      if (status === 'open') return 'published';
+      if (status === 'closed') return 'closed';
+      return 'draft';
+    };
+
+    if (!isMockMode) {
+      try {
+        if (newStatus === 'closed' && current?.status === 'draft') {
+          await AssignmentService.updateStatus(String(id), 'published');
+          await AssignmentService.updateStatus(String(id), 'closed');
+        } else {
+          await AssignmentService.updateStatus(String(id), toApiStatus(newStatus));
+        }
+        queryClient.invalidateQueries({ queryKey: ['course-assignments', selectedCourseId] });
+      } catch (err) {
+        toast.error('Failed to update assignment status');
+      }
+      return;
+    }
+
     const updated = sectionAssignments.map((a) => (a.id === id ? { ...a, status: newStatus } : a));
     setAssignmentsData({ ...assignmentsData, [activeSectionId]: updated });
+  };
+
+  const handleSubmissionScoreDraftChange = (submissionId: number, value: string) => {
+    setDraftSubmissionScores((prev) => ({ ...prev, [submissionId]: value }));
+  };
+
+  const handleSaveSubmissionScore = (submission: AssignmentSubmission) => {
+    if (!selectedAssignmentForSubmissions?.id) return;
+    const rawValue = draftSubmissionScores[submission.id];
+    const score = Number(rawValue);
+
+    if (rawValue === undefined || rawValue === '' || Number.isNaN(score)) {
+      toast.error('Enter a valid numeric score first');
+      return;
+    }
+    if (score < 0 || score > 100) {
+      toast.error('Score must be between 0 and 100');
+      return;
+    }
+
+    gradeAssignmentSubmissionMutation.mutate({
+      assignmentId: selectedAssignmentForSubmissions.id,
+      submissionId: submission.id,
+      score,
+    });
   };
 
   // Grade handlers
@@ -1151,7 +1308,96 @@ function InstructorDashboardContent() {
                 onDelete={handleDeleteAssignment}
                 onCreate={handleCreateAssignment}
                 onStatusChange={handleAssignmentStatusChange}
+                onViewSubmissions={handleViewAssignmentSubmissions}
               />
+
+              {selectedAssignmentForSubmissions && (
+                <div
+                  className={`rounded-xl border shadow-sm p-5 ${isDark ? 'bg-card-dark border-white/10' : 'bg-white border-gray-200'}`}
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                    <div>
+                      <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                        Submissions: {selectedAssignmentForSubmissions.title}
+                      </h3>
+                      <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                        Grade submissions directly using existing assignment endpoints.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setSelectedAssignmentForSubmissions(null)}
+                      className={`px-3 py-2 text-xs rounded-lg border ${isDark ? 'border-white/10 text-slate-300 hover:bg-white/10' : 'border-gray-200 text-gray-700 hover:bg-gray-50'}`}
+                    >
+                      Hide
+                    </button>
+                  </div>
+
+                  {isMockMode ? (
+                    <div className={`text-sm rounded-lg p-4 ${isDark ? 'bg-white/5 text-slate-300' : 'bg-gray-50 text-gray-700'}`}>
+                      Submissions and grading are available in Live Mode only.
+                    </div>
+                  ) : isLoadingAssignmentSubmissions ? (
+                    <div className={`text-sm rounded-lg p-4 ${isDark ? 'bg-white/5 text-slate-300' : 'bg-gray-50 text-gray-700'}`}>
+                      Loading submissions...
+                    </div>
+                  ) : assignmentSubmissions.length === 0 ? (
+                    <div className={`text-sm rounded-lg p-4 ${isDark ? 'bg-white/5 text-slate-300' : 'bg-gray-50 text-gray-700'}`}>
+                      No submissions yet for this assignment.
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {assignmentSubmissions.map((submission: AssignmentSubmission) => {
+                        const studentName = submission.user?.firstName || submission.user?.lastName
+                          ? `${submission.user?.firstName || ''} ${submission.user?.lastName || ''}`.trim()
+                          : `Student #${submission.userId}`;
+                        const draftValue = draftSubmissionScores[submission.id] ?? '';
+                        const status = String(submission.submissionStatus || '').toLowerCase();
+
+                        return (
+                          <div
+                            key={submission.id}
+                            className={`rounded-lg border p-4 ${isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-50'}`}
+                          >
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                              <div>
+                                <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{studentName}</p>
+                                <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                                  Submitted {new Date(submission.submittedAt).toLocaleString()}
+                                </p>
+                              </div>
+                              <span
+                                className={`px-2 py-1 rounded-full text-xs font-medium ${status === 'graded' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}
+                              >
+                                {status === 'graded' ? 'Graded' : 'Pending'}
+                              </span>
+                            </div>
+
+                            <div className="flex flex-wrap items-center gap-2 mt-3">
+                              <input
+                                type="number"
+                                min={0}
+                                max={100}
+                                step={1}
+                                value={draftValue}
+                                onChange={(e) => handleSubmissionScoreDraftChange(submission.id, e.target.value)}
+                                placeholder="Score"
+                                className={`w-24 px-2 py-1.5 rounded-lg border text-sm ${isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+                              />
+                              <button
+                                onClick={() => handleSaveSubmissionScore(submission)}
+                                disabled={gradeAssignmentSubmissionMutation.isPending}
+                                className="px-3 py-1.5 rounded-lg text-xs font-medium bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-60"
+                              >
+                                Save Grade
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
@@ -1271,6 +1517,7 @@ function InstructorDashboardContent() {
       <AssignmentModal
         open={isAssignmentModalOpen}
         assignment={editingAssignment}
+        courseOptions={assignmentCourseOptions}
         onClose={() => setIsAssignmentModalOpen(false)}
         onSave={handleSaveAssignment}
       />

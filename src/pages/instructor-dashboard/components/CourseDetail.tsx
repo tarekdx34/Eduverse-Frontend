@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { CourseService } from '../../../services/api/courseService';
-import { AssignmentService, Assignment } from '../../../services/api/assignmentService';
+import { AssignmentService, Assignment, type AssignmentStatus as ApiAssignmentStatus } from '../../../services/api/assignmentService';
 import { EnrollmentService } from '../../../services/api/enrollmentService';
 import {
   ArrowLeft,
@@ -27,6 +27,7 @@ import { AssignmentModal, AssignmentFormData } from './AssignmentModal';
 import { CleanSelect } from '../../../components/shared';
 import { useApi } from '../../../hooks/useApi';
 import { courseService } from '../../../services/api/courseService';
+import { toast } from 'sonner';
 
 type Course = {
   id: number;
@@ -61,6 +62,7 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
   const [assignmentForm, setAssignmentForm] = useState<AssignmentFormData | null>(null);
   const [editingAssignmentIndex, setEditingAssignmentIndex] = useState<number | null>(null);
   const [gradingSubTab, setGradingSubTab] = useState<'manual' | 'auto'>('manual');
+  const [uploadingInstructionId, setUploadingInstructionId] = useState<number | null>(null);
 
   const { data: sectionSchedules, loading: schedulesLoading } = useApi(async () => {
     try {
@@ -121,7 +123,9 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
       setShowAssignmentForm(false);
       setAssignmentForm(null);
       setEditingAssignmentIndex(null);
+      toast.success('Assignment created successfully');
     },
+    onError: () => toast.error('Failed to create assignment'),
   });
 
   const updateAssignmentMutation = useMutation({
@@ -131,7 +135,28 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
       setShowAssignmentForm(false);
       setAssignmentForm(null);
       setEditingAssignmentIndex(null);
+      toast.success('Assignment updated successfully');
     },
+    onError: () => toast.error('Failed to update assignment'),
+  });
+
+  const deleteAssignmentMutation = useMutation({
+    mutationFn: (id: string) => AssignmentService.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['course-assignments', course?.id] });
+      toast.success('Assignment deleted successfully');
+    },
+    onError: () => toast.error('Failed to delete assignment'),
+  });
+
+  const uploadInstructionMutation = useMutation({
+    mutationFn: ({ assignmentId, file, title }: { assignmentId: string; file: File; title: string }) =>
+      AssignmentService.uploadInstructions(assignmentId, file, title),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['course-assignments', course?.id] });
+      toast.success('Instructions uploaded successfully');
+    },
+    onError: () => toast.error('Failed to upload instructions'),
   });
 
   const { data: sectionStudents = [], isLoading: isLoadingStudents } = useQuery({
@@ -171,8 +196,6 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
     { id: 'students', label: t('students'), icon: Users },
   ];
 
-  const [sampleSubmissions, setSampleSubmissions] = useState([]);
-
   const [selectedAssignmentIdForGrading, setSelectedAssignmentIdForGrading] = useState<string | null>(null);
   const [draftGrades, setDraftGrades] = useState<Record<number, string>>({});
 
@@ -184,11 +207,13 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
 
   const gradeSubmissionMutation = useMutation({
     mutationFn: ({ assignmentId, submissionId, grade }: { assignmentId: string; submissionId: number; grade: number }) =>
-      AssignmentService.gradeSubmission(assignmentId, submissionId, { grade }),
+      AssignmentService.gradeSubmission(assignmentId, submissionId, { score: grade }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['assignment-submissions', selectedAssignmentIdForGrading] });
       setDraftGrades({});
+      toast.success('Submission graded successfully');
     },
+    onError: () => toast.error('Failed to save grade'),
   });
 
   if (!course) {
@@ -224,15 +249,21 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
 
   const handleSaveAssignment = (data: AssignmentFormData) => {
     const formattedDueDate = data.dueDate ? new Date(data.dueDate).toISOString() : new Date().toISOString();
+    const toApiStatus = (uiStatus: AssignmentFormData['status']): ApiAssignmentStatus => {
+      if (uiStatus === 'open') return 'published';
+      if (uiStatus === 'closed') return 'closed';
+      return 'draft';
+    };
 
     const payload = {
       title: data.title,
       description: data.description || '',
+      instructions: data.description || '',
       dueDate: formattedDueDate,
-      status: data.status === 'draft' ? 'DRAFT' : 'PUBLISHED',
-      courseId: String(course!.id),
-      maxScore: String(100),
-      submissionType: 'ONLINE',
+      status: toApiStatus(data.status),
+      courseId: Number(course!.id),
+      maxScore: 100,
+      submissionType: 'file',
     };
 
     if (editingAssignmentIndex !== null) {
@@ -245,6 +276,13 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
 
   const handleEditAssignment = (index: number) => {
     const assignment = courseAssignments[index];
+    const normalizedStatus = String(assignment.status || 'draft').toLowerCase();
+    const uiStatus: AssignmentFormData['status'] =
+      normalizedStatus === 'published'
+        ? 'open'
+        : normalizedStatus === 'closed' || normalizedStatus === 'archived'
+          ? 'closed'
+          : 'draft';
     let dueDateValue = '';
     try {
       if (assignment.dueDate) {
@@ -261,7 +299,7 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
       title: assignment.title,
       description: assignment.description || '',
       dueDate: dueDateValue,
-      status: (assignment.status || 'draft').toLowerCase() as any,
+      status: uiStatus,
       submissions: 0,
       assignmentType: 'assignment',
     });
@@ -271,7 +309,33 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
 
   const handlePublishAssignment = (index: number) => {
     const assignment = courseAssignments[index];
-    updateAssignmentMutation.mutate({ id: String(assignment.id), data: { status: 'PUBLISHED' } });
+    AssignmentService.updateStatus(String(assignment.id), 'published')
+      .then(() => {
+        queryClient.invalidateQueries({ queryKey: ['course-assignments', course?.id] });
+        toast.success('Assignment published successfully');
+      })
+      .catch((error) => {
+        console.error('Failed to publish assignment', error);
+        toast.error('Failed to publish assignment');
+      });
+  };
+
+  const handleDeleteAssignment = (id: number) => {
+    if (!window.confirm('Delete this assignment? This action cannot be undone.')) return;
+    deleteAssignmentMutation.mutate(String(id));
+  };
+
+  const handleUploadInstruction = (assignmentId: number, file: File | null) => {
+    if (!file) return;
+    setUploadingInstructionId(assignmentId);
+    uploadInstructionMutation.mutate(
+      { assignmentId: String(assignmentId), file, title: file.name },
+      {
+        onSettled: () => {
+          setUploadingInstructionId(null);
+        },
+      }
+    );
   };
 
   const handleSaveMaterial = async () => {
@@ -657,17 +721,20 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
             <AssignmentModal
               open={showAssignmentForm}
               assignment={assignmentForm}
+              courseOptions={[{ value: String(course.id), label: `${course.courseCode} - ${course.courseName}` }]}
               onClose={() => setShowAssignmentForm(false)}
               onSave={handleSaveAssignment}
             />
 
             {/* Assignment Cards */}
             <div className="space-y-4">
-              {courseAssignments.map((assignment, index) => (
-                <div
-                  key={index}
-                  className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}
-                >
+              {courseAssignments.map((assignment, index) => {
+                const normalizedStatus = String(assignment.status || 'draft').toLowerCase();
+                return (
+                  <div
+                    key={assignment.id}
+                    className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}
+                  >
                   <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-4 gap-2">
                     <div className="flex-1">
                       <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
@@ -700,9 +767,9 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
                       </p>
                     </div>
                     <span
-                      className={`px-3 py-1 rounded-full text-xs font-medium ${assignment.status === 'PUBLISHED' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}
+                      className={`px-3 py-1 rounded-full text-xs font-medium ${normalizedStatus === 'published' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}
                     >
-                      {assignment.status || 'DRAFT'}
+                      {normalizedStatus.toUpperCase()}
                     </span>
                   </div>
                   <div
@@ -725,6 +792,25 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
                       Edit
                     </button>
                     <button
+                      onClick={() => handleDeleteAssignment(Number(assignment.id))}
+                      className={`flex items-center gap-2 px-3 py-2 text-sm text-red-600 ${isDark ? 'hover:bg-red-500/10' : 'hover:bg-red-50'} rounded-lg transition-colors`}
+                    >
+                      Delete
+                    </button>
+                    <label
+                      className={`flex items-center gap-2 px-3 py-2 text-sm ${isDark ? 'text-slate-400 hover:bg-white/10' : 'text-gray-700 hover:bg-gray-50'} rounded-lg transition-colors cursor-pointer`}
+                    >
+                      {uploadingInstructionId === Number(assignment.id) ? 'Uploading...' : 'Upload Instructions'}
+                      <input
+                        type="file"
+                        className="hidden"
+                        onChange={(e) => {
+                          handleUploadInstruction(Number(assignment.id), e.target.files?.[0] || null);
+                          e.currentTarget.value = '';
+                        }}
+                      />
+                    </label>
+                    <button
                       onClick={() => {
                         setActiveTab('grading');
                         setGradingSubTab('manual');
@@ -744,7 +830,7 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
                       <Sparkles size={16} />
                       AI Auto-Grading
                     </button>
-                    {assignment.status !== 'PUBLISHED' && (
+                    {normalizedStatus === 'draft' && (
                       <button
                         onClick={() => handlePublishAssignment(index)}
                         className="flex items-center gap-2 px-3 py-2 text-sm text-green-600 hover:bg-green-50 rounded-lg transition-colors ml-auto"
@@ -753,8 +839,9 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
                       </button>
                     )}
                   </div>
-                </div>
-              ))}
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
@@ -825,7 +912,7 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
                 ) : (
                   assignmentSubmissions.map((sub: any) => (
                     <div
-                      key={sub.submissionId}
+                      key={sub.id}
                       className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-4 sm:p-6 border shadow-sm`}
                     >
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
@@ -833,7 +920,9 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
                           <h4
                             className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}
                           >
-                            {sub.studentName || `Student ID: ${sub.studentId}`}
+                            {sub.user?.firstName || sub.user?.lastName
+                              ? `${sub.user?.firstName || ''} ${sub.user?.lastName || ''}`.trim()
+                              : `Student ID: ${sub.userId}`}
                           </h4>
                           <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
                             Submitted: {new Date(sub.submittedAt).toLocaleDateString()}
@@ -841,21 +930,21 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
                         </div>
                         <span
                           className={`px-3 py-1 rounded-full text-xs font-medium ${
-                            sub.status === 'GRADED'
+                            String(sub.submissionStatus).toLowerCase() === 'graded'
                               ? 'bg-green-100 text-green-700'
                               : 'bg-yellow-100 text-yellow-700'
                           }`}
                         >
-                          {sub.status === 'GRADED'
-                            ? `Graded: ${sub.grade}/100`
+                          {String(sub.submissionStatus).toLowerCase() === 'graded'
+                            ? 'Graded'
                             : 'Pending Review'}
                         </span>
                       </div>
                       <div className="flex flex-wrap items-center justify-between gap-4 mt-4">
                         <div className="flex gap-2">
-                          {sub.fileUrl && (
+                          {(sub.submissionLink || sub.fileUrl) && (
                             <button
-                              onClick={() => window.open(sub.fileUrl, '_blank')}
+                              onClick={() => window.open(sub.submissionLink || sub.fileUrl, '_blank')}
                               className={`flex items-center gap-1 px-3 py-2 text-sm rounded-lg transition-colors ${isDark ? 'bg-white/5 text-slate-300 hover:bg-white/10' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
                             >
                               <Download size={14} /> Download Submission
@@ -870,8 +959,8 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
                           </label>
                           <input
                             type="number"
-                            value={draftGrades[sub.submissionId] !== undefined ? draftGrades[sub.submissionId] : (sub.grade || '')}
-                            onChange={(e) => handleInlineGrade(sub.submissionId, e.target.value)}
+                            value={draftGrades[sub.id] !== undefined ? draftGrades[sub.id] : ''}
+                            onChange={(e) => handleInlineGrade(sub.id, e.target.value)}
                             placeholder="e.g. 85"
                             className={`w-20 px-3 py-1.5 text-sm rounded-lg border focus:outline-none focus:ring-2 ${isDark ? 'bg-white/5 border-white/10 text-white focus:ring-indigo-500' : 'bg-white border-gray-300 text-gray-900 focus:ring-indigo-500'}`}
                           />
@@ -881,7 +970,7 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
                             / 100
                           </span>
                           <button
-                            onClick={() => saveInlineGrade(sub.submissionId)}
+                            onClick={() => saveInlineGrade(sub.id)}
                             className="px-4 py-1.5 text-sm font-medium bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
                           >
                             Save Grade
@@ -897,87 +986,24 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
             {gradingSubTab === 'auto' && (
               <div className="space-y-4">
                 <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-                  MCQ assignments are auto-graded. Results are displayed below (view only).
+                  Auto-graded summary is based on real graded submissions from the selected assignment.
                 </p>
-                <div
-                  className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl border shadow-sm overflow-x-auto`}
-                >
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr
-                        className={isDark ? 'border-b border-white/10' : 'border-b border-gray-200'}
-                      >
-                        <th
-                          className={`text-left p-4 font-medium ${isDark ? 'text-slate-300' : 'text-gray-700'}`}
-                        >
-                          Student
-                        </th>
-                        <th
-                          className={`text-left p-4 font-medium ${isDark ? 'text-slate-300' : 'text-gray-700'}`}
-                        >
-                          Quiz
-                        </th>
-                        <th
-                          className={`text-left p-4 font-medium ${isDark ? 'text-slate-300' : 'text-gray-700'}`}
-                        >
-                          Score
-                        </th>
-                        <th
-                          className={`text-left p-4 font-medium ${isDark ? 'text-slate-300' : 'text-gray-700'}`}
-                        >
-                          Grade
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {[
-                        {
-                          student: 'Ahmed Hassan',
-                          quiz: 'Midterm MCQ',
-                          score: '92/100',
-                          grade: 'A',
-                        },
-                        {
-                          student: 'Sara Mohamed',
-                          quiz: 'Midterm MCQ',
-                          score: '85/100',
-                          grade: 'B+',
-                        },
-                        { student: 'Omar Ali', quiz: 'Midterm MCQ', score: '78/100', grade: 'B' },
-                        {
-                          student: 'Layla Ibrahim',
-                          quiz: 'Midterm MCQ',
-                          score: '95/100',
-                          grade: 'A+',
-                        },
-                      ].map((row, i) => (
-                        <tr
-                          key={i}
-                          className={
-                            isDark ? 'border-b border-white/5' : 'border-b border-gray-100'
-                          }
-                        >
-                          <td className={`p-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                            {row.student}
-                          </td>
-                          <td className={`p-4 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-                            {row.quiz}
-                          </td>
-                          <td
-                            className={`p-4 font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}
-                          >
-                            {row.score}
-                          </td>
-                          <td className="p-4">
-                            <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
-                              {row.grade}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                {assignmentSubmissions.length === 0 ? (
+                  <div className={`p-8 text-center rounded-xl border ${isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
+                    <p className={isDark ? 'text-slate-400' : 'text-gray-500'}>
+                      No graded submission data available for the selected assignment yet.
+                    </p>
+                  </div>
+                ) : (
+                  <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl border shadow-sm p-4`}>
+                    <p className={`${isDark ? 'text-slate-300' : 'text-gray-700'} text-sm`}>
+                      Total submissions: <span className="font-semibold">{assignmentSubmissions.length}</span>
+                    </p>
+                    <p className={`${isDark ? 'text-slate-300' : 'text-gray-700'} text-sm mt-2`}>
+                      Graded submissions: <span className="font-semibold">{assignmentSubmissions.filter((s: any) => String(s.submissionStatus).toLowerCase() === 'graded').length}</span>
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </div>

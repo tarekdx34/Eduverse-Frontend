@@ -18,6 +18,7 @@ type AssignmentsListProps = {
   onDelete: (id: number) => void;
   onCreate: () => void;
   onStatusChange: (id: number, newStatus: 'draft' | 'open' | 'closed') => void;
+  onViewSubmissions?: (assignment: AssignmentItem) => void;
 };
 
 export function AssignmentsList({
@@ -26,6 +27,7 @@ export function AssignmentsList({
   onDelete,
   onCreate,
   onStatusChange,
+  onViewSubmissions,
 }: AssignmentsListProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'draft' | 'open' | 'closed'>('all');
@@ -131,6 +133,14 @@ export function AssignmentsList({
             <div className={`text-sm mb-3 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
               {t('submissionsLabel')} {a.submissions}
             </div>
+            {onViewSubmissions && (
+              <button
+                onClick={() => onViewSubmissions(a)}
+                className={`mb-3 text-xs px-2.5 py-1.5 rounded-lg border transition-colors ${isDark ? 'border-white/10 text-slate-300 hover:bg-white/10' : 'border-gray-200 text-gray-700 hover:bg-gray-50'}`}
+              >
+                View Submissions
+              </button>
+            )}
             <div className="flex items-center justify-between">
               <span
                 className={`px-2.5 py-1 rounded-full text-xs font-medium ${
@@ -146,7 +156,7 @@ export function AssignmentsList({
                 {a.status.charAt(0).toUpperCase() + a.status.slice(1)}
               </span>
               <div className="flex gap-2">
-                {a.status !== 'open' && (
+                {a.status === 'draft' && (
                   <button
                     onClick={() => onStatusChange(a.id, 'open')}
                     className="text-xs px-3 py-1.5 rounded-lg bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 transition-colors"
@@ -154,7 +164,7 @@ export function AssignmentsList({
                     {t('open')}
                   </button>
                 )}
-                {a.status !== 'closed' && (
+                {a.status === 'open' && (
                   <button
                     onClick={() => onStatusChange(a.id, 'closed')}
                     className={`text-xs px-3 py-1.5 rounded-lg border hover:opacity-80 transition-colors ${
