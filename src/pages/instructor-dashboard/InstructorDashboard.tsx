@@ -738,9 +738,9 @@ function InstructorDashboardContent() {
       sectionLabel: `Sec ${sectionNumber}`,
       schedule: liveSection.schedule || liveSection.section?.schedule || 'TBD',
       capacity: Number(liveSection.section?.maxCapacity ?? liveSection.capacity ?? 0),
-      enrolled: Number(liveSection.section?.currentEnrollment ?? liveSection.enrolledCount ?? 0),
+      enrolled: sectionStudentsLive?.length ?? Number(liveSection.section?.currentEnrollment ?? liveSection.enrolledCount ?? 0),
     };
-  }, [isMockMode, activeSectionId, teachingCoursesLive]);
+  }, [isMockMode, activeSectionId, teachingCoursesLive, sectionStudentsLive]);
 
   // Assignment handlers
   const handleCreateAssignment = () => {
