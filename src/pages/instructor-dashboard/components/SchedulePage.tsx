@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   CalendarDays,
   Sparkles,
@@ -15,6 +15,8 @@ import { CustomDropdown } from './CustomDropdown';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { CleanSelect } from '../../../components/shared';
+import { ScheduleService } from '../../../services/api/scheduleService';
+import { toast } from 'sonner';
 
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -210,8 +212,12 @@ const DAY_NAMES_FULL = [
   'Saturday',
 ];
 
+interface SchedulePageProps {
+  isMockMode?: boolean;
+}
+
 // ── Component ──────────────────────────────────────────────────────────────────
-export function SchedulePage() {
+export function SchedulePage({ isMockMode }: SchedulePageProps = {}) {
   const { t, isRTL } = useLanguage();
   const { isDark, primaryHex = '#3b82f6' } = useTheme() as any;
 
@@ -224,6 +230,8 @@ export function SchedulePage() {
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
   const [courseFilter, setCourseFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
+  const [loading, setLoading] = useState(false);
+  const [mutating, setMutating] = useState(false);
 
   // Form state
   const emptyForm = {
@@ -238,6 +246,59 @@ export function SchedulePage() {
   const [formData, setFormData] = useState(emptyForm);
 
   const today = new Date();
+
+  // Load events
+  const loadEvents = async () => {
+    if (isMockMode) {
+      setEvents(initialEvents);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      // Fetch full month context to make switching weeks/days smooth
+      const start = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
+      const end = new Date(currentDate.getFullYear(), currentDate.getMonth() + 2, 0);
+      
+      const payload = await ScheduleService.getEvents({
+        fromDate: formatDateISO(start),
+        toDate: formatDateISO(end),
+      });
+
+      // Map backend format to local CalendarEvent interface
+      const mappedEvents: CalendarEvent[] = payload.map((ev: any) => {
+        const typeMatch = EVENT_TYPES.includes(ev.eventType) ? ev.eventType : 'custom';
+        const colors = TYPE_COLORS[typeMatch] || { color: '', bgColor: '' };
+        
+        return {
+          id: ev.id,
+          title: ev.title,
+          type: typeMatch as any,
+          course: ev.course?.title || '',
+          date: ev.startTime ? ev.startTime.split('T')[0] : '',
+          // Extract HH:mm
+          startTime: ev.startTime ? ev.startTime.split('T')[1].substring(0, 5) : '00:00', 
+          endTime: ev.endTime ? ev.endTime.split('T')[1].substring(0, 5) : '00:00',
+          location: ev.location,
+          color: ev.color || colors.color,
+          bgColor: ev.color ? '' : colors.bgColor, // Use custom hex if present, else fallback to classes
+        };
+      });
+
+      setEvents(mappedEvents);
+    } catch (err) {
+      console.error('Failed to load events:', err);
+      toast.error(t('failedToLoadEvents') || 'Failed to load schedule events');
+      // Fallback
+      setEvents(initialEvents);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadEvents();
+  }, [currentDate.getMonth(), isMockMode]); // Refetch when month changes or mock mode toggles
 
   // Filtered events
   const filteredEvents = useMemo(() => {
@@ -300,23 +361,73 @@ export function SchedulePage() {
     setShowEventDetails(null);
     setShowEventModal(true);
   };
-  const saveEvent = () => {
-    const colors = TYPE_COLORS[formData.type] || TYPE_COLORS.lecture;
-    if (editingEvent) {
-      setEvents((prev) =>
-        prev.map((e) => (e.id === editingEvent.id ? { ...e, ...formData, ...colors } : e))
-      );
-    } else {
-      const newId = Math.max(0, ...events.map((e) => e.id)) + 1;
-      setEvents((prev) => [...prev, { id: newId, ...formData, ...colors }]);
+  
+  const saveEvent = async () => {
+    try {
+      setMutating(true);
+      
+      const eventPayload = {
+        title: formData.title,
+        eventType: formData.type as any,
+        startTime: `${formData.date}T${formData.startTime}:00Z`,
+        endTime: `${formData.date}T${formData.endTime}:00Z`,
+        location: formData.location || undefined,
+        // Optional: map course string back to ID if needed, 
+        // but for now we create personal events if course wasn't fully matched
+      };
+
+      if (!isMockMode) {
+        if (editingEvent) {
+          await ScheduleService.updateEvent(editingEvent.id, eventPayload);
+          toast.success('Event updated');
+        } else {
+          await ScheduleService.createEvent(eventPayload);
+          toast.success('Event created');
+        }
+        await loadEvents();
+      } else {
+        // Mock branch
+        const colors = TYPE_COLORS[formData.type] || TYPE_COLORS.lecture;
+        if (editingEvent) {
+          setEvents((prev) =>
+            prev.map((e) => (e.id === editingEvent.id ? { ...e, ...formData, ...colors } : e))
+          );
+        } else {
+          const newId = Math.max(0, ...events.map((e) => e.id)) + 1;
+          setEvents((prev) => [...prev, { id: newId, ...formData, ...colors }]);
+        }
+      }
+
+      setShowEventModal(false);
+      setEditingEvent(null);
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.response?.data?.message || 'Failed to save event');
+    } finally {
+      setMutating(false);
     }
-    setShowEventModal(false);
-    setEditingEvent(null);
   };
-  const deleteEvent = (id: number) => {
-    setEvents((prev) => prev.filter((e) => e.id !== id));
-    setShowEventDetails(null);
-    setShowEventModal(false);
+
+  const deleteEvent = async (id: number) => {
+    if (!confirm('Are you sure you want to delete this event?')) return;
+    
+    try {
+      setMutating(true);
+      if (!isMockMode) {
+        await ScheduleService.deleteEvent(id);
+        toast.success('Event deleted');
+        setEvents((prev) => prev.filter((e) => e.id !== id));
+      } else {
+        setEvents((prev) => prev.filter((e) => e.id !== id));
+      }
+      setShowEventDetails(null);
+      setShowEventModal(false);
+    } catch (err: any) {
+      console.error(err);
+      toast.error('Failed to delete event');
+    } finally {
+      setMutating(false);
+    }
   };
 
   // Header label

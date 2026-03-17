@@ -1201,7 +1201,7 @@ function InstructorDashboardContent() {
           {activeTab === 'quizzes' && <QuizzesPage courses={coursesData} isMockMode={isMockMode} />}
 
           {/* Schedule */}
-          {activeTab === 'schedule' && <SchedulePage />}
+          {activeTab === 'schedule' && <SchedulePage isMockMode={isMockMode} />}
 
           {/* Materials */}
           {activeTab === 'materials' && <UploadMaterialsPage courseId={materialsCourseId} isMockMode={isMockMode} />}

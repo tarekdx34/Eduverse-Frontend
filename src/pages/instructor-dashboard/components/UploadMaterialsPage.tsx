@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -761,7 +761,11 @@ export function UploadMaterialsPage({ courseId, isMockMode = false }: UploadMate
                       <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>
                         {week === 'general' ? 'General / No Week' : `Week ${week}`}
                       </h3>
-                      {items.map(renderMaterialCard)}
+                      {items.map((material) => (
+                        <React.Fragment key={material.materialId || material.id}>
+                          {renderMaterialCard(material)}
+                        </React.Fragment>
+                      ))}
                     </section>
                   ))}
               </div>
