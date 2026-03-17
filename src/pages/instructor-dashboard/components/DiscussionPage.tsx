@@ -1,327 +1,199 @@
-import React, { useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   MessageSquare,
   Send,
   Search,
-  Filter,
-  CheckCircle,
-  Clock,
-  AlertCircle,
-  ThumbsUp,
   Pin,
   BookOpen,
   User,
   ChevronDown,
   ChevronUp,
+  Lock,
+  Trash2,
+  Loader2,
+  CheckCircle,
+  ShieldCheck,
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { CustomDropdown } from './CustomDropdown';
-
-type Reply = {
-  id: string;
-  author: string;
-  authorRole: 'student' | 'ta' | 'instructor';
-  content: string;
-  timestamp: string;
-  likes: number;
-  isAnswer: boolean;
-};
-
-type Discussion = {
-  id: string;
-  title: string;
-  content: string;
-  studentName: string;
-  courseCode: string;
-  courseName: string;
-  lab?: string;
-  timestamp: string;
-  status: 'open' | 'answered' | 'closed';
-  pinned: boolean;
-  replies: Reply[];
-  views: number;
-};
-
-const MOCK_DISCUSSIONS: Discussion[] = [
-  {
-    id: 'disc1',
-    title: 'How do I submit multiple files for the lab assignment?',
-    content:
-      'I have three Python files for Lab 2. The submission portal only seems to accept one file at a time. Should I zip them together or submit each one separately?',
-    studentName: 'Fatima Ahmed',
-    courseCode: 'CS101',
-    courseName: 'Introduction to Programming',
-    lab: 'Lab 2',
-    timestamp: '2025-02-22T10:30:00',
-    status: 'open',
-    pinned: false,
-    views: 24,
-    replies: [],
-  },
-  {
-    id: 'disc2',
-    title: 'Can you explain the linked list implementation?',
-    content:
-      'I am having trouble understanding how the linked list insert method works. Specifically, how does the pointer update work when inserting at a specific position? The textbook explanation is confusing.',
-    studentName: 'Omar Hassan',
-    courseCode: 'CS202',
-    courseName: 'Data Structures',
-    lab: 'Lab 1',
-    timestamp: '2025-02-21T15:20:00',
-    status: 'answered',
-    pinned: true,
-    views: 56,
-    replies: [
-      {
-        id: 'rep1',
-        author: 'Ahmed Hassan (TA)',
-        authorRole: 'ta',
-        content:
-          "Great question! When inserting at position i, you need to: 1) Traverse to node at position i-1, 2) Create a new node, 3) Set the new node's next pointer to the current node at position i, 4) Update the previous node's (i-1) next pointer to point to the new node. Think of it like inserting a new link in a chain - you have to break the chain at the right spot and reconnect it.",
-        timestamp: '2025-02-21T16:00:00',
-        likes: 8,
-        isAnswer: true,
-      },
-      {
-        id: 'rep2',
-        author: 'Omar Hassan',
-        authorRole: 'student',
-        content: 'Thank you! That chain analogy makes it much clearer. I understand now.',
-        timestamp: '2025-02-21T16:15:00',
-        likes: 1,
-        isAnswer: false,
-      },
-    ],
-  },
-  {
-    id: 'disc3',
-    title: 'Difference between while and for loops?',
-    content:
-      'In Lab 2 we used both while and for loops. When should I use which one? Are they interchangeable? What are the best practices?',
-    studentName: 'Mohamed Ali',
-    courseCode: 'CS101',
-    courseName: 'Introduction to Programming',
-    lab: 'Lab 2',
-    timestamp: '2025-02-22T09:00:00',
-    status: 'open',
-    pinned: false,
-    views: 18,
-    replies: [
-      {
-        id: 'rep3',
-        author: 'Layla Mohamed',
-        authorRole: 'student',
-        content:
-          "I had the same question! From what I understand, for loops are better when you know the number of iterations, and while loops when you don't.",
-        timestamp: '2025-02-22T09:30:00',
-        likes: 3,
-        isAnswer: false,
-      },
-    ],
-  },
-  {
-    id: 'disc4',
-    title: 'Lab 1 grading criteria clarification',
-    content:
-      "I got 88% on Lab 1 but I'm not sure what I lost points on. Could you clarify the grading rubric? Is code style part of the grade?",
-    studentName: 'Sara Ibrahim',
-    courseCode: 'CS202',
-    courseName: 'Data Structures',
-    lab: 'Lab 1',
-    timestamp: '2025-02-20T14:00:00',
-    status: 'answered',
-    pinned: false,
-    views: 32,
-    replies: [
-      {
-        id: 'rep4',
-        author: 'Ahmed Hassan (TA)',
-        authorRole: 'ta',
-        content:
-          'The grading rubric is: Correctness (60%), Code quality & style (20%), Comments & documentation (10%), Edge case handling (10%). Yes, code style is part of the grade. I noticed your solution was missing proper comments on some functions.',
-        timestamp: '2025-02-20T15:30:00',
-        likes: 12,
-        isAnswer: true,
-      },
-    ],
-  },
-  {
-    id: 'disc5',
-    title: 'Sorting algorithm time complexity comparison',
-    content:
-      'For the upcoming lab, can someone explain why quicksort is preferred over bubble sort even though worst case is the same O(n²)?',
-    studentName: 'Ahmed Youssef',
-    courseCode: 'CS303',
-    courseName: 'Advanced Algorithms',
-    timestamp: '2025-02-23T11:00:00',
-    status: 'open',
-    pinned: false,
-    views: 8,
-    replies: [],
-  },
-];
+import {
+  discussionService,
+  type DiscussionDetailResponse,
+  type DiscussionReply,
+  type DiscussionThread,
+} from '../../../services/api/discussionService';
+import { toast } from 'sonner';
 
 interface DiscussionPageProps {
   userRole?: 'ta' | 'instructor';
   userName?: string;
 }
 
-export function DiscussionPage({
-  userRole = 'instructor',
-  userName = 'Dr. Jane Smith',
-}: DiscussionPageProps) {
+const getErrorMessage = (error: unknown) =>
+  error instanceof Error ? error.message : 'Something went wrong. Please try again.';
+
+const normalizeDiscussions = (payload: DiscussionThread[] | { data?: DiscussionThread[] } | undefined) => {
+  if (!payload) return [];
+  if (Array.isArray(payload)) return payload;
+  return Array.isArray(payload.data) ? payload.data : [];
+};
+
+export function DiscussionPage({ userRole = 'instructor' }: DiscussionPageProps) {
   const { t } = useLanguage();
   const { isDark, primaryHex = '#4f46e5' } = useTheme() as any;
-  const [discussions, setDiscussions] = useState(MOCK_DISCUSSIONS);
-  const [selectedDiscussion, setSelectedDiscussion] = useState<string | null>(null);
-  const [filterCourse, setFilterCourse] = useState<string>('all');
-  const [filterStatus, setFilterStatus] = useState<string>('all');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [replyText, setReplyText] = useState('');
+
+  const [discussions, setDiscussions] = useState<DiscussionThread[]>([]);
+  const [detailsById, setDetailsById] = useState<Record<string, DiscussionDetailResponse>>({});
   const [expandedDiscussions, setExpandedDiscussions] = useState<Set<string>>(new Set());
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterCourse, setFilterCourse] = useState<string>('all');
+  const [newDiscussion, setNewDiscussion] = useState({ courseId: '', title: '', description: '' });
+  const [creating, setCreating] = useState(false);
+  const [replyTextByDiscussion, setReplyTextByDiscussion] = useState<Record<string, string>>({});
 
-  const courses = [
-    { code: 'CS101', name: 'Introduction to Programming' },
-    { code: 'CS202', name: 'Data Structures' },
-    { code: 'CS303', name: 'Advanced Algorithms' },
-  ];
+  const loadDiscussions = useCallback(async (courseId?: string) => {
+    try {
+      setLoading(true);
+      const response = await discussionService.getDiscussions(courseId ? { courseId } : undefined);
+      setDiscussions(normalizeDiscussions(response as DiscussionThread[]));
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  const filteredDiscussions = discussions
-    .filter((d) => filterCourse === 'all' || d.courseCode === filterCourse)
-    .filter((d) => filterStatus === 'all' || d.status === filterStatus)
-    .filter(
-      (d) =>
-        d.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        d.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        d.studentName.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-    .sort((a, b) => {
-      if (a.pinned && !b.pinned) return -1;
-      if (!a.pinned && b.pinned) return 1;
-      return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
-    });
+  useEffect(() => {
+    const courseId = filterCourse === 'all' ? undefined : filterCourse;
+    void loadDiscussions(courseId);
+  }, [filterCourse, loadDiscussions]);
 
-  const openCount = discussions.filter((d) => d.status === 'open').length;
-  const answeredCount = discussions.filter((d) => d.status === 'answered').length;
-
-  const handleReply = (discussionId: string) => {
-    if (!replyText.trim()) return;
-
-    const roleLabel = userRole === 'instructor' ? 'Prof.' : '(TA)';
-    const newReply: Reply = {
-      id: `rep${Date.now()}`,
-      author: `${userName} ${roleLabel}`,
-      authorRole: userRole,
-      content: replyText,
-      timestamp: new Date().toISOString(),
-      likes: 0,
-      isAnswer: false,
-    };
-
-    setDiscussions(
-      discussions.map((d) =>
-        d.id === discussionId ? { ...d, replies: [...d.replies, newReply] } : d
-      )
+  const courseOptions = useMemo(() => {
+    const courseIds = Array.from(new Set(discussions.map((d) => d.courseId))).sort(
+      (a, b) => Number(a) - Number(b)
     );
-    setReplyText('');
-  };
+    return [{ value: 'all', label: t('allCourses') }, ...courseIds.map((id) => ({ value: String(id), label: `Course #${id}` }))];
+  }, [discussions, t]);
 
-  const handleMarkAsAnswer = (discussionId: string, replyId: string) => {
-    setDiscussions(
-      discussions.map((d) =>
-        d.id === discussionId
-          ? {
-              ...d,
-              status: 'answered' as const,
-              replies: d.replies.map((r) => ({
-                ...r,
-                isAnswer: r.id === replyId,
-              })),
-            }
-          : d
-      )
-    );
-  };
+  const filteredDiscussions = useMemo(
+    () =>
+      discussions
+        .filter((d) => {
+          const target = `${d.title} ${d.description ?? ''}`.toLowerCase();
+          return target.includes(searchQuery.toLowerCase());
+        })
+        .sort((a, b) => {
+          if (a.isPinned === 1 && b.isPinned !== 1) return -1;
+          if (a.isPinned !== 1 && b.isPinned === 1) return 1;
+          return new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime();
+        }),
+    [discussions, searchQuery]
+  );
 
-  const handleTogglePin = (discussionId: string) => {
-    setDiscussions(
-      discussions.map((d) => (d.id === discussionId ? { ...d, pinned: !d.pinned } : d))
-    );
-  };
+  const openCount = discussions.filter((d) => d.isLocked !== 1).length;
+  const lockedCount = discussions.filter((d) => d.isLocked === 1).length;
 
-  const handleCloseThread = (discussionId: string) => {
-    setDiscussions(
-      discussions.map((d) => (d.id === discussionId ? { ...d, status: 'closed' as const } : d))
-    );
-  };
-
-  const toggleExpand = (id: string) => {
+  const toggleExpand = async (id: string) => {
     setExpandedDiscussions((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
       return next;
     });
-  };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'open':
-        return (
-          <span
-            className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${isDark ? 'bg-orange-900/30 text-orange-400' : 'bg-orange-100 text-orange-800'}`}
-          >
-            <Clock size={12} /> {t('open')}
-          </span>
-        );
-      case 'answered':
-        return (
-          <span
-            className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${isDark ? 'bg-green-900/30 text-green-400' : 'bg-green-100 text-green-800'}`}
-          >
-            <CheckCircle size={12} /> {t('answered')}
-          </span>
-        );
-      case 'closed':
-        return (
-          <span
-            className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${isDark ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-800'}`}
-          >
-            {t('closed')}
-          </span>
-        );
-      default:
-        return null;
+    if (!detailsById[id]) {
+      try {
+        const detail = await discussionService.getDiscussion(id);
+        setDetailsById((prev) => ({ ...prev, [id]: detail }));
+      } catch (error) {
+        toast.error(getErrorMessage(error));
+      }
     }
   };
 
-  const getRoleBadge = (role: string) => {
-    switch (role) {
-      case 'ta':
-        return (
-          <span
-            className={`px-2 py-0.5 rounded text-xs font-medium ${isDark ? 'bg-blue-900/30 text-blue-400' : 'bg-blue-100 text-blue-700'}`}
-          >
-            {t('ta')}
-          </span>
-        );
-      case 'instructor':
-        return (
-          <span
-            className={`px-2 py-0.5 rounded text-xs font-medium ${isDark ? 'bg-indigo-900/30 text-indigo-400' : 'bg-indigo-100 text-indigo-700'}`}
-          >
-            {t('instructorRole')}
-          </span>
-        );
-      default:
-        return (
-          <span
-            className={`px-2 py-0.5 rounded text-xs font-medium ${isDark ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'}`}
-          >
-            {t('studentRole')}
-          </span>
-        );
+  const handleCreateDiscussion = async () => {
+    if (!newDiscussion.title.trim() || !newDiscussion.courseId) {
+      toast.error('Course and title are required');
+      return;
+    }
+
+    try {
+      setCreating(true);
+      await discussionService.createDiscussion({
+        courseId: Number(newDiscussion.courseId),
+        title: newDiscussion.title.trim(),
+        description: newDiscussion.description.trim() || undefined,
+      });
+      toast.success('Discussion created');
+      setNewDiscussion({ courseId: '', title: '', description: '' });
+      await loadDiscussions(filterCourse === 'all' ? undefined : filterCourse);
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const refreshDetail = async (id: string) => {
+    const detail = await discussionService.getDiscussion(id);
+    setDetailsById((prev) => ({ ...prev, [id]: detail }));
+  };
+
+  const handlePinToggle = async (discussion: DiscussionThread) => {
+    try {
+      await discussionService.pinDiscussion(discussion.id, discussion.isPinned !== 1);
+      toast.success(discussion.isPinned === 1 ? 'Discussion unpinned' : 'Discussion pinned');
+      await loadDiscussions(filterCourse === 'all' ? undefined : filterCourse);
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    }
+  };
+
+  const handleLockToggle = async (discussion: DiscussionThread) => {
+    try {
+      await discussionService.lockDiscussion(discussion.id, discussion.isLocked !== 1);
+      toast.success(discussion.isLocked === 1 ? 'Discussion unlocked' : 'Discussion locked');
+      await loadDiscussions(filterCourse === 'all' ? undefined : filterCourse);
+      if (detailsById[discussion.id]) {
+        await refreshDetail(discussion.id);
+      }
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    }
+  };
+
+  const handleDelete = async (discussionId: string) => {
+    try {
+      await discussionService.deleteDiscussion(discussionId);
+      toast.success('Discussion deleted');
+      await loadDiscussions(filterCourse === 'all' ? undefined : filterCourse);
+      setExpandedDiscussions((prev) => {
+        const next = new Set(prev);
+        next.delete(discussionId);
+        return next;
+      });
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    }
+  };
+
+  const handleReply = async (discussionId: string) => {
+    const messageText = replyTextByDiscussion[discussionId]?.trim();
+    if (!messageText) return;
+
+    try {
+      await discussionService.replyToDiscussion(discussionId, messageText);
+      toast.success('Reply sent');
+      setReplyTextByDiscussion((prev) => ({ ...prev, [discussionId]: '' }));
+      await refreshDetail(discussionId);
+      await loadDiscussions(filterCourse === 'all' ? undefined : filterCourse);
+    } catch (error) {
+      toast.error(getErrorMessage(error));
     }
   };
 
@@ -329,322 +201,215 @@ export function DiscussionPage({
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-            {t('discussionForum')}
-          </h2>
-          <p className={`mt-1 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-            {t('respondToQuestions')}
-          </p>
+          <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('discussionForum')}</h2>
+          <p className={`mt-1 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>{t('respondToQuestions')}</p>
         </div>
-        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-          <div
-            className={`border rounded-lg px-4 py-2 ${isDark ? 'bg-orange-900/20 border-orange-700/30' : 'bg-orange-50 border-orange-200'}`}
-          >
-            <span
-              className={`text-sm font-semibold ${isDark ? 'text-orange-400' : 'text-orange-900'}`}
-            >
-              {openCount}
-            </span>
-            <span className={`text-sm ml-1 ${isDark ? 'text-orange-500' : 'text-orange-700'}`}>
-              {t('open')}
-            </span>
+        <div className="flex gap-2">
+          <div className={`border rounded-lg px-4 py-2 ${isDark ? 'bg-orange-900/20 border-orange-700/30' : 'bg-orange-50 border-orange-200'}`}>
+            <span className={`text-sm font-semibold ${isDark ? 'text-orange-400' : 'text-orange-900'}`}>{openCount}</span>
+            <span className={`text-sm ml-1 ${isDark ? 'text-orange-500' : 'text-orange-700'}`}>Open</span>
           </div>
-          <div
-            className={`border rounded-lg px-4 py-2 ${isDark ? 'bg-green-900/20 border-green-700/30' : 'bg-green-50 border-green-200'}`}
-          >
-            <span
-              className={`text-sm font-semibold ${isDark ? 'text-green-400' : 'text-green-900'}`}
-            >
-              {answeredCount}
-            </span>
-            <span className={`text-sm ml-1 ${isDark ? 'text-green-500' : 'text-green-700'}`}>
-              {t('answered')}
-            </span>
+          <div className={`border rounded-lg px-4 py-2 ${isDark ? 'bg-gray-700/30 border-gray-600/30' : 'bg-gray-50 border-gray-200'}`}>
+            <span className={`text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-900'}`}>{lockedCount}</span>
+            <span className={`text-sm ml-1 ${isDark ? 'text-gray-400' : 'text-gray-700'}`}>Locked</span>
           </div>
         </div>
       </div>
 
-      {/* Filters */}
-      <div
-        className={`border rounded-lg p-4 ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}
-      >
+      <div className={`border rounded-lg p-4 ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+          <CustomDropdown
+            value={newDiscussion.courseId}
+            onChange={(value) => setNewDiscussion((prev) => ({ ...prev, courseId: value }))}
+            options={courseOptions.filter((option) => option.value !== 'all')}
+            className="w-full"
+          />
+          <input
+            type="text"
+            value={newDiscussion.title}
+            onChange={(e) => setNewDiscussion((prev) => ({ ...prev, title: e.target.value }))}
+            placeholder="Discussion title"
+            className={`md:col-span-1 px-3 py-2 border rounded-lg text-sm ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-slate-500' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'}`}
+          />
+          <input
+            type="text"
+            value={newDiscussion.description}
+            onChange={(e) => setNewDiscussion((prev) => ({ ...prev, description: e.target.value }))}
+            placeholder="Discussion description"
+            className={`md:col-span-2 px-3 py-2 border rounded-lg text-sm ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-slate-500' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'}`}
+          />
+        </div>
+        <div className="flex justify-end mt-3">
+          <button
+            onClick={handleCreateDiscussion}
+            disabled={creating}
+            className="px-4 py-2 text-white rounded-lg text-sm"
+            style={{ backgroundColor: primaryHex }}
+          >
+            {creating ? 'Creating...' : 'Create Discussion'}
+          </button>
+        </div>
+      </div>
+
+      <div className={`border rounded-lg p-4 ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}>
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
-            <Search
-              className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? 'text-slate-400' : 'text-gray-400'}`}
-            />
+            <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? 'text-slate-400' : 'text-gray-400'}`} />
             <input
               type="text"
               placeholder={t('searchDiscussionsPlaceholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none transition-colors text-sm ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-slate-500 focus:border-white/30' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-indigo-500'}`}
+              className={`w-full pl-10 pr-4 py-2 border rounded-lg text-sm ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-slate-500' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'}`}
             />
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:flex md:gap-2">
-            <CustomDropdown
-              value={filterCourse}
-              onChange={setFilterCourse}
-              options={[
-                { value: 'all', label: t('allCourses') },
-                ...courses.map((c) => ({ value: c.code, label: c.code })),
-              ]}
-              className="w-full md:w-auto"
-            />
-            <CustomDropdown
-              value={filterStatus}
-              onChange={setFilterStatus}
-              options={[
-                { value: 'all', label: t('allStatus') },
-                { value: 'open', label: t('open') },
-                { value: 'answered', label: t('answered') },
-                { value: 'closed', label: t('closed') },
-              ]}
-              className="w-full md:w-auto"
-            />
-          </div>
+          <CustomDropdown value={filterCourse} onChange={setFilterCourse} options={courseOptions} className="w-full md:w-auto" />
         </div>
       </div>
 
-      {/* Discussions List */}
       <div className="space-y-4">
-        {filteredDiscussions.map((discussion) => {
-          const isExpanded = expandedDiscussions.has(discussion.id);
+        {loading ? (
+          <div className={`text-center py-12 border rounded-lg ${isDark ? 'bg-white/5 border-white/10 text-slate-300' : 'bg-white border-gray-200 text-gray-700'}`}>
+            <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" /> Loading discussions...
+          </div>
+        ) : (
+          filteredDiscussions.map((discussion) => {
+            const isExpanded = expandedDiscussions.has(discussion.id);
+            const detail = detailsById[discussion.id];
+            const thread = detail?.thread;
+            const replies = detail?.replies?.data ?? [];
 
-          return (
-            <div
-              key={discussion.id}
-              className={`border rounded-lg overflow-hidden ${isDark ? 'bg-white/5' : 'bg-white'} ${
-                discussion.pinned
-                  ? 'border-blue-200'
-                  : isDark
-                    ? 'border-white/10'
-                    : 'border-gray-200'
-              }`}
-            >
-              {/* Discussion Header */}
+            return (
               <div
-                className={`p-4 sm:p-6 cursor-pointer transition-colors ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-50'}`}
-                onClick={() => toggleExpand(discussion.id)}
+                key={discussion.id}
+                className={`border rounded-lg overflow-hidden ${isDark ? 'bg-white/5' : 'bg-white'} ${discussion.isPinned === 1 ? 'border-blue-200' : isDark ? 'border-white/10' : 'border-gray-200'}`}
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2 flex-wrap">
-                      {discussion.pinned && <Pin size={14} className="text-blue-600" />}
-                      <h3
-                        className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}
-                      >
-                        {discussion.title}
-                      </h3>
-                      {getStatusBadge(discussion.status)}
-                    </div>
-                    <p
-                      className={`text-sm line-clamp-2 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}
-                    >
-                      {discussion.content}
-                    </p>
-                    <div
-                      className={`flex items-center gap-4 mt-3 text-xs ${isDark ? 'text-slate-500' : 'text-gray-500'}`}
-                    >
-                      <div className="flex items-center gap-1">
-                        <User size={12} />
-                        <span>{discussion.studentName}</span>
+                <div className={`p-4 sm:p-6 cursor-pointer ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-50'}`} onClick={() => toggleExpand(discussion.id)}>
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2 flex-wrap">
+                        {discussion.isPinned === 1 && <Pin size={14} className="text-blue-600" />}
+                        {discussion.isLocked === 1 && <Lock size={14} className="text-red-500" />}
+                        <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{discussion.title}</h3>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <BookOpen size={12} />
-                        <span>
-                          {discussion.courseCode}
-                          {discussion.lab ? ` • ${discussion.lab}` : ''}
-                        </span>
+                      <p className={`text-sm line-clamp-2 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>{discussion.description}</p>
+                      <div className={`flex items-center gap-4 mt-3 text-xs ${isDark ? 'text-slate-500' : 'text-gray-500'}`}>
+                        <div className="flex items-center gap-1">
+                          <User size={12} />
+                          <span>User #{discussion.createdBy}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <BookOpen size={12} />
+                          <span>Course #{discussion.courseId}</span>
+                        </div>
+                        <span>{new Date(discussion.createdAt ?? Date.now()).toLocaleDateString()}</span>
+                        <span>{discussion.replyCount ?? replies.length} replies</span>
+                        <span>{discussion.viewCount ?? 0} views</span>
                       </div>
-                      <span>{new Date(discussion.timestamp).toLocaleDateString()}</span>
-                      <span>
-                        {discussion.replies.length} {t('replies')}
-                      </span>
-                      <span>
-                        {discussion.views} {t('views')}
-                      </span>
                     </div>
+                    <div className="ml-4">{isExpanded ? <ChevronUp size={20} className="text-gray-400" /> : <ChevronDown size={20} className="text-gray-400" />}</div>
                   </div>
-                  <div className="flex items-center gap-2 ml-4">
-                    {isExpanded ? (
-                      <ChevronUp size={20} className="text-gray-400" />
+                </div>
+
+                {isExpanded && (
+                  <div className={`border-t ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
+                    {thread && (
+                      <div className={`px-6 py-4 border-b ${isDark ? 'border-white/10' : 'border-gray-100'}`}>
+                        <h4 className={`text-base font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                          {thread.title}
+                        </h4>
+                        <p className={`mt-1 text-sm ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>
+                          {thread.description || 'No description provided.'}
+                        </p>
+                        <div className={`mt-2 text-xs ${isDark ? 'text-slate-500' : 'text-gray-500'}`}>
+                          {thread.replyCount} replies • {thread.viewCount} views
+                        </div>
+                      </div>
+                    )}
+                    {discussion.isLocked === 1 && (
+                      <div className={`px-6 py-3 text-sm ${isDark ? 'bg-red-900/20 text-red-300' : 'bg-red-50 text-red-700'}`}>
+                        This thread is locked. Replies are disabled.
+                      </div>
+                    )}
+
+                    <div className={`p-4 sm:p-6 flex gap-2 ${isDark ? 'bg-white/5' : 'bg-gray-50'}`}>
+                      <button onClick={() => handlePinToggle(discussion)} className="text-xs px-3 py-1 rounded-lg bg-blue-600 text-white">
+                        {discussion.isPinned === 1 ? 'Unpin' : 'Pin'}
+                      </button>
+                      <button onClick={() => handleLockToggle(discussion)} className="text-xs px-3 py-1 rounded-lg bg-slate-600 text-white">
+                        {discussion.isLocked === 1 ? 'Unlock' : 'Lock'}
+                      </button>
+                      <button onClick={() => handleDelete(discussion.id)} className="text-xs px-3 py-1 rounded-lg bg-red-600 text-white flex items-center gap-1">
+                        <Trash2 size={12} /> Delete
+                      </button>
+                    </div>
+
+                    {replies.length === 0 ? (
+                      <div className={`px-6 py-5 text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>Be the first to reply!</div>
                     ) : (
-                      <ChevronDown size={20} className="text-gray-400" />
+                      <div className={`divide-y ${isDark ? 'divide-white/10' : 'divide-gray-100'}`}>
+                        {replies.map((reply: DiscussionReply) => (
+                          <div
+                            key={reply.id}
+                            className={`p-6 ${reply.parentMessageId ? 'ml-6 border-l-2 border-indigo-300/40' : ''}`}
+                          >
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className={`font-medium text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>User #{reply.userId}</span>
+                              {reply.isAnswer === 1 && (
+                                <span className={`px-2 py-0.5 rounded text-xs font-medium flex items-center gap-1 ${isDark ? 'bg-green-900/30 text-green-400' : 'bg-green-100 text-green-700'}`}>
+                                  <CheckCircle size={10} /> Answer
+                                </span>
+                              )}
+                              {reply.isEndorsed === 1 && (
+                                <span className={`px-2 py-0.5 rounded text-xs font-medium flex items-center gap-1 ${isDark ? 'bg-indigo-900/30 text-indigo-300' : 'bg-indigo-100 text-indigo-700'}`}>
+                                  <ShieldCheck size={10} /> Endorsed
+                                </span>
+                              )}
+                            </div>
+                            <p className={`text-sm ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>{reply.messageText}</p>
+                            <div className={`flex items-center gap-4 mt-2 text-xs ${isDark ? 'text-slate-500' : 'text-gray-500'}`}>
+                              <span>{new Date(reply.createdAt ?? Date.now()).toLocaleString()}</span>
+                              <span>Upvotes: {reply.upvoteCount ?? 0}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {discussion.isLocked !== 1 && (
+                      <div className={`p-6 border-t ${isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
+                        <textarea
+                          value={replyTextByDiscussion[discussion.id] ?? ''}
+                          onChange={(e) =>
+                            setReplyTextByDiscussion((prev) => ({ ...prev, [discussion.id]: e.target.value }))
+                          }
+                          placeholder={t('writeReplyPlaceholder')}
+                          rows={3}
+                          className={`w-full px-4 py-2 border rounded-lg resize-none text-sm ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-slate-500' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'}`}
+                        />
+                        <div className="flex justify-end mt-2">
+                          <button
+                            onClick={() => handleReply(discussion.id)}
+                            disabled={!replyTextByDiscussion[discussion.id]?.trim()}
+                            className="flex items-center gap-2 px-4 py-2 text-white rounded-lg text-sm font-medium disabled:opacity-50"
+                            style={{ backgroundColor: primaryHex }}
+                          >
+                            <Send size={14} />
+                            {t('reply')}
+                          </button>
+                        </div>
+                      </div>
                     )}
                   </div>
-                </div>
+                )}
               </div>
-
-              {/* Expanded Content */}
-              {isExpanded && (
-                <div className={`border-t ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
-                  {/* Full Question */}
-                  <div className={`p-4 sm:p-6 ${isDark ? 'bg-white/5' : 'bg-gray-50'}`}>
-                    <p
-                      className={`text-sm leading-relaxed ${isDark ? 'text-slate-300' : 'text-gray-800'}`}
-                    >
-                      {discussion.content}
-                    </p>
-                    <div className="flex items-center gap-2 mt-4">
-                      <button
-                        onClick={() => handleTogglePin(discussion.id)}
-                        className={`text-xs px-3 py-1 rounded-lg transition-colors ${
-                          discussion.pinned
-                            ? isDark
-                              ? 'bg-blue-900/30 text-blue-400'
-                              : 'bg-blue-100 text-blue-700'
-                            : isDark
-                              ? 'bg-white/10 text-white hover:bg-white/20'
-                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                        }`}
-                      >
-                        {discussion.pinned ? t('unpin') : t('pin')}
-                      </button>
-                      {discussion.status !== 'closed' && (
-                        <button
-                          onClick={() => handleCloseThread(discussion.id)}
-                          className={`text-xs px-3 py-1 rounded-lg transition-colors ${isDark ? 'bg-white/10 text-white hover:bg-white/20' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
-                        >
-                          {t('closeThread')}
-                        </button>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Replies */}
-                  {discussion.replies.length > 0 && (
-                    <div className={`divide-y ${isDark ? 'divide-white/10' : 'divide-gray-100'}`}>
-                      {discussion.replies.map((reply) => (
-                        <div
-                          key={reply.id}
-                          className={`p-6 ${reply.isAnswer ? (isDark ? 'bg-green-900/20 border-l-4 border-green-500' : 'bg-green-50 border-l-4 border-green-500') : ''}`}
-                        >
-                          <div className="flex items-start gap-3">
-                            <div
-                              className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                                reply.authorRole === 'ta'
-                                  ? isDark
-                                    ? 'bg-blue-900/30'
-                                    : 'bg-blue-100'
-                                  : reply.authorRole === 'instructor'
-                                    ? isDark
-                                      ? 'bg-indigo-900/30'
-                                      : 'bg-indigo-100'
-                                    : isDark
-                                      ? 'bg-gray-700'
-                                      : 'bg-gray-100'
-                              }`}
-                            >
-                              <User
-                                size={14}
-                                className={
-                                  reply.authorRole === 'ta'
-                                    ? 'text-blue-600'
-                                    : reply.authorRole === 'instructor'
-                                      ? 'text-indigo-600'
-                                      : 'text-gray-600'
-                                }
-                              />
-                            </div>
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
-                                <span
-                                  className={`font-medium text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}
-                                >
-                                  {reply.author}
-                                </span>
-                                {getRoleBadge(reply.authorRole)}
-                                {reply.isAnswer && (
-                                  <span
-                                    className={`px-2 py-0.5 rounded text-xs font-medium flex items-center gap-1 ${isDark ? 'bg-green-900/30 text-green-400' : 'bg-green-100 text-green-700'}`}
-                                  >
-                                    <CheckCircle size={10} /> {t('acceptedAnswer')}
-                                  </span>
-                                )}
-                              </div>
-                              <p
-                                className={`text-sm leading-relaxed ${isDark ? 'text-slate-300' : 'text-gray-700'}`}
-                              >
-                                {reply.content}
-                              </p>
-                              <div
-                                className={`flex items-center gap-4 mt-2 text-xs ${isDark ? 'text-slate-500' : 'text-gray-500'}`}
-                              >
-                                <span>{new Date(reply.timestamp).toLocaleString()}</span>
-                                <div className="flex items-center gap-1">
-                                  <ThumbsUp size={12} />
-                                  <span>{reply.likes}</span>
-                                </div>
-                                {!reply.isAnswer && discussion.status !== 'closed' && (
-                                  <button
-                                    onClick={() => handleMarkAsAnswer(discussion.id, reply.id)}
-                                    className="text-green-600 hover:text-green-700 font-medium"
-                                  >
-                                    {t('markAsAnswer')}
-                                  </button>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Reply Box */}
-                  {discussion.status !== 'closed' && (
-                    <div
-                      className={`p-6 border-t ${isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}
-                    >
-                      <div className="flex gap-3">
-                        <div
-                          className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${isDark ? 'bg-blue-900/30' : 'bg-blue-100'}`}
-                        >
-                          <User size={14} className="text-blue-600" />
-                        </div>
-                        <div className="flex-1">
-                          <textarea
-                            value={selectedDiscussion === discussion.id ? replyText : ''}
-                            onFocus={() => setSelectedDiscussion(discussion.id)}
-                            onChange={(e) => {
-                              setSelectedDiscussion(discussion.id);
-                              setReplyText(e.target.value);
-                            }}
-                            placeholder={t('writeReplyPlaceholder')}
-                            rows={3}
-                            className={`w-full px-4 py-2 border rounded-lg focus:outline-none transition-colors resize-none text-sm ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-slate-500 focus:border-white/30' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-indigo-500'}`}
-                          />
-                          <div className="flex justify-end mt-2">
-                            <button
-                              onClick={() => handleReply(discussion.id)}
-                              disabled={!replyText.trim() || selectedDiscussion !== discussion.id}
-                              className={`flex items-center gap-2 px-4 py-2 text-white rounded-lg transition-colors text-sm font-medium ${!replyText.trim() || selectedDiscussion !== discussion.id ? (isDark ? 'bg-gray-600 opacity-50 cursor-not-allowed' : 'bg-gray-300 opacity-50 cursor-not-allowed') : 'hover:opacity-90'}`}
-                              style={
-                                replyText.trim() && selectedDiscussion === discussion.id
-                                  ? { backgroundColor: primaryHex }
-                                  : undefined
-                              }
-                            >
-                              <Send size={14} />
-                              {t('reply')}
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          );
-        })}
+            );
+          })
+        )}
       </div>
 
-      {filteredDiscussions.length === 0 && (
-        <div
-          className={`text-center py-12 border rounded-lg ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}
-        >
+      {!loading && filteredDiscussions.length === 0 && (
+        <div className={`text-center py-12 border rounded-lg ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}>
           <MessageSquare className="w-12 h-12 text-gray-400 mx-auto mb-4" />
           <p className={isDark ? 'text-slate-400' : 'text-gray-600'}>{t('noDiscussionsFound')}</p>
         </div>

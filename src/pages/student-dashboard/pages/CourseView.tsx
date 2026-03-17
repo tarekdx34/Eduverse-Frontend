@@ -23,6 +23,7 @@ import {
   structureService,
 } from '../../../services/api/courseService';
 import { enrollmentService, EnrolledCourse } from '../../../services/api/enrollmentService';
+import { announcementService, type Announcement } from '../../../services/api/announcementService';
 
 interface Lesson {
   id: string;
@@ -75,7 +76,10 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
     },
   });
   const [pageLoading, setPageLoading] = useState(false);
+  const [announcementsLoading, setAnnouncementsLoading] = useState(false);
   const [pageError, setPageError] = useState<string | null>(null);
+  const [courseAnnouncements, setCourseAnnouncements] = useState<Announcement[]>([]);
+  const [expandedAnnouncementId, setExpandedAnnouncementId] = useState<string | null>(null);
   const { isDark, primaryHex } = useTheme() as any;
   const accentColor = primaryHex || '#3b82f6';
 
@@ -85,6 +89,8 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
     if (Number.isNaN(parsed.getTime())) return 'N/A';
     return parsed.toLocaleDateString();
   };
+
+  const resolvedCourseId = enrollment?.course?.id || '';
 
   useEffect(() => {
     let mounted = true;
@@ -168,6 +174,40 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
     };
   }, [courseId, enrollmentId]);
 
+  useEffect(() => {
+    let mounted = true;
+
+    const loadAnnouncements = async () => {
+      if (!resolvedCourseId) return;
+      try {
+        setAnnouncementsLoading(true);
+        const response = await announcementService.getAnnouncements({ courseId: String(resolvedCourseId) });
+        if (!mounted) return;
+        const sorted = (Array.isArray(response) ? response : [])
+          .slice()
+          .sort((a, b) => {
+            if ((a.isPinned ?? 0) === 1 && (b.isPinned ?? 0) !== 1) return -1;
+            if ((a.isPinned ?? 0) !== 1 && (b.isPinned ?? 0) === 1) return 1;
+            return (
+              new Date(b.publishedAt ?? b.createdAt ?? 0).getTime() -
+              new Date(a.publishedAt ?? a.createdAt ?? 0).getTime()
+            );
+          });
+        setCourseAnnouncements(sorted);
+      } catch {
+        if (!mounted) return;
+        setCourseAnnouncements([]);
+      } finally {
+        if (mounted) setAnnouncementsLoading(false);
+      }
+    };
+
+    void loadAnnouncements();
+    return () => {
+      mounted = false;
+    };
+  }, [resolvedCourseId]);
+
   const courseSections: CourseSection[] = useMemo(() => {
     const byWeek = structureResponse.byWeek || {};
     const weekKeys = Object.keys(byWeek).sort((a, b) => Number(a) - Number(b));
@@ -206,8 +246,6 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
     if (organizationType === 'section') return <Users size={18} />;
     return <File size={18} />;
   };
-
-  const resolvedCourseId = enrollment?.course?.id || '';
 
   const handleMaterialClick = (materialId: string) => {
     const material = (materialsResponse.data || []).find((item) => item.materialId === materialId);
@@ -609,7 +647,76 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
             <div className="text-gray-600">Course notes section coming soon</div>
           )}
           {activeTab === 'announcements' && (
-            <div className="text-gray-600">Announcements section coming soon</div>
+            <div className="space-y-4">
+              {announcementsLoading ? (
+                <div className="text-gray-600">Loading announcements...</div>
+              ) : courseAnnouncements.length === 0 ? (
+                <div className="text-gray-600">No announcements for this course yet</div>
+              ) : (
+                courseAnnouncements.map((announcement) => (
+                  <div
+                    key={announcement.id}
+                    className={`rounded-lg border p-4 ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}
+                  >
+                    <div className="flex flex-wrap items-center gap-2 mb-2">
+                      <h3 className={`text-base font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                        {announcement.title}
+                      </h3>
+                      {announcement.isPinned === 1 && <span className="text-amber-500">📌</span>}
+                      <span
+                        className={`px-2 py-0.5 rounded text-xs font-medium ${
+                          announcement.priority === 'high'
+                            ? 'bg-red-100 text-red-700'
+                            : announcement.priority === 'medium'
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : 'bg-gray-100 text-gray-700'
+                        }`}
+                      >
+                        {announcement.priority ?? 'low'}
+                      </span>
+                    </div>
+                    <p
+                      className={`text-sm ${isDark ? 'text-slate-300' : 'text-gray-700'} ${
+                        expandedAnnouncementId !== announcement.id ? 'line-clamp-3' : ''
+                      }`}
+                    >
+                      {announcement.content}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setExpandedAnnouncementId((prev) =>
+                          prev === announcement.id ? null : announcement.id
+                        )
+                      }
+                      className="mt-1 text-xs text-blue-600"
+                    >
+                      {expandedAnnouncementId === announcement.id ? 'Show less' : 'Read more'}
+                    </button>
+                    <div className="mt-2 text-xs text-slate-500 flex flex-wrap gap-3">
+                      <span>
+                        {announcement.course?.name ? announcement.course.name : 'Campus-wide'}
+                      </span>
+                      <span>
+                        {`${announcement.author?.firstName ?? ''} ${announcement.author?.lastName ?? ''}`.trim() ||
+                          announcement.author?.email ||
+                          'System'}
+                      </span>
+                      <span>
+                        {new Date(announcement.publishedAt ?? announcement.createdAt ?? Date.now()).toLocaleDateString(
+                          'en-US',
+                          {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                          }
+                        )}
+                      </span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           )}
           {activeTab === 'reviews' && (
             <div className="text-gray-600">Reviews section coming soon</div>

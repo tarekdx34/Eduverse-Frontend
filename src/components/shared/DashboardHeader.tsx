@@ -84,6 +84,7 @@ interface DashboardHeaderProps {
   onProfileClick?: () => void;
   searchRole?: string;
   notifications?: HeaderNotification[];
+  notificationCount?: number;
   primaryColor?: string;
   onSetPrimaryColor?: (color: string) => void;
   availableColors?: { id: string; colorClass: string; hex: string }[];
@@ -113,6 +114,7 @@ export function DashboardHeader({
   onProfileClick,
   searchRole,
   notifications = DEFAULT_NOTIFICATIONS,
+  notificationCount,
   primaryColor,
   onSetPrimaryColor,
   availableColors,
@@ -127,7 +129,14 @@ export function DashboardHeader({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const notificationRef = useRef<HTMLDivElement>(null);
 
-  const unreadCount = notificationList.filter((n) => !n.read).length;
+  useEffect(() => {
+    setNotificationList(notifications || DEFAULT_NOTIFICATIONS);
+  }, [notifications]);
+
+  const unreadCount =
+    typeof notificationCount === 'number'
+      ? notificationCount
+      : notificationList.filter((n) => !n.read).length;
 
   const markAsRead = (id: string) => {
     setNotificationList((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
@@ -251,8 +260,7 @@ export function DashboardHeader({
                 <Bell size={20} className={isDark ? 'text-slate-400' : 'text-slate-600'} />
                 {unreadCount > 0 && (
                   <span
-                    className="absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full flex items-center justify-center text-[10px] font-bold text-white px-1"
-                    style={{ backgroundColor: accentColor }}
+                    className="absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full flex items-center justify-center text-[10px] font-bold text-white px-1 bg-red-500"
                     aria-hidden="true"
                   >
                     {unreadCount}
@@ -610,8 +618,7 @@ export function DashboardHeader({
                   <Bell size={20} className={isDark ? 'text-slate-400' : 'text-slate-600'} />
                   {unreadCount > 0 && (
                     <span
-                      className="absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full flex items-center justify-center text-[10px] font-bold text-white px-1"
-                      style={{ backgroundColor: accentColor }}
+                      className="absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full flex items-center justify-center text-[10px] font-bold text-white px-1 bg-red-500"
                       aria-hidden="true"
                     >
                       {unreadCount}

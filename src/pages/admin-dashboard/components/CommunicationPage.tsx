@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Send,
   Bell,
   Mail,
-  Users,
   MessageSquare,
   FileText,
   Plus,
@@ -12,11 +11,14 @@ import {
   Copy,
   Eye,
   Megaphone,
+  Pin,
+  Loader2,
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { CleanSelect } from '../../../components/shared';
-
+import { toast } from 'sonner';
+import { announcementService, type Announcement } from '../../../services/api/announcementService';
 
 interface NotificationTemplate {
   id: number;
@@ -35,7 +37,41 @@ interface CommunicationPageProps {
   onSendBroadcast: (message: any) => void;
 }
 
-export function CommunicationPage({ templates, onCreateTemplate, onEditTemplate, onDeleteTemplate, onSendBroadcast }: CommunicationPageProps) {
+const getErrorMessage = (error: unknown) =>
+  error instanceof Error ? error.message : 'Something went wrong. Please try again.';
+
+const getCourseLabel = (announcement: Announcement) => {
+  if (announcement.course?.name || announcement.course?.code) {
+    return `${announcement.course.name ?? ''}${announcement.course?.code ? ` (${announcement.course.code})` : ''}`.trim();
+  }
+
+  return 'Campus-wide';
+};
+
+const getAuthorLabel = (announcement: Announcement) => {
+  if (!announcement.author) return 'System';
+  return (
+    `${announcement.author.firstName ?? ''} ${announcement.author.lastName ?? ''}`.trim() ||
+    announcement.author.email ||
+    'System'
+  );
+};
+
+const formatDisplayDate = (value?: string) =>
+  new Date(value ?? Date.now()).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+
+const getPriorityBadgeClass = (priority?: string) => {
+  if (priority === 'urgent') return 'bg-red-100 text-red-700';
+  if (priority === 'high') return 'bg-orange-100 text-orange-700';
+  if (priority === 'medium') return 'bg-yellow-100 text-yellow-800';
+  return 'bg-gray-100 text-gray-700';
+};
+
+export function CommunicationPage({ templates, onDeleteTemplate, onSendBroadcast }: CommunicationPageProps) {
   const { isDark } = useTheme();
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<'broadcast' | 'templates'>('broadcast');
@@ -43,7 +79,10 @@ export function CommunicationPage({ templates, onCreateTemplate, onEditTemplate,
   const [editingTemplate, setEditingTemplate] = useState<NotificationTemplate | null>(null);
   const [showPreview, setShowPreview] = useState(false);
 
-  // Broadcast form state
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [loadingAnnouncements, setLoadingAnnouncements] = useState(false);
+  const [editingAnnouncementId, setEditingAnnouncementId] = useState<string | null>(null);
+
   const [broadcastData, setBroadcastData] = useState({
     title: '',
     message: '',
@@ -51,7 +90,38 @@ export function CommunicationPage({ templates, onCreateTemplate, onEditTemplate,
     channels: ['push'],
     scheduleType: 'now',
     scheduleDate: '',
+    courseId: '0',
+    priority: 'medium',
+    publishNow: true,
   });
+
+  const loadAnnouncements = useCallback(async () => {
+    try {
+      setLoadingAnnouncements(true);
+      const response = await announcementService.getAnnouncements();
+      setAnnouncements(Array.isArray(response) ? response : []);
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    } finally {
+      setLoadingAnnouncements(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadAnnouncements();
+  }, [loadAnnouncements]);
+
+  const courseOptions = useMemo(() => {
+    const map = new Map<string, string>();
+    announcements.forEach((announcement) => {
+      const courseId = announcement.course?.id;
+      if (courseId !== undefined) {
+        map.set(String(courseId), getCourseLabel(announcement));
+      }
+    });
+
+    return [{ id: '0', label: 'Campus-wide' }, ...Array.from(map, ([id, label]) => ({ id, label }))];
+  }, [announcements]);
 
   const audienceOptions = [
     { value: 'all', label: t('allUsersAudience'), count: 5420 },
@@ -60,24 +130,95 @@ export function CommunicationPage({ templates, onCreateTemplate, onEditTemplate,
     { value: 'admins', label: t('adminsOnly'), count: 15 },
   ];
 
-  const recentBroadcasts = [
-    { id: 1, title: 'System Maintenance Notice', audience: 'All Users', sent: '2026-02-03 09:00', status: 'delivered' },
-    { id: 2, title: 'New Feature: AI Quiz Generator', audience: 'Instructors', sent: '2026-02-01 14:30', status: 'delivered' },
-    { id: 3, title: 'Registration Deadline Reminder', audience: 'Students', sent: '2026-01-28 10:00', status: 'delivered' },
-  ];
-
   const handleChannelToggle = (channel: string) => {
-    setBroadcastData(prev => ({
+    setBroadcastData((prev) => ({
       ...prev,
       channels: prev.channels.includes(channel)
-        ? prev.channels.filter(c => c !== channel)
+        ? prev.channels.filter((c) => c !== channel)
         : [...prev.channels, channel],
     }));
   };
 
+  const handleSendAnnouncement = async () => {
+    if (!broadcastData.title.trim() || !broadcastData.message.trim()) {
+      toast.error('Title and message are required');
+      return;
+    }
+
+    try {
+      if (editingAnnouncementId) {
+        await announcementService.updateAnnouncement(editingAnnouncementId, {
+          title: broadcastData.title.trim(),
+          content: broadcastData.message.trim(),
+          priority: broadcastData.priority,
+        });
+
+        if (broadcastData.publishNow) {
+          await announcementService.publishAnnouncement(editingAnnouncementId);
+        }
+
+        toast.success('Announcement updated');
+      } else {
+        const parsedCourseId = Number(broadcastData.courseId || 0);
+        const created = await announcementService.createAnnouncement({
+          title: broadcastData.title.trim(),
+          content: broadcastData.message.trim(),
+          ...(parsedCourseId > 0 ? { courseId: parsedCourseId } : {}),
+          priority: broadcastData.priority,
+        });
+
+        if (broadcastData.publishNow) {
+          await announcementService.publishAnnouncement(created.id);
+        }
+
+        toast.success('Broadcast saved as announcement');
+      }
+
+      onSendBroadcast(broadcastData);
+      setEditingAnnouncementId(null);
+      setBroadcastData((prev) => ({ ...prev, title: '', message: '' }));
+      await loadAnnouncements();
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    }
+  };
+
+  const togglePublish = async (announcement: Announcement) => {
+    if (announcement.isPublished === 1) {
+      return;
+    }
+
+    try {
+      await announcementService.publishAnnouncement(announcement.id);
+      toast.success('Announcement published');
+      await loadAnnouncements();
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    }
+  };
+
+  const togglePin = async (announcement: Announcement) => {
+    try {
+      await announcementService.pinAnnouncement(announcement.id, announcement.isPinned !== 1);
+      toast.success(announcement.isPinned === 1 ? 'Announcement unpinned' : 'Announcement pinned');
+      await loadAnnouncements();
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    }
+  };
+
+  const deleteAnnouncement = async (announcement: Announcement) => {
+    try {
+      await announcementService.deleteAnnouncement(announcement.id);
+      toast.success('Announcement deleted');
+      await loadAnnouncements();
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    }
+  };
+
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('communication')}</h1>
@@ -85,7 +226,6 @@ export function CommunicationPage({ templates, onCreateTemplate, onEditTemplate,
         </div>
       </div>
 
-      {/* Tabs */}
       <div className={`p-2 rounded-xl border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
         <div className="flex gap-2">
           <button
@@ -93,7 +233,9 @@ export function CommunicationPage({ templates, onCreateTemplate, onEditTemplate,
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               activeTab === 'broadcast'
                 ? 'bg-red-600 text-white'
-                : isDark ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-100'
+                : isDark
+                  ? 'text-gray-300 hover:bg-gray-700'
+                  : 'text-gray-700 hover:bg-gray-100'
             }`}
           >
             <Megaphone size={18} />
@@ -104,7 +246,9 @@ export function CommunicationPage({ templates, onCreateTemplate, onEditTemplate,
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               activeTab === 'templates'
                 ? 'bg-red-600 text-white'
-                : isDark ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-100'
+                : isDark
+                  ? 'text-gray-300 hover:bg-gray-700'
+                  : 'text-gray-700 hover:bg-gray-100'
             }`}
           >
             <FileText size={18} />
@@ -113,13 +257,11 @@ export function CommunicationPage({ templates, onCreateTemplate, onEditTemplate,
         </div>
       </div>
 
-      {/* Broadcast Section */}
       {activeTab === 'broadcast' && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Broadcast Form */}
           <div className={`lg:col-span-2 rounded-xl p-6 border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
             <h3 className={`text-lg font-semibold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('composeBroadcast')}</h3>
-            
+
             <div className="space-y-4">
               <div>
                 <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('title')}</label>
@@ -143,17 +285,60 @@ export function CommunicationPage({ templates, onCreateTemplate, onEditTemplate,
                 />
               </div>
 
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Course</label>
+                  <CleanSelect
+                    value={broadcastData.courseId}
+                    onChange={(e) => setBroadcastData({ ...broadcastData, courseId: e.target.value })}
+                    className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}
+                  >
+                    {courseOptions.map((course) => (
+                      <option key={course.id} value={course.id}>
+                        {course.label}
+                      </option>
+                    ))}
+                  </CleanSelect>
+                </div>
+                <div>
+                  <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Priority</label>
+                  <CleanSelect
+                    value={broadcastData.priority}
+                    onChange={(e) => setBroadcastData({ ...broadcastData, priority: e.target.value })}
+                    className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}
+                  >
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                    <option value="urgent">Urgent</option>
+                  </CleanSelect>
+                </div>
+              </div>
+
+              <label className={`flex items-center gap-2 text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                <input
+                  type="checkbox"
+                  checked={broadcastData.publishNow}
+                  onChange={(e) => setBroadcastData({ ...broadcastData, publishNow: e.target.checked })}
+                />
+                Publish immediately
+              </label>
+
               <div>
                 <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('targetAudience')}</label>
                 <div className="grid grid-cols-2 gap-2">
-                  {audienceOptions.map(option => (
+                  {audienceOptions.map((option) => (
                     <button
                       key={option.value}
                       onClick={() => setBroadcastData({ ...broadcastData, audience: option.value })}
                       className={`p-3 rounded-lg border text-left transition-colors ${
                         broadcastData.audience === option.value
-                          ? isDark ? 'bg-red-900/50 border-red-600' : 'bg-red-50 border-red-200'
-                          : isDark ? 'bg-gray-700 border-gray-600 hover:bg-gray-600' : 'bg-white border-gray-200 hover:bg-gray-50'
+                          ? isDark
+                            ? 'bg-red-900/50 border-red-600'
+                            : 'bg-red-50 border-red-200'
+                          : isDark
+                            ? 'bg-gray-700 border-gray-600 hover:bg-gray-600'
+                            : 'bg-white border-gray-200 hover:bg-gray-50'
                       }`}
                     >
                       <div className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{option.label}</div>
@@ -170,14 +355,18 @@ export function CommunicationPage({ templates, onCreateTemplate, onEditTemplate,
                     { id: 'push', label: 'Push', icon: Bell },
                     { id: 'email', label: 'Email', icon: Mail },
                     { id: 'sms', label: 'SMS', icon: MessageSquare },
-                  ].map(channel => (
+                  ].map((channel) => (
                     <button
                       key={channel.id}
                       onClick={() => handleChannelToggle(channel.id)}
                       className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors ${
                         broadcastData.channels.includes(channel.id)
-                          ? isDark ? 'bg-red-900/50 border-red-600 text-red-300' : 'bg-red-50 border-red-200 text-red-700'
-                          : isDark ? 'bg-gray-700 border-gray-600 text-gray-300' : 'bg-white border-gray-200 text-gray-700'
+                          ? isDark
+                            ? 'bg-red-900/50 border-red-600 text-red-300'
+                            : 'bg-red-50 border-red-200 text-red-700'
+                          : isDark
+                            ? 'bg-gray-700 border-gray-600 text-gray-300'
+                            : 'bg-white border-gray-200 text-gray-700'
                       }`}
                     >
                       <channel.icon size={16} />
@@ -185,40 +374,6 @@ export function CommunicationPage({ templates, onCreateTemplate, onEditTemplate,
                     </button>
                   ))}
                 </div>
-              </div>
-
-              <div>
-                <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{t('sendTime')}</label>
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => setBroadcastData({ ...broadcastData, scheduleType: 'now' })}
-                    className={`flex-1 p-3 rounded-lg border transition-colors ${
-                      broadcastData.scheduleType === 'now'
-                        ? isDark ? 'bg-red-900/50 border-red-600' : 'bg-red-50 border-red-200'
-                        : isDark ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-200'
-                    }`}
-                  >
-                    <div className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('sendNow')}</div>
-                  </button>
-                  <button
-                    onClick={() => setBroadcastData({ ...broadcastData, scheduleType: 'scheduled' })}
-                    className={`flex-1 p-3 rounded-lg border transition-colors ${
-                      broadcastData.scheduleType === 'scheduled'
-                        ? isDark ? 'bg-red-900/50 border-red-600' : 'bg-red-50 border-red-200'
-                        : isDark ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-200'
-                    }`}
-                  >
-                    <div className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('scheduleSend')}</div>
-                  </button>
-                </div>
-                {broadcastData.scheduleType === 'scheduled' && (
-                  <input
-                    type="datetime-local"
-                    value={broadcastData.scheduleDate}
-                    onChange={(e) => setBroadcastData({ ...broadcastData, scheduleDate: e.target.value })}
-                    className={`w-full mt-3 px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}
-                  />
-                )}
               </div>
 
               <div className="flex gap-3 pt-4">
@@ -230,38 +385,84 @@ export function CommunicationPage({ templates, onCreateTemplate, onEditTemplate,
                   {t('preview')}
                 </button>
                 <button
-                  onClick={() => onSendBroadcast(broadcastData)}
+                  onClick={handleSendAnnouncement}
                   className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
                 >
                   <Send size={18} />
-                  {t('sendBroadcast')}
+                  {editingAnnouncementId ? 'Update Broadcast' : t('sendBroadcast')}
                 </button>
               </div>
             </div>
           </div>
 
-          {/* Recent Broadcasts */}
           <div className={`rounded-xl p-6 border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
             <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('recentBroadcasts')}</h3>
             <div className="space-y-4">
-              {recentBroadcasts.map(broadcast => (
-                <div key={broadcast.id} className={`p-4 rounded-lg ${isDark ? 'bg-gray-700' : 'bg-gray-50'}`}>
-                  <h4 className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{broadcast.title}</h4>
-                  <div className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                    <div>To: {broadcast.audience}</div>
-                    <div>Sent: {broadcast.sent}</div>
-                  </div>
-                  <span className="inline-block mt-2 px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
-                    {broadcast.status}
-                  </span>
+              {loadingAnnouncements ? (
+                <div className="flex items-center gap-2 text-sm text-gray-400">
+                  <Loader2 className="w-4 h-4 animate-spin" /> Loading...
                 </div>
-              ))}
+              ) : announcements.length === 0 ? (
+                <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>No announcements yet.</p>
+              ) : (
+                announcements.slice(0, 5).map((announcement) => (
+                  <div key={announcement.id} className={`p-4 rounded-lg ${isDark ? 'bg-gray-700' : 'bg-gray-50'}`}>
+                    <h4 className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{announcement.title}</h4>
+                    <p
+                      className={`text-sm mt-2 line-clamp-3 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}
+                    >
+                      {announcement.content}
+                    </p>
+                    <div className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                      <div>{getCourseLabel(announcement)}</div>
+                      <div>{formatDisplayDate(announcement.publishedAt ?? announcement.createdAt)}</div>
+                      <div>Author: {getAuthorLabel(announcement)}</div>
+                      <div>
+                        <span className="inline-block px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-700">
+                          {announcement.announcementType ??
+                            (announcement as Announcement & { type?: string }).type ??
+                            'course'}
+                        </span>
+                      </div>
+                      <div>Views: {announcement.viewCount ?? 0}</div>
+                    </div>
+                    <div className="flex items-center gap-2 mt-2">
+                      <span className={`inline-block px-2 py-1 text-xs rounded-full ${announcement.isPublished === 1 ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-700'}`}>
+                        {announcement.isPublished === 1 ? 'Published' : 'Draft'}
+                      </span>
+                      <span className={`inline-block px-2 py-1 text-xs rounded-full ${getPriorityBadgeClass(announcement.priority)}`}>
+                        {announcement.priority ?? 'low'}
+                      </span>
+                      {announcement.isPinned === 1 && (
+                        <span className="inline-flex items-center text-xs text-amber-500">
+                          <Pin size={12} className="mr-1" />Pinned
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex gap-2 mt-3">
+                      <button onClick={() => {
+                        setEditingAnnouncementId(announcement.id);
+                        setBroadcastData((prev) => ({
+                          ...prev,
+                          title: announcement.title,
+                          message: announcement.content,
+                          courseId: String(announcement.course?.id ?? 0),
+                          priority: announcement.priority ?? 'medium',
+                          publishNow: announcement.isPublished === 1,
+                        }));
+                      }} className="text-xs px-2 py-1 rounded bg-slate-600 text-white">Edit</button>
+                      <button onClick={() => togglePublish(announcement)} className="text-xs px-2 py-1 rounded bg-blue-600 text-white disabled:opacity-50" disabled={announcement.isPublished === 1}>Publish</button>
+                      <button onClick={() => togglePin(announcement)} className="text-xs px-2 py-1 rounded bg-amber-500 text-white">{announcement.isPinned === 1 ? 'Unpin' : 'Pin'}</button>
+                      <button onClick={() => deleteAnnouncement(announcement)} className="text-xs px-2 py-1 rounded bg-red-600 text-white">Delete</button>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </div>
       )}
 
-      {/* Templates Section */}
       {activeTab === 'templates' && (
         <div className="space-y-6">
           <div className="flex justify-end">
@@ -275,15 +476,11 @@ export function CommunicationPage({ templates, onCreateTemplate, onEditTemplate,
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {templates.map(template => (
+            {templates.map((template) => (
               <div key={template.id} className={`rounded-xl border overflow-hidden ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
                 <div className={`p-4 border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
                   <div className="flex items-center justify-between mb-2">
-                    <span className={`px-2 py-1 rounded text-xs font-medium ${
-                      template.type === 'email' ? 'bg-blue-100 text-blue-700' :
-                      template.type === 'push' ? 'bg-green-100 text-green-700' :
-                      'bg-blue-100 text-blue-700'
-                    }`}>
+                    <span className={`px-2 py-1 rounded text-xs font-medium ${template.type === 'email' ? 'bg-blue-100 text-blue-700' : template.type === 'push' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}`}>
                       {template.type.toUpperCase()}
                     </span>
                     <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Updated: {template.lastUpdated}</span>
@@ -294,9 +491,7 @@ export function CommunicationPage({ templates, onCreateTemplate, onEditTemplate,
                   <div className={`text-sm mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                     <strong>{t('messageSubject')}:</strong> {template.subject}
                   </div>
-                  <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'} line-clamp-2`}>
-                    {template.content}
-                  </div>
+                  <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'} line-clamp-2`}>{template.content}</div>
                 </div>
                 <div className={`p-4 flex items-center gap-2 border-t ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
                   <button
@@ -322,7 +517,6 @@ export function CommunicationPage({ templates, onCreateTemplate, onEditTemplate,
         </div>
       )}
 
-      {/* Preview Modal */}
       {showPreview && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className={`w-full max-w-md rounded-xl overflow-hidden ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
@@ -344,10 +538,7 @@ export function CommunicationPage({ templates, onCreateTemplate, onEditTemplate,
               </div>
             </div>
             <div className={`p-4 border-t flex justify-end ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
-              <button
-                onClick={() => setShowPreview(false)}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-              >
+              <button onClick={() => setShowPreview(false)} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
                 {t('close')}
               </button>
             </div>
@@ -355,7 +546,6 @@ export function CommunicationPage({ templates, onCreateTemplate, onEditTemplate,
         </div>
       )}
 
-      {/* Template Modal */}
       {(showTemplateModal || editingTemplate) && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className={`w-full max-w-lg rounded-xl p-6 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
@@ -386,7 +576,10 @@ export function CommunicationPage({ templates, onCreateTemplate, onEditTemplate,
               <div className="flex justify-end gap-3 mt-6">
                 <button
                   type="button"
-                  onClick={() => { setShowTemplateModal(false); setEditingTemplate(null); }}
+                  onClick={() => {
+                    setShowTemplateModal(false);
+                    setEditingTemplate(null);
+                  }}
                   className={`px-4 py-2 rounded-lg ${isDark ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-700'}`}
                 >
                   {t('cancel')}
