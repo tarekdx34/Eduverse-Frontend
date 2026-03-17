@@ -170,9 +170,10 @@ const MOCK_QUIZZES: QuizData[] = [
 
 export interface QuizzesPageProps {
   courses?: any[]; // Passed from InstructorDashboard to populate the filter and create form
+  isMockMode?: boolean;
 }
 
-export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
+export function QuizzesPage({ courses = [], isMockMode = false }: QuizzesPageProps) {
   const { t, isRTL } = useLanguage();
   const { isDark, primaryHex = '#3b82f6' } = useTheme() as any;
 
@@ -214,7 +215,7 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
       try {
         setLoading(true);
         setListError(null);
-        if (!hasToken) {
+        if (isMockMode || !hasToken) {
           // Fallback to mock data in Demo Mode
           setQuizzes(MOCK_QUIZZES);
           setLoading(false);
@@ -255,13 +256,13 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
         setQuizzes(mapped);
       } catch (err) {
         console.error('Failed to load quizzes', err);
-        if (hasToken) {
+        if (!isMockMode && hasToken) {
           setQuizzes([]);
           setListError(
             err instanceof Error ? err.message : 'Failed to load quizzes in Live Mode.'
           );
         } else {
-          // Keep demo fallback if no auth token is present.
+          // Keep demo fallback if no auth token is present or mock mode.
           setQuizzes(MOCK_QUIZZES);
         }
       } finally {
@@ -270,7 +271,7 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
     }
     
     fetchQuizzes();
-  }, [selectedCourse, refreshKey]);
+  }, [selectedCourse, refreshKey, isMockMode]);
 
   // Create / Edit quiz form state
   const [showCreateQuiz, setShowCreateQuiz] = useState(false);
@@ -366,6 +367,36 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
     try {
       setFormError(null);
       setIsSaving(true);
+
+      if (isMockMode) {
+        // Handle saving locally in Mock Mode
+        if (editingIndex !== null) {
+          const newQuizzes = [...quizzes];
+          newQuizzes[editingIndex] = { ...newQuizzes[editingIndex], title, duration: formData.duration, difficulty: formData.difficulty, questions: formData.questions.length };
+          setQuizzes(newQuizzes);
+        } else {
+          setQuizzes([{
+            id: Date.now(),
+            title,
+            subject: 'Mock Subject',
+            subjectColor: 'bg-indigo-100 text-indigo-700',
+            date: new Date().toLocaleDateString(),
+            questions: formData.questions.length,
+            attempted: 0,
+            total: 0,
+            difficulty: formData.difficulty,
+            difficultyColor: 'bg-yellow-100 text-yellow-700',
+            duration: formData.duration,
+            status: 'Draft',
+            statusColor: 'bg-orange-100 text-orange-700',
+          }, ...quizzes]);
+        }
+        setShowCreateQuiz(false);
+        setFormData(defaultFormData());
+        setIsSaving(false);
+        return;
+      }
+
       const { QuizService } = await import('../../../services/api/quizService');
       
       const payload = {
@@ -459,6 +490,13 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
   };
 
   const publishQuiz = async (index: number) => {
+    if (isMockMode) {
+      const newQuizzes = [...quizzes];
+      newQuizzes[index] = { ...newQuizzes[index], status: 'Active', statusColor: 'bg-green-100 text-green-700' };
+      setQuizzes(newQuizzes);
+      return;
+    }
+
     try {
       setActionError(null);
       setPublishingIndex(index);
@@ -484,6 +522,13 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
     setViewAttemptsIndex(index);
     setViewAnalysisIndex(null);
     setLoadingAttempts(true);
+
+    if (isMockMode) {
+      setAttemptsData(mockAttempts);
+      setLoadingAttempts(false);
+      return;
+    }
+
     try {
       const { QuizService } = await import('../../../services/api/quizService');
       const quizId = quizzes[index].raw?.quizId || quizzes[index].raw?.id || quizzes[index].id;
@@ -506,6 +551,20 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
     setViewAnalysisIndex(index);
     setViewAttemptsIndex(null);
     setLoadingStats(true);
+
+    if (isMockMode) {
+      setStatsData({
+        averageScore: 85,
+        highestScore: 100,
+        lowestScore: 65,
+        passRatePercentage: 90,
+        totalAttempts: 42,
+        uniqueStudents: 40,
+      });
+      setLoadingStats(false);
+      return;
+    }
+
     try {
       const { QuizService } = await import('../../../services/api/quizService');
       const quizId = quizzes[index].raw?.quizId || quizzes[index].raw?.id || quizzes[index].id;

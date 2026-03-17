@@ -1198,7 +1198,7 @@ function InstructorDashboardContent() {
           )}
 
           {/* Quizzes */}
-          {activeTab === 'quizzes' && <QuizzesPage courses={coursesData} />}
+          {activeTab === 'quizzes' && <QuizzesPage courses={coursesData} isMockMode={isMockMode} />}
 
           {/* Schedule */}
           {activeTab === 'schedule' && <SchedulePage />}
