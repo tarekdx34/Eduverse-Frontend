@@ -1,9 +1,42 @@
+import axios from 'axios';
 import { API_BASE_URL, TOKEN_KEYS } from './config';
 
 interface RequestOptions extends RequestInit {
   headers?: Record<string, string>;
   params?: Record<string, any>;
 }
+
+// Axios client used by newer API services.
+export const client = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+client.interceptors.request.use((config) => {
+  const accessToken = localStorage.getItem(TOKEN_KEYS.ACCESS_TOKEN);
+  if (accessToken) {
+    config.headers.Authorization = `Bearer ${accessToken}`;
+  }
+  return config;
+});
+
+client.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error?.response?.status === 401) {
+      localStorage.removeItem(TOKEN_KEYS.ACCESS_TOKEN);
+      localStorage.removeItem(TOKEN_KEYS.REFRESH_TOKEN);
+      localStorage.removeItem(TOKEN_KEYS.USER);
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
 
 export class ApiClient {
   private static baseURL = API_BASE_URL;
@@ -36,14 +69,14 @@ export class ApiClient {
       ...options.headers,
     };
 
-    // Add auth token if available
+    if (options.body instanceof FormData) {
+      delete headers['Content-Type'];
+    }
+
     const accessToken = localStorage.getItem(TOKEN_KEYS.ACCESS_TOKEN);
     if (accessToken) {
       headers['Authorization'] = `Bearer ${accessToken}`;
     }
-
-    // console.log(`[API] ${options.method || 'GET'} ${url}`);
-    // console.log('[API Headers]', headers);
 
     try {
       const response = await fetch(url, {
@@ -51,15 +84,6 @@ export class ApiClient {
         headers,
       });
 
-      /*
-      console.log(`[API Response] Status: ${response.status}`);
-      console.log('[API Response Headers]', {
-        'content-type': response.headers.get('content-type'),
-        'access-control-allow-origin': response.headers.get('access-control-allow-origin'),
-      });
-      */
-
-      // Handle non-JSON responses
       const contentType = response.headers.get('content-type');
       let data: unknown;
 
@@ -68,8 +92,6 @@ export class ApiClient {
       } else {
         data = await response.text();
       }
-
-      // console.log('[API Response Data]', data);
 
       if (!response.ok) {
         if (response.status === 401) {
@@ -117,24 +139,27 @@ export class ApiClient {
     return this.request<T>(endpoint, { ...options, method: 'GET' });
   }
 
-  static async post<T>(endpoint: string, data?: unknown): Promise<T> {
+  static async post<T>(endpoint: string, data?: unknown, options: RequestOptions = {}): Promise<T> {
     return this.request<T>(endpoint, {
+      ...options,
       method: 'POST',
-      body: data ? JSON.stringify(data) : undefined,
+      body: data instanceof FormData ? data : data ? JSON.stringify(data) : undefined,
     });
   }
 
-  static async put<T>(endpoint: string, data?: unknown): Promise<T> {
+  static async put<T>(endpoint: string, data?: unknown, options: RequestOptions = {}): Promise<T> {
     return this.request<T>(endpoint, {
+      ...options,
       method: 'PUT',
-      body: data ? JSON.stringify(data) : undefined,
+      body: data instanceof FormData ? data : data ? JSON.stringify(data) : undefined,
     });
   }
 
-  static async patch<T>(endpoint: string, data?: unknown): Promise<T> {
+  static async patch<T>(endpoint: string, data?: unknown, options: RequestOptions = {}): Promise<T> {
     return this.request<T>(endpoint, {
+      ...options,
       method: 'PATCH',
-      body: data ? JSON.stringify(data) : undefined,
+      body: data instanceof FormData ? data : data ? JSON.stringify(data) : undefined,
     });
   }
 

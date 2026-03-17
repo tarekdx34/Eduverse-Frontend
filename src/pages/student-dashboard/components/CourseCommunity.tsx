@@ -1,552 +1,372 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import {
   Users,
   MessageSquare,
   Send,
-  ThumbsUp,
-  MessageCircle,
   Pin,
   Search,
-  Filter,
   Plus,
   MoreVertical,
   Clock,
-  BookOpen,
-  Star,
-  CheckCircle,
-  Image as ImageIcon,
-  Paperclip,
-  Smile,
+  Lock,
   ChevronRight,
+  Loader2,
+  CheckCircle,
+  ShieldCheck,
 } from 'lucide-react';
 import { CustomDropdown } from '../../../components/shared/CustomDropdown';
+import {
+  discussionService,
+  type DiscussionDetailResponse,
+  type DiscussionReply,
+  type DiscussionThread,
+} from '../../../services/api/discussionService';
+import { toast } from 'sonner';
 
-interface Post {
-  id: string;
-  author: string;
-  authorAvatar: string;
-  authorRole: 'student' | 'instructor' | 'ta';
-  content: string;
-  timestamp: string;
-  likes: number;
-  replies: number;
-  isPinned: boolean;
-  isLiked: boolean;
-  courseCode: string;
-  tags: string[];
-}
+const getErrorMessage = (error: unknown) =>
+  error instanceof Error ? error.message : 'Something went wrong. Please try again.';
 
-interface Community {
-  id: string;
-  courseCode: string;
-  courseName: string;
-  members: number;
-  posts: number;
-  lastActivity: string;
-  color: string;
-  joined: boolean;
-}
-
-const communities: Community[] = [
-  {
-    id: '1',
-    courseCode: 'CS101',
-    courseName: 'Introduction to Computer Science',
-    members: 156,
-    posts: 234,
-    lastActivity: '2 hours ago',
-    color: 'bg-blue-500',
-    joined: true,
-  },
-  {
-    id: '2',
-    courseCode: 'CS201',
-    courseName: 'Data Structures & Algorithms',
-    members: 128,
-    posts: 189,
-    lastActivity: '30 min ago',
-    color: 'bg-blue-500',
-    joined: true,
-  },
-  {
-    id: '3',
-    courseCode: 'CS220',
-    courseName: 'Database Management Systems',
-    members: 98,
-    posts: 145,
-    lastActivity: '1 hour ago',
-    color: 'bg-orange-500',
-    joined: true,
-  },
-  {
-    id: '4',
-    courseCode: 'CS305',
-    courseName: 'Software Engineering Principles',
-    members: 112,
-    posts: 167,
-    lastActivity: '3 hours ago',
-    color: 'bg-pink-500',
-    joined: true,
-  },
-  {
-    id: '5',
-    courseCode: 'CS350',
-    courseName: 'Mobile Application Development',
-    members: 85,
-    posts: 98,
-    lastActivity: '5 hours ago',
-    color: 'bg-[var(--accent-color)]/100',
-    joined: false,
-  },
-  {
-    id: '6',
-    courseCode: 'CS401',
-    courseName: 'Machine Learning Fundamentals',
-    members: 145,
-    posts: 256,
-    lastActivity: '20 min ago',
-    color: 'bg-green-500',
-    joined: false,
-  },
-];
-
-const posts: Post[] = [
-  {
-    id: '1',
-    author: 'Prof. Sarah Johnson',
-    authorAvatar: 'SJ',
-    authorRole: 'instructor',
-    content:
-      '📢 Important: The deadline for the Database Design Project has been extended to December 10th. Please make sure to review the updated requirements in the assignment description.',
-    timestamp: '2 hours ago',
-    likes: 45,
-    replies: 12,
-    isPinned: true,
-    isLiked: false,
-    courseCode: 'CS220',
-    tags: ['announcement', 'deadline'],
-  },
-  {
-    id: '2',
-    author: 'Ahmed Hassan',
-    authorAvatar: 'AH',
-    authorRole: 'student',
-    content:
-      "Can someone explain the difference between 2NF and 3NF in database normalization? I'm having trouble understanding when to apply each one.",
-    timestamp: '4 hours ago',
-    likes: 23,
-    replies: 8,
-    isPinned: false,
-    isLiked: true,
-    courseCode: 'CS220',
-    tags: ['question', 'help'],
-  },
-  {
-    id: '3',
-    author: 'TA Michael Chen',
-    authorAvatar: 'MC',
-    authorRole: 'ta',
-    content:
-      "📚 Study Session Reminder: We'll be holding a review session for the upcoming midterm on Friday at 4 PM in Lab 302. Topics will include: joins, subqueries, and normalization. All are welcome!",
-    timestamp: '6 hours ago',
-    likes: 67,
-    replies: 15,
-    isPinned: true,
-    isLiked: false,
-    courseCode: 'CS220',
-    tags: ['study-session', 'exam-prep'],
-  },
-  {
-    id: '4',
-    author: 'Emma Wilson',
-    authorAvatar: 'EW',
-    authorRole: 'student',
-    content:
-      "Just finished the SQL exercises! Here's a tip for anyone struggling with JOIN queries: always visualize your tables first and identify the common columns. It makes writing the query much easier.",
-    timestamp: '1 day ago',
-    likes: 34,
-    replies: 6,
-    isPinned: false,
-    isLiked: false,
-    courseCode: 'CS220',
-    tags: ['tips', 'sql'],
-  },
-  {
-    id: '5',
-    author: 'James Wilson',
-    authorAvatar: 'JW',
-    authorRole: 'student',
-    content:
-      'Is anyone interested in forming a study group for the final exam? I was thinking we could meet twice a week at the library.',
-    timestamp: '1 day ago',
-    likes: 28,
-    replies: 11,
-    isPinned: false,
-    isLiked: true,
-    courseCode: 'CS220',
-    tags: ['study-group'],
-  },
-];
+const normalizeDiscussions = (payload: DiscussionThread[] | { data?: DiscussionThread[] } | undefined) => {
+  if (!payload) return [];
+  if (Array.isArray(payload)) return payload;
+  return Array.isArray(payload.data) ? payload.data : [];
+};
 
 export function CourseCommunity() {
   const { isDark, primaryHex } = useTheme() as any;
-  const accentColor = primaryHex || '#3b82f6';
-  const [selectedCommunity, setSelectedCommunity] = useState<string>('CS220');
-  const [postsList, setPostsList] = useState<Post[]>(posts);
-  const [newPostContent, setNewPostContent] = useState('');
+  const [selectedCommunity, setSelectedCommunity] = useState<string>('all');
+  const [discussions, setDiscussions] = useState<DiscussionThread[]>([]);
+  const [detailsById, setDetailsById] = useState<Record<string, DiscussionDetailResponse>>({});
+  const [selectedDiscussion, setSelectedDiscussion] = useState<DiscussionThread | null>(null);
+  const [newTitle, setNewTitle] = useState('');
+  const [newDescription, setNewDescription] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterTag, setFilterTag] = useState<string>('all');
+  const [replyText, setReplyText] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const loadDiscussions = useCallback(async (courseId?: string) => {
+    try {
+      setLoading(true);
+      const response = await discussionService.getDiscussions(courseId ? { courseId } : undefined);
+      setDiscussions(normalizeDiscussions(response as DiscussionThread[]));
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const courseId = selectedCommunity === 'all' ? undefined : selectedCommunity;
+    void loadDiscussions(courseId);
+  }, [selectedCommunity, loadDiscussions]);
+
+  const communities = useMemo(() => {
+    const ids = Array.from(new Set(discussions.map((discussion) => discussion.courseId))).sort(
+      (a, b) => Number(a) - Number(b)
+    );
+    return ids.map((id) => ({
+      id: String(id),
+      courseCode: `Course #${id}`,
+      members: 0,
+      posts: discussions.filter((d) => d.courseId === id).length,
+      lastActivity: 'recently',
+      color: 'bg-blue-500',
+      joined: true,
+    }));
+  }, [discussions]);
 
   const filterOptions = [
     { value: 'all', label: 'All Posts' },
     { value: 'announcement', label: 'Announcements' },
-    { value: 'question', label: 'Questions' },
-    { value: 'help', label: 'Help Needed' },
-    { value: 'study-group', label: 'Study Groups' },
-    { value: 'tips', label: 'Tips & Resources' },
+    { value: 'pinned', label: 'Pinned' },
+    { value: 'locked', label: 'Locked' },
   ];
 
-  const currentCommunity = communities.find((c) => c.courseCode === selectedCommunity);
-  const filteredPosts = postsList
-    .filter((p) => p.courseCode === selectedCommunity)
-    .filter((p) => filterTag === 'all' || p.tags.includes(filterTag))
-    .filter(
-      (p) =>
-        p.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.author.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+  const filteredPosts = useMemo(
+    () =>
+      discussions
+        .filter((discussion) => {
+          const searchable = `${discussion.title} ${discussion.description ?? ''}`.toLowerCase();
+          const matchSearch = searchable.includes(searchQuery.toLowerCase());
+          if (!matchSearch) return false;
 
-  const pinnedPosts = filteredPosts.filter((p) => p.isPinned);
-  const regularPosts = filteredPosts.filter((p) => !p.isPinned);
+          if (filterTag === 'pinned') return discussion.isPinned === 1;
+          if (filterTag === 'locked') return discussion.isLocked === 1;
+          return true;
+        })
+        .sort((a, b) => {
+          if (a.isPinned === 1 && b.isPinned !== 1) return -1;
+          if (a.isPinned !== 1 && b.isPinned === 1) return 1;
+          return new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime();
+        }),
+    [discussions, filterTag, searchQuery]
+  );
 
-  const handleLike = (postId: string) => {
-    setPostsList(
-      postsList.map((p) =>
-        p.id === postId
-          ? { ...p, isLiked: !p.isLiked, likes: p.isLiked ? p.likes - 1 : p.likes + 1 }
-          : p
-      )
-    );
-  };
+  const pinnedPosts = filteredPosts.filter((post) => post.isPinned === 1);
+  const regularPosts = filteredPosts.filter((post) => post.isPinned !== 1);
 
-  const handlePost = () => {
-    if (!newPostContent.trim()) return;
+  const selectedCourseId = selectedCommunity === 'all' ? communities[0]?.id : selectedCommunity;
 
-    const newPost: Post = {
-      id: `${Date.now()}`,
-      author: 'Tarek Mohamed',
-      authorAvatar: 'TM',
-      authorRole: 'student',
-      content: newPostContent,
-      timestamp: 'Just now',
-      likes: 0,
-      replies: 0,
-      isPinned: false,
-      isLiked: false,
-      courseCode: selectedCommunity,
-      tags: [],
-    };
+  const handlePost = async () => {
+    if (!newTitle.trim() || !selectedCourseId) {
+      toast.error('Title is required');
+      return;
+    }
 
-    setPostsList([newPost, ...postsList]);
-    setNewPostContent('');
-  };
-
-  const getRoleBadge = (role: string) => {
-    switch (role) {
-      case 'instructor':
-        return 'bg-blue-100 text-blue-700 border-blue-200';
-      case 'ta':
-        return 'bg-blue-100 text-blue-700 border-blue-200';
-      default:
-        return '';
+    try {
+      await discussionService.createDiscussion({
+        courseId: Number(selectedCourseId),
+        title: newTitle.trim(),
+        description: newDescription.trim() || undefined,
+      });
+      toast.success('Discussion posted');
+      setNewTitle('');
+      setNewDescription('');
+      await loadDiscussions(selectedCommunity === 'all' ? undefined : selectedCommunity);
+    } catch (error) {
+      toast.error(getErrorMessage(error));
     }
   };
 
-  const getRoleLabel = (role: string) => {
-    switch (role) {
-      case 'instructor':
-        return 'Instructor';
-      case 'ta':
-        return 'TA';
-      default:
-        return '';
+  useEffect(() => {
+    const loadSelectedDiscussion = async () => {
+      if (!selectedDiscussion) return;
+      if (detailsById[selectedDiscussion.id]) return;
+      try {
+        const detail = await discussionService.getDiscussion(selectedDiscussion.id);
+        setDetailsById((prev) => ({ ...prev, [selectedDiscussion.id]: detail }));
+      } catch (error) {
+        toast.error(getErrorMessage(error));
+      }
+    };
+    void loadSelectedDiscussion();
+  }, [selectedDiscussion, detailsById]);
+
+  const handleReply = async () => {
+    if (!selectedDiscussion || !replyText.trim()) return;
+
+    try {
+      await discussionService.replyToDiscussion(selectedDiscussion.id, replyText.trim());
+      const updatedDetail = await discussionService.getDiscussion(selectedDiscussion.id);
+      setDetailsById((prev) => ({ ...prev, [selectedDiscussion.id]: updatedDetail }));
+      setDiscussions((prev) =>
+        prev.map((discussion) =>
+          discussion.id === selectedDiscussion.id
+            ? { ...discussion, replyCount: (discussion.replyCount ?? 0) + 1 }
+            : discussion
+        )
+      );
+      setReplyText('');
+      toast.success('Reply added');
+    } catch (error) {
+      toast.error(getErrorMessage(error));
     }
   };
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div>
-        <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>
-          Connect & Collaborate
-        </h1>
+        <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>Connect & Collaborate</h1>
         <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
           Join discussions, ask questions, and learn together with your classmates
         </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Communities Sidebar */}
         <div className="space-y-4">
           <div className="glass rounded-[2.5rem] overflow-hidden">
-            <div
-              className={`${isDark ? 'bg-white/5 border-b border-white/5' : 'bg-gradient-to-r from-background-light to-white border-b border-slate-100'} p-4`}
-            >
-              <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>
-                My Communities
-              </h3>
+            <div className={`${isDark ? 'bg-white/5 border-b border-white/5' : 'bg-gradient-to-r from-background-light to-white border-b border-slate-100'} p-4`}>
+              <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>My Communities</h3>
             </div>
             <div className="p-2">
-              {communities
-                .filter((c) => c.joined)
-                .map((community) => (
-                  <button
-                    key={community.id}
-                    onClick={() => setSelectedCommunity(community.courseCode)}
-                    className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all ${
-                      selectedCommunity === community.courseCode
-                        ? 'bg-[var(--accent-color)]/10 border-2 border-[var(--accent-color)]/20'
-                        : `${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'} border-2 border-transparent`
-                    }`}
-                  >
-                    <div
-                      className={`w-10 h-10 ${community.color} rounded-lg flex items-center justify-center text-white font-bold text-sm`}
-                    >
-                      {community.courseCode.slice(-3)}
-                    </div>
-                    <div className="flex-1 text-left">
-                      <p
-                        className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'}`}
-                      >
-                        {community.courseCode}
-                      </p>
-                      <p className="text-xs text-slate-500">{community.members} members</p>
-                    </div>
-                    {selectedCommunity === community.courseCode && (
-                      <ChevronRight className="w-4 h-4 text-[var(--accent-color)]" />
-                    )}
-                  </button>
-                ))}
-            </div>
-          </div>
-
-          {/* Discover Communities */}
-          <div className="glass rounded-[2.5rem] overflow-hidden">
-            <div
-              className={`${isDark ? 'bg-white/5 border-b border-white/5' : 'bg-gradient-to-r from-background-light to-white border-b border-slate-100'} p-4`}
-            >
-              <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>
-                Discover
-              </h3>
-            </div>
-            <div className="p-2">
-              {communities
-                .filter((c) => !c.joined)
-                .map((community) => (
-                  <div
-                    key={community.id}
-                    className={`flex items-center gap-3 p-3 rounded-lg ${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'} transition-all`}
-                  >
-                    <div
-                      className={`w-10 h-10 ${community.color} rounded-lg flex items-center justify-center text-white font-bold text-sm`}
-                    >
-                      {community.courseCode.slice(-3)}
-                    </div>
-                    <div className="flex-1">
-                      <p
-                        className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'}`}
-                      >
-                        {community.courseCode}
-                      </p>
-                      <p className="text-xs text-slate-500">{community.members} members</p>
-                    </div>
-                    <button className="px-3 py-1 text-xs font-medium text-[var(--accent-color)] bg-[var(--accent-color)]/10 rounded-lg hover:bg-[var(--accent-color)]/10 transition-all">
-                      Join
-                    </button>
+              <button
+                onClick={() => setSelectedCommunity('all')}
+                className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all ${selectedCommunity === 'all' ? 'bg-[var(--accent-color)]/10 border-2 border-[var(--accent-color)]/20' : `${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'} border-2 border-transparent`}`}
+              >
+                <div className="w-10 h-10 bg-slate-500 rounded-lg flex items-center justify-center text-white font-bold text-sm">ALL</div>
+                <div className="flex-1 text-left">
+                  <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'}`}>All Courses</p>
+                </div>
+              </button>
+              {communities.map((community) => (
+                <button
+                  key={community.id}
+                  onClick={() => setSelectedCommunity(community.id)}
+                  className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all ${selectedCommunity === community.id ? 'bg-[var(--accent-color)]/10 border-2 border-[var(--accent-color)]/20' : `${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'} border-2 border-transparent`}`}
+                >
+                  <div className={`w-10 h-10 ${community.color} rounded-lg flex items-center justify-center text-white font-bold text-sm`}>
+                    {community.courseCode.split('#')[1]}
                   </div>
-                ))}
+                  <div className="flex-1 text-left">
+                    <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'}`}>{community.courseCode}</p>
+                    <p className="text-xs text-slate-500">{community.posts} discussions</p>
+                  </div>
+                  {selectedCommunity === community.id && <ChevronRight className="w-4 h-4 text-[var(--accent-color)]" />}
+                </button>
+              ))}
             </div>
           </div>
         </div>
 
-        {/* Main Feed */}
         <div className="lg:col-span-3 space-y-4">
-          {/* Community Header */}
-          {currentCommunity && (
-            <div className="glass rounded-[2.5rem] p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div
-                    className={`w-14 h-14 ${currentCommunity.color} rounded-xl flex items-center justify-center text-white font-bold text-lg`}
-                  >
-                    {currentCommunity.courseCode.slice(-3)}
-                  </div>
-                  <div>
-                    <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>
-                      {currentCommunity.courseName}
-                    </h2>
-                    <div
-                      className={`flex items-center gap-4 text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'} mt-1`}
-                    >
-                      <span className="flex items-center gap-1">
-                        <Users className="w-4 h-4" />
-                        {currentCommunity.members} members
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <MessageSquare className="w-4 h-4" />
-                        {currentCommunity.posts} posts
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-4 h-4" />
-                        Active {currentCommunity.lastActivity}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <button
-                  className={`p-2 ${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'} rounded-lg transition-all`}
-                >
-                  <MoreVertical
-                    className={`w-5 h-5 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}
+          {!selectedDiscussion && (
+            <>
+              <div className={`glass rounded-[2rem] p-4 ${isDark ? 'bg-white/5 border-white/5' : 'bg-white border-slate-100 shadow-sm'}`}>
+                <div className="space-y-3">
+                  <input
+                    value={newTitle}
+                    onChange={(e) => setNewTitle(e.target.value)}
+                    placeholder="Discussion title"
+                    className={`w-full px-4 py-2 border-2 rounded-xl ${isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500' : 'bg-slate-50 border-slate-200 text-slate-800 placeholder:text-slate-400'}`}
                   />
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Create Post */}
-          <div
-            className={`glass rounded-[2rem] p-4 ${isDark ? 'bg-white/5 border-white/5' : 'bg-white border-slate-100 shadow-sm'}`}
-          >
-            <div className="flex items-start gap-4">
-              <div className="w-10 h-10 bg-gradient-to-br from-[var(--accent-color)] to-blue-600 rounded-full flex items-center justify-center text-white font-semibold shadow-md">
-                TM
-              </div>
-              <div className="flex-1">
-                <textarea
-                  value={newPostContent}
-                  onChange={(e) => setNewPostContent(e.target.value)}
-                  placeholder="Share something with your classmates..."
-                  rows={3}
-                  className={`w-full px-4 py-3 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500' : 'bg-slate-50 border-slate-200 text-slate-800 placeholder:text-slate-400'} border-2 rounded-2xl focus:outline-none focus:border-[var(--accent-color)] resize-none transition-all`}
-                />
-                <div className="flex items-center justify-between mt-3">
-                  <div className="flex items-center gap-1">
-                    <button
-                      className={`p-2 ${isDark ? 'hover:bg-white/5 text-slate-400' : 'hover:bg-slate-100 text-slate-500'} rounded-lg transition-all`}
-                    >
-                      <ImageIcon className="w-5 h-5" />
-                    </button>
-                    <button
-                      className={`p-2 ${isDark ? 'hover:bg-white/5 text-slate-400' : 'hover:bg-slate-100 text-slate-500'} rounded-lg transition-all`}
-                    >
-                      <Paperclip className="w-5 h-5" />
-                    </button>
-                    <button
-                      className={`p-2 ${isDark ? 'hover:bg-white/5 text-slate-400' : 'hover:bg-slate-100 text-slate-500'} rounded-lg transition-all`}
-                    >
-                      <Smile className="w-5 h-5" />
+                  <textarea
+                    value={newDescription}
+                    onChange={(e) => setNewDescription(e.target.value)}
+                    placeholder="Share something with your classmates..."
+                    rows={3}
+                    className={`w-full px-4 py-3 border-2 rounded-2xl resize-none ${isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500' : 'bg-slate-50 border-slate-200 text-slate-800 placeholder:text-slate-400'}`}
+                  />
+                  <div className="flex justify-end">
+                    <button onClick={handlePost} className="flex items-center gap-2 px-5 py-2 bg-[var(--accent-color)] text-white rounded-xl">
+                      <Plus className="w-4 h-4" /> <span className="font-medium">Post</span>
                     </button>
                   </div>
-                  <button
-                    onClick={handlePost}
-                    disabled={!newPostContent.trim()}
-                    className="flex items-center gap-2 px-5 py-2 bg-[var(--accent-color)] text-white rounded-xl hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
-                  >
-                    <Send className="w-4 h-4" />
-                    <span className="font-medium">Post</span>
-                  </button>
                 </div>
               </div>
-            </div>
-          </div>
 
-          {/* Search and Filter */}
-          <div
-            className={`glass relative z-30 rounded-[2rem] p-4 ${isDark ? 'bg-white/5 border-white/5' : 'bg-white border-slate-100 shadow-sm'}`}
-          >
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="flex-1 relative group">
-                <Search
-                  className={`w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 transition-colors ${isDark ? 'text-slate-500' : 'text-slate-400 group-focus-within:text-[var(--accent-color)]'}`}
-                />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search posts..."
-                  className={`w-full pl-10 pr-4 py-2.5 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500' : 'bg-slate-50 border-slate-200 text-slate-800 placeholder:text-slate-400'} border-2 rounded-xl focus:outline-none focus:border-[var(--accent-color)] transition-all`}
-                />
+              <div className={`glass relative z-30 rounded-[2rem] p-4 ${isDark ? 'bg-white/5 border-white/5' : 'bg-white border-slate-100 shadow-sm'}`}>
+                <div className="flex flex-col md:flex-row gap-4">
+                  <div className="flex-1 relative group">
+                    <Search className={`w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 ${isDark ? 'text-slate-500' : 'text-slate-400'}`} />
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Search posts..."
+                      className={`w-full pl-10 pr-4 py-2.5 border-2 rounded-xl ${isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500' : 'bg-slate-50 border-slate-200 text-slate-800 placeholder:text-slate-400'}`}
+                    />
+                  </div>
+                  <div className="w-full md:w-56">
+                    <CustomDropdown label="" placeholder="All Posts" options={filterOptions} value={filterTag} onChange={setFilterTag} isDark={isDark} />
+                  </div>
+                </div>
               </div>
-              <div className="w-full md:w-56">
-                <CustomDropdown
-                  label=""
-                  placeholder="All Posts"
-                  options={filterOptions}
-                  value={filterTag}
-                  onChange={setFilterTag}
-                  isDark={isDark}
-                />
-              </div>
-            </div>
-          </div>
 
-          {/* Pinned Posts */}
-          {pinnedPosts.length > 0 && (
-            <div className="space-y-3">
-              <h3
-                className={`text-sm font-semibold ${isDark ? 'text-slate-400' : 'text-slate-600'} flex items-center gap-2 px-1`}
-              >
-                <Pin className="w-4 h-4" />
-                Pinned Posts
-              </h3>
-              {pinnedPosts.map((post) => (
-                <PostCard
-                  key={post.id}
-                  post={post}
-                  onLike={handleLike}
-                  getRoleBadge={getRoleBadge}
-                  getRoleLabel={getRoleLabel}
-                  isDark={isDark}
-                />
-              ))}
-            </div>
+              {loading ? (
+                <div className="glass rounded-[2.5rem] p-12 text-center">
+                  <Loader2 className="w-8 h-8 animate-spin mx-auto mb-3 text-slate-500" />
+                  <p className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Loading discussions...</p>
+                </div>
+              ) : (
+                <>
+                  {pinnedPosts.length > 0 && (
+                    <div className="space-y-3">
+                      <h3 className={`text-sm font-semibold ${isDark ? 'text-slate-400' : 'text-slate-600'} flex items-center gap-2 px-1`}>
+                        <Pin className="w-4 h-4" /> Pinned Posts
+                      </h3>
+                      {pinnedPosts.map((post) => (
+                        <PostCard
+                          key={post.id}
+                          post={post}
+                          onOpen={(discussion) => setSelectedDiscussion(discussion)}
+                          isDark={isDark}
+                        />
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="space-y-3">
+                    {regularPosts.map((post) => (
+                      <PostCard
+                        key={post.id}
+                        post={post}
+                        onOpen={(discussion) => setSelectedDiscussion(discussion)}
+                        isDark={isDark}
+                      />
+                    ))}
+                    {filteredPosts.length === 0 && (
+                      <div className="glass rounded-[2.5rem] p-12 text-center">
+                        <MessageSquare className="w-16 h-16 text-slate-400 mx-auto mb-4" />
+                        <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-800'} mb-2`}>No posts yet</h3>
+                        <p className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Be the first to start a discussion!</p>
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+            </>
           )}
 
-          {/* Regular Posts */}
-          <div className="space-y-3">
-            {pinnedPosts.length > 0 && (
-              <h3
-                className={`text-sm font-semibold ${isDark ? 'text-slate-400' : 'text-slate-600'} px-1`}
+          {selectedDiscussion && detailsById[selectedDiscussion.id] && (
+            <div className={`glass rounded-[2rem] p-4 ${isDark ? 'bg-white/5 border-white/5' : 'bg-white border-slate-100 shadow-sm'}`}>
+              <button
+                type="button"
+                onClick={() => setSelectedDiscussion(null)}
+                className="mb-3 text-sm text-blue-600"
               >
-                Recent Posts
+                ← Back to discussions
+              </button>
+              <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                {detailsById[selectedDiscussion.id].thread.title}
               </h3>
-            )}
-            {regularPosts.map((post) => (
-              <PostCard
-                key={post.id}
-                post={post}
-                onLike={handleLike}
-                getRoleBadge={getRoleBadge}
-                getRoleLabel={getRoleLabel}
-                isDark={isDark}
-              />
-            ))}
-            {filteredPosts.length === 0 && (
-              <div className="glass rounded-[2.5rem] p-12 text-center">
-                <MessageSquare className="w-16 h-16 text-slate-400 mx-auto mb-4" />
-                <h3
-                  className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-800'} mb-2`}
-                >
-                  No posts yet
-                </h3>
-                <p className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-                  Be the first to start a discussion!
-                </p>
+              <p className={`text-sm mt-1 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                {detailsById[selectedDiscussion.id].thread.description}
+              </p>
+              <p className="text-xs text-slate-500 mt-2">
+                {detailsById[selectedDiscussion.id].thread.replyCount} replies •{' '}
+                {detailsById[selectedDiscussion.id].thread.viewCount} views
+              </p>
+              {detailsById[selectedDiscussion.id].thread.isLocked === 1 && (
+                <div className={`mt-2 px-3 py-2 text-sm rounded-lg ${isDark ? 'bg-red-900/30 text-red-300' : 'bg-red-50 text-red-700'}`}>
+                  🔒 This discussion is locked. Replies are disabled.
+                </div>
+              )}
+              <div className="mt-4 space-y-3">
+                {detailsById[selectedDiscussion.id].replies.data.length === 0 ? (
+                  <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>No replies yet. Be the first to reply!</p>
+                ) : (
+                  [...detailsById[selectedDiscussion.id].replies.data]
+                    .sort(
+                      (a, b) =>
+                        new Date(a.createdAt ?? 0).getTime() - new Date(b.createdAt ?? 0).getTime()
+                    )
+                    .map((reply: DiscussionReply) => (
+                    <div key={reply.id} className={`p-3 rounded-lg ${isDark ? 'bg-white/5' : 'bg-slate-50'} ${reply.parentMessageId ? 'ml-6 border-l-2 border-indigo-300/40' : ''}`}>
+                      <div className="flex items-center gap-2 text-xs mb-1">
+                        <span>User #{reply.userId}</span>
+                        {reply.isAnswer === 1 && <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-green-100 text-green-700"><CheckCircle size={10} />✓ Accepted Answer</span>}
+                        {reply.isEndorsed === 1 && <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-indigo-100 text-indigo-700"><ShieldCheck size={10} />Endorsed</span>}
+                      </div>
+                      <p className={`text-sm ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>{reply.messageText}</p>
+                      <div className="text-xs text-slate-500 mt-1">
+                        {reply.upvoteCount ?? 0} upvotes • {new Date(reply.createdAt ?? Date.now()).toLocaleString()}
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
-            )}
-          </div>
+
+              {detailsById[selectedDiscussion.id].thread.isLocked !== 1 && (
+                <div className="mt-4">
+                  <textarea
+                    value={replyText}
+                    onChange={(e) => setReplyText(e.target.value)}
+                    rows={3}
+                    placeholder="Write a reply..."
+                    className={`w-full px-4 py-2 border rounded-xl ${isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500' : 'bg-slate-50 border-slate-200 text-slate-800 placeholder:text-slate-400'}`}
+                  />
+                  <div className="flex justify-end mt-2">
+                    <button onClick={handleReply} className="px-4 py-2 rounded-lg text-white" style={{ backgroundColor: primaryHex || '#3b82f6' }}>
+                      <Send className="w-4 h-4 inline mr-1" /> Reply
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -555,105 +375,44 @@ export function CourseCommunity() {
 
 function PostCard({
   post,
-  onLike,
-  getRoleBadge,
-  getRoleLabel,
+  onOpen,
   isDark,
 }: {
-  post: Post;
-  onLike: (id: string) => void;
-  getRoleBadge: (role: string) => string;
-  getRoleLabel: (role: string) => string;
+  post: DiscussionThread;
+  onOpen: (discussion: DiscussionThread) => void;
   isDark: boolean;
 }) {
   return (
     <div
-      className={`glass rounded-xl border-2 p-5 transition-all hover:shadow-md ${
-        post.isPinned
-          ? isDark
-            ? 'border-amber-700/50 bg-amber-900/20'
-            : 'border-amber-200 bg-amber-50/30'
-          : ''
-      }`}
+      onClick={() => onOpen(post)}
+      className={`glass rounded-xl border-2 p-5 transition-all hover:shadow-md cursor-pointer ${post.isPinned === 1 ? isDark ? 'border-amber-700/50 bg-amber-900/20' : 'border-amber-200 bg-amber-50/30' : ''}`}
     >
-      {/* Header */}
       <div className="flex items-start justify-between mb-3">
-        <div className="flex items-center gap-3">
-          <div
-            className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold ${
-              post.authorRole === 'instructor'
-                ? 'bg-gradient-to-br from-blue-500 to-blue-600'
-                : post.authorRole === 'ta'
-                  ? 'bg-gradient-to-br from-blue-500 to-blue-600'
-                  : 'bg-gradient-to-br from-slate-400 to-slate-500'
-            }`}
-          >
-            {post.authorAvatar}
+        <div>
+          <div className="flex items-center gap-2">
+            <span className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>{post.title}</span>
+            {post.isPinned === 1 && <Pin className="w-4 h-4 text-amber-500" />}
+            {post.isLocked === 1 && <Lock className="w-4 h-4 text-red-500" />}
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>
-                {post.author}
-              </span>
-              {post.authorRole !== 'student' && (
-                <span
-                  className={`px-2 py-0.5 rounded text-xs font-medium border ${getRoleBadge(post.authorRole)}`}
-                >
-                  {getRoleLabel(post.authorRole)}
-                </span>
-              )}
-              {post.isPinned && <Pin className="w-4 h-4 text-amber-500" />}
-            </div>
-            <span className="text-xs text-slate-500">{post.timestamp}</span>
-          </div>
+          <span className="text-xs text-slate-500">{new Date(post.createdAt ?? Date.now()).toLocaleString()}</span>
         </div>
         <button
+          onClick={(event) => {
+            event.stopPropagation();
+            onOpen(post);
+          }}
           className={`p-1 ${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'} rounded transition-all`}
         >
           <MoreVertical className="w-4 h-4 text-slate-500" />
         </button>
       </div>
 
-      {/* Content */}
-      <p className={`${isDark ? 'text-white' : 'text-slate-800'} mb-4 whitespace-pre-wrap`}>
-        {post.content}
-      </p>
+      <p className={`${isDark ? 'text-white' : 'text-slate-800'} mb-4 whitespace-pre-wrap`}>{post.description}</p>
 
-      {/* Tags */}
-      {post.tags.length > 0 && (
-        <div className="flex flex-wrap gap-2 mb-4">
-          {post.tags.map((tag, idx) => (
-            <span
-              key={idx}
-              className={`px-2 py-1 ${isDark ? 'bg-white/10 text-slate-300' : 'bg-slate-50 text-slate-600'} rounded text-xs`}
-            >
-              #{tag}
-            </span>
-          ))}
-        </div>
-      )}
-
-      {/* Actions */}
-      <div
-        className={`flex items-center gap-4 pt-3 border-t ${isDark ? 'border-white/5' : 'border-slate-100'}`}
-      >
-        <button
-          onClick={() => onLike(post.id)}
-          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all ${
-            post.isLiked
-              ? 'bg-[var(--accent-color)]/10 text-[var(--accent-color)]'
-              : `${isDark ? 'hover:bg-white/5 text-slate-400' : 'hover:bg-slate-50 text-slate-600'}`
-          }`}
-        >
-          <ThumbsUp className={`w-4 h-4 ${post.isLiked ? 'fill-current' : ''}`} />
-          <span className="text-sm font-medium">{post.likes}</span>
-        </button>
-        <button
-          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg ${isDark ? 'hover:bg-white/5 text-slate-400' : 'hover:bg-slate-50 text-slate-600'} transition-all`}
-        >
-          <MessageCircle className="w-4 h-4" />
-          <span className="text-sm font-medium">{post.replies} replies</span>
-        </button>
+      <div className={`flex items-center gap-4 pt-3 border-t ${isDark ? 'border-white/5' : 'border-slate-100'}`}>
+        <span className="flex items-center gap-2 text-sm text-slate-500"><Users className="w-4 h-4" /> User #{post.createdBy}</span>
+        <span className="flex items-center gap-2 text-sm text-slate-500"><MessageSquare className="w-4 h-4" /> {post.replyCount ?? 0} replies</span>
+        <span className="flex items-center gap-2 text-sm text-slate-500"><Clock className="w-4 h-4" /> {post.viewCount ?? 0} views</span>
       </div>
     </div>
   );

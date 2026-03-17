@@ -1,4 +1,6 @@
+import axios from 'axios';
 import { ApiClient } from './client';
+import { TOKEN_KEYS } from './config';
 
 type PaginatedResponse<T> = {
   data?: T[];
@@ -178,6 +180,38 @@ export class CourseService {
     );
     return extractArray(response);
   }
+
+  static async createMaterial(courseId: number, data: any): Promise<CourseMaterial> {
+    const response = await ApiClient.post<{ data: CourseMaterial }>(`/courses/${courseId}/materials`, data);
+    return response.data;
+  }
+
+  static async uploadDocument(courseId: number, formData: FormData): Promise<CourseMaterial> {
+    const response = await ApiClient.post<{ data: CourseMaterial }>(
+      `/courses/${courseId}/materials/document`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+    return response.data;
+  }
+
+  static async create(data: any): Promise<Course> {
+    const response = await ApiClient.post<{ data: Course }>('/courses', data);
+    return response.data;
+  }
+
+  static async update(id: number, data: any): Promise<Course> {
+    const response = await ApiClient.patch<{ data: Course }>(`/courses/${id}`, data);
+    return response.data;
+  }
+
+  static async delete(id: number): Promise<void> {
+    await ApiClient.delete(`/courses/${id}`);
+  }
 }
 
 type MaterialQueryParams = {
@@ -211,6 +245,13 @@ export const materialService = {
     }
   ) => ApiClient.post<CourseMaterial>(`/courses/${courseId}/materials`, data),
 
+  uploadDocument: (courseId: string, formData: FormData) =>
+    ApiClient.post<CourseMaterial>(`/courses/${courseId}/materials/document`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }),
+
   updateMaterial: (courseId: string, materialId: string, data: unknown) =>
     ApiClient.put<CourseMaterial>(`/courses/${courseId}/materials/${materialId}`, data),
 
@@ -236,6 +277,92 @@ export const materialService = {
     const base = normalizeApiBase(import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081');
     return `${base}/courses/${courseId}/materials/${materialId}/download`;
   },
+
+  uploadVideo: async (
+    courseId: string,
+    file: File,
+    metadata: {
+      title: string;
+      description?: string;
+      weekNumber?: number;
+      orderIndex?: number;
+      isPublished?: boolean;
+      tags?: string;
+    },
+    onProgress?: (percent: number) => void
+  ) => {
+    const formData = new FormData();
+    formData.append('video', file); // field name MUST be "video"
+    formData.append('title', metadata.title);
+    if (metadata.description) formData.append('description', metadata.description);
+    if (metadata.weekNumber !== undefined) formData.append('weekNumber', String(metadata.weekNumber));
+    if (metadata.orderIndex !== undefined) formData.append('orderIndex', String(metadata.orderIndex));
+    if (metadata.isPublished !== undefined) formData.append('isPublished', String(metadata.isPublished));
+    if (metadata.tags) formData.append('tags', metadata.tags);
+
+    const base = normalizeApiBase(import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081');
+    const token = localStorage.getItem(TOKEN_KEYS.ACCESS_TOKEN);
+    const response = await axios.post(
+      `${base}/courses/${courseId}/materials/video`,
+      formData,
+      {
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        onUploadProgress: (e) => {
+          if (onProgress && e.total) {
+            onProgress(Math.round((e.loaded * 100) / e.total));
+          }
+        },
+      }
+    );
+    return response.data;
+  },
+
+  uploadFile: async (
+    courseId: string,
+    file: File,
+    metadata: {
+      title: string;
+      materialType: 'document' | 'lecture' | 'slide' | 'reading' | 'other';
+      description?: string;
+      weekNumber?: number;
+      isPublished?: boolean;
+    },
+    onProgress?: (percent: number) => void
+  ) => {
+    const formData = new FormData();
+    formData.append('file', file); // field name MUST be "file"
+    formData.append('title', metadata.title);
+    formData.append('materialType', metadata.materialType);
+    if (metadata.description) formData.append('description', metadata.description);
+    if (metadata.weekNumber !== undefined) formData.append('weekNumber', String(metadata.weekNumber));
+    if (metadata.isPublished !== undefined) formData.append('isPublished', String(metadata.isPublished));
+
+    const base = normalizeApiBase(import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081');
+    const token = localStorage.getItem(TOKEN_KEYS.ACCESS_TOKEN);
+    const response = await axios.post(
+      `${base}/courses/${courseId}/materials`,
+      formData,
+      {
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        onUploadProgress: (e) => {
+          if (onProgress && e.total) {
+            onProgress(Math.round((e.loaded * 100) / e.total));
+          }
+        },
+      }
+    );
+    return response.data;
+  },
+
+  getYouTubeAuthUrl: () =>
+    ApiClient.get<{ authUrl: string }>('/youtube/auth'),
+
+  getGoogleDriveAuthUrl: () =>
+    ApiClient.get<{ authUrl: string; scopes: string[]; instructions: string }>('/google-drive/auth'),
 };
 
 export const structureService = {
@@ -267,6 +394,8 @@ export const courseService = {
   getAll: CourseService.getAll,
   getById: CourseService.getById,
   getMaterials: CourseService.getMaterials,
+  createMaterial: CourseService.createMaterial,
+  uploadDocument: CourseService.uploadDocument,
   getStructure: CourseService.getStructure,
   getCourseSections: CourseService.getCourseSections,
   getSectionSchedules: CourseService.getSectionSchedules,

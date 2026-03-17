@@ -197,15 +197,19 @@ export const QuizTaking = () => {
   const { isDark, primaryHex } = useTheme() as any;
   const accentColor = primaryHex || '#3b82f6';
   const { isRTL } = useLanguage();
-
-  const { data: apiQuizzes, loading } = useApi(async () => {
-    try {
-      return await QuizService.getAll();
-    } catch (error) {
-      console.error('Failed to fetch quizzes', error);
-      throw error;
-    }
-  }, []);
+  const hasToken = !!localStorage.getItem('accessToken');
+  const { data: apiQuizzes, loading } = useApi(
+    async () => {
+      if (!hasToken) return [];
+      try {
+        return await QuizService.getAll();
+      } catch (err) {
+        console.warn('Failed to load quizzes for Student Dashboard:', err);
+        return [];
+      }
+    },
+    []
+  );
 
   const QUIZ_ICONS = [
     <BarChart3 className="w-6 h-6" />,

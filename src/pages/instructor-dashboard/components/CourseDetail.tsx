@@ -1,4 +1,8 @@
 import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { CourseService } from '../../../services/api/courseService';
+import { AssignmentService, Assignment, type AssignmentStatus as ApiAssignmentStatus } from '../../../services/api/assignmentService';
+import { EnrollmentService } from '../../../services/api/enrollmentService';
 import {
   ArrowLeft,
   Users,
@@ -13,6 +17,7 @@ import {
   CheckCircle,
   Bell,
   Plus,
+  Loader2,
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -22,6 +27,7 @@ import { AssignmentModal, AssignmentFormData } from './AssignmentModal';
 import { CleanSelect } from '../../../components/shared';
 import { useApi } from '../../../hooks/useApi';
 import { courseService } from '../../../services/api/courseService';
+import { toast } from 'sonner';
 
 type Course = {
   id: number;
@@ -44,9 +50,10 @@ type CourseDetailProps = {
   courseId: number;
   onBack: () => void;
   courses: Course[];
+  isMockMode?: boolean;
 };
 
-export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
+export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: CourseDetailProps) {
   const { isDark, primaryHex = '#3b82f6' } = useTheme() as any;
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('overview');
@@ -55,6 +62,7 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
   const [assignmentForm, setAssignmentForm] = useState<AssignmentFormData | null>(null);
   const [editingAssignmentIndex, setEditingAssignmentIndex] = useState<number | null>(null);
   const [gradingSubTab, setGradingSubTab] = useState<'manual' | 'auto'>('manual');
+  const [uploadingInstructionId, setUploadingInstructionId] = useState<number | null>(null);
 
   const { data: sectionSchedules, loading: schedulesLoading } = useApi(async () => {
     try {
@@ -65,67 +73,99 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
     }
   }, [courseId]);
 
-  // Materials state
   const [showMaterialModal, setShowMaterialModal] = useState(false);
-  const [materialForm, setMaterialForm] = useState({
+  const [isUploading, setIsUploading] = useState(false);
+  const [materialForm, setMaterialForm] = useState<{ title: string; lectureId: string; file: File | null }>({
     title: '',
     lectureId: '',
+    file: null,
   });
-  const [courseMaterials, setCourseMaterials] = useState<
-    Array<{ id: string; title: string; lectureId: string; type: string; date: string }>
-  >([
-    {
-      id: 'm1',
-      title: 'Syllabus.pdf',
-      lectureId: '1.1',
-      type: 'pdf',
-      date: 'May 10',
-    },
-  ]);
-
-  const [courseAssignments, setCourseAssignments] = useState([
-    {
-      title: 'Assignment 03 — Derivatives Practice',
-      subject: 'Calculus I',
-      subjectColor: 'bg-blue-100 text-blue-700',
-      dueDate: 'Due May 15, 2025',
-      submitted: 32,
-      total: 52,
-      description:
-        'Complete problems 1-20 on derivatives, including chain rule and implicit differentiation.',
-      files: ['Problem-Set.pdf', 'Formula-Sheet.pdf'],
-      status: 'Published',
-      statusColor: 'bg-green-100 text-green-700',
-    },
-    {
-      title: 'Lab Report 02 — Projectile Motion',
-      subject: 'Physics I',
-      subjectColor: '',
-      dueDate: 'Due May 14, 2025',
-      submitted: 28,
-      total: 43,
-      description:
-        'Analyze projectile motion data collected during lab session and write a comprehensive report.',
-      files: ['Lab-Instructions.pdf'],
-      status: 'Published',
-      statusColor: 'bg-green-100 text-green-700',
-    },
-    {
-      title: 'Programming Assignment 04 — Sorting Algorithms',
-      subject: 'Intro to Computer Science',
-      subjectColor: 'bg-emerald-100 text-emerald-700',
-      dueDate: 'Due May 20, 2025',
-      submitted: 0,
-      total: 48,
-      description: 'Implement and compare quicksort, mergesort, and heapsort algorithms.',
-      files: ['Starter-Code.zip', 'Requirements.pdf'],
-      status: 'Draft',
-      statusColor: 'bg-yellow-100 text-yellow-700',
-    },
-  ]);
 
   // Get actual course data
-  const course = courses.find((c) => c.id === courseId);
+  const course = courses.find((c) => String(c.id) === String(courseId));
+
+  const queryClient = useQueryClient();
+  const { data: courseMaterials = [], isLoading: isLoadingMaterials } = useQuery({
+    queryKey: ['course-materials', course?.id],
+    queryFn: () => CourseService.getMaterials(course!.id),
+    enabled: !!course?.id && !isMockMode,
+  });
+
+  const createMaterialMutation = useMutation({
+    mutationFn: (newMaterial: any) => CourseService.createMaterial(course!.id, newMaterial),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['course-materials', course?.id] });
+      setShowMaterialModal(false);
+      setMaterialForm({ title: '', lectureId: '', file: null });
+    },
+  });
+
+  const { data: assignmentsResponse, isLoading: isLoadingAssignments } = useQuery({
+    queryKey: ['course-assignments', course?.id],
+    queryFn: () => AssignmentService.getAll({ courseId: String(course!.id) }),
+    enabled: !!course?.id && !isMockMode,
+  });
+  const courseAssignments = Array.isArray(assignmentsResponse?.data)
+    ? assignmentsResponse.data
+    : Array.isArray(assignmentsResponse)
+      ? assignmentsResponse
+      : [];
+
+  const upcomingDeadlines = courseAssignments
+    .filter((a: any) => a.dueDate && new Date(a.dueDate) > new Date())
+    .sort((a: any, b: any) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
+    .slice(0, 3);
+
+  const createAssignmentMutation = useMutation({
+    mutationFn: (newAssignment: any) => AssignmentService.create(newAssignment),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['course-assignments', course?.id] });
+      setShowAssignmentForm(false);
+      setAssignmentForm(null);
+      setEditingAssignmentIndex(null);
+      toast.success('Assignment created successfully');
+    },
+    onError: () => toast.error('Failed to create assignment'),
+  });
+
+  const updateAssignmentMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) => AssignmentService.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['course-assignments', course?.id] });
+      setShowAssignmentForm(false);
+      setAssignmentForm(null);
+      setEditingAssignmentIndex(null);
+      toast.success('Assignment updated successfully');
+    },
+    onError: () => toast.error('Failed to update assignment'),
+  });
+
+  const deleteAssignmentMutation = useMutation({
+    mutationFn: (id: string) => AssignmentService.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['course-assignments', course?.id] });
+      toast.success('Assignment deleted successfully');
+    },
+    onError: () => toast.error('Failed to delete assignment'),
+  });
+
+  const uploadInstructionMutation = useMutation({
+    mutationFn: ({ assignmentId, file, title }: { assignmentId: string; file: File; title: string }) =>
+      AssignmentService.uploadInstructions(assignmentId, file, title),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['course-assignments', course?.id] });
+      toast.success('Instructions uploaded successfully');
+    },
+    onError: () => toast.error('Failed to upload instructions'),
+  });
+
+  const { data: sectionStudents = [], isLoading: isLoadingStudents } = useQuery({
+    queryKey: ['section-students', course?.id],
+    queryFn: () => EnrollmentService.getSectionStudents(course!.id),
+    enabled: !!course?.id && !isMockMode,
+  });
+
+
 
   const getPrimaryBadgeStyle = (colorClass: string): React.CSSProperties | undefined => {
     if (colorClass) return undefined;
@@ -134,6 +174,47 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
       color: primaryHex,
     };
   };
+
+  // Derive unique weeks dynamically
+  const dynamicWeeks = Array.from(
+    new Set(courseMaterials.map((m: any) => m.weekNumber || 1))
+  ).sort((a: any, b: any) => a - b);
+
+  // Fallback to static 4 weeks for Mock Mode if empty
+  const weeksToRender = isMockMode || dynamicWeeks.length === 0 ? [1, 2, 3, 4] : dynamicWeeks;
+
+  const lectures = weeksToRender.map((week) => ({
+    id: `${week}.1`,
+    label: `Lecture ${week}.1 - Introduction`,
+  }));
+
+  const tabs = [
+    { id: 'overview', label: t('dashboard'), icon: BookOpen },
+    { id: 'lectures', label: t('lectures'), icon: Video },
+    { id: 'assignments', label: t('assignments'), icon: FileText },
+    { id: 'grading', label: t('grading'), icon: CheckCircle },
+    { id: 'students', label: t('students'), icon: Users },
+  ];
+
+  const [selectedAssignmentIdForGrading, setSelectedAssignmentIdForGrading] = useState<string | null>(null);
+  const [draftGrades, setDraftGrades] = useState<Record<number, string>>({});
+
+  const { data: assignmentSubmissions = [], isLoading: isLoadingSubmissions } = useQuery({
+    queryKey: ['assignment-submissions', selectedAssignmentIdForGrading],
+    queryFn: () => AssignmentService.getSubmissions(selectedAssignmentIdForGrading!),
+    enabled: !!selectedAssignmentIdForGrading && !isMockMode,
+  });
+
+  const gradeSubmissionMutation = useMutation({
+    mutationFn: ({ assignmentId, submissionId, grade }: { assignmentId: string; submissionId: number; grade: number }) =>
+      AssignmentService.gradeSubmission(assignmentId, submissionId, { score: grade }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['assignment-submissions', selectedAssignmentIdForGrading] });
+      setDraftGrades({});
+      toast.success('Submission graded successfully');
+    },
+    onError: () => toast.error('Failed to save grade'),
+  });
 
   if (!course) {
     return (
@@ -150,124 +231,65 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
     );
   }
 
-  const lectures = [1, 2, 3, 4].map((week) => ({
-    id: `${week}.1`,
-    label: `Lecture ${week}.1 - Introduction`,
-  }));
-
-  const tabs = [
-    { id: 'overview', label: t('dashboard'), icon: BookOpen },
-    { id: 'lectures', label: t('lectures'), icon: Video },
-    { id: 'assignments', label: t('assignments'), icon: FileText },
-    { id: 'grading', label: t('grading'), icon: CheckCircle },
-    { id: 'students', label: t('students'), icon: Users },
-    { id: 'announcements', label: t('announcements'), icon: MessageSquare },
-  ];
-
-  const [sampleSubmissions, setSampleSubmissions] = useState([
-    {
-      id: '1',
-      studentId: 'stu-1',
-      studentName: 'John Smith',
-      assignmentTitle: 'Assignment 03 — Derivatives Practice',
-      type: 'written',
-      submittedAt: new Date('2025-05-10T14:30:00'),
-      totalScore: 0,
-      maxTotalScore: 100,
-      status: 'pending review',
-      fileName: 'JohnSmith_Assignment3.pdf',
-      fileUrl: '#',
-      grade: '',
-    },
-    {
-      id: '2',
-      studentId: 'stu-2',
-      studentName: 'Emily Chen',
-      assignmentTitle: 'Assignment 03 — Derivatives Practice',
-      type: 'written',
-      submittedAt: new Date('2025-05-10T15:15:00'),
-      totalScore: 92,
-      maxTotalScore: 100,
-      status: 'graded',
-      fileName: 'EmilyChen_Derivatives.pdf',
-      fileUrl: '#',
-      grade: '92',
-    },
-  ]);
-
-  const handleInlineGrade = (id: string, newGrade: string) => {
-    setSampleSubmissions((prev) =>
-      prev.map((sub) => (sub.id === id ? { ...sub, grade: newGrade } : sub))
-    );
+  const handleInlineGrade = (submissionId: number, newGrade: string) => {
+    setDraftGrades((prev) => ({ ...prev, [submissionId]: newGrade }));
   };
 
-  const saveInlineGrade = (id: string) => {
-    setSampleSubmissions((prev) =>
-      prev.map((sub) =>
-        sub.id === id ? { ...sub, status: 'graded', totalScore: Number(sub.grade) || 0 } : sub
-      )
-    );
+  const saveInlineGrade = (submissionId: number) => {
+    const grade = parseFloat(draftGrades[submissionId]);
+    if (!isNaN(grade) && selectedAssignmentIdForGrading) {
+      gradeSubmissionMutation.mutate({
+        assignmentId: selectedAssignmentIdForGrading,
+        submissionId,
+        grade,
+      });
+    }
   };
+
 
   const handleSaveAssignment = (data: AssignmentFormData) => {
-    const formattedDueDate = `Due ${new Date(data.dueDate).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    })}`;
+    const formattedDueDate = data.dueDate ? new Date(data.dueDate).toISOString() : new Date().toISOString();
+    const toApiStatus = (uiStatus: AssignmentFormData['status']): ApiAssignmentStatus => {
+      if (uiStatus === 'open') return 'published';
+      if (uiStatus === 'closed') return 'closed';
+      return 'draft';
+    };
+
+    const payload = {
+      title: data.title,
+      description: data.description || '',
+      instructions: data.description || '',
+      dueDate: formattedDueDate,
+      status: toApiStatus(data.status),
+      courseId: Number(course!.id),
+      maxScore: 100,
+      submissionType: 'file',
+    };
 
     if (editingAssignmentIndex !== null) {
-      setCourseAssignments((prev) =>
-        prev.map((assignment, index) =>
-          index === editingAssignmentIndex
-            ? {
-                ...assignment,
-                title: data.title,
-                description: data.description || '',
-                dueDate: formattedDueDate,
-                status: data.status === 'draft' ? 'Draft' : 'Published',
-                statusColor:
-                  data.status === 'draft'
-                    ? 'bg-yellow-100 text-yellow-700'
-                    : 'bg-green-100 text-green-700',
-              }
-            : assignment
-        )
-      );
+      const assignmentToEdit = courseAssignments[editingAssignmentIndex];
+      updateAssignmentMutation.mutate({ id: String(assignmentToEdit.id), data: payload });
     } else {
-      setCourseAssignments((prev) => [
-        ...prev,
-        {
-          title: data.title,
-          subject: course.courseName,
-          subjectColor: 'bg-indigo-100 text-indigo-700',
-          dueDate: formattedDueDate,
-          submitted: 0,
-          total: course.enrolled,
-          description: data.description || '',
-          files: ['Instructions.pdf'],
-          status: data.status === 'draft' ? 'Draft' : 'Published',
-          statusColor:
-            data.status === 'draft'
-              ? 'bg-yellow-100 text-yellow-700'
-              : 'bg-green-100 text-green-700',
-        },
-      ]);
+      createAssignmentMutation.mutate(payload);
     }
-
-    setAssignmentForm(null);
-    setEditingAssignmentIndex(null);
-    setShowAssignmentForm(false);
   };
 
   const handleEditAssignment = (index: number) => {
     const assignment = courseAssignments[index];
+    const normalizedStatus = String(assignment.status || 'draft').toLowerCase();
+    const uiStatus: AssignmentFormData['status'] =
+      normalizedStatus === 'published'
+        ? 'open'
+        : normalizedStatus === 'closed' || normalizedStatus === 'archived'
+          ? 'closed'
+          : 'draft';
     let dueDateValue = '';
     try {
-      const dateStr = assignment.dueDate.replace('Due ', '');
-      const date = new Date(dateStr);
-      if (!isNaN(date.getTime())) {
-        dueDateValue = date.toISOString().split('T')[0];
+      if (assignment.dueDate) {
+        const date = new Date(assignment.dueDate);
+        if (!isNaN(date.getTime())) {
+          dueDateValue = date.toISOString().split('T')[0];
+        }
       }
     } catch (e) {
       console.error('Error parsing date:', e);
@@ -275,10 +297,10 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
 
     setAssignmentForm({
       title: assignment.title,
-      description: assignment.description,
+      description: assignment.description || '',
       dueDate: dueDateValue,
-      status: assignment.status.toLowerCase() as any,
-      submissions: assignment.submitted,
+      status: uiStatus,
+      submissions: 0,
       assignmentType: 'assignment',
     });
     setEditingAssignmentIndex(index);
@@ -286,33 +308,66 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
   };
 
   const handlePublishAssignment = (index: number) => {
-    setCourseAssignments((prev) =>
-      prev.map((assignment, idx) =>
-        idx === index
-          ? {
-              ...assignment,
-              status: 'Published',
-              statusColor: 'bg-green-100 text-green-700',
-            }
-          : assignment
-      )
+    const assignment = courseAssignments[index];
+    AssignmentService.updateStatus(String(assignment.id), 'published')
+      .then(() => {
+        queryClient.invalidateQueries({ queryKey: ['course-assignments', course?.id] });
+        toast.success('Assignment published successfully');
+      })
+      .catch((error) => {
+        console.error('Failed to publish assignment', error);
+        toast.error('Failed to publish assignment');
+      });
+  };
+
+  const handleDeleteAssignment = (id: number) => {
+    if (!window.confirm('Delete this assignment? This action cannot be undone.')) return;
+    deleteAssignmentMutation.mutate(String(id));
+  };
+
+  const handleUploadInstruction = (assignmentId: number, file: File | null) => {
+    if (!file) return;
+    setUploadingInstructionId(assignmentId);
+    uploadInstructionMutation.mutate(
+      { assignmentId: String(assignmentId), file, title: file.name },
+      {
+        onSettled: () => {
+          setUploadingInstructionId(null);
+        },
+      }
     );
   };
 
-  const handleSaveMaterial = () => {
-    if (!materialForm.title.trim() || !materialForm.lectureId) return;
+  const handleSaveMaterial = async () => {
+    if (!materialForm.title.trim() || !materialForm.lectureId || !course) return;
 
-    const newMaterial = {
-      id: `m${Date.now()}`,
-      title: materialForm.title,
-      lectureId: materialForm.lectureId,
-      type: materialForm.title.split('.').pop() || 'pdf',
-      date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-    };
+    if (materialForm.file) {
+      setIsUploading(true);
+      try {
+        const formData = new FormData();
+        formData.append('document', materialForm.file);
+        formData.append('title', materialForm.title.trim());
+        formData.append('materialType', 'document');
+        formData.append('weekNumber', String(parseInt(materialForm.lectureId.split('.')[0]) || 1));
+        formData.append('isPublished', 'true');
 
-    setCourseMaterials([...courseMaterials, newMaterial]);
-    setMaterialForm({ title: '', lectureId: '' });
-    setShowMaterialModal(false);
+        await courseService.uploadDocument(course.id, formData);
+        queryClient.invalidateQueries({ queryKey: ['course-materials', course.id] });
+        setShowMaterialModal(false);
+        setMaterialForm({ title: '', lectureId: '', file: null });
+      } catch (error) {
+        console.error('Failed to upload document', error);
+      } finally {
+        setIsUploading(false);
+      }
+    } else {
+      createMaterialMutation.mutate({
+        title: materialForm.title,
+        materialType: 'document',
+        weekNumber: parseInt(materialForm.lectureId.split('.')[0]) || 1,
+        isPublished: true,
+      });
+    }
   };
 
   return (
@@ -482,36 +537,25 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                 </div>
 
                 <div className="space-y-3">
-                  <div
-                    className={`flex items-center justify-between p-3 ${isDark ? 'bg-transparent' : 'bg-gray-50'} rounded-lg`}
-                  >
-                    <span className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                      Lecture
-                    </span>
-                    <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-                      May 12
-                    </span>
-                  </div>
-                  <div
-                    className={`flex items-center justify-between p-3 ${isDark ? 'bg-transparent' : 'bg-gray-50'} rounded-lg`}
-                  >
-                    <span className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                      Quiz
-                    </span>
-                    <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-                      May 13
-                    </span>
-                  </div>
-                  <div
-                    className={`flex items-center justify-between p-3 ${isDark ? 'bg-transparent' : 'bg-gray-50'} rounded-lg`}
-                  >
-                    <span className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                      Office Hour
-                    </span>
-                    <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-                      May 14
-                    </span>
-                  </div>
+                  {upcomingDeadlines.length > 0 ? (
+                    upcomingDeadlines.map((assignment: any) => (
+                      <div
+                        key={assignment.id}
+                        className={`flex items-center justify-between p-3 ${isDark ? 'bg-transparent' : 'bg-gray-50'} rounded-lg`}
+                      >
+                        <span className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                          {assignment.title}
+                        </span>
+                        <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                          {new Date(assignment.dueDate).toLocaleDateString()}
+                        </span>
+                      </div>
+                    ))
+                  ) : (
+                    <div className={`text-sm text-center py-4 ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
+                      No upcoming deadlines
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -553,60 +597,8 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                 {t('recentActivity')}
               </h3>
               <div className="space-y-4">
-                <div
-                  className={`flex items-center gap-4 p-4 ${isDark ? 'bg-transparent' : 'bg-gray-50'} rounded-lg`}
-                >
-                  <div
-                    className={`px-3 py-1 rounded-full text-xs font-medium ${isDark ? 'bg-blue-500/20 text-blue-300' : 'bg-blue-100 text-blue-700'}`}
-                  >
-                    New assignment submitted
-                  </div>
-                  <span className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                    John Smith
-                  </span>
-                  <span
-                    className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-500'} ml-auto`}
-                  >
-                    2 hours ago
-                  </span>
-                </div>
-                <div
-                  className={`flex items-center gap-4 p-4 ${isDark ? 'bg-transparent' : 'bg-gray-50'} rounded-lg`}
-                >
-                  <div
-                    className={`px-3 py-1 rounded-full text-xs font-medium`}
-                    style={{
-                      backgroundColor: isDark ? `${primaryHex}26` : `${primaryHex}1A`,
-                      color: primaryHex,
-                    }}
-                  >
-                    Quiz completed
-                  </div>
-                  <span className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                    15 students
-                  </span>
-                  <span
-                    className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-500'} ml-auto`}
-                  >
-                    4 hours ago
-                  </span>
-                </div>
-                <div
-                  className={`flex items-center gap-4 p-4 ${isDark ? 'bg-transparent' : 'bg-gray-50'} rounded-lg`}
-                >
-                  <div
-                    className={`px-3 py-1 rounded-full text-xs font-medium ${isDark ? 'bg-green-500/20 text-green-300' : 'bg-green-100 text-green-700'}`}
-                  >
-                    Material uploaded
-                  </div>
-                  <span className={`text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                    Prof. Martinez
-                  </span>
-                  <span
-                    className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-500'} ml-auto`}
-                  >
-                    Yesterday
-                  </span>
+                <div className={`text-sm text-center py-4 ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
+                  No recent activity found.
                 </div>
               </div>
             </div>
@@ -630,9 +622,10 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
             </div>
 
             <div className="space-y-4">
-              {[1, 2, 3, 4].map((week) => {
-                const weekLectureId = `${week}.1`;
-                const weekMaterials = courseMaterials.filter((m) => m.lectureId === weekLectureId);
+              {weeksToRender.map((week) => {
+                const weekMaterials = courseMaterials.filter(
+                  (m: any) => m.weekNumber === week || (!m.weekNumber && week === 1)
+                );
 
                 return (
                   <div
@@ -657,24 +650,24 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                             <div
                               className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}
                             >
-                              {course.schedule}
+                              {course.schedule || 'Scheduled via portal'}
                             </div>
                           </div>
                         </div>
                         <CheckCircle size={20} className="text-green-600" />
                       </div>
 
-                      {weekMaterials.length > 0 && (
+                      {weekMaterials.length > 0 ? (
                         <div className="mt-4 space-y-2 pl-4 border-l-2 border-indigo-100 dark:border-indigo-900/30 ml-4">
                           <h4
                             className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-500' : 'text-gray-500'} mb-2`}
                           >
                             Materials
                           </h4>
-                          {weekMaterials.map((material) => (
+                          {weekMaterials.map((material: any) => (
                             <div
-                              key={material.id}
-                              className={`flex items-center justify-between p-3 rounded-lg ${isDark ? 'bg-white/5' : 'bg-white border text-gray-700'} text-sm`}
+                              key={material.materialId || material.id}
+                              className={`flex items-center justify-between p-3 rounded-lg ${isDark ? 'bg-white/5 border-transparent' : 'bg-white border text-gray-700'} text-sm`}
                             >
                               <div className="flex items-center gap-2">
                                 <FileText size={16} className="text-indigo-500" />
@@ -685,10 +678,14 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                               <span
                                 className={`text-xs ${isDark ? 'text-slate-400' : 'text-gray-500'}`}
                               >
-                                {material.date}
+                                {material.createdAt ? new Date(material.createdAt).toLocaleDateString() : 'Just now'}
                               </span>
                             </div>
                           ))}
+                        </div>
+                      ) : (
+                        <div className={`mt-4 pl-4 text-xs italic ${isDark ? 'text-slate-500' : 'text-gray-500'}`}>
+                          No materials uploaded yet for this week.
                         </div>
                       )}
                     </div>
@@ -724,17 +721,20 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
             <AssignmentModal
               open={showAssignmentForm}
               assignment={assignmentForm}
+              courseOptions={[{ value: String(course.id), label: `${course.courseCode} - ${course.courseName}` }]}
               onClose={() => setShowAssignmentForm(false)}
               onSave={handleSaveAssignment}
             />
 
             {/* Assignment Cards */}
             <div className="space-y-4">
-              {courseAssignments.map((assignment, index) => (
-                <div
-                  key={index}
-                  className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}
-                >
+              {courseAssignments.map((assignment, index) => {
+                const normalizedStatus = String(assignment.status || 'draft').toLowerCase();
+                return (
+                  <div
+                    key={assignment.id}
+                    className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}
+                  >
                   <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-4 gap-2">
                     <div className="flex-1">
                       <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
@@ -744,10 +744,10 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                           {assignment.title}
                         </h3>
                         <span
-                          className={`px-2 py-1 rounded-full text-xs font-medium ${assignment.subjectColor}`}
-                          style={getPrimaryBadgeStyle(assignment.subjectColor)}
+                          className={`px-2 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700`}
+                          style={getPrimaryBadgeStyle('bg-indigo-100 text-indigo-700')}
                         >
-                          {assignment.subject}
+                          {course.courseName}
                         </span>
                       </div>
                       <div
@@ -755,34 +755,21 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                       >
                         <div className="flex items-center gap-1">
                           <Calendar size={14} />
-                          <span>{assignment.dueDate}</span>
+                          <span>{assignment.dueDate ? new Date(assignment.dueDate).toLocaleDateString() : 'No due date'}</span>
                         </div>
                         <div className="flex items-center gap-1">
                           <Users size={14} />
-                          <span>
-                            {assignment.submitted}/{assignment.total} Submitted
-                          </span>
+                          <span>0/{course.enrolled} Submitted</span>
                         </div>
                       </div>
                       <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'} mb-4`}>
                         {assignment.description}
                       </p>
-                      <div className="flex items-center gap-2">
-                        {assignment.files.map((file, fileIndex) => (
-                          <div
-                            key={fileIndex}
-                            className={`flex items-center gap-2 px-3 py-1 ${isDark ? 'bg-transparent' : 'bg-gray-50'} rounded-lg text-sm ${isDark ? 'text-slate-400' : 'text-gray-700'}`}
-                          >
-                            <FileText size={14} />
-                            <span>{file}</span>
-                          </div>
-                        ))}
-                      </div>
                     </div>
                     <span
-                      className={`px-3 py-1 rounded-full text-xs font-medium ${assignment.statusColor}`}
+                      className={`px-3 py-1 rounded-full text-xs font-medium ${normalizedStatus === 'published' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}
                     >
-                      {assignment.status}
+                      {normalizedStatus.toUpperCase()}
                     </span>
                   </div>
                   <div
@@ -792,6 +779,7 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                       onClick={() => {
                         setActiveTab('grading');
                         setGradingSubTab('manual');
+                        setSelectedAssignmentIdForGrading(String(assignment.id));
                       }}
                       className={`flex items-center gap-2 px-3 py-2 text-sm ${isDark ? 'text-slate-400 hover:bg-white/10' : 'text-gray-700 hover:bg-gray-50'} rounded-lg transition-colors`}
                     >
@@ -804,9 +792,29 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                       Edit
                     </button>
                     <button
+                      onClick={() => handleDeleteAssignment(Number(assignment.id))}
+                      className={`flex items-center gap-2 px-3 py-2 text-sm text-red-600 ${isDark ? 'hover:bg-red-500/10' : 'hover:bg-red-50'} rounded-lg transition-colors`}
+                    >
+                      Delete
+                    </button>
+                    <label
+                      className={`flex items-center gap-2 px-3 py-2 text-sm ${isDark ? 'text-slate-400 hover:bg-white/10' : 'text-gray-700 hover:bg-gray-50'} rounded-lg transition-colors cursor-pointer`}
+                    >
+                      {uploadingInstructionId === Number(assignment.id) ? 'Uploading...' : 'Upload Instructions'}
+                      <input
+                        type="file"
+                        className="hidden"
+                        onChange={(e) => {
+                          handleUploadInstruction(Number(assignment.id), e.target.files?.[0] || null);
+                          e.currentTarget.value = '';
+                        }}
+                      />
+                    </label>
+                    <button
                       onClick={() => {
                         setActiveTab('grading');
                         setGradingSubTab('manual');
+                        setSelectedAssignmentIdForGrading(String(assignment.id));
                       }}
                       className={`flex items-center gap-2 px-3 py-2 text-sm ${isDark ? 'text-slate-400 hover:bg-white/10' : 'text-gray-700 hover:bg-gray-50'} rounded-lg transition-colors`}
                     >
@@ -822,7 +830,7 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                       <Sparkles size={16} />
                       AI Auto-Grading
                     </button>
-                    {assignment.status === 'Draft' && (
+                    {normalizedStatus === 'draft' && (
                       <button
                         onClick={() => handlePublishAssignment(index)}
                         className="flex items-center gap-2 px-3 py-2 text-sm text-green-600 hover:bg-green-50 rounded-lg transition-colors ml-auto"
@@ -831,8 +839,9 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                       </button>
                     )}
                   </div>
-                </div>
-              ))}
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
@@ -872,12 +881,36 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
 
             {gradingSubTab === 'manual' && (
               <div className="space-y-4">
-                <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-                  Written and uploaded assignments that require manual review and grading.
-                </p>
-                {sampleSubmissions
-                  .filter((s) => s.type === 'written')
-                  .map((sub) => (
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                    Written and uploaded assignments that require manual review and grading.
+                  </p>
+                  <div className="w-full sm:w-64">
+                    <select
+                      value={selectedAssignmentIdForGrading || ''}
+                      onChange={(e) => setSelectedAssignmentIdForGrading(e.target.value)}
+                      className={`w-full p-2.5 rounded-xl border text-sm focus:ring-2 focus:ring-indigo-500 transition-all ${isDark ? 'bg-white/5 border-white/10 text-white [&>option]:bg-gray-800' : 'bg-gray-50 border-gray-200 text-gray-900'} outline-none`}
+                    >
+                      <option value="">Select an Assignment</option>
+                      {courseAssignments.map((a: any) => (
+                        <option key={a.id} value={a.id}>
+                          {a.title}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {!selectedAssignmentIdForGrading ? (
+                  <div className={`p-8 text-center rounded-xl border ${isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
+                    <p className={isDark ? 'text-slate-400' : 'text-gray-500'}>Please select an assignment above to view submissions.</p>
+                  </div>
+                ) : assignmentSubmissions.length === 0 ? (
+                  <div className={`p-8 text-center rounded-xl border ${isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
+                    <p className={isDark ? 'text-slate-400' : 'text-gray-500'}>No submissions yet for this assignment.</p>
+                  </div>
+                ) : (
+                  assignmentSubmissions.map((sub: any) => (
                     <div
                       key={sub.id}
                       className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-4 sm:p-6 border shadow-sm`}
@@ -887,32 +920,34 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                           <h4
                             className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}
                           >
-                            {sub.studentName}
+                            {sub.user?.firstName || sub.user?.lastName
+                              ? `${sub.user?.firstName || ''} ${sub.user?.lastName || ''}`.trim()
+                              : `Student ID: ${sub.userId}`}
                           </h4>
                           <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-                            {sub.studentId} • {sub.assignmentTitle}
+                            Submitted: {new Date(sub.submittedAt).toLocaleDateString()}
                           </p>
                         </div>
                         <span
                           className={`px-3 py-1 rounded-full text-xs font-medium ${
-                            sub.status === 'graded'
+                            String(sub.submissionStatus).toLowerCase() === 'graded'
                               ? 'bg-green-100 text-green-700'
                               : 'bg-yellow-100 text-yellow-700'
                           }`}
                         >
-                          {sub.status === 'graded'
-                            ? `Graded: ${sub.grade}/${sub.maxTotalScore}`
+                          {String(sub.submissionStatus).toLowerCase() === 'graded'
+                            ? 'Graded'
                             : 'Pending Review'}
                         </span>
                       </div>
                       <div className="flex flex-wrap items-center justify-between gap-4 mt-4">
                         <div className="flex gap-2">
-                          {sub.fileUrl && (
+                          {(sub.submissionLink || sub.fileUrl) && (
                             <button
-                              onClick={() => alert(`Downloading ${sub.fileName}`)}
+                              onClick={() => window.open(sub.submissionLink || sub.fileUrl, '_blank')}
                               className={`flex items-center gap-1 px-3 py-2 text-sm rounded-lg transition-colors ${isDark ? 'bg-white/5 text-slate-300 hover:bg-white/10' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
                             >
-                              <Download size={14} /> {sub.fileName}
+                              <Download size={14} /> Download Submission
                             </button>
                           )}
                         </div>
@@ -924,7 +959,7 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                           </label>
                           <input
                             type="number"
-                            value={sub.grade}
+                            value={draftGrades[sub.id] !== undefined ? draftGrades[sub.id] : ''}
                             onChange={(e) => handleInlineGrade(sub.id, e.target.value)}
                             placeholder="e.g. 85"
                             className={`w-20 px-3 py-1.5 text-sm rounded-lg border focus:outline-none focus:ring-2 ${isDark ? 'bg-white/5 border-white/10 text-white focus:ring-indigo-500' : 'bg-white border-gray-300 text-gray-900 focus:ring-indigo-500'}`}
@@ -932,7 +967,7 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                           <span
                             className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-500'} mr-2`}
                           >
-                            / {sub.maxTotalScore}
+                            / 100
                           </span>
                           <button
                             onClick={() => saveInlineGrade(sub.id)}
@@ -943,94 +978,32 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                         </div>
                       </div>
                     </div>
-                  ))}
+                  ))
+                )}
               </div>
             )}
 
             {gradingSubTab === 'auto' && (
               <div className="space-y-4">
                 <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-                  MCQ assignments are auto-graded. Results are displayed below (view only).
+                  Auto-graded summary is based on real graded submissions from the selected assignment.
                 </p>
-                <div
-                  className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl border shadow-sm overflow-x-auto`}
-                >
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr
-                        className={isDark ? 'border-b border-white/10' : 'border-b border-gray-200'}
-                      >
-                        <th
-                          className={`text-left p-4 font-medium ${isDark ? 'text-slate-300' : 'text-gray-700'}`}
-                        >
-                          Student
-                        </th>
-                        <th
-                          className={`text-left p-4 font-medium ${isDark ? 'text-slate-300' : 'text-gray-700'}`}
-                        >
-                          Quiz
-                        </th>
-                        <th
-                          className={`text-left p-4 font-medium ${isDark ? 'text-slate-300' : 'text-gray-700'}`}
-                        >
-                          Score
-                        </th>
-                        <th
-                          className={`text-left p-4 font-medium ${isDark ? 'text-slate-300' : 'text-gray-700'}`}
-                        >
-                          Grade
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {[
-                        {
-                          student: 'Ahmed Hassan',
-                          quiz: 'Midterm MCQ',
-                          score: '92/100',
-                          grade: 'A',
-                        },
-                        {
-                          student: 'Sara Mohamed',
-                          quiz: 'Midterm MCQ',
-                          score: '85/100',
-                          grade: 'B+',
-                        },
-                        { student: 'Omar Ali', quiz: 'Midterm MCQ', score: '78/100', grade: 'B' },
-                        {
-                          student: 'Layla Ibrahim',
-                          quiz: 'Midterm MCQ',
-                          score: '95/100',
-                          grade: 'A+',
-                        },
-                      ].map((row, i) => (
-                        <tr
-                          key={i}
-                          className={
-                            isDark ? 'border-b border-white/5' : 'border-b border-gray-100'
-                          }
-                        >
-                          <td className={`p-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                            {row.student}
-                          </td>
-                          <td className={`p-4 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-                            {row.quiz}
-                          </td>
-                          <td
-                            className={`p-4 font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}
-                          >
-                            {row.score}
-                          </td>
-                          <td className="p-4">
-                            <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
-                              {row.grade}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                {assignmentSubmissions.length === 0 ? (
+                  <div className={`p-8 text-center rounded-xl border ${isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
+                    <p className={isDark ? 'text-slate-400' : 'text-gray-500'}>
+                      No graded submission data available for the selected assignment yet.
+                    </p>
+                  </div>
+                ) : (
+                  <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl border shadow-sm p-4`}>
+                    <p className={`${isDark ? 'text-slate-300' : 'text-gray-700'} text-sm`}>
+                      Total submissions: <span className="font-semibold">{assignmentSubmissions.length}</span>
+                    </p>
+                    <p className={`${isDark ? 'text-slate-300' : 'text-gray-700'} text-sm mt-2`}>
+                      Graded submissions: <span className="font-semibold">{assignmentSubmissions.filter((s: any) => String(s.submissionStatus).toLowerCase() === 'graded').length}</span>
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -1041,49 +1014,24 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
           <div
             className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}
           >
-            <RosterTable sectionId={String(course.id)} />
+            <RosterTable
+              data={sectionStudents.map((student: any, index: number) => ({
+                id: student.id || student.userId || index + 1,
+                name: `${student.firstName || ''} ${student.lastName || ''}`.trim() || `Student ${index + 1}`,
+                email: student.email || `student${index + 1}@edu.com`,
+                status: 'Enrolled',
+                grades: {
+                  assignments: '-',
+                  quizzes: '-',
+                  midterm: '-',
+                  final: '-',
+                  total: '-',
+                },
+              }))}
+            />
           </div>
         )}
 
-        {/* Announcements Tab */}
-        {activeTab === 'announcements' && (
-          <div
-            className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}
-          >
-            <div className="flex items-center justify-between mb-6">
-              <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                {t('announcements')}
-              </h3>
-              <button className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm">
-                <Bell size={16} />
-                New Announcement
-              </button>
-            </div>
-            <div className="space-y-4">
-              {[
-                { title: 'Midterm Schedule', date: 'May 10', content: 'Midterm exam on June 1st' },
-                { title: 'Office Hours Update', date: 'May 8', content: 'New office hours posted' },
-              ].map((announcement, index) => (
-                <div
-                  key={index}
-                  className={`p-4 ${isDark ? 'bg-transparent' : 'bg-gray-50'} rounded-lg`}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <div className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                      {announcement.title}
-                    </div>
-                    <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-                      {announcement.date}
-                    </div>
-                  </div>
-                  <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-                    {announcement.content}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Upload Material Modal */}
@@ -1109,6 +1057,19 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
                   value={materialForm.title}
                   onChange={(e) => setMaterialForm({ ...materialForm, title: e.target.value })}
                   className={`w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-slate-500 focus:ring-indigo-500' : 'bg-white border-gray-300 text-gray-900 focus:ring-indigo-500'}`}
+                />
+              </div>
+
+              <div>
+                <label
+                  className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-300' : 'text-gray-700'}`}
+                >
+                  Document File (Optional)
+                </label>
+                <input
+                  type="file"
+                  onChange={(e) => setMaterialForm({ ...materialForm, file: e.target.files?.[0] || null })}
+                  className={`w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2 ${isDark ? 'bg-white/5 border-white/10 text-white focus:ring-indigo-500' : 'bg-white border-gray-300 text-gray-900 focus:ring-indigo-500'}`}
                 />
               </div>
 
@@ -1142,10 +1103,16 @@ export function CourseDetail({ courseId, onBack, courses }: CourseDetailProps) {
               </button>
               <button
                 onClick={handleSaveMaterial}
-                disabled={!materialForm.title.trim() || !materialForm.lectureId}
-                className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={!materialForm.title.trim() || !materialForm.lectureId || isUploading}
+                className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               >
-                Upload
+                {isUploading ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" /> Uploading...
+                  </>
+                ) : (
+                  'Upload'
+                )}
               </button>
             </div>
           </div>

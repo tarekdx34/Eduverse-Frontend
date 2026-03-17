@@ -31,7 +31,6 @@ import {
   Assignments,
   AcademicCalendar,
   AIFeatures,
-  MessagingChat,
   AttendanceOverview,
   SmartTodoReminder,
   CourseRegistration,
@@ -42,7 +41,7 @@ import {
   SettingsPreferences,
   QuizTaking,
 } from './components';
-import { DashboardHeader, DashboardSidebar } from '../../components/shared';
+import { DashboardHeader, DashboardSidebar, MessagingChat } from '../../components/shared';
 import { DashboardProfileTab } from '../../components/shared/DashboardProfileTab';
 import CourseViewPage from './pages/CourseView';
 import { GPA_DATA, SCHEDULE_DATA } from './constants';
@@ -52,6 +51,7 @@ import { useApi } from '../../hooks/useApi';
 import { useAuth } from '../../context/AuthContext';
 import { EnrollmentService } from '../../services/api/enrollmentService';
 import { GradesService } from '../../services/api/gradesService';
+import { NotificationService } from '../../services/api/notificationService';
 
 const tabTranslationKeys: Record<string, string> = {
   dashboard: 'dashboard',
@@ -78,6 +78,7 @@ function StudentDashboardContent() {
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [viewingCourseId, setViewingCourseId] = useState<string | null>(null);
+  const [headerUnreadCount, setHeaderUnreadCount] = useState(0);
 
   const { isRTL, language, setLanguage, t } = useLanguage();
   const { isDark, toggleTheme, primaryHex, primaryColor, setPrimaryColor } = useTheme() as any;
@@ -96,6 +97,33 @@ function StudentDashboardContent() {
   const totalCredits = enrollments?.reduce((sum, e) => sum + (e.course?.credits ?? 0), 0) ?? 0;
   const activeClasses = enrollments?.filter((e) => e.status === 'enrolled').length ?? 0;
   const gpaValue = gpaSummary?.cumulativeGpa ?? 0;
+
+  useEffect(() => {
+    let mounted = true;
+
+    const refreshUnreadCount = async () => {
+      try {
+        const result = await NotificationService.getUnreadCount();
+        if (mounted) {
+          setHeaderUnreadCount(Number(result?.count ?? 0));
+        }
+      } catch {
+        if (mounted) {
+          setHeaderUnreadCount(0);
+        }
+      }
+    };
+
+    void refreshUnreadCount();
+    const intervalId = window.setInterval(() => {
+      void refreshUnreadCount();
+    }, 30000);
+
+    return () => {
+      mounted = false;
+      window.clearInterval(intervalId);
+    };
+  }, []);
 
   // Determine active tab and course ID from location
   const pathSegments = location.pathname.split('/').filter(Boolean);
@@ -311,6 +339,7 @@ function StudentDashboardContent() {
                 { id: 'rose', colorClass: 'bg-blue-500', hex: '#f43f5e' },
                 { id: 'amber', colorClass: 'bg-amber-500', hex: '#f59e0b' },
               ]}
+              notificationCount={headerUnreadCount}
             />
           </>
         )}
@@ -398,6 +427,7 @@ function StudentDashboardContent() {
               {activeTab === 'chat' && (
                 <MessagingChat
                   height="100vh"
+                  currentUserId={user?.userId ? String(user.userId) : undefined}
                   currentUserName={user?.fullName || 'Student'}
                   isDark={isDark}
                   className="rounded-none border-0"

@@ -37,6 +37,8 @@ type DashboardProps = {
   upcomingClasses: any[];
   recentActivity: any[];
   pendingTasks: any[];
+  performanceData?: any[];
+  engagementData?: any[];
   onNavigate: (tab: string) => void;
 };
 
@@ -46,6 +48,8 @@ export function ModernDashboard({
   upcomingClasses,
   recentActivity,
   pendingTasks,
+  performanceData,
+  engagementData,
   onNavigate,
 }: DashboardProps) {
   const { isDark, primaryColor = 'blue' } = useTheme() as any;
@@ -214,19 +218,27 @@ export function ModernDashboard({
     ];
   }, [sections, th]);
 
-  const performanceData = [
+  const defaultPerformanceData = [
     { course: 'Calc I', value: 85 },
     { course: 'Physics', value: 78 },
     { course: 'CS', value: 92 },
     { course: 'Logic', value: 88 },
   ];
 
-  const engagementData = [
+  const defaultEngagementData = [
     { week: 'Week 1', value: 68 },
     { week: 'Week 2', value: 75 },
     { week: 'Week 3', value: 70 },
     { week: 'Week 4', value: 78 },
   ];
+
+  const chartPerformanceData = performanceData && performanceData.length > 0 ? performanceData : defaultPerformanceData;
+  const chartEngagementData = engagementData && engagementData.length > 0 ? engagementData : defaultEngagementData;
+  
+  // Calculate average engagement score for the display
+  const currentEngagement = chartEngagementData[chartEngagementData.length - 1]?.value || 72;
+  const prevEngagement = chartEngagementData[chartEngagementData.length - 2]?.value || 70;
+  const engagementTrend = currentEngagement - prevEngagement;
 
   const statCardClass = isDark
     ? 'bg-card-dark border border-white/5 hover:border-white/20'
@@ -312,7 +324,7 @@ export function ModernDashboard({
               {t('coursePerformance')}
             </h3>
             <ResponsiveContainer width="100%" height={280}>
-              <BarChart data={performanceData}>
+              <BarChart data={chartPerformanceData}>
                 <defs>
                   <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor={th.light} stopOpacity={1} />
@@ -363,14 +375,14 @@ export function ModernDashboard({
               </h3>
               <div className="flex items-center gap-2">
                 <span className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                  72%
+                  {currentEngagement}%
                 </span>
                 <TrendingUp className={th.text500} size={20} />
-                <span className={`text-sm ${th.text500} font-medium`}>+2%</span>
+                <span className={`text-sm ${th.text500} font-medium`}>{engagementTrend >= 0 ? '+' : ''}{engagementTrend}%</span>
               </div>
             </div>
             <ResponsiveContainer width="100%" height={240}>
-              <AreaChart data={engagementData}>
+              <AreaChart data={chartEngagementData}>
                 <defs>
                   <linearGradient id="engagementGradient" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor={th.main} stopOpacity={0.3} />

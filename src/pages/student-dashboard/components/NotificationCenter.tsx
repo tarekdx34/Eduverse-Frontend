@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import {
   Bell,
@@ -21,12 +21,23 @@ import {
   Users,
   Loader2,
 } from 'lucide-react';
-import { useApi } from '../../../hooks/useApi';
 import { NotificationService } from '../../../services/api/notificationService';
+import { announcementService, type Announcement } from '../../../services/api/announcementService';
+import { toast } from 'sonner';
 
 interface Notification {
   id: string;
-  type: 'deadline' | 'grade' | 'announcement' | 'reminder' | 'achievement' | 'message' | 'warning';
+  type:
+    | 'system'
+    | 'assignment'
+    | 'grade'
+    | 'announcement'
+    | 'enrollment'
+    | 'deadline'
+    | 'reminder'
+    | 'achievement'
+    | 'message'
+    | 'warning';
   title: string;
   description: string;
   timestamp: string;
@@ -34,142 +45,74 @@ interface Notification {
   actionUrl?: string;
   priority: 'low' | 'medium' | 'high' | 'urgent';
   category: string;
+  announcementType?: 'course' | 'campus' | 'system';
+  isPublished?: number;
+  authorName?: string;
+  courseLabel?: string;
+  viewCount?: number;
+  source: 'notification' | 'announcement';
+  rawCreatedAt?: string;
 }
 
-const defaultNotifications: Notification[] = [
-  {
-    id: '1',
-    type: 'deadline',
-    title: 'Assignment Due Tomorrow',
-    description: "Database Design Project is due in 24 hours. Don't forget to submit!",
-    timestamp: '10 minutes ago',
-    read: false,
-    priority: 'urgent',
-    category: 'CS220',
-  },
-  {
-    id: '2',
-    type: 'warning',
-    title: 'Low Attendance Alert',
-    description:
-      'Your attendance in Database Management Systems is at 76%. Minimum required is 75%.',
-    timestamp: '1 hour ago',
-    read: false,
-    priority: 'high',
-    category: 'Attendance',
-  },
-  {
-    id: '3',
-    type: 'grade',
-    title: 'New Grade Posted',
-    description: 'Your grade for Web Portfolio Project has been posted. You scored 95/100.',
-    timestamp: '2 hours ago',
-    read: false,
-    priority: 'medium',
-    category: 'CS150',
-  },
-  {
-    id: '4',
-    type: 'achievement',
-    title: 'Achievement Unlocked! 🎉',
-    description: 'You\'ve earned the "Perfect Score" badge for getting 100% on an assignment.',
-    timestamp: '3 hours ago',
-    read: true,
-    priority: 'low',
-    category: 'Gamification',
-  },
-  {
-    id: '5',
-    type: 'announcement',
-    title: 'Class Cancelled',
-    description:
-      "Tomorrow's Software Engineering lecture has been cancelled. Check announcements for details.",
-    timestamp: '5 hours ago',
-    read: true,
-    priority: 'medium',
-    category: 'CS305',
-  },
-  {
-    id: '6',
-    type: 'message',
-    title: 'New Message from Prof. Sarah Johnson',
-    description: 'Regarding your question about the database normalization assignment...',
-    timestamp: '6 hours ago',
-    read: true,
-    priority: 'medium',
-    category: 'Messages',
-  },
-  {
-    id: '7',
-    type: 'reminder',
-    title: 'Exam in 3 Days',
-    description:
-      'Midterm Exam for Web Development Fundamentals is scheduled for December 6th at 1:00 PM.',
-    timestamp: '1 day ago',
-    read: true,
-    priority: 'high',
-    category: 'CS150',
-  },
-  {
-    id: '8',
-    type: 'warning',
-    title: 'Progress Alert',
-    description:
-      "You're falling behind in Data Structures & Algorithms. Complete the pending assignments to catch up.",
-    timestamp: '1 day ago',
-    read: true,
-    priority: 'high',
-    category: 'CS201',
-  },
-  {
-    id: '9',
-    type: 'deadline',
-    title: 'Quiz Deadline Approaching',
-    description: 'Core Concepts Quiz for CS201 is due in 2 days.',
-    timestamp: '2 days ago',
-    read: true,
-    priority: 'medium',
-    category: 'CS201',
-  },
-  {
-    id: '10',
-    type: 'announcement',
-    title: 'New Course Materials Available',
-    description:
-      'New lecture slides and resources have been uploaded for Mobile Application Development.',
-    timestamp: '3 days ago',
-    read: true,
-    priority: 'low',
-    category: 'CS350',
-  },
-];
+const formatDateTime = (value?: string) => {
+  const date = new Date(value ?? Date.now());
+  return `${date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  })} at ${date.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  })}`;
+};
+
+const mapNotificationType = (
+  value?: string
+): Notification['type'] => {
+  if (value === 'system') return 'system';
+  if (value === 'assignment') return 'assignment';
+  if (value === 'grade') return 'grade';
+  if (value === 'announcement') return 'announcement';
+  if (value === 'enrollment') return 'enrollment';
+  return 'system';
+};
+
+const mapAnnouncementToNotification = (announcement: Announcement): Notification => ({
+  id: `announcement-${announcement.id}`,
+  type: 'announcement',
+  title: announcement.title,
+  description: announcement.content,
+  timestamp: formatDateTime(announcement.publishedAt ?? announcement.createdAt),
+  read: true,
+  priority: (announcement.priority as Notification['priority']) || 'medium',
+  category: announcement.announcementType || 'course',
+  announcementType:
+    announcement.announcementType ||
+    ((announcement as Announcement & { type?: 'course' | 'campus' | 'system' }).type ?? 'course'),
+  isPublished: announcement.isPublished,
+  authorName:
+    `${announcement.author?.firstName ?? ''} ${announcement.author?.lastName ?? ''}`.trim() ||
+    announcement.author?.email ||
+    'System',
+  courseLabel:
+    announcement.course?.name || announcement.course?.code
+      ? `${announcement.course?.name ?? ''}${announcement.course?.code ? ` (${announcement.course.code})` : ''}`.trim()
+      : 'Campus-wide',
+  viewCount: announcement.viewCount ?? 0,
+  source: 'announcement',
+  rawCreatedAt: announcement.publishedAt ?? announcement.createdAt,
+});
 
 export function NotificationCenter() {
   const { isDark, primaryHex } = useTheme() as any;
   const accentColor = primaryHex || '#3b82f6';
-
-  const { data: apiNotifications, loading, refetch } = useApi(() => NotificationService.getAll(), []);
-
-  // Map API notifications to component's expected shape
-  const mappedNotifications: Notification[] = (() => {
-    if (!apiNotifications || apiNotifications.length === 0) return [];
-    return apiNotifications.map((n) => ({
-      id: String(n.notificationId),
-      type: (n.type || 'announcement') as Notification['type'],
-      title: n.title,
-      description: n.message,
-      timestamp: n.createdAt ? new Date(n.createdAt).toLocaleString() : '',
-      read: n.read,
-      priority: (n.priority || 'medium') as Notification['priority'],
-      category: (n.data?.category as string) || 'General',
-    }));
-  })();
-
-  const initialNotifications = mappedNotifications.length > 0 ? mappedNotifications : defaultNotifications;
-
-  const [notificationList, setNotificationList] = useState<Notification[]>(initialNotifications);
+  const [notificationList, setNotificationList] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [filterType, setFilterType] = useState<string>('all');
   const [showSettings, setShowSettings] = useState(false);
+  const [expandedAnnouncementId, setExpandedAnnouncementId] = useState<string | null>(null);
   const [notificationSettings, setNotificationSettings] = useState({
     deadlines: true,
     grades: true,
@@ -182,39 +125,81 @@ export function NotificationCenter() {
     soundEnabled: false,
   });
 
-  // Sync API data to state when it arrives
-  useEffect(() => {
-    if (mappedNotifications.length > 0) {
-      setNotificationList(mappedNotifications);
+  const loadNotificationData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const [notificationsResponse, unreadResponse, announcementsResponse] = await Promise.all([
+        NotificationService.getAll(),
+        NotificationService.getUnreadCount(),
+        announcementService.getAnnouncements(),
+      ]);
+
+      const mappedNotifications: Notification[] = (notificationsResponse || []).map((n) => ({
+        id: String(n.id),
+        type: mapNotificationType(n.notificationType),
+        title: n.title,
+        description: n.body,
+        timestamp: formatDateTime(n.createdAt),
+        read: n.isRead === 1,
+        priority: (n.priority as Notification['priority']) || 'medium',
+        category: n.notificationType || 'system',
+        actionUrl: n.actionUrl || undefined,
+        source: 'notification',
+        rawCreatedAt: n.createdAt,
+      }));
+
+      const sortedAnnouncements = (Array.isArray(announcementsResponse) ? announcementsResponse : [])
+        .slice()
+        .sort((a, b) => {
+          if ((a.isPinned ?? 0) === 1 && (b.isPinned ?? 0) !== 1) return -1;
+          if ((a.isPinned ?? 0) !== 1 && (b.isPinned ?? 0) === 1) return 1;
+          return (
+            new Date(b.publishedAt ?? b.createdAt ?? 0).getTime() -
+            new Date(a.publishedAt ?? a.createdAt ?? 0).getTime()
+          );
+        });
+
+      const mappedAnnouncements: Notification[] = sortedAnnouncements.map(mapAnnouncementToNotification);
+
+      setNotificationList([...mappedNotifications, ...mappedAnnouncements]);
+      setUnreadCount(Number(unreadResponse?.count ?? 0));
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to load notifications');
+    } finally {
+      setLoading(false);
     }
-  }, [apiNotifications]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    void loadNotificationData();
+  }, [loadNotificationData]);
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+      <div className="space-y-3">
+        {[1, 2, 3].map((item) => (
+          <div key={item} className={`rounded-xl border-2 p-4 animate-pulse ${isDark ? 'bg-card-dark border-white/5' : 'bg-white border-slate-100'}`}>
+            <div className={`h-4 w-1/3 rounded ${isDark ? 'bg-white/10' : 'bg-slate-200'}`} />
+            <div className={`h-3 w-full mt-3 rounded ${isDark ? 'bg-white/10' : 'bg-slate-200'}`} />
+            <div className={`h-3 w-2/3 mt-2 rounded ${isDark ? 'bg-white/10' : 'bg-slate-200'}`} />
+          </div>
+        ))}
       </div>
     );
   }
 
-  const unreadCount = notificationList.filter((n) => !n.read).length;
-
   const getNotificationIcon = (type: string) => {
     switch (type) {
-      case 'deadline':
+      case 'assignment':
         return <Clock className="w-5 h-5" />;
       case 'grade':
         return <FileText className="w-5 h-5" />;
       case 'announcement':
         return <Info className="w-5 h-5" />;
-      case 'reminder':
-        return <Calendar className="w-5 h-5" />;
-      case 'achievement':
-        return <Award className="w-5 h-5" />;
-      case 'message':
-        return <MessageSquare className="w-5 h-5" />;
-      case 'warning':
-        return <AlertTriangle className="w-5 h-5" />;
+      case 'enrollment':
+        return <Users className="w-5 h-5" />;
+      case 'system':
+        return <Bell className="w-5 h-5" />;
       default:
         return <Bell className="w-5 h-5" />;
     }
@@ -243,25 +228,32 @@ export function NotificationCenter() {
         return isDark
           ? 'bg-blue-900/50 text-blue-400 border-blue-800'
           : 'bg-blue-100 text-blue-600 border-blue-200';
-      case 'reminder':
-        return isDark
-          ? 'bg-blue-900/50 text-blue-400 border-blue-800'
-          : 'bg-blue-100 text-blue-600 border-blue-200';
-      case 'achievement':
-        return isDark
-          ? 'bg-amber-900/50 text-amber-400 border-amber-800'
-          : 'bg-amber-100 text-amber-600 border-amber-200';
-      case 'message':
-        return 'bg-[var(--accent-color)]/10 text-[var(--accent-color)] border-[var(--accent-color)]/20';
-      case 'warning':
+      case 'assignment':
         return isDark
           ? 'bg-orange-900/50 text-orange-400 border-orange-800'
           : 'bg-orange-100 text-orange-600 border-orange-200';
+      case 'enrollment':
+        return isDark
+          ? 'bg-purple-900/50 text-purple-300 border-purple-800'
+          : 'bg-purple-100 text-purple-700 border-purple-200';
+      case 'system':
+        return isDark
+          ? 'bg-gray-800 text-gray-300 border-gray-700'
+          : 'bg-gray-100 text-gray-700 border-gray-200';
       default:
         return isDark
           ? 'bg-slate-800 text-slate-400 border-slate-700'
           : 'bg-slate-50 text-slate-600 border-slate-100';
     }
+  };
+
+  const getNotificationTypeBadge = (type: Notification['type']) => {
+    if (type === 'system') return 'bg-gray-100 text-gray-700';
+    if (type === 'announcement') return 'bg-blue-100 text-blue-700';
+    if (type === 'assignment') return 'bg-orange-100 text-orange-700';
+    if (type === 'grade') return 'bg-green-100 text-green-700';
+    if (type === 'enrollment') return 'bg-purple-100 text-purple-700';
+    return 'bg-slate-100 text-slate-700';
   };
 
   const getPriorityBadge = (priority: string) => {
@@ -271,7 +263,7 @@ export function NotificationCenter() {
       case 'high':
         return 'bg-orange-500 text-white';
       case 'medium':
-        return 'bg-blue-500 text-white';
+        return 'bg-yellow-400 text-slate-900';
       case 'low':
         return 'bg-slate-400 text-white';
       default:
@@ -280,18 +272,34 @@ export function NotificationCenter() {
   };
 
   const markAsRead = (id: string) => {
-    setNotificationList(notificationList.map((n) => (n.id === id ? { ...n, read: true } : n)));
-    NotificationService.markAsRead(Number(id)).catch(() => {});
+    const target = notificationList.find((n) => n.id === id);
+    if (!target || target.read || target.source !== 'notification') return;
+
+    setNotificationList((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
+    setUnreadCount((prev) => Math.max(0, prev - 1));
+
+    NotificationService.markAsRead(id).catch((error) => {
+      toast.error(error instanceof Error ? error.message : 'Failed to mark notification as read');
+      setNotificationList((prev) => prev.map((n) => (n.id === id ? { ...n, read: false } : n)));
+      setUnreadCount((prev) => prev + 1);
+    });
   };
 
   const markAllAsRead = () => {
-    setNotificationList(notificationList.map((n) => ({ ...n, read: true })));
-    NotificationService.markAllAsRead().catch(() => {});
+    setNotificationList((prev) => prev.map((n) => (n.source === 'notification' ? { ...n, read: true } : n)));
+    setUnreadCount(0);
+    NotificationService.markAllAsRead().catch((error) => {
+      toast.error(error instanceof Error ? error.message : 'Failed to mark all notifications as read');
+      void loadNotificationData();
+    });
   };
 
   const deleteNotification = (id: string) => {
-    setNotificationList(notificationList.filter((n) => n.id !== id));
-    NotificationService.deleteNotification(Number(id)).catch(() => {});
+    const target = notificationList.find((n) => n.id === id);
+    setNotificationList((prev) => prev.filter((n) => n.id !== id));
+    if (target && !target.read && target.source === 'notification') {
+      setUnreadCount((prev) => Math.max(0, prev - 1));
+    }
   };
 
   const clearAllRead = () => {
@@ -309,9 +317,16 @@ export function NotificationCenter() {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-            Notifications
-          </h1>
+          <div className="flex items-center gap-2">
+            <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+              Notifications
+            </h1>
+            {unreadCount > 0 && (
+              <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1 rounded-full text-xs font-bold text-white bg-red-500">
+                {unreadCount}
+              </span>
+            )}
+          </div>
           <p className={`text-slate-500 mt-1 font-medium`}>
             Stay updated with your courses, deadlines, and achievements
           </p>
@@ -334,9 +349,10 @@ export function NotificationCenter() {
                 {[
                   { id: 'all', label: 'All' },
                   { id: 'unread', label: 'Unread' },
-                  { id: 'deadline', label: 'Deadlines' },
-                  { id: 'warning', label: 'Warnings' },
+                  { id: 'system', label: 'System' },
+                  { id: 'assignment', label: 'Assignments' },
                   { id: 'grade', label: 'Grades' },
+                  { id: 'enrollment', label: 'Enrollment' },
                   { id: 'announcement', label: 'Announcements' },
                 ].map((filter) => (
                   <button
@@ -379,16 +395,15 @@ export function NotificationCenter() {
                 <h3
                   className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-800'} mb-2`}
                 >
-                  No Notifications
+                  No notifications yet
                 </h3>
-                <p className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-                  You're all caught up!
-                </p>
+                <p className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}>You're all caught up!</p>
               </div>
             ) : (
               filteredNotifications.map((notification) => (
                 <div
                   key={notification.id}
+                  onClick={() => markAsRead(notification.id)}
                   className={`${isDark ? 'bg-card-dark' : 'bg-white'} rounded-xl border-2 p-4 transition-all hover:shadow-md ${
                     !notification.read
                       ? 'border-[var(--accent-color)]/20 bg-[var(--accent-color)]/10/30'
@@ -413,8 +428,13 @@ export function NotificationCenter() {
                             {notification.title}
                           </h4>
                           {!notification.read && (
-                            <span className="w-2 h-2 bg-[var(--accent-color)]/100 rounded-full" />
+                            <span className="w-2 h-2 bg-blue-500 rounded-full" />
                           )}
+                          <span
+                            className={`px-2 py-0.5 rounded text-xs font-medium ${getNotificationTypeBadge(notification.type)}`}
+                          >
+                            {notification.type}
+                          </span>
                           <span
                             className={`px-2 py-0.5 rounded text-xs font-medium ${getPriorityBadge(notification.priority)}`}
                           >
@@ -422,15 +442,55 @@ export function NotificationCenter() {
                           </span>
                         </div>
                         <button
-                          onClick={() => deleteNotification(notification.id)}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            deleteNotification(notification.id);
+                          }}
                           className="p-1 text-slate-500 hover:text-red-500 transition-colors"
                         >
                           <X className="w-4 h-4" />
                         </button>
                       </div>
-                      <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'} mb-2`}>
+                      <p
+                        className={`text-sm mb-2 ${
+                          notification.type === 'announcement' && expandedAnnouncementId !== notification.id
+                            ? 'line-clamp-3'
+                            : ''
+                        } ${isDark ? 'text-slate-400' : 'text-slate-600'}`}
+                      >
                         {notification.description}
                       </p>
+                      {notification.type === 'announcement' && (
+                        <div className="flex flex-wrap items-center gap-2 mb-2">
+                          <span className="px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-700">
+                            {notification.announcementType ?? 'course'}
+                          </span>
+                          <span
+                            className={`px-2 py-0.5 rounded text-xs font-medium ${
+                              notification.isPublished === 1
+                                ? 'bg-green-100 text-green-700'
+                                : 'bg-gray-200 text-gray-700'
+                            }`}
+                          >
+                            {notification.isPublished === 1 ? 'Published' : 'Draft'}
+                          </span>
+                          <span className="text-xs text-slate-500">{notification.courseLabel}</span>
+                          <span className="text-xs text-slate-500">Author: {notification.authorName}</span>
+                          <span className="text-xs text-slate-500">Views: {notification.viewCount ?? 0}</span>
+                          <button
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              setExpandedAnnouncementId((prev) =>
+                                prev === notification.id ? null : notification.id
+                              );
+                            }}
+                            type="button"
+                            className="text-xs text-[var(--accent-color)] font-medium"
+                          >
+                            {expandedAnnouncementId === notification.id ? 'Hide details' : 'View details'}
+                          </button>
+                        </div>
+                      )}
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3 text-xs text-slate-500">
                           <span>{notification.timestamp}</span>
@@ -442,7 +502,11 @@ export function NotificationCenter() {
                         </div>
                         {!notification.read && (
                           <button
-                            onClick={() => markAsRead(notification.id)}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              markAsRead(notification.id);
+                            }}
+                            type="button"
                             className="text-xs text-[var(--accent-color)] hover:text-[var(--accent-color)] font-medium"
                           >
                             Mark as read
