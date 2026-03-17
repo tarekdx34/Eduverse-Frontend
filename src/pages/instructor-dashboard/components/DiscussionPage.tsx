@@ -28,6 +28,7 @@ import { toast } from 'sonner';
 interface DiscussionPageProps {
   userRole?: 'ta' | 'instructor';
   userName?: string;
+  isMockMode?: boolean;
 }
 
 const getErrorMessage = (error: unknown) =>
@@ -39,7 +40,7 @@ const normalizeDiscussions = (payload: DiscussionThread[] | { data?: DiscussionT
   return Array.isArray(payload.data) ? payload.data : [];
 };
 
-export function DiscussionPage({ userRole = 'instructor' }: DiscussionPageProps) {
+export function DiscussionPage({ userRole = 'instructor', isMockMode = false }: DiscussionPageProps) {
   const { t } = useLanguage();
   const { isDark, primaryHex = '#4f46e5' } = useTheme() as any;
 
@@ -54,6 +55,26 @@ export function DiscussionPage({ userRole = 'instructor' }: DiscussionPageProps)
   const [replyTextByDiscussion, setReplyTextByDiscussion] = useState<Record<string, string>>({});
 
   const loadDiscussions = useCallback(async (courseId?: string) => {
+    if (isMockMode) {
+      setDiscussions([
+        {
+          id: '1',
+          courseId: courseId || '0',
+          createdBy: 1,
+          title: 'Mock Discussion Title',
+          description: 'This is a mock discussion for testing mock mode.',
+          isPinned: 1,
+          isLocked: 0,
+          viewCount: 15,
+          replyCount: 2,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+      ]);
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       const response = await discussionService.getDiscussions(courseId ? { courseId } : undefined);
@@ -63,7 +84,7 @@ export function DiscussionPage({ userRole = 'instructor' }: DiscussionPageProps)
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isMockMode]);
 
   useEffect(() => {
     const courseId = filterCourse === 'all' ? undefined : filterCourse;
@@ -102,18 +123,25 @@ export function DiscussionPage({ userRole = 'instructor' }: DiscussionPageProps)
         next.delete(id);
       } else {
         next.add(id);
+        if (!detailsById[id] && !isMockMode) {
+          discussionService
+            .getDiscussion(id)
+            .then((res) => {
+              setDetailsById((curr) => ({ ...curr, [id]: res }));
+            })
+            .catch((err) => toast.error(getErrorMessage(err)));
+        } else if (isMockMode && !detailsById[id]) {
+          setDetailsById((curr) => ({
+            ...curr,
+            [id]: {
+              thread: discussions.find(d => d.id === id)!,
+              replies: { data: [] }
+            }
+          }));
+        }
       }
       return next;
     });
-
-    if (!detailsById[id]) {
-      try {
-        const detail = await discussionService.getDiscussion(id);
-        setDetailsById((prev) => ({ ...prev, [id]: detail }));
-      } catch (error) {
-        toast.error(getErrorMessage(error));
-      }
-    }
   };
 
   const handleCreateDiscussion = async () => {

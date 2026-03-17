@@ -1204,7 +1204,7 @@ function InstructorDashboardContent() {
           {activeTab === 'schedule' && <SchedulePage />}
 
           {/* Materials */}
-          {activeTab === 'materials' && <UploadMaterialsPage courseId={materialsCourseId} />}
+          {activeTab === 'materials' && <UploadMaterialsPage courseId={materialsCourseId} isMockMode={isMockMode} />}
 
           {/* Roster */}
           {activeTab === 'roster' && (
@@ -1276,6 +1276,7 @@ function InstructorDashboardContent() {
                     setEditingStudent(student);
                     setIsEditOpen(true);
                   }}
+                  isMockMode={isMockMode}
                 />
               ) : (
                 <GradesTable
@@ -1457,14 +1458,18 @@ function InstructorDashboardContent() {
           )}
 
           {/* Announcements */}
-          {activeTab === 'announcements' && <AnnouncementsManager />}
+          {activeTab === 'announcements' && <AnnouncementsManager isMockMode={isMockMode} />}
 
           {/* Notifications */}
           {activeTab === 'notifications' && <NotificationsPage />}
 
           {/* Discussion */}
           {activeTab === 'discussion' && (
-            <DiscussionPage userRole="instructor" userName="Prof. Sarah Martinez" />
+            <DiscussionPage
+              userRole="instructor"
+              userName="Prof. Sarah Martinez"
+              isMockMode={isMockMode}
+            />
           )}
 
           {/* Chat */}

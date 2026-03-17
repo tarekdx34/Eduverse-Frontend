@@ -30,9 +30,10 @@ type RosterTableProps = {
     status: string;
     grade?: string;
   }) => void;
+  isMockMode?: boolean;
 };
 
-export function RosterTable({ sectionId, data = [] }: RosterTableProps) {
+export function RosterTable({ sectionId, data = [], isMockMode = false }: RosterTableProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortField, setSortField] = useState<'userId' | 'enrollmentDate' | 'status'>('userId');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
@@ -46,7 +47,7 @@ export function RosterTable({ sectionId, data = [] }: RosterTableProps) {
   const { t } = useLanguage();
 
   useEffect(() => {
-    if (!sectionId) {
+    if (!sectionId || isMockMode) {
       const fallbackRows = data.map((student) => ({
         id: String(student.id),
         userId: student.id,

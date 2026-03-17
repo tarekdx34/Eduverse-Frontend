@@ -36,6 +36,7 @@ import { toast } from 'sonner';
 
 type UploadMaterialsPageProps = {
   courseId?: string;
+  isMockMode?: boolean;
 };
 
 type UploadType = 'text' | 'file' | 'video';
@@ -109,7 +110,7 @@ const uploaderName = (material: CourseMaterial): string => {
   return 'Unknown';
 };
 
-export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
+export function UploadMaterialsPage({ courseId, isMockMode = false }: UploadMaterialsPageProps) {
   const { id: routeId } = useParams();
   const { isDark, primaryHex = '#3b82f6' } = useTheme() as any;
   const { isRTL } = useLanguage();
@@ -162,6 +163,14 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
   }, []);
 
   const loadCourseOptions = useCallback(async () => {
+    if (isMockMode) {
+      setCourseOptions([
+        { value: '1', label: 'CS101 - Mock Course 1' },
+        { value: '2', label: 'CS102 - Mock Course 2' },
+      ]);
+      if (!selectedCourseId) setSelectedCourseId('1');
+      return;
+    }
     try {
       const teaching = await EnrollmentService.getTeachingCourses();
       const mapped = (Array.isArray(teaching) ? teaching : [])
@@ -180,15 +189,31 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
     } catch {
       setCourseOptions([]);
     }
-  }, [selectedCourseId]);
+  }, [selectedCourseId, isMockMode]);
 
   const loadStructure = useCallback(async (targetCourseId: string) => {
+    if (isMockMode) {
+      setStructureResponse({ data: [], byWeek: { 1: [], 2: [], 3: [] } });
+      return;
+    }
     const response = await structureService.getStructure(targetCourseId);
     setStructureResponse(response || { data: [], byWeek: {} });
-  }, []);
+  }, [isMockMode]);
 
   const loadMaterials = useCallback(
     async (targetCourseId: string) => {
+      if (isMockMode) {
+        setMaterialsResponse({
+          data: [
+            { id: 1, title: 'Mock Syllabus', materialType: 'document', weekNumber: undefined, uploadUrl: '#' },
+            { id: 2, title: 'Week 1 Slides', materialType: 'slide', weekNumber: 1, uploadUrl: '#' },
+            { id: 3, title: 'Intro Video', materialType: 'video', weekNumber: 1, uploadUrl: '#' },
+            { id: 4, title: 'Reading Assignment', materialType: 'reading', weekNumber: 2, uploadUrl: '#' },
+          ] as any
+        });
+        return;
+      }
+
       const params: {
         materialType?: string;
         weekNumber?: number;
@@ -207,7 +232,7 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
       const response = await materialService.getMaterials(targetCourseId, params);
       setMaterialsResponse(response || { data: [] });
     },
-    [searchQuery, typeFilter, weekFilter]
+    [searchQuery, typeFilter, weekFilter, isMockMode]
   );
 
   const refetchAll = useCallback(async () => {

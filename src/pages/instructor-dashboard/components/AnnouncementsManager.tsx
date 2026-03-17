@@ -74,7 +74,7 @@ const formatDisplayDate = (value?: string) =>
     year: 'numeric',
   });
 
-export function AnnouncementsManager() {
+export function AnnouncementsManager({ isMockMode = false }: { isMockMode?: boolean }) {
   const { isDark, primaryHex = '#3b82f6' } = useTheme() as any;
 
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
@@ -93,6 +93,25 @@ export function AnnouncementsManager() {
   const [form, setForm] = useState<AnnouncementFormState>(emptyForm);
 
   const loadAnnouncements = useCallback(async () => {
+    if (isMockMode) {
+      setAnnouncements([
+        {
+          id: 'mock-1',
+          courseId: '1',
+          createdBy: 1,
+          title: 'Welcome to CS101',
+          content: 'This is a mock announcement for the mock course.',
+          isPublished: 1,
+          createdAt: new Date().toISOString(),
+          author: { firstName: 'System', lastName: 'Admin' },
+          course: { id: '1', name: 'Intro to CS', code: 'CS101' },
+          viewCount: 42,
+        },
+      ]);
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       const response = await announcementService.getAnnouncements();
@@ -102,7 +121,7 @@ export function AnnouncementsManager() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isMockMode]);
 
   useEffect(() => {
     loadAnnouncements();
