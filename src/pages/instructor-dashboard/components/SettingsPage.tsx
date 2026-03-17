@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   User,
   Lock,
@@ -9,23 +9,115 @@ import {
   Shield,
   AlertTriangle,
   Camera,
+  Loader2,
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { CleanSelect } from '../../../components/shared';
-
-
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { userService, UpdateProfileDto } from '../../../services/api/userService';
+import { toast } from 'sonner';
 export function SettingsPage() {
   const { t, isRTL } = useLanguage();
   const { isDark, primaryHex = '#3b82f6' } = useTheme() as any;
-  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
-  const [notifications, setNotifications] = useState({
-    newAssignments: true,
-    lateSubmissions: true,
-    newMessages: true,
-    courseChatMentions: false,
-    aiAssistantAlerts: true,
+
+  // React Query for Profile Data
+  const { data: profile, isLoading: profileLoading, refetch: refetchProfile } = useQuery({
+    queryKey: ['userProfile'],
+    queryFn: () => userService.getProfile(),
   });
+
+  // Local state for the editable profile shape
+  const [profileForm, setProfileForm] = useState<UpdateProfileDto>({
+    firstName: '',
+    lastName: '',
+    phone: '',
+    bio: '',
+  });
+
+  // Local state for Email (read-only for now)
+  const [profileEmail, setProfileEmail] = useState('');
+
+  useEffect(() => {
+    if (profile) {
+      setProfileForm({
+        firstName: profile.firstName || '',
+        lastName: profile.lastName || '',
+        phone: profile.phone || '',
+        bio: (profile as any).bio || '', // bio might not be strongly typed on User
+      });
+      setProfileEmail(profile.email || '');
+    }
+  }, [profile]);
+
+  const updateProfileMutation = useMutation({
+    mutationFn: (data: UpdateProfileDto) => userService.updateProfile(data),
+    onSuccess: () => {
+      toast.success(t('profileUpdated') || 'Profile updated successfully');
+      refetchProfile();
+    },
+    onError: (error: any) => {
+      toast.error(error?.message || 'Failed to update profile');
+    },
+  });
+
+  const handleProfileSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    updateProfileMutation.mutate({
+      firstName: profileForm.firstName,
+      lastName: profileForm.lastName,
+      phone: profileForm.phone,
+      bio: profileForm.bio,
+    });
+  };
+
+  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
+
+  // React Query for Preferences Data
+  const { data: preferences, isLoading: preferencesLoading, refetch: refetchPreferences } = useQuery({
+    queryKey: ['userPreferences'],
+    queryFn: () => userService.getPreferences(),
+  });
+
+  const [prefsForm, setPrefsForm] = useState({
+    emailNotifications: true,
+    pushNotifications: true,
+    language: 'en',
+  });
+
+  useEffect(() => {
+    if (preferences) {
+      setPrefsForm({
+        emailNotifications: preferences.emailNotifications ?? true,
+        pushNotifications: preferences.pushNotifications ?? true,
+        language: preferences.language ?? 'en',
+      });
+    }
+  }, [preferences]);
+
+  const updatePreferencesMutation = useMutation({
+    mutationFn: (data: any) => userService.updatePreferences(data),
+    onSuccess: () => {
+      toast.success(t('preferencesUpdated') || 'Preferences updated successfully');
+      refetchPreferences();
+    },
+    onError: (error: any) => {
+      toast.error(error?.message || 'Failed to update preferences');
+    },
+  });
+
+  const handleTogglePreference = (key: keyof typeof prefsForm) => {
+    const newValue = !prefsForm[key];
+    setPrefsForm((prev) => ({ ...prev, [key]: newValue }));
+    updatePreferencesMutation.mutate({ ...prefsForm, [key]: newValue });
+  };
+
+  const handleChangeLanguage = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newLang = e.target.value;
+    setPrefsForm((prev) => ({ ...prev, language: newLang }));
+    updatePreferencesMutation.mutate({ ...prefsForm, language: newLang });
+  };
+
   const [teachingPreferences, setTeachingPreferences] = useState({
     showStudentAnalytics: true,
     enableAutoGrading: true,
@@ -99,54 +191,53 @@ export function SettingsPage() {
           </div>
 
           {/* Form Fields */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <div>
-              <label
-                className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}
-              >
-                {t('fullName')}
-              </label>
-              <input
-                type="text"
-                defaultValue="Sarah Martinez"
-                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
-              />
-            </div>
-            <div>
-              <label
-                className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}
-              >
-                {t('academicTitle')}
-              </label>
-              <input
-                type="text"
-                defaultValue="Assistant Professor"
-                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
-              />
-            </div>
-            <div>
-              <label
-                className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}
-              >
-                {t('email')}
-              </label>
-              <input
-                type="email"
-                defaultValue="sarah.martinez@university.edu"
-                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
-              />
-            </div>
-            <div>
-              <label
-                className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}
-              >
-                {t('phoneNumber')}
-              </label>
-              <input
-                type="tel"
-                defaultValue="+1 (555) 123-4567"
-                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
-              />
+          <form onSubmit={handleProfileSubmit}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div>
+                <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                  First Name
+                </label>
+                <input
+                  type="text"
+                  value={profileForm.firstName}
+                  onChange={(e) => setProfileForm({ ...profileForm, firstName: e.target.value })}
+                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+                />
+              </div>
+              <div>
+                <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                  Last Name
+                </label>
+                <input
+                  type="text"
+                  value={profileForm.lastName}
+                  onChange={(e) => setProfileForm({ ...profileForm, lastName: e.target.value })}
+                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+                />
+              </div>
+              <div className="md:col-span-2">
+                <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                  {t('email')}
+                </label>
+                <input
+                  type="email"
+                  value={profileEmail}
+                  disabled
+                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 opacity-70 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-gray-100 border-gray-300 text-gray-900'}`}
+                />
+                <p className={`text-xs mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Email cannot be changed directly.</p>
+              </div>
+              <div>
+                <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                  {t('phoneNumber')}
+                </label>
+                <input
+                  type="tel"
+                  value={profileForm.phone}
+                  onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })}
+                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+                />
+              </div>
             </div>
             <div>
               <label
@@ -172,29 +263,31 @@ export function SettingsPage() {
                 className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
               />
             </div>
-          </div>
+            <div className="mb-6">
+              <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                {t('bioDescription')}
+              </label>
+              <textarea
+                rows={4}
+                value={profileForm.bio}
+                onChange={(e) => setProfileForm({ ...profileForm, bio: e.target.value })}
+                placeholder={t('bioPlaceholder')}
+                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white placeholder:text-gray-400' : 'bg-white border-gray-300 text-gray-900'}`}
+              />
+            </div>
 
-          <div className="mb-6">
-            <label
-              className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}
-            >
-              {t('bioDescription')}
-            </label>
-            <textarea
-              rows={4}
-              placeholder={t('bioPlaceholder')}
-              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white placeholder:text-gray-400' : 'bg-white border-gray-300 text-gray-900'}`}
-            />
-          </div>
-
-          <div className="flex justify-end">
-            <button
-              className="px-6 py-2 text-white rounded-lg transition-colors"
-              style={{ backgroundColor: primaryHex }}
-            >
-              {t('saveChanges')}
-            </button>
-          </div>
+            <div className="flex justify-end">
+              <button
+                type="submit"
+                disabled={profileLoading || updateProfileMutation.isPending}
+                className="flex items-center gap-2 px-6 py-2 text-white rounded-lg transition-colors disabled:opacity-70"
+                style={{ backgroundColor: primaryHex }}
+              >
+                {updateProfileMutation.isPending && <Loader2 size={16} className="animate-spin" />}
+                {updateProfileMutation.isPending ? 'Saving...' : t('saveChanges')}
+              </button>
+            </div>
+          </form>
         </div>
 
         {/* Account Settings */}
@@ -281,11 +374,8 @@ export function SettingsPage() {
 
             <div className="space-y-3">
               {Object.entries({
-                newAssignments: t('newAssignmentSubmissions'),
-                lateSubmissions: t('lateSubmissions'),
-                newMessages: t('newMessages'),
-                courseChatMentions: t('courseChatMentions'),
-                aiAssistantAlerts: t('aiAssistantAlerts'),
+                emailNotifications: t('emailNotifications') || 'Email Notifications',
+                pushNotifications: t('pushNotifications') || 'Push Notifications',
               }).map(([key, label]) => (
                 <div
                   key={key}
@@ -295,21 +385,17 @@ export function SettingsPage() {
                     {label}
                   </span>
                   <button
-                    onClick={() =>
-                      setNotifications({
-                        ...notifications,
-                        [key]: !notifications[key as keyof typeof notifications],
-                      })
-                    }
+                    onClick={() => handleTogglePreference(key as keyof typeof prefsForm)}
+                    disabled={updatePreferencesMutation.isPending}
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                      notifications[key as keyof typeof notifications]
+                      prefsForm[key as keyof typeof prefsForm]
                         ? 'bg-green-500'
                         : 'bg-gray-300'
-                    }`}
+                    } ${updatePreferencesMutation.isPending ? 'opacity-50' : ''}`}
                   >
                     <span
                       className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                        notifications[key as keyof typeof notifications]
+                        prefsForm[key as keyof typeof prefsForm]
                           ? 'translate-x-6'
                           : 'translate-x-1'
                       }`}
@@ -329,12 +415,15 @@ export function SettingsPage() {
               </h3>
             </div>
             <CleanSelect
-              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+              value={prefsForm.language}
+              onChange={handleChangeLanguage}
+              disabled={updatePreferencesMutation.isPending}
+              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} ${updatePreferencesMutation.isPending ? 'opacity-50' : ''}`}
             >
-              <option>English</option>
-              <option>Spanish</option>
-              <option>French</option>
-              <option>Arabic</option>
+              <option value="en">English</option>
+              <option value="es">Spanish</option>
+              <option value="fr">French</option>
+              <option value="ar">Arabic</option>
             </CleanSelect>
           </div>
         </div>

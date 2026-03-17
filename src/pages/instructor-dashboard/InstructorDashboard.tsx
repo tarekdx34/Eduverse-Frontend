@@ -533,12 +533,14 @@ function InstructorDashboardContent() {
   // Set default section on mount and when entering section-dependent tabs
   useEffect(() => {
     if (activeSectionId || !['roster', 'assignments', 'attendance'].includes(activeTab)) return;
-    const firstLive =
-      !isMockMode && teachingCoursesLive?.length
-        ? String(teachingCoursesLive[0].sectionId ?? teachingCoursesLive[0].id)
-        : null;
-    const firstMock = SECTIONS.length ? String(SECTIONS[0].sectionId) : null;
-    setActiveSectionId(firstLive || firstMock);
+    
+    if (isMockMode) {
+      const firstMock = SECTIONS.length ? String(SECTIONS[0].sectionId) : null;
+      setActiveSectionId(firstMock);
+    } else if (teachingCoursesLive?.length) {
+      const firstLive = String(teachingCoursesLive[0].sectionId ?? teachingCoursesLive[0].id);
+      setActiveSectionId(firstLive);
+    }
   }, [activeTab, activeSectionId, isMockMode, teachingCoursesLive]);
 
   // Disable browser's native scroll restoration so it doesn't fight our scroll calls
@@ -770,10 +772,18 @@ function InstructorDashboardContent() {
       ? selectedModalCourseId
       : Number(selectedCourseId ?? activeSectionId);
 
+    let formattedDescription = data.description || '';
+    if (data.assignmentType === 'lab') {
+      formattedDescription += `\n\n--- Lab Details ---\nRoom: ${data.labRoom || 'N/A'}\nObjectives: ${data.objectives || 'N/A'}\nEquipment: ${data.equipment || 'N/A'}\nProcedure: ${data.procedure || 'N/A'}`;
+      if (data.requireLabReport) formattedDescription += '\n* Lab Report Required';
+    } else if (data.assignmentType === 'project') {
+      formattedDescription += `\n\n--- Project Details ---\nScope: ${data.scope || 'N/A'}\nTeam Size: ${data.minTeamSize || 1} to ${data.maxTeamSize || 4}\nDeliverables: ${(data.deliverables || []).join(', ') || 'N/A'}`;
+    }
+
     const payload = {
       title: data.title,
-      description: data.description || '',
-      instructions: data.description || '',
+      description: formattedDescription,
+      instructions: formattedDescription,
       dueDate: data.dueDate ? new Date(data.dueDate).toISOString() : undefined,
       courseId: resolvedCourseId,
       status: toApiStatus(data.status),
@@ -791,7 +801,7 @@ function InstructorDashboardContent() {
           await AssignmentService.create(payload as any);
           toast.success('Assignment created successfully');
         }
-        queryClient.invalidateQueries({ queryKey: ['course-assignments', selectedCourseId] });
+        queryClient.invalidateQueries({ queryKey: ['course-assignments', activeSectionId] });
       } catch (err) {
         toast.error('Failed to save assignment');
         return;
@@ -830,7 +840,7 @@ function InstructorDashboardContent() {
       try {
         await AssignmentService.delete(String(assignmentToDelete));
         toast.success('Assignment deleted successfully');
-        queryClient.invalidateQueries({ queryKey: ['course-assignments', selectedCourseId] });
+        queryClient.invalidateQueries({ queryKey: ['course-assignments', activeSectionId] });
       } catch (err) {
         toast.error('Failed to delete assignment');
       }
@@ -861,7 +871,7 @@ function InstructorDashboardContent() {
         } else {
           await AssignmentService.updateStatus(String(id), toApiStatus(newStatus));
         }
-        queryClient.invalidateQueries({ queryKey: ['course-assignments', selectedCourseId] });
+        queryClient.invalidateQueries({ queryKey: ['course-assignments', activeSectionId] });
       } catch (err) {
         toast.error('Failed to update assignment status');
       }

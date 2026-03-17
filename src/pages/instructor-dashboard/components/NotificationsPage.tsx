@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Bell,
   Search,
@@ -21,6 +22,9 @@ import {
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useAuth } from '../../../context/AuthContext';
+import { NotificationService } from '../../../services/api/notificationService';
+import { toast } from 'sonner';
 
 interface Notification {
   id: number;
@@ -208,12 +212,68 @@ type Tab = 'all' | 'unread' | 'read';
 export function NotificationsPage() {
   const { isDark, primaryHex = '#3b82f6' } = useTheme() as any;
   const { isRTL } = useLanguage();
+  const { isAuthenticated } = useAuth();
+  const queryClient = useQueryClient();
+  const isMockMode = !isAuthenticated;
 
-  const [notifications, setNotifications] = useState<Notification[]>(initialNotifications);
   const [activeTab, setActiveTab] = useState<Tab>('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearch, setShowSearch] = useState(false);
+
+  // Queries
+  const { data: notificationsLive, isLoading } = useQuery({
+    queryKey: ['instructor-notifications'],
+    queryFn: () => NotificationService.getAll(),
+    enabled: !isMockMode,
+  });
+
+  const rawNotifications = useMemo(() => {
+    if (isMockMode) return initialNotifications;
+    if (!notificationsLive) return [];
+
+    return notificationsLive.map((n) => {
+      // mapping backend notification to frontend expected shape
+      return {
+        id: Number(n.id) || n.notificationId,
+        title: n.title,
+        message: n.body || n.message,
+        type: n.notificationType || n.type || 'system',
+        timestamp: new Date(n.createdAt).toLocaleString(),
+        read: n.isRead === 1 || n.read === true,
+        student: n.data?.studentName as string || null,
+        course: n.data?.courseCode as string || null,
+        icon: 'Bell', // fallback, mapped dynamically below if needed
+      } as unknown as Notification;
+    });
+  }, [notificationsLive, isMockMode]);
+
+  const [localNotifications, setLocalNotifications] = useState<Notification[]>([]);
+
+  useEffect(() => {
+    setLocalNotifications(rawNotifications);
+  }, [rawNotifications]);
+
+  const notifications = localNotifications;
+
+  // Mutations
+  const markAsReadMutation = useMutation({
+    mutationFn: (id: number) => NotificationService.markAsRead(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['instructor-notifications'] }),
+    onError: () => toast.error('Failed to mark notification as read'),
+  });
+
+  const markAllAsReadMutation = useMutation({
+    mutationFn: () => NotificationService.markAllAsRead(),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['instructor-notifications'] }),
+    onError: () => toast.error('Failed to mark all as read'),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => NotificationService.deleteNotification(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['instructor-notifications'] }),
+    onError: () => toast.error('Failed to delete notification'),
+  });
 
   const unreadCount = useMemo(() => notifications.filter((n) => !n.read).length, [notifications]);
 
@@ -258,15 +318,27 @@ export function NotificationsPage() {
   );
 
   const handleMarkAllRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    if (isMockMode) {
+      setLocalNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    } else {
+      markAllAsReadMutation.mutate();
+    }
   };
 
   const handleToggleRead = (id: number) => {
-    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: !n.read } : n)));
+    if (isMockMode) {
+      setLocalNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: !n.read } : n)));
+    } else {
+      markAsReadMutation.mutate(id);
+    }
   };
 
   const handleDelete = (id: number) => {
-    setNotifications((prev) => prev.filter((n) => n.id !== id));
+    if (isMockMode) {
+      setLocalNotifications((prev) => prev.filter((n) => n.id !== id));
+    } else {
+      deleteMutation.mutate(id);
+    }
   };
 
   const renderIcon = (iconName: string, className?: string) => {
@@ -479,7 +551,7 @@ export function NotificationsPage() {
       ) : (
         <div className="space-y-3">
           {filteredNotifications.map((notification) => {
-            const colors = typeColors[notification.type];
+            const colors = typeColors[notification.type] || typeColors.system;
             return (
               <div
                 key={notification.id}
