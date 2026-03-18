@@ -1,50 +1,158 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+=== SYNC IMPACT REPORT ===
+Version change: 0.0.0 → 1.0.0 (MAJOR: Initial constitution creation)
+
+Modified principles: N/A (initial creation)
+
+Added sections:
+  - Core Principles (6 principles defined)
+  - Technology Stack
+  - Development Workflow
+  - Governance
+
+Removed sections: N/A (initial creation)
+
+Templates requiring updates:
+  ✅ plan-template.md - Compatible (Constitution Check section exists)
+  ✅ spec-template.md - Compatible (User Scenarios align with UX principle)
+  ✅ tasks-template.md - Compatible (Phase structure supports principles)
+
+Follow-up TODOs: None
+========================
+-->
+
+# EduVerse Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Component Architecture
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+All UI features MUST be built using reusable, composable components following these rules:
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+- Components MUST be self-contained with clearly defined props interfaces
+- Radix UI primitives MUST be used as the foundation for accessible UI patterns
+- Component composition MUST follow the atomic design pattern (atoms → molecules → organisms → templates → pages)
+- Shared components MUST reside in `src/components/ui/` with feature-specific components in their respective page directories
+- Components MUST NOT contain business logic; delegate to hooks and services
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+**Rationale**: A consistent component architecture reduces duplication, improves maintainability, and ensures accessibility compliance across the educational platform.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### II. API Integration
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+All backend communication MUST follow the established service layer pattern:
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+- API calls MUST be encapsulated in service files under `src/services/api/`
+- The `useApi` hook MUST be used for data fetching with proper loading/error states
+- API response shapes MUST be mapped to component-friendly formats using `useMemo`
+- Error handling MUST provide user-friendly feedback via toast notifications
+- Authentication state MUST flow through `AuthContext` for all protected routes
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+**Rationale**: Centralized API integration ensures consistent error handling, simplifies backend contract changes, and maintains clear separation between data fetching and presentation.
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+### III. Authentication & Authorization
+
+Role-based access control MUST be enforced throughout the application:
+
+- Supported roles: `student`, `instructor`, `admin`, `it_admin`, `teaching_assistant`, `department_head`
+- Route protection MUST verify user roles before rendering protected content
+- Dashboard routing MUST use `getDashboardPath()` from `AuthContext`
+- API tokens MUST be stored securely and refreshed transparently
+- Unauthorized access attempts MUST redirect to appropriate error or login pages
+
+**Rationale**: Educational platforms handle sensitive student data; strict authorization prevents data leaks and ensures regulatory compliance.
+
+### IV. Accessibility (NON-NEGOTIABLE)
+
+All features MUST meet WCAG 2.1 Level AA compliance:
+
+- Interactive elements MUST be keyboard navigable with visible focus indicators
+- Form inputs MUST have associated labels and error announcements
+- Color contrast MUST meet minimum ratio requirements (4.5:1 for normal text)
+- Dynamic content changes MUST be announced to screen readers via ARIA live regions
+- Radix UI primitives MUST be used for complex interactions (dialogs, menus, tooltips)
+
+**Rationale**: Educational tools MUST be accessible to all learners, including those using assistive technologies. Accessibility is a legal and ethical requirement.
+
+### V. Code Quality
+
+All code MUST pass automated quality gates before merge:
+
+- ESLint rules MUST pass with zero errors (`npm run lint`)
+- Prettier formatting MUST be applied (`npm run format`)
+- TypeScript types SHOULD be used for new components and services
+- Code duplication MUST be minimized; extract shared logic to hooks or utilities
+- Console statements MUST NOT be committed to production code
+
+**Rationale**: Consistent code quality reduces bugs, improves readability, and simplifies onboarding for new contributors.
+
+### VI. User Experience
+
+All features MUST prioritize responsive, performant user experiences:
+
+- Layouts MUST adapt gracefully to mobile, tablet, and desktop viewports
+- Loading states MUST provide visual feedback within 100ms of user action
+- Page transitions MUST feel instant; use skeleton loaders for async content
+- Form validation MUST be immediate with inline error messages
+- Navigation MUST be intuitive with consistent breadcrumbs and visual hierarchy
+
+**Rationale**: Educational engagement depends on a frictionless user experience; slow or confusing interfaces lead to student dropout.
+
+## Technology Stack
+
+The following technology choices are binding for all features:
+
+| Layer | Technology | Version/Notes |
+|-------|------------|---------------|
+| Framework | React | 19.x with hooks |
+| Build | Vite (rolldown) | Fast HMR, ESM-native |
+| Styling | Tailwind CSS | 4.x utility-first |
+| UI Primitives | Radix UI | Accessible components |
+| State | React Context + TanStack Query | Server state caching |
+| Routing | React Router | v7.x |
+| Forms | React Hook Form + Zod | Schema validation |
+| HTTP Client | Axios | Centralized in ApiClient |
+| Icons | Lucide React | Consistent iconography |
+| Charts | Recharts | Dashboard visualizations |
+
+**Constraints**:
+- Bundle size MUST remain under 500KB gzipped for initial load
+- Largest Contentful Paint MUST be under 2.5 seconds on 3G
+- No jQuery or legacy DOM manipulation libraries
+
+## Development Workflow
+
+All contributions MUST follow this workflow:
+
+1. **Branch**: Create feature branch from `main` using naming convention `<issue>-<feature-name>`
+2. **Develop**: Implement following constitution principles; run `npm run lint` frequently
+3. **Test**: Verify feature works across supported browsers (Chrome, Firefox, Safari, Edge)
+4. **Format**: Run `npm run format` before committing
+5. **Commit**: Use conventional commit messages (`feat:`, `fix:`, `docs:`, `refactor:`)
+6. **Review**: All PRs require at least one reviewer approval
+7. **Merge**: Squash merge to `main`; delete feature branch
+
+**Quality Gates**:
+- Lint MUST pass
+- Build MUST succeed (`npm run build`)
+- No console errors in browser dev tools
+- Responsive design verified on mobile viewport
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+This constitution supersedes all informal practices and conflicting documentation.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**Amendment Process**:
+1. Propose changes via PR to this document with rationale
+2. Team review and discussion required
+3. Approval from project lead required for principle changes
+4. Version bump follows semantic versioning:
+   - MAJOR: Principle removal or redefinition
+   - MINOR: New principle or section added
+   - PATCH: Clarifications and typo fixes
+
+**Compliance**:
+- All PRs MUST be verified against relevant principles before approval
+- Complexity beyond constitution guidelines MUST be documented with justification
+- Violations MUST be raised and resolved before merge
+
+**Version**: 1.0.0 | **Ratified**: 2026-03-18 | **Last Amended**: 2026-03-18

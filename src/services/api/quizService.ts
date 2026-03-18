@@ -174,6 +174,11 @@ export class QuizService {
     return ApiClient.get<QuizAttempt>('/quizzes/attempts/' + attemptId);
   }
 
+  // Save progress (auto-save) - PATCH /quizzes/:quizId/attempts/:attemptId/progress
+  static async saveProgress(quizId: string, attemptId: string, answers: { questionId: number; selectedOption?: string[]; answerText?: string }[]): Promise<QuizAttempt> {
+    return ApiClient.patch<QuizAttempt>('/quizzes/' + quizId + '/attempts/' + attemptId + '/progress', { answers });
+  }
+
   // Get my attempts - GET /quizzes/my-attempts
   static async getMyAttempts(quizId?: string): Promise<QuizAttempt[]> {
     const params = quizId ? { quizId } : undefined;
@@ -217,6 +222,11 @@ export class QuizService {
   // Get difficulty levels - GET /quizzes/difficulty-levels
   static async getDifficultyLevels(): Promise<string[]> {
     return ApiClient.get<string[]>('/quizzes/difficulty-levels');
+  }
+
+  // Save progress (auto-save) - PATCH /quizzes/:quizId/attempts/:attemptId/progress
+  static async saveProgress(quizId: string, attemptId: string, answers: { questionId: number; selectedOption?: string[]; answerText?: string }[]): Promise<QuizAttempt> {
+    return ApiClient.patch<QuizAttempt>('/quizzes/' + quizId + '/attempts/' + attemptId + '/progress', { answers });
   }
 }
 

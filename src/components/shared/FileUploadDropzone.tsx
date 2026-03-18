@@ -1,6 +1,33 @@
 import React, { useState, useCallback, useRef } from 'react';
 import { Upload, X, File, Image, Video, FileText, Check, AlertCircle } from 'lucide-react';
 
+// File validation constants (T013)
+export const ALLOWED_FILE_EXTENSIONS = [
+  'pdf', 'docx', 'doc', 'zip', 'png', 'jpg', 'jpeg', 'gif', 'txt', 'md', 'js', 'ts', 'py', 'java', 'c', 'cpp', 'h',
+];
+
+export const ALLOWED_MIME_TYPES = [
+  'application/pdf',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/zip',
+  'image/png',
+  'image/jpeg',
+  'image/gif',
+  'text/plain',
+  'text/markdown',
+  'application/x-python',
+  'text/javascript',
+  'text/typescript',
+  'text/x-java-source',
+  'text/x-c',
+  'text/x-c++src',
+  'text/x-csrc',
+];
+
+export const MAX_FILE_SIZE_MB = 10; // 10MB
+export const LARGE_FILE_THRESHOLD_MB = 1; // Show progress for files > 1MB
+
 export interface UploadedFile {
   id: string;
   file: File;
@@ -22,6 +49,16 @@ interface FileUploadDropzoneProps {
   multiple?: boolean;
 }
 
+const getFileExtension = (filename: string): string => {
+  const ext = filename.split('.').pop()?.toLowerCase() || '';
+  return ext;
+};
+
+const isValidFileType = (file: File): boolean => {
+  const ext = getFileExtension(file.name);
+  return ALLOWED_FILE_EXTENSIONS.includes(ext) || ALLOWED_MIME_TYPES.includes(file.type);
+};
+
 const getFileIcon = (type: string) => {
   if (type.startsWith('image/')) return Image;
   if (type.startsWith('video/')) return Video;
@@ -39,9 +76,9 @@ const formatFileSize = (bytes: number): string => {
 
 export function FileUploadDropzone({
   onFilesUploaded,
-  acceptedTypes = ['application/pdf', 'image/*', 'video/*', '.doc', '.docx', '.ppt', '.pptx'],
+  acceptedTypes,
   maxFiles = 10,
-  maxSizeInMB = 50,
+  maxSizeInMB = MAX_FILE_SIZE_MB,
   className = '',
   showPreview = true,
   multiple = true,
@@ -82,10 +119,18 @@ export function FileUploadDropzone({
       }
 
       const validFiles: UploadedFile[] = [];
+      const errors: string[] = [];
 
       for (const file of fileArray) {
-        if (file.size > maxSizeInMB * 1024 * 1024) {
-          setError(`File "${file.name}" exceeds ${maxSizeInMB}MB limit`);
+        // T013.1: Client-side file type validation
+        if (!isValidFileType(file)) {
+          errors.push(`File "${file.name}" has invalid type. Allowed: ${ALLOWED_FILE_EXTENSIONS.join(', ')}`);
+          continue;
+        }
+
+        // T013.1: Client-side file size validation
+        if (file.size > (maxSizeInMB || MAX_FILE_SIZE_MB) * 1024 * 1024) {
+          errors.push(`File "${file.name}" exceeds ${maxSizeInMB || MAX_FILE_SIZE_MB}MB limit`);
           continue;
         }
 
@@ -106,9 +151,15 @@ export function FileUploadDropzone({
         validFiles.push(uploadFile);
       }
 
-      setUploadedFiles((prev) => [...prev, ...validFiles]);
-      validFiles.forEach(simulateUpload);
-      onFilesUploaded([...uploadedFiles, ...validFiles]);
+      if (errors.length > 0) {
+        setError(errors[0]);
+      }
+
+      if (validFiles.length > 0) {
+        setUploadedFiles((prev) => [...prev, ...validFiles]);
+        validFiles.forEach(simulateUpload);
+        onFilesUploaded([...uploadedFiles, ...validFiles]);
+      }
     },
     [uploadedFiles, maxFiles, maxSizeInMB, showPreview, simulateUpload, onFilesUploaded]
   );
@@ -225,13 +276,16 @@ export function FileUploadDropzone({
             <span>•</span>
             <span>Images</span>
             <span>•</span>
-            <span>Videos</span>
-            <span>•</span>
             <span>Documents</span>
+            <span>•</span>
+            <span>Code</span>
           </div>
 
           <p className="text-xs text-gray-400">
-            Max {maxFiles} files, up to {maxSizeInMB}MB each
+            Max {maxFiles} files, up to {maxSizeInMB || MAX_FILE_SIZE_MB}MB each
+          </p>
+          <p className="text-xs text-gray-400">
+            Allowed: {ALLOWED_FILE_EXTENSIONS.join(', ')}
           </p>
         </div>
       </div>
@@ -289,12 +343,27 @@ export function FileUploadDropzone({
 
                     {/* Progress Bar */}
                     {file.status === 'uploading' && (
-                      <div className="mt-1 h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-indigo-600 rounded-full transition-all duration-300"
-                          style={{ width: `${file.progress}%` }}
-                        />
-                      </div>
+                      <>
+                        {file.size > LARGE_FILE_THRESHOLD_MB * 1024 * 1024 && (
+                          <div className="mt-1 flex items-center gap-2">
+                            <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden flex-1">
+                              <div
+                                className="h-full bg-indigo-600 rounded-full transition-all duration-300"
+                                style={{ width: `${file.progress}%` }}
+                              />
+                            </div>
+                            <span className="text-xs text-gray-500 w-8 text-right">{Math.round(file.progress)}%</span>
+                          </div>
+                        )}
+                        {file.size <= LARGE_FILE_THRESHOLD_MB * 1024 * 1024 && (
+                          <div className="mt-1 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-indigo-600 rounded-full transition-all duration-300"
+                              style={{ width: `${file.progress}%` }}
+                            />
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
 

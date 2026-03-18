@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 
 type Language = 'en' | 'ar';
 
@@ -11,15 +12,34 @@ interface LanguageContextType {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [language, setLanguage] = useState<Language>('en');
+  const { i18n } = useTranslation();
+  const currentLanguage = (i18n.language || 'en') as Language;
 
-  const t = (en: string, ar: string) => {
-    return language === 'en' ? en : ar;
+  // Fallback t function for backward compatibility
+  const t = (en: string, ar: string): string => {
+    return currentLanguage === 'en' ? en : ar;
   };
 
+  const setLanguage = (lang: Language) => {
+    i18n.changeLanguage(lang);
+  };
+
+  // Ensure RTL/LTR is set correctly
+  useEffect(() => {
+    const htmlElement = document.documentElement;
+    htmlElement.lang = currentLanguage;
+    htmlElement.dir = currentLanguage === 'ar' ? 'rtl' : 'ltr';
+    
+    // Also update body dir for compatibility
+    document.body.dir = currentLanguage === 'ar' ? 'rtl' : 'ltr';
+    
+    // Store preference
+    localStorage.setItem('preferredLanguage', currentLanguage);
+  }, [currentLanguage]);
+
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t }}>
-      <div dir={language === 'ar' ? 'rtl' : 'ltr'}>
+    <LanguageContext.Provider value={{ language: currentLanguage, setLanguage, t }}>
+      <div dir={currentLanguage === 'ar' ? 'rtl' : 'ltr'}>
         {children}
       </div>
     </LanguageContext.Provider>

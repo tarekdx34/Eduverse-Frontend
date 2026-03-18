@@ -1,4 +1,4 @@
-﻿import {
+import {
   Calendar,
   Clock,
   FileText,
@@ -15,8 +15,11 @@
   Download,
   Eye,
   Loader2,
+  Check,
+  X as XIcon,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import AssignmentDetails from './AssignmentDetails';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -205,6 +208,7 @@ const getStatusIcon = (status: string, submissionStatus?: string) => {
 
 export default function Assignments() {
   const [filterStatus, setFilterStatus] = useState('all');
+  const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<number | null>(null);
   const [assignmentsWithSubmissions, setAssignmentsWithSubmissions] = useState<any[]>([]);
@@ -249,17 +253,27 @@ export default function Assignments() {
       try {
         const assignmentsWithStatus = await Promise.all(
           apiAssignments.map(async (assignment) => {
-            const submission = await AssignmentService.getMySubmission(assignment.apiId);
-            return {
-              ...assignment,
-              submissionStatus: submission?.submissionStatus || 'not-submitted',
-              submittedPoints: submission?.score ? parseFloat(submission.score) : null,
-            };
+            try {
+              const submission = await AssignmentService.getMySubmission(assignment.apiId);
+              return {
+                ...assignment,
+                submissionStatus: submission?.submissionStatus || 'not-submitted',
+                submittedPoints: submission?.score ? parseFloat(submission.score) : null,
+              };
+            } catch (error) {
+              console.error(`Failed to load submission for assignment ${assignment.apiId}:`, error);
+              return {
+                ...assignment,
+                submissionStatus: 'not-submitted',
+                submittedPoints: null,
+              };
+            }
           })
         );
         setAssignmentsWithSubmissions(assignmentsWithStatus);
       } catch (error) {
         console.error('Failed to load submission statuses:', error);
+        toast.error('Failed to load submission statuses. Please try again.');
         // Fallback: use assignments without submission status
         setAssignmentsWithSubmissions(apiAssignments);
       } finally {
@@ -270,9 +284,7 @@ export default function Assignments() {
     loadSubmissionStatuses();
   }, [apiAssignments]);
 
-  const assignments = assignmentsWithSubmissions.length > 0 ? assignmentsWithSubmissions : 
-                      (apiAssignments && apiAssignments.length > 0) ? apiAssignments : 
-                      defaultAssignments;
+  const assignments = assignmentsWithSubmissions.length > 0 ? assignmentsWithSubmissions : apiAssignments || [];
 
   const getUrgencyLabel = (daysUntil: number) => {
     if (daysUntil < 0)
@@ -317,6 +329,22 @@ export default function Assignments() {
   const completedAssignments = assignments.filter(
     (a) => a.submissionStatus === 'submitted' || a.submissionStatus === 'graded'
   );
+  const submittedAssignments = assignments.filter(
+    (a) => a.submissionStatus === 'submitted'
+  );
+  const gradedAssignments = assignments.filter(
+    (a) => a.submissionStatus === 'graded'
+  );
+
+  // Apply filter
+  let filteredAssignments = assignments;
+  if (filterStatus === 'pending') {
+    filteredAssignments = pendingAssignments;
+  } else if (filterStatus === 'submitted') {
+    filteredAssignments = submittedAssignments;
+  } else if (filterStatus === 'graded') {
+    filteredAssignments = gradedAssignments;
+  }
 
   if (apiLoading || isLoadingSubmissions) {
     return (
@@ -411,17 +439,47 @@ export default function Assignments() {
                 {t('trackManageWork')}
               </p>
             </div>
-            <button
-              className={`flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl text-sm transition-all ${isDark ? 'border-white/10 text-slate-400 hover:bg-white/5' : 'border-slate-100 text-slate-700 hover:bg-slate-50'}`}
-            >
-              <SlidersHorizontal className="w-4 h-4" />
-              Filter
-            </button>
+            <div className="relative">
+              <button
+                onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+                className={`flex items-center gap-2 px-4 py-2.5 border-2 rounded-xl text-sm transition-all ${isDark ? 'border-white/10 text-slate-400 hover:bg-white/5' : 'border-slate-100 text-slate-700 hover:bg-slate-50'}`}
+              >
+                <SlidersHorizontal className="w-4 h-4" />
+                Filter
+              </button>
+              {showFilterDropdown && (
+                <div className={`absolute top-full right-0 mt-2 w-48 rounded-lg shadow-lg z-50 ${isDark ? 'bg-card-dark border border-white/10' : 'bg-white border border-slate-200'}`}>
+                  <div className="p-2">
+                    {['all', 'pending', 'submitted', 'graded'].map((status) => (
+                      <button
+                        key={status}
+                        onClick={() => {
+                          setFilterStatus(status);
+                          setShowFilterDropdown(false);
+                        }}
+                        className={`w-full flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm transition-all ${
+                          filterStatus === status
+                            ? isDark
+                              ? 'bg-white/10 text-white'
+                              : 'bg-blue-50 text-blue-700'
+                            : isDark
+                            ? 'text-slate-300 hover:bg-white/5'
+                            : 'text-slate-700 hover:bg-slate-50'
+                        }`}
+                      >
+                        {filterStatus === status && <Check className="w-4 h-4" />}
+                        <span className="capitalize">{status === 'all' ? 'All Assignments' : status}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
         <div className="p-6 space-y-4">
-          {pendingAssignments.length === 0 ? (
+          {filteredAssignments.length === 0 ? (
             <div className="text-center py-12">
               <div
                 className={`w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 ${isDark ? 'bg-white/5' : 'bg-slate-50'}`}
@@ -431,15 +489,15 @@ export default function Assignments() {
                 />
               </div>
               <h3 className={`mb-2 font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>
-                {t('allCaughtUp')}
+                {filterStatus === 'all' ? t('allCaughtUp') : `No ${filterStatus} assignments`}
               </h3>
               <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
-                {t('noPendingAssignments')}
+                {filterStatus === 'all' ? t('noPendingAssignments') : `You don't have any ${filterStatus} assignments right now.`}
               </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {pendingAssignments.map((assignment) => {
+              {filteredAssignments.map((assignment) => {
                 const daysUntil = getDaysUntilDue(assignment.dueDate);
                 const urgency = getUrgencyLabel(daysUntil);
 
@@ -856,3 +914,4 @@ export default function Assignments() {
     </div>
   );
 }
+

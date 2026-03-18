@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
 import {
@@ -22,9 +22,12 @@ import {
   Settings,
   Bot,
   Loader2,
+  Check,
 } from 'lucide-react';
 import { useApi } from '../../../hooks/useApi';
+import { useQuizTimer } from '../../../hooks/useQuizTimer';
 import { QuizService } from '../../../services/api/quizService';
+import { toast } from 'sonner';
 
 // --- Mock Data ---
 
@@ -196,8 +199,16 @@ const getLetterGrade = (pct: number) => {
 export const QuizTaking = () => {
   const { isDark, primaryHex } = useTheme() as any;
   const accentColor = primaryHex || '#3b82f6';
-  const { isRTL } = useLanguage();
+  const { isRTL, t, language } = useLanguage();
   const hasToken = !!localStorage.getItem('accessToken');
+
+  // Locale-aware date formatting helper
+  const formatDate = (dateString: string | null | undefined, options?: Intl.DateTimeFormatOptions) => {
+    if (!dateString) return '';
+    const locale = language === 'ar' ? 'ar-EG' : 'en-US';
+    const defaultOptions: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric', year: 'numeric' };
+    return new Date(dateString).toLocaleDateString(locale, options || defaultOptions);
+  };
   
   // Fetch quizzes from API - returns { data: Quiz[], total: number }
   const { data: apiResponse, loading } = useApi(
@@ -245,9 +256,9 @@ export const QuizTaking = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [skippedQuestions, setSkippedQuestions] = useState<Set<string>>(new Set());
-  const [timeLeft, setTimeLeft] = useState(0);
   const [showNavigator, setShowNavigator] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
+  const [autoSaveIndicator, setAutoSaveIndicator] = useState(false);
   
   // API state for quiz attempt
   const [currentAttempt, setCurrentAttempt] = useState<any>(null);
@@ -256,23 +267,109 @@ export const QuizTaking = () => {
   const [startingQuiz, setStartingQuiz] = useState(false);
   const [submittingQuiz, setSubmittingQuiz] = useState(false);
   const [quizResult, setQuizResult] = useState<any>(null);
+  const [remainingAttempts, setRemainingAttempts] = useState<number | null>(null);
+  const [timeLimit, setTimeLimit] = useState(0);
+  const [quizAttempts, setQuizAttempts] = useState<Record<string, number>>({}); // Track remaining attempts per quiz
+  
+  // Auto-save tracking
+  const lastAutoSaveRef = useRef<Record<string, any>>({});
 
   const questions = quizQuestions.length > 0 ? quizQuestions : mockQuestions;
   const currentQuestion = questions[currentQuestionIndex];
-
-  // Timer
+  
+  // Load remaining attempts for all quizzes
   useEffect(() => {
-    if (view !== 'active') return;
-    if (timeLeft <= 0) return;
-    const timer = setInterval(() => setTimeLeft((t) => (t <= 1 ? 0 : t - 1)), 1000);
-    return () => clearInterval(timer);
-  }, [view, timeLeft]);
-
-  const formatTime = (s: number) => {
-    const m = Math.floor(s / 60);
-    const sec = s % 60;
-    return `${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
-  };
+    const loadAttempts = async () => {
+      if (!hasToken || !apiResponse?.data) return;
+      try {
+        const myAttempts = await QuizService.getMyAttempts();
+        const attemptsByQuiz: Record<string, number> = {};
+        
+        apiResponse.data.forEach((quiz) => {
+          const quizAttempts = myAttempts.filter(a => a.quizId === quiz.id).length;
+          const remaining = Math.max(0, quiz.maxAttempts - quizAttempts);
+          attemptsByQuiz[quiz.id] = remaining;
+        });
+        
+        setQuizAttempts(attemptsByQuiz);
+      } catch (err) {
+        console.warn('Failed to load attempt counts:', err);
+      }
+    };
+    
+    loadAttempts();
+  }, [apiResponse, hasToken]);
+  
+  // Auto-submit function - to be passed to timer
+  const handleTimeExpired = useCallback(async () => {
+    if (submittingQuiz) return; // Prevent double-submit
+    await submitQuiz();
+  }, [submittingQuiz]);
+  
+  // Auto-save function for useQuizTimer
+  const handleAutoSave = useCallback(async () => {
+    if (!currentAttemptId || !currentAttempt) {
+      console.warn('Cannot auto-save: no active attempt');
+      return;
+    }
+    
+    try {
+      // Transform answers to API format
+      const answersArray = quizQuestions.map((q) => {
+        const value = answers[String(q.id)];
+        
+        if (q.questionType === 'mcq') {
+          return {
+            questionId: Number(q.id),
+            selectedOption: value ? [value] : [],
+            answerText: undefined
+          };
+        } else if (q.questionType === 'true_false') {
+          return {
+            questionId: Number(q.id),
+            selectedOption: undefined,
+            answerText: value || ''
+          };
+        } else {
+          return {
+            questionId: Number(q.id),
+            selectedOption: undefined,
+            answerText: value || ''
+          };
+        }
+      }).filter(a => (a.selectedOption && a.selectedOption.length > 0) || a.answerText);
+      
+      // Only save if answers have changed
+      const currentAnswerHash = JSON.stringify(answersArray);
+      if (currentAnswerHash === JSON.stringify(lastAutoSaveRef.current)) {
+        return; // No changes, skip save
+      }
+      
+      setAutoSaveIndicator(true);
+      await QuizService.saveProgress(currentAttempt.quizId, currentAttemptId, answersArray);
+      lastAutoSaveRef.current = answersArray;
+      toast.success('Auto-saved');
+    } catch (error) {
+      console.error('Auto-save failed:', error);
+      toast.error('Auto-save failed');
+    } finally {
+      setAutoSaveIndicator(false);
+    }
+  }, [currentAttemptId, currentAttempt, quizQuestions, answers]);
+  
+  // Use timer hook only when quiz is active and has a time limit
+  const {
+    timeRemaining,
+    isExpired,
+    timeRemainingFormatted,
+    isAutoSaving,
+    reset: resetTimer
+  } = useQuizTimer({
+    timeLimit: timeLimit || 0,
+    onTimeExpired: handleTimeExpired,
+    onAutoSave: handleAutoSave,
+    autoSaveInterval: 30,
+  });
 
   const startQuiz = async (quiz: (typeof availableQuizzes)[0]) => {
     setStartingQuiz(true);
@@ -281,7 +378,7 @@ export const QuizTaking = () => {
       const attempt = await QuizService.startAttempt(quiz.id);
       
       // Extract questions from attempt response
-      const questionsFromAttempt = attempt.quiz?.questions || [];
+      const questionsFromAttempt = attempt.questions || [];
       
       setCurrentAttempt(attempt);
       setCurrentAttemptId(attempt.id); // Store as string
@@ -290,23 +387,26 @@ export const QuizTaking = () => {
       setCurrentQuestionIndex(0);
       setAnswers({});
       setSkippedQuestions(new Set());
+      lastAutoSaveRef.current = {};
       
-      // Set timer if quiz has time limit
-      const timeLimitMinutes = attempt.quiz.timeLimitMinutes;
-      if (timeLimitMinutes) {
-        setTimeLeft(timeLimitMinutes * 60);
-      } else {
-        setTimeLeft(0); // No time limit
-      }
+      // Set timer if quiz has time limit - use timeLimit state variable
+      const timeLimitSeconds = (attempt.timeLimit || 30) * 60; // Convert minutes to seconds
+      setTimeLimit(timeLimitSeconds);
+      
+      // Calculate remaining attempts
+      const maxAttempts = quiz.maxAttempts || attempt.maxAttempts || 0;
+      const myAttempts = (await QuizService.getMyAttempts(quiz.id)) || [];
+      const remaining = Math.max(0, maxAttempts - myAttempts.length);
+      setRemainingAttempts(remaining);
       
       setView('active');
     } catch (error: any) {
       console.error('Failed to start quiz:', error);
       // Check if it's max attempts error
       if (error.message?.includes('Maximum attempts')) {
-        alert('You have used all your attempts for this quiz.');
+        toast.error('You have used all your attempts for this quiz.');
       } else {
-        alert('Failed to start quiz. Please try again.');
+        toast.error('Failed to start quiz. Please try again.');
       }
     } finally {
       setStartingQuiz(false);
@@ -380,11 +480,6 @@ export const QuizTaking = () => {
     }
   }, [currentAttempt, currentAttemptId, answers, quizQuestions]);
 
-  // Auto-submit on timer end
-  useEffect(() => {
-    if (view === 'active' && timeLeft === 0) submitQuiz();
-  }, [view, timeLeft, submitQuiz]);
-
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -446,17 +541,17 @@ export const QuizTaking = () => {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              Quiz Center
+              {t('quizzes.quizCenter')}
             </h2>
             <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-              Test Your Knowledge and Track Your Progress
+              {t('quizzes.testKnowledge')}
             </p>
           </div>
         </div>
 
         {/* Available Quizzes */}
         <div>
-          <h2 className={`text-lg font-semibold mb-4 ${textPrimary}`}>Available Quizzes</h2>
+          <h2 className={`text-lg font-semibold mb-4 ${textPrimary}`}>{t('quizzes.availableQuizzes')}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {availableQuizzes.map((quiz) => (
               <div
@@ -490,6 +585,13 @@ export const QuizTaking = () => {
                     <Clock className="w-4 h-4" />
                     <span>{quiz.duration}</span>
                   </div>
+                  {quiz.maxAttempts && (
+                    <div className={`flex items-center gap-1 ${textSecondary}`}>
+                      <span className="text-xs">
+                        {quizAttempts[quiz.id] || 0}/{quiz.maxAttempts} attempts
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex items-center justify-between">
@@ -500,16 +602,17 @@ export const QuizTaking = () => {
                   </span>
                   <button
                     onClick={() => startQuiz(quiz)}
-                    disabled={startingQuiz}
+                    disabled={startingQuiz || (quiz.maxAttempts && quizAttempts[quiz.id] === 0)}
+                    title={quiz.maxAttempts && quizAttempts[quiz.id] === 0 ? 'No more attempts available' : ''}
                     className="px-5 py-2 rounded-xl bg-[var(--accent-color)] text-white text-sm font-medium hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                   >
                     {startingQuiz ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin" />
-                        Starting...
+                        {t('quizzes.loadingQuizzes')}
                       </>
                     ) : (
-                      'Start Quiz'
+                      t('quizzes.startQuiz')
                     )}
                   </button>
                 </div>
@@ -520,7 +623,7 @@ export const QuizTaking = () => {
 
         {/* Recent Results */}
         <div>
-          <h2 className={`text-lg font-semibold mb-4 ${textPrimary}`}>Recent Results</h2>
+          <h2 className={`text-lg font-semibold mb-4 ${textPrimary}`}>{t('quizzes.viewResults')}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {recentResults.map((r, idx) => {
               const pct = Math.round((r.score / r.total) * 100);
@@ -592,14 +695,25 @@ export const QuizTaking = () => {
 
           <div className="flex items-center gap-3">
             <div
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl ${timeLeft <= 60 ? 'bg-red-500/10 text-red-500' : isDark ? 'bg-white/5 text-white' : 'bg-slate-100 text-slate-700'}`}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl ${timeRemaining <= 60 ? 'bg-red-500/10 text-red-500' : isDark ? 'bg-white/5 text-white' : 'bg-slate-100 text-slate-700'}`}
+              role="region"
+              aria-label="Quiz timer"
+              aria-live="polite"
+              aria-atomic="true"
             >
               <Clock className="w-4 h-4" />
-              <span className="font-mono font-semibold text-sm">{formatTime(timeLeft)}</span>
+              <span className="font-mono font-semibold text-sm">{timeRemainingFormatted}</span>
             </div>
+            {autoSaveIndicator || isAutoSaving ? (
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-green-500/10 text-green-600">
+                <Check className="w-4 h-4" />
+                <span className="text-xs font-medium">Auto-saving...</span>
+              </div>
+            ) : null}
             <button
               onClick={() => setShowNavigator(true)}
               className={`p-2 rounded-xl ${isDark ? 'hover:bg-white/10' : 'hover:bg-slate-100'} transition-colors`}
+              aria-label="Open question navigator"
             >
               <Grid3X3 className={`w-5 h-5 ${textPrimary}`} />
             </button>
@@ -749,6 +863,12 @@ export const QuizTaking = () => {
           <button
             onClick={() => setCurrentQuestionIndex((i) => i - 1)}
             disabled={currentQuestionIndex === 0}
+            onKeyDown={(e) => {
+              if (e.key === 'ArrowLeft' && currentQuestionIndex > 0) {
+                setCurrentQuestionIndex((i) => i - 1);
+              }
+            }}
+            aria-label={`Previous question (Question ${currentQuestionIndex})`}
             className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium text-sm transition-colors ${
               currentQuestionIndex === 0
                 ? 'opacity-40 cursor-not-allowed'
@@ -762,6 +882,7 @@ export const QuizTaking = () => {
 
           <button
             onClick={skipQuestion}
+            aria-label="Skip current question"
             className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-500/10 text-amber-600 font-medium text-sm hover:bg-amber-500/20 transition-colors"
           >
             <SkipForward className="w-4 h-4" /> Skip
@@ -770,6 +891,12 @@ export const QuizTaking = () => {
           {currentQuestionIndex < questions.length - 1 ? (
             <button
               onClick={() => setCurrentQuestionIndex((i) => i + 1)}
+              onKeyDown={(e) => {
+                if (e.key === 'ArrowRight' && currentQuestionIndex < questions.length - 1) {
+                  setCurrentQuestionIndex((i) => i + 1);
+                }
+              }}
+              aria-label={`Next question (Question ${currentQuestionIndex + 2})`}
               className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[var(--accent-color)] text-white font-medium text-sm hover:opacity-90 transition-colors"
             >
               Next <ChevronRight className="w-4 h-4" />
@@ -777,7 +904,9 @@ export const QuizTaking = () => {
           ) : (
             <button
               onClick={submitQuiz}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#10B981] text-white font-medium text-sm hover:bg-[#059669] transition-colors"
+              disabled={submittingQuiz}
+              aria-label="Submit quiz"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#10B981] text-white font-medium text-sm hover:bg-[#059669] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Send className="w-4 h-4" /> Submit
             </button>
@@ -791,7 +920,7 @@ export const QuizTaking = () => {
               className={`${isDark ? 'bg-[#1a1a2e]' : 'bg-white'} rounded-[2.5rem] p-6 w-full max-w-md shadow-2xl`}
             >
               <div className="flex items-center justify-between mb-5">
-                <h3 className={`font-bold text-lg ${textPrimary}`}>Question Navigator</h3>
+                <h3 className={`font-bold text-lg ${textPrimary}`}>{t('quizzes.questionNavigator')}</h3>
                 <button
                   onClick={() => setShowNavigator(false)}
                   className={`p-1.5 rounded-lg ${isDark ? 'hover:bg-white/10' : 'hover:bg-slate-100'}`}

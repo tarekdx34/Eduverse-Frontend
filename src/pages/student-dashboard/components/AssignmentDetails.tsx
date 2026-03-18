@@ -14,8 +14,10 @@ import {
   File,
   Loader2,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { toast } from 'sonner';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { useApi, useMutation } from '../../../hooks/useApi';
 import { AssignmentService } from '../../../services/api/assignmentService';
 
@@ -24,236 +26,8 @@ interface AssignmentDetailsProps {
   onBack: () => void;
 }
 
-// Assignment data - in a real app, this would come from an API
-const assignmentData: { [key: number]: any } = {
-  1: {
-    id: 1,
-    title: 'Database Design Project',
-    course: 'Database Management Systems',
-    courseCode: 'CS220',
-    type: 'Project',
-    dueDate: '2025-12-10',
-    dueTime: '11:59 PM',
-    status: 'pending',
-    priority: 'high',
-    description: 'Design and implement a relational database for a library management system',
-    points: 100,
-    submittedPoints: null,
-    progress: 45,
-    color: 'bg-orange-500',
-    instructor: 'Dr. James Wilson',
-    instructorEmail: 'j.wilson@university.edu',
-    dateAssigned: '2025-11-20',
-    detailedDescription: `In this project, you will design and implement a comprehensive relational database for a library management system. This assignment will test your understanding of database normalization, entity-relationship modeling, and SQL query optimization.
-
-**Learning Objectives:**
-- Design a normalized database schema
-- Create efficient indexes and constraints
-- Write complex SQL queries for common library operations
-- Implement data integrity and security measures
-
-**Requirements:**
-1. Create an ER diagram showing all entities and relationships
-2. Design a normalized database schema (at least 3NF)
-3. Implement the database using PostgreSQL or MySQL
-4. Write SQL scripts for common operations (checkout, returns, fines, etc.)
-5. Include sample data and test queries
-
-**Submission Guidelines:**
-- Submit all SQL scripts in a single ZIP file
-- Include a detailed report (PDF format) explaining your design decisions
-- Provide screenshots of successful query executions
-- Document any assumptions made during the design process`,
-    rubric: [
-      {
-        criteria: 'ER Diagram Accuracy',
-        points: 20,
-        description: 'Complete and accurate entity-relationship diagram',
-      },
-      {
-        criteria: 'Database Normalization',
-        points: 25,
-        description: 'Proper normalization (3NF or higher)',
-      },
-      {
-        criteria: 'SQL Implementation',
-        points: 30,
-        description: 'Working SQL scripts with no errors',
-      },
-      {
-        criteria: 'Query Efficiency',
-        points: 15,
-        description: 'Optimized queries with appropriate indexes',
-      },
-      {
-        criteria: 'Documentation',
-        points: 10,
-        description: 'Clear and comprehensive documentation',
-      },
-    ],
-    resources: [
-      { name: 'Project Requirements.pdf', size: '245 KB', type: 'pdf' },
-      { name: 'Database Schema Template.sql', size: '12 KB', type: 'sql' },
-      { name: 'Sample Data.csv', size: '89 KB', type: 'csv' },
-      { name: 'Grading Rubric.pdf', size: '156 KB', type: 'pdf' },
-    ],
-  },
-  2: {
-    id: 2,
-    title: 'Mobile App Prototype',
-    course: 'Mobile Application Development',
-    courseCode: 'CS350',
-    type: 'Project',
-    dueDate: '2025-12-08',
-    dueTime: '11:59 PM',
-    status: 'pending',
-    priority: 'high',
-    description: 'Create a functional prototype of a mobile application using React Native',
-    points: 150,
-    submittedPoints: null,
-    progress: 60,
-    color: 'bg-[var(--accent-color)]/100',
-    instructor: 'Dr. Robert Taylor',
-    instructorEmail: 'r.taylor@university.edu',
-    dateAssigned: '2025-11-18',
-    detailedDescription: `Develop a functional mobile application prototype using React Native. The app should demonstrate your understanding of mobile UI/UX principles, state management, and API integration.
-
-**Learning Objectives:**
-- Build cross-platform mobile applications
-- Implement responsive and intuitive UI components
-- Manage application state effectively
-- Integrate with external APIs
-
-**Requirements:**
-1. Implement at least 5 functional screens
-2. Use React Navigation for screen transitions
-3. Integrate with a REST API (can be mock or real)
-4. Implement local storage for user preferences
-5. Follow Material Design or iOS Human Interface Guidelines
-
-**Submission Guidelines:**
-- Submit complete source code via GitHub repository
-- Include a README with setup instructions
-- Provide APK/IPA file or Expo link for testing
-- Create a short demo video (3-5 minutes)`,
-    rubric: [
-      { criteria: 'Functionality', points: 40, description: 'All features work as expected' },
-      { criteria: 'UI/UX Design', points: 30, description: 'Professional and intuitive interface' },
-      { criteria: 'Code Quality', points: 35, description: 'Clean, well-organized code' },
-      { criteria: 'API Integration', points: 25, description: 'Successful API integration' },
-      { criteria: 'Documentation', points: 20, description: 'Complete documentation and demo' },
-    ],
-    resources: [
-      { name: 'Assignment Instructions.pdf', size: '312 KB', type: 'pdf' },
-      { name: 'API Documentation.pdf', size: '198 KB', type: 'pdf' },
-      { name: 'UI Design Guidelines.pdf', size: '567 KB', type: 'pdf' },
-      { name: 'Sample Code.zip', size: '1.2 MB', type: 'zip' },
-    ],
-  },
-  3: {
-    id: 3,
-    title: 'Algorithm Analysis Report',
-    course: 'Data Structures & Algorithms',
-    courseCode: 'CS201',
-    type: 'Report',
-    dueDate: '2025-12-06',
-    dueTime: '11:59 PM',
-    status: 'in-progress',
-    priority: 'medium',
-    description: 'Analyze time and space complexity of sorting algorithms',
-    points: 50,
-    submittedPoints: null,
-    progress: 75,
-    color: 'bg-blue-500',
-    instructor: 'Prof. Michael Chen',
-    instructorEmail: 'm.chen@university.edu',
-    dateAssigned: '2025-11-15',
-    detailedDescription: `Write a comprehensive technical report analyzing the time and space complexity of various sorting algorithms. Include theoretical analysis and empirical performance measurements.
-
-**Learning Objectives:**
-- Understand Big-O notation and complexity analysis
-- Compare different sorting algorithms
-- Conduct empirical performance testing
-- Present technical findings clearly
-
-**Requirements:**
-1. Analyze at least 5 sorting algorithms (Bubble, Quick, Merge, Heap, Radix)
-2. Provide theoretical complexity analysis (best, average, worst case)
-3. Implement algorithms and measure actual runtime
-4. Create graphs comparing performance
-5. Discuss trade-offs and use cases
-
-**Submission Guidelines:**
-- Submit as PDF document (8-12 pages)
-- Include source code as appendix or separate file
-- Use proper citations for references
-- Include clear graphs and tables`,
-    rubric: [
-      { criteria: 'Theoretical Analysis', points: 15, description: 'Accurate complexity analysis' },
-      { criteria: 'Implementation', points: 15, description: 'Correct algorithm implementations' },
-      { criteria: 'Empirical Testing', points: 10, description: 'Comprehensive performance tests' },
-      { criteria: 'Presentation', points: 10, description: 'Clear writing and visualizations' },
-    ],
-    resources: [
-      { name: 'Assignment Brief.pdf', size: '178 KB', type: 'pdf' },
-      { name: 'Algorithm Templates.java', size: '34 KB', type: 'java' },
-      { name: 'Report Template.docx', size: '45 KB', type: 'docx' },
-    ],
-  },
-  4: {
-    id: 4,
-    title: 'Software Requirements Document',
-    course: 'Software Engineering Principles',
-    courseCode: 'CS305',
-    type: 'Documentation',
-    dueDate: '2025-12-05',
-    dueTime: '11:59 PM',
-    status: 'in-progress',
-    priority: 'medium',
-    description: 'Write comprehensive software requirements specification',
-    points: 75,
-    submittedPoints: null,
-    progress: 90,
-    color: 'bg-pink-500',
-    instructor: 'Prof. Lisa Anderson',
-    instructorEmail: 'l.anderson@university.edu',
-    dateAssigned: '2025-11-12',
-    detailedDescription: `Create a complete Software Requirements Specification (SRS) document for a hypothetical software system. Follow IEEE 830 standards.
-
-**Learning Objectives:**
-- Understand requirements engineering
-- Write clear and testable requirements
-- Use standard documentation formats
-- Identify functional and non-functional requirements
-
-**Requirements:**
-1. Follow IEEE 830 SRS template
-2. Include use case diagrams
-3. Define at least 20 functional requirements
-4. Specify non-functional requirements (performance, security, etc.)
-5. Create a requirements traceability matrix
-
-**Submission Guidelines:**
-- Submit as PDF document
-- Use professional formatting
-- Include all diagrams and tables
-- Maximum 25 pages`,
-    rubric: [
-      { criteria: 'Completeness', points: 20, description: 'All sections included' },
-      { criteria: 'Clarity', points: 20, description: 'Requirements are clear and testable' },
-      { criteria: 'Format', points: 15, description: 'Follows IEEE 830 standards' },
-      { criteria: 'Diagrams', points: 20, description: 'Quality use case diagrams' },
-    ],
-    resources: [
-      { name: 'IEEE 830 Template.docx', size: '234 KB', type: 'docx' },
-      { name: 'Sample SRS.pdf', size: '456 KB', type: 'pdf' },
-      { name: 'Requirements Checklist.pdf', size: '123 KB', type: 'pdf' },
-    ],
-  },
-};
-
 const getDaysUntilDue = (dueDate: string) => {
-  const today = new Date('2025-12-04');
+  const today = new Date();
   const due = new Date(dueDate);
   const diffTime = due.getTime() - today.getTime();
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -266,6 +40,24 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
   const [showSubmitConfirmation, setShowSubmitConfirmation] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const { isDark } = useTheme() as any;
+  const { t, language } = useLanguage();
+
+  // Locale-aware date formatting helper
+  const formatDate = (dateString: string | null | undefined, options?: Intl.DateTimeFormatOptions) => {
+    if (!dateString) return '';
+    const locale = language === 'ar' ? 'ar-EG' : 'en-US';
+    const defaultOptions: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric', year: 'numeric' };
+    return new Date(dateString).toLocaleDateString(locale, options || defaultOptions);
+  };
+
+  const formatDateTime = (dateString: string | null | undefined) => {
+    if (!dateString) return '';
+    const locale = language === 'ar' ? 'ar-EG' : 'en-US';
+    return new Date(dateString).toLocaleString(locale, {
+      month: 'short', day: 'numeric', year: 'numeric',
+      hour: '2-digit', minute: '2-digit'
+    });
+  };
 
   // Fetch assignment details from API
   const { data: assignment, loading: loadingAssignment } = useApi(
@@ -297,6 +89,23 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
     }
   );
 
+  const submitButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Keyboard shortcut: Ctrl/Cmd+Enter to submit
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        if (!isSubmitted && attachedFiles.length > 0 || submissionText) {
+          handleSubmit();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [isSubmitted, attachedFiles, submissionText]);
+
   if (loadingAssignment) {
     return (
       <div className="p-6 flex items-center justify-center min-h-screen">
@@ -313,13 +122,13 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
       <div className="p-6">
         <div className="bg-white rounded-lg p-8 text-center">
           <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-slate-800 mb-2 font-semibold">Assignment Not Found</h2>
-          <p className="text-slate-600 mb-4">The assignment you're looking for doesn't exist.</p>
+          <h2 className="text-slate-800 mb-2 font-semibold">{t('assignments.notFound')}</h2>
+          <p className="text-slate-600 mb-4">{t('assignments.notFoundDesc')}</p>
           <button
             onClick={onBack}
             className="px-4 py-2 bg-[var(--accent-color)] text-white rounded-lg hover:opacity-90"
           >
-            Go Back
+            {t('assignments.goBack')}
           </button>
         </div>
       </div>
@@ -356,14 +165,15 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
         text: submissionText,
         files: attachedFiles
       });
+      toast.success('Assignment submitted successfully!');
       refetchSubmission(); // Refresh submission status
       setShowSuccessModal(true);
       setAttachedFiles([]); // Clear files
       setSubmissionText(''); // Clear text
     } catch (error) {
       console.error('Submit failed:', error);
-      // TODO: Show error toast/message
-      alert('Failed to submit assignment. Please try again.');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to submit assignment. Please try again.';
+      toast.error(errorMessage);
     }
   };
 
@@ -379,9 +189,10 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
         <button
           onClick={onBack}
           className="flex items-center gap-2 text-slate-600 hover:text-slate-800 mb-4 transition-colors"
+          aria-label={t('assignments.backToAssignments')}
         >
-          <ArrowLeft className="w-5 h-5" />
-          <span>Back to Assignments</span>
+          <ArrowLeft className="w-5 h-5" aria-hidden="true" />
+          <span>{t('assignments.backToAssignments')}</span>
         </button>
 
         {/* Page Header */}
@@ -435,12 +246,8 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
           </div>
           <p className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
             {assignment.dueDate 
-              ? new Date(assignment.dueDate).toLocaleDateString('en-US', {
-              month: 'short',
-              day: 'numeric',
-              year: 'numeric',
-            })
-              : 'No due date'}
+              ? formatDate(assignment.dueDate)
+              : t('assignments.dueDate')}
           </p>
           <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
             {assignment.dueDate ? '11:59 PM' : '-'}
@@ -530,22 +337,28 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
           {/* Submit Assignment */}
           <div className="glass rounded-[2.5rem] shadow-sm overflow-hidden">
             <div className="bg-gradient-to-r from-background-light to-white p-6 border-b border-slate-100">
-              <h2 className="text-slate-800 font-semibold">Submit Your Work</h2>
-              <p className="text-slate-600 text-sm mt-1">Attach your assignment files and submit</p>
+              <h2 className="text-slate-800 font-semibold">{t('assignments.submitYourWork')}</h2>
+              <p className="text-slate-600 text-sm mt-1">{t('assignments.attachFiles')}</p>
             </div>
             <div className="p-6">
               {/* File Upload Area */}
-              <div className="border-2 border-dashed border-slate-200 rounded-xl p-8 text-center hover:border-[var(--accent-color)] hover:bg-[var(--accent-color)]/10/50 transition-all mb-4">
-                <Upload className="w-12 h-12 text-slate-500 mx-auto mb-3" />
-                <p className="text-slate-800 mb-2 font-medium">Drag and drop your files here</p>
-                <p className="text-slate-500 text-sm mb-4">or click to browse</p>
-                <label className="inline-flex items-center gap-2 px-6 py-3 bg-[var(--accent-color)] text-white rounded-lg cursor-pointer hover:opacity-90 transition-colors">
-                  <Paperclip className="w-4 h-4" />
-                  <span>Choose Files</span>
-                  <input type="file" multiple onChange={handleFileAttach} className="hidden" />
+              <div className="border-2 border-dashed border-slate-200 rounded-xl p-8 text-center hover:border-[var(--accent-color)] hover:bg-[var(--accent-color)]/10/50 transition-all mb-4" role="region" aria-label={t('assignments.attachFiles')}>
+                <Upload className="w-12 h-12 text-slate-500 mx-auto mb-3" aria-hidden="true" />
+                <p className="text-slate-800 mb-2 font-medium">{t('assignments.dragDropFiles')}</p>
+                <label htmlFor="file-upload" className="inline-flex items-center gap-2 px-6 py-3 bg-[var(--accent-color)] text-white rounded-lg cursor-pointer hover:opacity-90 transition-colors">
+                  <Paperclip className="w-4 h-4" aria-hidden="true" />
+                  <span>{t('assignments.attachFiles')}</span>
+                  <input 
+                    id="file-upload"
+                    type="file" 
+                    multiple 
+                    onChange={handleFileAttach} 
+                    className="hidden" 
+                    aria-label={t('assignments.attachFiles')}
+                  />
                 </label>
                 <p className="text-slate-500 text-xs mt-3">
-                  Supported formats: PDF, DOC, DOCX, ZIP, RAR (Max 50MB each)
+                  PDF, DOC, DOCX, ZIP, RAR (Max 50MB)
                 </p>
               </div>
 
@@ -553,7 +366,7 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
               {attachedFiles.length > 0 && (
                 <div className="mb-6">
                   <h3 className="text-slate-800 mb-3 font-medium">
-                    Attached Files ({attachedFiles.length})
+                    {t('assignments.attachedFiles')} ({attachedFiles.length})
                   </h3>
                   <div className="space-y-2">
                     {attachedFiles.map((file, index) => (
@@ -562,7 +375,7 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
                         className="flex items-center justify-between p-3 border border-slate-100 rounded-lg hover:bg-slate-50"
                       >
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-[var(--accent-color)]/10 rounded-lg flex items-center justify-center">
+                          <div className="w-10 h-10 bg-[var(--accent-color)]/10 rounded-lg flex items-center justify-center" aria-hidden="true">
                             <File className="w-5 h-5 text-[var(--accent-color)]" />
                           </div>
                           <div>
@@ -575,8 +388,9 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
                         <button
                           onClick={() => handleRemoveFile(index)}
                           className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          aria-label={`Remove file: ${file.name}`}
                         >
-                          <X className="w-4 h-4" />
+                          <X className="w-4 h-4" aria-hidden="true" />
                         </button>
                       </div>
                     ))}
@@ -584,26 +398,47 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
                 </div>
               )}
 
+              {/* Submission Text */}
+              <div className="mb-6">
+                <label htmlFor="submission-notes" className="text-slate-800 mb-3 font-medium block">
+                  {t('assignments.yourResponse')}
+                </label>
+                <textarea
+                  id="submission-notes"
+                  value={submissionText}
+                  onChange={(e) => setSubmissionText(e.target.value)}
+                  placeholder={t('assignments.writeResponse')}
+                  className="w-full p-4 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)] focus:border-transparent resize-none"
+                  rows={4}
+                  disabled={isSubmitted}
+                  aria-label={t('assignments.yourResponse')}
+                  aria-describedby="submission-notes-hint"
+                />
+                <p id="submission-notes-hint" className="text-slate-600 text-sm mt-1">{t('assignments.submittingKeyboardHint')}</p>
+              </div>
+
               {/* Submit Button */}
               <button
                 onClick={handleSubmit}
                 disabled={isSubmitted || submitting || (attachedFiles.length === 0 && !submissionText)}
                 className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-[var(--accent-color)] to-[var(--accent-color)] text-white rounded-xl hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none font-medium"
+                aria-label={isSubmitted ? t('assignments.submitted') : submitting ? t('assignments.submittingAssignment') : t('assignments.submitButton')}
+                aria-busy={submitting}
               >
                 {submitting ? (
                   <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    <span className="text-lg">Submitting...</span>
+                    <Loader2 className="w-5 h-5 animate-spin" aria-hidden="true" />
+                    <span className="text-lg">{t('assignments.submittingAssignment')}</span>
                   </>
                 ) : isSubmitted ? (
                   <>
-                    <CheckCircle className="w-5 h-5" />
-                    <span className="text-lg">Already Submitted</span>
+                    <CheckCircle className="w-5 h-5" aria-hidden="true" />
+                    <span className="text-lg">{t('assignments.submitted')}</span>
                   </>
                 ) : (
                   <>
-                    <Send className="w-5 h-5" />
-                    <span className="text-lg">Hand In Assignment</span>
+                    <Send className="w-5 h-5" aria-hidden="true" />
+                    <span className="text-lg">{t('assignments.submitButton')}</span>
                   </>
                 )}
               </button>
@@ -611,31 +446,45 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
               {!isSubmitted && attachedFiles.length === 0 && !submissionText && (
                 <p className="text-amber-600 text-sm text-center mt-3 flex items-center justify-center gap-2">
                   <AlertCircle className="w-4 h-4" />
-                  Please attach at least one file or enter text before submitting
+                  {t('assignments.attachFiles')}
                 </p>
               )}
               
               {isSubmitted && mySubmission && (
-                <div className="mt-4 p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
+                <div className={`mt-4 p-4 ${mySubmission.isLate ? 'bg-amber-50 border-amber-200' : 'bg-emerald-50 border-emerald-200'} border rounded-lg`}>
                   <div className="flex items-center gap-2 mb-2">
-                    <CheckCircle className="w-5 h-5 text-emerald-600" />
-                    <p className="text-emerald-900 font-medium">Submitted</p>
+                    <CheckCircle className={`w-5 h-5 ${mySubmission.isLate ? 'text-amber-600' : 'text-emerald-600'}`} />
+                    <p className={`${mySubmission.isLate ? 'text-amber-900' : 'text-emerald-900'} font-medium`}>
+                      {t('assignments.submitted')}
+                    </p>
+                    {mySubmission.isLate && (
+                      <span className="ml-2 px-2 py-0.5 bg-amber-500 text-white text-xs font-medium rounded-full flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        {t('assignments.lateSubmission')}
+                        {assignment.latePenalty && ` (-${assignment.latePenalty}%)`}
+                      </span>
+                    )}
                   </div>
-                  <p className="text-emerald-700 text-sm">
-                    Status: <span className="font-medium">{submissionStatus}</span>
+                  <p className={`${mySubmission.isLate ? 'text-amber-700' : 'text-emerald-700'} text-sm`}>
+                    {t('assignments.statusLabel')}: <span className="font-medium">{submissionStatus}</span>
                   </p>
-                  <p className="text-emerald-700 text-sm">
-                    Submitted at: {new Date(mySubmission.submittedAt).toLocaleString()}
+                  <p className={`${mySubmission.isLate ? 'text-amber-700' : 'text-emerald-700'} text-sm`}>
+                    {t('assignments.submittedAt')}: {formatDateTime(mySubmission.submittedAt)}
                   </p>
                   {mySubmission.score && (
-                    <p className="text-emerald-700 text-sm mt-1">
-                      Score: <span className="font-bold">{mySubmission.score}/{assignment.maxScore}</span>
+                    <p className={`${mySubmission.isLate ? 'text-amber-700' : 'text-emerald-700'} text-sm mt-1`}>
+                      {t('assignments.score')}: <span className="font-bold">{mySubmission.score}/{assignment.maxScore}</span>
+                      {mySubmission.isLate && assignment.latePenalty && (
+                        <span className="text-amber-600 ml-2 text-xs">
+                          ({t('assignments.afterPenalty')}: {parseFloat(mySubmission.score) * (1 - assignment.latePenalty / 100)}/{assignment.maxScore})
+                        </span>
+                      )}
                     </p>
                   )}
                   {mySubmission.feedback && (
                     <div className="mt-2">
-                      <p className="text-emerald-900 text-sm font-medium">Feedback:</p>
-                      <p className="text-emerald-700 text-sm">{mySubmission.feedback}</p>
+                      <p className={`${mySubmission.isLate ? 'text-amber-900' : 'text-emerald-900'} text-sm font-medium`}>{t('assignments.feedback')}:</p>
+                      <p className={`${mySubmission.isLate ? 'text-amber-700' : 'text-emerald-700'} text-sm`}>{mySubmission.feedback}</p>
                     </div>
                   )}
                 </div>
@@ -663,18 +512,14 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
               )}
               {assignment.dateAssigned && (
                 <div className="border-t border-slate-100 pt-4">
-                  <p className="text-slate-600 text-sm mb-1 font-medium">Date Assigned</p>
+                  <p className="text-slate-600 text-sm mb-1 font-medium">{t('assignments.dueDate')}</p>
                   <p className="text-slate-800 font-medium">
-                    {new Date(assignment.dateAssigned).toLocaleDateString('en-US', {
-                      month: 'long',
-                      day: 'numeric',
-                      year: 'numeric',
-                    })}
+                    {formatDate(assignment.dateAssigned, { month: 'long', day: 'numeric', year: 'numeric' })}
                   </p>
                 </div>
               )}
               <div className="border-t border-slate-100 pt-4">
-                <p className="text-slate-600 text-sm mb-1 font-medium">Status</p>
+                <p className="text-slate-600 text-sm mb-1 font-medium">{t('assignments.status')}</p>
                 <span
                   className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium ${
                     assignment.status === 'pending'
@@ -774,20 +619,15 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
             <div className="w-16 h-16 bg-[var(--accent-color)]/10 rounded-full flex items-center justify-center mx-auto mb-4">
               <Send className="w-8 h-8 text-[var(--accent-color)]" />
             </div>
-            <h2 className="text-slate-800 text-center mb-2 font-semibold">Submit Assignment?</h2>
+            <h2 className="text-slate-800 text-center mb-2 font-semibold">{t('assignments.confirmSubmit')}</h2>
             <p className="text-slate-600 text-center mb-6">
-              Are you sure you want to submit this assignment? You have attached{' '}
-              {attachedFiles.length} file(s).
+              {t('assignments.confirmSubmitMessage')}
             </p>
             <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
               <div className="flex gap-3">
                 <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-amber-900 text-sm mb-1 font-medium">Important Note</p>
-                  <p className="text-amber-700 text-xs">
-                    Once submitted, you may not be able to modify your submission. Make sure all
-                    files are attached.
-                  </p>
+                  <p className="text-amber-900 text-sm mb-1 font-medium">{t('assignments.attachedFiles')}: {attachedFiles.length}</p>
                 </div>
               </div>
             </div>
@@ -796,13 +636,13 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
                 onClick={() => setShowSubmitConfirmation(false)}
                 className="flex-1 px-4 py-3 border-2 border-slate-100 rounded-xl text-slate-700 hover:bg-slate-50 transition-all font-medium"
               >
-                Cancel
+                {t('assignments.cancel')}
               </button>
               <button
                 onClick={confirmSubmit}
                 className="flex-1 px-4 py-3 bg-gradient-to-r from-[var(--accent-color)] to-[var(--accent-color)] text-white rounded-xl hover:shadow-lg transition-all font-medium"
               >
-                Confirm Submit
+                {t('assignments.confirm')}
               </button>
             </div>
           </div>
@@ -815,15 +655,15 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
             <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <CheckCircle className="w-10 h-10 text-emerald-600" />
             </div>
-            <h2 className="text-2xl font-bold text-slate-800 mb-2">Submitted!</h2>
+            <h2 className="text-2xl font-bold text-slate-800 mb-2">{t('assignments.success')}</h2>
             <p className="text-slate-600 mb-8 leading-relaxed">
-              Your assignment has been submitted successfully. Good luck!
+              {t('assignments.successMessage')}
             </p>
             <button
               onClick={handleSuccessClose}
               className="w-full px-6 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-all font-semibold shadow-lg shadow-emerald-200"
             >
-              Great!
+              {t('common.close')}
             </button>
           </div>
         </div>

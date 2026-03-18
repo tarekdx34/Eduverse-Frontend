@@ -76,10 +76,13 @@ export class AssignmentService {
     return ApiClient.post<AssignmentSubmission>('/assignments/' + assignmentId + '/submit', { submissionText });
   }
 
-  // Submit file (student)
-  static async submitFile(assignmentId: string, file: File): Promise<AssignmentSubmission> {
+  // Submit file (student) with optional text
+  static async submitFile(assignmentId: string, file: File, submissionText?: string): Promise<AssignmentSubmission> {
     const formData = new FormData();
     formData.append('file', file);
+    if (submissionText) {
+      formData.append('submissionText', submissionText);
+    }
     return ApiClient.post<AssignmentSubmission>('/assignments/' + assignmentId + '/submit', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
