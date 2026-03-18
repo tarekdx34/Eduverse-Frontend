@@ -28,6 +28,7 @@ import { toast } from 'sonner';
 interface DiscussionPageProps {
   userRole?: 'ta' | 'instructor';
   userName?: string;
+  disableDeleteReason?: string;
 }
 
 const getErrorMessage = (error: unknown) =>
@@ -39,7 +40,10 @@ const normalizeDiscussions = (payload: DiscussionThread[] | { data?: DiscussionT
   return Array.isArray(payload.data) ? payload.data : [];
 };
 
-export function DiscussionPage({ userRole = 'instructor' }: DiscussionPageProps) {
+export function DiscussionPage({
+  userRole = 'instructor',
+  disableDeleteReason,
+}: DiscussionPageProps) {
   const { t } = useLanguage();
   const { isDark, primaryHex = '#4f46e5' } = useTheme() as any;
 
@@ -340,7 +344,15 @@ export function DiscussionPage({ userRole = 'instructor' }: DiscussionPageProps)
                       <button onClick={() => handleLockToggle(discussion)} className="text-xs px-3 py-1 rounded-lg bg-slate-600 text-white">
                         {discussion.isLocked === 1 ? 'Unlock' : 'Lock'}
                       </button>
-                      <button onClick={() => handleDelete(discussion.id)} className="text-xs px-3 py-1 rounded-lg bg-red-600 text-white flex items-center gap-1">
+                      <button
+                        onClick={() => {
+                          if (disableDeleteReason) return;
+                          handleDelete(discussion.id);
+                        }}
+                        disabled={Boolean(disableDeleteReason)}
+                        title={disableDeleteReason || undefined}
+                        className="text-xs px-3 py-1 rounded-lg bg-red-600 text-white flex items-center gap-1 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
                         <Trash2 size={12} /> Delete
                       </button>
                     </div>

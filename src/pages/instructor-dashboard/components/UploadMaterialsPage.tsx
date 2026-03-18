@@ -778,8 +778,19 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
       </div>
 
       {(showCreateModal || showEditModal) && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          onClick={() => {
+            if (mutating) return;
+            if (showCreateModal) {
+              closeCreateModal();
+              return;
+            }
+            setShowEditModal(false);
+          }}
+        >
           <div
+            onClick={(event) => event.stopPropagation()}
             className={`w-full max-w-lg rounded-xl p-6 shadow-xl max-h-[90vh] overflow-y-auto ${isDark ? 'bg-slate-800 border border-white/10' : 'bg-white'}`}
           >
             {/* Header */}
@@ -833,58 +844,78 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
                 const commonFields = (
                   <>
                     {/* Title */}
-                    <input
-                      type="text"
-                      value={form.title}
-                      onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))}
-                      placeholder="Title *"
-                      disabled={mutating}
-                      className={`w-full px-3 py-2 border rounded-lg disabled:opacity-60 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500' : 'bg-white border-slate-300'}`}
-                    />
+                    <label className="block">
+                      <span className={`mb-1.5 block text-sm font-medium ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                        Title
+                      </span>
+                      <input
+                        type="text"
+                        value={form.title}
+                        onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))}
+                        placeholder="Enter material title"
+                        disabled={mutating}
+                        className={`w-full px-3 py-2 border rounded-lg disabled:opacity-60 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-400' : 'bg-white border-slate-300 text-slate-900 placeholder:text-slate-400'}`}
+                      />
+                    </label>
 
                     {/* Material type dropdown — hide for video mode (type fixed to 'video') */}
                     {!isVideoMode && (
-                      <CleanSelect
-                        value={form.materialType}
-                        disabled={mutating}
-                        onChange={(e) =>
-                          setForm((prev) => ({
-                            ...prev,
-                            materialType: e.target.value as MaterialFormState['materialType'],
-                          }))
-                        }
-                        className={`w-full px-3 py-2 border rounded-lg disabled:opacity-60 ${isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-slate-300'}`}
-                      >
-                        {(isFileMode
-                          ? ['document', 'lecture', 'slide', 'reading', 'other']
-                          : materialTypeOptions.filter((o) => o.value !== 'all').map((o) => o.value)
-                        ).map((v) => (
-                          <option key={v} value={v}>
-                            {v.charAt(0).toUpperCase() + v.slice(1)}
-                          </option>
-                        ))}
-                      </CleanSelect>
+                      <label className="block">
+                        <span className={`mb-1.5 block text-sm font-medium ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                          Material Type
+                        </span>
+                        <CleanSelect
+                          value={form.materialType}
+                          disabled={mutating}
+                          onChange={(e) =>
+                            setForm((prev) => ({
+                              ...prev,
+                              materialType: e.target.value as MaterialFormState['materialType'],
+                            }))
+                          }
+                          className={`w-full px-3 py-2 border rounded-lg disabled:opacity-60 ${isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-slate-300'}`}
+                        >
+                          {(isFileMode
+                            ? ['document', 'lecture', 'slide', 'reading', 'other']
+                            : materialTypeOptions.filter((o) => o.value !== 'all').map((o) => o.value)
+                          ).map((v) => (
+                            <option key={v} value={v}>
+                              {v.charAt(0).toUpperCase() + v.slice(1)}
+                            </option>
+                          ))}
+                        </CleanSelect>
+                      </label>
                     )}
 
                     {/* Week number */}
-                    <input
-                      type="number"
-                      value={form.weekNumber}
-                      onChange={(e) => setForm((prev) => ({ ...prev, weekNumber: e.target.value }))}
-                      placeholder="Week Number (optional)"
-                      disabled={mutating}
-                      className={`w-full px-3 py-2 border rounded-lg disabled:opacity-60 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500' : 'bg-white border-slate-300'}`}
-                    />
+                    <label className="block">
+                      <span className={`mb-1.5 block text-sm font-medium ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                        Week Number
+                      </span>
+                      <input
+                        type="number"
+                        value={form.weekNumber}
+                        onChange={(e) => setForm((prev) => ({ ...prev, weekNumber: e.target.value }))}
+                        placeholder="Optional"
+                        disabled={mutating}
+                        className={`w-full px-3 py-2 border rounded-lg disabled:opacity-60 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-400' : 'bg-white border-slate-300 text-slate-900 placeholder:text-slate-400'}`}
+                      />
+                    </label>
 
                     {/* Description */}
-                    <textarea
-                      rows={2}
-                      value={form.description}
-                      onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
-                      placeholder="Description (optional)"
-                      disabled={mutating}
-                      className={`w-full px-3 py-2 border rounded-lg resize-none disabled:opacity-60 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500' : 'bg-white border-slate-300'}`}
-                    />
+                    <label className="block">
+                      <span className={`mb-1.5 block text-sm font-medium ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                        Description
+                      </span>
+                      <textarea
+                        rows={2}
+                        value={form.description}
+                        onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
+                        placeholder="Optional description"
+                        disabled={mutating}
+                        className={`w-full px-3 py-2 border rounded-lg resize-none disabled:opacity-60 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-400' : 'bg-white border-slate-300 text-slate-900 placeholder:text-slate-400'}`}
+                      />
+                    </label>
 
                     {/* Publish toggle */}
                     <label className={`flex items-center gap-2 text-sm ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>

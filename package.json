@@ -4,8 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --host",
-    "build": "vite build",
+    "dev": "vite --host --configLoader native",
+    "build": "vite build --configLoader native",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
@@ -85,9 +85,6 @@
     "prettier": "^3.6.2",
     "tailwindcss": "^4.1.17",
     "typescript": "^5.2.0",
-    "vite": "npm:rolldown-vite@7.2.5"
-  },
-  "overrides": {
-    "vite": "npm:rolldown-vite@7.2.5"
+    "vite": "^7.2.5"
   }
 }

@@ -41,11 +41,17 @@ export interface AnnouncementParams {
   limit?: number;
 }
 
+interface AnnouncementListResponse {
+  data?: Announcement[];
+}
+
 export interface CreateAnnouncementInput {
   title: string;
   content: string;
   courseId?: number;
   priority?: string;
+  announcementType?: 'course' | 'campus' | 'system';
+  isPublished?: boolean;
 }
 
 export interface UpdateAnnouncementInput {
@@ -57,7 +63,13 @@ export interface UpdateAnnouncementInput {
 export const announcementService = {
   // Get all announcements (backend filters by role)
   getAnnouncements: (params?: AnnouncementParams) =>
-    client.get<Announcement[]>('/announcements', { params }).then((r) => r.data),
+    client
+      .get<Announcement[] | AnnouncementListResponse>('/announcements', { params })
+      .then((r) => {
+        const payload = r.data;
+        if (Array.isArray(payload)) return payload;
+        return Array.isArray(payload?.data) ? payload.data : [];
+      }),
 
   // Get single announcement
   getAnnouncement: (id: string) => client.get<Announcement>(`/announcements/${id}`).then((r) => r.data),
@@ -77,6 +89,14 @@ export const announcementService = {
   // Publish announcement
   publishAnnouncement: (id: string) =>
     client.patch<Announcement>(`/announcements/${id}/publish`).then((r) => r.data),
+
+  // Schedule announcement
+  scheduleAnnouncement: (id: string, scheduledAt: string) =>
+    client.patch<Announcement>(`/announcements/${id}/schedule`, { scheduledAt }).then((r) => r.data),
+
+  // Get announcement analytics
+  getAnnouncementAnalytics: (id: string) =>
+    client.get(`/announcements/${id}/analytics`).then((r) => r.data),
 
   // Pin/unpin announcement
   pinAnnouncement: (id: string, isPinned: boolean) =>

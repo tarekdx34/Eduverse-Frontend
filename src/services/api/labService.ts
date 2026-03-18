@@ -1,4 +1,4 @@
-import { ApiClient } from './client';
+import { ApiClient, client } from './client';
 
 // Backend response shapes
 export interface Lab {
@@ -37,20 +37,23 @@ export interface LabSubmission {
   userId: number;
   submissionText: string | null;
   fileId: number | null;
-  submissionStatus: 'pending' | 'submitted' | 'graded';
+  status: 'submitted' | 'graded' | 'returned' | 'resubmit';
   submittedAt: string;
   user?: { userId: number; firstName: string; lastName: string; email: string };
-  score?: string; // string number if graded
-  feedback?: string;
+  file?: { fileId: number; originalFileName?: string; fileName?: string; fileSize?: number; mimeType?: string } | null;
 }
+
+type PaginatedLabsResponse = {
+  data?: Lab[];
+};
 
 // NOTE: Lab endpoints have /api prefix in backend
 // baseURL is /api so we use /labs (not /api/labs)
 export class LabService {
   // Get labs list
   static async getAll(params?: { courseId?: string }): Promise<Lab[]> {
-    const response = await ApiClient.get<Lab[]>('/labs', { params });
-    return response;
+    const response = await ApiClient.get<Lab[] | PaginatedLabsResponse>('/labs', { params });
+    return Array.isArray(response) ? response : response.data ?? [];
   }
 
   // Get lab detail with instructions
@@ -119,8 +122,27 @@ export class LabService {
   }
 
   // Grade a submission (instructor/TA)
-  static async gradeSubmission(labId: string, submissionId: string, score: number, feedback: string): Promise<LabSubmission> {
-    return ApiClient.put<LabSubmission>('/labs/' + labId + '/submissions/' + submissionId + '/grade', { score, feedback });
+  static async gradeSubmission(
+    labId: string,
+    submissionId: string,
+    status: 'submitted' | 'graded' | 'returned' | 'resubmit'
+  ): Promise<LabSubmission> {
+    return ApiClient.patch<LabSubmission>('/labs/' + labId + '/submissions/' + submissionId + '/grade', { status });
+  }
+
+  static async downloadFile(fileId: number, fileName?: string): Promise<void> {
+    const response = await client.get(`/files/${fileId}/download`, {
+      responseType: 'blob',
+    });
+
+    const blobUrl = window.URL.createObjectURL(response.data);
+    const link = document.createElement('a');
+    link.href = blobUrl;
+    link.download = fileName || `submission-${fileId}`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(blobUrl);
   }
 }
 

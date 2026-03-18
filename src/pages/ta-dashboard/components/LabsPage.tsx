@@ -21,9 +21,16 @@ type Lab = {
 type LabsPageProps = {
   labs: Lab[];
   onViewLab: (labId: string) => void;
+  disableCreateReason?: string;
+  disableViewDetailsReason?: string;
 };
 
-export function LabsPage({ labs, onViewLab }: LabsPageProps) {
+export function LabsPage({
+  labs,
+  onViewLab,
+  disableCreateReason,
+  disableViewDetailsReason,
+}: LabsPageProps) {
   const { isDark } = useTheme();
   const { t } = useLanguage();
   const [filter, setFilter] = useState<'all' | 'upcoming' | 'active' | 'completed'>('all');
@@ -70,7 +77,11 @@ export function LabsPage({ labs, onViewLab }: LabsPageProps) {
           <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('labManagement')}</h2>
           <p className={`mt-1 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>{t('manageLabSessions')}</p>
         </div>
-        <button className="w-full sm:w-auto bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
+        <button
+          disabled={Boolean(disableCreateReason)}
+          title={disableCreateReason || undefined}
+          className="w-full sm:w-auto bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium disabled:cursor-not-allowed disabled:opacity-60"
+        >
           {t('createNewLab')}
         </button>
       </div>
@@ -185,8 +196,13 @@ export function LabsPage({ labs, onViewLab }: LabsPageProps) {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex flex-wrap gap-1">
                       <button
-                        onClick={() => onViewLab(lab.id)}
-                        className="p-1.5 sm:p-2 text-blue-600 hover:text-blue-700 text-sm font-medium"
+                        onClick={() => {
+                          if (disableViewDetailsReason) return;
+                          onViewLab(lab.id);
+                        }}
+                        disabled={Boolean(disableViewDetailsReason)}
+                        title={disableViewDetailsReason || undefined}
+                        className="p-1.5 sm:p-2 text-blue-600 hover:text-blue-700 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         {t('viewDetails')}
                       </button>

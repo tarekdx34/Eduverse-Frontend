@@ -1,5 +1,16 @@
 import React from 'react';
-import { Calendar, Users, FileText, MapPin, TrendingUp, MessageSquare } from 'lucide-react';
+import {
+  Calendar,
+  Users,
+  FileText,
+  MapPin,
+  TrendingUp,
+  MessageSquare,
+  BookOpen,
+  Beaker,
+  ClipboardCheck,
+  Trophy,
+} from 'lucide-react';
 import {
   BarChart,
   Bar,
@@ -64,6 +75,7 @@ export function ModernDashboard({
           value={String(stats.totalCourses)}
           comparison="+1 This Semester"
           isPositive={true}
+          icon={<BookOpen size={24} />}
         />
         <StatsCard
           label="Active Labs"
@@ -71,18 +83,21 @@ export function ModernDashboard({
           maxValue={String(stats.activeLabs + stats.upcomingLabs)}
           comparison={`${stats.upcomingLabs} Upcoming`}
           isPositive={true}
+          icon={<Beaker size={24} />}
         />
         <StatsCard
           label="Pending Submissions"
           value={String(stats.pendingSubmissions)}
           comparison="Needs Grading"
           isPositive={false}
+          icon={<ClipboardCheck size={24} />}
         />
         <StatsCard
           label="Avg Performance"
           value={String(stats.averagePerformance) + '%'}
           comparison="+2.3% vs Last Semester"
           isPositive={true}
+          icon={<Trophy size={24} />}
         />
       </div>
 

@@ -44,6 +44,8 @@ type Course = {
 type CoursesPageProps = {
   courses: Course[];
   onViewCourse: (courseId: string) => void;
+  disableDetailsReason?: string;
+  disableRouteNavigation?: boolean;
 };
 
 // --- Mock data for detail view ---
@@ -1123,7 +1125,12 @@ function CourseDetail({
 }
 
 // --- Main CoursesPage ---
-export function CoursesPage({ courses, onViewCourse }: CoursesPageProps) {
+export function CoursesPage({
+  courses,
+  onViewCourse,
+  disableDetailsReason,
+  disableRouteNavigation = false,
+}: CoursesPageProps) {
   const { isDark } = useTheme();
   const { t } = useLanguage();
   const navigate = useNavigate();
@@ -1182,9 +1189,11 @@ export function CoursesPage({ courses, onViewCourse }: CoursesPageProps) {
             key={course.id}
             className={`border rounded-lg p-4 sm:p-6 hover:shadow-lg transition-shadow cursor-pointer ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}
             onClick={() => {
+              if (disableDetailsReason) return;
               onViewCourse(course.id);
               setSelectedCourseId(course.id);
             }}
+            title={disableDetailsReason || undefined}
           >
             <div className="flex items-start justify-between mb-4">
               <div className="flex-1">
@@ -1271,11 +1280,16 @@ export function CoursesPage({ courses, onViewCourse }: CoursesPageProps) {
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                navigate(`/tadashboard/courses/${course.id}`);
+                if (disableDetailsReason) return;
+                if (!disableRouteNavigation) {
+                  navigate(`/tadashboard/courses/${course.id}`);
+                }
                 onViewCourse(course.id);
                 setSelectedCourseId(course.id);
               }}
-              className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+              disabled={Boolean(disableDetailsReason)}
+              title={disableDetailsReason || undefined}
+              className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium disabled:cursor-not-allowed disabled:opacity-60"
             >
               {t('viewDetails')}
             </button>

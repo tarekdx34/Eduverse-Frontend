@@ -6,18 +6,17 @@ export interface Quiz {
   courseId: string;
   title: string;
   description: string | null;
+  instructions?: string | null;
   quizType: 'practice' | 'graded';
-  timeLimit: number | null;
+  timeLimitMinutes: number | null;
   maxAttempts: number;
-  dueDate: string | null;
+  availableUntil: string | null;
   availableFrom: string | null;
-  randomizeQuestions: number;
-  showCorrectAnswers: number;
+  randomizeQuestions: boolean | number;
+  showCorrectAnswers: boolean | number;
   passingScore: string | null;
-  maxScore: string;
-  weight: string;
-  status: 'draft' | 'published' | 'closed';
-  createdBy: string;
+  weight: string | number;
+  createdBy: string | number;
   createdAt?: string;
   updatedAt?: string;
   course?: { id: string; name: string; code: string };
@@ -82,6 +81,11 @@ export interface QuizListResponse {
   total: number;
 }
 
+export interface QuizAttemptsResponse {
+  data: QuizAttempt[];
+  total: number;
+}
+
 export interface QuizStatistics {
   totalAttempts: number;
   averageScore: number;
@@ -101,7 +105,13 @@ export class QuizService {
   // ============ QUIZ CRUD ============
 
   // Get quizzes list (returns { data, total })
-  static async getAll(params?: { courseId?: string }): Promise<QuizListResponse> {
+  static async getAll(params?: {
+    courseId?: string;
+    page?: number;
+    limit?: number;
+    search?: string;
+    availableOnly?: boolean;
+  }): Promise<QuizListResponse> {
     return ApiClient.get<QuizListResponse>('/quizzes', { params });
   }
 
@@ -182,14 +192,23 @@ export class QuizService {
   // Get my attempts - GET /quizzes/my-attempts
   static async getMyAttempts(quizId?: string): Promise<QuizAttempt[]> {
     const params = quizId ? { quizId } : undefined;
-    return ApiClient.get<QuizAttempt[]>('/quizzes/my-attempts', { params });
+    return ApiClient.get<QuizAttemptsResponse>('/quizzes/my-attempts', { params }).then(
+      (response) => response.data ?? []
+    );
   }
 
   // ============ ATTEMPTS (Instructor/TA) ============
 
   // Get all attempts - GET /quizzes/attempts
-  static async getAllAttempts(params?: { quizId?: string }): Promise<QuizAttempt[]> {
-    return ApiClient.get<QuizAttempt[]>('/quizzes/attempts', { params });
+  static async getAllAttempts(params?: {
+    quizId?: string;
+    page?: number;
+    limit?: number;
+    status?: string;
+  }): Promise<QuizAttempt[]> {
+    return ApiClient.get<QuizAttemptsResponse>('/quizzes/attempts', { params }).then(
+      (response) => response.data ?? []
+    );
   }
 
   // Alias for backward compatibility
@@ -222,11 +241,6 @@ export class QuizService {
   // Get difficulty levels - GET /quizzes/difficulty-levels
   static async getDifficultyLevels(): Promise<string[]> {
     return ApiClient.get<string[]>('/quizzes/difficulty-levels');
-  }
-
-  // Save progress (auto-save) - PATCH /quizzes/:quizId/attempts/:attemptId/progress
-  static async saveProgress(quizId: string, attemptId: string, answers: { questionId: number; selectedOption?: string[]; answerText?: string }[]): Promise<QuizAttempt> {
-    return ApiClient.patch<QuizAttempt>('/quizzes/' + quizId + '/attempts/' + attemptId + '/progress', { answers });
   }
 }
 

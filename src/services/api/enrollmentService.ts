@@ -73,17 +73,44 @@ export interface AvailableCourse {
 }
 
 export interface SectionInstructor {
-  id: number;
-  firstName?: string;
-  lastName?: string;
-  email?: string;
+  instructorId: number | null;
+  instructor?: {
+    userId: number;
+    fullName: string;
+    email: string;
+  } | null;
 }
 
 export interface SectionTa {
-  id: number;
-  firstName?: string;
-  lastName?: string;
-  email?: string;
+  userId: number;
+  fullName: string;
+  email: string;
+}
+
+export interface TeachingCourse {
+  sectionId: number;
+  courseId: number;
+  course: {
+    id: number;
+    name: string;
+    code: string;
+    description: string;
+    credits: number;
+    level: string;
+  };
+  section: {
+    id: number;
+    sectionNumber: string;
+    maxCapacity: number;
+    currentEnrollment: number;
+    location: string;
+  };
+  semester: {
+    id: number;
+    name: string;
+    startDate: string;
+    endDate: string;
+  };
 }
 
 export const enrollmentService = {
@@ -137,7 +164,7 @@ export const enrollmentService = {
   assignTA: (sectionId: number, userId: number): Promise<unknown> =>
     ApiClient.post('/enrollments/assign-ta', { sectionId, userId }),
 
-  getTeachingCourses: (): Promise<unknown[]> => ApiClient.get('/enrollments/teaching'),
+  getTeachingCourses: (): Promise<TeachingCourse[]> => ApiClient.get('/enrollments/teaching'),
 };
 
 export class EnrollmentService {
