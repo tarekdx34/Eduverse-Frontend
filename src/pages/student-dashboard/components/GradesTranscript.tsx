@@ -9,13 +9,14 @@ import {
   Award,
   Loader2,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { GradeAnalysis } from './GradeAnalysis';
 import { useApi } from '../../../hooks/useApi';
 import { GradesService, GradeRecord as ApiGradeRecord } from '../../../services/api/gradesService';
 import { useAuth } from '../../../context/AuthContext';
+import { client } from '../../../services/api/client';
 
 interface GradeRecord {
   code: string;
@@ -498,6 +499,67 @@ const GradeTable = ({
   );
 };
 
+interface ApiGradeResponse {
+  id: string | number;
+  userId: number;
+  courseId: string | number;
+  gradeType: 'assignment' | 'quiz' | 'lab';
+  assignmentId: string | number | null;
+  quizId: string | number | null;
+  labId: string | number | null;
+  score: string | number;
+  maxScore: string | number;
+  percentage: string | number;
+  letterGrade: string;
+  feedback: string | null;
+  isPublished: number;
+  course: {
+    id: string | number;
+    name: string;
+    code: string;
+  };
+  assignment?: {
+    id: string | number;
+    title: string;
+    dueDate?: string;
+    maxScore?: string | number;
+  };
+  quiz?: {
+    id: string | number;
+    title: string;
+    dueDate?: string;
+    maxScore?: string | number;
+  };
+  lab?: {
+    id: string | number;
+    title: string;
+    dueDate?: string;
+    maxScore?: string | number;
+  };
+}
+
+const getItemTitle = (grade: ApiGradeResponse): string => {
+  switch (grade.gradeType) {
+    case 'assignment':
+      return grade.assignment?.title || 'Assignment';
+    case 'quiz':
+      return grade.quiz?.title || 'Quiz';
+    case 'lab':
+      return grade.lab?.title || 'Lab';
+    default:
+      return 'N/A';
+  }
+};
+
+const getGradeTypeBadge = (gradeType: string, isDark: boolean) => {
+  const badges: Record<string, { bg: string; text: string }> = {
+    assignment: isDark ? { bg: 'bg-blue-900/50', text: 'text-blue-400' } : { bg: 'bg-blue-50', text: 'text-blue-700' },
+    quiz: isDark ? { bg: 'bg-purple-900/50', text: 'text-purple-400' } : { bg: 'bg-purple-50', text: 'text-purple-700' },
+    lab: isDark ? { bg: 'bg-orange-900/50', text: 'text-orange-400' } : { bg: 'bg-orange-50', text: 'text-orange-700' },
+  };
+  return badges[gradeType] || badges.assignment;
+};
+
 export default function GradesTranscript({
   cumulativeGPA: propCumulativeGPA = 3.75,
   currentSemesterGPA: propCurrentSemesterGPA = 3.62,
@@ -509,54 +571,86 @@ export default function GradesTranscript({
   const { isDark } = useTheme();
   const { user } = useAuth();
   const [activeView, setActiveView] = useState<'grades' | 'analysis'>('grades');
+  const [rawGrades, setRawGrades] = useState<ApiGradeResponse[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [cumulativeGPA, setCumulativeGPA] = useState(propCumulativeGPA);
+  const [currentSemesterGPA, setCurrentSemesterGPA] = useState(propCurrentSemesterGPA);
 
-  const { data: apiGrades, loading: gradesLoading } = useApi(() => GradesService.getMyGrades(), []);
-  const { data: gpaData, loading: gpaLoading } = useApi(
-    () => GradesService.getGpa(user?.userId ?? 0),
-    [user?.userId]
+  // Fetch grades from API
+  useEffect(() => {
+    const fetchGrades = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        // Fetch grades using the API client
+        const response = await client.get('/grades/my');
+        const grades = Array.isArray(response) ? response : response.data;
+        setRawGrades(grades);
+
+        // Fetch GPA if user is available
+        if (user?.userId) {
+          try {
+            const gpaResponse = await client.get(`/grades/gpa/${user.userId}`);
+            if (gpaResponse.semesterGpa) setCurrentSemesterGPA(Number(gpaResponse.semesterGpa));
+            if (gpaResponse.cumulativeGpa) setCumulativeGPA(Number(gpaResponse.cumulativeGpa));
+          } catch (gpaError) {
+            console.error('Failed to fetch GPA:', gpaError);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch grades:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load grades');
+        setRawGrades([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchGrades();
+  }, [user?.userId]);
+
+  // Group grades by course
+  const gradesByCourse = rawGrades.reduce(
+    (acc, grade) => {
+      const courseKey = String(grade.courseId);
+      if (!acc[courseKey]) {
+        acc[courseKey] = {
+          courseId: grade.courseId,
+          courseName: grade.course.name,
+          courseCode: grade.course.code,
+          grades: [],
+        };
+      }
+      acc[courseKey].grades.push(grade);
+      return acc;
+    },
+    {} as Record<
+      string,
+      { courseId: string | number; courseName: string; courseCode: string; grades: ApiGradeResponse[] }
+    >
   );
 
-  // Map API grades into semester groups
-  const apiSemesters: SemesterData[] = (() => {
-    if (!apiGrades || apiGrades.length === 0) return [];
-    const grouped: Record<string, ApiGradeRecord[]> = {};
-    for (const g of apiGrades) {
-      const sem = g.semesterName || 'Current Semester';
-      if (!grouped[sem]) grouped[sem] = [];
-      grouped[sem].push(g);
-    }
-    return Object.entries(grouped).map(([semester, courses]) => {
-      const totalPoints = courses.reduce((s, c) => s + (c.gradePoints ?? 0) * c.credits, 0);
-      const totalCreds = courses.reduce((s, c) => s + c.credits, 0);
-      return {
-        semester,
-        gpa: totalCreds > 0 ? Math.round((totalPoints / totalCreds) * 100) / 100 : 0,
-        credits: totalCreds,
-        courses: courses.map(c => ({
-          code: c.courseCode,
-          name: c.courseName,
-          credits: c.credits,
-          percentage: c.percentage ?? 0,
-          grade: c.letterGrade ?? 'N/A',
-          points: c.gradePoints ?? 0,
-          status: (c.status === 'Completed' ? 'Completed' : 'In Progress') as 'Completed' | 'In Progress',
-        })),
-      };
-    });
-  })();
-
-  const semesters = apiSemesters.length > 0 ? apiSemesters : propSemesters;
-  const cumulativeGPA = gpaData?.cumulativeGpa ?? propCumulativeGPA;
-  const currentSemesterGPA = gpaData?.semesterGpa ?? propCurrentSemesterGPA;
-  const totalCredits = apiSemesters.length > 0
-    ? apiSemesters.reduce((s, sem) => s + sem.credits, 0)
-    : propTotalCredits;
-  const loading = gradesLoading || gpaLoading;
+  // Calculate average percentage
+  const avgPercentage = rawGrades.length > 0
+    ? rawGrades.reduce((sum, g) => sum + Number(g.percentage), 0) / rawGrades.length
+    : 0;
 
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
         <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div
+        className={`p-6 rounded-[2.5rem] ${isDark ? 'bg-red-900/30 border border-red-700/30' : 'bg-red-50 border border-red-200'}`}
+      >
+        <p className={isDark ? 'text-red-300' : 'text-red-700'}>Error loading grades: {error}</p>
       </div>
     );
   }
@@ -682,7 +776,7 @@ export default function GradesTranscript({
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <StatCard
               label={t('cumulativeGPA')}
-              value={cumulativeGPA}
+              value={cumulativeGPA.toFixed(2)}
               subtext={`${t('outOf')} 4.00`}
               icon={GraduationCap}
               color="violet"
@@ -690,16 +784,16 @@ export default function GradesTranscript({
             />
             <StatCard
               label={t('semesterGPA')}
-              value={currentSemesterGPA}
+              value={currentSemesterGPA.toFixed(2)}
               subtext={isRTL ? '+0.12 من الفصل السابق' : '+0.12 from last semester'}
               icon={TrendingUp}
               color="green"
               isDark={isDark}
             />
             <StatCard
-              label={t('creditHours')}
-              value={totalCredits}
-              subtext={isRTL ? 'من 144 مطلوبة' : 'Out of 144 required'}
+              label="Average Grade"
+              value={avgPercentage.toFixed(1) + '%'}
+              subtext={`From ${rawGrades.length} grades`}
               icon={BookOpen}
               color="purple"
               isDark={isDark}
@@ -729,17 +823,107 @@ export default function GradesTranscript({
             </button>
           </div>
 
-          {/* Grade Tables by Semester */}
-          <div className="space-y-6">
-            {semesters.map((semester) => (
-              <GradeTable
-                key={semester.semester}
-                semester={semester}
-                courses={semester.courses}
-                isDark={isDark}
-              />
-            ))}
-          </div>
+          {/* Grade Tables by Course */}
+          {rawGrades.length > 0 ? (
+            <div className="space-y-6">
+              {Object.entries(gradesByCourse).map(([courseId, courseData]) => (
+                <div
+                  key={courseId}
+                  className={`rounded-[2.5rem] overflow-hidden ${isDark ? 'bg-card-dark border border-white/5' : 'glass'}`}
+                >
+                  {/* Course Header */}
+                  <div className={`border-b p-6 ${isDark ? 'border-white/5' : 'border-slate-100'}`}>
+                    <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                      {courseData.courseName} <span className={`text-sm font-normal ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>({courseData.courseCode})</span>
+                    </h3>
+                    <p className={`text-sm mt-2 ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
+                      {courseData.grades.length} grade{courseData.grades.length !== 1 ? 's' : ''}
+                    </p>
+                  </div>
+
+                  {/* Grades List */}
+                  <div className="divide-y" style={{ borderColor: isDark ? 'rgba(255,255,255,0.05)' : '#e5e7eb' }}>
+                    {courseData.grades.map((grade) => (
+                      <div
+                        key={String(grade.id)}
+                        className={`p-6 transition-colors ${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'}`}
+                      >
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                          {/* Left: Item Info */}
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-2">
+                              <span
+                                className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                                  getGradeTypeBadge(grade.gradeType, isDark).bg
+                                } ${getGradeTypeBadge(grade.gradeType, isDark).text}`}
+                              >
+                                {grade.gradeType.charAt(0).toUpperCase() + grade.gradeType.slice(1)}
+                              </span>
+                            </div>
+                            <h4 className={`text-base font-medium ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                              {getItemTitle(grade)}
+                            </h4>
+                            {grade.feedback && (
+                              <p className={`text-sm mt-2 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                                {grade.feedback}
+                              </p>
+                            )}
+                          </div>
+
+                          {/* Right: Grade Info */}
+                          <div className="flex items-center gap-6 md:justify-end">
+                            <div className="text-center">
+                              <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
+                                Score
+                              </p>
+                              <p className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                                {Number(grade.score)}/{Number(grade.maxScore)}
+                              </p>
+                            </div>
+                            <div className="text-center">
+                              <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
+                                Percentage
+                              </p>
+                              <p className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                                {Number(grade.percentage).toFixed(1)}%
+                              </p>
+                            </div>
+                            <div className="text-center">
+                              <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
+                                Grade
+                              </p>
+                              <div
+                                className={`inline-block px-3 py-1 rounded mt-1 ${getGradeColor(grade.letterGrade, isDark).bg} ${getGradeColor(grade.letterGrade, isDark).text} text-sm font-semibold border ${getGradeColor(grade.letterGrade, isDark).border}`}
+                              >
+                                {grade.letterGrade}
+                              </div>
+                            </div>
+                            {grade.isPublished ? (
+                              <div className={`px-3 py-1 rounded text-sm font-medium ${isDark ? 'bg-green-900/50 text-green-400' : 'bg-green-50 text-green-700'}`}>
+                                Published
+                              </div>
+                            ) : (
+                              <div className={`px-3 py-1 rounded text-sm font-medium ${isDark ? 'bg-yellow-900/50 text-yellow-400' : 'bg-yellow-50 text-yellow-700'}`}>
+                                Draft
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div
+              className={`p-12 rounded-[2.5rem] text-center ${isDark ? 'bg-card-dark border border-white/5' : 'glass'}`}
+            >
+              <p className={isDark ? 'text-slate-400' : 'text-slate-600'}>
+                No grades available yet
+              </p>
+            </div>
+          )}
         </>
       ) : (
         <>

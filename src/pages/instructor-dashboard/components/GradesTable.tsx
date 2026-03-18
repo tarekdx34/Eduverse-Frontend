@@ -118,42 +118,48 @@ export function GradesTable({ data, onEdit, onDelete }: GradesTableProps) {
             </tr>
           </thead>
           <tbody>
-            {filteredAndSortedData.slice(0, 100).map((g) => (
-              <tr
-                key={g.id}
-                className={`border-t ${isDark ? 'border-white/5 hover:bg-white/5' : 'hover:bg-gray-50'}`}
-              >
-                <td className={`p-2 ${isDark ? 'text-slate-200' : ''}`}>{g.student}</td>
-                <td className={`p-2 text-xs ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-                  {g.email}
-                </td>
-                <td className={`p-2 ${isDark ? 'text-slate-200' : ''}`}>{g.assignment}</td>
-                <td className={`p-2 font-medium ${isDark ? 'text-slate-200' : ''}`}>{g.score}</td>
-                <td className="p-2">
-                  <span className="px-2 py-1 rounded bg-indigo-100 text-indigo-700 text-xs font-medium">
-                    {g.grade}
-                  </span>
-                </td>
-                <td className="p-2">
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => onEdit(g)}
-                      className="p-1 text-indigo-600 hover:bg-indigo-50 rounded transition-colors"
-                      title="Edit"
-                    >
-                      <Edit2 size={16} />
-                    </button>
-                    <button
-                      onClick={() => onDelete(g.id)}
-                      className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
-                      title="Delete"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
+            {filteredAndSortedData.slice(0, 100).map((g) => {
+              // Ensure we safely parse string scores to numbers
+              const scoreNum = Number(g.score);
+              return (
+                <tr
+                  key={g.id}
+                  className={`border-t ${isDark ? 'border-white/5 hover:bg-white/5' : 'hover:bg-gray-50'}`}
+                >
+                  <td className={`p-2 ${isDark ? 'text-slate-200' : ''}`}>{g.student}</td>
+                  <td className={`p-2 text-xs ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                    {g.email}
+                  </td>
+                  <td className={`p-2 ${isDark ? 'text-slate-200' : ''}`}>{g.assignment}</td>
+                  <td className={`p-2 font-medium ${isDark ? 'text-slate-200' : ''}`}>
+                    {!isNaN(scoreNum) ? scoreNum.toFixed(2) : 'N/A'}
+                  </td>
+                  <td className="p-2">
+                    <span className="px-2 py-1 rounded bg-indigo-100 text-indigo-700 text-xs font-medium">
+                      {g.grade}
+                    </span>
+                  </td>
+                  <td className="p-2">
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => onEdit(g)}
+                        className="p-1 text-indigo-600 hover:bg-indigo-50 rounded transition-colors"
+                        title="Edit"
+                      >
+                        <Edit2 size={16} />
+                      </button>
+                      <button
+                        onClick={() => onDelete(g.id)}
+                        className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
+                        title="Delete"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
             {filteredAndSortedData.length === 0 && (
               <tr>
                 <td

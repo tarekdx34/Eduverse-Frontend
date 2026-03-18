@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, FileText, FlaskConical, FolderKanban, Plus, Trash2 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { CleanSelect } from '../../../components/shared';
+import { toInputDate } from '../../../lib/formatters';
 
 
 export type AssignmentFormData = {
@@ -299,7 +300,7 @@ export function AssignmentModal({ open, assignment, courseOptions, onClose, onSa
                 <input
                   type="date"
                   required
-                  value={formData.dueDate}
+                  value={toInputDate(formData.dueDate)}
                   onChange={e => update('dueDate', e.target.value)}
                   className={inputCls}
                   style={isDark ? { colorScheme: 'dark' } : undefined}

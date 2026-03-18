@@ -1,161 +1,99 @@
 import { ApiClient } from './client';
 
+// Backend response shapes
 export interface Assignment {
   id: string;
   courseId: string;
   title: string;
-  description: string;
-  instructions: string;
-  maxScore: string;
+  description: string | null;
+  dueDate: string | null;
+  availableFrom: string | null;
+  maxScore: string; // decimal as string
   weight: string;
-  dueDate: string;
-  availableFrom: string;
-  lateSubmissionAllowed: number;
-  latePenaltyPercent: string;
-  submissionType: string;
-  maxFileSizeMb: number;
-  allowedFileTypes: string;
-  status: string;
-  createdBy: number;
-  createdAt: string;
-  updatedAt: string;
-  course?: {
-    id: string;
-    name: string;
-    code: string;
-    description?: string;
-    credits?: number;
-    level?: string;
-  };
-}
-
-export interface PaginatedResponse<T> {
-  data: T[];
-  meta: {
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-  };
+  status: 'draft' | 'published' | 'closed';
+  createdBy: string;
+  createdAt?: string;
+  updatedAt?: string;
+  course?: { id: string; name: string; code: string };
 }
 
 export interface AssignmentSubmission {
-  id: number;
-  assignmentId: number;
+  id: string;
+  assignmentId: string;
   userId: number;
-  user?: {
-    firstName?: string;
-    lastName?: string;
-    email?: string;
-  };
-  submissionText?: string | null;
-  submissionLink?: string | null;
-  fileId?: number | null;
+  submissionText: string | null;
+  fileId: number | null;
+  submissionStatus: 'pending' | 'submitted' | 'graded';
   submittedAt: string;
-  submissionStatus: string;
-  isLate?: number;
-  attemptNumber?: number;
-}
-
-export type AssignmentStatus = 'draft' | 'published' | 'closed' | 'archived';
-
-export interface GradeSubmissionResponse {
-  submissionId: number;
-  score: number;
-  maxScore: number;
+  isLate: number; // 0 or 1
+  score?: string; // decimal as string
   feedback?: string;
+  user?: { userId: number; firstName: string; lastName: string; email: string };
 }
 
-export interface UploadedAssignmentFile {
-  assignmentId: number;
-  driveFile: {
-    driveFileId: string;
-    driveId: string;
-    fileName: string;
-    webViewLink?: string;
-    webContentLink?: string;
-  };
-}
-
+// NOTE: Assignment endpoints have /api prefix in backend
+// baseURL is /api so we use /assignments (not /api/assignments)
 export class AssignmentService {
-  static async getAll(params?: { courseId?: string; status?: string; page?: number; limit?: number }): Promise<PaginatedResponse<Assignment>> {
-    const query = new URLSearchParams();
-    if (params?.courseId) query.set('courseId', params.courseId);
-    if (params?.status) query.set('status', params.status);
-    if (params?.page) query.set('page', String(params.page));
-    if (params?.limit) query.set('limit', String(params.limit));
-    const qs = query.toString();
-    const response = await ApiClient.get<PaginatedResponse<Assignment> | Assignment[]>(
-      `/assignments${qs ? `?${qs}` : ''}`
-    );
-    if (Array.isArray(response)) {
-      return { data: response, meta: { total: response.length, page: 1, limit: response.length, totalPages: 1 } };
-    }
-    return response;
+  // Get all assignments (student or instructor)
+  static async getAll(params?: { courseId?: string }): Promise<Assignment[]> {
+    return ApiClient.get<Assignment[]>('/assignments', { params });
   }
 
+  // Get assignment by ID
   static async getById(id: string): Promise<Assignment> {
-    return ApiClient.get(`/assignments/${id}`);
+    return ApiClient.get<Assignment>('/assignments/' + id);
   }
 
-  static async submit(id: string, data: FormData | { content: string }): Promise<AssignmentSubmission> {
-    return ApiClient.post(`/assignments/${id}/submit`, data);
-  }
-
-  static async getMySubmission(assignmentId: string): Promise<AssignmentSubmission> {
-    return ApiClient.get(`/assignments/${assignmentId}/submissions/my`);
-  }
-
+  // Create assignment (instructor)
   static async create(data: Partial<Assignment>): Promise<Assignment> {
-    return ApiClient.post('/assignments', data);
+    return ApiClient.post<Assignment>('/assignments', data);
   }
 
+  // Update assignment (instructor)
   static async update(id: string, data: Partial<Assignment>): Promise<Assignment> {
-    return ApiClient.patch(`/assignments/${id}`, data);
+    return ApiClient.put<Assignment>('/assignments/' + id, data);
   }
 
+  // Delete assignment (instructor)
   static async delete(id: string): Promise<void> {
-    return ApiClient.delete(`/assignments/${id}`);
+    return ApiClient.delete('/assignments/' + id);
   }
 
+  // Get my submission for an assignment (student)
+  static async getMySubmission(assignmentId: string): Promise<AssignmentSubmission | null> {
+    try {
+      return await ApiClient.get<AssignmentSubmission>('/assignments/' + assignmentId + '/submissions/my');
+    } catch (error: any) {
+      if (error.message?.includes('404') || error.response?.status === 404) {
+        return null; // Not submitted yet
+      }
+      throw error;
+    }
+  }
+
+  // Submit text (student)
+  static async submitText(assignmentId: string, submissionText: string): Promise<AssignmentSubmission> {
+    return ApiClient.post<AssignmentSubmission>('/assignments/' + assignmentId + '/submit', { submissionText });
+  }
+
+  // Submit file (student)
+  static async submitFile(assignmentId: string, file: File): Promise<AssignmentSubmission> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return ApiClient.post<AssignmentSubmission>('/assignments/' + assignmentId + '/submit', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  }
+
+  // Get all submissions for an assignment (instructor/TA)
   static async getSubmissions(assignmentId: string): Promise<AssignmentSubmission[]> {
-    return ApiClient.get(`/assignments/${assignmentId}/submissions`);
+    return ApiClient.get<AssignmentSubmission[]>('/assignments/' + assignmentId + '/submissions');
   }
 
-  static async gradeSubmission(
-    assignmentId: string,
-    submissionId: number,
-    data: { score: number; feedback?: string }
-  ): Promise<GradeSubmissionResponse> {
-    return ApiClient.patch(`/assignments/${assignmentId}/submissions/${submissionId}/grade`, data);
-  }
-
-  static async updateStatus(id: string, status: AssignmentStatus): Promise<Assignment> {
-    return ApiClient.patch(`/assignments/${id}/status`, { status });
-  }
-
-  static async uploadInstructions(
-    assignmentId: string,
-    file: File,
-    title?: string,
-    orderIndex?: number
-  ): Promise<UploadedAssignmentFile> {
-    const formData = new FormData();
-    formData.append('file', file);
-    if (title) formData.append('title', title);
-    if (orderIndex !== undefined) formData.append('orderIndex', String(orderIndex));
-    return ApiClient.post(`/assignments/${assignmentId}/instructions/upload`, formData);
-  }
-
-  static async uploadSubmission(
-    assignmentId: string,
-    file: File,
-    payload?: { submissionText?: string; submissionLink?: string }
-  ): Promise<UploadedAssignmentFile> {
-    const formData = new FormData();
-    formData.append('file', file);
-    if (payload?.submissionText) formData.append('submissionText', payload.submissionText);
-    if (payload?.submissionLink) formData.append('submissionLink', payload.submissionLink);
-    return ApiClient.post(`/assignments/${assignmentId}/submissions/upload`, formData);
+  // Grade a submission (instructor/TA)
+  static async gradeSubmission(assignmentId: string, submissionId: string, score: number, feedback: string): Promise<AssignmentSubmission> {
+    return ApiClient.put<AssignmentSubmission>('/assignments/' + assignmentId + '/submissions/' + submissionId + '/grade', { score, feedback });
   }
 }
+
+export default AssignmentService;

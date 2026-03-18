@@ -1,150 +1,223 @@
 import { ApiClient } from './client';
 
+// Backend Quiz entity shape
 export interface Quiz {
-  quizId: number;
+  id: string;
+  courseId: string;
   title: string;
-  description?: string;
-  courseId: number;
-  courseName?: string;
-  courseCode?: string;
-  type: string;
-  totalQuestions: number;
-  totalPoints: number;
-  duration: number; // in minutes
-  startDate?: string;
-  endDate?: string;
-  status: string;
-  attemptsAllowed?: number;
+  description: string | null;
+  quizType: 'practice' | 'graded';
+  timeLimit: number | null;
+  maxAttempts: number;
+  dueDate: string | null;
+  availableFrom: string | null;
+  randomizeQuestions: number;
+  showCorrectAnswers: number;
+  passingScore: string | null;
+  maxScore: string;
+  weight: string;
+  status: 'draft' | 'published' | 'closed';
+  createdBy: string;
+  createdAt?: string;
+  updatedAt?: string;
+  course?: { id: string; name: string; code: string };
 }
 
 export interface QuizQuestion {
-  questionId: number;
+  id: number;
+  quizId: string;
+  questionType: 'mcq' | 'true_false' | 'short_answer' | 'essay' | 'matching' | '';
   questionText: string;
-  type: 'mcq' | 'true_false' | 'short_answer' | 'essay' | 'matching';
-  points: number;
-  options?: { optionId: number; optionText: string }[];
-  orderNumber: number;
+  options: string[] | null;
+  correctAnswer: string | null;
+  points: string;
+  orderIndex: number;
 }
 
 export interface QuizAttempt {
-  attemptId: number;
-  quizId: number;
-  quizTitle?: string;
-  courseName?: string;
+  id: string;
+  quizId: string;
+  userId: number;
   startedAt: string;
-  submittedAt?: string;
-  score?: number;
-  totalPoints: number;
-  percentage?: number;
-  status: string;
+  submittedAt: string | null;
+  status: 'in_progress' | 'submitted' | 'graded';
+  score: string | null;
+  answers?: AttemptAnswer[];
+  user?: { userId: number; firstName: string; lastName: string; email: string };
 }
 
-export interface QuizWithQuestions extends Quiz {
-  questions: QuizQuestion[];
+export interface AttemptAnswer {
+  id: string;
+  attemptId: string;
+  questionId: number;
+  selectedOption: string | null;
+  answerText: string | null;
+  isCorrect: number | null;
+  pointsEarned: string | null;
 }
 
-export interface QuizStats {
+export interface AttemptResult {
+  totalScore: number;
+  maxScore: number;
+  percentage: number;
+  passed: boolean;
+  timeSpent: number;
+  answers: {
+    questionId: number;
+    isCorrect: boolean;
+    pointsEarned: number;
+    correctAnswer?: string;
+  }[];
+}
+
+export interface CourseProgress {
+  totalQuizzes: number;
+  completedQuizzes: number;
+  averageScore: number;
+  passingRate: number;
+}
+
+export interface QuizListResponse {
+  data: Quiz[];
+  total: number;
+}
+
+export interface QuizStatistics {
   totalAttempts: number;
-  uniqueStudents: number;
   averageScore: number;
   highestScore: number;
   lowestScore: number;
-  passRatePercentage: number;
-  averageTimeSeconds: number;
+  passRate: number;
+  questionStats: Array<{
+    questionId: number;
+    correctRate: number;
+    averagePoints: number;
+  }>;
 }
 
-export interface CreateQuizDto {
-  courseId: number;
-  title: string;
-  description?: string;
-  quizType?: string;
-  timeLimitMinutes?: number;
-  maxAttempts?: number;
-  passingScore?: number;
-  randomizeQuestions?: boolean;
-  showCorrectAnswers?: string;
-  availableFrom?: string;
-  availableUntil?: string;
-  weight?: number;
-}
-
-export interface CreateQuestionDto {
-  questionText: string;
-  questionType: string;
-  points: number;
-  options?: string[];
-  correctAnswer?: any;
-  explanation?: string;
-  difficultyLevelId?: number;
-  orderIndex?: number;
-}
-
+// Backend controller is at @Controller('api/quizzes')
+// Frontend baseURL is /api, so we use /quizzes
 export class QuizService {
-  static async getAll(params?: { courseId?: number }): Promise<Quiz[]> {
-    const query = params?.courseId ? `?courseId=${params.courseId}` : '';
-    const response = await ApiClient.get<Quiz[] | { data: Quiz[] }>(`/quizzes${query}`);
-    return Array.isArray(response) ? response : (response.data ?? []);
+  // ============ QUIZ CRUD ============
+
+  // Get quizzes list (returns { data, total })
+  static async getAll(params?: { courseId?: string }): Promise<QuizListResponse> {
+    return ApiClient.get<QuizListResponse>('/quizzes', { params });
   }
 
-  static async getById(id: number): Promise<QuizWithQuestions> {
-    return ApiClient.get(`/quizzes/${id}`);
+  // Get quiz by ID
+  static async getById(id: string): Promise<Quiz & { questions?: QuizQuestion[] }> {
+    return ApiClient.get<Quiz & { questions?: QuizQuestion[] }>('/quizzes/' + id);
   }
 
-  static async createQuiz(data: CreateQuizDto): Promise<Quiz> {
-    return ApiClient.post('/quizzes', data);
+  // Create quiz (instructor)
+  static async create(data: Partial<Quiz>): Promise<Quiz> {
+    return ApiClient.post<Quiz>('/quizzes', data);
   }
 
-  static async updateQuiz(id: number, data: Partial<CreateQuizDto>): Promise<Quiz> {
-    return ApiClient.put(`/quizzes/${id}`, data);
+  // Alias for backward compatibility
+  static async createQuiz(data: Partial<Quiz>): Promise<Quiz> {
+    return this.create(data);
   }
 
-  static async deleteQuiz(id: number): Promise<void> {
-    return ApiClient.delete(`/quizzes/${id}`);
+  // Update quiz (instructor)
+  static async update(id: string, data: Partial<Quiz>): Promise<Quiz> {
+    return ApiClient.put<Quiz>('/quizzes/' + id, data);
   }
 
-  static async addQuestion(quizId: number, data: CreateQuestionDto): Promise<QuizQuestion> {
-    return ApiClient.post(`/quizzes/${quizId}/questions`, data);
+  // Alias for backward compatibility
+  static async updateQuiz(id: string, data: Partial<Quiz>): Promise<Quiz> {
+    return this.update(id, data);
   }
 
-  static async updateQuestion(quizId: number, questionId: number, data: Partial<CreateQuestionDto>): Promise<QuizQuestion> {
-    return ApiClient.put(`/quizzes/${quizId}/questions/${questionId}`, data);
+  // Delete quiz (instructor)
+  static async delete(id: string): Promise<void> {
+    return ApiClient.delete('/quizzes/' + id);
   }
 
-  static async deleteQuestion(quizId: number, questionId: number): Promise<void> {
-    return ApiClient.delete(`/quizzes/${quizId}/questions/${questionId}`);
+  // ============ QUESTIONS ============
+
+  // Add question to quiz
+  static async addQuestion(quizId: string, question: Partial<QuizQuestion>): Promise<QuizQuestion> {
+    return ApiClient.post<QuizQuestion>('/quizzes/' + quizId + '/questions', question);
   }
 
-  static async getMyAttempts(): Promise<QuizAttempt[]> {
-    const response = await ApiClient.get<QuizAttempt[] | { data: QuizAttempt[] }>(
-      '/quizzes/my-attempts'
-    );
-    return Array.isArray(response) ? response : (response.data ?? []);
+  // Update question
+  static async updateQuestion(quizId: string, questionId: number, question: Partial<QuizQuestion>): Promise<QuizQuestion> {
+    return ApiClient.put<QuizQuestion>('/quizzes/' + quizId + '/questions/' + questionId, question);
   }
 
-  static async startAttempt(
-    quizId: number
-  ): Promise<{ attemptId: number; questions: QuizQuestion[] }> {
-    return ApiClient.post(`/quizzes/${quizId}/attempts/start`);
+  // Delete question
+  static async deleteQuestion(quizId: string, questionId: number): Promise<void> {
+    return ApiClient.delete('/quizzes/' + quizId + '/questions/' + questionId);
   }
 
-  static async getAttempts(params?: { quizId?: number }): Promise<QuizAttempt[]> {
-    const query = params?.quizId ? `?quizId=${params.quizId}` : '';
-    const response = await ApiClient.get<QuizAttempt[] | { data: QuizAttempt[] }>(`/quizzes/attempts${query}`);
-    return Array.isArray(response) ? response : response.data ?? [];
+  // Reorder questions
+  static async reorderQuestions(quizId: string, questionIds: number[]): Promise<void> {
+    return ApiClient.put('/quizzes/' + quizId + '/questions/reorder', { questionIds });
   }
 
-  static async getStatistics(quizId: number): Promise<QuizStats> {
-    return ApiClient.get(`/quizzes/${quizId}/statistics`);
+  // ============ ATTEMPTS (Student) ============
+
+  // Start a new attempt - POST /quizzes/:quizId/attempts/start
+  static async startAttempt(quizId: string): Promise<QuizAttempt & { questions?: QuizQuestion[] }> {
+    return ApiClient.post<QuizAttempt & { questions?: QuizQuestion[] }>('/quizzes/' + quizId + '/attempts/start', {});
   }
 
-  static async submitAttempt(
-    attemptId: number,
-    answers: Record<number, unknown>
-  ): Promise<QuizAttempt> {
-    return ApiClient.post(`/quizzes/attempts/${attemptId}/submit`, { answers });
+  // Submit attempt - POST /quizzes/attempts/:attemptId/submit
+  static async submitAttempt(quizId: string, attemptId: string, answers: { questionId: number; selectedOption?: string[]; answerText?: string }[]): Promise<AttemptResult> {
+    return ApiClient.post<AttemptResult>('/quizzes/attempts/' + attemptId + '/submit', { answers });
   }
-  static async getAttemptResult(attemptId: number): Promise<QuizAttempt> {
-    return ApiClient.get(`/quizzes/attempts/${attemptId}`);
+
+  // Get attempt details - GET /quizzes/attempts/:attemptId
+  static async getAttempt(quizId: string, attemptId: string): Promise<QuizAttempt> {
+    return ApiClient.get<QuizAttempt>('/quizzes/attempts/' + attemptId);
+  }
+
+  // Get my attempts - GET /quizzes/my-attempts
+  static async getMyAttempts(quizId?: string): Promise<QuizAttempt[]> {
+    const params = quizId ? { quizId } : undefined;
+    return ApiClient.get<QuizAttempt[]>('/quizzes/my-attempts', { params });
+  }
+
+  // ============ ATTEMPTS (Instructor/TA) ============
+
+  // Get all attempts - GET /quizzes/attempts
+  static async getAllAttempts(params?: { quizId?: string }): Promise<QuizAttempt[]> {
+    return ApiClient.get<QuizAttempt[]>('/quizzes/attempts', { params });
+  }
+
+  // Alias for backward compatibility
+  static async getAttempts(params?: { quizId?: string }): Promise<QuizAttempt[]> {
+    return this.getAllAttempts(params);
+  }
+
+  // Grade attempt - POST /quizzes/attempts/:attemptId/grade
+  static async gradeAttempt(quizId: string, attemptId: string, grades: { questionId: number; pointsEarned: number }[]): Promise<QuizAttempt> {
+    return ApiClient.post<QuizAttempt>('/quizzes/attempts/' + attemptId + '/grade', { grades });
+  }
+
+  // Get pending grading - GET /quizzes/attempts/:attemptId/pending-grading
+  static async getPendingGrading(attemptId: string): Promise<any> {
+    return ApiClient.get('/quizzes/attempts/' + attemptId + '/pending-grading');
+  }
+
+  // ============ STATISTICS & PROGRESS ============
+
+  // Get quiz statistics - GET /quizzes/:quizId/statistics
+  static async getStatistics(quizId: string): Promise<QuizStatistics> {
+    return ApiClient.get<QuizStatistics>('/quizzes/' + quizId + '/statistics');
+  }
+
+  // Get course progress - GET /quizzes/progress/course/:courseId
+  static async getCourseProgress(courseId: string): Promise<CourseProgress> {
+    return ApiClient.get<CourseProgress>('/quizzes/progress/course/' + courseId);
+  }
+
+  // Get difficulty levels - GET /quizzes/difficulty-levels
+  static async getDifficultyLevels(): Promise<string[]> {
+    return ApiClient.get<string[]>('/quizzes/difficulty-levels');
   }
 }
 
+export default QuizService;

@@ -12,9 +12,12 @@ import {
   Award,
   X,
   File,
+  Loader2,
 } from 'lucide-react';
 import { useState } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
+import { useApi, useMutation } from '../../../hooks/useApi';
+import { AssignmentService } from '../../../services/api/assignmentService';
 
 interface AssignmentDetailsProps {
   assignmentId: number;
@@ -259,11 +262,51 @@ const getDaysUntilDue = (dueDate: string) => {
 
 export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDetailsProps) {
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
+  const [submissionText, setSubmissionText] = useState('');
   const [showSubmitConfirmation, setShowSubmitConfirmation] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const { isDark } = useTheme() as any;
 
-  const assignment = assignmentData[assignmentId];
+  // Fetch assignment details from API
+  const { data: assignment, loading: loadingAssignment } = useApi(
+    () => AssignmentService.getById(String(assignmentId)),
+    [assignmentId]
+  );
+
+  // Fetch my submission status
+  const { data: mySubmission, refetch: refetchSubmission } = useApi(
+    () => AssignmentService.getMySubmission(String(assignmentId)),
+    [assignmentId]
+  );
+
+  // Mutation for submitting assignment
+  const { mutate: submitAssignment, loading: submitting } = useMutation(
+    async (data: { text: string; files: File[] }) => {
+      if (data.files.length > 0) {
+        // Submit with file
+        return AssignmentService.submitFile(
+          String(assignmentId),
+          data.files[0],
+          data.text || undefined
+        );
+      } else if (data.text) {
+        // Submit text only
+        return AssignmentService.submitText(String(assignmentId), data.text);
+      }
+      throw new Error('No content to submit');
+    }
+  );
+
+  if (loadingAssignment) {
+    return (
+      <div className="p-6 flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 text-[var(--accent-color)] mx-auto mb-4 animate-spin" />
+          <p className="text-slate-600">Loading assignment...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!assignment) {
     return (
@@ -283,7 +326,14 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
     );
   }
 
-  const daysUntil = getDaysUntilDue(assignment.dueDate);
+  // Calculate days until due
+  const daysUntil = assignment.dueDate 
+    ? getDaysUntilDue(assignment.dueDate.split('T')[0])
+    : null;
+  
+  // Check if already submitted
+  const isSubmitted = mySubmission !== null;
+  const submissionStatus = mySubmission?.submissionStatus || 'Not submitted';
 
   const handleFileAttach = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -299,9 +349,22 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
     setShowSubmitConfirmation(true);
   };
 
-  const confirmSubmit = () => {
+  const confirmSubmit = async () => {
     setShowSubmitConfirmation(false);
-    setShowSuccessModal(true);
+    try {
+      await submitAssignment({
+        text: submissionText,
+        files: attachedFiles
+      });
+      refetchSubmission(); // Refresh submission status
+      setShowSuccessModal(true);
+      setAttachedFiles([]); // Clear files
+      setSubmissionText(''); // Clear text
+    } catch (error) {
+      console.error('Submit failed:', error);
+      // TODO: Show error toast/message
+      alert('Failed to submit assignment. Please try again.');
+    }
   };
 
   const handleSuccessClose = () => {
@@ -333,20 +396,25 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
               <span
                 className={`px-2 py-0.5 rounded-md text-xs font-medium border ${isDark ? 'bg-white/5 border-white/10 text-slate-300' : 'bg-slate-50 border-slate-200 text-slate-600'}`}
               >
-                {assignment.type}
+                {assignment.submissionType || 'Assignment'}
               </span>
-              {assignment.priority === 'high' && (
-                <span className="flex items-center gap-1 px-2 py-0.5 bg-red-500/10 text-red-500 rounded-md text-xs font-medium border border-red-500/20">
-                  <AlertCircle className="w-3 h-3" />
-                  High Priority
-                </span>
-              )}
+              <span
+                className={`px-2 py-0.5 rounded-md text-xs font-medium border ${
+                  assignment.status === 'published'
+                    ? 'bg-blue-50 border-blue-200 text-blue-700'
+                    : assignment.status === 'draft'
+                    ? 'bg-gray-50 border-gray-200 text-gray-700'
+                    : 'bg-red-50 border-red-200 text-red-700'
+                }`}
+              >
+                {assignment.status}
+              </span>
             </div>
             <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
               {assignment.title}
             </h2>
             <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-              {assignment.courseCode} - {assignment.course}
+              {assignment.course?.code} - {assignment.course?.name}
             </p>
           </div>
         </div>
@@ -366,14 +434,16 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
             </p>
           </div>
           <p className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-            {new Date(assignment.dueDate).toLocaleDateString('en-US', {
+            {assignment.dueDate 
+              ? new Date(assignment.dueDate).toLocaleDateString('en-US', {
               month: 'short',
               day: 'numeric',
               year: 'numeric',
-            })}
+            })
+              : 'No due date'}
           </p>
           <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
-            {assignment.dueTime}
+            {assignment.dueDate ? '11:59 PM' : '-'}
           </p>
         </div>
 
@@ -382,16 +452,18 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
         >
           <div className="flex items-center gap-3 mb-2">
             <div className={`p-2 rounded-lg ${isDark ? 'bg-white/5' : 'bg-slate-50'}`}>
-              <Clock className={`w-5 h-5 ${daysUntil <= 2 ? 'text-red-500' : 'text-amber-500'}`} />
+              <Clock className={`w-5 h-5 ${daysUntil !== null && daysUntil <= 2 ? 'text-red-500' : 'text-amber-500'}`} />
             </div>
             <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">
               Time Left
             </p>
           </div>
           <p
-            className={`text-xl font-bold ${daysUntil <= 2 ? 'text-red-500' : isDark ? 'text-white' : 'text-slate-900'}`}
+            className={`text-xl font-bold ${daysUntil !== null && daysUntil <= 2 ? 'text-red-500' : isDark ? 'text-white' : 'text-slate-900'}`}
           >
-            {daysUntil > 0 ? `${daysUntil} days left` : daysUntil === 0 ? 'Due today' : 'Overdue'}
+            {daysUntil !== null 
+              ? (daysUntil > 0 ? `${daysUntil} days left` : daysUntil === 0 ? 'Due today' : 'Overdue')
+              : 'No due date'}
           </p>
         </div>
 
@@ -405,7 +477,7 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
             <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Points</p>
           </div>
           <p className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-            {assignment.points} Points
+            {Number(assignment.maxScore)} Points
           </p>
         </div>
       </div>
@@ -421,22 +493,22 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
             <div className="p-6">
               <div className="prose max-w-none">
                 <div className="whitespace-pre-wrap text-slate-700 leading-relaxed">
-                  {assignment.detailedDescription}
+                  {assignment.detailedDescription || assignment.description || 'No description provided.'}
                 </div>
               </div>
             </div>
           </div>
 
           {/* Grading Rubric */}
-          {assignment.rubric && (
+          {assignment.rubric && assignment.rubric.length > 0 && (
             <div className="glass rounded-[2.5rem] shadow-sm overflow-hidden">
               <div className="bg-gradient-to-r from-background-light to-white p-6 border-b border-slate-100">
                 <h2 className="text-slate-800 font-semibold">Grading Rubric</h2>
-                <p className="text-slate-600 text-sm mt-1">Total: {assignment.points} points</p>
+                <p className="text-slate-600 text-sm mt-1">Total: {assignment.points || assignment.maxScore} points</p>
               </div>
               <div className="p-6">
                 <div className="space-y-4">
-                  {assignment.rubric.map((item: any, index: number) => (
+                  {(assignment.rubric || []).map((item: any, index: number) => (
                     <div
                       key={index}
                       className="border border-slate-100 rounded-lg p-4 hover:bg-slate-50 transition-colors"
@@ -515,18 +587,58 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
               {/* Submit Button */}
               <button
                 onClick={handleSubmit}
-                disabled={attachedFiles.length === 0}
+                disabled={isSubmitted || submitting || (attachedFiles.length === 0 && !submissionText)}
                 className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-[var(--accent-color)] to-[var(--accent-color)] text-white rounded-xl hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none font-medium"
               >
-                <Send className="w-5 h-5" />
-                <span className="text-lg">Hand In Assignment</span>
+                {submitting ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <span className="text-lg">Submitting...</span>
+                  </>
+                ) : isSubmitted ? (
+                  <>
+                    <CheckCircle className="w-5 h-5" />
+                    <span className="text-lg">Already Submitted</span>
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-5 h-5" />
+                    <span className="text-lg">Hand In Assignment</span>
+                  </>
+                )}
               </button>
 
-              {attachedFiles.length === 0 && (
+              {!isSubmitted && attachedFiles.length === 0 && !submissionText && (
                 <p className="text-amber-600 text-sm text-center mt-3 flex items-center justify-center gap-2">
                   <AlertCircle className="w-4 h-4" />
-                  Please attach at least one file before submitting
+                  Please attach at least one file or enter text before submitting
                 </p>
+              )}
+              
+              {isSubmitted && mySubmission && (
+                <div className="mt-4 p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <CheckCircle className="w-5 h-5 text-emerald-600" />
+                    <p className="text-emerald-900 font-medium">Submitted</p>
+                  </div>
+                  <p className="text-emerald-700 text-sm">
+                    Status: <span className="font-medium">{submissionStatus}</span>
+                  </p>
+                  <p className="text-emerald-700 text-sm">
+                    Submitted at: {new Date(mySubmission.submittedAt).toLocaleString()}
+                  </p>
+                  {mySubmission.score && (
+                    <p className="text-emerald-700 text-sm mt-1">
+                      Score: <span className="font-bold">{mySubmission.score}/{assignment.maxScore}</span>
+                    </p>
+                  )}
+                  {mySubmission.feedback && (
+                    <div className="mt-2">
+                      <p className="text-emerald-900 text-sm font-medium">Feedback:</p>
+                      <p className="text-emerald-700 text-sm">{mySubmission.feedback}</p>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           </div>
@@ -540,21 +652,27 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
               <h3 className="text-slate-800 font-semibold">Assignment Information</h3>
             </div>
             <div className="p-4 space-y-4">
-              <div>
-                <p className="text-slate-600 text-sm mb-1 font-medium">Instructor</p>
-                <p className="text-slate-800 font-medium">{assignment.instructor}</p>
-                <p className="text-[var(--accent-color)] text-sm">{assignment.instructorEmail}</p>
-              </div>
-              <div className="border-t border-slate-100 pt-4">
-                <p className="text-slate-600 text-sm mb-1 font-medium">Date Assigned</p>
-                <p className="text-slate-800 font-medium">
-                  {new Date(assignment.dateAssigned).toLocaleDateString('en-US', {
-                    month: 'long',
-                    day: 'numeric',
-                    year: 'numeric',
-                  })}
-                </p>
-              </div>
+              {(assignment.instructor || assignment.createdBy) && (
+                <div>
+                  <p className="text-slate-600 text-sm mb-1 font-medium">Instructor</p>
+                  <p className="text-slate-800 font-medium">{assignment.instructor || 'Instructor Name Not Available'}</p>
+                  {assignment.instructorEmail && (
+                    <p className="text-[var(--accent-color)] text-sm">{assignment.instructorEmail}</p>
+                  )}
+                </div>
+              )}
+              {assignment.dateAssigned && (
+                <div className="border-t border-slate-100 pt-4">
+                  <p className="text-slate-600 text-sm mb-1 font-medium">Date Assigned</p>
+                  <p className="text-slate-800 font-medium">
+                    {new Date(assignment.dateAssigned).toLocaleDateString('en-US', {
+                      month: 'long',
+                      day: 'numeric',
+                      year: 'numeric',
+                    })}
+                  </p>
+                </div>
+              )}
               <div className="border-t border-slate-100 pt-4">
                 <p className="text-slate-600 text-sm mb-1 font-medium">Status</p>
                 <span
@@ -583,12 +701,12 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
                 <div className="relative">
                   <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
                     <div
-                      className={`${assignment.color} h-2 rounded-full transition-all`}
-                      style={{ width: `${assignment.progress}%` }}
+                      className={`${assignment.color || 'bg-blue-500'} h-2 rounded-full transition-all`}
+                      style={{ width: `${assignment.progress || 0}%` }}
                     ></div>
                   </div>
                   <p className="text-sm text-slate-800 mt-2 font-medium">
-                    {assignment.progress}% Complete
+                    {assignment.progress || 0}% Complete
                   </p>
                 </div>
               </div>
@@ -603,7 +721,7 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
             </div>
             <div className="p-4">
               <div className="space-y-2">
-                {assignment.resources.map((resource: any, index: number) => (
+                {(assignment.resources || []).map((resource: any, index: number) => (
                   <button
                     key={index}
                     className="w-full flex items-center justify-between p-3 border border-slate-100 rounded-lg hover:bg-[var(--accent-color)]/10 hover:border-[var(--accent-color)]/50 transition-all group"
@@ -622,6 +740,9 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
                     <Download className="w-5 h-5 text-slate-500 group-hover:text-[var(--accent-color)] transition-colors" />
                   </button>
                 ))}
+                {(!assignment.resources || assignment.resources.length === 0) && (
+                  <p className="text-center text-slate-500 text-sm py-4">No resources available for this assignment</p>
+                )}
               </div>
             </div>
           </div>

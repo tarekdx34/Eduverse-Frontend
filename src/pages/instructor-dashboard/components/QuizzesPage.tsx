@@ -221,10 +221,12 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
           return;
         }
 
-        const { QuizService } = await import('../../../services/api/quizService');
+        const QuizService = (await import('../../../services/api/quizService')).default;
         // If "all" course is selected, fetch all quizzes, otherwise by course ID
-        const params = selectedCourse !== 'all' ? { courseId: Number(selectedCourse) } : undefined;
-        const liveQuizzes = await QuizService.getAll(params);
+        const params = selectedCourse !== 'all' ? { courseId: String(selectedCourse) } : undefined;
+        const response = await QuizService.getAll(params);
+        // QuizService.getAll returns { data: Quiz[], total: number }
+        const liveQuizzes = response.data || [];
         
         // Map backend Quiz model to UI QuizData model
         const mapped = liveQuizzes.map((q: any) => {
@@ -309,7 +311,7 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
   const openEditForm = async (index: number) => {
     setFormError(null);
     try {
-      const { QuizService } = await import('../../../services/api/quizService');
+      const QuizService = (await import('../../../services/api/quizService')).default;
       const quiz = quizzes[index];
       const quizId = quiz.raw?.quizId || quiz.raw?.id || quiz.id;
       
@@ -366,7 +368,7 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
     try {
       setFormError(null);
       setIsSaving(true);
-      const { QuizService } = await import('../../../services/api/quizService');
+      const QuizService = (await import('../../../services/api/quizService')).default;
       
       const payload = {
         title,
@@ -388,12 +390,20 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
         
         // Add questions
         for (const [index, q] of formData.questions.entries()) {
+          // correctAnswer must be a string - convert index to option text, or join multiple for checkbox
+          let correctAnswer: string = '';
+          if (q.type === 'mcq' && q.options[q.correctOption]) {
+            correctAnswer = q.options[q.correctOption];
+          } else if (q.type === 'checkbox' && q.correctOptions.length > 0) {
+            correctAnswer = q.correctOptions.map(idx => q.options[idx] || '').filter(Boolean).join(',');
+          }
+          
           await QuizService.addQuestion(quizId, {
             questionText: q.text,
             questionType: q.type === 'text' ? 'short_answer' : q.type === 'checkbox' ? 'mcq' : 'mcq',
             points: 10,
             options: q.type === 'mcq' || q.type === 'checkbox' ? q.options : undefined,
-            correctAnswer: q.type === 'mcq' ? q.correctOption : q.type === 'checkbox' ? q.correctOptions : null,
+            correctAnswer: correctAnswer || '',
             orderIndex: index
           });
         }
@@ -462,7 +472,7 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
     try {
       setActionError(null);
       setPublishingIndex(index);
-      const { QuizService } = await import('../../../services/api/quizService');
+      const QuizService = (await import('../../../services/api/quizService')).default;
       const quiz = quizzes[index];
       const quizId = quiz.raw?.quizId || quiz.raw?.id || quiz.id;
       await QuizService.updateQuiz(quizId, { availableFrom: new Date().toISOString() });
@@ -485,7 +495,7 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
     setViewAnalysisIndex(null);
     setLoadingAttempts(true);
     try {
-      const { QuizService } = await import('../../../services/api/quizService');
+      const QuizService = (await import('../../../services/api/quizService')).default;
       const quizId = quizzes[index].raw?.quizId || quizzes[index].raw?.id || quizzes[index].id;
       const data = await QuizService.getAttempts({ quizId });
       setAttemptsData(Array.isArray(data) ? data : []);
@@ -507,7 +517,7 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
     setViewAttemptsIndex(null);
     setLoadingStats(true);
     try {
-      const { QuizService } = await import('../../../services/api/quizService');
+      const QuizService = (await import('../../../services/api/quizService')).default;
       const quizId = quizzes[index].raw?.quizId || quizzes[index].raw?.id || quizzes[index].id;
       const data = await QuizService.getStatistics(quizId);
       setStatsData(data);
@@ -1181,3 +1191,4 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
 }
 
 export default QuizzesPage;
+

@@ -16,13 +16,13 @@
   Eye,
   Loader2,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import AssignmentDetails from './AssignmentDetails';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { CustomDropdown } from '../../../components/shared';
 import { useApi } from '../../../hooks/useApi';
-import { AssignmentService, Assignment as ApiAssignment } from '../../../services/api/assignmentService';
+import { AssignmentService, Assignment as ApiAssignment, AssignmentSubmission } from '../../../services/api/assignmentService';
 
 const ASSIGNMENT_COLORS = [
   { color: 'bg-orange-500', colorLight: 'bg-orange-50', colorBorder: 'border-orange-500' },
@@ -185,9 +185,13 @@ const getStatusBadge = (status: string) => {
   }
 };
 
-const getStatusIcon = (status: string) => {
-  switch (status) {
+const getStatusIcon = (status: string, submissionStatus?: string) => {
+  // Use submission status if available for pending assignments
+  const effectiveStatus = submissionStatus && status === 'pending' ? submissionStatus : status;
+  
+  switch (effectiveStatus) {
     case 'pending':
+    case 'not-submitted':
       return <Circle className="w-3 h-3" />;
     case 'in-progress':
       return <AlertCircle className="w-3 h-3" />;
@@ -203,35 +207,72 @@ export default function Assignments() {
   const [filterStatus, setFilterStatus] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<number | null>(null);
+  const [assignmentsWithSubmissions, setAssignmentsWithSubmissions] = useState<any[]>([]);
+  const [isLoadingSubmissions, setIsLoadingSubmissions] = useState(false);
   const { isDark, primaryHex } = useTheme() as any;
   const accentColor = primaryHex || '#3b82f6';
   const { t } = useLanguage();
 
-  const { data: apiResponse, loading: apiLoading } = useApi(() => AssignmentService.getAll({ limit: 50 }), []);
+  const { data: apiAssignments, loading: apiLoading } = useApi(async () => {
+    const assignments = await AssignmentService.getAll();
+    
+    // Transform to component format
+    return assignments.map((a: ApiAssignment, i: number) => {
+      const colors = ASSIGNMENT_COLORS[i % ASSIGNMENT_COLORS.length];
+      return {
+        id: Number(a.id),
+        apiId: a.id,
+        title: a.title,
+        course: a.course?.name || 'Unknown Course',
+        courseCode: a.course?.code || '',
+        type: a.submissionType || 'Assignment',
+        dueDate: a.dueDate?.split('T')[0] || '',
+        dueTime: '11:59 PM',
+        status: a.status === 'published' ? 'pending' : a.status,
+        priority: 'medium' as const,
+        description: a.description || '',
+        points: parseFloat(a.maxScore) || 100,
+        submittedPoints: null as number | null,
+        progress: 0,
+        submissionStatus: null as string | null, // Will be populated from API
+        ...colors,
+      };
+    });
+  }, []);
 
-  const apiAssignments = (apiResponse?.data && apiResponse.data.length > 0)
-    ? apiResponse.data.map((a: ApiAssignment, i: number) => {
-        const colors = ASSIGNMENT_COLORS[i % ASSIGNMENT_COLORS.length];
-        return {
-          id: Number(a.id),
-          title: a.title,
-          course: a.course?.name || 'Unknown Course',
-          courseCode: a.course?.code || '',
-          type: a.submissionType || 'Assignment',
-          dueDate: a.dueDate?.split('T')[0] || '',
-          dueTime: '11:59 PM',
-          status: a.status === 'published' ? 'pending' : a.status,
-          priority: 'medium' as const,
-          description: a.description || '',
-          points: parseFloat(a.maxScore) || 100,
-          submittedPoints: null as number | null,
-          progress: 0,
-          ...colors,
-        };
-      })
-    : [];
+  // Fetch submission status for each assignment
+  useEffect(() => {
+    const loadSubmissionStatuses = async () => {
+      if (!apiAssignments || apiAssignments.length === 0) return;
+      
+      setIsLoadingSubmissions(true);
+      try {
+        const assignmentsWithStatus = await Promise.all(
+          apiAssignments.map(async (assignment) => {
+            const submission = await AssignmentService.getMySubmission(assignment.apiId);
+            return {
+              ...assignment,
+              submissionStatus: submission?.submissionStatus || 'not-submitted',
+              submittedPoints: submission?.score ? parseFloat(submission.score) : null,
+            };
+          })
+        );
+        setAssignmentsWithSubmissions(assignmentsWithStatus);
+      } catch (error) {
+        console.error('Failed to load submission statuses:', error);
+        // Fallback: use assignments without submission status
+        setAssignmentsWithSubmissions(apiAssignments);
+      } finally {
+        setIsLoadingSubmissions(false);
+      }
+    };
 
-  const assignments = apiAssignments.length > 0 ? apiAssignments : defaultAssignments;
+    loadSubmissionStatuses();
+  }, [apiAssignments]);
+
+  const assignments = assignmentsWithSubmissions.length > 0 ? assignmentsWithSubmissions : 
+                      (apiAssignments && apiAssignments.length > 0) ? apiAssignments : 
+                      defaultAssignments;
 
   const getUrgencyLabel = (daysUntil: number) => {
     if (daysUntil < 0)
@@ -271,13 +312,13 @@ export default function Assignments() {
   };
 
   const pendingAssignments = assignments.filter(
-    (a) => a.status === 'pending' || a.status === 'in-progress'
+    (a) => !a.submissionStatus || a.submissionStatus === 'not-submitted'
   );
   const completedAssignments = assignments.filter(
-    (a) => a.status === 'submitted' || a.status === 'graded'
+    (a) => a.submissionStatus === 'submitted' || a.submissionStatus === 'graded'
   );
 
-  if (apiLoading) {
+  if (apiLoading || isLoadingSubmissions) {
     return (
       <div className="flex items-center justify-center py-20">
         <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
@@ -314,9 +355,13 @@ export default function Assignments() {
     return matchesSearch && matchesFilter;
   });
 
-  const getStatusBadgeDark = (status: string) => {
-    switch (status) {
+  const getStatusBadgeDark = (status: string, submissionStatus?: string) => {
+    // Use submission status if available for pending assignments
+    const effectiveStatus = submissionStatus && status === 'pending' ? submissionStatus : status;
+    
+    switch (effectiveStatus) {
       case 'pending':
+      case 'not-submitted':
         return isDark
           ? 'bg-red-900/50 text-red-400 border-red-700'
           : 'bg-red-50 text-red-700 border-red-200';
@@ -420,11 +465,14 @@ export default function Assignments() {
                             {assignment.title}
                           </h3>
                           <span
-                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg border text-xs ${getStatusBadgeDark(assignment.status)}`}
+                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg border text-xs ${getStatusBadgeDark(assignment.status, assignment.submissionStatus)}`}
                           >
-                            {getStatusIcon(assignment.status)}
+                            {getStatusIcon(assignment.status, assignment.submissionStatus)}
                             <span className="capitalize">
-                              {assignment.status === 'in-progress' ? t('inProgress') : t('pending')}
+                              {assignment.submissionStatus === 'not-submitted' ? t('notSubmitted') : 
+                               assignment.submissionStatus === 'submitted' ? t('submitted') :
+                               assignment.submissionStatus === 'graded' ? t('graded') :
+                               assignment.status === 'in-progress' ? t('inProgress') : t('pending')}
                             </span>
                           </span>
                         </div>
@@ -553,7 +601,12 @@ export default function Assignments() {
                         onClick={() => setSelectedAssignmentId(assignment.id)}
                         className="flex-1 px-3 py-2 bg-[var(--accent-color)] text-white rounded-lg hover:opacity-90 transition-all flex items-center justify-center gap-1.5 text-sm font-medium"
                       >
-                        <span>{t('continueWork')}</span>
+                        <span>
+                          {assignment.submissionStatus === 'not-submitted' ? t('submitWork') || 'Submit Work' : 
+                           assignment.submissionStatus === 'submitted' ? t('viewSubmission') || 'View Submission' :
+                           assignment.submissionStatus === 'graded' ? t('viewGrade') || 'View Grade' :
+                           t('continueWork') || 'Continue Work'}
+                        </span>
                         <ChevronRight className="w-3 h-3" />
                       </button>
                       <button

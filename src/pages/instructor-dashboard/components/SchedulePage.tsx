@@ -15,6 +15,7 @@ import { CustomDropdown } from './CustomDropdown';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { CleanSelect } from '../../../components/shared';
+import { toInputDate } from '../../../lib/formatters';
 
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -709,7 +710,7 @@ export function SchedulePage() {
               <label className={`block text-sm font-medium mb-1 ${headerText}`}>Date</label>
               <input
                 type="date"
-                value={formData.date}
+                value={toInputDate(formData.date)}
                 onChange={(e) => setFormData((p) => ({ ...p, date: e.target.value }))}
                 className={`w-full px-3 py-2 rounded-lg border text-sm ${inputBg}`}
               />
