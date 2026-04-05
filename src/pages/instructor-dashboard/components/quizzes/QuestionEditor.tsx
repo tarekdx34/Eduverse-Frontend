@@ -1,0 +1,361 @@
+/**
+ * QuestionEditor - Component for editing a single question
+ * Supports all 5 question types: MCQ, True/False, Short Answer, Essay, Matching
+ */
+
+import React from 'react';
+import {
+  Trash2,
+  Plus,
+  CircleDot,
+  ToggleLeft,
+  Type,
+  FileText,
+  Link2,
+  GripVertical,
+  ChevronDown,
+} from 'lucide-react';
+import { useTheme } from '../../contexts/ThemeContext';
+import { CleanSelect } from '../../../../components/shared';
+import { QuestionFormData, QuestionType, QUESTION_TYPE_CONFIG } from './types';
+
+interface QuestionEditorProps {
+  question: QuestionFormData;
+  index: number;
+  onUpdate: (question: QuestionFormData) => void;
+  onRemove: () => void;
+  canRemove: boolean;
+}
+
+const questionTypeIcons: Record<QuestionType, React.ReactNode> = {
+  mcq: <CircleDot size={16} />,
+  true_false: <ToggleLeft size={16} />,
+  short_answer: <Type size={16} />,
+  essay: <FileText size={16} />,
+  matching: <Link2 size={16} />,
+};
+
+export function QuestionEditor({
+  question,
+  index,
+  onUpdate,
+  onRemove,
+  canRemove,
+}: QuestionEditorProps) {
+  const { isDark, primaryHex = '#3b82f6' } = useTheme() as any;
+
+  const cardCls = isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200';
+  const headingCls = isDark ? 'text-white' : 'text-gray-900';
+  const subCls = isDark ? 'text-slate-400' : 'text-gray-600';
+  const inputCls = isDark
+    ? 'bg-white/5 border-white/10 text-white placeholder-slate-500 focus:ring-2'
+    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-2';
+
+  // Update field helper
+  const updateField = <K extends keyof QuestionFormData>(field: K, value: QuestionFormData[K]) => {
+    onUpdate({ ...question, [field]: value });
+  };
+
+  // Handle question type change
+  const handleTypeChange = (newType: QuestionType) => {
+    const updates: Partial<QuestionFormData> = { questionType: newType };
+    
+    // Reset type-specific fields
+    if (newType === 'true_false') {
+      updates.options = ['True', 'False'];
+      updates.correctAnswer = '0';
+    } else if (newType === 'mcq') {
+      updates.options = ['', '', '', ''];
+      updates.correctAnswer = '0';
+    } else if (newType === 'short_answer') {
+      updates.options = [];
+      updates.correctAnswer = '';
+    } else if (newType === 'essay') {
+      updates.options = [];
+      updates.correctAnswer = '';
+    } else if (newType === 'matching') {
+      updates.options = [];
+      updates.matchingPairs = [{ left: '', right: '' }, { left: '', right: '' }];
+    }
+    
+    onUpdate({ ...question, ...updates });
+  };
+
+  // MCQ: Update option text
+  const updateOption = (optIndex: number, value: string) => {
+    const newOptions = [...question.options];
+    newOptions[optIndex] = value;
+    updateField('options', newOptions);
+  };
+
+  // MCQ: Add option
+  const addOption = () => {
+    updateField('options', [...question.options, '']);
+  };
+
+  // MCQ: Remove option
+  const removeOption = (optIndex: number) => {
+    if (question.options.length <= 2) return;
+    const newOptions = question.options.filter((_, i) => i !== optIndex);
+    updateField('options', newOptions);
+    
+    // Adjust correct answer if needed
+    const correctIdx = parseInt(question.correctAnswer);
+    if (optIndex === correctIdx) {
+      updateField('correctAnswer', '0');
+    } else if (optIndex < correctIdx) {
+      updateField('correctAnswer', String(correctIdx - 1));
+    }
+  };
+
+  // Matching: Update pair
+  const updateMatchingPair = (pairIndex: number, side: 'left' | 'right', value: string) => {
+    const newPairs = [...question.matchingPairs];
+    newPairs[pairIndex] = { ...newPairs[pairIndex], [side]: value };
+    updateField('matchingPairs', newPairs);
+  };
+
+  // Matching: Add pair
+  const addMatchingPair = () => {
+    updateField('matchingPairs', [...question.matchingPairs, { left: '', right: '' }]);
+  };
+
+  // Matching: Remove pair
+  const removeMatchingPair = (pairIndex: number) => {
+    if (question.matchingPairs.length <= 2) return;
+    updateField('matchingPairs', question.matchingPairs.filter((_, i) => i !== pairIndex));
+  };
+
+  return (
+    <div className={`p-4 rounded-lg border ${cardCls}`}>
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+        <div className="flex items-center gap-3">
+          <GripVertical size={18} className={`${subCls} cursor-grab`} aria-hidden="true" />
+          <span className={`text-sm font-semibold ${headingCls}`}>
+            Question {index + 1}
+          </span>
+          <div className="flex items-center gap-2">
+            <label className="sr-only" htmlFor={`question-type-${question.tempId || question.id || index}`}>
+              Question Type
+            </label>
+            <CleanSelect
+              id={`question-type-${question.tempId || question.id || index}`}
+              value={question.questionType}
+              onChange={(e) => handleTypeChange(e.target.value as QuestionType)}
+              className={`px-3 py-1.5 text-sm border rounded-lg focus:outline-none ${inputCls}`}
+            >
+              {Object.entries(QUESTION_TYPE_CONFIG).map(([type, config]) => (
+                <option key={type} value={type}>{config.label}</option>
+              ))}
+            </CleanSelect>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <span className={`text-sm ${subCls}`}>Points:</span>
+            <input
+              type="number"
+              min={1}
+              value={question.points}
+              onChange={(e) => updateField('points', Number(e.target.value) || 1)}
+              className={`w-16 px-2 py-1 text-sm border rounded-lg focus:outline-none ${inputCls}`}
+            />
+          </div>
+          {canRemove && (
+            <button
+              onClick={onRemove}
+              className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
+              aria-label="Remove question"
+            >
+              <Trash2 size={16} />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Question Text */}
+      <div className="mb-4">
+        <label className={`block text-sm font-medium mb-1 ${subCls}`}>
+          Question Text <span className="text-red-500">*</span>
+        </label>
+        <textarea
+          value={question.questionText}
+          onChange={(e) => updateField('questionText', e.target.value)}
+          placeholder="Enter your question..."
+          rows={2}
+          className={`w-full px-4 py-2 border rounded-lg focus:outline-none resize-none ${inputCls}`}
+          style={{ '--tw-ring-color': primaryHex } as React.CSSProperties}
+        />
+      </div>
+
+      {/* Type-specific content */}
+      {question.questionType === 'mcq' && (
+        <div className="space-y-3">
+          <label className={`block text-sm font-medium ${subCls}`}>
+            Options (select the correct answer)
+          </label>
+          {question.options.map((option, optIndex) => (
+            <div key={optIndex} className="flex items-center gap-2">
+              <input
+                type="radio"
+                name={`question-${question.tempId || question.id}-correct`}
+                checked={question.correctAnswer === String(optIndex)}
+                onChange={() => updateField('correctAnswer', String(optIndex))}
+                className="w-4 h-4"
+                style={{ accentColor: primaryHex }}
+              />
+              <input
+                type="text"
+                value={option}
+                onChange={(e) => updateOption(optIndex, e.target.value)}
+                placeholder={`Option ${String.fromCharCode(65 + optIndex)}`}
+                className={`flex-1 px-3 py-1.5 text-sm border rounded-lg focus:outline-none ${inputCls}`}
+              />
+              {question.options.length > 2 && (
+                <button
+                  onClick={() => removeOption(optIndex)}
+                  className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
+                  aria-label="Remove option"
+                >
+                  <Trash2 size={14} />
+                </button>
+              )}
+            </div>
+          ))}
+          <button
+            onClick={addOption}
+            className="text-sm font-medium hover:underline"
+            style={{ color: primaryHex }}
+          >
+            + Add Option
+          </button>
+        </div>
+      )}
+
+      {question.questionType === 'true_false' && (
+        <div className="space-y-3">
+          <label className={`block text-sm font-medium ${subCls}`}>
+            Select the correct answer
+          </label>
+          <div className="flex gap-4">
+            <label className={`flex items-center gap-2 cursor-pointer ${headingCls}`}>
+              <input
+                type="radio"
+                name={`question-${question.tempId || question.id}-tf`}
+                checked={question.correctAnswer === '0'}
+                onChange={() => updateField('correctAnswer', '0')}
+                className="w-4 h-4"
+                style={{ accentColor: primaryHex }}
+              />
+              True
+            </label>
+            <label className={`flex items-center gap-2 cursor-pointer ${headingCls}`}>
+              <input
+                type="radio"
+                name={`question-${question.tempId || question.id}-tf`}
+                checked={question.correctAnswer === '1'}
+                onChange={() => updateField('correctAnswer', '1')}
+                className="w-4 h-4"
+                style={{ accentColor: primaryHex }}
+              />
+              False
+            </label>
+          </div>
+        </div>
+      )}
+
+      {question.questionType === 'short_answer' && (
+        <div>
+          <label className={`block text-sm font-medium mb-1 ${subCls}`}>
+            Expected Answer (for auto-grading)
+          </label>
+          <input
+            type="text"
+            value={question.correctAnswer}
+            onChange={(e) => updateField('correctAnswer', e.target.value)}
+            placeholder="Enter the expected answer (exact match)"
+            className={`w-full px-4 py-2 border rounded-lg focus:outline-none ${inputCls}`}
+          />
+          <p className={`text-xs mt-1 ${subCls}`}>
+            Student's answer will be compared exactly with this text for auto-grading.
+          </p>
+        </div>
+      )}
+
+      {question.questionType === 'essay' && (
+        <div className={`p-3 rounded-lg border border-dashed ${isDark ? 'border-white/20 bg-white/5' : 'border-gray-300 bg-gray-50'}`}>
+          <p className={`text-sm italic ${subCls}`}>
+            <FileText size={14} className="inline mr-1" />
+            Essay questions require manual grading. Students will provide a long-form text response.
+          </p>
+        </div>
+      )}
+
+      {question.questionType === 'matching' && (
+        <div className="space-y-3">
+          <label className={`block text-sm font-medium ${subCls}`}>
+            Matching Pairs
+          </label>
+          <div className="grid grid-cols-[1fr_auto_1fr_auto] gap-2 items-center">
+            <span className={`text-xs font-medium ${subCls}`}>Left</span>
+            <span></span>
+            <span className={`text-xs font-medium ${subCls}`}>Right</span>
+            <span></span>
+            
+            {question.matchingPairs.map((pair, pairIndex) => (
+              <React.Fragment key={pairIndex}>
+                <input
+                  type="text"
+                  value={pair.left}
+                  onChange={(e) => updateMatchingPair(pairIndex, 'left', e.target.value)}
+                  placeholder={`Item ${pairIndex + 1}`}
+                  className={`px-3 py-1.5 text-sm border rounded-lg focus:outline-none ${inputCls}`}
+                />
+                <Link2 size={14} className={subCls} />
+                <input
+                  type="text"
+                  value={pair.right}
+                  onChange={(e) => updateMatchingPair(pairIndex, 'right', e.target.value)}
+                  placeholder={`Match ${pairIndex + 1}`}
+                  className={`px-3 py-1.5 text-sm border rounded-lg focus:outline-none ${inputCls}`}
+                />
+                {question.matchingPairs.length > 2 && (
+                  <button
+                    onClick={() => removeMatchingPair(pairIndex)}
+                    className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
+                    aria-label="Remove pair"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                )}
+                {question.matchingPairs.length <= 2 && <span></span>}
+              </React.Fragment>
+            ))}
+          </div>
+          <button
+            onClick={addMatchingPair}
+            className="text-sm font-medium hover:underline"
+            style={{ color: primaryHex }}
+          >
+            + Add Pair
+          </button>
+        </div>
+      )}
+
+      {/* Explanation (optional) */}
+      <div className="mt-4">
+        <label className={`block text-sm font-medium mb-1 ${subCls}`}>
+          Explanation (shown after answer)
+        </label>
+        <textarea
+          value={question.explanation}
+          onChange={(e) => updateField('explanation', e.target.value)}
+          placeholder="Explain why this is the correct answer (optional)"
+          rows={2}
+          className={`w-full px-4 py-2 border rounded-lg focus:outline-none resize-none ${inputCls}`}
+        />
+      </div>
+    </div>
+  );
+}

@@ -150,6 +150,54 @@ export class LabService {
   static async publish(labId: string): Promise<Lab> {
     return ApiClient.put<Lab>('/labs/' + labId, { status: 'published' });
   }
+
+  // Change lab status (instructor)
+  static async changeStatus(
+    labId: string,
+    status: 'draft' | 'published' | 'closed' | 'archived'
+  ): Promise<Lab> {
+    return ApiClient.patch<Lab>('/labs/' + labId + '/status', { status });
+  }
+
+  // Upload instruction file (instructor)
+  static async uploadInstructionFile(labId: string, file: File): Promise<LabInstruction> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return ApiClient.post<LabInstruction>('/labs/' + labId + '/instructions/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  }
+
+  // Upload TA material (instructor)
+  static async uploadTaMaterial(labId: string, file: File): Promise<void> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return ApiClient.post('/labs/' + labId + '/ta-materials/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  }
+
+  // Mark attendance (instructor/TA)
+  static async markAttendance(
+    labId: string,
+    userId: number,
+    status: 'present' | 'absent' | 'late' | 'excused',
+    notes?: string
+  ): Promise<any> {
+    return ApiClient.post('/labs/' + labId + '/attendance', { userId, status, notes });
+  }
+
+  // Update instruction (instructor)
+  static async updateInstruction(
+    labId: string,
+    instructionId: string,
+    data: { instructionText?: string; orderIndex?: number }
+  ): Promise<LabInstruction> {
+    return ApiClient.put<LabInstruction>(
+      '/labs/' + labId + '/instructions/' + instructionId,
+      data
+    );
+  }
 }
 
 export default LabService;

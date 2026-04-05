@@ -6,28 +6,41 @@ export interface Assignment {
   courseId: string;
   title: string;
   description: string | null;
+  instructions: string | null; // Markdown text instructions
   dueDate: string | null;
   availableFrom: string | null;
   maxScore: string; // decimal as string
   weight: string;
-  status: 'draft' | 'published' | 'closed';
+  status: 'draft' | 'published' | 'closed' | 'archived';
+  submissionType: 'text' | 'file' | 'link' | 'any';
+  maxFileSize?: number; // in bytes
+  allowedFileTypes?: string[]; // e.g., ['pdf', 'docx']
+  latePenalty?: number; // percentage per day
   createdBy: string;
   createdAt?: string;
   updatedAt?: string;
   course?: { id: string; name: string; code: string };
 }
 
+// Type alias for backward compatibility
+export type AssignmentStatus = Assignment['status'];
+
 export interface AssignmentSubmission {
   id: string;
   assignmentId: string;
   userId: number;
   submissionText: string | null;
+  submissionLink: string | null;
   fileId: number | null;
+  file?: { id: number; name: string; url: string }; // Google Drive file info
   submissionStatus: 'pending' | 'submitted' | 'graded';
   submittedAt: string;
   isLate: number; // 0 or 1
+  attemptNumber?: number;
   score?: string; // decimal as string
   feedback?: string;
+  gradedBy?: number;
+  gradedAt?: string;
   user?: { userId: number; firstName: string; lastName: string; email: string };
 }
 
@@ -115,10 +128,67 @@ export class AssignmentService {
     score: number,
     feedback: string
   ): Promise<AssignmentSubmission> {
-    return ApiClient.put<AssignmentSubmission>(
+    return ApiClient.patch<AssignmentSubmission>(
       '/assignments/' + assignmentId + '/submissions/' + submissionId + '/grade',
       { score, feedback }
     );
+  }
+
+  // Change assignment status (instructor/TA)
+  static async changeStatus(
+    assignmentId: string,
+    status: AssignmentStatus
+  ): Promise<Assignment> {
+    return ApiClient.patch<Assignment>('/assignments/' + assignmentId + '/status', { status });
+  }
+
+  // Upload instruction file to Google Drive (instructor/TA)
+  static async uploadInstructions(assignmentId: string, file: File): Promise<void> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return ApiClient.post<void>(
+      '/assignments/' + assignmentId + '/instructions/upload',
+      formData,
+      {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      }
+    );
+  }
+
+  // Upload submission file to Google Drive (student)
+  static async uploadSubmissionFile(
+    assignmentId: string,
+    file: File
+  ): Promise<{ fileId: number }> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return ApiClient.post<{ fileId: number }>(
+      '/assignments/' + assignmentId + '/submissions/upload',
+      formData,
+      {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      }
+    );
+  }
+
+  // Submit with link (student)
+  static async submitLink(
+    assignmentId: string,
+    submissionLink: string
+  ): Promise<AssignmentSubmission> {
+    return ApiClient.post<AssignmentSubmission>('/assignments/' + assignmentId + '/submit', {
+      submissionLink,
+    });
+  }
+
+  // Submit with file ID (after uploading) (student)
+  static async submitWithFileId(
+    assignmentId: string,
+    fileId: number
+  ): Promise<AssignmentSubmission> {
+    return ApiClient.post<AssignmentSubmission>('/assignments/' + assignmentId + '/submit', {
+      fileId,
+    });
   }
 }
 
