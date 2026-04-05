@@ -38,9 +38,12 @@ const defaultAvailableQuizzes = [
     course: 'CS201',
     questions: 15,
     duration: '30 min',
+    timeLimitMinutes: 30,
     difficulty: 'Medium',
+    passingScore: 50,
     icon: <BarChart3 className="w-6 h-6" />,
     color: '#3B82F6',
+    maxAttempts: 1,
   },
   {
     id: 2,
@@ -48,9 +51,12 @@ const defaultAvailableQuizzes = [
     course: 'CS220',
     questions: 10,
     duration: '20 min',
+    timeLimitMinutes: 20,
     difficulty: 'Easy',
+    passingScore: 50,
     icon: <Database className="w-6 h-6" />,
     color: '#10B981',
+    maxAttempts: 2,
   },
   {
     id: 3,
@@ -58,9 +64,12 @@ const defaultAvailableQuizzes = [
     course: 'CS305',
     questions: 20,
     duration: '45 min',
+    timeLimitMinutes: 45,
     difficulty: 'Hard',
+    passingScore: 60,
     icon: <Settings className="w-6 h-6" />,
     color: '#8B5CF6',
+    maxAttempts: 1,
   },
   {
     id: 4,
@@ -68,28 +77,12 @@ const defaultAvailableQuizzes = [
     course: 'CS410',
     questions: 12,
     duration: '25 min',
+    timeLimitMinutes: 25,
     difficulty: 'Medium',
+    passingScore: 50,
     icon: <Bot className="w-6 h-6" />,
     color: '#F59E0B',
-  },
-];
-
-const defaultRecentResults = [
-  {
-    title: 'Web Development Basics',
-    course: 'CS150',
-    score: 85,
-    total: 100,
-    grade: 'B+',
-    date: 'Feb 15, 2026',
-  },
-  {
-    title: 'Algorithm Analysis',
-    course: 'CS250',
-    score: 92,
-    total: 100,
-    grade: 'A-',
-    date: 'Feb 10, 2026',
+    maxAttempts: 3,
   },
 ];
 
@@ -203,26 +196,30 @@ export const QuizTaking = () => {
   const hasToken = !!localStorage.getItem('accessToken');
 
   // Locale-aware date formatting helper
-  const formatDate = (dateString: string | null | undefined, options?: Intl.DateTimeFormatOptions) => {
+  const formatDate = (
+    dateString: string | null | undefined,
+    options?: Intl.DateTimeFormatOptions
+  ) => {
     if (!dateString) return '';
     const locale = language === 'ar' ? 'ar-EG' : 'en-US';
-    const defaultOptions: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric', year: 'numeric' };
+    const defaultOptions: Intl.DateTimeFormatOptions = {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    };
     return new Date(dateString).toLocaleDateString(locale, options || defaultOptions);
   };
-  
+
   // Fetch quizzes from API - returns { data: Quiz[], total: number }
-  const { data: apiResponse, loading } = useApi(
-    async () => {
-      if (!hasToken) return null;
-      try {
-        return await QuizService.getAll();
-      } catch (err) {
-        console.warn('Failed to load quizzes for Student Dashboard:', err);
-        return null;
-      }
-    },
-    []
-  );
+  const { data: apiResponse, loading } = useApi(async () => {
+    if (!hasToken) return null;
+    try {
+      return await QuizService.getAll();
+    } catch (err) {
+      console.warn('Failed to load quizzes for Student Dashboard:', err);
+      return null;
+    }
+  }, []);
 
   const QUIZ_ICONS = [
     <BarChart3 className="w-6 h-6" />,
@@ -234,22 +231,25 @@ export const QuizTaking = () => {
 
   const mappedQuizzes = (() => {
     if (!apiResponse?.data || apiResponse.data.length === 0) return [];
-    return apiResponse.data.map((q, i) => ({
+    return apiResponse.data.map((q: any, i: number) => ({
       id: q.id, // String ID from API
       title: q.title,
       course: q.course?.code || q.course?.name || `Course ${q.courseId}`,
-      questions: 0, // Will be set when quiz is loaded with details
+      questions: q.questions?.length || 0,
       duration: `${q.timeLimitMinutes || 30} min`,
+      timeLimitMinutes: q.timeLimitMinutes || 30,
       difficulty: q.quizType === 'graded' ? 'Medium' : 'Easy',
       quizType: q.quizType,
       maxAttempts: q.maxAttempts,
+      passingScore: parseFloat(q.passingScore || '50'),
+      showCorrectAnswers: q.showCorrectAnswers,
       icon: QUIZ_ICONS[i % QUIZ_ICONS.length],
       color: QUIZ_COLORS[i % QUIZ_COLORS.length],
     }));
   })();
 
   const availableQuizzes = mappedQuizzes.length > 0 ? mappedQuizzes : defaultAvailableQuizzes;
-  const recentResults = defaultRecentResults;
+  const [recentGradedAttempts, setRecentGradedAttempts] = useState<any[]>([]);
 
   const [view, setView] = useState<View>('selection');
   const [activeQuiz, setActiveQuiz] = useState(availableQuizzes[0]);
@@ -259,7 +259,7 @@ export const QuizTaking = () => {
   const [showNavigator, setShowNavigator] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const [autoSaveIndicator, setAutoSaveIndicator] = useState(false);
-  
+
   // API state for quiz attempt
   const [currentAttempt, setCurrentAttempt] = useState<any>(null);
   const [currentAttemptId, setCurrentAttemptId] = useState<string>('');
@@ -270,81 +270,110 @@ export const QuizTaking = () => {
   const [remainingAttempts, setRemainingAttempts] = useState<number | null>(null);
   const [timeLimit, setTimeLimit] = useState(0);
   const [quizAttempts, setQuizAttempts] = useState<Record<string, number>>({}); // Track remaining attempts per quiz
-  
+
   // Auto-save tracking
   const lastAutoSaveRef = useRef<Record<string, any>>({});
 
   const questions = quizQuestions.length > 0 ? quizQuestions : mockQuestions;
   const currentQuestion = questions[currentQuestionIndex];
-  
-  // Load remaining attempts for all quizzes
+
+  // Load remaining attempts for all quizzes and recent results
   useEffect(() => {
     const loadAttempts = async () => {
       if (!hasToken || !apiResponse?.data) return;
       try {
         const myAttempts = await QuizService.getMyAttempts();
         const attemptsByQuiz: Record<string, number> = {};
-        
-        apiResponse.data.forEach((quiz) => {
-          const quizAttempts = myAttempts.filter(a => a.quizId === quiz.id).length;
+
+        apiResponse.data.forEach((quiz: any) => {
+          const quizAttempts = myAttempts.filter((a) => a.quizId === quiz.id).length;
           const remaining = Math.max(0, quiz.maxAttempts - quizAttempts);
           attemptsByQuiz[quiz.id] = remaining;
         });
-        
+
         setQuizAttempts(attemptsByQuiz);
+
+        // Get recent graded attempts for results display
+        const gradedAttempts = myAttempts
+          .filter((a) => a.status === 'graded' && a.submittedAt)
+          .sort((a, b) => new Date(b.submittedAt!).getTime() - new Date(a.submittedAt!).getTime())
+          .slice(0, 5)
+          .map((attempt) => {
+            const quiz = attempt.quiz;
+            const score = parseFloat(attempt.score || '0');
+            // Calculate max score from questions if available, or use a default
+            const maxScore = quiz?.questions?.reduce((sum: number, q: any) => sum + parseFloat(q.points || '10'), 0) || 100;
+            const pct = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
+            return {
+              title: quiz?.title || 'Quiz',
+              course: quiz?.course?.code || `Course`,
+              score,
+              total: maxScore,
+              pct,
+              grade: getLetterGrade(pct),
+              date: attempt.submittedAt,
+            };
+          });
+
+        setRecentGradedAttempts(gradedAttempts);
       } catch (err) {
         console.warn('Failed to load attempt counts:', err);
       }
     };
-    
+
     loadAttempts();
   }, [apiResponse, hasToken]);
-  
+
   // Auto-submit function - to be passed to timer
   const handleTimeExpired = useCallback(async () => {
     if (submittingQuiz) return; // Prevent double-submit
     await submitQuiz();
   }, [submittingQuiz]);
-  
+
   // Auto-save function for useQuizTimer
   const handleAutoSave = useCallback(async () => {
     if (!currentAttemptId || !currentAttempt) {
       console.warn('Cannot auto-save: no active attempt');
       return;
     }
-    
+
     try {
-      // Transform answers to API format
-      const answersArray = quizQuestions.map((q) => {
-        const value = answers[String(q.id)];
-        
-        if (q.questionType === 'mcq') {
-          return {
-            questionId: Number(q.id),
-            selectedOption: value ? [value] : [],
-            answerText: undefined
-          };
-        } else if (q.questionType === 'true_false') {
-          return {
-            questionId: Number(q.id),
-            selectedOption: undefined,
-            answerText: value || ''
-          };
-        } else {
-          return {
-            questionId: Number(q.id),
-            selectedOption: undefined,
-            answerText: value || ''
-          };
-        }
-      }).filter(a => (a.selectedOption && a.selectedOption.length > 0) || a.answerText);
-      
+      // Transform answers to API format - send index for MCQ
+      const answersArray = quizQuestions
+        .map((q: any) => {
+          const value = answers[String(q.id)];
+
+          if (q.questionType === 'mcq') {
+            // value is the selected option text, find its index
+            const selectedIndex = q.options?.findIndex((opt: string) => opt === value);
+            return {
+              questionId: Number(q.id),
+              selectedOption: selectedIndex !== undefined && selectedIndex >= 0 ? [String(selectedIndex)] : [],
+              answerText: undefined,
+            };
+          } else if (q.questionType === 'true_false') {
+            const tfIndex = value === 'True' ? '0' : value === 'False' ? '1' : undefined;
+            return {
+              questionId: Number(q.id),
+              selectedOption: tfIndex ? [tfIndex] : [],
+              answerText: undefined,
+            };
+          } else {
+            return {
+              questionId: Number(q.id),
+              selectedOption: undefined,
+              answerText: value || '',
+            };
+          }
+        })
+        .filter((a: any) => (a.selectedOption && a.selectedOption.length > 0) || a.answerText);
+
       // Only save if answers have changed
       const currentAnswerHash = JSON.stringify(answersArray);
       if (currentAnswerHash === JSON.stringify(lastAutoSaveRef.current)) {
         return; // No changes, skip save
       }
-      
+
       setAutoSaveIndicator(true);
       await QuizService.saveProgress(currentAttempt.quizId, currentAttemptId, answersArray);
       lastAutoSaveRef.current = answersArray;
@@ -356,14 +385,14 @@ export const QuizTaking = () => {
       setAutoSaveIndicator(false);
     }
   }, [currentAttemptId, currentAttempt, quizQuestions, answers]);
-  
+
   // Use timer hook only when quiz is active and has a time limit
   const {
     timeRemaining,
     isExpired,
     timeRemainingFormatted,
     isAutoSaving,
-    reset: resetTimer
+    reset: resetTimer,
   } = useQuizTimer({
     timeLimit: timeLimit || 0,
     onTimeExpired: handleTimeExpired,
@@ -374,37 +403,85 @@ export const QuizTaking = () => {
   const startQuiz = async (quiz: (typeof availableQuizzes)[0]) => {
     setStartingQuiz(true);
     try {
-      // Call API to start attempt
-      const attempt = await QuizService.startAttempt(quiz.id);
+      // First, fetch the full quiz with questions
+      const fullQuiz = await QuizService.getById(quiz.id);
       
-      // Extract questions from attempt response
-      const questionsFromAttempt = attempt.questions || [];
-      
+      // Check for existing in-progress attempt to resume
+      const existingAttempt = await QuizService.getInProgressAttempt(quiz.id);
+
+      let attempt;
+      let questionsFromAttempt: any[] = [];
+      let savedAnswers: Record<string, any> = {};
+
+      if (existingAttempt) {
+        // Resume existing attempt
+        toast.info('Resuming quiz...');
+        attempt = existingAttempt;
+
+        // Get attempt details with questions and saved answers
+        const attemptDetails = await QuizService.getAttempt(quiz.id, existingAttempt.id);
+        // Use questions from fullQuiz if attempt doesn't have them
+        questionsFromAttempt = attemptDetails.questions || existingAttempt.questions || fullQuiz.questions || [];
+
+        // Restore saved answers if available
+        if (attemptDetails.answers) {
+          attemptDetails.answers.forEach((ans: any) => {
+            // Convert stored index back to option text for MCQ display
+            const question = questionsFromAttempt.find((q: any) => String(q.id) === String(ans.questionId));
+            if (question && question.options && ans.selectedOption) {
+              const idx = parseInt(ans.selectedOption, 10);
+              if (!isNaN(idx) && question.options[idx]) {
+                savedAnswers[ans.questionId] = question.options[idx];
+              }
+            } else if (ans.answerText) {
+              savedAnswers[ans.questionId] = ans.answerText;
+            }
+          });
+        }
+      } else {
+        // Start new attempt
+        attempt = await QuizService.startAttempt(quiz.id);
+        // Use questions from fullQuiz or attempt
+        questionsFromAttempt = attempt.questions || fullQuiz.questions || [];
+      }
+
+      // Update active quiz with full details
+      const updatedQuiz = {
+        ...quiz,
+        questions: questionsFromAttempt.length,
+        timeLimitMinutes: fullQuiz.timeLimitMinutes || quiz.timeLimitMinutes || 30,
+        passingScore: parseFloat(fullQuiz.passingScore || '50'),
+        showCorrectAnswers: fullQuiz.showCorrectAnswers,
+      };
+
       setCurrentAttempt(attempt);
-      setCurrentAttemptId(attempt.id); // Store as string
+      setCurrentAttemptId(attempt.id);
       setQuizQuestions(questionsFromAttempt);
-      setActiveQuiz(quiz);
+      setActiveQuiz(updatedQuiz);
       setCurrentQuestionIndex(0);
-      setAnswers({});
+      setAnswers(savedAnswers);
       setSkippedQuestions(new Set());
       lastAutoSaveRef.current = {};
-      
-      // Set timer if quiz has time limit - use timeLimit state variable
-      const timeLimitSeconds = (attempt.timeLimit || 30) * 60; // Convert minutes to seconds
-      setTimeLimit(timeLimitSeconds);
-      
+
+      // Set timer - calculate remaining time for resumed attempts
+      const startTime = new Date(attempt.startedAt).getTime();
+      const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+      const totalTimeLimitSeconds = (fullQuiz.timeLimitMinutes || 30) * 60;
+      const remainingTime = Math.max(0, totalTimeLimitSeconds - elapsedSeconds);
+      setTimeLimit(existingAttempt ? remainingTime : totalTimeLimitSeconds);
+
       // Calculate remaining attempts
-      const maxAttempts = quiz.maxAttempts || attempt.maxAttempts || 0;
+      const maxAttempts = fullQuiz.maxAttempts || quiz.maxAttempts || 1;
       const myAttempts = (await QuizService.getMyAttempts(quiz.id)) || [];
       const remaining = Math.max(0, maxAttempts - myAttempts.length);
       setRemainingAttempts(remaining);
-      
+
       setView('active');
     } catch (error: any) {
       console.error('Failed to start quiz:', error);
       // Check if it's max attempts error
       if (error.message?.includes('Maximum attempts')) {
-        toast.error('You have used all your attempts for this quiz.');
+        toast.error('Maximum attempts reached');
       } else {
         toast.error('Failed to start quiz. Please try again.');
       }
@@ -436,49 +513,137 @@ export const QuizTaking = () => {
       console.error('No active attempt to submit');
       return;
     }
-    
+
     setSubmittingQuiz(true);
     try {
       // Transform answers to API format
-      const answersArray = quizQuestions.map((q) => {
-        const value = answers[String(q.id)];
-        
-        if (q.questionType === 'mcq') {
-          // For MCQ, value is the selected option text
-          return {
-            questionId: Number(q.id),
-            selectedOption: value ? [value] : [],
-            answerText: null
-          };
-        } else if (q.questionType === 'true_false') {
-          // For true/false, value should be 'true' or 'false'
-          return {
-            questionId: Number(q.id),
-            selectedOption: null,
-            answerText: value || ''
-          };
-        } else {
-          // For short_answer, essay, etc.
-          return {
-            questionId: Number(q.id),
-            selectedOption: null,
-            answerText: value || ''
-          };
-        }
-      }).filter(a => a.selectedOption?.length > 0 || a.answerText);
-      
+      // For MCQ: send the INDEX of the selected option as string
+      const answersArray = quizQuestions
+        .map((q: any) => {
+          const value = answers[String(q.id)];
+
+          if (q.questionType === 'mcq') {
+            // value is the selected option text, find its index
+            const selectedIndex = q.options?.findIndex((opt: string) => opt === value);
+            return {
+              questionId: Number(q.id),
+              selectedOption: selectedIndex !== undefined && selectedIndex >= 0 ? [String(selectedIndex)] : [],
+              answerText: null,
+            };
+          } else if (q.questionType === 'true_false') {
+            // For true/false, value should be 'true' or 'false' or index
+            const tfIndex = value === 'True' ? '0' : value === 'False' ? '1' : value;
+            return {
+              questionId: Number(q.id),
+              selectedOption: tfIndex ? [tfIndex] : [],
+              answerText: null,
+            };
+          } else {
+            // For short_answer, essay, etc.
+            return {
+              questionId: Number(q.id),
+              selectedOption: null,
+              answerText: value || '',
+            };
+          }
+        })
+        .filter((a: any) => (a.selectedOption && a.selectedOption.length > 0) || a.answerText);
+
       // Submit to API
-      const result = await QuizService.submitAttempt(currentAttempt.quizId, currentAttemptId, answersArray);
+      const result = await QuizService.submitAttempt(
+        currentAttempt.quizId,
+        currentAttemptId,
+        answersArray
+      );
+
+      // Build result with question details for review
+      const questionsWithResults = quizQuestions.map((q: any) => {
+        const userAnswer = answers[String(q.id)];
+        const correctAnswerIndex = parseInt(q.correctAnswer || '0', 10);
+        const correctAnswerText = q.options?.[correctAnswerIndex] || q.correctAnswer;
+        
+        // Determine if answer is correct
+        let isCorrect = false;
+        if (q.questionType === 'mcq' && q.options && userAnswer !== undefined) {
+          // Try exact match first
+          let selectedIndex = q.options.findIndex((opt: string) => opt === userAnswer);
+          // If not found, try trimmed comparison
+          if (selectedIndex === -1) {
+            selectedIndex = q.options.findIndex((opt: string) => 
+              String(opt).trim().toLowerCase() === String(userAnswer).trim().toLowerCase()
+            );
+          }
+          isCorrect = selectedIndex >= 0 && selectedIndex === correctAnswerIndex;
+          console.log('MCQ answer check:', { questionId: q.id, userAnswer, options: q.options, selectedIndex, correctAnswerIndex, isCorrect });
+        } else if (q.questionType === 'true_false') {
+          const expectedAnswer = correctAnswerIndex === 0 ? 'True' : 'False';
+          isCorrect = String(userAnswer).toLowerCase() === expectedAnswer.toLowerCase();
+        }
+
+        return {
+          questionId: q.id,
+          questionText: q.questionText,
+          isCorrect,
+          userAnswer,
+          correctAnswer: correctAnswerText,
+          points: parseFloat(q.points || '0'),
+        };
+      });
+
+      // Calculate score locally from questions
+      const totalPoints = questionsWithResults.reduce((sum: number, q: any) => sum + q.points, 0);
+      const earnedPoints = questionsWithResults
+        .filter((q: any) => q.isCorrect)
+        .reduce((sum: number, q: any) => sum + q.points, 0);
       
-      setQuizResult(result);
+      // Parse API values (they might be strings like "10.00")
+      const apiScore = result?.totalScore !== undefined ? parseFloat(String(result.totalScore)) : NaN;
+      const apiMaxScore = result?.maxScore !== undefined ? parseFloat(String(result.maxScore)) : NaN;
+      const apiPercentage = result?.percentage !== undefined ? parseFloat(String(result.percentage)) : NaN;
+      
+      // Use API values if valid, otherwise use calculated values
+      const finalScore = !isNaN(apiScore) ? apiScore : earnedPoints;
+      const finalMaxScore = !isNaN(apiMaxScore) ? apiMaxScore : totalPoints;
+      // Calculate percentage from scores, or use API percentage if both scores are 0/invalid
+      const calculatedPercentage = finalMaxScore > 0 ? Math.round((finalScore / finalMaxScore) * 100) : 0;
+      const finalPercentage = !isNaN(apiPercentage) && finalScore === 0 && finalMaxScore === 0 
+        ? Math.round(apiPercentage) 
+        : calculatedPercentage;
+      const passingScoreThreshold = parseFloat(String(activeQuiz.passingScore || 50));
+
+      console.log('Quiz Result Debug:', { 
+        apiResult: result, 
+        apiScore,
+        apiMaxScore,
+        apiPercentage,
+        earnedPoints, 
+        totalPoints, 
+        finalScore, 
+        finalMaxScore, 
+        finalPercentage,
+        questionsWithResults 
+      });
+
+      // Calculate passed based on local percentage, don't trust API passed field
+      const isPassed = finalPercentage >= passingScoreThreshold;
+      console.log('Pass calculation:', { finalPercentage, passingScoreThreshold, isPassed, apiPassed: result?.passed });
+      
+      setQuizResult({
+        ...result,
+        questions: questionsWithResults,
+        score: finalScore,
+        maxScore: finalMaxScore,
+        percentage: finalPercentage,
+        passed: isPassed,
+      });
       setView('results');
     } catch (error) {
       console.error('Failed to submit quiz:', error);
-      alert('Failed to submit quiz. Please try again.');
+      toast.error('Failed to submit quiz. Please try again.');
     } finally {
       setSubmittingQuiz(false);
     }
-  }, [currentAttempt, currentAttemptId, answers, quizQuestions]);
+  }, [currentAttempt, currentAttemptId, answers, quizQuestions, activeQuiz]);
 
   if (loading) {
     return (
@@ -489,38 +654,99 @@ export const QuizTaking = () => {
   }
 
   const computeResults = () => {
-    // If we have API result, use that
-    if (quizResult) {
-      return {
-        correct: quizResult.questions?.filter((q: any) => q.isCorrect).length || 0,
-        wrong: quizResult.questions?.filter((q: any) => !q.isCorrect).length || 0,
-        skipped: 0,
-        pct: Math.round(quizResult.percentage || 0),
-        grade: getLetterGrade(quizResult.percentage || 0),
+    // If we have API result with questions, use that
+    if (quizResult?.questions) {
+      const correct = quizResult.questions.filter((q: any) => q.isCorrect).length;
+      const wrong = quizResult.questions.filter((q: any) => !q.isCorrect && q.userAnswer).length;
+      const skipped = quizResult.questions.filter((q: any) => !q.userAnswer).length;
+      // Use ?? instead of || to handle explicit 0 percentage correctly
+      const pct = quizResult.percentage ?? 0;
+      const passingScore = parseFloat(String(activeQuiz.passingScore || 50));
+      
+      console.log('computeResults with quizResult:', { 
+        quizResult,
+        correct, 
+        wrong, 
+        skipped, 
+        pct,
         score: quizResult.score,
         maxScore: quizResult.maxScore,
-        passed: quizResult.passed
+        percentage: quizResult.percentage
+      });
+      
+      // Always calculate passed locally based on percentage vs passing score
+      const isPassed = Math.round(pct) >= passingScore;
+      return {
+        correct,
+        wrong,
+        skipped,
+        pct: Math.round(pct),
+        grade: getLetterGrade(pct),
+        score: quizResult.score,
+        maxScore: quizResult.maxScore,
+        passed: isPassed,
       };
     }
-    
-    // Fallback to local calculation (for mock data)
+
+    // Fallback to local calculation
     let correct = 0;
     let wrong = 0;
     let skipped = 0;
-    questions.forEach((q) => {
-      if (answers[String(q.id)] !== undefined && answers[String(q.id)] !== '') {
-        // For API questions, we can't calculate correctness locally
-        // But for mock questions, we have the correct field
-        if (q.correct !== undefined) {
-          if (answers[String(q.id)] === q.correct) correct++;
-          else wrong++;
+    let totalPoints = 0;
+    let earnedPoints = 0;
+    
+    questions.forEach((q: any) => {
+      const points = parseFloat(q.points || '1');
+      totalPoints += points;
+      
+      const userAnswer = answers[String(q.id)];
+      if (userAnswer !== undefined && userAnswer !== '') {
+        // Check correctness based on question type
+        if (q.questionType === 'mcq' && q.options && q.correctAnswer !== undefined) {
+          const correctAnswerIndex = parseInt(q.correctAnswer, 10);
+          const selectedIndex = q.options.findIndex((opt: string) => opt === userAnswer);
+          if (selectedIndex === correctAnswerIndex) {
+            correct++;
+            earnedPoints += points;
+          } else {
+            wrong++;
+          }
+        } else if (q.questionType === 'true_false') {
+          const correctAnswerIndex = parseInt(q.correctAnswer || '0', 10);
+          const expectedAnswer = correctAnswerIndex === 0 ? 'True' : 'False';
+          if (userAnswer === expectedAnswer) {
+            correct++;
+            earnedPoints += points;
+          } else {
+            wrong++;
+          }
+        } else if (q.correct !== undefined) {
+          // Mock questions with direct correct field
+          if (userAnswer === q.correct) {
+            correct++;
+            earnedPoints += points;
+          } else {
+            wrong++;
+          }
         }
       } else {
         skipped++;
       }
     });
-    const pct = questions.length > 0 ? Math.round((correct / questions.length) * 100) : 0;
-    return { correct, wrong, skipped, pct, grade: getLetterGrade(pct) };
+    
+    const pct = totalPoints > 0 ? Math.round((earnedPoints / totalPoints) * 100) : 0;
+    const passingScore = activeQuiz.passingScore || 50;
+    
+    return { 
+      correct, 
+      wrong, 
+      skipped, 
+      pct, 
+      grade: getLetterGrade(pct),
+      score: earnedPoints,
+      maxScore: totalPoints,
+      passed: pct >= passingScore,
+    };
   };
 
   const retakeQuiz = () => startQuiz(activeQuiz);
@@ -541,17 +767,19 @@ export const QuizTaking = () => {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              {t('quizzes.quizCenter')}
+              Quiz Center
             </h2>
             <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-              {t('quizzes.testKnowledge')}
+              Test your knowledge with interactive quizzes
             </p>
           </div>
         </div>
 
         {/* Available Quizzes */}
         <div>
-          <h2 className={`text-lg font-semibold mb-4 ${textPrimary}`}>{t('quizzes.availableQuizzes')}</h2>
+          <h2 className={`text-lg font-semibold mb-4 ${textPrimary}`}>
+            Available Quizzes
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {availableQuizzes.map((quiz) => (
               <div
@@ -603,16 +831,20 @@ export const QuizTaking = () => {
                   <button
                     onClick={() => startQuiz(quiz)}
                     disabled={startingQuiz || (quiz.maxAttempts && quizAttempts[quiz.id] === 0)}
-                    title={quiz.maxAttempts && quizAttempts[quiz.id] === 0 ? 'No more attempts available' : ''}
+                    title={
+                      quiz.maxAttempts && quizAttempts[quiz.id] === 0
+                        ? 'No more attempts available'
+                        : ''
+                    }
                     className="px-5 py-2 rounded-xl bg-[var(--accent-color)] text-white text-sm font-medium hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                   >
                     {startingQuiz ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin" />
-                        {t('quizzes.loadingQuizzes')}
+                        Loading...
                       </>
                     ) : (
-                      t('quizzes.startQuiz')
+                      'Start Quiz'
                     )}
                   </button>
                 </div>
@@ -623,44 +855,54 @@ export const QuizTaking = () => {
 
         {/* Recent Results */}
         <div>
-          <h2 className={`text-lg font-semibold mb-4 ${textPrimary}`}>{t('quizzes.viewResults')}</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {recentResults.map((r, idx) => {
-              const pct = Math.round((r.score / r.total) * 100);
-              return (
-                <div key={idx} className={`${cardClass} rounded-[2.5rem] p-6`}>
-                  <div className="flex items-center justify-between mb-3">
-                    <div>
-                      <h3 className={`font-semibold ${textPrimary}`}>{r.title}</h3>
-                      <span className={`text-xs ${textSecondary}`}>
-                        {r.course} · {r.date}
+          <h2 className={`text-lg font-semibold mb-4 ${textPrimary}`}>
+            Recent Results
+          </h2>
+          {recentGradedAttempts.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {recentGradedAttempts.map((r, idx) => {
+                return (
+                  <div key={idx} className={`${cardClass} rounded-[2.5rem] p-6`}>
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <h3 className={`font-semibold ${textPrimary}`}>{r.title}</h3>
+                        <span className={`text-xs ${textSecondary}`}>
+                          {r.course} · {formatDate(r.date)}
+                        </span>
+                      </div>
+                      <span
+                        className="text-lg font-bold px-3 py-1 rounded-xl"
+                        style={{
+                          backgroundColor: `${getScoreColor(r.pct)}15`,
+                          color: getScoreColor(r.pct),
+                        }}
+                      >
+                        {r.grade}
                       </span>
                     </div>
-                    <span
-                      className="text-lg font-bold px-3 py-1 rounded-xl"
-                      style={{
-                        backgroundColor: `${getScoreColor(pct)}15`,
-                        color: getScoreColor(pct),
-                      }}
-                    >
-                      {r.grade}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={`flex-1 h-2.5 rounded-full ${isDark ? 'bg-white/10' : 'bg-slate-200'}`}
-                    >
+                    <div className="flex items-center gap-3">
                       <div
-                        className="h-2.5 rounded-full transition-all"
-                        style={{ width: `${pct}%`, backgroundColor: getScoreColor(pct) }}
-                      />
+                        className={`flex-1 h-2.5 rounded-full ${isDark ? 'bg-white/10' : 'bg-slate-200'}`}
+                      >
+                        <div
+                          className="h-2.5 rounded-full transition-all"
+                          style={{ width: `${r.pct}%`, backgroundColor: getScoreColor(r.pct) }}
+                        />
+                      </div>
+                      <span className={`text-sm font-semibold ${textPrimary}`}>{r.pct}%</span>
                     </div>
-                    <span className={`text-sm font-semibold ${textPrimary}`}>{pct}%</span>
+                    <div className={`text-xs mt-2 ${textSecondary}`}>
+                      Score: {r.score}/{r.total} pts
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className={`${cardClass} rounded-[2.5rem] p-6 text-center`}>
+              <p className={textSecondary}>No quiz results yet. Take a quiz to see your results here!</p>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -760,7 +1002,9 @@ export const QuizTaking = () => {
                   : 'Text Answer'}
             </span>
             {currentQuestion.points && (
-              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${isDark ? 'bg-white/10 text-slate-300' : 'bg-slate-100 text-slate-600'}`}>
+              <span
+                className={`text-xs px-2 py-0.5 rounded-full font-medium ${isDark ? 'bg-white/10 text-slate-300' : 'bg-slate-100 text-slate-600'}`}
+              >
                 {String(currentQuestion.points).replace('.00', '')} pts
               </span>
             )}
@@ -771,7 +1015,8 @@ export const QuizTaking = () => {
           </h2>
 
           <div className="space-y-3">
-            {currentQuestion.questionType === 'mcq' && currentQuestion.options && (
+            {currentQuestion.questionType === 'mcq' &&
+              currentQuestion.options &&
               currentQuestion.options.map((opt, idx) => {
                 const isSelected = answers[String(currentQuestion.id)] === opt;
                 const label = String.fromCharCode(65 + idx);
@@ -803,9 +1048,8 @@ export const QuizTaking = () => {
                     </span>
                   </button>
                 );
-              })
-            )}
-            {currentQuestion.questionType === 'true_false' && (
+              })}
+            {currentQuestion.questionType === 'true_false' &&
               ['True', 'False'].map((opt) => {
                 const isSelected = answers[String(currentQuestion.id)] === opt;
                 return (
@@ -836,8 +1080,7 @@ export const QuizTaking = () => {
                     </span>
                   </button>
                 );
-              })
-            )}
+              })}
             {(currentQuestion.questionType === 'short_answer' ||
               currentQuestion.questionType === 'essay' ||
               !currentQuestion.questionType) && (
@@ -920,7 +1163,9 @@ export const QuizTaking = () => {
               className={`${isDark ? 'bg-[#1a1a2e]' : 'bg-white'} rounded-[2.5rem] p-6 w-full max-w-md shadow-2xl`}
             >
               <div className="flex items-center justify-between mb-5">
-                <h3 className={`font-bold text-lg ${textPrimary}`}>{t('quizzes.questionNavigator')}</h3>
+                <h3 className={`font-bold text-lg ${textPrimary}`}>
+                  Question Navigator
+                </h3>
                 <button
                   onClick={() => setShowNavigator(false)}
                   className={`p-1.5 rounded-lg ${isDark ? 'hover:bg-white/10' : 'hover:bg-slate-100'}`}
@@ -1044,24 +1289,39 @@ export const QuizTaking = () => {
             <div className="absolute inset-0 flex flex-col items-center justify-center">
               <span className={`text-3xl font-bold ${textPrimary}`}>{results.pct}%</span>
               <span className={`text-xs ${textSecondary}`}>
-                {quizResult ? `${quizResult.score}/${quizResult.maxScore}` : `${Object.keys(answers).length} / ${questions.length}`}
+                {results.score !== undefined && results.maxScore !== undefined
+                  ? `${results.score}/${results.maxScore} pts`
+                  : `${results.correct} / ${questions.length} correct`}
               </span>
             </div>
           </div>
 
           <h2 className={`text-2xl font-bold mb-1 ${textPrimary}`}>
-            {results.pct >= 70
-              ? 'Great Job!'
-              : results.pct >= 50
-                ? 'Good Effort!'
-                : 'Keep Practicing!'}
+            {results.passed
+              ? results.pct >= 90
+                ? 'Excellent Work!'
+                : results.pct >= 70
+                  ? 'Great Job!'
+                  : 'You Passed!'
+              : 'Keep Practicing!'}
           </h2>
-          <span
-            className="text-lg font-bold px-4 py-1 rounded-xl"
-            style={{ backgroundColor: `${scoreColor}15`, color: scoreColor }}
-          >
-            Grade: {results.grade}
-          </span>
+          <div className="flex items-center gap-2 mb-2">
+            <span
+              className="text-lg font-bold px-4 py-1 rounded-xl"
+              style={{ backgroundColor: `${scoreColor}15`, color: scoreColor }}
+            >
+              Grade: {results.grade}
+            </span>
+            <span
+              className={`text-sm font-medium px-3 py-1 rounded-xl ${
+                results.passed
+                  ? 'bg-green-100 text-green-700'
+                  : 'bg-red-100 text-red-700'
+              }`}
+            >
+              {results.passed ? '✓ Passed' : '✗ Failed'}
+            </span>
+          </div>
         </div>
 
         {/* Stats Row */}
@@ -1137,7 +1397,9 @@ export const QuizTaking = () => {
                             Your answer:{' '}
                             <span
                               className={
-                                isCorrect ? 'text-green-500 font-medium' : 'text-red-500 font-medium'
+                                isCorrect
+                                  ? 'text-green-500 font-medium'
+                                  : 'text-red-500 font-medium'
                               }
                             >
                               {userAnswer}

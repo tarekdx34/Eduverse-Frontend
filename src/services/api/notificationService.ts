@@ -38,17 +38,17 @@ export class NotificationService {
     const response = await ApiClient.get<Notification[] | { data: Notification[] }>(
       `/notifications${qs ? `?${qs}` : ''}`
     );
-    const rows = Array.isArray(response) ? response : response.data ?? [];
+    const rows = Array.isArray(response) ? response : (response.data ?? []);
     return rows.map((item) => {
-      const normalizedId = String((item as Partial<Notification>).id ?? (item as Partial<Notification>).notificationId ?? '');
+      const normalizedId = String(
+        (item as Partial<Notification>).id ?? (item as Partial<Notification>).notificationId ?? ''
+      );
       const normalizedType =
         (item as Partial<Notification>).notificationType ||
         (item as Partial<Notification>).type ||
         'system';
       const normalizedBody =
-        (item as Partial<Notification>).body ||
-        (item as Partial<Notification>).message ||
-        '';
+        (item as Partial<Notification>).body || (item as Partial<Notification>).message || '';
       const normalizedRead =
         (item as Partial<Notification>).isRead !== undefined
           ? (item as Partial<Notification>).isRead === 1
@@ -100,7 +100,9 @@ export class NotificationService {
     return ApiClient.get('/notifications/preferences');
   }
 
-  static async updatePreferences(prefs: Partial<NotificationPreferences>): Promise<NotificationPreferences> {
+  static async updatePreferences(
+    prefs: Partial<NotificationPreferences>
+  ): Promise<NotificationPreferences> {
     return ApiClient.put('/notifications/preferences', prefs);
   }
 }

@@ -62,7 +62,9 @@ export function AIQuestionEditor({
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generateDifficulty, setGenerateDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
+  const [generateDifficulty, setGenerateDifficulty] = useState<'easy' | 'medium' | 'hard'>(
+    'medium'
+  );
   const [generateCount, setGenerateCount] = useState(5);
   const [showGenerateModal, setShowGenerateModal] = useState(false);
 
@@ -96,9 +98,7 @@ export function AIQuestionEditor({
   const saveEditing = () => {
     if (!editingQuestion) return;
 
-    const newQuestions = questions.map((q) =>
-      q.id === editingQuestion.id ? editingQuestion : q
-    );
+    const newQuestions = questions.map((q) => (q.id === editingQuestion.id ? editingQuestion : q));
     updateQuestions(newQuestions);
     setEditingId(null);
     setEditingQuestion(null);
@@ -128,10 +128,7 @@ export function AIQuestionEditor({
     if (newIndex < 0 || newIndex >= questions.length) return;
 
     const newQuestions = [...questions];
-    [newQuestions[index], newQuestions[newIndex]] = [
-      newQuestions[newIndex],
-      newQuestions[index],
-    ];
+    [newQuestions[index], newQuestions[newIndex]] = [newQuestions[newIndex], newQuestions[index]];
     updateQuestions(newQuestions);
   };
 
@@ -172,8 +169,7 @@ export function AIQuestionEditor({
       ...editingQuestion,
       options: newOptions,
       correctAnswer:
-        typeof editingQuestion.correctAnswer === 'number' &&
-        editingQuestion.correctAnswer >= index
+        typeof editingQuestion.correctAnswer === 'number' && editingQuestion.correctAnswer >= index
           ? Math.max(0, (editingQuestion.correctAnswer as number) - 1)
           : editingQuestion.correctAnswer,
     });
@@ -188,7 +184,9 @@ export function AIQuestionEditor({
   const optionClass = isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-900';
 
   return (
-    <div className={`${isDark ? 'bg-[#1e293b]' : 'bg-white'} rounded-xl border ${isDark ? 'border-gray-700' : 'border-gray-200'} ${className}`}>
+    <div
+      className={`${isDark ? 'bg-[#1e293b]' : 'bg-white'} rounded-xl border ${isDark ? 'border-gray-700' : 'border-gray-200'} ${className}`}
+    >
       {/* Header */}
       <div className={`p-4 border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
         <div className="flex items-center justify-between">
@@ -197,7 +195,9 @@ export function AIQuestionEditor({
               <Sparkles className="text-purple-600" size={20} />
             </div>
             <div>
-              <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>AI Question Editor</h3>
+              <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                AI Question Editor
+              </h3>
               <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
                 {questions.length} questions • {totalPoints} points total
               </p>
@@ -227,10 +227,15 @@ export function AIQuestionEditor({
       </div>
 
       {/* Questions List */}
-      <div className={`divide-y ${isDark ? 'divide-gray-700' : 'divide-gray-100'} max-h-[600px] overflow-y-auto`}>
+      <div
+        className={`divide-y ${isDark ? 'divide-gray-700' : 'divide-gray-100'} max-h-[600px] overflow-y-auto`}
+      >
         {questions.length === 0 ? (
           <div className="p-8 text-center">
-            <AlertCircle size={48} className={`mx-auto ${isDark ? 'text-gray-600' : 'text-gray-300'} mb-4`} />
+            <AlertCircle
+              size={48}
+              className={`mx-auto ${isDark ? 'text-gray-600' : 'text-gray-300'} mb-4`}
+            />
             <p className={isDark ? 'text-gray-400' : 'text-gray-600'}>No questions yet</p>
             {!readOnly && (
               <button
@@ -243,14 +248,21 @@ export function AIQuestionEditor({
           </div>
         ) : (
           questions.map((question, index) => (
-            <div key={question.id} className={`p-4 ${isDark ? 'hover:bg-gray-800/50' : 'hover:bg-gray-50'} transition-colors`}>
+            <div
+              key={question.id}
+              className={`p-4 ${isDark ? 'hover:bg-gray-800/50' : 'hover:bg-gray-50'} transition-colors`}
+            >
               {editingId === question.id && editingQuestion ? (
                 /* Editing Mode */
                 <div className="space-y-4">
                   {/* Question Type & Difficulty */}
                   <div className="grid grid-cols-3 gap-4">
                     <div>
-                      <label className={`block text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'} mb-1`}>Type</label>
+                      <label
+                        className={`block text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'} mb-1`}
+                      >
+                        Type
+                      </label>
                       <CleanSelect
                         value={editingQuestion.type}
                         onChange={(e) =>
@@ -261,14 +273,26 @@ export function AIQuestionEditor({
                         }
                         className={`w-full px-3 py-2 border ${inputClass} rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500`}
                       >
-                        <option className={optionClass} value="multiple-choice">Multiple Choice</option>
-                        <option className={optionClass} value="true-false">True/False</option>
-                        <option className={optionClass} value="short-answer">Short Answer</option>
-                        <option className={optionClass} value="essay">Essay</option>
+                        <option className={optionClass} value="multiple-choice">
+                          Multiple Choice
+                        </option>
+                        <option className={optionClass} value="true-false">
+                          True/False
+                        </option>
+                        <option className={optionClass} value="short-answer">
+                          Short Answer
+                        </option>
+                        <option className={optionClass} value="essay">
+                          Essay
+                        </option>
                       </CleanSelect>
                     </div>
                     <div>
-                      <label className={`block text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'} mb-1`}>Difficulty</label>
+                      <label
+                        className={`block text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'} mb-1`}
+                      >
+                        Difficulty
+                      </label>
                       <CleanSelect
                         value={editingQuestion.difficulty}
                         onChange={(e) =>
@@ -279,13 +303,23 @@ export function AIQuestionEditor({
                         }
                         className={`w-full px-3 py-2 border ${inputClass} rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500`}
                       >
-                        <option className={optionClass} value="easy">Easy</option>
-                        <option className={optionClass} value="medium">Medium</option>
-                        <option className={optionClass} value="hard">Hard</option>
+                        <option className={optionClass} value="easy">
+                          Easy
+                        </option>
+                        <option className={optionClass} value="medium">
+                          Medium
+                        </option>
+                        <option className={optionClass} value="hard">
+                          Hard
+                        </option>
                       </CleanSelect>
                     </div>
                     <div>
-                      <label className={`block text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'} mb-1`}>Points</label>
+                      <label
+                        className={`block text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'} mb-1`}
+                      >
+                        Points
+                      </label>
                       <input
                         type="number"
                         min="1"
@@ -303,7 +337,11 @@ export function AIQuestionEditor({
 
                   {/* Question Text */}
                   <div>
-                    <label className={`block text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'} mb-1`}>Question</label>
+                    <label
+                      className={`block text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'} mb-1`}
+                    >
+                      Question
+                    </label>
                     <textarea
                       value={editingQuestion.question}
                       onChange={(e) =>
@@ -317,7 +355,11 @@ export function AIQuestionEditor({
                   {/* Options (for multiple choice) */}
                   {editingQuestion.type === 'multiple-choice' && editingQuestion.options && (
                     <div>
-                      <label className={`block text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'} mb-1`}>Options</label>
+                      <label
+                        className={`block text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'} mb-1`}
+                      >
+                        Options
+                      </label>
                       <div className="space-y-2">
                         {editingQuestion.options.map((option, optIndex) => (
                           <div key={optIndex} className="flex items-center gap-2">
@@ -358,7 +400,11 @@ export function AIQuestionEditor({
                   {/* True/False */}
                   {editingQuestion.type === 'true-false' && (
                     <div>
-                      <label className={`block text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'} mb-1`}>Correct Answer</label>
+                      <label
+                        className={`block text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'} mb-1`}
+                      >
+                        Correct Answer
+                      </label>
                       <div className="flex gap-4">
                         <label className="flex items-center gap-2">
                           <input
@@ -388,7 +434,9 @@ export function AIQuestionEditor({
 
                   {/* Explanation */}
                   <div>
-                    <label className={`block text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'} mb-1`}>
+                    <label
+                      className={`block text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'} mb-1`}
+                    >
                       Explanation (optional)
                     </label>
                     <textarea
@@ -431,7 +479,10 @@ export function AIQuestionEditor({
                       >
                         <ChevronUp size={14} />
                       </button>
-                      <GripVertical size={14} className={isDark ? 'text-gray-500' : 'text-gray-400'} />
+                      <GripVertical
+                        size={14}
+                        className={isDark ? 'text-gray-500' : 'text-gray-400'}
+                      />
                       <button
                         onClick={() => moveQuestion(index, 'down')}
                         disabled={index === questions.length - 1}
@@ -446,7 +497,11 @@ export function AIQuestionEditor({
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
-                          <span className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Q{index + 1}</span>
+                          <span
+                            className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-500'}`}
+                          >
+                            Q{index + 1}
+                          </span>
                           <span
                             className={`px-2 py-0.5 rounded text-xs font-medium ${
                               difficultyColors[question.difficulty]
@@ -454,18 +509,26 @@ export function AIQuestionEditor({
                           >
                             {question.difficulty}
                           </span>
-                          <span className={`px-2 py-0.5 ${isDark ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'} rounded text-xs`}>
+                          <span
+                            className={`px-2 py-0.5 ${isDark ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'} rounded text-xs`}
+                          >
                             {typeLabels[question.type]}
                           </span>
-                          <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{question.points} pts</span>
+                          <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                            {question.points} pts
+                          </span>
                         </div>
-                        <p className={isDark ? 'text-gray-200' : 'text-gray-900'}>{question.question}</p>
+                        <p className={isDark ? 'text-gray-200' : 'text-gray-900'}>
+                          {question.question}
+                        </p>
 
                         {/* Collapsed Options Preview */}
                         {!expandedIds.has(question.id) &&
                           question.type === 'multiple-choice' &&
                           question.options && (
-                            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'} mt-1`}>
+                            <p
+                              className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'} mt-1`}
+                            >
                               {question.options.length} options •{' '}
                               <button
                                 onClick={() => toggleExpanded(question.id)}
@@ -485,7 +548,9 @@ export function AIQuestionEditor({
                                 className={`flex items-center gap-2 text-sm ${
                                   question.correctAnswer === optIndex
                                     ? 'text-green-700 font-medium'
-                                    : isDark ? 'text-gray-400' : 'text-gray-600'
+                                    : isDark
+                                      ? 'text-gray-400'
+                                      : 'text-gray-600'
                                 }`}
                               >
                                 <span className="w-6 h-6 rounded-full border flex items-center justify-center text-xs">
@@ -536,11 +601,15 @@ export function AIQuestionEditor({
       {showGenerateModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className={`${isDark ? 'bg-[#1e293b]' : 'bg-white'} rounded-xl p-6 w-full max-w-md`}>
-            <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'} mb-4`}>Generate More Questions</h3>
+            <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'} mb-4`}>
+              Generate More Questions
+            </h3>
 
             <div className="space-y-4">
               <div>
-                <label className={`block text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
+                <label
+                  className={`block text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2`}
+                >
                   Difficulty Level
                 </label>
                 <div className="flex gap-2">
@@ -548,10 +617,12 @@ export function AIQuestionEditor({
                     <button
                       key={level}
                       onClick={() => setGenerateDifficulty(level)}
-                        className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
+                      className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
                         generateDifficulty === level
                           ? 'bg-indigo-600 text-white'
-                          : isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          : isDark
+                            ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                       }`}
                     >
                       {level.charAt(0).toUpperCase() + level.slice(1)}
@@ -561,7 +632,9 @@ export function AIQuestionEditor({
               </div>
 
               <div>
-                <label className={`block text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
+                <label
+                  className={`block text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2`}
+                >
                   Number of Questions
                 </label>
                 <input

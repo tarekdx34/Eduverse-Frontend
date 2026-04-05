@@ -1,5 +1,16 @@
 import { useState, useRef, useCallback } from 'react';
-import { Upload, Image, FileText, Copy, Check, Loader2, X, ZoomIn, ZoomOut, RotateCw } from 'lucide-react';
+import {
+  Upload,
+  Image,
+  FileText,
+  Copy,
+  Check,
+  Loader2,
+  X,
+  ZoomIn,
+  ZoomOut,
+  RotateCw,
+} from 'lucide-react';
 
 interface ImageTextExtractorProps {
   onTextExtracted: (text: string) => void;
@@ -33,7 +44,9 @@ export function ImageTextExtractor({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Simulated OCR function (in production, use Tesseract.js or cloud OCR API)
-  const performOCR = async (imageUrl: string): Promise<{ text: string; regions: ExtractedRegion[] }> => {
+  const performOCR = async (
+    imageUrl: string
+  ): Promise<{ text: string; regions: ExtractedRegion[] }> => {
     // Simulate OCR processing delay
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
@@ -60,50 +73,67 @@ Applications include:
 - Autonomous vehicles`;
 
     const regions: ExtractedRegion[] = [
-      { text: 'Chapter 5: Introduction to Machine Learning', confidence: 0.98, bounds: { x: 50, y: 20, width: 400, height: 30 } },
-      { text: 'Machine learning is a subset of artificial intelligence...', confidence: 0.95, bounds: { x: 50, y: 60, width: 450, height: 50 } },
-      { text: 'Key Concepts:', confidence: 0.99, bounds: { x: 50, y: 120, width: 150, height: 25 } },
+      {
+        text: 'Chapter 5: Introduction to Machine Learning',
+        confidence: 0.98,
+        bounds: { x: 50, y: 20, width: 400, height: 30 },
+      },
+      {
+        text: 'Machine learning is a subset of artificial intelligence...',
+        confidence: 0.95,
+        bounds: { x: 50, y: 60, width: 450, height: 50 },
+      },
+      {
+        text: 'Key Concepts:',
+        confidence: 0.99,
+        bounds: { x: 50, y: 120, width: 150, height: 25 },
+      },
     ];
 
     return { text: simulatedText, regions };
   };
 
-  const processImage = useCallback(async (file: File) => {
-    // Validate file type
-    if (!supportedFormats.includes(file.type)) {
-      setError(`Unsupported format. Please use: ${supportedFormats.map(f => f.split('/')[1]).join(', ')}`);
-      return;
-    }
-
-    // Validate file size
-    if (file.size > maxFileSizeMB * 1024 * 1024) {
-      setError(`File too large. Maximum size: ${maxFileSizeMB}MB`);
-      return;
-    }
-
-    setError(null);
-    setIsExtracting(true);
-    setExtractedText('');
-    setExtractedRegions([]);
-
-    // Create preview
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      const imageUrl = e.target?.result as string;
-      setImagePreview(imageUrl);
-
-      try {
-        const { text, regions } = await performOCR(imageUrl);
-        setExtractedText(text);
-        setExtractedRegions(regions);
-      } catch (err) {
-        setError('Failed to extract text. Please try again.');
-      } finally {
-        setIsExtracting(false);
+  const processImage = useCallback(
+    async (file: File) => {
+      // Validate file type
+      if (!supportedFormats.includes(file.type)) {
+        setError(
+          `Unsupported format. Please use: ${supportedFormats.map((f) => f.split('/')[1]).join(', ')}`
+        );
+        return;
       }
-    };
-    reader.readAsDataURL(file);
-  }, [supportedFormats, maxFileSizeMB]);
+
+      // Validate file size
+      if (file.size > maxFileSizeMB * 1024 * 1024) {
+        setError(`File too large. Maximum size: ${maxFileSizeMB}MB`);
+        return;
+      }
+
+      setError(null);
+      setIsExtracting(true);
+      setExtractedText('');
+      setExtractedRegions([]);
+
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const imageUrl = e.target?.result as string;
+        setImagePreview(imageUrl);
+
+        try {
+          const { text, regions } = await performOCR(imageUrl);
+          setExtractedText(text);
+          setExtractedRegions(regions);
+        } catch (err) {
+          setError('Failed to extract text. Please try again.');
+        } finally {
+          setIsExtracting(false);
+        }
+      };
+      reader.readAsDataURL(file);
+    },
+    [supportedFormats, maxFileSizeMB]
+  );
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -122,23 +152,29 @@ Applications include:
     setIsDragging(false);
   }, []);
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDragging(false);
 
-    const file = e.dataTransfer.files[0];
-    if (file) {
-      processImage(file);
-    }
-  }, [processImage]);
+      const file = e.dataTransfer.files[0];
+      if (file) {
+        processImage(file);
+      }
+    },
+    [processImage]
+  );
 
-  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      processImage(file);
-    }
-  }, [processImage]);
+  const handleFileSelect = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file) {
+        processImage(file);
+      }
+    },
+    [processImage]
+  );
 
   const copyToClipboard = async () => {
     try {
@@ -205,9 +241,10 @@ Applications include:
             onDrop={handleDrop}
             className={`
               border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-all
-              ${isDragging
-                ? 'border-purple-500 bg-purple-50'
-                : 'border-gray-300 hover:border-purple-400 hover:bg-gray-50'
+              ${
+                isDragging
+                  ? 'border-purple-500 bg-purple-50'
+                  : 'border-gray-300 hover:border-purple-400 hover:bg-gray-50'
               }
             `}
           >
@@ -320,7 +357,8 @@ Applications include:
                       (extractedRegions.reduce((sum, r) => sum + r.confidence, 0) /
                         extractedRegions.length) *
                         100
-                    )}%
+                    )}
+                    %
                   </span>
                 </div>
               )}

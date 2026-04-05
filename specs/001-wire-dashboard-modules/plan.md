@@ -8,6 +8,7 @@
 Wire existing Student, Instructor, and TA dashboard components (Assignments, Quizzes, Labs) to the live NestJS backend API. Replace mock data with real API calls, implement proper loading/error states, add quiz timer with auto-save, enforce role-based access controls, integrate i18n framework, and ensure WCAG 2.1 AA accessibility compliance.
 
 **Technical Approach:**
+
 1. Audit and complete API service methods in assignmentService, quizService, labService
 2. Replace mock data in dashboard components with `useApi` hook calls
 3. Implement quiz timer with 30-second auto-save and server-side tracking
@@ -29,16 +30,16 @@ Wire existing Student, Instructor, and TA dashboard components (Assignments, Qui
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
-| Principle | Status | Notes |
-|-----------|--------|-------|
-| **I. Component Architecture** | ✅ PASS | Using existing Radix UI components, services in `src/services/api/`, hooks for logic |
-| **II. API Integration** | ✅ PASS | Using established `useApi` hook, services encapsulate API calls, Sonner for errors |
-| **III. Authentication & Authorization** | ✅ PASS | AuthContext exists with role detection, `getDashboardPath()` available |
-| **IV. Accessibility (NON-NEGOTIABLE)** | ⚠️ REQUIRES WORK | Need ARIA labels, keyboard nav, focus management - spec requires WCAG 2.1 AA |
-| **V. Code Quality** | ✅ PASS | ESLint/Prettier configured, TypeScript in use |
-| **VI. User Experience** | ✅ PASS | Loading states via useApi, skeleton loaders available, responsive layouts |
+| Principle                               | Status           | Notes                                                                                |
+| --------------------------------------- | ---------------- | ------------------------------------------------------------------------------------ |
+| **I. Component Architecture**           | ✅ PASS          | Using existing Radix UI components, services in `src/services/api/`, hooks for logic |
+| **II. API Integration**                 | ✅ PASS          | Using established `useApi` hook, services encapsulate API calls, Sonner for errors   |
+| **III. Authentication & Authorization** | ✅ PASS          | AuthContext exists with role detection, `getDashboardPath()` available               |
+| **IV. Accessibility (NON-NEGOTIABLE)**  | ⚠️ REQUIRES WORK | Need ARIA labels, keyboard nav, focus management - spec requires WCAG 2.1 AA         |
+| **V. Code Quality**                     | ✅ PASS          | ESLint/Prettier configured, TypeScript in use                                        |
+| **VI. User Experience**                 | ✅ PASS          | Loading states via useApi, skeleton loaders available, responsive layouts            |
 
 **Constitution Compliance:** All gates pass. Accessibility requires implementation work (not a violation, work is scoped in spec).
 
@@ -110,14 +111,14 @@ src/
 
 ## Phase 1 Re-evaluation (Post-Design)
 
-| Principle | Pre-Design | Post-Design | Notes |
-|-----------|------------|-------------|-------|
-| **I. Component Architecture** | ✅ PASS | ✅ PASS | Data model uses existing component patterns |
-| **II. API Integration** | ✅ PASS | ✅ PASS | Contracts align with existing service methods |
-| **III. Authentication & Authorization** | ✅ PASS | ✅ PASS | Role checks documented in research.md |
-| **IV. Accessibility** | ⚠️ WORK | ⚠️ WORK | Implementation tasks will address |
-| **V. Code Quality** | ✅ PASS | ✅ PASS | Types centralized in data-model.md |
-| **VI. User Experience** | ✅ PASS | ✅ PASS | Timer/auto-save patterns defined |
+| Principle                               | Pre-Design | Post-Design | Notes                                         |
+| --------------------------------------- | ---------- | ----------- | --------------------------------------------- |
+| **I. Component Architecture**           | ✅ PASS    | ✅ PASS     | Data model uses existing component patterns   |
+| **II. API Integration**                 | ✅ PASS    | ✅ PASS     | Contracts align with existing service methods |
+| **III. Authentication & Authorization** | ✅ PASS    | ✅ PASS     | Role checks documented in research.md         |
+| **IV. Accessibility**                   | ⚠️ WORK    | ⚠️ WORK     | Implementation tasks will address             |
+| **V. Code Quality**                     | ✅ PASS    | ✅ PASS     | Types centralized in data-model.md            |
+| **VI. User Experience**                 | ✅ PASS    | ✅ PASS     | Timer/auto-save patterns defined              |
 
 **Status:** All gates remain compliant. Ready for Phase 2 (task generation).
 
@@ -125,12 +126,12 @@ src/
 
 ## Generated Artifacts
 
-| Artifact | Path | Description |
-|----------|------|-------------|
-| **research.md** | `specs/001-wire-dashboard-modules/research.md` | Technical decisions and patterns |
-| **data-model.md** | `specs/001-wire-dashboard-modules/data-model.md` | Entity definitions and TypeScript types |
-| **contracts/assignments.md** | `specs/001-wire-dashboard-modules/contracts/assignments.md` | Assignment API endpoints |
-| **contracts/quizzes.md** | `specs/001-wire-dashboard-modules/contracts/quizzes.md` | Quiz API endpoints |
-| **contracts/labs.md** | `specs/001-wire-dashboard-modules/contracts/labs.md` | Lab API endpoints |
-| **quickstart.md** | `specs/001-wire-dashboard-modules/quickstart.md` | Developer setup guide |
-| **CLAUDE.md** | Repository root | Agent context (auto-updated) |
+| Artifact                     | Path                                                        | Description                             |
+| ---------------------------- | ----------------------------------------------------------- | --------------------------------------- |
+| **research.md**              | `specs/001-wire-dashboard-modules/research.md`              | Technical decisions and patterns        |
+| **data-model.md**            | `specs/001-wire-dashboard-modules/data-model.md`            | Entity definitions and TypeScript types |
+| **contracts/assignments.md** | `specs/001-wire-dashboard-modules/contracts/assignments.md` | Assignment API endpoints                |
+| **contracts/quizzes.md**     | `specs/001-wire-dashboard-modules/contracts/quizzes.md`     | Quiz API endpoints                      |
+| **contracts/labs.md**        | `specs/001-wire-dashboard-modules/contracts/labs.md`        | Lab API endpoints                       |
+| **quickstart.md**            | `specs/001-wire-dashboard-modules/quickstart.md`            | Developer setup guide                   |
+| **CLAUDE.md**                | Repository root                                             | Agent context (auto-updated)            |

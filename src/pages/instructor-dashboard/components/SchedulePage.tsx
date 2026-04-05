@@ -17,7 +17,6 @@ import { useTheme } from '../contexts/ThemeContext';
 import { CleanSelect } from '../../../components/shared';
 import { toInputDate } from '../../../lib/formatters';
 
-
 // ── Types ──────────────────────────────────────────────────────────────────────
 interface CalendarEvent {
   id: number;

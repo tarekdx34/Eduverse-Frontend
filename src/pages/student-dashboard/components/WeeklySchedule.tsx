@@ -165,7 +165,13 @@ const defaultUpcomingClasses: ClassSession[] = [
   },
 ];
 
-const UpcomingClassCard = ({ classSession, t }: { classSession: ClassSession; t: (key: string) => string }) => (
+const UpcomingClassCard = ({
+  classSession,
+  t,
+}: {
+  classSession: ClassSession;
+  t: (key: string) => string;
+}) => (
   <div className="bg-white border border-slate-100 rounded-lg p-6 hover:shadow-md transition-shadow">
     <div className="flex items-start gap-4 mb-4">
       <div className="w-1 h-16 rounded" style={{ backgroundColor: '#4f39f6' }} />
@@ -211,7 +217,13 @@ const UpcomingClassCard = ({ classSession, t }: { classSession: ClassSession; t:
   </div>
 );
 
-const ScheduleGrid = ({ scheduleData, t }: { scheduleData: ScheduleData; t: (key: string) => string }) => {
+const ScheduleGrid = ({
+  scheduleData,
+  t,
+}: {
+  scheduleData: ScheduleData;
+  t: (key: string) => string;
+}) => {
   const daysOfWeek = [t('timeColumn'), ...DAY_KEYS.map((key) => t(key))];
   return (
     <div className="overflow-x-auto">
@@ -219,10 +231,7 @@ const ScheduleGrid = ({ scheduleData, t }: { scheduleData: ScheduleData; t: (key
         {/* Header */}
         <div className="flex gap-2 mb-4 border-b border-slate-100">
           {daysOfWeek.map((day, index) => (
-            <div
-              key={index}
-              className="w-24 py-3 px-2 font-semibold text-center text-slate-800"
-            >
+            <div key={index} className="w-24 py-3 px-2 font-semibold text-center text-slate-800">
               {day}
             </div>
           ))}
@@ -232,9 +241,7 @@ const ScheduleGrid = ({ scheduleData, t }: { scheduleData: ScheduleData; t: (key
         {TIME_SLOTS.map((time) => (
           <div key={time} className="flex gap-2 mb-4 border-b border-slate-100">
             {/* Time Column */}
-            <div className="w-20 py-4 px-2 text-sm text-slate-600 font-medium">
-              {time}
-            </div>
+            <div className="w-20 py-4 px-2 text-sm text-slate-600 font-medium">{time}</div>
 
             {/* Day Columns */}
             {DAY_KEYS.map((day) => (

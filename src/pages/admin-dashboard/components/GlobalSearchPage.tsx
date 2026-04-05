@@ -26,14 +26,70 @@ interface SearchResult {
 }
 
 const mockResults: SearchResult[] = [
-  { id: '1', category: 'users', title: 'Dr. Sarah Smith', subtitle: 'Instructor • Computer Science', meta: 'dr.smith@uni.edu', icon: Users },
-  { id: '2', category: 'users', title: 'Ahmed Hassan', subtitle: 'Teaching Assistant • Computer Science', meta: 'ahmed@uni.edu', icon: Users },
-  { id: '3', category: 'users', title: 'Mohamed Ali', subtitle: 'Student', meta: 'ID: STU-2024-001', icon: Users },
-  { id: '4', category: 'courses', title: 'CS101 - Introduction to Programming', subtitle: '120 students', meta: 'Active', icon: BookOpen },
-  { id: '5', category: 'courses', title: 'CS202 - Data Structures', subtitle: '95 students', meta: 'Active', icon: BookOpen },
-  { id: '6', category: 'settings', title: 'Security Settings', subtitle: 'System Configuration', meta: '/config/security', icon: Shield },
-  { id: '7', category: 'settings', title: 'Backup Settings', subtitle: 'System Configuration', meta: '/config/backup', icon: Settings },
-  { id: '8', category: 'logs', title: 'Login Activity - Feb 25, 2025', subtitle: '245 events', meta: 'Logs', icon: FileText },
+  {
+    id: '1',
+    category: 'users',
+    title: 'Dr. Sarah Smith',
+    subtitle: 'Instructor • Computer Science',
+    meta: 'dr.smith@uni.edu',
+    icon: Users,
+  },
+  {
+    id: '2',
+    category: 'users',
+    title: 'Ahmed Hassan',
+    subtitle: 'Teaching Assistant • Computer Science',
+    meta: 'ahmed@uni.edu',
+    icon: Users,
+  },
+  {
+    id: '3',
+    category: 'users',
+    title: 'Mohamed Ali',
+    subtitle: 'Student',
+    meta: 'ID: STU-2024-001',
+    icon: Users,
+  },
+  {
+    id: '4',
+    category: 'courses',
+    title: 'CS101 - Introduction to Programming',
+    subtitle: '120 students',
+    meta: 'Active',
+    icon: BookOpen,
+  },
+  {
+    id: '5',
+    category: 'courses',
+    title: 'CS202 - Data Structures',
+    subtitle: '95 students',
+    meta: 'Active',
+    icon: BookOpen,
+  },
+  {
+    id: '6',
+    category: 'settings',
+    title: 'Security Settings',
+    subtitle: 'System Configuration',
+    meta: '/config/security',
+    icon: Shield,
+  },
+  {
+    id: '7',
+    category: 'settings',
+    title: 'Backup Settings',
+    subtitle: 'System Configuration',
+    meta: '/config/backup',
+    icon: Settings,
+  },
+  {
+    id: '8',
+    category: 'logs',
+    title: 'Login Activity - Feb 25, 2025',
+    subtitle: '245 events',
+    meta: 'Logs',
+    icon: FileText,
+  },
 ];
 
 const categories = [
@@ -78,9 +134,19 @@ export function GlobalSearchPage() {
   });
 
   const getCategoryCount = (key: CategoryKey) => {
-    if (key === 'all') return mockResults.filter((r) => r.title.toLowerCase().includes(query.toLowerCase()) || r.subtitle.toLowerCase().includes(query.toLowerCase())).length;
+    if (key === 'all')
+      return mockResults.filter(
+        (r) =>
+          r.title.toLowerCase().includes(query.toLowerCase()) ||
+          r.subtitle.toLowerCase().includes(query.toLowerCase())
+      ).length;
     if (key === 'reports') return 0;
-    return mockResults.filter((r) => r.category === key && (r.title.toLowerCase().includes(query.toLowerCase()) || r.subtitle.toLowerCase().includes(query.toLowerCase()))).length;
+    return mockResults.filter(
+      (r) =>
+        r.category === key &&
+        (r.title.toLowerCase().includes(query.toLowerCase()) ||
+          r.subtitle.toLowerCase().includes(query.toLowerCase()))
+    ).length;
   };
 
   const removeRecent = (index: number) => {
@@ -102,7 +168,9 @@ export function GlobalSearchPage() {
     <div className={`space-y-6 ${isRTL ? 'rtl' : 'ltr'}`} dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Search Header */}
       <div className="relative">
-        <Search className={`absolute top-1/2 -translate-y-1/2 ${isRTL ? 'right-4' : 'left-4'} w-5 h-5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
+        <Search
+          className={`absolute top-1/2 -translate-y-1/2 ${isRTL ? 'right-4' : 'left-4'} w-5 h-5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}
+        />
         <input
           type="text"
           value={query}
@@ -152,7 +220,9 @@ export function GlobalSearchPage() {
           {/* Recent Searches */}
           <div className={cardClass}>
             <div className="flex items-center justify-between mb-4">
-              <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Recent Searches</h3>
+              <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                Recent Searches
+              </h3>
               <button
                 onClick={() => setRecentSearches([])}
                 className="text-sm text-blue-500 hover:text-blue-600 font-medium"
@@ -171,12 +241,21 @@ export function GlobalSearchPage() {
                     <div className="flex items-center gap-3">
                       <Clock className={`w-4 h-4 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
                       <div>
-                        <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{item.text}</p>
-                        <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{item.type}</p>
+                        <p
+                          className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}
+                        >
+                          {item.text}
+                        </p>
+                        <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                          {item.type}
+                        </p>
                       </div>
                     </div>
                     <button
-                      onClick={(e) => { e.stopPropagation(); removeRecent(idx); }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeRecent(idx);
+                      }}
                       className={`p-1 rounded ${isDark ? 'text-gray-500 hover:text-gray-300' : 'text-gray-400 hover:text-gray-600'}`}
                     >
                       <X className="w-4 h-4" />
@@ -185,13 +264,17 @@ export function GlobalSearchPage() {
                 ))}
               </div>
             ) : (
-              <p className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>No recent searches</p>
+              <p className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                No recent searches
+              </p>
             )}
           </div>
 
           {/* Quick Actions */}
           <div>
-            <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Quick Actions</h3>
+            <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              Quick Actions
+            </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {quickActions.map((action) => (
                 <button
@@ -200,9 +283,15 @@ export function GlobalSearchPage() {
                   className={`${cardClass} flex flex-col items-center gap-3 text-center hover:shadow-md transition-shadow cursor-pointer`}
                 >
                   <div className={`p-3 rounded-xl ${isDark ? 'bg-blue-500/10' : 'bg-blue-50'}`}>
-                    <action.icon className={`w-6 h-6 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
+                    <action.icon
+                      className={`w-6 h-6 ${isDark ? 'text-blue-400' : 'text-blue-600'}`}
+                    />
                   </div>
-                  <span className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{action.label}</span>
+                  <span
+                    className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}
+                  >
+                    {action.label}
+                  </span>
                 </button>
               ))}
             </div>
@@ -212,7 +301,9 @@ export function GlobalSearchPage() {
           <div className={cardClass}>
             <div className="flex items-center gap-2 mb-3">
               <Sparkles className={`w-4 h-4 ${isDark ? 'text-blue-400' : 'text-blue-500'}`} />
-              <h3 className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Try searching for:</h3>
+              <h3 className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                Try searching for:
+              </h3>
             </div>
             <div className="flex flex-wrap gap-2">
               {suggestions.map((term) => (
@@ -243,14 +334,26 @@ export function GlobalSearchPage() {
                 className={`flex items-center gap-4 p-4 rounded-lg transition-colors ${isDark ? 'hover:bg-gray-700/50' : 'hover:bg-gray-50'}`}
               >
                 <div className={`p-2.5 rounded-lg ${isDark ? 'bg-gray-700' : 'bg-gray-100'}`}>
-                  <result.icon className={`w-5 h-5 ${isDark ? 'text-gray-300' : 'text-gray-600'}`} />
+                  <result.icon
+                    className={`w-5 h-5 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}
+                  />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{result.title}</p>
-                  <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{result.subtitle}</p>
+                  <p className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    {result.title}
+                  </p>
+                  <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                    {result.subtitle}
+                  </p>
                 </div>
-                <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'} hidden sm:block`}>{result.meta}</span>
-                <span className={`text-xs px-2.5 py-1 rounded-full font-medium capitalize ${categoryBadgeColor[result.category]}`}>
+                <span
+                  className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'} hidden sm:block`}
+                >
+                  {result.meta}
+                </span>
+                <span
+                  className={`text-xs px-2.5 py-1 rounded-full font-medium capitalize ${categoryBadgeColor[result.category]}`}
+                >
                   {result.category}
                 </span>
               </div>
@@ -262,7 +365,9 @@ export function GlobalSearchPage() {
       {/* Empty State */}
       {hasQuery && filtered.length === 0 && (
         <div className={`${cardClass} text-center py-12`}>
-          <Search className={`w-12 h-12 mx-auto mb-4 ${isDark ? 'text-gray-600' : 'text-gray-300'}`} />
+          <Search
+            className={`w-12 h-12 mx-auto mb-4 ${isDark ? 'text-gray-600' : 'text-gray-300'}`}
+          />
           <p className={`text-lg font-medium mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>
             No results found for &ldquo;{query}&rdquo;
           </p>

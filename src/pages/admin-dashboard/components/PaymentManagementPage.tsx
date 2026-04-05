@@ -519,11 +519,7 @@ export function PaymentManagementPage() {
                         setMethodToggles((prev) => ({ ...prev, [method.name]: !prev[method.name] }))
                       }
                       className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                        methodToggles[method.name]
-                          ? ''
-                          : isDark
-                            ? 'bg-gray-600'
-                            : 'bg-gray-300'
+                        methodToggles[method.name] ? '' : isDark ? 'bg-gray-600' : 'bg-gray-300'
                       }`}
                     >
                       <span

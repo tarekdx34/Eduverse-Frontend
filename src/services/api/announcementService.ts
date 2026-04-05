@@ -60,7 +60,8 @@ export const announcementService = {
     client.get<Announcement[]>('/announcements', { params }).then((r) => r.data),
 
   // Get single announcement
-  getAnnouncement: (id: string) => client.get<Announcement>(`/announcements/${id}`).then((r) => r.data),
+  getAnnouncement: (id: string) =>
+    client.get<Announcement>(`/announcements/${id}`).then((r) => r.data),
 
   // Create announcement (creates as draft isPublished=0)
   createAnnouncement: (data: CreateAnnouncementInput) =>
@@ -72,7 +73,9 @@ export const announcementService = {
 
   // Delete announcement
   deleteAnnouncement: (id: string) =>
-    client.delete<{ success?: boolean; message?: string }>(`/announcements/${id}`).then((r) => r.data),
+    client
+      .delete<{ success?: boolean; message?: string }>(`/announcements/${id}`)
+      .then((r) => r.data),
 
   // Publish announcement
   publishAnnouncement: (id: string) =>

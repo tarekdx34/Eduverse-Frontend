@@ -15,7 +15,7 @@ import {
   TrendingUp,
   Star,
   Folder,
-  Bell
+  Bell,
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -36,32 +36,135 @@ interface RecentSearch {
 
 const mockResults: SearchResult[] = [
   // Courses
-  { id: 'c1', type: 'course', title: 'Database Management Systems', description: 'CS220 - Dr. James Wilson', meta: 'Course', highlight: 'database' },
-  { id: 'c2', type: 'course', title: 'Data Structures & Algorithms', description: 'CS201 - Prof. Michael Chen', meta: 'Course', highlight: 'data' },
-  { id: 'c3', type: 'course', title: 'Web Development Fundamentals', description: 'CS150 - Dr. Sarah Johnson', meta: 'Course' },
-  
+  {
+    id: 'c1',
+    type: 'course',
+    title: 'Database Management Systems',
+    description: 'CS220 - Dr. James Wilson',
+    meta: 'Course',
+    highlight: 'database',
+  },
+  {
+    id: 'c2',
+    type: 'course',
+    title: 'Data Structures & Algorithms',
+    description: 'CS201 - Prof. Michael Chen',
+    meta: 'Course',
+    highlight: 'data',
+  },
+  {
+    id: 'c3',
+    type: 'course',
+    title: 'Web Development Fundamentals',
+    description: 'CS150 - Dr. Sarah Johnson',
+    meta: 'Course',
+  },
+
   // Assignments
-  { id: 'a1', type: 'assignment', title: 'Database Design Project', description: 'CS220 - Due Dec 10, 2025', meta: 'Assignment', highlight: 'database' },
-  { id: 'a2', type: 'assignment', title: 'Algorithm Analysis Report', description: 'CS201 - Due Dec 6, 2025', meta: 'Assignment', highlight: 'algorithm' },
-  { id: 'a3', type: 'assignment', title: 'Mobile App Prototype', description: 'CS350 - Due Dec 8, 2025', meta: 'Assignment' },
-  
+  {
+    id: 'a1',
+    type: 'assignment',
+    title: 'Database Design Project',
+    description: 'CS220 - Due Dec 10, 2025',
+    meta: 'Assignment',
+    highlight: 'database',
+  },
+  {
+    id: 'a2',
+    type: 'assignment',
+    title: 'Algorithm Analysis Report',
+    description: 'CS201 - Due Dec 6, 2025',
+    meta: 'Assignment',
+    highlight: 'algorithm',
+  },
+  {
+    id: 'a3',
+    type: 'assignment',
+    title: 'Mobile App Prototype',
+    description: 'CS350 - Due Dec 8, 2025',
+    meta: 'Assignment',
+  },
+
   // Files
-  { id: 'f1', type: 'file', title: 'Lecture 8 - SQL Joins.pdf', description: 'CS220 - Database Management', meta: 'File', highlight: 'sql' },
-  { id: 'f2', type: 'file', title: 'Algorithm Complexity Notes.pdf', description: 'CS201 - Data Structures', meta: 'File', highlight: 'algorithm' },
-  { id: 'f3', type: 'file', title: 'React Native Setup Guide.pdf', description: 'CS350 - Mobile Development', meta: 'File' },
-  
+  {
+    id: 'f1',
+    type: 'file',
+    title: 'Lecture 8 - SQL Joins.pdf',
+    description: 'CS220 - Database Management',
+    meta: 'File',
+    highlight: 'sql',
+  },
+  {
+    id: 'f2',
+    type: 'file',
+    title: 'Algorithm Complexity Notes.pdf',
+    description: 'CS201 - Data Structures',
+    meta: 'File',
+    highlight: 'algorithm',
+  },
+  {
+    id: 'f3',
+    type: 'file',
+    title: 'React Native Setup Guide.pdf',
+    description: 'CS350 - Mobile Development',
+    meta: 'File',
+  },
+
   // Announcements
-  { id: 'n1', type: 'announcement', title: 'Midterm Exam Schedule Released', description: 'Posted by Academic Office', meta: 'Announcement' },
-  { id: 'n2', type: 'announcement', title: 'Lab 8 Instructions Updated', description: 'CS220 - Dr. James Wilson', meta: 'Announcement', highlight: 'lab' },
-  
+  {
+    id: 'n1',
+    type: 'announcement',
+    title: 'Midterm Exam Schedule Released',
+    description: 'Posted by Academic Office',
+    meta: 'Announcement',
+  },
+  {
+    id: 'n2',
+    type: 'announcement',
+    title: 'Lab 8 Instructions Updated',
+    description: 'CS220 - Dr. James Wilson',
+    meta: 'Announcement',
+    highlight: 'lab',
+  },
+
   // Users
-  { id: 'u1', type: 'user', title: 'Dr. Sarah Johnson', description: 'Instructor - Computer Science', meta: 'Instructor' },
-  { id: 'u2', type: 'user', title: 'Prof. Michael Chen', description: 'Instructor - Computer Science', meta: 'Instructor' },
-  { id: 'u3', type: 'user', title: 'Ahmed Hassan', description: 'Student - Computer Science', meta: 'Student' },
-  
+  {
+    id: 'u1',
+    type: 'user',
+    title: 'Dr. Sarah Johnson',
+    description: 'Instructor - Computer Science',
+    meta: 'Instructor',
+  },
+  {
+    id: 'u2',
+    type: 'user',
+    title: 'Prof. Michael Chen',
+    description: 'Instructor - Computer Science',
+    meta: 'Instructor',
+  },
+  {
+    id: 'u3',
+    type: 'user',
+    title: 'Ahmed Hassan',
+    description: 'Student - Computer Science',
+    meta: 'Student',
+  },
+
   // Events
-  { id: 'e1', type: 'event', title: 'CS Department Seminar', description: 'Dec 12, 2025 - Room 401', meta: 'Event' },
-  { id: 'e2', type: 'event', title: 'Career Fair 2025', description: 'Dec 18, 2025 - Main Hall', meta: 'Event' },
+  {
+    id: 'e1',
+    type: 'event',
+    title: 'CS Department Seminar',
+    description: 'Dec 12, 2025 - Room 401',
+    meta: 'Event',
+  },
+  {
+    id: 'e2',
+    type: 'event',
+    title: 'Career Fair 2025',
+    description: 'Dec 18, 2025 - Main Hall',
+    meta: 'Event',
+  },
 ];
 
 const recentSearches: RecentSearch[] = [
@@ -103,10 +206,11 @@ export function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
       setIsSearching(true);
       // Simulate search delay
       const timer = setTimeout(() => {
-        const filtered = mockResults.filter(result => {
-          const matchesQuery = result.title.toLowerCase().includes(query.toLowerCase()) ||
-                              result.description.toLowerCase().includes(query.toLowerCase()) ||
-                              (result.highlight && result.highlight.toLowerCase().includes(query.toLowerCase()));
+        const filtered = mockResults.filter((result) => {
+          const matchesQuery =
+            result.title.toLowerCase().includes(query.toLowerCase()) ||
+            result.description.toLowerCase().includes(query.toLowerCase()) ||
+            (result.highlight && result.highlight.toLowerCase().includes(query.toLowerCase()));
           const matchesFilter = selectedFilter === 'all' || result.type === selectedFilter;
           return matchesQuery && matchesFilter;
         });
@@ -161,8 +265,17 @@ export function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
     if (!query.trim()) return text;
     const regex = new RegExp(`(${query})`, 'gi');
     const parts = text.split(regex);
-    return parts.map((part, i) => 
-      regex.test(part) ? <mark key={i} className={`rounded px-0.5 ${isDark ? 'bg-yellow-600 text-yellow-100' : 'bg-yellow-200 text-yellow-900'}`}>{part}</mark> : part
+    return parts.map((part, i) =>
+      regex.test(part) ? (
+        <mark
+          key={i}
+          className={`rounded px-0.5 ${isDark ? 'bg-yellow-600 text-yellow-100' : 'bg-yellow-200 text-yellow-900'}`}
+        >
+          {part}
+        </mark>
+      ) : (
+        part
+      )
     );
   };
 
@@ -171,17 +284,18 @@ export function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
   return (
     <div className="fixed inset-0 z-50 overflow-hidden">
       {/* Backdrop */}
-      <div 
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-        onClick={onClose}
-      />
-      
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+
       {/* Search Modal */}
-      <div className={`relative max-w-3xl mx-auto mt-20 rounded-2xl shadow-2xl overflow-hidden ${isDark ? 'bg-card-dark' : 'bg-white'}`}>
+      <div
+        className={`relative max-w-3xl mx-auto mt-20 rounded-2xl shadow-2xl overflow-hidden ${isDark ? 'bg-card-dark' : 'bg-white'}`}
+      >
         {/* Search Input */}
         <div className={`p-4 border-b ${isDark ? 'border-white/5' : 'border-slate-100'}`}>
           <div className="relative">
-            <Search className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 ${isDark ? 'text-slate-500' : 'text-slate-500'}`} />
+            <Search
+              className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 ${isDark ? 'text-slate-500' : 'text-slate-500'}`}
+            />
             <input
               ref={inputRef}
               type="text"
@@ -189,8 +303,8 @@ export function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search courses, assignments, files, users..."
               className={`w-full pl-12 pr-12 py-4 text-lg border-2 rounded-xl focus:outline-none transition-all ${
-                isDark 
-                  ? 'bg-white/5 border-white/10 text-white placeholder-slate-500 focus:border-[var(--accent-color)]' 
+                isDark
+                  ? 'bg-white/5 border-white/10 text-white placeholder-slate-500 focus:border-[var(--accent-color)]'
                   : 'bg-white border-slate-100 text-slate-800 focus:border-[var(--accent-color)]'
               }`}
             />
@@ -203,7 +317,7 @@ export function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
               </button>
             )}
           </div>
-          
+
           {/* Filters */}
           <div className="flex gap-2 mt-3 overflow-x-auto pb-2">
             {[
@@ -221,8 +335,8 @@ export function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
                 className={`px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
                   selectedFilter === filter.id
                     ? 'bg-[var(--accent-color)]/10 text-[var(--accent-color)] border-2 border-[var(--accent-color)]/30'
-                    : isDark 
-                      ? 'bg-white/5 text-slate-400 border-2 border-transparent hover:bg-white/10' 
+                    : isDark
+                      ? 'bg-white/5 text-slate-400 border-2 border-transparent hover:bg-white/10'
                       : 'bg-slate-50 text-slate-600 border-2 border-transparent hover:bg-slate-200'
                 }`}
               >
@@ -239,7 +353,9 @@ export function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
             <div className="p-4">
               {/* Quick Links */}
               <div className="mb-6">
-                <h3 className={`text-sm font-semibold mb-3 flex items-center gap-2 ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
+                <h3
+                  className={`text-sm font-semibold mb-3 flex items-center gap-2 ${isDark ? 'text-slate-500' : 'text-slate-600'}`}
+                >
                   <TrendingUp className="w-4 h-4" />
                   Quick Links
                 </h3>
@@ -248,15 +364,21 @@ export function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
                     <button
                       key={idx}
                       className={`flex flex-col items-center gap-2 p-4 border rounded-xl transition-all ${
-                        isDark 
-                          ? 'border-white/5 hover:bg-white/5 hover:border-[var(--accent-color)]' 
+                        isDark
+                          ? 'border-white/5 hover:bg-white/5 hover:border-[var(--accent-color)]'
                           : 'border-slate-100 hover:bg-slate-50 hover:border-[var(--accent-color)]/50'
                       }`}
                     >
-                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${link.color}`}>
+                      <div
+                        className={`w-10 h-10 rounded-lg flex items-center justify-center ${link.color}`}
+                      >
                         <link.icon className="w-5 h-5" />
                       </div>
-                      <span className={`text-sm font-medium ${isDark ? 'text-slate-400' : 'text-slate-700'}`}>{link.label}</span>
+                      <span
+                        className={`text-sm font-medium ${isDark ? 'text-slate-400' : 'text-slate-700'}`}
+                      >
+                        {link.label}
+                      </span>
                     </button>
                   ))}
                 </div>
@@ -264,7 +386,9 @@ export function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
 
               {/* Recent Searches */}
               <div>
-                <h3 className={`text-sm font-semibold mb-3 flex items-center gap-2 ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
+                <h3
+                  className={`text-sm font-semibold mb-3 flex items-center gap-2 ${isDark ? 'text-slate-500' : 'text-slate-600'}`}
+                >
                   <History className="w-4 h-4" />
                   Recent Searches
                 </h3>
@@ -276,10 +400,16 @@ export function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
                       className={`w-full flex items-center justify-between p-3 rounded-lg transition-all ${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'}`}
                     >
                       <div className="flex items-center gap-3">
-                        <Clock className={`w-4 h-4 ${isDark ? 'text-slate-500' : 'text-slate-500'}`} />
-                        <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-700'}`}>{search.query}</span>
+                        <Clock
+                          className={`w-4 h-4 ${isDark ? 'text-slate-500' : 'text-slate-500'}`}
+                        />
+                        <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-700'}`}>
+                          {search.query}
+                        </span>
                       </div>
-                      <span className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>{search.timestamp}</span>
+                      <span className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>
+                        {search.timestamp}
+                      </span>
                     </button>
                   ))}
                 </div>
@@ -294,29 +424,41 @@ export function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
           ) : results.length > 0 ? (
             /* Results */
             <div className="p-4">
-              <p className={`text-sm mb-3 ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>{results.length} results found</p>
+              <p className={`text-sm mb-3 ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
+                {results.length} results found
+              </p>
               <div className="space-y-2">
                 {results.map((result) => (
                   <button
                     key={result.id}
                     className={`w-full flex items-center gap-4 p-3 rounded-xl transition-all text-left group ${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'}`}
                   >
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${getIconColor(result.type)}`}>
+                    <div
+                      className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${getIconColor(result.type)}`}
+                    >
                       {getIcon(result.type)}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className={`font-medium truncate ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                      <p
+                        className={`font-medium truncate ${isDark ? 'text-white' : 'text-slate-800'}`}
+                      >
                         {highlightMatch(result.title, query)}
                       </p>
-                      <p className={`text-sm truncate ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
+                      <p
+                        className={`text-sm truncate ${isDark ? 'text-slate-500' : 'text-slate-600'}`}
+                      >
                         {highlightMatch(result.description, query)}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className={`px-2 py-1 rounded text-xs ${isDark ? 'bg-white/5 text-slate-500' : 'bg-slate-50 text-slate-600'}`}>
+                      <span
+                        className={`px-2 py-1 rounded text-xs ${isDark ? 'bg-white/5 text-slate-500' : 'bg-slate-50 text-slate-600'}`}
+                      >
                         {result.meta}
                       </span>
-                      <ChevronRight className={`w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity ${isDark ? 'text-slate-500' : 'text-slate-500'}`} />
+                      <ChevronRight
+                        className={`w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity ${isDark ? 'text-slate-500' : 'text-slate-500'}`}
+                      />
                     </div>
                   </button>
                 ))}
@@ -325,26 +467,46 @@ export function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
           ) : (
             /* No Results */
             <div className="p-8 text-center">
-              <Search className={`w-12 h-12 mx-auto mb-3 ${isDark ? 'text-slate-600' : 'text-slate-400'}`} />
-              <p className={`font-medium ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>No results found</p>
-              <p className={`text-sm mt-1 ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>Try a different search term</p>
+              <Search
+                className={`w-12 h-12 mx-auto mb-3 ${isDark ? 'text-slate-600' : 'text-slate-400'}`}
+              />
+              <p className={`font-medium ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                No results found
+              </p>
+              <p className={`text-sm mt-1 ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>
+                Try a different search term
+              </p>
             </div>
           )}
         </div>
 
         {/* Footer */}
-        <div className={`p-3 border-t flex items-center justify-between text-xs ${isDark ? 'border-white/5 bg-[#0a0a0c] text-slate-500' : 'border-slate-100 bg-background-light text-slate-500'}`}>
+        <div
+          className={`p-3 border-t flex items-center justify-between text-xs ${isDark ? 'border-white/5 bg-[#0a0a0c] text-slate-500' : 'border-slate-100 bg-background-light text-slate-500'}`}
+        >
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1">
-              <kbd className={`px-1.5 py-0.5 rounded ${isDark ? 'bg-white/5 text-slate-500' : 'bg-slate-200 text-slate-600'}`}>↑↓</kbd>
+              <kbd
+                className={`px-1.5 py-0.5 rounded ${isDark ? 'bg-white/5 text-slate-500' : 'bg-slate-200 text-slate-600'}`}
+              >
+                ↑↓
+              </kbd>
               Navigate
             </span>
             <span className="flex items-center gap-1">
-              <kbd className={`px-1.5 py-0.5 rounded ${isDark ? 'bg-white/5 text-slate-500' : 'bg-slate-200 text-slate-600'}`}>Enter</kbd>
+              <kbd
+                className={`px-1.5 py-0.5 rounded ${isDark ? 'bg-white/5 text-slate-500' : 'bg-slate-200 text-slate-600'}`}
+              >
+                Enter
+              </kbd>
               Select
             </span>
             <span className="flex items-center gap-1">
-              <kbd className={`px-1.5 py-0.5 rounded ${isDark ? 'bg-white/5 text-slate-500' : 'bg-slate-200 text-slate-600'}`}>Esc</kbd>
+              <kbd
+                className={`px-1.5 py-0.5 rounded ${isDark ? 'bg-white/5 text-slate-500' : 'bg-slate-200 text-slate-600'}`}
+              >
+                Esc
+              </kbd>
               Close
             </span>
           </div>

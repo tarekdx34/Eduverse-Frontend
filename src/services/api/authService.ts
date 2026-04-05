@@ -108,12 +108,18 @@ export class AuthService {
         : (rawRole as string);
 
     switch (role) {
-      case 'instructor': return '/instructordashboard';
-      case 'admin': return '/admindashboard';
-      case 'it_admin': return '/itadmindashboard';
-      case 'teaching_assistant': return '/tadashboard';
-      case 'department_head': return '/admindashboard';
-      default: return '/studentdashboard';
+      case 'instructor':
+        return '/instructordashboard';
+      case 'admin':
+        return '/admindashboard';
+      case 'it_admin':
+        return '/itadmindashboard';
+      case 'teaching_assistant':
+        return '/tadashboard';
+      case 'department_head':
+        return '/admindashboard';
+      default:
+        return '/studentdashboard';
     }
   }
 }

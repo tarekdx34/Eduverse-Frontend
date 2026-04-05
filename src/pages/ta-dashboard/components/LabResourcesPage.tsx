@@ -33,20 +33,84 @@ interface Material {
 
 const labMaterials: Record<number, Material[]> = {
   1: [
-    { id: '1-1', name: 'Data Structures Lab Guide.pdf', type: 'pdf', views: 156, downloads: 89, completion: 92, tags: ['Verified', 'Popular'] },
-    { id: '1-2', name: 'LinkedList Implementation Tutorial', type: 'video', views: 234, downloads: 0, completion: 78, tags: ['Suggest Update'] },
-    { id: '1-3', name: 'Sample Code - Binary Tree', type: 'code', views: 98, downloads: 67, completion: 85, tags: [] },
+    {
+      id: '1-1',
+      name: 'Data Structures Lab Guide.pdf',
+      type: 'pdf',
+      views: 156,
+      downloads: 89,
+      completion: 92,
+      tags: ['Verified', 'Popular'],
+    },
+    {
+      id: '1-2',
+      name: 'LinkedList Implementation Tutorial',
+      type: 'video',
+      views: 234,
+      downloads: 0,
+      completion: 78,
+      tags: ['Suggest Update'],
+    },
+    {
+      id: '1-3',
+      name: 'Sample Code - Binary Tree',
+      type: 'code',
+      views: 98,
+      downloads: 67,
+      completion: 85,
+      tags: [],
+    },
   ],
   2: [
-    { id: '2-1', name: 'Sorting Algorithms Overview.pdf', type: 'pdf', views: 189, downloads: 112, completion: 88, tags: ['Low Clarity'] },
-    { id: '2-2', name: 'QuickSort Visual Demo', type: 'video', views: 312, downloads: 0, completion: 95, tags: ['Popular', 'Verified'] },
+    {
+      id: '2-1',
+      name: 'Sorting Algorithms Overview.pdf',
+      type: 'pdf',
+      views: 189,
+      downloads: 112,
+      completion: 88,
+      tags: ['Low Clarity'],
+    },
+    {
+      id: '2-2',
+      name: 'QuickSort Visual Demo',
+      type: 'video',
+      views: 312,
+      downloads: 0,
+      completion: 95,
+      tags: ['Popular', 'Verified'],
+    },
   ],
   3: [
-    { id: '3-1', name: 'Graph Theory Introduction.pdf', type: 'pdf', views: 145, downloads: 76, completion: 91, tags: [] },
-    { id: '3-2', name: 'Dijkstra Algorithm Animation', type: 'video', views: 203, downloads: 0, completion: 82, tags: ['Outdated'] },
+    {
+      id: '3-1',
+      name: 'Graph Theory Introduction.pdf',
+      type: 'pdf',
+      views: 145,
+      downloads: 76,
+      completion: 91,
+      tags: [],
+    },
+    {
+      id: '3-2',
+      name: 'Dijkstra Algorithm Animation',
+      type: 'video',
+      views: 203,
+      downloads: 0,
+      completion: 82,
+      tags: ['Outdated'],
+    },
   ],
   4: [
-    { id: '4-1', name: 'Dynamic Programming Basics.pdf', type: 'pdf', views: 87, downloads: 45, completion: 65, tags: ['Low Clarity', 'Suggest Update'] },
+    {
+      id: '4-1',
+      name: 'Dynamic Programming Basics.pdf',
+      type: 'pdf',
+      views: 87,
+      downloads: 45,
+      completion: 65,
+      tags: ['Low Clarity', 'Suggest Update'],
+    },
   ],
 };
 
@@ -58,11 +122,31 @@ const qualityScores: Record<number, { score: number; color: string; bg: string }
 };
 
 const tagConfig: Record<TagType, { color: string; darkColor: string; icon: React.ElementType }> = {
-  Verified: { color: 'bg-green-100 text-green-700', darkColor: 'bg-green-500/20 text-green-400', icon: CheckCircle },
-  Popular: { color: 'bg-blue-100 text-blue-700', darkColor: 'bg-blue-500/20 text-blue-400', icon: TrendingUp },
-  'Suggest Update': { color: 'bg-yellow-100 text-yellow-700', darkColor: 'bg-yellow-500/20 text-yellow-400', icon: AlertTriangle },
-  'Low Clarity': { color: 'bg-yellow-100 text-yellow-700', darkColor: 'bg-yellow-500/20 text-yellow-400', icon: AlertCircle },
-  Outdated: { color: 'bg-red-100 text-red-700', darkColor: 'bg-red-500/20 text-red-400', icon: XCircle },
+  Verified: {
+    color: 'bg-green-100 text-green-700',
+    darkColor: 'bg-green-500/20 text-green-400',
+    icon: CheckCircle,
+  },
+  Popular: {
+    color: 'bg-blue-100 text-blue-700',
+    darkColor: 'bg-blue-500/20 text-blue-400',
+    icon: TrendingUp,
+  },
+  'Suggest Update': {
+    color: 'bg-yellow-100 text-yellow-700',
+    darkColor: 'bg-yellow-500/20 text-yellow-400',
+    icon: AlertTriangle,
+  },
+  'Low Clarity': {
+    color: 'bg-yellow-100 text-yellow-700',
+    darkColor: 'bg-yellow-500/20 text-yellow-400',
+    icon: AlertCircle,
+  },
+  Outdated: {
+    color: 'bg-red-100 text-red-700',
+    darkColor: 'bg-red-500/20 text-red-400',
+    icon: XCircle,
+  },
 };
 
 const fileTypeConfig: Record<string, { icon: React.ElementType; color: string }> = {
@@ -125,7 +209,9 @@ export function LabResourcesPage() {
       </div>
 
       {/* Quality Score Card */}
-      <div className={`border rounded-lg p-6 ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}>
+      <div
+        className={`border rounded-lg p-6 ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}
+      >
         <div className="flex items-center justify-between mb-3">
           <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
             {t('Quality Score')}
@@ -161,7 +247,9 @@ export function LabResourcesPage() {
 
       {/* Search Bar */}
       <div className="relative">
-        <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
+        <Search
+          className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}
+        />
         <input
           type="text"
           placeholder={t('Filter materials by name...')}
@@ -189,23 +277,31 @@ export function LabResourcesPage() {
               >
                 <div className="flex flex-col sm:flex-row sm:items-start gap-4">
                   {/* File Icon */}
-                  <div className={`flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center ${isDark ? 'bg-white/10' : 'bg-gray-100'}`}>
+                  <div
+                    className={`flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center ${isDark ? 'bg-white/10' : 'bg-gray-100'}`}
+                  >
                     <FileIcon className={`w-5 h-5 ${fileType.color}`} />
                   </div>
 
                   {/* Content */}
                   <div className="flex-1 min-w-0">
-                    <h3 className={`font-medium truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    <h3
+                      className={`font-medium truncate ${isDark ? 'text-white' : 'text-gray-900'}`}
+                    >
                       {material.name}
                     </h3>
 
                     {/* Stats */}
                     <div className="flex flex-wrap items-center gap-4 mt-2">
-                      <span className={`flex items-center gap-1 text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                      <span
+                        className={`flex items-center gap-1 text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}
+                      >
                         <Eye className="w-3.5 h-3.5" />
                         {material.views} {t('views')}
                       </span>
-                      <span className={`flex items-center gap-1 text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                      <span
+                        className={`flex items-center gap-1 text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}
+                      >
                         <Download className="w-3.5 h-3.5" />
                         {material.downloads} {t('downloads')}
                       </span>
@@ -213,13 +309,17 @@ export function LabResourcesPage() {
 
                     {/* Completion Bar */}
                     <div className="flex items-center gap-3 mt-3">
-                      <div className={`flex-1 h-2 rounded-full ${isDark ? 'bg-white/10' : 'bg-gray-200'}`}>
+                      <div
+                        className={`flex-1 h-2 rounded-full ${isDark ? 'bg-white/10' : 'bg-gray-200'}`}
+                      >
                         <div
                           className="h-2 rounded-full bg-blue-500 transition-all"
                           style={{ width: `${material.completion}%` }}
                         />
                       </div>
-                      <span className={`text-xs font-medium ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                      <span
+                        className={`text-xs font-medium ${isDark ? 'text-gray-400' : 'text-gray-500'}`}
+                      >
                         {material.completion}%
                       </span>
                     </div>
@@ -284,7 +384,9 @@ export function LabResourcesPage() {
         </div>
       ) : (
         /* Empty State */
-        <div className={`border rounded-lg p-12 flex flex-col items-center justify-center gap-3 ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}>
+        <div
+          className={`border rounded-lg p-12 flex flex-col items-center justify-center gap-3 ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}
+        >
           <FolderOpen className={`w-12 h-12 ${isDark ? 'text-gray-600' : 'text-gray-300'}`} />
           <p className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
             {t('No materials uploaded')}

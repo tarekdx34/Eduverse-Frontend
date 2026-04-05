@@ -9,14 +9,16 @@
 ## 5.1 Course Materials Module
 
 ### Database Tables
-| Table | Description |
-|-------|-------------|
-| `course_materials` | Lectures, readings, slides, videos uploaded to courses |
-| `lecture_sections_labs` | Organization of lectures/sections/labs by week |
+
+| Table                   | Description                                            |
+| ----------------------- | ------------------------------------------------------ |
+| `course_materials`      | Lectures, readings, slides, videos uploaded to courses |
+| `lecture_sections_labs` | Organization of lectures/sections/labs by week         |
 
 ### Entity Definitions
 
 #### CourseMaterial Entity
+
 ```typescript
 @Entity('course_materials')
 export class CourseMaterial {
@@ -36,18 +38,21 @@ export class CourseMaterial {
   @Column({ type: 'text', nullable: true })
   description: string;
 
-  @Column({ type: 'enum', enum: ['lecture', 'reading', 'slides', 'video', 'document', 'link', 'other'] })
+  @Column({
+    type: 'enum',
+    enum: ['lecture', 'reading', 'slides', 'video', 'document', 'link', 'other'],
+  })
   materialType: string;
 
   @Column({ type: 'bigint', unsigned: true, nullable: true })
-  fileId: number;  // Reference to files table
+  fileId: number; // Reference to files table
 
   @ManyToOne(() => File)
   @JoinColumn({ name: 'file_id' })
   file: File;
 
   @Column({ type: 'varchar', length: 500, nullable: true })
-  externalUrl: string;  // For links/external content
+  externalUrl: string; // For links/external content
 
   @Column({ type: 'int', nullable: true })
   weekNumber: number;
@@ -86,6 +91,7 @@ export class CourseMaterial {
 ```
 
 #### LectureSectionLab Entity
+
 ```typescript
 @Entity('lecture_sections_labs')
 export class LectureSectionLab {
@@ -115,7 +121,7 @@ export class LectureSectionLab {
   objectives: string;
 
   @Column({ type: 'json', nullable: true })
-  topics: any;  // Array of topic strings
+  topics: any; // Array of topic strings
 
   @Column({ type: 'int', default: 0 })
   orderIndex: number;
@@ -130,25 +136,26 @@ export class LectureSectionLab {
 
 ### API Endpoints
 
-| Method | Endpoint | Description | Roles |
-|--------|----------|-------------|-------|
-| **Materials** | | | |
-| GET | `/api/courses/:courseId/sections/:sectionId/materials` | List materials for section | ALL |
-| POST | `/api/courses/:courseId/sections/:sectionId/materials` | Upload/add material | INSTRUCTOR, TA |
-| GET | `/api/materials/:id` | Get material details | ALL |
-| PUT | `/api/materials/:id` | Update material metadata | INSTRUCTOR, TA |
-| DELETE | `/api/materials/:id` | Delete material | INSTRUCTOR |
-| PATCH | `/api/materials/:id/visibility` | Toggle visibility | INSTRUCTOR, TA |
-| GET | `/api/materials/:id/download` | Download material file | ALL |
-| POST | `/api/materials/bulk-upload` | Upload multiple materials | INSTRUCTOR, TA |
-| **Course Structure** | | | |
-| GET | `/api/courses/:courseId/sections/:sectionId/structure` | Get week-by-week structure | ALL |
-| POST | `/api/courses/:courseId/sections/:sectionId/structure` | Add week/topic | INSTRUCTOR |
-| PUT | `/api/structure/:id` | Update structure item | INSTRUCTOR |
-| DELETE | `/api/structure/:id` | Delete structure item | INSTRUCTOR |
-| PATCH | `/api/structure/reorder` | Reorder items | INSTRUCTOR |
+| Method               | Endpoint                                               | Description                | Roles          |
+| -------------------- | ------------------------------------------------------ | -------------------------- | -------------- |
+| **Materials**        |                                                        |                            |                |
+| GET                  | `/api/courses/:courseId/sections/:sectionId/materials` | List materials for section | ALL            |
+| POST                 | `/api/courses/:courseId/sections/:sectionId/materials` | Upload/add material        | INSTRUCTOR, TA |
+| GET                  | `/api/materials/:id`                                   | Get material details       | ALL            |
+| PUT                  | `/api/materials/:id`                                   | Update material metadata   | INSTRUCTOR, TA |
+| DELETE               | `/api/materials/:id`                                   | Delete material            | INSTRUCTOR     |
+| PATCH                | `/api/materials/:id/visibility`                        | Toggle visibility          | INSTRUCTOR, TA |
+| GET                  | `/api/materials/:id/download`                          | Download material file     | ALL            |
+| POST                 | `/api/materials/bulk-upload`                           | Upload multiple materials  | INSTRUCTOR, TA |
+| **Course Structure** |                                                        |                            |                |
+| GET                  | `/api/courses/:courseId/sections/:sectionId/structure` | Get week-by-week structure | ALL            |
+| POST                 | `/api/courses/:courseId/sections/:sectionId/structure` | Add week/topic             | INSTRUCTOR     |
+| PUT                  | `/api/structure/:id`                                   | Update structure item      | INSTRUCTOR     |
+| DELETE               | `/api/structure/:id`                                   | Delete structure item      | INSTRUCTOR     |
+| PATCH                | `/api/structure/reorder`                               | Reorder items              | INSTRUCTOR     |
 
 ### Query Parameters
+
 ```typescript
 interface QueryMaterialsDto {
   materialType?: string;
@@ -163,6 +170,7 @@ interface QueryMaterialsDto {
 ```
 
 ### Business Logic
+
 1. **File Integration**: Uses the existing Files module for actual file storage. `CourseMaterial` references `files` table.
 2. **Visibility Control**: Materials can be hidden from students until a specific date.
 3. **Download Tracking**: Increment `downloadCount` on each download.
@@ -172,10 +180,11 @@ interface QueryMaterialsDto {
 7. **Bulk Upload**: Support uploading multiple files at once.
 
 ### Frontend Components Using This Module
-- **Instructor**: CourseDetail.tsx *(materials accessed via course view)*
-- ~~**Instructor**: UploadMaterialsPage.tsx~~ *(Materials tab removed from CourseDetail — task I14)*
-- **TA**: LabResourcesPage.tsx *(active as `lab-resources` tab)*
-- **Student**: ClassTab.tsx *(viewing materials via `myclass` tab)*
+
+- **Instructor**: CourseDetail.tsx _(materials accessed via course view)_
+- ~~**Instructor**: UploadMaterialsPage.tsx~~ _(Materials tab removed from CourseDetail — task I14)_
+- **TA**: LabResourcesPage.tsx _(active as `lab-resources` tab)_
+- **Student**: ClassTab.tsx _(viewing materials via `myclass` tab)_
 
 ---
 

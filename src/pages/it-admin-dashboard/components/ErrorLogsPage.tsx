@@ -1,13 +1,27 @@
 import React, { useState } from 'react';
 import {
-  AlertTriangle, AlertCircle, Bug, Code, Search, Filter, Download, Trash2,
-  CheckCircle, Flag, Copy, ChevronDown, ChevronUp, XCircle, Monitor, Server,
-  Database, Globe
+  AlertTriangle,
+  AlertCircle,
+  Bug,
+  Code,
+  Search,
+  Filter,
+  Download,
+  Trash2,
+  CheckCircle,
+  Flag,
+  Copy,
+  ChevronDown,
+  ChevronUp,
+  XCircle,
+  Monitor,
+  Server,
+  Database,
+  Globe,
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { CleanSelect } from '../../../components/shared';
-
 
 type Severity = 'Critical' | 'Error' | 'Warning' | 'Info';
 type ErrorType = 'Frontend' | 'Backend' | 'Database' | 'Network';
@@ -28,52 +42,108 @@ interface ErrorLog {
 
 const errorLogs: ErrorLog[] = [
   {
-    id: 1, time: 'Feb 25, 10:30', severity: 'Critical', type: 'Backend',
-    message: 'NullPointerException in UserService.getUser()', status: 'Active',
-    stackTrace: 'at UserService.getUser(UserService.java:142)\nat UserController.handleRequest(UserController.java:85)\nat SpringFramework.dispatchRequest(Dispatcher.java:231)\nat Server.processConnection(Server.java:44)',
-    occurrences: 15, firstSeen: 'Feb 25, 08:00', lastSeen: 'Feb 25, 10:30',
+    id: 1,
+    time: 'Feb 25, 10:30',
+    severity: 'Critical',
+    type: 'Backend',
+    message: 'NullPointerException in UserService.getUser()',
+    status: 'Active',
+    stackTrace:
+      'at UserService.getUser(UserService.java:142)\nat UserController.handleRequest(UserController.java:85)\nat SpringFramework.dispatchRequest(Dispatcher.java:231)\nat Server.processConnection(Server.java:44)',
+    occurrences: 15,
+    firstSeen: 'Feb 25, 08:00',
+    lastSeen: 'Feb 25, 10:30',
   },
   {
-    id: 2, time: 'Feb 25, 10:15', severity: 'Error', type: 'Database',
-    message: 'Connection pool exhausted - max 100 connections', status: 'Active',
-    stackTrace: 'at ConnectionPool.acquire(ConnectionPool.java:98)\nat DatabaseManager.getConnection(DatabaseManager.java:54)\nat QueryExecutor.execute(QueryExecutor.java:37)\nat Server.processConnection(Server.java:44)',
-    occurrences: 42, firstSeen: 'Feb 25, 09:00', lastSeen: 'Feb 25, 10:15',
+    id: 2,
+    time: 'Feb 25, 10:15',
+    severity: 'Error',
+    type: 'Database',
+    message: 'Connection pool exhausted - max 100 connections',
+    status: 'Active',
+    stackTrace:
+      'at ConnectionPool.acquire(ConnectionPool.java:98)\nat DatabaseManager.getConnection(DatabaseManager.java:54)\nat QueryExecutor.execute(QueryExecutor.java:37)\nat Server.processConnection(Server.java:44)',
+    occurrences: 42,
+    firstSeen: 'Feb 25, 09:00',
+    lastSeen: 'Feb 25, 10:15',
   },
   {
-    id: 3, time: 'Feb 25, 09:45', severity: 'Warning', type: 'Frontend',
-    message: 'React hydration mismatch on /dashboard', status: 'Active',
-    stackTrace: 'at hydrate(react-dom.js:1234)\nat renderRoot(react-dom.js:890)\nat Dashboard.render(Dashboard.tsx:45)\nat App.mount(App.tsx:12)',
-    occurrences: 8, firstSeen: 'Feb 25, 09:00', lastSeen: 'Feb 25, 09:45',
+    id: 3,
+    time: 'Feb 25, 09:45',
+    severity: 'Warning',
+    type: 'Frontend',
+    message: 'React hydration mismatch on /dashboard',
+    status: 'Active',
+    stackTrace:
+      'at hydrate(react-dom.js:1234)\nat renderRoot(react-dom.js:890)\nat Dashboard.render(Dashboard.tsx:45)\nat App.mount(App.tsx:12)',
+    occurrences: 8,
+    firstSeen: 'Feb 25, 09:00',
+    lastSeen: 'Feb 25, 09:45',
   },
   {
-    id: 4, time: 'Feb 25, 09:30', severity: 'Error', type: 'Network',
-    message: 'Timeout connecting to payment gateway (30s)', status: 'Flagged',
-    stackTrace: 'at HttpClient.connect(HttpClient.java:201)\nat PaymentGateway.processPayment(PaymentGateway.java:78)\nat PaymentService.charge(PaymentService.java:55)\nat Server.processConnection(Server.java:44)',
-    occurrences: 5, firstSeen: 'Feb 25, 09:15', lastSeen: 'Feb 25, 09:30',
+    id: 4,
+    time: 'Feb 25, 09:30',
+    severity: 'Error',
+    type: 'Network',
+    message: 'Timeout connecting to payment gateway (30s)',
+    status: 'Flagged',
+    stackTrace:
+      'at HttpClient.connect(HttpClient.java:201)\nat PaymentGateway.processPayment(PaymentGateway.java:78)\nat PaymentService.charge(PaymentService.java:55)\nat Server.processConnection(Server.java:44)',
+    occurrences: 5,
+    firstSeen: 'Feb 25, 09:15',
+    lastSeen: 'Feb 25, 09:30',
   },
   {
-    id: 5, time: 'Feb 25, 09:00', severity: 'Critical', type: 'Backend',
-    message: 'OutOfMemoryError in report generation service', status: 'Flagged',
-    stackTrace: 'at ReportGenerator.generate(ReportGenerator.java:312)\nat ReportService.createReport(ReportService.java:89)\nat ReportController.handleRequest(ReportController.java:42)\nat Server.processConnection(Server.java:44)',
-    occurrences: 3, firstSeen: 'Feb 25, 08:30', lastSeen: 'Feb 25, 09:00',
+    id: 5,
+    time: 'Feb 25, 09:00',
+    severity: 'Critical',
+    type: 'Backend',
+    message: 'OutOfMemoryError in report generation service',
+    status: 'Flagged',
+    stackTrace:
+      'at ReportGenerator.generate(ReportGenerator.java:312)\nat ReportService.createReport(ReportService.java:89)\nat ReportController.handleRequest(ReportController.java:42)\nat Server.processConnection(Server.java:44)',
+    occurrences: 3,
+    firstSeen: 'Feb 25, 08:30',
+    lastSeen: 'Feb 25, 09:00',
   },
   {
-    id: 6, time: 'Feb 24, 23:45', severity: 'Warning', type: 'Database',
-    message: 'Slow query detected: 4.2s on students table', status: 'Resolved',
-    stackTrace: 'at QueryAnalyzer.analyze(QueryAnalyzer.java:67)\nat SlowQueryDetector.check(SlowQueryDetector.java:34)\nat DatabaseMonitor.monitor(DatabaseMonitor.java:21)\nat Server.processConnection(Server.java:44)',
-    occurrences: 12, firstSeen: 'Feb 24, 20:00', lastSeen: 'Feb 24, 23:45',
+    id: 6,
+    time: 'Feb 24, 23:45',
+    severity: 'Warning',
+    type: 'Database',
+    message: 'Slow query detected: 4.2s on students table',
+    status: 'Resolved',
+    stackTrace:
+      'at QueryAnalyzer.analyze(QueryAnalyzer.java:67)\nat SlowQueryDetector.check(SlowQueryDetector.java:34)\nat DatabaseMonitor.monitor(DatabaseMonitor.java:21)\nat Server.processConnection(Server.java:44)',
+    occurrences: 12,
+    firstSeen: 'Feb 24, 20:00',
+    lastSeen: 'Feb 24, 23:45',
   },
   {
-    id: 7, time: 'Feb 24, 22:00', severity: 'Info', type: 'Backend',
-    message: 'Deprecated API endpoint /v1/users still receiving traffic', status: 'Resolved',
-    stackTrace: 'at DeprecationWarning.log(DeprecationWarning.java:15)\nat ApiRouter.route(ApiRouter.java:102)\nat RequestHandler.handle(RequestHandler.java:58)\nat Server.processConnection(Server.java:44)',
-    occurrences: 230, firstSeen: 'Feb 20, 10:00', lastSeen: 'Feb 24, 22:00',
+    id: 7,
+    time: 'Feb 24, 22:00',
+    severity: 'Info',
+    type: 'Backend',
+    message: 'Deprecated API endpoint /v1/users still receiving traffic',
+    status: 'Resolved',
+    stackTrace:
+      'at DeprecationWarning.log(DeprecationWarning.java:15)\nat ApiRouter.route(ApiRouter.java:102)\nat RequestHandler.handle(RequestHandler.java:58)\nat Server.processConnection(Server.java:44)',
+    occurrences: 230,
+    firstSeen: 'Feb 20, 10:00',
+    lastSeen: 'Feb 24, 22:00',
   },
   {
-    id: 8, time: 'Feb 24, 18:30', severity: 'Error', type: 'Network',
-    message: 'SSL handshake failure with SMTP server', status: 'Resolved',
-    stackTrace: 'at SSLHandler.handshake(SSLHandler.java:88)\nat SmtpClient.connect(SmtpClient.java:45)\nat EmailService.send(EmailService.java:67)\nat Server.processConnection(Server.java:44)',
-    occurrences: 7, firstSeen: 'Feb 24, 17:00', lastSeen: 'Feb 24, 18:30',
+    id: 8,
+    time: 'Feb 24, 18:30',
+    severity: 'Error',
+    type: 'Network',
+    message: 'SSL handshake failure with SMTP server',
+    status: 'Resolved',
+    stackTrace:
+      'at SSLHandler.handshake(SSLHandler.java:88)\nat SmtpClient.connect(SmtpClient.java:45)\nat EmailService.send(EmailService.java:67)\nat Server.processConnection(Server.java:44)',
+    occurrences: 7,
+    firstSeen: 'Feb 24, 17:00',
+    lastSeen: 'Feb 24, 18:30',
   },
 ];
 
@@ -130,7 +200,9 @@ export function ErrorLogsPage() {
       Info: <Bug className="w-3.5 h-3.5" />,
     };
     return (
-      <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${isDark ? colors[severity].split('dark:')[1] : colors[severity].split(' dark:')[0]}`}>
+      <span
+        className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${isDark ? colors[severity].split('dark:')[1] : colors[severity].split(' dark:')[0]}`}
+      >
         {icons[severity]} {severity}
       </span>
     );
@@ -139,28 +211,68 @@ export function ErrorLogsPage() {
   const getStatusIndicator = (status: Status) => {
     switch (status) {
       case 'Active':
-        return <span className="inline-flex items-center gap-1.5 text-xs font-medium text-red-500"><span className="w-2 h-2 rounded-full bg-red-500" /> Active</span>;
+        return (
+          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-red-500">
+            <span className="w-2 h-2 rounded-full bg-red-500" /> Active
+          </span>
+        );
       case 'Flagged':
-        return <span className="inline-flex items-center gap-1.5 text-xs font-medium text-orange-500"><Flag className="w-3.5 h-3.5" /> Flagged</span>;
+        return (
+          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-orange-500">
+            <Flag className="w-3.5 h-3.5" /> Flagged
+          </span>
+        );
       case 'Resolved':
-        return <span className="inline-flex items-center gap-1.5 text-xs font-medium text-green-500"><CheckCircle className="w-3.5 h-3.5" /> Resolved</span>;
+        return (
+          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-green-500">
+            <CheckCircle className="w-3.5 h-3.5" /> Resolved
+          </span>
+        );
     }
   };
 
   const getTypeIcon = (type: ErrorType) => {
     switch (type) {
-      case 'Frontend': return <Monitor className="w-4 h-4" />;
-      case 'Backend': return <Server className="w-4 h-4" />;
-      case 'Database': return <Database className="w-4 h-4" />;
-      case 'Network': return <Globe className="w-4 h-4" />;
+      case 'Frontend':
+        return <Monitor className="w-4 h-4" />;
+      case 'Backend':
+        return <Server className="w-4 h-4" />;
+      case 'Database':
+        return <Database className="w-4 h-4" />;
+      case 'Network':
+        return <Globe className="w-4 h-4" />;
     }
   };
 
   const stats = [
-    { label: 'Total Errors', value: '1,247', color: 'text-red-500', bgColor: isDark ? 'bg-red-500/10' : 'bg-red-50', icon: <AlertCircle className="w-6 h-6 text-red-500" /> },
-    { label: 'Today', value: '23', color: 'text-yellow-500', bgColor: isDark ? 'bg-yellow-500/10' : 'bg-yellow-50', icon: <AlertTriangle className="w-6 h-6 text-yellow-500" /> },
-    { label: 'Flagged', value: '8', color: 'text-orange-500', bgColor: isDark ? 'bg-orange-500/10' : 'bg-orange-50', icon: <Flag className="w-6 h-6 text-orange-500" /> },
-    { label: 'Resolved', value: '1,189', color: 'text-green-500', bgColor: isDark ? 'bg-green-500/10' : 'bg-green-50', icon: <CheckCircle className="w-6 h-6 text-green-500" /> },
+    {
+      label: 'Total Errors',
+      value: '1,247',
+      color: 'text-red-500',
+      bgColor: isDark ? 'bg-red-500/10' : 'bg-red-50',
+      icon: <AlertCircle className="w-6 h-6 text-red-500" />,
+    },
+    {
+      label: 'Today',
+      value: '23',
+      color: 'text-yellow-500',
+      bgColor: isDark ? 'bg-yellow-500/10' : 'bg-yellow-50',
+      icon: <AlertTriangle className="w-6 h-6 text-yellow-500" />,
+    },
+    {
+      label: 'Flagged',
+      value: '8',
+      color: 'text-orange-500',
+      bgColor: isDark ? 'bg-orange-500/10' : 'bg-orange-50',
+      icon: <Flag className="w-6 h-6 text-orange-500" />,
+    },
+    {
+      label: 'Resolved',
+      value: '1,189',
+      color: 'text-green-500',
+      bgColor: isDark ? 'bg-green-500/10' : 'bg-green-50',
+      icon: <CheckCircle className="w-6 h-6 text-green-500" />,
+    },
   ];
 
   const severityChips: { label: string; value: 'All' | Severity; color: string }[] = [
@@ -189,7 +301,9 @@ export function ErrorLogsPage() {
           <button className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:opacity-90 text-white rounded-lg text-sm font-medium transition-colors">
             <Download className="w-4 h-4" /> Export Logs
           </button>
-          <button className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors border ${isDark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}>
+          <button
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors border ${isDark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}
+          >
             <Trash2 className="w-4 h-4" /> Clear Resolved
           </button>
         </div>
@@ -215,7 +329,9 @@ export function ErrorLogsPage() {
         <div className="flex flex-col lg:flex-row lg:items-center gap-4">
           {/* Search */}
           <div className="relative flex-1">
-            <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${textSecondary}`} />
+            <Search
+              className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${textSecondary}`}
+            />
             <input
               type="text"
               placeholder="Search error messages..."
@@ -235,7 +351,9 @@ export function ErrorLogsPage() {
                 className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
                   severityFilter === chip.value
                     ? chip.color
-                    : isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    : isDark
+                      ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
                 {chip.label}
@@ -250,7 +368,9 @@ export function ErrorLogsPage() {
             className={`px-3 py-2 rounded-lg border text-sm ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
           >
             {typeOptions.map((opt) => (
-              <option key={opt} value={opt}>{opt === 'All' ? 'All Types' : opt}</option>
+              <option key={opt} value={opt}>
+                {opt === 'All' ? 'All Types' : opt}
+              </option>
             ))}
           </CleanSelect>
         </div>
@@ -258,7 +378,9 @@ export function ErrorLogsPage() {
 
       {/* Bulk Actions */}
       {selectedIds.size > 0 && (
-        <div className={`flex items-center gap-3 px-4 py-3 rounded-lg border ${isDark ? 'bg-blue-900/20 border-blue-700' : 'bg-blue-50 border-blue-200'}`}>
+        <div
+          className={`flex items-center gap-3 px-4 py-3 rounded-lg border ${isDark ? 'bg-blue-900/20 border-blue-700' : 'bg-blue-50 border-blue-200'}`}
+        >
           <span className={`text-sm font-medium ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
             {selectedIds.size} selected
           </span>
@@ -280,7 +402,10 @@ export function ErrorLogsPage() {
       {/* Error Logs List */}
       <div className="space-y-2">
         {filteredLogs.map((log) => (
-          <div key={log.id} className={`rounded-xl border shadow-sm overflow-hidden ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+          <div
+            key={log.id}
+            className={`rounded-xl border shadow-sm overflow-hidden ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
+          >
             {/* Error Row */}
             <div
               className={`flex items-center gap-4 p-4 cursor-pointer transition-colors ${isDark ? 'hover:bg-gray-750' : 'hover:bg-gray-50'}`}
@@ -290,7 +415,10 @@ export function ErrorLogsPage() {
               <input
                 type="checkbox"
                 checked={selectedIds.has(log.id)}
-                onChange={(e) => { e.stopPropagation(); toggleSelect(log.id); }}
+                onChange={(e) => {
+                  e.stopPropagation();
+                  toggleSelect(log.id);
+                }}
                 onClick={(e) => e.stopPropagation()}
                 className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
               />
@@ -302,7 +430,9 @@ export function ErrorLogsPage() {
               {getSeverityBadge(log.severity)}
 
               {/* Type */}
-              <span className={`inline-flex items-center gap-1.5 text-xs font-medium ${textSecondary}`}>
+              <span
+                className={`inline-flex items-center gap-1.5 text-xs font-medium ${textSecondary}`}
+              >
                 {getTypeIcon(log.type)} {log.type}
               </span>
 
@@ -313,25 +443,36 @@ export function ErrorLogsPage() {
               {getStatusIndicator(log.status)}
 
               {/* Expand Icon */}
-              {expandedId === log.id
-                ? <ChevronUp className={`w-4 h-4 ${textSecondary}`} />
-                : <ChevronDown className={`w-4 h-4 ${textSecondary}`} />
-              }
+              {expandedId === log.id ? (
+                <ChevronUp className={`w-4 h-4 ${textSecondary}`} />
+              ) : (
+                <ChevronDown className={`w-4 h-4 ${textSecondary}`} />
+              )}
             </div>
 
             {/* Expanded Detail */}
             {expandedId === log.id && (
-              <div className={`border-t px-6 py-4 space-y-4 ${isDark ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50/50'}`}>
+              <div
+                className={`border-t px-6 py-4 space-y-4 ${isDark ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50/50'}`}
+              >
                 {/* Full Message */}
                 <div>
-                  <h4 className={`text-xs font-semibold uppercase tracking-wider mb-1 ${textSecondary}`}>Error Message</h4>
+                  <h4
+                    className={`text-xs font-semibold uppercase tracking-wider mb-1 ${textSecondary}`}
+                  >
+                    Error Message
+                  </h4>
                   <p className={`text-sm ${textPrimary}`}>{log.message}</p>
                 </div>
 
                 {/* Stack Trace */}
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <h4 className={`text-xs font-semibold uppercase tracking-wider ${textSecondary}`}>Stack Trace</h4>
+                    <h4
+                      className={`text-xs font-semibold uppercase tracking-wider ${textSecondary}`}
+                    >
+                      Stack Trace
+                    </h4>
                     <button
                       onClick={() => handleCopyStackTrace(log.stackTrace)}
                       className={`inline-flex items-center gap-1 text-xs ${isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-500 hover:text-gray-700'}`}
@@ -348,7 +489,9 @@ export function ErrorLogsPage() {
                 <div className="flex flex-wrap gap-6">
                   <div>
                     <span className={`text-xs ${textSecondary}`}>Occurrences</span>
-                    <p className={`text-sm font-medium ${textPrimary}`}>Occurred {log.occurrences} times in last 24h</p>
+                    <p className={`text-sm font-medium ${textPrimary}`}>
+                      Occurred {log.occurrences} times in last 24h
+                    </p>
                   </div>
                   <div>
                     <span className={`text-xs ${textSecondary}`}>First Seen</span>

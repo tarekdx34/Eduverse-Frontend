@@ -40,8 +40,10 @@ export interface AcademicEvent {
 export class ScheduleService {
   static async getDaily(date?: string): Promise<ScheduleItem[]> {
     const query = date ? `?date=${date}` : '';
-    const response = await ApiClient.get<ScheduleItem[] | { data: ScheduleItem[] }>(`/schedule/my/daily${query}`);
-    return Array.isArray(response) ? response : response.data ?? [];
+    const response = await ApiClient.get<ScheduleItem[] | { data: ScheduleItem[] }>(
+      `/schedule/my/daily${query}`
+    );
+    return Array.isArray(response) ? response : (response.data ?? []);
   }
 
   static async getWeekly(date?: string): Promise<WeeklyScheduleResponse> {
@@ -53,11 +55,13 @@ export class ScheduleService {
     const response = await ApiClient.get<ScheduleItem[] | { data: ScheduleItem[] }>(
       `/schedule/range?startDate=${startDate}&endDate=${endDate}`
     );
-    return Array.isArray(response) ? response : response.data ?? [];
+    return Array.isArray(response) ? response : (response.data ?? []);
   }
 
   static async getAcademicCalendar(): Promise<AcademicEvent[]> {
-    const response = await ApiClient.get<AcademicEvent[] | { data: AcademicEvent[] }>('/schedule/academic');
-    return Array.isArray(response) ? response : response.data ?? [];
+    const response = await ApiClient.get<AcademicEvent[] | { data: AcademicEvent[] }>(
+      '/schedule/academic'
+    );
+    return Array.isArray(response) ? response : (response.data ?? []);
   }
 }

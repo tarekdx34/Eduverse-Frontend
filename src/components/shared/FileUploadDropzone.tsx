@@ -3,7 +3,23 @@ import { Upload, X, File, Image, Video, FileText, Check, AlertCircle } from 'luc
 
 // File validation constants (T013)
 export const ALLOWED_FILE_EXTENSIONS = [
-  'pdf', 'docx', 'doc', 'zip', 'png', 'jpg', 'jpeg', 'gif', 'txt', 'md', 'js', 'ts', 'py', 'java', 'c', 'cpp', 'h',
+  'pdf',
+  'docx',
+  'doc',
+  'zip',
+  'png',
+  'jpg',
+  'jpeg',
+  'gif',
+  'txt',
+  'md',
+  'js',
+  'ts',
+  'py',
+  'java',
+  'c',
+  'cpp',
+  'h',
 ];
 
 export const ALLOWED_MIME_TYPES = [
@@ -96,14 +112,10 @@ export function FileUploadDropzone({
         progress = 100;
         clearInterval(interval);
         setUploadedFiles((prev) =>
-          prev.map((f) =>
-            f.id === file.id ? { ...f, progress: 100, status: 'completed' } : f
-          )
+          prev.map((f) => (f.id === file.id ? { ...f, progress: 100, status: 'completed' } : f))
         );
       } else {
-        setUploadedFiles((prev) =>
-          prev.map((f) => (f.id === file.id ? { ...f, progress } : f))
-        );
+        setUploadedFiles((prev) => prev.map((f) => (f.id === file.id ? { ...f, progress } : f)));
       }
     }, 200);
   }, []);
@@ -124,7 +136,9 @@ export function FileUploadDropzone({
       for (const file of fileArray) {
         // T013.1: Client-side file type validation
         if (!isValidFileType(file)) {
-          errors.push(`File "${file.name}" has invalid type. Allowed: ${ALLOWED_FILE_EXTENSIONS.join(', ')}`);
+          errors.push(
+            `File "${file.name}" has invalid type. Allowed: ${ALLOWED_FILE_EXTENSIONS.join(', ')}`
+          );
           continue;
         }
 
@@ -255,10 +269,7 @@ export function FileUploadDropzone({
               ${isDragging ? 'bg-indigo-100' : 'bg-gray-100'}
             `}
           >
-            <Upload
-              size={32}
-              className={isDragging ? 'text-indigo-600' : 'text-gray-400'}
-            />
+            <Upload size={32} className={isDragging ? 'text-indigo-600' : 'text-gray-400'} />
           </div>
 
           <div>
@@ -266,8 +277,7 @@ export function FileUploadDropzone({
               {isDragging ? 'Drop files here' : 'Drag & drop files here'}
             </p>
             <p className="text-sm text-gray-500 mt-1">
-              or <span className="text-indigo-600 font-medium">browse</span> to
-              upload
+              or <span className="text-indigo-600 font-medium">browse</span> to upload
             </p>
           </div>
 
@@ -284,9 +294,7 @@ export function FileUploadDropzone({
           <p className="text-xs text-gray-400">
             Max {maxFiles} files, up to {maxSizeInMB || MAX_FILE_SIZE_MB}MB each
           </p>
-          <p className="text-xs text-gray-400">
-            Allowed: {ALLOWED_FILE_EXTENSIONS.join(', ')}
-          </p>
+          <p className="text-xs text-gray-400">Allowed: {ALLOWED_FILE_EXTENSIONS.join(', ')}</p>
         </div>
       </div>
 
@@ -295,10 +303,7 @@ export function FileUploadDropzone({
         <div className="flex items-center gap-2 p-3 bg-red-50 text-red-700 rounded-lg text-sm">
           <AlertCircle size={16} />
           <span>{error}</span>
-          <button
-            onClick={() => setError(null)}
-            className="ml-auto p-1 hover:bg-red-100 rounded"
-          >
+          <button onClick={() => setError(null)} className="ml-auto p-1 hover:bg-red-100 rounded">
             <X size={14} />
           </button>
         </div>
@@ -334,12 +339,8 @@ export function FileUploadDropzone({
 
                   {/* File Info */}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">
-                      {file.name}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      {formatFileSize(file.size)}
-                    </p>
+                    <p className="text-sm font-medium text-gray-900 truncate">{file.name}</p>
+                    <p className="text-xs text-gray-500">{formatFileSize(file.size)}</p>
 
                     {/* Progress Bar */}
                     {file.status === 'uploading' && (
@@ -352,7 +353,9 @@ export function FileUploadDropzone({
                                 style={{ width: `${file.progress}%` }}
                               />
                             </div>
-                            <span className="text-xs text-gray-500 w-8 text-right">{Math.round(file.progress)}%</span>
+                            <span className="text-xs text-gray-500 w-8 text-right">
+                              {Math.round(file.progress)}%
+                            </span>
                           </div>
                         )}
                         {file.size <= LARGE_FILE_THRESHOLD_MB * 1024 * 1024 && (

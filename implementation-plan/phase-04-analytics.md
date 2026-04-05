@@ -9,18 +9,20 @@
 ## 4.1 Analytics Module
 
 ### Database Tables
-| Table | Description |
-|-------|-------------|
-| `course_analytics` | Analytics metrics for courses |
-| `learning_analytics` | Learning metrics and trends |
-| `performance_metrics` | Academic performance tracking |
-| `student_progress` | Overall course progress per student |
+
+| Table                  | Description                           |
+| ---------------------- | ------------------------------------- |
+| `course_analytics`     | Analytics metrics for courses         |
+| `learning_analytics`   | Learning metrics and trends           |
+| `performance_metrics`  | Academic performance tracking         |
+| `student_progress`     | Overall course progress per student   |
 | `weak_topics_analysis` | Identification of weak learning areas |
-| `activity_logs` | General user activity tracking |
+| `activity_logs`        | General user activity tracking        |
 
 ### Entity Definitions
 
 #### StudentProgress Entity
+
 ```typescript
 @Entity('student_progress')
 export class StudentProgress {
@@ -35,7 +37,7 @@ export class StudentProgress {
   enrollment: CourseEnrollment;
 
   @Column({ type: 'decimal', precision: 5, scale: 2, default: 0 })
-  overallProgress: number;  // 0-100%
+  overallProgress: number; // 0-100%
 
   @Column({ type: 'int', default: 0 })
   assignmentsCompleted: number;
@@ -67,7 +69,11 @@ export class StudentProgress {
   @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true })
   attendanceRate: number;
 
-  @Column({ type: 'enum', enum: ['on_track', 'at_risk', 'behind', 'excellent'], default: 'on_track' })
+  @Column({
+    type: 'enum',
+    enum: ['on_track', 'at_risk', 'behind', 'excellent'],
+    default: 'on_track',
+  })
   riskLevel: string;
 
   @Column({ type: 'timestamp', nullable: true })
@@ -79,6 +85,7 @@ export class StudentProgress {
 ```
 
 #### CourseAnalytics Entity
+
 ```typescript
 @Entity('course_analytics')
 export class CourseAnalytics {
@@ -114,10 +121,10 @@ export class CourseAnalytics {
   atRiskStudents: number;
 
   @Column({ type: 'json', nullable: true })
-  gradeDistribution: any;  // { A: count, B: count, ... }
+  gradeDistribution: any; // { A: count, B: count, ... }
 
   @Column({ type: 'json', nullable: true })
-  topicPerformance: any;  // [{ topic, avgScore }]
+  topicPerformance: any; // [{ topic, avgScore }]
 
   @CreateDateColumn()
   createdAt: Date;
@@ -125,6 +132,7 @@ export class CourseAnalytics {
 ```
 
 #### ActivityLog Entity
+
 ```typescript
 @Entity('activity_logs')
 export class ActivityLog {
@@ -138,7 +146,10 @@ export class ActivityLog {
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @Column({ type: 'enum', enum: ['login', 'logout', 'view', 'submit', 'download', 'upload', 'chat', 'quiz', 'other'] })
+  @Column({
+    type: 'enum',
+    enum: ['login', 'logout', 'view', 'submit', 'download', 'upload', 'chat', 'quiz', 'other'],
+  })
   activityType: string;
 
   @Column({ type: 'varchar', length: 50, nullable: true })
@@ -166,39 +177,40 @@ export class ActivityLog {
 
 ### API Endpoints
 
-| Method | Endpoint | Description | Roles |
-|--------|----------|-------------|-------|
-| **Dashboard Stats** | | | |
-| GET | `/api/analytics/dashboard` | Overview stats (total courses, students, engagement) | ADMIN |
-| GET | `/api/analytics/instructor-dashboard` | Instructor-specific stats | INSTRUCTOR |
-| GET | `/api/analytics/student-dashboard/:studentId` | Student progress overview | STUDENT (own) |
-| **Performance** | | | |
-| GET | `/api/analytics/performance/:sectionId` | Course performance trends (weekly grades) | INSTRUCTOR, TA, ADMIN |
-| GET | `/api/analytics/performance/comparison` | Compare multiple courses | INSTRUCTOR, ADMIN |
-| **Engagement** | | | |
-| GET | `/api/analytics/engagement/:sectionId` | Engagement metrics (views, submissions, messages) | INSTRUCTOR, TA, ADMIN |
-| GET | `/api/analytics/engagement/trends` | Weekly engagement trends | ADMIN |
-| **Attendance Analytics** | | | |
-| GET | `/api/analytics/attendance/:sectionId` | Attendance analytics for section | INSTRUCTOR, TA, ADMIN |
-| GET | `/api/analytics/attendance/trends` | Campus-wide attendance trends | ADMIN |
-| **Student Analytics** | | | |
-| GET | `/api/analytics/at-risk-students` | List at-risk students (filter by course) | INSTRUCTOR, TA, ADMIN |
-| GET | `/api/analytics/top-performers` | Top performing students | INSTRUCTOR, ADMIN |
-| GET | `/api/analytics/student-progress/:studentId` | Individual student progress | STUDENT (own), INSTRUCTOR, ADMIN |
-| **Grade Analytics** | | | |
-| GET | `/api/analytics/grade-distribution/:sectionId` | Grade distribution chart data | INSTRUCTOR, TA, ADMIN |
-| GET | `/api/analytics/grade-trends` | Grade trends over time | INSTRUCTOR, ADMIN |
-| **Enrollment Analytics** | | | |
-| GET | `/api/analytics/enrollment-trends` | Enrollment over time | ADMIN |
-| GET | `/api/analytics/enrollment/by-department` | Enrollment by department | ADMIN |
-| **Activity** | | | |
-| GET | `/api/analytics/activity/recent` | Recent activity feed | ALL |
-| GET | `/api/analytics/activity/user/:userId` | User activity history | ADMIN, OWNER |
-| GET | `/api/analytics/ai-usage` | AI feature usage statistics | ADMIN, IT_ADMIN |
-| **Export** | | | |
-| POST | `/api/analytics/export` | Export analytics data (PDF, CSV, Excel) | INSTRUCTOR, ADMIN |
+| Method                   | Endpoint                                       | Description                                          | Roles                            |
+| ------------------------ | ---------------------------------------------- | ---------------------------------------------------- | -------------------------------- |
+| **Dashboard Stats**      |                                                |                                                      |                                  |
+| GET                      | `/api/analytics/dashboard`                     | Overview stats (total courses, students, engagement) | ADMIN                            |
+| GET                      | `/api/analytics/instructor-dashboard`          | Instructor-specific stats                            | INSTRUCTOR                       |
+| GET                      | `/api/analytics/student-dashboard/:studentId`  | Student progress overview                            | STUDENT (own)                    |
+| **Performance**          |                                                |                                                      |                                  |
+| GET                      | `/api/analytics/performance/:sectionId`        | Course performance trends (weekly grades)            | INSTRUCTOR, TA, ADMIN            |
+| GET                      | `/api/analytics/performance/comparison`        | Compare multiple courses                             | INSTRUCTOR, ADMIN                |
+| **Engagement**           |                                                |                                                      |                                  |
+| GET                      | `/api/analytics/engagement/:sectionId`         | Engagement metrics (views, submissions, messages)    | INSTRUCTOR, TA, ADMIN            |
+| GET                      | `/api/analytics/engagement/trends`             | Weekly engagement trends                             | ADMIN                            |
+| **Attendance Analytics** |                                                |                                                      |                                  |
+| GET                      | `/api/analytics/attendance/:sectionId`         | Attendance analytics for section                     | INSTRUCTOR, TA, ADMIN            |
+| GET                      | `/api/analytics/attendance/trends`             | Campus-wide attendance trends                        | ADMIN                            |
+| **Student Analytics**    |                                                |                                                      |                                  |
+| GET                      | `/api/analytics/at-risk-students`              | List at-risk students (filter by course)             | INSTRUCTOR, TA, ADMIN            |
+| GET                      | `/api/analytics/top-performers`                | Top performing students                              | INSTRUCTOR, ADMIN                |
+| GET                      | `/api/analytics/student-progress/:studentId`   | Individual student progress                          | STUDENT (own), INSTRUCTOR, ADMIN |
+| **Grade Analytics**      |                                                |                                                      |                                  |
+| GET                      | `/api/analytics/grade-distribution/:sectionId` | Grade distribution chart data                        | INSTRUCTOR, TA, ADMIN            |
+| GET                      | `/api/analytics/grade-trends`                  | Grade trends over time                               | INSTRUCTOR, ADMIN                |
+| **Enrollment Analytics** |                                                |                                                      |                                  |
+| GET                      | `/api/analytics/enrollment-trends`             | Enrollment over time                                 | ADMIN                            |
+| GET                      | `/api/analytics/enrollment/by-department`      | Enrollment by department                             | ADMIN                            |
+| **Activity**             |                                                |                                                      |                                  |
+| GET                      | `/api/analytics/activity/recent`               | Recent activity feed                                 | ALL                              |
+| GET                      | `/api/analytics/activity/user/:userId`         | User activity history                                | ADMIN, OWNER                     |
+| GET                      | `/api/analytics/ai-usage`                      | AI feature usage statistics                          | ADMIN, IT_ADMIN                  |
+| **Export**               |                                                |                                                      |                                  |
+| POST                     | `/api/analytics/export`                        | Export analytics data (PDF, CSV, Excel)              | INSTRUCTOR, ADMIN                |
 
 ### Query Parameters
+
 ```typescript
 interface QueryAnalyticsDto {
   sectionId?: number;
@@ -212,6 +224,7 @@ interface QueryAnalyticsDto {
 ```
 
 ### Business Logic
+
 1. **Real-time Aggregation**: Some metrics computed on-the-fly (current grade, attendance rate).
 2. **Scheduled Snapshots**: Daily cron job to snapshot analytics into `course_analytics` table.
 3. **Risk Level Calculation**:
@@ -223,27 +236,30 @@ interface QueryAnalyticsDto {
 5. **Export**: Support PDF (with charts), CSV, and Excel formats.
 
 ### Frontend Components Using This Module
-- **Instructor**: ModernDashboard.tsx *(analytics embedded in dashboard; standalone AnalyticsPage removed — task I10)*
+
+- **Instructor**: ModernDashboard.tsx _(analytics embedded in dashboard; standalone AnalyticsPage removed — task I10)_
 - **Student**: GradeAnalysis.tsx, GpaChart.tsx
 - **TA**: AnalyticsPage.tsx, StudentPerformancePage.tsx
-- ~~**Instructor**: AnalyticsPage.tsx, ReportsAnalytics.tsx, PerformanceChart.tsx, TrendChart.tsx~~ *(Removed from Instructor sidebar — task I10)*
-- ~~**Admin**: AnalyticsReportsPage.tsx, AIInsightsPage.tsx~~ *(Not in Admin sidebar — deleted)*
-- **Admin**: DashboardOverview.tsx *(active as `dashboard` tab)*
+- ~~**Instructor**: AnalyticsPage.tsx, ReportsAnalytics.tsx, PerformanceChart.tsx, TrendChart.tsx~~ _(Removed from Instructor sidebar — task I10)_
+- ~~**Admin**: AnalyticsReportsPage.tsx, AIInsightsPage.tsx~~ _(Not in Admin sidebar — deleted)_
+- **Admin**: DashboardOverview.tsx _(active as `dashboard` tab)_
 
 ---
 
 ## 4.2 Reports Module
 
 ### Database Tables
-| Table | Description |
-|-------|-------------|
-| `generated_reports` | Generated report records |
-| `report_templates` | Report template definitions |
-| `export_history` | Report export history |
+
+| Table               | Description                 |
+| ------------------- | --------------------------- |
+| `generated_reports` | Generated report records    |
+| `report_templates`  | Report template definitions |
+| `export_history`    | Report export history       |
 
 ### Entity Definitions
 
 #### ReportTemplate Entity
+
 ```typescript
 @Entity('report_templates')
 export class ReportTemplate {
@@ -256,14 +272,17 @@ export class ReportTemplate {
   @Column({ type: 'text', nullable: true })
   description: string;
 
-  @Column({ type: 'enum', enum: ['enrollment', 'grades', 'attendance', 'performance', 'financial', 'custom'] })
+  @Column({
+    type: 'enum',
+    enum: ['enrollment', 'grades', 'attendance', 'performance', 'financial', 'custom'],
+  })
   reportType: string;
 
   @Column({ type: 'json' })
-  parameters: any;  // Template parameters schema
+  parameters: any; // Template parameters schema
 
   @Column({ type: 'json' })
-  layout: any;  // Report layout definition
+  layout: any; // Report layout definition
 
   @Column({ type: 'tinyint', default: 1 })
   isActive: boolean;
@@ -277,6 +296,7 @@ export class ReportTemplate {
 ```
 
 #### GeneratedReport Entity
+
 ```typescript
 @Entity('generated_reports')
 export class GeneratedReport {
@@ -293,7 +313,7 @@ export class GeneratedReport {
   format: string;
 
   @Column({ type: 'json', nullable: true })
-  parameters: any;  // Parameters used to generate
+  parameters: any; // Parameters used to generate
 
   @Column({ type: 'varchar', length: 500, nullable: true })
   filePath: string;
@@ -301,7 +321,11 @@ export class GeneratedReport {
   @Column({ type: 'bigint', unsigned: true, nullable: true })
   fileSize: number;
 
-  @Column({ type: 'enum', enum: ['pending', 'generating', 'completed', 'failed'], default: 'pending' })
+  @Column({
+    type: 'enum',
+    enum: ['pending', 'generating', 'completed', 'failed'],
+    default: 'pending',
+  })
   status: string;
 
   @Column({ type: 'text', nullable: true })
@@ -320,19 +344,20 @@ export class GeneratedReport {
 
 ### API Endpoints
 
-| Method | Endpoint | Description | Roles |
-|--------|----------|-------------|-------|
-| GET | `/api/reports/templates` | List report templates | INSTRUCTOR, ADMIN |
-| POST | `/api/reports/templates` | Create report template | ADMIN |
-| PUT | `/api/reports/templates/:id` | Update template | ADMIN |
-| DELETE | `/api/reports/templates/:id` | Delete template | ADMIN |
-| POST | `/api/reports/generate` | Generate a report | INSTRUCTOR, ADMIN |
-| GET | `/api/reports` | List generated reports | INSTRUCTOR, ADMIN |
-| GET | `/api/reports/:id` | Get report status/details | INSTRUCTOR, ADMIN |
-| GET | `/api/reports/:id/download` | Download generated report | INSTRUCTOR, ADMIN |
-| GET | `/api/reports/history` | Export history | INSTRUCTOR, ADMIN |
+| Method | Endpoint                     | Description               | Roles             |
+| ------ | ---------------------------- | ------------------------- | ----------------- |
+| GET    | `/api/reports/templates`     | List report templates     | INSTRUCTOR, ADMIN |
+| POST   | `/api/reports/templates`     | Create report template    | ADMIN             |
+| PUT    | `/api/reports/templates/:id` | Update template           | ADMIN             |
+| DELETE | `/api/reports/templates/:id` | Delete template           | ADMIN             |
+| POST   | `/api/reports/generate`      | Generate a report         | INSTRUCTOR, ADMIN |
+| GET    | `/api/reports`               | List generated reports    | INSTRUCTOR, ADMIN |
+| GET    | `/api/reports/:id`           | Get report status/details | INSTRUCTOR, ADMIN |
+| GET    | `/api/reports/:id/download`  | Download generated report | INSTRUCTOR, ADMIN |
+| GET    | `/api/reports/history`       | Export history            | INSTRUCTOR, ADMIN |
 
 ### Business Logic
+
 1. **Async Generation**: Reports generate in background. Return job ID, poll for status.
 2. **Templates**: Pre-built templates for common reports (enrollment, grades, attendance).
 3. **Parameterized**: Each template accepts parameters (date range, course, department).
@@ -340,8 +365,9 @@ export class GeneratedReport {
 5. **Cleanup**: Auto-delete generated reports after 30 days.
 
 ### Frontend Components Using This Module
-- ~~**Instructor**: ReportsAnalytics.tsx~~ *(Removed from Instructor sidebar — task I10)*
-- ~~**Admin**: AnalyticsReportsPage.tsx~~ *(Not in Admin sidebar — deleted)*
+
+- ~~**Instructor**: ReportsAnalytics.tsx~~ _(Removed from Instructor sidebar — task I10)_
+- ~~**Admin**: AnalyticsReportsPage.tsx~~ _(Not in Admin sidebar — deleted)_
 - **Note**: No dashboard currently has an active standalone Reports tab.
 
 ---

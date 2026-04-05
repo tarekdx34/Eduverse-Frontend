@@ -199,11 +199,7 @@ export function AnalyticsPage() {
               }`}
             >
               <div className="flex items-center justify-between mb-4">
-                <div
-                  className={`p-2 rounded-lg ${
-                    isDark ? 'bg-blue-500/20' : 'bg-blue-50'
-                  }`}
-                >
+                <div className={`p-2 rounded-lg ${isDark ? 'bg-blue-500/20' : 'bg-blue-50'}`}>
                   <Icon className={`w-5 h-5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
                 </div>
                 {stat.trendUp !== null && (
@@ -223,9 +219,11 @@ export function AnalyticsPage() {
                   </div>
                 )}
                 {stat.trendUp === null && (
-                  <span className={`text-xs font-medium px-2 py-1 rounded-full ${
-                    isDark ? 'bg-yellow-500/20 text-yellow-400' : 'bg-yellow-50 text-yellow-600'
-                  }`}>
+                  <span
+                    className={`text-xs font-medium px-2 py-1 rounded-full ${
+                      isDark ? 'bg-yellow-500/20 text-yellow-400' : 'bg-yellow-50 text-yellow-600'
+                    }`}
+                  >
                     {stat.trend}
                   </span>
                 )}
@@ -317,7 +315,9 @@ export function AnalyticsPage() {
                   {submissionData.map((entry, index) => (
                     <Cell
                       key={`cell-${index}`}
-                      fill={entry.value >= 80 ? '#22c55e' : entry.value >= 70 ? '#eab308' : '#ef4444'}
+                      fill={
+                        entry.value >= 80 ? '#22c55e' : entry.value >= 70 ? '#eab308' : '#ef4444'
+                      }
                     />
                   ))}
                 </Bar>
@@ -395,17 +395,19 @@ export function AnalyticsPage() {
                 className={`border rounded-lg p-4 ${isDark ? style.dark : style.light}`}
               >
                 <div className="flex items-start gap-3">
-                  <AlertTriangle className={`w-5 h-5 mt-0.5 flex-shrink-0 ${
-                    isDark
-                      ? style.icon
-                      : insight.type === 'warning'
-                        ? 'text-yellow-500'
-                        : insight.type === 'error'
-                          ? 'text-red-500'
-                          : insight.type === 'success'
-                            ? 'text-green-500'
-                            : 'text-blue-500'
-                  }`} />
+                  <AlertTriangle
+                    className={`w-5 h-5 mt-0.5 flex-shrink-0 ${
+                      isDark
+                        ? style.icon
+                        : insight.type === 'warning'
+                          ? 'text-yellow-500'
+                          : insight.type === 'error'
+                            ? 'text-red-500'
+                            : insight.type === 'success'
+                              ? 'text-green-500'
+                              : 'text-blue-500'
+                    }`}
+                  />
                   <p className="text-sm font-medium">{insight.message}</p>
                 </div>
               </div>

@@ -181,18 +181,18 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
       if (!resolvedCourseId) return;
       try {
         setAnnouncementsLoading(true);
-        const response = await announcementService.getAnnouncements({ courseId: String(resolvedCourseId) });
+        const response = await announcementService.getAnnouncements({
+          courseId: String(resolvedCourseId),
+        });
         if (!mounted) return;
-        const sorted = (Array.isArray(response) ? response : [])
-          .slice()
-          .sort((a, b) => {
-            if ((a.isPinned ?? 0) === 1 && (b.isPinned ?? 0) !== 1) return -1;
-            if ((a.isPinned ?? 0) !== 1 && (b.isPinned ?? 0) === 1) return 1;
-            return (
-              new Date(b.publishedAt ?? b.createdAt ?? 0).getTime() -
-              new Date(a.publishedAt ?? a.createdAt ?? 0).getTime()
-            );
-          });
+        const sorted = (Array.isArray(response) ? response : []).slice().sort((a, b) => {
+          if ((a.isPinned ?? 0) === 1 && (b.isPinned ?? 0) !== 1) return -1;
+          if ((a.isPinned ?? 0) !== 1 && (b.isPinned ?? 0) === 1) return 1;
+          return (
+            new Date(b.publishedAt ?? b.createdAt ?? 0).getTime() -
+            new Date(a.publishedAt ?? a.createdAt ?? 0).getTime()
+          );
+        });
         setCourseAnnouncements(sorted);
       } catch {
         if (!mounted) return;
@@ -659,7 +659,9 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
                     className={`rounded-lg border p-4 ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}
                   >
                     <div className="flex flex-wrap items-center gap-2 mb-2">
-                      <h3 className={`text-base font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                      <h3
+                        className={`text-base font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}
+                      >
                         {announcement.title}
                       </h3>
                       {announcement.isPinned === 1 && <span className="text-amber-500">📌</span>}
@@ -703,14 +705,13 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
                           'System'}
                       </span>
                       <span>
-                        {new Date(announcement.publishedAt ?? announcement.createdAt ?? Date.now()).toLocaleDateString(
-                          'en-US',
-                          {
-                            month: 'short',
-                            day: 'numeric',
-                            year: 'numeric',
-                          }
-                        )}
+                        {new Date(
+                          announcement.publishedAt ?? announcement.createdAt ?? Date.now()
+                        ).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                        })}
                       </span>
                     </div>
                   </div>

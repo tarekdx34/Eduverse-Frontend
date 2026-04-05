@@ -553,9 +553,15 @@ const getItemTitle = (grade: ApiGradeResponse): string => {
 
 const getGradeTypeBadge = (gradeType: string, isDark: boolean) => {
   const badges: Record<string, { bg: string; text: string }> = {
-    assignment: isDark ? { bg: 'bg-blue-900/50', text: 'text-blue-400' } : { bg: 'bg-blue-50', text: 'text-blue-700' },
-    quiz: isDark ? { bg: 'bg-purple-900/50', text: 'text-purple-400' } : { bg: 'bg-purple-50', text: 'text-purple-700' },
-    lab: isDark ? { bg: 'bg-orange-900/50', text: 'text-orange-400' } : { bg: 'bg-orange-50', text: 'text-orange-700' },
+    assignment: isDark
+      ? { bg: 'bg-blue-900/50', text: 'text-blue-400' }
+      : { bg: 'bg-blue-50', text: 'text-blue-700' },
+    quiz: isDark
+      ? { bg: 'bg-purple-900/50', text: 'text-purple-400' }
+      : { bg: 'bg-purple-50', text: 'text-purple-700' },
+    lab: isDark
+      ? { bg: 'bg-orange-900/50', text: 'text-orange-400' }
+      : { bg: 'bg-orange-50', text: 'text-orange-700' },
   };
   return badges[gradeType] || badges.assignment;
 };
@@ -583,7 +589,7 @@ export default function GradesTranscript({
       try {
         setLoading(true);
         setError(null);
-        
+
         // Fetch grades using the API client
         const response = await client.get('/grades/my');
         const grades = Array.isArray(response) ? response : response.data;
@@ -628,14 +634,20 @@ export default function GradesTranscript({
     },
     {} as Record<
       string,
-      { courseId: string | number; courseName: string; courseCode: string; grades: ApiGradeResponse[] }
+      {
+        courseId: string | number;
+        courseName: string;
+        courseCode: string;
+        grades: ApiGradeResponse[];
+      }
     >
   );
 
   // Calculate average percentage
-  const avgPercentage = rawGrades.length > 0
-    ? rawGrades.reduce((sum, g) => sum + Number(g.percentage), 0) / rawGrades.length
-    : 0;
+  const avgPercentage =
+    rawGrades.length > 0
+      ? rawGrades.reduce((sum, g) => sum + Number(g.percentage), 0) / rawGrades.length
+      : 0;
 
   if (loading) {
     return (
@@ -833,8 +845,15 @@ export default function GradesTranscript({
                 >
                   {/* Course Header */}
                   <div className={`border-b p-6 ${isDark ? 'border-white/5' : 'border-slate-100'}`}>
-                    <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>
-                      {courseData.courseName} <span className={`text-sm font-normal ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>({courseData.courseCode})</span>
+                    <h3
+                      className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}
+                    >
+                      {courseData.courseName}{' '}
+                      <span
+                        className={`text-sm font-normal ${isDark ? 'text-slate-400' : 'text-slate-600'}`}
+                      >
+                        ({courseData.courseCode})
+                      </span>
                     </h3>
                     <p className={`text-sm mt-2 ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
                       {courseData.grades.length} grade{courseData.grades.length !== 1 ? 's' : ''}
@@ -842,7 +861,10 @@ export default function GradesTranscript({
                   </div>
 
                   {/* Grades List */}
-                  <div className="divide-y" style={{ borderColor: isDark ? 'rgba(255,255,255,0.05)' : '#e5e7eb' }}>
+                  <div
+                    className="divide-y"
+                    style={{ borderColor: isDark ? 'rgba(255,255,255,0.05)' : '#e5e7eb' }}
+                  >
                     {courseData.grades.map((grade) => (
                       <div
                         key={String(grade.id)}
@@ -860,11 +882,15 @@ export default function GradesTranscript({
                                 {grade.gradeType.charAt(0).toUpperCase() + grade.gradeType.slice(1)}
                               </span>
                             </div>
-                            <h4 className={`text-base font-medium ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                            <h4
+                              className={`text-base font-medium ${isDark ? 'text-white' : 'text-slate-800'}`}
+                            >
                               {getItemTitle(grade)}
                             </h4>
                             {grade.feedback && (
-                              <p className={`text-sm mt-2 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                              <p
+                                className={`text-sm mt-2 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}
+                              >
                                 {grade.feedback}
                               </p>
                             )}
@@ -873,23 +899,33 @@ export default function GradesTranscript({
                           {/* Right: Grade Info */}
                           <div className="flex items-center gap-6 md:justify-end">
                             <div className="text-center">
-                              <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
+                              <p
+                                className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}
+                              >
                                 Score
                               </p>
-                              <p className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                              <p
+                                className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}
+                              >
                                 {Number(grade.score)}/{Number(grade.maxScore)}
                               </p>
                             </div>
                             <div className="text-center">
-                              <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
+                              <p
+                                className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}
+                              >
                                 Percentage
                               </p>
-                              <p className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                              <p
+                                className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}
+                              >
                                 {Number(grade.percentage).toFixed(1)}%
                               </p>
                             </div>
                             <div className="text-center">
-                              <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
+                              <p
+                                className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}
+                              >
                                 Grade
                               </p>
                               <div
@@ -899,11 +935,15 @@ export default function GradesTranscript({
                               </div>
                             </div>
                             {grade.isPublished ? (
-                              <div className={`px-3 py-1 rounded text-sm font-medium ${isDark ? 'bg-green-900/50 text-green-400' : 'bg-green-50 text-green-700'}`}>
+                              <div
+                                className={`px-3 py-1 rounded text-sm font-medium ${isDark ? 'bg-green-900/50 text-green-400' : 'bg-green-50 text-green-700'}`}
+                              >
                                 Published
                               </div>
                             ) : (
-                              <div className={`px-3 py-1 rounded text-sm font-medium ${isDark ? 'bg-yellow-900/50 text-yellow-400' : 'bg-yellow-50 text-yellow-700'}`}>
+                              <div
+                                className={`px-3 py-1 rounded text-sm font-medium ${isDark ? 'bg-yellow-900/50 text-yellow-400' : 'bg-yellow-50 text-yellow-700'}`}
+                              >
                                 Draft
                               </div>
                             )}

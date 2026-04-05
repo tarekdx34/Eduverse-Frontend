@@ -45,8 +45,16 @@ interface AIChatbotProps {
 const instructorQuickActions: QuickAction[] = [
   { icon: FileText, label: 'Generate Quiz', prompt: 'Help me generate a quiz for my course' },
   { icon: Calendar, label: 'Plan Lecture', prompt: 'Help me plan my next lecture' },
-  { icon: BarChart3, label: 'Analyze Performance', prompt: 'Analyze my class performance this week' },
-  { icon: HelpCircle, label: 'Draft Announcement', prompt: 'Help me draft an announcement for my students' },
+  {
+    icon: BarChart3,
+    label: 'Analyze Performance',
+    prompt: 'Analyze my class performance this week',
+  },
+  {
+    icon: HelpCircle,
+    label: 'Draft Announcement',
+    prompt: 'Help me draft an announcement for my students',
+  },
 ];
 
 const studentQuickActions: QuickAction[] = [
@@ -133,7 +141,11 @@ Would you like me to start generating questions? Just tell me the topic and diff
 Would you like me to help fill in the details for a specific topic?`;
     }
 
-    if (lowerMessage.includes('performance') || lowerMessage.includes('analyze') || lowerMessage.includes('analytics')) {
+    if (
+      lowerMessage.includes('performance') ||
+      lowerMessage.includes('analyze') ||
+      lowerMessage.includes('analytics')
+    ) {
       return `📊 **Class Performance Summary**
 
 Based on recent data:
@@ -247,9 +259,7 @@ Could you tell me more about what specific help you need?`;
     setMessages((prev) => [...prev, typingMessage]);
 
     try {
-      const response = onSendMessage
-        ? await onSendMessage(input)
-        : await simulateAIResponse(input);
+      const response = onSendMessage ? await onSendMessage(input) : await simulateAIResponse(input);
 
       // Remove typing indicator and add response
       setMessages((prev) => {
@@ -320,9 +330,7 @@ Could you tell me more about what specific help you need?`;
             </div>
             <div>
               <h3 className="font-semibold text-white">Evy - AI Assistant</h3>
-              <p className="text-xs text-white/80">
-                {isLoading ? 'Thinking...' : 'Online'}
-              </p>
+              <p className="text-xs text-white/80">{isLoading ? 'Thinking...' : 'Online'}</p>
             </div>
           </div>
           <div className="flex items-center gap-1">
@@ -355,7 +363,10 @@ Could you tell me more about what specific help you need?`;
         {!isMinimized && (
           <>
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50" style={{ height: '350px' }}>
+            <div
+              className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50"
+              style={{ height: '350px' }}
+            >
               {messages.map((message) => (
                 <div
                   key={message.id}
@@ -371,9 +382,18 @@ Could you tell me more about what specific help you need?`;
                     {message.isTyping ? (
                       <div className="flex items-center gap-2">
                         <div className="flex gap-1">
-                          <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                          <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                          <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                          <span
+                            className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                            style={{ animationDelay: '0ms' }}
+                          />
+                          <span
+                            className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                            style={{ animationDelay: '150ms' }}
+                          />
+                          <span
+                            className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                            style={{ animationDelay: '300ms' }}
+                          />
                         </div>
                       </div>
                     ) : (
@@ -451,16 +471,10 @@ Could you tell me more about what specific help you need?`;
                   disabled={!input.trim() || isLoading}
                   className="p-2 bg-indigo-600 text-white rounded-full hover:bg-indigo-700 disabled:bg-gray-300 transition-colors"
                 >
-                  {isLoading ? (
-                    <Loader2 size={20} className="animate-spin" />
-                  ) : (
-                    <Send size={20} />
-                  )}
+                  {isLoading ? <Loader2 size={20} className="animate-spin" /> : <Send size={20} />}
                 </button>
               </div>
-              <p className="text-xs text-gray-400 text-center mt-2">
-                Powered by Evy AI • EduVerse
-              </p>
+              <p className="text-xs text-gray-400 text-center mt-2">Powered by Evy AI • EduVerse</p>
             </div>
           </>
         )}

@@ -20,7 +20,7 @@ export const adminService = {
   getStats: async () => {
     const users = await ApiClient.get<{ total: number }>('/admin/users?size=1');
     const campuses = await ApiClient.get<any[]>('/campuses');
-    
+
     let currentSemesterName = 'None';
     try {
       const semester = await ApiClient.get<any>('/semesters/current');
@@ -28,7 +28,7 @@ export const adminService = {
     } catch {
       // No current semester found — that's okay
     }
-    
+
     return {
       totalUsers: users.total || 0,
       activeCampuses: campuses.length || 0,
@@ -36,11 +36,11 @@ export const adminService = {
     };
   },
 
-  getUsers: async (params?: { role?: string, department?: string }) => {
+  getUsers: async (params?: { role?: string; department?: string }) => {
     let url = '/admin/users?size=1000';
     if (params?.role) url += `&role=${params.role}`;
     if (params?.department) url += `&department=${params.department}`;
-    return ApiClient.get<{ data: any[], total: number }>(url);
+    return ApiClient.get<{ data: any[]; total: number }>(url);
   },
 
   // Student management
@@ -50,16 +50,16 @@ export const adminService = {
       // Standard search endpoint
       endpoint = `/admin/users/search?query=${search}`;
     }
-    return ApiClient.get<{ data: User[], total: number }>(endpoint);
+    return ApiClient.get<{ data: User[]; total: number }>(endpoint);
   },
 
   createStudent: async (data: any) => {
     return ApiClient.post('/auth/register', {
       ...data,
-      role: 'student'
+      role: 'student',
     });
   },
-  
+
   updateUser: async (id: number, data: any) => {
     return ApiClient.put(`/admin/users/${id}`, data);
   },
@@ -134,7 +134,12 @@ export const adminService = {
           startDate: regStart,
           endDate: regEnd,
           totalStudents: 150,
-          registeredStudents: status === 'closed' ? Math.floor(Math.random() * 30) + 120 : status === 'active' ? Math.floor(Math.random() * 40) + 50 : 0,
+          registeredStudents:
+            status === 'closed'
+              ? Math.floor(Math.random() * 30) + 120
+              : status === 'active'
+                ? Math.floor(Math.random() * 40) + 50
+                : 0,
           status,
           description: `${s.name} — course registration window`,
         });
@@ -147,7 +152,5 @@ export const adminService = {
   getCalendarEvents: async () => {
     // For now we can map from semesters or fetch if there's an events table
     return ApiClient.get<any[]>('/semesters');
-  }
+  },
 };
-
-

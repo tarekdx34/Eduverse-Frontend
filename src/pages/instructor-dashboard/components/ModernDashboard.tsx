@@ -232,9 +232,11 @@ export function ModernDashboard({
     { week: 'Week 4', value: 78 },
   ];
 
-  const chartPerformanceData = performanceData && performanceData.length > 0 ? performanceData : defaultPerformanceData;
-  const chartEngagementData = engagementData && engagementData.length > 0 ? engagementData : defaultEngagementData;
-  
+  const chartPerformanceData =
+    performanceData && performanceData.length > 0 ? performanceData : defaultPerformanceData;
+  const chartEngagementData =
+    engagementData && engagementData.length > 0 ? engagementData : defaultEngagementData;
+
   // Calculate average engagement score for the display
   const currentEngagement = chartEngagementData[chartEngagementData.length - 1]?.value || 72;
   const prevEngagement = chartEngagementData[chartEngagementData.length - 2]?.value || 70;
@@ -378,7 +380,10 @@ export function ModernDashboard({
                   {currentEngagement}%
                 </span>
                 <TrendingUp className={th.text500} size={20} />
-                <span className={`text-sm ${th.text500} font-medium`}>{engagementTrend >= 0 ? '+' : ''}{engagementTrend}%</span>
+                <span className={`text-sm ${th.text500} font-medium`}>
+                  {engagementTrend >= 0 ? '+' : ''}
+                  {engagementTrend}%
+                </span>
               </div>
             </div>
             <ResponsiveContainer width="100%" height={240}>

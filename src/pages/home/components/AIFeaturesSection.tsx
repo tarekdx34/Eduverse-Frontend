@@ -102,7 +102,9 @@ export function AIFeaturesSection() {
                 <div className="h-auto py-12 lg:py-16 flex items-center justify-center">
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center w-full max-w-6xl px-4">
                     {/* Image/Visual Container */}
-                    <div className={`flex justify-center order-2 lg:${isImageLeft ? 'order-1' : 'order-2'}`}>
+                    <div
+                      className={`flex justify-center order-2 lg:${isImageLeft ? 'order-1' : 'order-2'}`}
+                    >
                       <img
                         src={feature.image}
                         alt={feature.title}

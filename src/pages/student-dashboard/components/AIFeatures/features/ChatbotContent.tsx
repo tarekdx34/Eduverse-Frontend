@@ -7,27 +7,37 @@ export function ChatbotContent() {
 
   return (
     <div className="space-y-4">
-      <div className={`${isDark ? 'bg-[var(--accent-color)]/10 border-[var(--accent-color)]/20' : 'bg-gradient-to-br from-[var(--accent-color)]/10 to-blue-100 border-[var(--accent-color)]/20'} rounded-xl p-6 border`}>
+      <div
+        className={`${isDark ? 'bg-[var(--accent-color)]/10 border-[var(--accent-color)]/20' : 'bg-gradient-to-br from-[var(--accent-color)]/10 to-blue-100 border-[var(--accent-color)]/20'} rounded-xl p-6 border`}
+      >
         <h4 className={`${isDark ? 'text-white' : 'text-[#4C1D95]'} mb-2 flex items-center gap-2`}>
           <MessageSquare className="w-4 h-4" />
           Your Personal Study Assistant
         </h4>
-        <p className={`text-sm ${isDark ? 'text-[var(--accent-color)]' : 'text-[var(--accent-color)]'}`}>
+        <p
+          className={`text-sm ${isDark ? 'text-[var(--accent-color)]' : 'text-[var(--accent-color)]'}`}
+        >
           Ask anything about your courses, get study tips, or request explanations
         </p>
       </div>
 
-      <div className={`${isDark ? 'bg-card-dark border-white/5' : 'border-2 border-slate-100 bg-gradient-to-b from-white to-background-light'} rounded-xl p-6 h-96 overflow-y-auto`}>
+      <div
+        className={`${isDark ? 'bg-card-dark border-white/5' : 'border-2 border-slate-100 bg-gradient-to-b from-white to-background-light'} rounded-xl p-6 h-96 overflow-y-auto`}
+      >
         <div className="space-y-6">
           <div className="flex gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-[var(--accent-color)] to-[var(--accent-color)] rounded-xl flex items-center justify-center flex-shrink-0 shadow-md">
               <Sparkles className="w-5 h-5 text-white" />
             </div>
-            <div className={`${isDark ? 'bg-white/5 border-white/5' : 'bg-white border border-slate-100'} rounded-2xl rounded-tl-sm p-4 shadow-sm max-w-sm`}>
+            <div
+              className={`${isDark ? 'bg-white/5 border-white/5' : 'bg-white border border-slate-100'} rounded-2xl rounded-tl-sm p-4 shadow-sm max-w-sm`}
+            >
               <p className={`text-sm ${isDark ? 'text-white' : 'text-slate-800'} mb-2`}>
                 👋 Hello! I'm your AI Study Companion. I can help you with:
               </p>
-              <ul className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-600'} space-y-1 ml-4`}>
+              <ul
+                className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-600'} space-y-1 ml-4`}
+              >
                 <li>• Explaining complex concepts</li>
                 <li>• Solving practice problems</li>
                 <li>• Study strategies & tips</li>
@@ -38,9 +48,7 @@ export function ChatbotContent() {
 
           <div className="flex gap-3 justify-end">
             <div className="bg-[var(--accent-color)] text-white rounded-2xl rounded-tr-sm p-4 shadow-md max-w-sm">
-              <p className="text-sm">
-                Can you explain the difference between stacks and queues?
-              </p>
+              <p className="text-sm">Can you explain the difference between stacks and queues?</p>
             </div>
             <div className="w-10 h-10 bg-slate-300 rounded-xl flex items-center justify-center flex-shrink-0">
               <span className="text-sm">You</span>
@@ -51,9 +59,12 @@ export function ChatbotContent() {
             <div className="w-10 h-10 bg-gradient-to-br from-[var(--accent-color)] to-[var(--accent-color)] rounded-xl flex items-center justify-center flex-shrink-0 shadow-md">
               <Sparkles className="w-5 h-5 text-white" />
             </div>
-            <div className={`${isDark ? 'bg-white/5 border-white/5' : 'bg-white border border-slate-100'} rounded-2xl rounded-tl-sm p-4 shadow-sm max-w-sm`}>
+            <div
+              className={`${isDark ? 'bg-white/5 border-white/5' : 'bg-white border border-slate-100'} rounded-2xl rounded-tl-sm p-4 shadow-sm max-w-sm`}
+            >
               <p className={`text-sm ${isDark ? 'text-white' : 'text-slate-800'}`}>
-                Great question! Both are linear data structures, but they differ in how elements are added and removed...
+                Great question! Both are linear data structures, but they differ in how elements are
+                added and removed...
               </p>
             </div>
           </div>
@@ -62,14 +73,16 @@ export function ChatbotContent() {
 
       <div className="space-y-3">
         <div className="flex gap-2 flex-wrap">
-          {['Explain concept', 'Practice problem', 'Study tips', 'Exam prep'].map((suggestion, idx) => (
-            <button
-              key={idx}
-              className={`px-4 py-2 ${isDark ? 'bg-white/5 border-white/10 text-slate-300 hover:border-[var(--accent-color)] hover:bg-[var(--accent-color)]/10' : 'bg-white border-2 border-slate-100 text-slate-700 hover:border-[var(--accent-color)] hover:bg-[var(--accent-color)]/10'} rounded-full text-sm transition-all`}
-            >
-              {suggestion}
-            </button>
-          ))}
+          {['Explain concept', 'Practice problem', 'Study tips', 'Exam prep'].map(
+            (suggestion, idx) => (
+              <button
+                key={idx}
+                className={`px-4 py-2 ${isDark ? 'bg-white/5 border-white/10 text-slate-300 hover:border-[var(--accent-color)] hover:bg-[var(--accent-color)]/10' : 'bg-white border-2 border-slate-100 text-slate-700 hover:border-[var(--accent-color)] hover:bg-[var(--accent-color)]/10'} rounded-full text-sm transition-all`}
+              >
+                {suggestion}
+              </button>
+            )
+          )}
         </div>
 
         <div className="flex gap-2">

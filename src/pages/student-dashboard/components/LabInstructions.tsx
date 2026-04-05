@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { useApi } from '../../../hooks/useApi';
 import { LabService, Lab } from '../../../services/api/labService';
 import { enrollmentService } from '../../../services/api/enrollmentService';
+import { toast } from 'sonner';
 import {
   BookOpen,
   ChevronDown,
@@ -17,7 +19,33 @@ import {
 
 export function LabInstructions() {
   const { isDark, primaryHex } = useTheme() as any;
+  const { t, language } = useLanguage();
   const accentColor = primaryHex || '#3b82f6';
+
+  // Helper functions for locale-aware date formatting
+  const formatDate = (dateString: string) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    const locale = language === 'ar' ? 'ar-EG' : 'en-US';
+    return new Intl.DateTimeFormat(locale, {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    }).format(date);
+  };
+
+  const formatDateTime = (dateString: string) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    const locale = language === 'ar' ? 'ar-EG' : 'en-US';
+    return new Intl.DateTimeFormat(locale, {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(date);
+  };
 
   const [selectedCourseId, setSelectedCourseId] = useState<string>('');
   const [selectedLabId, setSelectedLabId] = useState<string | null>(null);
@@ -26,10 +54,10 @@ export function LabInstructions() {
   const [submitting, setSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
 
-  const {
-    data: enrolledCourses,
-    loading: loadingCourses,
-  } = useApi(() => enrollmentService.getMyCourses(), []);
+  const { data: enrolledCourses, loading: loadingCourses } = useApi(
+    () => enrollmentService.getMyCourses(),
+    []
+  );
 
   useEffect(() => {
     if (!selectedCourseId && enrolledCourses?.length) {
@@ -38,38 +66,20 @@ export function LabInstructions() {
     }
   }, [enrolledCourses, selectedCourseId]);
 
-  const {
-    data: labs,
-    loading: loadingLabs,
-  } = useApi(
-    async () => {
-      if (!selectedCourseId) return [];
-      return LabService.getAll({ courseId: selectedCourseId });
-    },
-    [selectedCourseId]
-  );
+  const { data: labs, loading: loadingLabs } = useApi(async () => {
+    if (!selectedCourseId) return [];
+    return LabService.getAll({ courseId: selectedCourseId });
+  }, [selectedCourseId]);
 
-  const {
-    data: selectedLab,
-    loading: loadingLabDetail,
-  } = useApi(
-    async () => {
-      if (!selectedLabId) return null;
-      return LabService.getById(selectedLabId);
-    },
-    [selectedLabId]
-  );
+  const { data: selectedLab, loading: loadingLabDetail } = useApi(async () => {
+    if (!selectedLabId) return null;
+    return LabService.getById(selectedLabId);
+  }, [selectedLabId]);
 
-  const {
-    data: mySubmission,
-    refetch: refetchSubmission,
-  } = useApi(
-    async () => {
-      if (!selectedLabId) return null;
-      return LabService.getMySubmission(selectedLabId);
-    },
-    [selectedLabId]
-  );
+  const { data: mySubmission, refetch: refetchSubmission } = useApi(async () => {
+    if (!selectedLabId) return null;
+    return LabService.getMySubmission(selectedLabId);
+  }, [selectedLabId]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -83,6 +93,7 @@ export function LabInstructions() {
     setSubmitting(true);
     try {
       await LabService.submit(selectedLabId, submissionText, selectedFile || undefined);
+      toast.success('Lab submitted successfully!');
       setSubmitSuccess(true);
       setSubmissionText('');
       setSelectedFile(null);
@@ -90,30 +101,65 @@ export function LabInstructions() {
       setTimeout(() => setSubmitSuccess(false), 3000);
     } catch (error) {
       console.error('Failed to submit lab:', error);
-      alert('Failed to submit lab. Please try again.');
+      toast.error('Failed to submit lab. Please try again.');
     } finally {
       setSubmitting(false);
     }
   };
 
-  const cardClass = isDark ? 'bg-card-dark border border-white/5' : 'bg-white border border-slate-100';
+  const cardClass = isDark
+    ? 'bg-card-dark border border-white/5'
+    : 'bg-white border border-slate-100';
   const textPrimary = isDark ? 'text-white' : 'text-slate-800';
   const textSecondary = isDark ? 'text-slate-400' : 'text-slate-500';
 
   if (loadingCourses) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+      <div className="space-y-6 animate-pulse">
+        {/* Skeleton Course Selector */}
+        <div className={cardClass + ' rounded-2xl p-4'}>
+          <div className={'h-4 w-24 mb-2 rounded ' + (isDark ? 'bg-white/10' : 'bg-slate-200')} />
+          <div className={'h-10 w-full rounded-xl ' + (isDark ? 'bg-white/10' : 'bg-slate-200')} />
+        </div>
+        {/* Skeleton Lab Cards */}
+        {[1, 2, 3].map((i) => (
+          <div key={i} className={cardClass + ' rounded-2xl p-5'}>
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <div
+                  className={'h-5 w-3/4 mb-2 rounded ' + (isDark ? 'bg-white/10' : 'bg-slate-200')}
+                />
+                <div
+                  className={'h-4 w-full mb-1 rounded ' + (isDark ? 'bg-white/5' : 'bg-slate-100')}
+                />
+                <div className={'h-4 w-2/3 rounded ' + (isDark ? 'bg-white/5' : 'bg-slate-100')} />
+                <div className="flex items-center gap-4 mt-3">
+                  <div
+                    className={'h-4 w-20 rounded ' + (isDark ? 'bg-white/10' : 'bg-slate-200')}
+                  />
+                  <div
+                    className={'h-4 w-16 rounded ' + (isDark ? 'bg-white/10' : 'bg-slate-200')}
+                  />
+                  <div
+                    className={'h-5 w-20 rounded-full ' + (isDark ? 'bg-white/10' : 'bg-slate-200')}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
     );
   }
 
   if (!enrolledCourses?.length) {
     return (
-      <div className={"rounded-2xl p-8 text-center " + cardClass}>
+      <div className={'rounded-2xl p-8 text-center ' + cardClass}>
         <BookOpen className="w-12 h-12 mx-auto mb-4 text-slate-400" />
-        <h3 className={"text-lg font-semibold mb-2 " + textPrimary}>No Enrolled Courses</h3>
-        <p className={textSecondary}>Enroll in courses to view lab assignments.</p>
+        <h3 className={'text-lg font-semibold mb-2 ' + textPrimary}>
+          No Enrolled Courses
+        </h3>
+        <p className={textSecondary}>Please enroll in courses to view labs.</p>
       </div>
     );
   }
@@ -125,52 +171,65 @@ export function LabInstructions() {
       <div className="space-y-6">
         <button
           onClick={() => setSelectedLabId(null)}
-          className={"flex items-center gap-2 transition-colors hover:opacity-80 " + textSecondary}
+          className={'flex items-center gap-2 transition-colors hover:opacity-80 ' + textSecondary}
+          aria-label="Back to Labs"
         >
           <ArrowLeft className="w-5 h-5" />
           <span>Back to Labs</span>
         </button>
 
-        <div className={"rounded-2xl p-6 " + cardClass}>
+        <div className={'rounded-2xl p-6 ' + cardClass}>
           <div className="flex items-start justify-between mb-4">
             <div>
-              <h2 className={"text-2xl font-bold " + textPrimary}>{selectedLab.title}</h2>
-              <p className={"mt-1 " + textSecondary}>
+              <h2 className={'text-2xl font-bold ' + textPrimary}>{selectedLab.title}</h2>
+              <p className={'mt-1 ' + textSecondary}>
                 {selectedLab.course?.name} ({selectedLab.course?.code})
               </p>
             </div>
             <div className="text-right">
-              <p className={"text-sm " + textSecondary}>Max Score</p>
-              <p className={"text-xl font-bold " + textPrimary}>{Number(selectedLab.maxScore)} pts</p>
+              <p className={'text-sm ' + textSecondary}>Max Score</p>
+              <p className={'text-xl font-bold ' + textPrimary}>
+                {Number(selectedLab.maxScore)} pts
+              </p>
             </div>
           </div>
 
           {selectedLab.dueDate && (
-            <div className={"flex items-center gap-2 " + textSecondary}>
+            <div className={'flex items-center gap-2 ' + textSecondary}>
               <Clock className="w-4 h-4" />
-              <span>Due: {new Date(selectedLab.dueDate).toLocaleDateString('en-US', {
-                month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit'
-              })}</span>
+              <span>
+                Due Date: {formatDateTime(selectedLab.dueDate)}
+              </span>
             </div>
           )}
         </div>
 
         {selectedLab.description && (
-          <div className={"rounded-2xl p-6 " + cardClass}>
-            <h3 className={"font-semibold mb-3 " + textPrimary}>Description</h3>
+          <div className={'rounded-2xl p-6 ' + cardClass}>
+            <h3 className={'font-semibold mb-3 ' + textPrimary}>Description</h3>
             <p className={textSecondary}>{selectedLab.description}</p>
           </div>
         )}
 
         {selectedLab.instructions && selectedLab.instructions.length > 0 && (
-          <div className={"rounded-2xl p-6 " + cardClass}>
-            <h3 className={"font-semibold mb-4 " + textPrimary}>Instructions</h3>
+          <div className={'rounded-2xl p-6 ' + cardClass}>
+            <h3 className={'font-semibold mb-4 ' + textPrimary}>Instructions</h3>
             <div className="space-y-3">
               {selectedLab.instructions
                 .sort((a, b) => a.orderIndex - b.orderIndex)
                 .map((instruction, idx) => (
-                  <div key={instruction.id} className={"flex gap-3 p-3 rounded-lg " + (isDark ? 'bg-white/5' : 'bg-slate-50')}>
-                    <span className={"flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-sm font-medium " + (isDark ? 'bg-white/10 text-white' : 'bg-slate-200 text-slate-700')}>
+                  <div
+                    key={instruction.id}
+                    className={
+                      'flex gap-3 p-3 rounded-lg ' + (isDark ? 'bg-white/5' : 'bg-slate-50')
+                    }
+                  >
+                    <span
+                      className={
+                        'flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-sm font-medium ' +
+                        (isDark ? 'bg-white/10 text-white' : 'bg-slate-200 text-slate-700')
+                      }
+                    >
                       {idx + 1}
                     </span>
                     <p className={textSecondary}>{instruction.instructionText}</p>
@@ -180,32 +239,54 @@ export function LabInstructions() {
           </div>
         )}
 
-        <div className={"rounded-2xl p-6 " + cardClass}>
-          <h3 className={"font-semibold mb-4 " + textPrimary}>
+        <div className={'rounded-2xl p-6 ' + cardClass}>
+          <h3 className={'font-semibold mb-4 ' + textPrimary}>
             {isSubmitted ? 'Your Submission' : 'Submit Your Work'}
           </h3>
 
           {isSubmitted ? (
             <div className="space-y-4">
-              <div className={"p-4 rounded-lg border " + (isDark ? 'bg-emerald-900/30 border-emerald-800' : 'bg-emerald-50 border-emerald-200')}>
+              <div
+                className={
+                  'p-4 rounded-lg border ' +
+                  (isDark
+                    ? 'bg-emerald-900/30 border-emerald-800'
+                    : 'bg-emerald-50 border-emerald-200')
+                }
+              >
                 <div className="flex items-center gap-2 mb-2">
                   <CheckCircle className="w-5 h-5 text-emerald-500" />
-                  <span className={"font-medium " + (isDark ? 'text-emerald-400' : 'text-emerald-700')}>
+                  <span
+                    className={'font-medium ' + (isDark ? 'text-emerald-400' : 'text-emerald-700')}
+                  >
                     Submitted
                   </span>
                 </div>
-                <p className={"text-sm " + (isDark ? 'text-emerald-300' : 'text-emerald-600')}>
-                  Submitted at: {new Date(mySubmission.submittedAt).toLocaleString()}
+                <p className={'text-sm ' + (isDark ? 'text-emerald-300' : 'text-emerald-600')}>
+                  Submitted at: {formatDateTime(mySubmission.submittedAt)}
                 </p>
                 {mySubmission.score && (
-                  <p className={"text-sm mt-1 font-medium " + (isDark ? 'text-emerald-300' : 'text-emerald-700')}>
+                  <p
+                    className={
+                      'text-sm mt-1 font-medium ' +
+                      (isDark ? 'text-emerald-300' : 'text-emerald-700')
+                    }
+                  >
                     Score: {mySubmission.score}/{selectedLab.maxScore}
                   </p>
                 )}
                 {mySubmission.feedback && (
                   <div className="mt-3">
-                    <p className={"text-sm font-medium " + (isDark ? 'text-emerald-300' : 'text-emerald-700')}>Feedback:</p>
-                    <p className={"text-sm " + (isDark ? 'text-emerald-200' : 'text-emerald-600')}>{mySubmission.feedback}</p>
+                    <p
+                      className={
+                        'text-sm font-medium ' + (isDark ? 'text-emerald-300' : 'text-emerald-700')
+                      }
+                    >
+                      Feedback:
+                    </p>
+                    <p className={'text-sm ' + (isDark ? 'text-emerald-200' : 'text-emerald-600')}>
+                      {mySubmission.feedback}
+                    </p>
                   </div>
                 )}
               </div>
@@ -213,34 +294,56 @@ export function LabInstructions() {
           ) : (
             <div className="space-y-4">
               <div>
-                <label className={"block text-sm font-medium mb-2 " + textSecondary}>
+                <label
+                  htmlFor="submission-text"
+                  className={'block text-sm font-medium mb-2 ' + textSecondary}
+                >
                   Submission Text
                 </label>
                 <textarea
+                  id="submission-text"
+                  aria-label="Submission Text"
+                  aria-required="true"
                   value={submissionText}
                   onChange={(e) => setSubmissionText(e.target.value)}
                   placeholder="Enter your submission text here..."
                   rows={6}
-                  className={"w-full p-3 rounded-xl border focus:ring-2 focus:border-transparent " + (isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-slate-200 text-slate-800')}
+                  className={
+                    'w-full p-3 rounded-xl border focus:ring-2 focus:border-transparent ' +
+                    (isDark
+                      ? 'bg-white/5 border-white/10 text-white'
+                      : 'bg-white border-slate-200 text-slate-800')
+                  }
                   style={{ '--tw-ring-color': accentColor } as any}
                 />
               </div>
 
               <div>
-                <label className={"block text-sm font-medium mb-2 " + textSecondary}>
-                  Attach File (optional)
+                <label
+                  htmlFor="lab-file-upload"
+                  className={'block text-sm font-medium mb-2 ' + textSecondary}
+                >
+                  Attach File (Optional)
                 </label>
-                <div className={"border-2 border-dashed rounded-xl p-4 text-center transition-colors " + (isDark ? 'border-white/10 hover:border-white/20' : 'border-slate-200 hover:border-slate-300')}>
+                <div
+                  className={
+                    'border-2 border-dashed rounded-xl p-4 text-center transition-colors ' +
+                    (isDark
+                      ? 'border-white/10 hover:border-white/20'
+                      : 'border-slate-200 hover:border-slate-300')
+                  }
+                >
                   <input
                     type="file"
                     onChange={handleFileChange}
                     className="hidden"
                     id="lab-file-upload"
+                    aria-label="Attach File"
                   />
                   <label htmlFor="lab-file-upload" className="cursor-pointer">
-                    <Upload className={"w-8 h-8 mx-auto mb-2 " + textSecondary} />
+                    <Upload className={'w-8 h-8 mx-auto mb-2 ' + textSecondary} />
                     <p className={textSecondary}>
-                      {selectedFile ? selectedFile.name : 'Click to upload file'}
+                      {selectedFile ? selectedFile.name : 'Click to upload a file'}
                     </p>
                   </label>
                 </div>
@@ -251,6 +354,7 @@ export function LabInstructions() {
                 disabled={submitting || (!submissionText && !selectedFile)}
                 className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-white font-medium hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{ backgroundColor: accentColor }}
+                aria-label="Submit Lab"
               >
                 {submitting ? (
                   <>
@@ -266,7 +370,11 @@ export function LabInstructions() {
               </button>
 
               {submitSuccess && (
-                <div className="flex items-center justify-center gap-2 text-emerald-500">
+                <div
+                  className="flex items-center justify-center gap-2 text-emerald-500"
+                  role="status"
+                  aria-live="polite"
+                >
                   <CheckCircle className="w-5 h-5" />
                   <span>Lab submitted successfully!</span>
                 </div>
@@ -280,12 +388,24 @@ export function LabInstructions() {
 
   return (
     <div className="space-y-6">
-      <div className={"rounded-2xl p-4 " + cardClass}>
-        <label className={"block text-sm font-medium mb-2 " + textSecondary}>Select Course</label>
+      <div className={'rounded-2xl p-4 ' + cardClass}>
+        <label
+          htmlFor="course-selector"
+          className={'block text-sm font-medium mb-2 ' + textSecondary}
+        >
+          Select Course
+        </label>
         <select
+          id="course-selector"
+          aria-label="Select Course"
           value={selectedCourseId}
           onChange={(e) => setSelectedCourseId(e.target.value)}
-          className={"w-full p-3 rounded-xl border " + (isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-slate-200 text-slate-800')}
+          className={
+            'w-full p-3 rounded-xl border ' +
+            (isDark
+              ? 'bg-white/5 border-white/10 text-white'
+              : 'bg-white border-slate-200 text-slate-800')
+          }
         >
           {enrolledCourses.map((enrollment: any) => (
             <option key={enrollment.course?.id} value={enrollment.course?.id}>
@@ -296,14 +416,49 @@ export function LabInstructions() {
       </div>
 
       {loadingLabs ? (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+        <div className="space-y-4 animate-pulse">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className={cardClass + ' rounded-2xl p-5'}>
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div
+                    className={
+                      'h-5 w-3/4 mb-2 rounded ' + (isDark ? 'bg-white/10' : 'bg-slate-200')
+                    }
+                  />
+                  <div
+                    className={
+                      'h-4 w-full mb-1 rounded ' + (isDark ? 'bg-white/5' : 'bg-slate-100')
+                    }
+                  />
+                  <div
+                    className={'h-4 w-2/3 rounded ' + (isDark ? 'bg-white/5' : 'bg-slate-100')}
+                  />
+                  <div className="flex items-center gap-4 mt-3">
+                    <div
+                      className={'h-4 w-20 rounded ' + (isDark ? 'bg-white/10' : 'bg-slate-200')}
+                    />
+                    <div
+                      className={'h-4 w-16 rounded ' + (isDark ? 'bg-white/10' : 'bg-slate-200')}
+                    />
+                    <div
+                      className={
+                        'h-5 w-20 rounded-full ' + (isDark ? 'bg-white/10' : 'bg-slate-200')
+                      }
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       ) : !labs?.length ? (
-        <div className={"rounded-2xl p-8 text-center " + cardClass}>
+        <div className={'rounded-2xl p-8 text-center ' + cardClass}>
           <FileText className="w-12 h-12 mx-auto mb-4 text-slate-400" />
-          <h3 className={"text-lg font-semibold mb-2 " + textPrimary}>No Labs Available</h3>
-          <p className={textSecondary}>No lab assignments for this course yet.</p>
+          <h3 className={'text-lg font-semibold mb-2 ' + textPrimary}>
+            No Labs Available
+          </h3>
+          <p className={textSecondary}>No labs are available for this course yet.</p>
         </div>
       ) : (
         <div className="grid gap-4">
@@ -311,38 +466,44 @@ export function LabInstructions() {
             <div
               key={lab.id}
               onClick={() => setSelectedLabId(lab.id)}
-              className={"rounded-2xl p-5 cursor-pointer transition-all hover:shadow-lg " + cardClass}
+              className={
+                'rounded-2xl p-5 cursor-pointer transition-all hover:shadow-lg ' + cardClass
+              }
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <h3 className={"font-semibold " + textPrimary}>{lab.title}</h3>
-                  <p className={"text-sm mt-1 " + textSecondary}>
-                    {lab.description?.substring(0, 100)}{lab.description && lab.description.length > 100 ? '...' : ''}
+                  <h3 className={'font-semibold ' + textPrimary}>{lab.title}</h3>
+                  <p className={'text-sm mt-1 ' + textSecondary}>
+                    {lab.description?.substring(0, 100)}
+                    {lab.description && lab.description.length > 100 ? '...' : ''}
                   </p>
 
                   <div className="flex items-center gap-4 mt-3">
                     {lab.dueDate && (
-                      <div className={"flex items-center gap-1 text-sm " + textSecondary}>
+                      <div className={'flex items-center gap-1 text-sm ' + textSecondary}>
                         <Clock className="w-4 h-4" />
-                        <span>{new Date(lab.dueDate).toLocaleDateString()}</span>
+                        <span>{formatDate(lab.dueDate)}</span>
                       </div>
                     )}
-                    <div className={"text-sm " + textSecondary}>
-                      Max: {Number(lab.maxScore)} pts
+                    <div className={'text-sm ' + textSecondary}>
+                      Max Score: {Number(lab.maxScore)} pts
                     </div>
-                    <span className={"px-2 py-0.5 rounded-full text-xs font-medium " + (
-                      lab.status === 'published'
-                        ? 'bg-emerald-100 text-emerald-700'
-                        : lab.status === 'draft'
-                        ? 'bg-slate-100 text-slate-700'
-                        : 'bg-red-100 text-red-700'
-                    )}>
-                      {lab.status}
+                    <span
+                      className={
+                        'px-2 py-0.5 rounded-full text-xs font-medium ' +
+                        (lab.status === 'published'
+                          ? 'bg-emerald-100 text-emerald-700'
+                          : lab.status === 'draft'
+                            ? 'bg-slate-100 text-slate-700'
+                            : 'bg-red-100 text-red-700')
+                      }
+                    >
+                      {lab.status === 'published' ? 'Published' : lab.status === 'draft' ? 'Draft' : 'Closed'}
                     </span>
                   </div>
                 </div>
 
-                <ChevronDown className={"w-5 h-5 " + textSecondary} />
+                <ChevronDown className={'w-5 h-5 ' + textSecondary} />
               </div>
             </div>
           ))}

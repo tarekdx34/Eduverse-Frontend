@@ -336,7 +336,9 @@ export function MessagesPanel({
                   selectedConversation.role === 'Admin' ? '' : 'bg-indigo-500'
                 }`}
                 style={
-                  selectedConversation.role === 'Admin' ? { backgroundColor: primaryHex } : undefined
+                  selectedConversation.role === 'Admin'
+                    ? { backgroundColor: primaryHex }
+                    : undefined
                 }
               >
                 {selectedConversation.avatar}

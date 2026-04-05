@@ -17,7 +17,6 @@ import { useTheme } from '../contexts/ThemeContext';
 import { MessagingChat } from '../../../components/shared';
 import { CleanSelect } from '../../../components/shared';
 
-
 type Announcement = {
   id: string;
   title: string;

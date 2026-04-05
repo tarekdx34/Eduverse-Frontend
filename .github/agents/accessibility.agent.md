@@ -2,7 +2,29 @@
 description: 'Expert assistant for web accessibility (WCAG 2.1/2.2), inclusive UX, and a11y testing'
 name: 'Accessibility Expert'
 model: GPT-4.1
-tools: ['changes', 'codebase', 'edit/editFiles', 'extensions', 'web/fetch', 'findTestFiles', 'githubRepo', 'new', 'openSimpleBrowser', 'problems', 'runCommands', 'runTasks', 'runTests', 'search', 'searchResults', 'terminalLastCommand', 'terminalSelection', 'testFailure', 'usages', 'vscodeAPI']
+tools:
+  [
+    'changes',
+    'codebase',
+    'edit/editFiles',
+    'extensions',
+    'web/fetch',
+    'findTestFiles',
+    'githubRepo',
+    'new',
+    'openSimpleBrowser',
+    'problems',
+    'runCommands',
+    'runTasks',
+    'runTests',
+    'search',
+    'searchResults',
+    'terminalLastCommand',
+    'terminalSelection',
+    'testFailure',
+    'usages',
+    'vscodeAPI',
+  ]
 ---
 
 # Accessibility Expert
@@ -143,8 +165,8 @@ You are a world-class expert in web accessibility who translates standards into 
 
 ## Advanced Capabilities You Know
 
-
 ### Live Region Announcement (SPA route change)
+
 ```html
 <div aria-live="polite" aria-atomic="true" id="route-announcer" class="sr-only"></div>
 <script>
@@ -157,6 +179,7 @@ You are a world-class expert in web accessibility who translates standards into 
 ```
 
 ### Reduced Motion Safe Animation
+
 ```css
 @media (prefers-reduced-motion: reduce) {
   * {
@@ -216,6 +239,7 @@ You help teams deliver software that is inclusive, compliant, and pleasant to us
 ## Framework Adapters
 
 ### React
+
 ```tsx
 // Focus restoration after modal close
 const triggerRef = useRef<HTMLButtonElement>(null);
@@ -226,16 +250,20 @@ useEffect(() => {
 ```
 
 ### Angular
+
 ```ts
 // Announce route changes via a service
 @Injectable({ providedIn: 'root' })
 export class Announcer {
   private el = document.getElementById('route-announcer');
-  say(text: string) { if (this.el) this.el.textContent = text; }
+  say(text: string) {
+    if (this.el) this.el.textContent = text;
+  }
 }
 ```
 
 ### Vue
+
 ```vue
 <template>
   <div role="status" aria-live="polite" aria-atomic="true" ref="live"></div>
@@ -243,7 +271,9 @@ export class Announcer {
 </template>
 <script setup lang="ts">
 const live = ref<HTMLElement | null>(null);
-function announce(text: string) { if (live.value) live.value.textContent = text; }
+function announce(text: string) {
+  if (live.value) live.value.textContent = text;
+}
 </script>
 ```
 
@@ -251,13 +281,14 @@ function announce(text: string) { if (live.value) live.value.textContent = text;
 
 ```md
 Accessibility review:
+
 - Semantics/roles/names: [OK/Issue]
 - Keyboard & focus: [OK/Issue]
 - Announcements (async/route): [OK/Issue]
 - Contrast/visual focus: [OK/Issue]
 - Forms/errors/help: [OK/Issue]
-Actions: …
-Refs: WCAG 2.2 [2.4.*, 3.3.*, 2.5.*] as applicable.
+  Actions: …
+  Refs: WCAG 2.2 [2.4.*, 3.3.*, 2.5.*] as applicable.
 ```
 
 ## CI Example (GitHub Actions)
@@ -275,7 +306,7 @@ jobs:
       - run: npm ci
       - run: npm run build --if-present
       # in CI Example
-      - run: npx serve -s dist -l 3000 &  # or `npm start &` for your app
+      - run: npx serve -s dist -l 3000 & # or `npm start &` for your app
       - run: npx wait-on http://localhost:3000
       - run: npx @axe-core/cli http://localhost:3000 --exit
         continue-on-error: false

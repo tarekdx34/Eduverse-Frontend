@@ -9,16 +9,18 @@
 ## 3.1 Schedule Module (Enhanced)
 
 ### Database Tables
-| Table | Description |
-|-------|-------------|
-| `course_schedules` | Class meeting times (already in courses module) |
-| `exam_schedules` | Exam date/time scheduling |
-| `calendar_events` | Personal/course calendar events |
-| `calendar_integrations` | External calendar (Google, Outlook) sync |
+
+| Table                   | Description                                     |
+| ----------------------- | ----------------------------------------------- |
+| `course_schedules`      | Class meeting times (already in courses module) |
+| `exam_schedules`        | Exam date/time scheduling                       |
+| `calendar_events`       | Personal/course calendar events                 |
+| `calendar_integrations` | External calendar (Google, Outlook) sync        |
 
 ### New Entity Definitions
 
 #### ExamSchedule Entity
+
 ```typescript
 @Entity('exam_schedules')
 export class ExamSchedule {
@@ -59,7 +61,11 @@ export class ExamSchedule {
   @Column({ type: 'text', nullable: true })
   instructions: string;
 
-  @Column({ type: 'enum', enum: ['scheduled', 'in_progress', 'completed', 'cancelled', 'postponed'], default: 'scheduled' })
+  @Column({
+    type: 'enum',
+    enum: ['scheduled', 'in_progress', 'completed', 'cancelled', 'postponed'],
+    default: 'scheduled',
+  })
   status: string;
 
   @Column({ type: 'bigint', unsigned: true })
@@ -74,6 +80,7 @@ export class ExamSchedule {
 ```
 
 #### CalendarEvent Entity
+
 ```typescript
 @Entity('calendar_events')
 export class CalendarEvent {
@@ -93,7 +100,19 @@ export class CalendarEvent {
   @Column({ type: 'text', nullable: true })
   description: string;
 
-  @Column({ type: 'enum', enum: ['class', 'exam', 'assignment', 'meeting', 'office_hours', 'personal', 'holiday', 'event'] })
+  @Column({
+    type: 'enum',
+    enum: [
+      'class',
+      'exam',
+      'assignment',
+      'meeting',
+      'office_hours',
+      'personal',
+      'holiday',
+      'event',
+    ],
+  })
   eventType: string;
 
   @Column({ type: 'timestamp' })
@@ -109,13 +128,13 @@ export class CalendarEvent {
   location: string;
 
   @Column({ type: 'varchar', length: 7, nullable: true })
-  color: string;  // Hex color code
+  color: string; // Hex color code
 
   @Column({ type: 'enum', enum: ['none', 'daily', 'weekly', 'monthly'], default: 'none' })
   recurrence: string;
 
   @Column({ type: 'json', nullable: true })
-  reminders: any;  // Array of { minutes_before, method }
+  reminders: any; // Array of { minutes_before, method }
 
   @Column({ type: 'bigint', unsigned: true, nullable: true })
   courseId: number;
@@ -135,6 +154,7 @@ export class CalendarEvent {
 ```
 
 #### CalendarIntegration Entity
+
 ```typescript
 @Entity('calendar_integrations')
 export class CalendarIntegration {
@@ -159,7 +179,11 @@ export class CalendarIntegration {
   @Column({ type: 'tinyint', default: 1 })
   syncEnabled: boolean;
 
-  @Column({ type: 'enum', enum: ['one_way_import', 'one_way_export', 'two_way'], default: 'one_way_export' })
+  @Column({
+    type: 'enum',
+    enum: ['one_way_import', 'one_way_export', 'two_way'],
+    default: 'one_way_export',
+  })
   syncDirection: string;
 
   @Column({ type: 'timestamp', nullable: true })
@@ -178,37 +202,38 @@ export class CalendarIntegration {
 
 ### API Endpoints
 
-| Method | Endpoint | Description | Roles |
-|--------|----------|-------------|-------|
-| **Schedule** | | | |
-| GET | `/api/schedule/daily` | Get today's schedule for current user | ALL |
-| GET | `/api/schedule/weekly` | Get weekly schedule for current user | ALL |
-| GET | `/api/schedule/range` | Get schedule for date range | ALL |
-| GET | `/api/schedule/section/:sectionId` | Get schedule for a section | ALL |
-| **Exams** | | | |
-| GET | `/api/exams` | List exam schedules (filter by section, date) | ALL |
-| POST | `/api/exams` | Create exam schedule | INSTRUCTOR, ADMIN |
-| GET | `/api/exams/:id` | Get exam details | ALL |
-| PUT | `/api/exams/:id` | Update exam schedule | INSTRUCTOR, ADMIN |
-| DELETE | `/api/exams/:id` | Delete exam schedule | INSTRUCTOR, ADMIN |
-| GET | `/api/exams/conflicts` | Check for exam conflicts | ADMIN |
-| **Calendar Events** | | | |
-| GET | `/api/calendar/events` | List calendar events (filter by type, date) | ALL |
-| POST | `/api/calendar/events` | Create calendar event | ALL |
-| PUT | `/api/calendar/events/:id` | Update event | OWNER |
-| DELETE | `/api/calendar/events/:id` | Delete event | OWNER |
-| **Calendar Integrations** | | | |
-| GET | `/api/calendar/integrations` | List user's integrations | ALL |
-| POST | `/api/calendar/integrations/connect` | Connect external calendar | ALL |
-| DELETE | `/api/calendar/integrations/:id` | Disconnect integration | ALL |
-| POST | `/api/calendar/integrations/:id/sync` | Trigger manual sync | ALL |
+| Method                    | Endpoint                              | Description                                   | Roles             |
+| ------------------------- | ------------------------------------- | --------------------------------------------- | ----------------- |
+| **Schedule**              |                                       |                                               |                   |
+| GET                       | `/api/schedule/daily`                 | Get today's schedule for current user         | ALL               |
+| GET                       | `/api/schedule/weekly`                | Get weekly schedule for current user          | ALL               |
+| GET                       | `/api/schedule/range`                 | Get schedule for date range                   | ALL               |
+| GET                       | `/api/schedule/section/:sectionId`    | Get schedule for a section                    | ALL               |
+| **Exams**                 |                                       |                                               |                   |
+| GET                       | `/api/exams`                          | List exam schedules (filter by section, date) | ALL               |
+| POST                      | `/api/exams`                          | Create exam schedule                          | INSTRUCTOR, ADMIN |
+| GET                       | `/api/exams/:id`                      | Get exam details                              | ALL               |
+| PUT                       | `/api/exams/:id`                      | Update exam schedule                          | INSTRUCTOR, ADMIN |
+| DELETE                    | `/api/exams/:id`                      | Delete exam schedule                          | INSTRUCTOR, ADMIN |
+| GET                       | `/api/exams/conflicts`                | Check for exam conflicts                      | ADMIN             |
+| **Calendar Events**       |                                       |                                               |                   |
+| GET                       | `/api/calendar/events`                | List calendar events (filter by type, date)   | ALL               |
+| POST                      | `/api/calendar/events`                | Create calendar event                         | ALL               |
+| PUT                       | `/api/calendar/events/:id`            | Update event                                  | OWNER             |
+| DELETE                    | `/api/calendar/events/:id`            | Delete event                                  | OWNER             |
+| **Calendar Integrations** |                                       |                                               |                   |
+| GET                       | `/api/calendar/integrations`          | List user's integrations                      | ALL               |
+| POST                      | `/api/calendar/integrations/connect`  | Connect external calendar                     | ALL               |
+| DELETE                    | `/api/calendar/integrations/:id`      | Disconnect integration                        | ALL               |
+| POST                      | `/api/calendar/integrations/:id/sync` | Trigger manual sync                           | ALL               |
 
 ### Query Parameters
+
 ```typescript
 interface QueryScheduleDto {
-  date?: string;        // Specific date
-  startDate?: string;   // Range start
-  endDate?: string;     // Range end
+  date?: string; // Specific date
+  startDate?: string; // Range start
+  endDate?: string; // Range end
   courseId?: number;
   sectionId?: number;
   eventType?: string;
@@ -216,6 +241,7 @@ interface QueryScheduleDto {
 ```
 
 ### Business Logic
+
 1. **Daily Schedule**: Aggregates course_schedules, exam_schedules, and calendar_events for the current user for today.
 2. **Weekly Schedule**: Same aggregation for the current week.
 3. **Conflict Detection**: Check for overlapping exams for students enrolled in multiple courses.
@@ -224,11 +250,12 @@ interface QueryScheduleDto {
 6. **Time Zone**: Respect user's timezone preference from `language_preferences` table.
 
 ### Frontend Components Using This Module
+
 - **Instructor**: SchedulePage.tsx
 - **Student**: ClassSchedule.tsx, DailySchedule.tsx, WeeklySchedule.tsx, AcademicCalendar.tsx
 - **TA**: SchedulePage.tsx
-- **Admin**: AcademicCalendarPage.tsx *(active as `calendar` tab)*
-- ~~**Admin**: ScheduleManagementPage.tsx, ExamSchedulePage.tsx~~ *(Not in Admin sidebar — deleted)*
+- **Admin**: AcademicCalendarPage.tsx _(active as `calendar` tab)_
+- ~~**Admin**: ScheduleManagementPage.tsx, ExamSchedulePage.tsx~~ _(Not in Admin sidebar — deleted)_
 
 ---
 

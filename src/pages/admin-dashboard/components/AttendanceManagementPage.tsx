@@ -24,7 +24,6 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { CleanSelect } from '../../../components/shared';
 
-
 const weeklyTrendsData = [
   { day: 'Mon', rate: 85 },
   { day: 'Tue', rate: 88 },

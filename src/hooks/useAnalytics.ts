@@ -26,18 +26,18 @@ export interface AttemptAnalyticsData {
 
 /**
  * Hook for calculating submission/attempt analytics
- * 
+ *
  * Features:
  * - Calculate submission counts by status
  * - Calculate average scores
  * - Generate score distributions
  * - Null-safe (handles missing data gracefully)
- * 
+ *
  * @param submissions - Array of submission objects
  * @param scoreField - Name of score field (default: 'score')
  * @param statusField - Name of status field (default: 'submissionStatus')
  * @returns Analytics data object
- * 
+ *
  * @example
  * const analytics = useAnalytics(submissions, 'score', 'submissionStatus');
  * // Returns: { totalSubmissions: 5, submittedCount: 3, pendingCount: 1, ... }
@@ -105,13 +105,13 @@ export function useAnalytics(
 
 /**
  * Hook for quiz attempt analytics
- * 
+ *
  * @param attempts - Array of quiz attempt objects
  * @param scoreField - Name of score field (default: 'score')
  * @param maxScoreField - Name of max score field (default: 'maxScore')
  * @param statusField - Name of status field (default: 'status')
  * @returns Attempt analytics data
- * 
+ *
  * @example
  * const analytics = useQuizAnalytics(attempts, 'score', 'maxScore', 'status');
  * // Returns: { totalAttempts: 10, completedAttempts: 8, averageScore: 75, ... }
@@ -169,8 +169,10 @@ export function useQuizAnalytics(
       }
     });
 
-    const averageScore = scoredCount > 0 ? Math.round((totalScore / scoredCount) * 100) / 100 : null;
-    const passRate = completedAttempts > 0 ? Math.round((passedCount / completedAttempts) * 100) : null;
+    const averageScore =
+      scoredCount > 0 ? Math.round((totalScore / scoredCount) * 100) / 100 : null;
+    const passRate =
+      completedAttempts > 0 ? Math.round((passedCount / completedAttempts) * 100) : null;
 
     return {
       totalAttempts,
@@ -216,16 +218,16 @@ export function useSubmissionPercentages(
  */
 export function formatScore(score: any, maxScore?: any, decimals = 2): string {
   if (score === null || score === undefined) return 'N/A';
-  
+
   const numScore = parseFloat(score);
   if (isNaN(numScore)) return 'N/A';
-  
+
   if (maxScore) {
     const numMaxScore = parseFloat(maxScore);
     if (isNaN(numMaxScore)) return numScore.toFixed(decimals);
     return `${numScore.toFixed(decimals)}/${numMaxScore.toFixed(decimals)}`;
   }
-  
+
   return numScore.toFixed(decimals);
 }
 
@@ -235,12 +237,12 @@ export function formatScore(score: any, maxScore?: any, decimals = 2): string {
  */
 export function calculatePercentage(score: any, maxScore: any): number | null {
   if (!score || !maxScore) return null;
-  
+
   const numScore = parseFloat(score);
   const numMaxScore = parseFloat(maxScore);
-  
+
   if (isNaN(numScore) || isNaN(numMaxScore) || numMaxScore === 0) return null;
-  
+
   return Math.round((numScore / numMaxScore) * 100);
 }
 
@@ -249,7 +251,7 @@ export function calculatePercentage(score: any, maxScore: any): number | null {
  */
 export function getGradeLetter(percentage: number | null): string {
   if (percentage === null || percentage === undefined) return '-';
-  
+
   if (percentage >= 90) return 'A';
   if (percentage >= 80) return 'B';
   if (percentage >= 70) return 'C';

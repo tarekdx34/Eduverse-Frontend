@@ -48,23 +48,24 @@
 
 Coursework item with due date, scoring, and submission options.
 
-| Field | Type | Constraints | Description |
-|-------|------|-------------|-------------|
-| `id` | string (UUID) | PK | Unique identifier |
-| `courseId` | string (UUID) | FK → Course | Parent course |
-| `title` | string | Required, max 255 | Assignment title |
-| `description` | string | Nullable | Instructions and details |
-| `dueDate` | ISO 8601 string | Nullable | Submission deadline |
-| `maxScore` | string (decimal) | Required | Maximum points (e.g., "100.00") |
-| `weight` | string (decimal) | Required | Grade weight percentage |
-| `status` | enum | Required | `'draft' | 'published' | 'closed'` |
-| `submissionType` | enum | Required | `'text' | 'file' | 'link' | 'any'` |
-| `latePenalty` | number | Nullable | Percentage deducted per day late |
-| `course` | Course | Nested | Course details (read operations) |
-| `createdAt` | ISO 8601 | Auto | Creation timestamp |
-| `updatedAt` | ISO 8601 | Auto | Last modification timestamp |
+| Field            | Type             | Constraints       | Description                      |
+| ---------------- | ---------------- | ----------------- | -------------------------------- | ----------- | --------- | ------ |
+| `id`             | string (UUID)    | PK                | Unique identifier                |
+| `courseId`       | string (UUID)    | FK → Course       | Parent course                    |
+| `title`          | string           | Required, max 255 | Assignment title                 |
+| `description`    | string           | Nullable          | Instructions and details         |
+| `dueDate`        | ISO 8601 string  | Nullable          | Submission deadline              |
+| `maxScore`       | string (decimal) | Required          | Maximum points (e.g., "100.00")  |
+| `weight`         | string (decimal) | Required          | Grade weight percentage          |
+| `status`         | enum             | Required          | `'draft'                         | 'published' | 'closed'` |
+| `submissionType` | enum             | Required          | `'text'                          | 'file'      | 'link'    | 'any'` |
+| `latePenalty`    | number           | Nullable          | Percentage deducted per day late |
+| `course`         | Course           | Nested            | Course details (read operations) |
+| `createdAt`      | ISO 8601         | Auto              | Creation timestamp               |
+| `updatedAt`      | ISO 8601         | Auto              | Last modification timestamp      |
 
 **State Transitions:**
+
 ```
 draft → published → closed
   │         │
@@ -77,22 +78,23 @@ draft → published → closed
 
 Student's submitted work for an assignment.
 
-| Field | Type | Constraints | Description |
-|-------|------|-------------|-------------|
-| `id` | string (UUID) | PK | Unique identifier |
-| `assignmentId` | string (UUID) | FK → Assignment | Parent assignment |
-| `userId` | number | FK → User | Submitting student |
-| `submissionText` | string | Nullable | Text content |
-| `fileId` | number | FK → File, Nullable | Uploaded file reference |
-| `submissionStatus` | enum | Required | `'pending' | 'submitted' | 'graded'` |
-| `submittedAt` | ISO 8601 | Auto | Submission timestamp |
-| `isLate` | boolean | Computed | After dueDate |
-| `score` | string (decimal) | Nullable | Assigned grade |
-| `feedback` | string | Nullable | Instructor comments |
-| `gradedBy` | number | FK → User, Nullable | Grading user |
-| `gradedAt` | ISO 8601 | Nullable | Grading timestamp |
+| Field              | Type             | Constraints         | Description             |
+| ------------------ | ---------------- | ------------------- | ----------------------- | ----------- | --------- |
+| `id`               | string (UUID)    | PK                  | Unique identifier       |
+| `assignmentId`     | string (UUID)    | FK → Assignment     | Parent assignment       |
+| `userId`           | number           | FK → User           | Submitting student      |
+| `submissionText`   | string           | Nullable            | Text content            |
+| `fileId`           | number           | FK → File, Nullable | Uploaded file reference |
+| `submissionStatus` | enum             | Required            | `'pending'              | 'submitted' | 'graded'` |
+| `submittedAt`      | ISO 8601         | Auto                | Submission timestamp    |
+| `isLate`           | boolean          | Computed            | After dueDate           |
+| `score`            | string (decimal) | Nullable            | Assigned grade          |
+| `feedback`         | string           | Nullable            | Instructor comments     |
+| `gradedBy`         | number           | FK → User, Nullable | Grading user            |
+| `gradedAt`         | ISO 8601         | Nullable            | Grading timestamp       |
 
 **State Transitions:**
+
 ```
 pending → submitted → graded
             │            │
@@ -105,25 +107,26 @@ pending → submitted → graded
 
 Timed assessment with configurable attempts and question types.
 
-| Field | Type | Constraints | Description |
-|-------|------|-------------|-------------|
-| `id` | string (UUID) | PK | Unique identifier |
-| `courseId` | string (UUID) | FK → Course | Parent course |
-| `title` | string | Required, max 255 | Quiz title |
-| `description` | string | Nullable | Quiz instructions |
-| `quizType` | enum | Required | `'practice' | 'graded'` |
-| `timeLimit` | number | Nullable | Minutes allowed (null = unlimited) |
-| `maxAttempts` | number | Default: 1 | Maximum attempts allowed |
-| `maxScore` | string (decimal) | Required | Total possible points |
-| `passingScore` | string (decimal) | Nullable | Minimum to pass |
-| `status` | enum | Required | `'draft' | 'published' | 'closed'` |
-| `showAnswersAfter` | enum | Required | `'never' | 'submission' | 'grading' | 'due_date'` |
-| `shuffleQuestions` | boolean | Default: false | Randomize question order |
-| `availableFrom` | ISO 8601 | Nullable | Start availability window |
-| `availableUntil` | ISO 8601 | Nullable | End availability window |
-| `questions` | QuizQuestion[] | Nested | Quiz questions (read) |
+| Field              | Type             | Constraints       | Description                        |
+| ------------------ | ---------------- | ----------------- | ---------------------------------- | ------------ | --------- | ----------- |
+| `id`               | string (UUID)    | PK                | Unique identifier                  |
+| `courseId`         | string (UUID)    | FK → Course       | Parent course                      |
+| `title`            | string           | Required, max 255 | Quiz title                         |
+| `description`      | string           | Nullable          | Quiz instructions                  |
+| `quizType`         | enum             | Required          | `'practice'                        | 'graded'`    |
+| `timeLimit`        | number           | Nullable          | Minutes allowed (null = unlimited) |
+| `maxAttempts`      | number           | Default: 1        | Maximum attempts allowed           |
+| `maxScore`         | string (decimal) | Required          | Total possible points              |
+| `passingScore`     | string (decimal) | Nullable          | Minimum to pass                    |
+| `status`           | enum             | Required          | `'draft'                           | 'published'  | 'closed'` |
+| `showAnswersAfter` | enum             | Required          | `'never'                           | 'submission' | 'grading' | 'due_date'` |
+| `shuffleQuestions` | boolean          | Default: false    | Randomize question order           |
+| `availableFrom`    | ISO 8601         | Nullable          | Start availability window          |
+| `availableUntil`   | ISO 8601         | Nullable          | End availability window            |
+| `questions`        | QuizQuestion[]   | Nested            | Quiz questions (read)              |
 
 **State Transitions:**
+
 ```
 draft → published → closed
 ```
@@ -134,20 +137,21 @@ draft → published → closed
 
 Individual question within a quiz.
 
-| Field | Type | Constraints | Description |
-|-------|------|-------------|-------------|
-| `id` | string (UUID) | PK | Unique identifier |
-| `quizId` | string (UUID) | FK → Quiz | Parent quiz |
-| `questionType` | enum | Required | `'mcq' | 'true_false' | 'short_answer' | 'essay' | 'matching'` |
-| `questionText` | string | Required | Question prompt |
-| `points` | string (decimal) | Required | Points for correct answer |
-| `order` | number | Required | Display sequence |
-| `options` | QuestionOption[] | Nullable | MCQ/matching options |
-| `correctAnswer` | string | Nullable | For auto-grading (MCQ, T/F) |
-| `explanation` | string | Nullable | Shown after grading |
-| `difficulty` | enum | Nullable | `'easy' | 'medium' | 'hard'` |
+| Field           | Type             | Constraints | Description                 |
+| --------------- | ---------------- | ----------- | --------------------------- | ------------ | -------------- | ------- | ----------- |
+| `id`            | string (UUID)    | PK          | Unique identifier           |
+| `quizId`        | string (UUID)    | FK → Quiz   | Parent quiz                 |
+| `questionType`  | enum             | Required    | `'mcq'                      | 'true_false' | 'short_answer' | 'essay' | 'matching'` |
+| `questionText`  | string           | Required    | Question prompt             |
+| `points`        | string (decimal) | Required    | Points for correct answer   |
+| `order`         | number           | Required    | Display sequence            |
+| `options`       | QuestionOption[] | Nullable    | MCQ/matching options        |
+| `correctAnswer` | string           | Nullable    | For auto-grading (MCQ, T/F) |
+| `explanation`   | string           | Nullable    | Shown after grading         |
+| `difficulty`    | enum             | Nullable    | `'easy'                     | 'medium'     | 'hard'`        |
 
 **Question Type Rules:**
+
 - `mcq`: Requires `options` with one `isCorrect: true`
 - `true_false`: `correctAnswer` is `'true'` or `'false'`
 - `short_answer`: `correctAnswer` for auto-grading or manual
@@ -160,21 +164,22 @@ Individual question within a quiz.
 
 Student's quiz session with timer tracking.
 
-| Field | Type | Constraints | Description |
-|-------|------|-------------|-------------|
-| `id` | string (UUID) | PK | Unique identifier |
-| `quizId` | string (UUID) | FK → Quiz | Parent quiz |
-| `userId` | number | FK → User | Attempting student |
-| `status` | enum | Required | `'in_progress' | 'submitted' | 'graded'` |
-| `startedAt` | ISO 8601 | Auto | Attempt start time |
-| `submittedAt` | ISO 8601 | Nullable | Submission time |
-| `expiresAt` | ISO 8601 | Computed | `startedAt + timeLimit` |
-| `score` | string (decimal) | Nullable | Total score (after grading) |
-| `answers` | AttemptAnswer[] | Nested | Submitted answers |
-| `autoGradedScore` | string | Nullable | Auto-graded portion |
-| `manualGradedScore` | string | Nullable | Manually graded portion |
+| Field               | Type             | Constraints | Description                 |
+| ------------------- | ---------------- | ----------- | --------------------------- | ----------- | --------- |
+| `id`                | string (UUID)    | PK          | Unique identifier           |
+| `quizId`            | string (UUID)    | FK → Quiz   | Parent quiz                 |
+| `userId`            | number           | FK → User   | Attempting student          |
+| `status`            | enum             | Required    | `'in_progress'              | 'submitted' | 'graded'` |
+| `startedAt`         | ISO 8601         | Auto        | Attempt start time          |
+| `submittedAt`       | ISO 8601         | Nullable    | Submission time             |
+| `expiresAt`         | ISO 8601         | Computed    | `startedAt + timeLimit`     |
+| `score`             | string (decimal) | Nullable    | Total score (after grading) |
+| `answers`           | AttemptAnswer[]  | Nested      | Submitted answers           |
+| `autoGradedScore`   | string           | Nullable    | Auto-graded portion         |
+| `manualGradedScore` | string           | Nullable    | Manually graded portion     |
 
 **State Transitions:**
+
 ```
 in_progress → submitted → graded
      │
@@ -187,17 +192,17 @@ in_progress → submitted → graded
 
 Individual answer within an attempt.
 
-| Field | Type | Constraints | Description |
-|-------|------|-------------|-------------|
-| `id` | string (UUID) | PK | Unique identifier |
-| `attemptId` | string (UUID) | FK → QuizAttempt | Parent attempt |
-| `questionId` | string (UUID) | FK → QuizQuestion | Answered question |
-| `answer` | string | Nullable | Student's response |
-| `selectedOptions` | string[] | Nullable | For MCQ/matching |
-| `isCorrect` | boolean | Nullable | Auto-graded result |
-| `score` | string (decimal) | Nullable | Assigned points |
-| `feedback` | string | Nullable | Per-question feedback |
-| `savedAt` | ISO 8601 | Auto | Last auto-save time |
+| Field             | Type             | Constraints       | Description           |
+| ----------------- | ---------------- | ----------------- | --------------------- |
+| `id`              | string (UUID)    | PK                | Unique identifier     |
+| `attemptId`       | string (UUID)    | FK → QuizAttempt  | Parent attempt        |
+| `questionId`      | string (UUID)    | FK → QuizQuestion | Answered question     |
+| `answer`          | string           | Nullable          | Student's response    |
+| `selectedOptions` | string[]         | Nullable          | For MCQ/matching      |
+| `isCorrect`       | boolean          | Nullable          | Auto-graded result    |
+| `score`           | string (decimal) | Nullable          | Assigned points       |
+| `feedback`        | string           | Nullable          | Per-question feedback |
+| `savedAt`         | ISO 8601         | Auto              | Last auto-save time   |
 
 ---
 
@@ -205,19 +210,19 @@ Individual answer within an attempt.
 
 Practical assignment with step-by-step instructions.
 
-| Field | Type | Constraints | Description |
-|-------|------|-------------|-------------|
-| `id` | string (UUID) | PK | Unique identifier |
-| `courseId` | string (UUID) | FK → Course | Parent course |
-| `title` | string | Required, max 255 | Lab title |
-| `description` | string | Nullable | Lab overview |
-| `dueDate` | ISO 8601 | Nullable | Submission deadline |
-| `maxScore` | string (decimal) | Required | Maximum points |
-| `status` | enum | Required | `'draft' | 'published' | 'closed'` |
-| `instructions` | LabInstruction[] | Nested | Ordered steps |
-| `estimatedDuration` | number | Nullable | Minutes to complete |
-| `equipmentRequired` | string | Nullable | Required materials |
-| `safetyNotes` | string | Nullable | Safety instructions |
+| Field               | Type             | Constraints       | Description         |
+| ------------------- | ---------------- | ----------------- | ------------------- | ----------- | --------- |
+| `id`                | string (UUID)    | PK                | Unique identifier   |
+| `courseId`          | string (UUID)    | FK → Course       | Parent course       |
+| `title`             | string           | Required, max 255 | Lab title           |
+| `description`       | string           | Nullable          | Lab overview        |
+| `dueDate`           | ISO 8601         | Nullable          | Submission deadline |
+| `maxScore`          | string (decimal) | Required          | Maximum points      |
+| `status`            | enum             | Required          | `'draft'            | 'published' | 'closed'` |
+| `instructions`      | LabInstruction[] | Nested            | Ordered steps       |
+| `estimatedDuration` | number           | Nullable          | Minutes to complete |
+| `equipmentRequired` | string           | Nullable          | Required materials  |
+| `safetyNotes`       | string           | Nullable          | Safety instructions |
 
 ---
 
@@ -225,13 +230,13 @@ Practical assignment with step-by-step instructions.
 
 Single step within a lab.
 
-| Field | Type | Constraints | Description |
-|-------|------|-------------|-------------|
-| `id` | string (UUID) | PK | Unique identifier |
-| `labId` | string (UUID) | FK → Lab | Parent lab |
-| `order` | number | Required | Step sequence (1-based) |
-| `content` | string | Required | Step instructions |
-| `fileId` | number | FK → File, Nullable | Attached resource |
+| Field     | Type          | Constraints         | Description             |
+| --------- | ------------- | ------------------- | ----------------------- |
+| `id`      | string (UUID) | PK                  | Unique identifier       |
+| `labId`   | string (UUID) | FK → Lab            | Parent lab              |
+| `order`   | number        | Required            | Step sequence (1-based) |
+| `content` | string        | Required            | Step instructions       |
+| `fileId`  | number        | FK → File, Nullable | Attached resource       |
 
 ---
 
@@ -239,40 +244,44 @@ Single step within a lab.
 
 Student's submitted lab work.
 
-| Field | Type | Constraints | Description |
-|-------|------|-------------|-------------|
-| `id` | string (UUID) | PK | Unique identifier |
-| `labId` | string (UUID) | FK → Lab | Parent lab |
-| `userId` | number | FK → User | Submitting student |
-| `submissionText` | string | Nullable | Lab report text |
-| `fileId` | number | FK → File, Nullable | Uploaded file |
-| `submissionStatus` | enum | Required | `'pending' | 'submitted' | 'graded'` |
-| `submittedAt` | ISO 8601 | Auto | Submission timestamp |
-| `score` | string (decimal) | Nullable | Assigned grade |
-| `feedback` | string | Nullable | Instructor comments |
+| Field              | Type             | Constraints         | Description          |
+| ------------------ | ---------------- | ------------------- | -------------------- | ----------- | --------- |
+| `id`               | string (UUID)    | PK                  | Unique identifier    |
+| `labId`            | string (UUID)    | FK → Lab            | Parent lab           |
+| `userId`           | number           | FK → User           | Submitting student   |
+| `submissionText`   | string           | Nullable            | Lab report text      |
+| `fileId`           | number           | FK → File, Nullable | Uploaded file        |
+| `submissionStatus` | enum             | Required            | `'pending'           | 'submitted' | 'graded'` |
+| `submittedAt`      | ISO 8601         | Auto                | Submission timestamp |
+| `score`            | string (decimal) | Nullable            | Assigned grade       |
+| `feedback`         | string           | Nullable            | Instructor comments  |
 
 ---
 
 ## Validation Rules
 
 ### Assignment
+
 - `title`: 1-255 characters
 - `maxScore`: Positive decimal
 - `dueDate`: Must be future date when creating
 - `latePenalty`: 0-100 if set
 
 ### Quiz
+
 - `timeLimit`: Positive integer if set
 - `maxAttempts`: Positive integer, default 1
 - `passingScore`: Must be ≤ maxScore
 - `availableFrom` < `availableUntil` if both set
 
 ### QuizQuestion
+
 - `points`: Positive decimal
 - `order`: Unique within quiz
 - MCQ: At least 2 options, exactly 1 correct
 
 ### Submission (all types)
+
 - Cannot submit after `status: 'closed'` on parent
 - Cannot submit if `maxAttempts` exhausted (quiz)
 - File: ≤ 10MB, allowed extensions only

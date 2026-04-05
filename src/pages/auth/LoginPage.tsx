@@ -72,7 +72,9 @@ const login = () => {
               {isArabic ? 'تسجيل الدخول' : 'Sign In'}
             </h1>
             <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">
-              {isArabic ? 'مرحباً بعودتك إلى رحلة التعلم الخاصة بك' : 'Welcome back to your learning journey'}
+              {isArabic
+                ? 'مرحباً بعودتك إلى رحلة التعلم الخاصة بك'
+                : 'Welcome back to your learning journey'}
             </p>
           </div>
 
@@ -87,7 +89,7 @@ const login = () => {
             <div className="space-y-4">
               <div className="space-y-1.5">
                 <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                   {isArabic ? 'البريد الإلكتروني' : 'Email address'}
+                  {isArabic ? 'البريد الإلكتروني' : 'Email address'}
                 </label>
                 <div className="relative group">
                   <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-500 dark:group-focus-within:text-blue-400 transition-colors" />
@@ -140,7 +142,13 @@ const login = () => {
               className="w-full h-12 rounded-xl text-base font-semibold shadow-md hover:shadow-lg transition-all duration-300 bg-blue-500 hover:bg-blue-600 text-white border-none"
               disabled={loading}
             >
-              {loading ? (isArabic ? 'جاري تسجيل الدخول...' : 'Signing in...') : (isArabic ? 'تسجيل الدخول' : 'Sign In')}
+              {loading
+                ? isArabic
+                  ? 'جاري تسجيل الدخول...'
+                  : 'Signing in...'
+                : isArabic
+                  ? 'تسجيل الدخول'
+                  : 'Sign In'}
             </Button>
           </form>
 
@@ -186,35 +194,50 @@ const login = () => {
           {/* Development / Quick Access Buttons - Grouped nicely */}
           <div className="mt-8 pt-6 border-t border-gray-200 dark:border-white/10">
             <p className="text-xs text-center text-gray-500 font-medium mb-4 uppercase tracking-wider">
-               {isArabic ? 'وصول سريع (للصيانة)' : 'Quick Access (Dev)'}
+              {isArabic ? 'وصول سريع (للصيانة)' : 'Quick Access (Dev)'}
             </p>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
               <button
-                onClick={async () => { await authLogout(); navigate('/studentdashboard', { state: { isMock: true } }); }}
+                onClick={async () => {
+                  await authLogout();
+                  navigate('/studentdashboard', { state: { isMock: true } });
+                }}
                 className="flex items-center justify-center px-2 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-card-dark text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white transition-all text-xs font-semibold"
               >
                 Student
               </button>
               <button
-                onClick={async () => { await authLogout(); navigate('/instructordashboard', { state: { isMock: true } }); }}
+                onClick={async () => {
+                  await authLogout();
+                  navigate('/instructordashboard', { state: { isMock: true } });
+                }}
                 className="flex items-center justify-center px-2 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-card-dark text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white transition-all text-xs font-semibold"
               >
                 Instructor
               </button>
               <button
-                onClick={async () => { await authLogout(); navigate('/admindashboard', { state: { isMock: true } }); }}
+                onClick={async () => {
+                  await authLogout();
+                  navigate('/admindashboard', { state: { isMock: true } });
+                }}
                 className="flex items-center justify-center px-2 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-card-dark text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white transition-all text-xs font-semibold"
               >
                 Admin
               </button>
               <button
-                onClick={async () => { await authLogout(); navigate('/itadmindashboard', { state: { isMock: true } }); }}
+                onClick={async () => {
+                  await authLogout();
+                  navigate('/itadmindashboard', { state: { isMock: true } });
+                }}
                 className="flex items-center justify-center px-2 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-card-dark text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white transition-all text-xs font-semibold"
               >
                 IT Admin
               </button>
               <button
-                onClick={async () => { await authLogout(); navigate('/tadashboard', { state: { isMock: true } }); }}
+                onClick={async () => {
+                  await authLogout();
+                  navigate('/tadashboard', { state: { isMock: true } });
+                }}
                 className="col-span-2 lg:col-span-4 flex items-center justify-center px-2 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-card-dark text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white transition-all text-xs font-semibold"
               >
                 Teaching Assistant
@@ -239,54 +262,54 @@ const login = () => {
           <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-white/10 rounded-full blur-3xl opacity-50 mix-blend-overlay"></div>
           <div className="absolute bottom-[-10%] left-[-10%] w-[60%] h-[60%] bg-blue-400/30 rounded-full blur-3xl opacity-50 mix-blend-overlay"></div>
         </div>
-        
+
         {/* Background Image with Overlay */}
-        <div 
+        <div
           className="absolute inset-0 bg-cover bg-center z-0 opacity-40 mix-blend-luminosity p-0 m-0"
           style={{ backgroundImage: `url(${backgroundImage})` }}
         />
-        
+
         <div className="absolute inset-0 bg-gradient-to-br from-blue-500/90 to-[#1e3a8a]/90 z-10" />
 
         {/* Content Overlay */}
         <div className="relative z-20 flex flex-col justify-center items-center w-full h-full p-16 text-white text-center">
           <div className="space-y-6 max-w-xl">
             <div className="w-20 h-20 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center mx-auto mb-8 border border-white/20 shadow-2xl">
-               {isArabic ? (
-                  <span className="text-4xl font-bold">إ</span>
-               ) : (
-                  <span className="text-4xl font-bold">E</span>
-               )}
+              {isArabic ? (
+                <span className="text-4xl font-bold">إ</span>
+              ) : (
+                <span className="text-4xl font-bold">E</span>
+              )}
             </div>
             <h2 className="text-4xl font-bold tracking-tight mb-4">
               {isArabic ? 'اكتشف مستقبلك' : 'Discover Your Future'}
             </h2>
             <p className="text-lg text-white/80 font-medium leading-relaxed">
-              {isArabic 
+              {isArabic
                 ? 'انضم إلى آلاف الطلاب والمحاضرين في نظام إدارة التعلم الأكثر تقدماً. نظام مصمم لتعزيز تجربتك التعليمية.'
                 : 'Join thousands of students and instructors on the most advanced learning management system. Designed to elevate your educational experience.'}
             </p>
           </div>
-          
+
           {/* Dashboard Preview Graphic / Mockup (Optional abstract UI elements) */}
           <div className="mt-16 w-full max-w-md bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl">
-             <div className="flex items-center gap-4 mb-6">
-                <div className="w-12 h-12 rounded-full bg-white/20 animate-pulse"></div>
-                <div className="space-y-2 flex-1">
-                   <div className="h-4 w-1/3 bg-white/20 rounded"></div>
-                   <div className="h-3 w-1/2 bg-white/10 rounded"></div>
-                </div>
-             </div>
-             <div className="space-y-3">
-               <div className="h-16 w-full bg-white/5 rounded-xl border border-white/5 flex items-center px-4 gap-4">
-                  <div className="w-8 h-8 rounded-lg bg-white/10"></div>
-                  <div className="h-3 w-3/4 bg-white/10 rounded"></div>
-               </div>
-               <div className="h-16 w-full bg-white/5 rounded-xl border border-white/5 flex items-center px-4 gap-4">
-                  <div className="w-8 h-8 rounded-lg bg-white/10"></div>
-                  <div className="h-3 w-2/3 bg-white/10 rounded"></div>
-               </div>
-             </div>
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-12 h-12 rounded-full bg-white/20 animate-pulse"></div>
+              <div className="space-y-2 flex-1">
+                <div className="h-4 w-1/3 bg-white/20 rounded"></div>
+                <div className="h-3 w-1/2 bg-white/10 rounded"></div>
+              </div>
+            </div>
+            <div className="space-y-3">
+              <div className="h-16 w-full bg-white/5 rounded-xl border border-white/5 flex items-center px-4 gap-4">
+                <div className="w-8 h-8 rounded-lg bg-white/10"></div>
+                <div className="h-3 w-3/4 bg-white/10 rounded"></div>
+              </div>
+              <div className="h-16 w-full bg-white/5 rounded-xl border border-white/5 flex items-center px-4 gap-4">
+                <div className="w-8 h-8 rounded-lg bg-white/10"></div>
+                <div className="h-3 w-2/3 bg-white/10 rounded"></div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -207,13 +207,18 @@ export function AttendanceOverview() {
   );
 
   const ATTENDANCE_COLORS = [
-    'bg-blue-500', 'bg-green-500', 'bg-orange-500', 'bg-pink-500', 'bg-purple-500', 'bg-teal-500',
+    'bg-blue-500',
+    'bg-green-500',
+    'bg-orange-500',
+    'bg-pink-500',
+    'bg-purple-500',
+    'bg-teal-500',
   ];
 
   // Map API data to component's expected shape
   const apiAttendanceData = (() => {
     if (!apiAttendance) return [];
-    const records = Array.isArray(apiAttendance) ? apiAttendance : apiAttendance.summary ?? [];
+    const records = Array.isArray(apiAttendance) ? apiAttendance : (apiAttendance.summary ?? []);
     if (records.length === 0) return [];
     return records.map((r, i) => {
       const pct = r.percentage ?? (r.totalClasses > 0 ? (r.attended / r.totalClasses) * 100 : 0);
@@ -253,7 +258,8 @@ export function AttendanceOverview() {
   const totalAttended = attendanceData.reduce((sum, course) => sum + course.attended, 0);
   const totalAbsent = attendanceData.reduce((sum, course) => sum + course.absent, 0);
   const totalLate = attendanceData.reduce((sum, course) => sum + course.late, 0);
-  const overallPercentage = totalClasses > 0 ? ((totalAttended / totalClasses) * 100).toFixed(1) : '0.0';
+  const overallPercentage =
+    totalClasses > 0 ? ((totalAttended / totalClasses) * 100).toFixed(1) : '0.0';
 
   const getStatusColor = (status: string) => {
     if (isDark) {

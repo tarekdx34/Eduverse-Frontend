@@ -35,16 +35,66 @@ export interface Permission {
 }
 
 const ALL_PERMISSIONS: Permission[] = [
-  { id: 'grade-assignments', name: 'Grade Assignments', description: 'Grade and provide feedback on assignments', category: 'grading' },
-  { id: 'grade-quizzes', name: 'Grade Quizzes', description: 'Grade quiz submissions', category: 'grading' },
-  { id: 'view-grades', name: 'View All Grades', description: 'View all student grades', category: 'grading' },
-  { id: 'edit-content', name: 'Edit Course Content', description: 'Modify course materials and lectures', category: 'content' },
-  { id: 'upload-materials', name: 'Upload Materials', description: 'Upload new course materials', category: 'content' },
-  { id: 'manage-assignments', name: 'Manage Assignments', description: 'Create and edit assignments', category: 'content' },
-  { id: 'send-announcements', name: 'Send Announcements', description: 'Post announcements to students', category: 'communication' },
-  { id: 'message-students', name: 'Message Students', description: 'Send direct messages to students', category: 'communication' },
-  { id: 'view-analytics', name: 'View Analytics', description: 'Access course analytics and reports', category: 'analytics' },
-  { id: 'export-data', name: 'Export Data', description: 'Export grades and reports', category: 'analytics' },
+  {
+    id: 'grade-assignments',
+    name: 'Grade Assignments',
+    description: 'Grade and provide feedback on assignments',
+    category: 'grading',
+  },
+  {
+    id: 'grade-quizzes',
+    name: 'Grade Quizzes',
+    description: 'Grade quiz submissions',
+    category: 'grading',
+  },
+  {
+    id: 'view-grades',
+    name: 'View All Grades',
+    description: 'View all student grades',
+    category: 'grading',
+  },
+  {
+    id: 'edit-content',
+    name: 'Edit Course Content',
+    description: 'Modify course materials and lectures',
+    category: 'content',
+  },
+  {
+    id: 'upload-materials',
+    name: 'Upload Materials',
+    description: 'Upload new course materials',
+    category: 'content',
+  },
+  {
+    id: 'manage-assignments',
+    name: 'Manage Assignments',
+    description: 'Create and edit assignments',
+    category: 'content',
+  },
+  {
+    id: 'send-announcements',
+    name: 'Send Announcements',
+    description: 'Post announcements to students',
+    category: 'communication',
+  },
+  {
+    id: 'message-students',
+    name: 'Message Students',
+    description: 'Send direct messages to students',
+    category: 'communication',
+  },
+  {
+    id: 'view-analytics',
+    name: 'View Analytics',
+    description: 'Access course analytics and reports',
+    category: 'analytics',
+  },
+  {
+    id: 'export-data',
+    name: 'Export Data',
+    description: 'Export grades and reports',
+    category: 'analytics',
+  },
 ];
 
 interface TACollaborationProps {
@@ -105,9 +155,7 @@ export function TACollaboration({
 
   const handleUpdatePermissions = (taId: string, permissionIds: string[]) => {
     const permissions = ALL_PERMISSIONS.filter((p) => permissionIds.includes(p.id));
-    const updatedTAs = tas.map((ta) =>
-      ta.id === taId ? { ...ta, permissions } : ta
-    );
+    const updatedTAs = tas.map((ta) => (ta.id === taId ? { ...ta, permissions } : ta));
     setTAs(updatedTAs);
     onUpdateTA(taId, { permissions });
   };
@@ -166,9 +214,7 @@ export function TACollaboration({
             </div>
             <div>
               <h3 className="font-semibold text-gray-900">TA Collaboration</h3>
-              <p className="text-sm text-gray-600">
-                {tas.length} Teaching Assistants assigned
-              </p>
+              <p className="text-sm text-gray-600">{tas.length} Teaching Assistants assigned</p>
             </div>
           </div>
           <button
@@ -214,9 +260,17 @@ export function TACollaboration({
                   {/* Avatar */}
                   <div className="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 font-semibold">
                     {ta.avatar ? (
-                      <img src={ta.avatar} alt={ta.name} className="w-full h-full rounded-full object-cover" />
+                      <img
+                        src={ta.avatar}
+                        alt={ta.name}
+                        className="w-full h-full rounded-full object-cover"
+                      />
                     ) : (
-                      ta.name.split(' ').map((n) => n[0]).join('').toUpperCase()
+                      ta.name
+                        .split(' ')
+                        .map((n) => n[0])
+                        .join('')
+                        .toUpperCase()
                     )}
                   </div>
 
@@ -229,8 +283,8 @@ export function TACollaboration({
                           ta.status === 'active'
                             ? 'bg-green-100 text-green-700'
                             : ta.status === 'pending'
-                            ? 'bg-yellow-100 text-yellow-700'
-                            : 'bg-gray-100 text-gray-600'
+                              ? 'bg-yellow-100 text-yellow-700'
+                              : 'bg-gray-100 text-gray-600'
                         }`}
                       >
                         {ta.status.charAt(0).toUpperCase() + ta.status.slice(1)}
@@ -255,19 +309,23 @@ export function TACollaboration({
 
                     {/* Permissions Summary */}
                     <div className="mt-2 flex flex-wrap gap-1">
-                      {Array.from(new Set(ta.permissions.map((p) => p.category))).map((category) => {
-                        const Icon = getPermissionIcon(category);
-                        const count = ta.permissions.filter((p) => p.category === category).length;
-                        return (
-                          <span
-                            key={category}
-                            className={`px-2 py-0.5 rounded text-xs flex items-center gap-1 ${getCategoryColor(category)}`}
-                          >
-                            <Icon size={12} />
-                            {count} {category}
-                          </span>
-                        );
-                      })}
+                      {Array.from(new Set(ta.permissions.map((p) => p.category))).map(
+                        (category) => {
+                          const Icon = getPermissionIcon(category);
+                          const count = ta.permissions.filter(
+                            (p) => p.category === category
+                          ).length;
+                          return (
+                            <span
+                              key={category}
+                              className={`px-2 py-0.5 rounded text-xs flex items-center gap-1 ${getCategoryColor(category)}`}
+                            >
+                              <Icon size={12} />
+                              {count} {category}
+                            </span>
+                          );
+                        }
+                      )}
                     </div>
                   </div>
                 </div>
@@ -316,7 +374,10 @@ export function TACollaboration({
                   Email Address
                 </label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                  <Mail
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                    size={18}
+                  />
                   <input
                     type="email"
                     value={newTAEmail}
@@ -358,9 +419,7 @@ export function TACollaboration({
 
               {/* Permissions */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Permissions
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Permissions</label>
                 <div className="space-y-4">
                   {['grading', 'content', 'communication', 'analytics'].map((category) => {
                     const categoryPermissions = ALL_PERMISSIONS.filter(
@@ -370,7 +429,9 @@ export function TACollaboration({
 
                     return (
                       <div key={category}>
-                        <div className={`flex items-center gap-2 mb-2 ${getCategoryColor(category)} px-2 py-1 rounded`}>
+                        <div
+                          className={`flex items-center gap-2 mb-2 ${getCategoryColor(category)} px-2 py-1 rounded`}
+                        >
                           <Icon size={14} />
                           <span className="text-xs font-medium capitalize">{category}</span>
                         </div>
@@ -443,7 +504,11 @@ export function TACollaboration({
               {/* TA Info */}
               <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                 <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 font-semibold">
-                  {editingTA.name.split(' ').map((n) => n[0]).join('').toUpperCase()}
+                  {editingTA.name
+                    .split(' ')
+                    .map((n) => n[0])
+                    .join('')
+                    .toUpperCase()}
                 </div>
                 <div>
                   <p className="font-medium text-gray-900">{editingTA.name}</p>
@@ -481,9 +546,7 @@ export function TACollaboration({
 
               {/* Permissions */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Permissions
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Permissions</label>
                 <div className="space-y-2">
                   {ALL_PERMISSIONS.map((permission) => (
                     <label

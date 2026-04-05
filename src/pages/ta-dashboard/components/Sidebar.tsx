@@ -2,7 +2,15 @@ import React from 'react';
 
 type TabItem = { key: string; label: string; icon: any };
 
-export function Sidebar({ tabs, activeTab, onChangeTab }: { tabs: TabItem[]; activeTab: string; onChangeTab: (k: any) => void }) {
+export function Sidebar({
+  tabs,
+  activeTab,
+  onChangeTab,
+}: {
+  tabs: TabItem[];
+  activeTab: string;
+  onChangeTab: (k: any) => void;
+}) {
   return (
     <aside className="w-64 bg-white border-r min-h-screen p-6">
       <div className="flex items-center gap-3 mb-6">

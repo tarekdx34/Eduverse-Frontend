@@ -4,7 +4,6 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { CleanSelect } from '../../../components/shared';
 
-
 type Severity = 'info' | 'warning' | 'error' | 'critical';
 type EventTypeFilter = 'all' | 'login' | 'access' | 'config_change' | 'threat';
 type Status = 'success' | 'failure' | 'blocked';

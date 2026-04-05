@@ -1,10 +1,36 @@
 import { useState, useMemo } from 'react';
-import { Activity, Server, Cpu, HardDrive, Wifi, TrendingUp, TrendingDown, RefreshCw, AlertTriangle, CheckCircle, Plus, Edit2, Trash2, Search, Filter, Terminal, X, ServerCrash } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import {
+  Activity,
+  Server,
+  Cpu,
+  HardDrive,
+  Wifi,
+  TrendingUp,
+  TrendingDown,
+  RefreshCw,
+  AlertTriangle,
+  CheckCircle,
+  Plus,
+  Edit2,
+  Trash2,
+  Search,
+  Filter,
+  Terminal,
+  X,
+  ServerCrash,
+} from 'lucide-react';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { CleanSelect } from '../../../components/shared';
-
 
 interface ServerEntry {
   id: number;
@@ -34,7 +60,14 @@ const cpuChartData = [
   { time: '22:00', cpu: 48 },
 ];
 
-const defaultServerForm = { name: '', location: '', ip: '', type: 'Web' as const, cpu: 50, memory: 50 };
+const defaultServerForm = {
+  name: '',
+  location: '',
+  ip: '',
+  type: 'Web' as const,
+  cpu: 50,
+  memory: 50,
+};
 
 interface MonitoringPageProps {
   serverStatus: any[];
@@ -43,7 +76,12 @@ interface MonitoringPageProps {
   onRestartServer: (id: number) => void;
 }
 
-export function MonitoringPage({ serverStatus, performanceMetrics, onRefresh, onRestartServer }: MonitoringPageProps) {
+export function MonitoringPage({
+  serverStatus,
+  performanceMetrics,
+  onRefresh,
+  onRestartServer,
+}: MonitoringPageProps) {
   const { isDark, primaryHex } = useTheme() as any;
   const accentColor = primaryHex || '#3b82f6';
   const { t } = useLanguage();
@@ -75,12 +113,15 @@ export function MonitoringPage({ serverStatus, performanceMetrics, onRefresh, on
     });
   }, [allServers, searchQuery, statusFilter]);
 
-  const stats = useMemo(() => ({
-    total: allServers.length,
-    online: allServers.filter((s) => s.status === 'healthy').length,
-    warning: allServers.filter((s) => s.status === 'warning').length,
-    offline: allServers.filter((s) => s.status === 'critical').length,
-  }), [allServers]);
+  const stats = useMemo(
+    () => ({
+      total: allServers.length,
+      online: allServers.filter((s) => s.status === 'healthy').length,
+      warning: allServers.filter((s) => s.status === 'warning').length,
+      offline: allServers.filter((s) => s.status === 'critical').length,
+    }),
+    [allServers]
+  );
 
   const nextId = () => Math.max(0, ...allServers.map((s) => s.id)) + 1;
 
@@ -92,7 +133,14 @@ export function MonitoringPage({ serverStatus, performanceMetrics, onRefresh, on
 
   const openEditModal = (server: ServerEntry) => {
     setEditingServer(server);
-    setServerForm({ name: server.name, location: server.location, ip: server.ip, type: server.type, cpu: server.cpu, memory: server.memory });
+    setServerForm({
+      name: server.name,
+      location: server.location,
+      ip: server.ip,
+      type: server.type,
+      cpu: server.cpu,
+      memory: server.memory,
+    });
     setModalOpen(true);
   };
 
@@ -102,7 +150,9 @@ export function MonitoringPage({ serverStatus, performanceMetrics, onRefresh, on
       // Check if editing a prop server or local server
       const isLocal = localServers.some((s) => s.id === editingServer.id);
       if (isLocal) {
-        setLocalServers((prev) => prev.map((s) => s.id === editingServer.id ? { ...s, ...serverForm } : s));
+        setLocalServers((prev) =>
+          prev.map((s) => (s.id === editingServer.id ? { ...s, ...serverForm } : s))
+        );
       } else {
         // Move prop server to local with edits
         setLocalServers((prev) => [...prev, { ...editingServer, ...serverForm }]);
@@ -132,29 +182,42 @@ export function MonitoringPage({ serverStatus, performanceMetrics, onRefresh, on
 
   const typeBadgeColor = (type: string) => {
     switch (type) {
-      case 'Web': return 'bg-blue-500/20 text-blue-400';
-      case 'API': return 'bg-blue-500/20 text-blue-400';
-      case 'Database': return 'bg-orange-500/20 text-orange-400';
-      case 'Cache': return 'bg-teal-500/20 text-teal-400';
-      default: return 'bg-gray-500/20 text-gray-400';
+      case 'Web':
+        return 'bg-blue-500/20 text-blue-400';
+      case 'API':
+        return 'bg-blue-500/20 text-blue-400';
+      case 'Database':
+        return 'bg-orange-500/20 text-orange-400';
+      case 'Cache':
+        return 'bg-teal-500/20 text-teal-400';
+      default:
+        return 'bg-gray-500/20 text-gray-400';
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'healthy': return 'text-green-500';
-      case 'warning': return 'text-yellow-500';
-      case 'critical': return 'text-red-500';
-      default: return 'text-gray-500';
+      case 'healthy':
+        return 'text-green-500';
+      case 'warning':
+        return 'text-yellow-500';
+      case 'critical':
+        return 'text-red-500';
+      default:
+        return 'text-gray-500';
     }
   };
 
   const getStatusBg = (status: string) => {
     switch (status) {
-      case 'healthy': return isDark ? 'bg-green-900/30 border-green-700' : 'bg-green-50 border-green-200';
-      case 'warning': return isDark ? 'bg-yellow-900/30 border-yellow-700' : 'bg-yellow-50 border-yellow-200';
-      case 'critical': return isDark ? 'bg-red-900/30 border-red-700' : 'bg-red-50 border-red-200';
-      default: return isDark ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200';
+      case 'healthy':
+        return isDark ? 'bg-green-900/30 border-green-700' : 'bg-green-50 border-green-200';
+      case 'warning':
+        return isDark ? 'bg-yellow-900/30 border-yellow-700' : 'bg-yellow-50 border-yellow-200';
+      case 'critical':
+        return isDark ? 'bg-red-900/30 border-red-700' : 'bg-red-50 border-red-200';
+      default:
+        return isDark ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200';
     }
   };
 
@@ -195,9 +258,13 @@ export function MonitoringPage({ serverStatus, performanceMetrics, onRefresh, on
 
       {/* Performance Overview */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className={`rounded-xl border p-6 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+        <div
+          className={`rounded-xl border p-6 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
+        >
           <div className="flex items-center justify-between mb-4">
-            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('avgResponseTime')}</p>
+            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+              {t('avgResponseTime')}
+            </p>
             <Activity className={`w-5 h-5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
           </div>
           <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>185ms</p>
@@ -207,10 +274,16 @@ export function MonitoringPage({ serverStatus, performanceMetrics, onRefresh, on
           </div>
         </div>
 
-        <div className={`rounded-xl border p-6 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+        <div
+          className={`rounded-xl border p-6 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
+        >
           <div className="flex items-center justify-between mb-4">
-            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('errorRate')}</p>
-            <AlertTriangle className={`w-5 h-5 ${isDark ? 'text-yellow-400' : 'text-yellow-600'}`} />
+            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+              {t('errorRate')}
+            </p>
+            <AlertTriangle
+              className={`w-5 h-5 ${isDark ? 'text-yellow-400' : 'text-yellow-600'}`}
+            />
           </div>
           <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>0.3%</p>
           <div className="flex items-center gap-1 mt-2">
@@ -219,12 +292,18 @@ export function MonitoringPage({ serverStatus, performanceMetrics, onRefresh, on
           </div>
         </div>
 
-        <div className={`rounded-xl border p-6 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+        <div
+          className={`rounded-xl border p-6 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
+        >
           <div className="flex items-center justify-between mb-4">
-            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('requestThroughput')}</p>
+            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+              {t('requestThroughput')}
+            </p>
             <Wifi className={`w-5 h-5 ${isDark ? 'text-green-400' : 'text-green-600'}`} />
           </div>
-          <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>12.4K/min</p>
+          <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+            12.4K/min
+          </p>
           <div className="flex items-center gap-1 mt-2">
             <TrendingUp className="w-4 h-4 text-green-500" />
             <span className="text-sm text-green-500">+8% {t('fromLastHour')}</span>
@@ -233,7 +312,9 @@ export function MonitoringPage({ serverStatus, performanceMetrics, onRefresh, on
       </div>
 
       {/* Server Status Grid */}
-      <div className={`rounded-xl border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+      <div
+        className={`rounded-xl border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
+      >
         <div className={`p-6 border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
           <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
             {t('serverStatus')}
@@ -242,19 +323,29 @@ export function MonitoringPage({ serverStatus, performanceMetrics, onRefresh, on
 
         {/* Server Stats Summary */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 px-6 pt-6">
-          <div className={`rounded-lg border p-3 text-center ${isDark ? 'bg-gray-700/50 border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
-            <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{stats.total}</p>
+          <div
+            className={`rounded-lg border p-3 text-center ${isDark ? 'bg-gray-700/50 border-gray-600' : 'bg-gray-50 border-gray-200'}`}
+          >
+            <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              {stats.total}
+            </p>
             <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Total Servers</p>
           </div>
-          <div className={`rounded-lg border p-3 text-center ${isDark ? 'bg-green-900/20 border-green-800' : 'bg-green-50 border-green-200'}`}>
+          <div
+            className={`rounded-lg border p-3 text-center ${isDark ? 'bg-green-900/20 border-green-800' : 'bg-green-50 border-green-200'}`}
+          >
             <p className="text-2xl font-bold text-green-500">{stats.online}</p>
             <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Online</p>
           </div>
-          <div className={`rounded-lg border p-3 text-center ${isDark ? 'bg-yellow-900/20 border-yellow-800' : 'bg-yellow-50 border-yellow-200'}`}>
+          <div
+            className={`rounded-lg border p-3 text-center ${isDark ? 'bg-yellow-900/20 border-yellow-800' : 'bg-yellow-50 border-yellow-200'}`}
+          >
             <p className="text-2xl font-bold text-yellow-500">{stats.warning}</p>
             <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Warning</p>
           </div>
-          <div className={`rounded-lg border p-3 text-center ${isDark ? 'bg-red-900/20 border-red-800' : 'bg-red-50 border-red-200'}`}>
+          <div
+            className={`rounded-lg border p-3 text-center ${isDark ? 'bg-red-900/20 border-red-800' : 'bg-red-50 border-red-200'}`}
+          >
             <p className="text-2xl font-bold text-red-500">{stats.offline}</p>
             <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Offline</p>
           </div>
@@ -263,7 +354,9 @@ export function MonitoringPage({ serverStatus, performanceMetrics, onRefresh, on
         {/* Search + Status Filter */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 px-6 pt-4">
           <div className="relative flex-1 w-full">
-            <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
+            <Search
+              className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}
+            />
             <input
               type="text"
               placeholder="Search servers..."
@@ -281,7 +374,9 @@ export function MonitoringPage({ serverStatus, performanceMetrics, onRefresh, on
                 className={`px-3 py-1 rounded-full text-xs font-medium capitalize transition-colors ${
                   statusFilter === status
                     ? 'bg-blue-600 text-white'
-                    : isDark ? 'bg-gray-700 border border-gray-600 text-white hover:bg-gray-600' : 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-100'
+                    : isDark
+                      ? 'bg-gray-700 border border-gray-600 text-white hover:bg-gray-600'
+                      : 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-100'
                 }`}
               >
                 {status === 'all' ? 'All' : status}
@@ -307,35 +402,49 @@ export function MonitoringPage({ serverStatus, performanceMetrics, onRefresh, on
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
           {filteredServers.map((server) => (
-            <div
-              key={server.id}
-              className={`rounded-xl border p-4 ${getStatusBg(server.status)}`}
-            >
+            <div key={server.id} className={`rounded-xl border p-4 ${getStatusBg(server.status)}`}>
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <Server className={`w-5 h-5 ${getStatusColor(server.status)}`} />
                   <div>
-                    <p className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{server.name}</p>
-                    <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{server.location}</p>
+                    <p className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                      {server.name}
+                    </p>
+                    <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                      {server.location}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-1">
                   {/* SSH Indicator */}
-                  <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${server.sshConnected ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400'}`}>
-                    <Terminal className="w-3 h-3 inline mr-0.5" />SSH
+                  <span
+                    className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${server.sshConnected ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400'}`}
+                  >
+                    <Terminal className="w-3 h-3 inline mr-0.5" />
+                    SSH
                   </span>
                   {/* Type Badge */}
-                  <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${typeBadgeColor(server.type)}`}>
+                  <span
+                    className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${typeBadgeColor(server.type)}`}
+                  >
                     {server.type === 'Database' ? 'DB' : server.type}
                   </span>
                   {/* Status Badge */}
-                  <span className={`px-2 py-1 rounded text-xs font-medium capitalize ${
-                    server.status === 'healthy'
-                      ? isDark ? 'bg-green-500/20 text-green-300' : 'bg-green-100 text-green-700'
-                      : server.status === 'warning'
-                        ? isDark ? 'bg-yellow-500/20 text-yellow-300' : 'bg-yellow-100 text-yellow-700'
-                        : isDark ? 'bg-red-500/20 text-red-300' : 'bg-red-100 text-red-700'
-                  }`}>
+                  <span
+                    className={`px-2 py-1 rounded text-xs font-medium capitalize ${
+                      server.status === 'healthy'
+                        ? isDark
+                          ? 'bg-green-500/20 text-green-300'
+                          : 'bg-green-100 text-green-700'
+                        : server.status === 'warning'
+                          ? isDark
+                            ? 'bg-yellow-500/20 text-yellow-300'
+                            : 'bg-yellow-100 text-yellow-700'
+                          : isDark
+                            ? 'bg-red-500/20 text-red-300'
+                            : 'bg-red-100 text-red-700'
+                    }`}
+                  >
                     {server.status}
                   </span>
                 </div>
@@ -344,26 +453,44 @@ export function MonitoringPage({ serverStatus, performanceMetrics, onRefresh, on
               {/* CPU Usage */}
               <div className="mb-3">
                 <div className="flex items-center justify-between mb-1">
-                  <span className={`text-xs flex items-center gap-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                  <span
+                    className={`text-xs flex items-center gap-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}
+                  >
                     <Cpu className="w-3 h-3" /> {t('cpu')}
                   </span>
-                  <span className={`text-xs font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{server.cpu}%</span>
+                  <span
+                    className={`text-xs font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}
+                  >
+                    {server.cpu}%
+                  </span>
                 </div>
                 <div className={`h-2 rounded-full ${isDark ? 'bg-gray-700' : 'bg-gray-200'}`}>
-                  <div className={`h-2 rounded-full ${getUsageColor(server.cpu)}`} style={{ width: `${server.cpu}%` }} />
+                  <div
+                    className={`h-2 rounded-full ${getUsageColor(server.cpu)}`}
+                    style={{ width: `${server.cpu}%` }}
+                  />
                 </div>
               </div>
 
               {/* Memory Usage */}
               <div className="mb-3">
                 <div className="flex items-center justify-between mb-1">
-                  <span className={`text-xs flex items-center gap-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                  <span
+                    className={`text-xs flex items-center gap-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}
+                  >
                     <HardDrive className="w-3 h-3" /> {t('memory')}
                   </span>
-                  <span className={`text-xs font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{server.memory}%</span>
+                  <span
+                    className={`text-xs font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}
+                  >
+                    {server.memory}%
+                  </span>
                 </div>
                 <div className={`h-2 rounded-full ${isDark ? 'bg-gray-700' : 'bg-gray-200'}`}>
-                  <div className={`h-2 rounded-full ${getUsageColor(server.memory)}`} style={{ width: `${server.memory}%` }} />
+                  <div
+                    className={`h-2 rounded-full ${getUsageColor(server.memory)}`}
+                    style={{ width: `${server.memory}%` }}
+                  />
                 </div>
               </div>
 
@@ -389,7 +516,9 @@ export function MonitoringPage({ serverStatus, performanceMetrics, onRefresh, on
                   <button
                     onClick={() => onRestartServer(server.id)}
                     className={`text-xs px-2 py-1 rounded ${
-                      isDark ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                      isDark
+                        ? 'bg-gray-700 hover:bg-gray-600 text-gray-300'
+                        : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
                     }`}
                   >
                     {t('restart')}
@@ -402,7 +531,9 @@ export function MonitoringPage({ serverStatus, performanceMetrics, onRefresh, on
       </div>
 
       {/* Performance Chart */}
-      <div className={`rounded-xl border p-6 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+      <div
+        className={`rounded-xl border p-6 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
+      >
         <h2 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
           {t('performanceTrends24h')}
         </h2>
@@ -411,11 +542,26 @@ export function MonitoringPage({ serverStatus, performanceMetrics, onRefresh, on
             <LineChart data={cpuChartData}>
               <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#374151' : '#e5e7eb'} />
               <XAxis dataKey="time" tick={{ fill: isDark ? '#9ca3af' : '#6b7280', fontSize: 12 }} />
-              <YAxis tick={{ fill: isDark ? '#9ca3af' : '#6b7280', fontSize: 12 }} domain={[0, 100]} />
-              <Tooltip
-                contentStyle={{ backgroundColor: isDark ? '#1f2937' : '#fff', border: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`, borderRadius: '8px', color: isDark ? '#fff' : '#111827' }}
+              <YAxis
+                tick={{ fill: isDark ? '#9ca3af' : '#6b7280', fontSize: 12 }}
+                domain={[0, 100]}
               />
-              <Line type="monotone" dataKey="cpu" stroke="#06b6d4" strokeWidth={2} dot={{ fill: '#06b6d4', r: 4 }} name="CPU %" />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: isDark ? '#1f2937' : '#fff',
+                  border: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`,
+                  borderRadius: '8px',
+                  color: isDark ? '#fff' : '#111827',
+                }}
+              />
+              <Line
+                type="monotone"
+                dataKey="cpu"
+                stroke="#06b6d4"
+                strokeWidth={2}
+                dot={{ fill: '#06b6d4', r: 4 }}
+                name="CPU %"
+              />
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -424,35 +570,71 @@ export function MonitoringPage({ serverStatus, performanceMetrics, onRefresh, on
       {/* Add/Edit Server Modal */}
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className={`rounded-xl border p-6 w-full max-w-md mx-4 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+          <div
+            className={`rounded-xl border p-6 w-full max-w-md mx-4 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
+          >
             <div className="flex items-center justify-between mb-4">
               <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
                 {editingServer ? 'Edit Server' : 'Add Server'}
               </h3>
-              <button onClick={() => setModalOpen(false)} className={`p-1 rounded ${isDark ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500'}`}>
+              <button
+                onClick={() => setModalOpen(false)}
+                className={`p-1 rounded ${isDark ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500'}`}
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
             <div className="space-y-3">
               <div>
-                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Name</label>
-                <input type="text" value={serverForm.name} onChange={(e) => setServerForm({ ...serverForm, name: e.target.value })}
-                  className={`w-full px-3 py-2 rounded-lg border text-sm ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300 bg-white text-gray-900'}`} />
+                <label
+                  className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}
+                >
+                  Name
+                </label>
+                <input
+                  type="text"
+                  value={serverForm.name}
+                  onChange={(e) => setServerForm({ ...serverForm, name: e.target.value })}
+                  className={`w-full px-3 py-2 rounded-lg border text-sm ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300 bg-white text-gray-900'}`}
+                />
               </div>
               <div>
-                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Location</label>
-                <input type="text" value={serverForm.location} onChange={(e) => setServerForm({ ...serverForm, location: e.target.value })}
-                  className={`w-full px-3 py-2 rounded-lg border text-sm ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300 bg-white text-gray-900'}`} />
+                <label
+                  className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}
+                >
+                  Location
+                </label>
+                <input
+                  type="text"
+                  value={serverForm.location}
+                  onChange={(e) => setServerForm({ ...serverForm, location: e.target.value })}
+                  className={`w-full px-3 py-2 rounded-lg border text-sm ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300 bg-white text-gray-900'}`}
+                />
               </div>
               <div>
-                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>IP Address</label>
-                <input type="text" value={serverForm.ip} onChange={(e) => setServerForm({ ...serverForm, ip: e.target.value })}
-                  className={`w-full px-3 py-2 rounded-lg border text-sm ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300 bg-white text-gray-900'}`} />
+                <label
+                  className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}
+                >
+                  IP Address
+                </label>
+                <input
+                  type="text"
+                  value={serverForm.ip}
+                  onChange={(e) => setServerForm({ ...serverForm, ip: e.target.value })}
+                  className={`w-full px-3 py-2 rounded-lg border text-sm ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300 bg-white text-gray-900'}`}
+                />
               </div>
               <div>
-                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Type</label>
-                <CleanSelect value={serverForm.type} onChange={(e) => setServerForm({ ...serverForm, type: e.target.value as any })}
-                  className={`w-full px-3 py-2 rounded-lg border text-sm ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300 bg-white text-gray-900'}`}>
+                <label
+                  className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}
+                >
+                  Type
+                </label>
+                <CleanSelect
+                  value={serverForm.type}
+                  onChange={(e) => setServerForm({ ...serverForm, type: e.target.value as any })}
+                  className={`w-full px-3 py-2 rounded-lg border text-sm ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300 bg-white text-gray-900'}`}
+                >
                   <option value="Web">Web</option>
                   <option value="API">API</option>
                   <option value="Database">Database</option>
@@ -461,24 +643,56 @@ export function MonitoringPage({ serverStatus, performanceMetrics, onRefresh, on
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>CPU %</label>
-                  <input type="range" min="0" max="100" value={serverForm.cpu} onChange={(e) => setServerForm({ ...serverForm, cpu: Number(e.target.value) })} className="w-full" />
-                  <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{serverForm.cpu}%</span>
+                  <label
+                    className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}
+                  >
+                    CPU %
+                  </label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={serverForm.cpu}
+                    onChange={(e) => setServerForm({ ...serverForm, cpu: Number(e.target.value) })}
+                    className="w-full"
+                  />
+                  <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                    {serverForm.cpu}%
+                  </span>
                 </div>
                 <div>
-                  <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Memory %</label>
-                  <input type="range" min="0" max="100" value={serverForm.memory} onChange={(e) => setServerForm({ ...serverForm, memory: Number(e.target.value) })} className="w-full" />
-                  <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{serverForm.memory}%</span>
+                  <label
+                    className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}
+                  >
+                    Memory %
+                  </label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={serverForm.memory}
+                    onChange={(e) =>
+                      setServerForm({ ...serverForm, memory: Number(e.target.value) })
+                    }
+                    className="w-full"
+                  />
+                  <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                    {serverForm.memory}%
+                  </span>
                 </div>
               </div>
             </div>
             <div className="flex justify-end gap-2 mt-5">
-              <button onClick={() => setModalOpen(false)}
-                className={`px-4 py-2 rounded-lg text-sm ${isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>
+              <button
+                onClick={() => setModalOpen(false)}
+                className={`px-4 py-2 rounded-lg text-sm ${isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+              >
                 Cancel
               </button>
-              <button onClick={handleSaveServer}
-                className="px-4 py-2 rounded-lg text-sm bg-blue-600 text-white hover:opacity-90">
+              <button
+                onClick={handleSaveServer}
+                className="px-4 py-2 rounded-lg text-sm bg-blue-600 text-white hover:opacity-90"
+              >
                 Save
               </button>
             </div>
@@ -489,21 +703,29 @@ export function MonitoringPage({ serverStatus, performanceMetrics, onRefresh, on
       {/* Delete Confirmation Dialog */}
       {deleteConfirm !== null && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className={`rounded-xl border p-6 w-full max-w-sm mx-4 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+          <div
+            className={`rounded-xl border p-6 w-full max-w-sm mx-4 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
+          >
             <div className="flex items-center gap-3 mb-4">
               <ServerCrash className="w-6 h-6 text-red-500" />
-              <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Delete Server</h3>
+              <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                Delete Server
+              </h3>
             </div>
             <p className={`text-sm mb-5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
               Are you sure you want to delete this server? This action cannot be undone.
             </p>
             <div className="flex justify-end gap-2">
-              <button onClick={() => setDeleteConfirm(null)}
-                className={`px-4 py-2 rounded-lg text-sm ${isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>
+              <button
+                onClick={() => setDeleteConfirm(null)}
+                className={`px-4 py-2 rounded-lg text-sm ${isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+              >
                 Cancel
               </button>
-              <button onClick={() => handleDeleteServer(deleteConfirm)}
-                className="px-4 py-2 rounded-lg text-sm bg-red-600 text-white hover:bg-red-700">
+              <button
+                onClick={() => handleDeleteServer(deleteConfirm)}
+                className="px-4 py-2 rounded-lg text-sm bg-red-600 text-white hover:bg-red-700"
+              >
                 Delete
               </button>
             </div>

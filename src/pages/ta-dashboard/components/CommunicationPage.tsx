@@ -27,7 +27,10 @@ type CommunicationPageProps = {
   questions: Question[];
 };
 
-export function CommunicationPage({ messages: initialMessages, questions: initialQuestions }: CommunicationPageProps) {
+export function CommunicationPage({
+  messages: initialMessages,
+  questions: initialQuestions,
+}: CommunicationPageProps) {
   const { t } = useLanguage();
   const [messages, setMessages] = useState(initialMessages);
   const [questions, setQuestions] = useState(initialQuestions);
@@ -42,12 +45,16 @@ export function CommunicationPage({ messages: initialMessages, questions: initia
 
   const handleAnswerQuestion = (questionId: string) => {
     setQuestions(
-      questions.map((q) => (q.id === questionId ? { ...q, status: 'answered' as const, answer: 'Answered' } : q))
+      questions.map((q) =>
+        q.id === questionId ? { ...q, status: 'answered' as const, answer: 'Answered' } : q
+      )
     );
   };
 
   const handleFlagQuestion = (questionId: string) => {
-    setQuestions(questions.map((q) => (q.id === questionId ? { ...q, status: 'flagged' as const } : q)));
+    setQuestions(
+      questions.map((q) => (q.id === questionId ? { ...q, status: 'flagged' as const } : q))
+    );
   };
 
   return (
@@ -63,9 +70,7 @@ export function CommunicationPage({ messages: initialMessages, questions: initia
         <button
           onClick={() => setActiveTab('messages')}
           className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            activeTab === 'messages'
-              ? 'bg-blue-600 text-white'
-              : 'text-gray-700 hover:bg-gray-100'
+            activeTab === 'messages' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100'
           }`}
         >
           {t('messages')} {unreadCount > 0 && <span className="ml-2">({unreadCount})</span>}
@@ -76,7 +81,8 @@ export function CommunicationPage({ messages: initialMessages, questions: initia
             activeTab === 'qa' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100'
           }`}
         >
-          {t('qaDiscussions')} {unansweredCount > 0 && <span className="ml-2">({unansweredCount})</span>}
+          {t('qaDiscussions')}{' '}
+          {unansweredCount > 0 && <span className="ml-2">({unansweredCount})</span>}
         </button>
       </div>
 
@@ -110,12 +116,12 @@ export function CommunicationPage({ messages: initialMessages, questions: initia
                       <p className="text-sm text-gray-600">{message.subject}</p>
                     </div>
                   </div>
-                  {!message.read && (
-                    <span className="w-2 h-2 bg-blue-600 rounded-full"></span>
-                  )}
+                  {!message.read && <span className="w-2 h-2 bg-blue-600 rounded-full"></span>}
                 </div>
                 <p className="text-sm text-gray-700 mb-2">{message.message}</p>
-                <p className="text-xs text-gray-500">{new Date(message.timestamp).toLocaleString()}</p>
+                <p className="text-xs text-gray-500">
+                  {new Date(message.timestamp).toLocaleString()}
+                </p>
               </div>
             ))}
           </div>
@@ -136,10 +142,7 @@ export function CommunicationPage({ messages: initialMessages, questions: initia
 
           <div className="space-y-4">
             {questions.map((question) => (
-              <div
-                key={question.id}
-                className="bg-white border border-gray-200 rounded-lg p-6"
-              >
+              <div key={question.id} className="bg-white border border-gray-200 rounded-lg p-6">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">

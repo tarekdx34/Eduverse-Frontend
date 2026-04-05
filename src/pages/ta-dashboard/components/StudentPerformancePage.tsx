@@ -30,7 +30,6 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { CleanSelect } from '../../../components/shared';
 
-
 type StudentPerformance = {
   studentId: string;
   studentName: string;

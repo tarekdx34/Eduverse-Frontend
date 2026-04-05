@@ -5,9 +5,11 @@ Comprehensive reference for the Document Object Model (DOM) and Web APIs availab
 ## Document Object Model (DOM)
 
 ### What is the DOM?
+
 The DOM is a programming interface for HTML and XML documents. It represents the page structure as a tree of objects that can be manipulated with JavaScript.
 
 **DOM Tree Structure**:
+
 ```
 Document
 └── html
@@ -22,12 +24,12 @@ Document
 
 ### DOM Node Types
 
-| Node Type | Description | Example |
-|-----------|-------------|---------|
-| Element | HTML element | `<div>`, `<p>` |
-| Text | Text content | Text inside elements |
-| Comment | HTML comment | `<!-- comment -->` |
-| Document | Root document | `document` |
+| Node Type        | Description          | Example              |
+| ---------------- | -------------------- | -------------------- |
+| Element          | HTML element         | `<div>`, `<p>`       |
+| Text             | Text content         | Text inside elements |
+| Comment          | HTML comment         | `<!-- comment -->`   |
+| Document         | Root document        | `document`           |
 | DocumentFragment | Lightweight document | For batch operations |
 
 ### Selecting Elements
@@ -173,7 +175,7 @@ function handleClick(event) {
 element.addEventListener('scroll', handleScroll, {
   passive: true, // Won't call preventDefault()
   capture: false, // Bubble phase (default)
-  once: true // Remove after one call
+  once: true, // Remove after one call
 });
 
 // Remove event listener
@@ -182,17 +184,17 @@ element.removeEventListener('click', handleClick);
 
 ### Common Events
 
-| Category | Events |
-|----------|--------|
-| Mouse | `click`, `dblclick`, `mousedown`, `mouseup`, `mousemove`, `mouseenter`, `mouseleave`, `contextmenu` |
-| Keyboard | `keydown`, `keyup`, `keypress` (deprecated) |
-| Form | `submit`, `change`, `input`, `focus`, `blur`, `invalid` |
-| Window | `load`, `DOMContentLoaded`, `resize`, `scroll`, `beforeunload`, `unload` |
-| Touch | `touchstart`, `touchmove`, `touchend`, `touchcancel` |
-| Drag | `drag`, `dragstart`, `dragend`, `dragover`, `drop` |
-| Media | `play`, `pause`, `ended`, `timeupdate`, `loadeddata` |
-| Animation | `animationstart`, `animationend`, `animationiteration` |
-| Transition | `transitionstart`, `transitionend` |
+| Category   | Events                                                                                              |
+| ---------- | --------------------------------------------------------------------------------------------------- |
+| Mouse      | `click`, `dblclick`, `mousedown`, `mouseup`, `mousemove`, `mouseenter`, `mouseleave`, `contextmenu` |
+| Keyboard   | `keydown`, `keyup`, `keypress` (deprecated)                                                         |
+| Form       | `submit`, `change`, `input`, `focus`, `blur`, `invalid`                                             |
+| Window     | `load`, `DOMContentLoaded`, `resize`, `scroll`, `beforeunload`, `unload`                            |
+| Touch      | `touchstart`, `touchmove`, `touchend`, `touchcancel`                                                |
+| Drag       | `drag`, `dragstart`, `dragend`, `dragover`, `drop`                                                  |
+| Media      | `play`, `pause`, `ended`, `timeupdate`, `loadeddata`                                                |
+| Animation  | `animationstart`, `animationend`, `animationiteration`                                              |
+| Transition | `transitionstart`, `transitionend`                                                                  |
 
 ### Event Object
 
@@ -201,13 +203,13 @@ element.addEventListener('click', (event) => {
   // Target elements
   event.target; // Element that triggered event
   event.currentTarget; // Element with listener attached
-  
+
   // Mouse position
   event.clientX; // X relative to viewport
   event.clientY; // Y relative to viewport
   event.pageX; // X relative to document
   event.pageY; // Y relative to document
-  
+
   // Keyboard
   event.key; // 'a', 'Enter', 'ArrowUp'
   event.code; // 'KeyA', 'Enter', 'ArrowUp'
@@ -215,7 +217,7 @@ element.addEventListener('click', (event) => {
   event.shiftKey; // true if Shift pressed
   event.altKey; // true if Alt pressed
   event.metaKey; // true if Meta/Cmd pressed
-  
+
   // Control event flow
   event.preventDefault(); // Prevent default action
   event.stopPropagation(); // Stop bubbling
@@ -292,20 +294,20 @@ Modern API for HTTP requests:
 ```javascript
 // Basic GET request
 fetch('https://api.example.com/data')
-  .then(response => response.json())
-  .then(data => console.log(data))
-  .catch(error => console.error(error));
+  .then((response) => response.json())
+  .then((data) => console.log(data))
+  .catch((error) => console.error(error));
 
 // Async/await
 async function fetchData() {
   try {
     const response = await fetch('https://api.example.com/data');
-    
+
     // Check if successful
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    
+
     const data = await response.json();
     return data;
   } catch (error) {
@@ -317,26 +319,26 @@ async function fetchData() {
 fetch('https://api.example.com/users', {
   method: 'POST',
   headers: {
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
   },
-  body: JSON.stringify({ name: 'John', age: 30 })
+  body: JSON.stringify({ name: 'John', age: 30 }),
 })
-  .then(response => response.json())
-  .then(data => console.log(data));
+  .then((response) => response.json())
+  .then((data) => console.log(data));
 
 // With various options
 fetch(url, {
   method: 'GET', // GET, POST, PUT, DELETE, etc.
   headers: {
-    'Authorization': 'Bearer token',
-    'Content-Type': 'application/json'
+    Authorization: 'Bearer token',
+    'Content-Type': 'application/json',
   },
   body: JSON.stringify(data), // For POST/PUT
   mode: 'cors', // cors, no-cors, same-origin
   credentials: 'include', // include, same-origin, omit
   cache: 'no-cache', // default, no-cache, reload, force-cache
   redirect: 'follow', // follow, error, manual
-  referrerPolicy: 'no-referrer' // no-referrer, origin, etc.
+  referrerPolicy: 'no-referrer', // no-referrer, origin, etc.
 });
 
 // Response methods
@@ -440,7 +442,7 @@ for (const [key, value] of data.entries()) {
 // Send with fetch
 fetch('/api/upload', {
   method: 'POST',
-  body: formData // Don't set Content-Type header
+  body: formData, // Don't set Content-Type header
 });
 ```
 
@@ -449,17 +451,20 @@ fetch('/api/upload', {
 Detect when element enters viewport:
 
 ```javascript
-const observer = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      console.log('Element is visible');
-      entry.target.classList.add('visible');
-    }
-  });
-}, {
-  threshold: 0.5, // 50% visible
-  rootMargin: '0px'
-});
+const observer = new IntersectionObserver(
+  (entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        console.log('Element is visible');
+        entry.target.classList.add('visible');
+      }
+    });
+  },
+  {
+    threshold: 0.5, // 50% visible
+    rootMargin: '0px',
+  }
+);
 
 observer.observe(element);
 observer.unobserve(element);
@@ -472,7 +477,7 @@ Watch for DOM changes:
 
 ```javascript
 const observer = new MutationObserver((mutations) => {
-  mutations.forEach(mutation => {
+  mutations.forEach((mutation) => {
     console.log('DOM changed:', mutation.type);
   });
 });
@@ -481,7 +486,7 @@ observer.observe(element, {
   attributes: true, // Watch attribute changes
   childList: true, // Watch child elements
   subtree: true, // Watch all descendants
-  characterData: true // Watch text content
+  characterData: true, // Watch text content
 });
 
 observer.disconnect(); // Stop observing
@@ -501,7 +506,7 @@ navigator.geolocation.getCurrentPosition(
   {
     enableHighAccuracy: true,
     timeout: 5000,
-    maximumAge: 0
+    maximumAge: 0,
   }
 );
 
@@ -601,6 +606,7 @@ request.onsuccess = () => console.log(request.result);
 ## Best Practices
 
 ### Do's
+
 - ✅ Use `addEventListener` over inline event handlers
 - ✅ Remove event listeners when no longer needed
 - ✅ Use event delegation for dynamic content
@@ -612,6 +618,7 @@ request.onsuccess = () => console.log(request.result);
 - ✅ Validate and sanitize user input
 
 ### Don'ts
+
 - ❌ Use `innerHTML` with untrusted data (XSS risk)
 - ❌ Query DOM repeatedly in loops
 - ❌ Modify DOM in tight loops (batch operations)
@@ -624,6 +631,7 @@ request.onsuccess = () => console.log(request.result);
 ## Glossary Terms
 
 **Key Terms Covered**:
+
 - API
 - Application context
 - Beacon

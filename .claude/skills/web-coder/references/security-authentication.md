@@ -7,6 +7,7 @@ Comprehensive reference for web security, authentication, encryption, and secure
 ### CIA Triad
 
 Core principles of information security:
+
 - **Confidentiality**: Data accessible only to authorized parties
 - **Integrity**: Data remains accurate and unmodified
 - **Availability**: Systems and data accessible when needed
@@ -41,6 +42,7 @@ Permissions-Policy: geolocation=(), microphone=(), camera=()
 Mitigates XSS and data injection attacks.
 
 **Directives**:
+
 - `default-src`: Fallback for other directives
 - `script-src`: JavaScript sources
 - `style-src`: CSS sources
@@ -51,6 +53,7 @@ Mitigates XSS and data injection attacks.
 - `object-src`: Plugin sources
 
 **Values**:
+
 - `'self'`: Same origin
 - `'none'`: Block all
 - `'unsafe-inline'`: Allow inline scripts/styles (avoid)
@@ -65,6 +68,7 @@ Mitigates XSS and data injection attacks.
 Encrypts data in transit between client and server.
 
 **TLS Handshake**:
+
 1. Client Hello (supported versions, cipher suites)
 2. Server Hello (chosen version, cipher suite)
 3. Server Certificate
@@ -72,6 +76,7 @@ Encrypts data in transit between client and server.
 5. Finished (connection established)
 
 **Versions**:
+
 - TLS 1.0, 1.1 (deprecated)
 - TLS 1.2 (current standard)
 - TLS 1.3 (latest, faster)
@@ -79,6 +84,7 @@ Encrypts data in transit between client and server.
 ### SSL Certificates
 
 **Types**:
+
 - **Domain Validated (DV)**: Basic validation
 - **Organization Validated (OV)**: Business verification
 - **Extended Validation (EV)**: Rigorous verification
@@ -114,7 +120,7 @@ Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
 // Login
 app.post('/login', (req, res) => {
   const { username, password } = req.body;
-  
+
   // Verify credentials
   if (verifyCredentials(username, password)) {
     req.session.userId = user.id;
@@ -146,13 +152,9 @@ app.post('/logout', (req, res) => {
 // Login
 app.post('/login', (req, res) => {
   const { username, password } = req.body;
-  
+
   if (verifyCredentials(username, password)) {
-    const token = jwt.sign(
-      { userId: user.id, role: user.role },
-      SECRET_KEY,
-      { expiresIn: '1h' }
-    );
+    const token = jwt.sign({ userId: user.id, role: user.role }, SECRET_KEY, { expiresIn: '1h' });
     res.json({ token });
   } else {
     res.status(401).json({ error: 'Invalid credentials' });
@@ -162,7 +164,7 @@ app.post('/login', (req, res) => {
 // Protected route
 app.get('/profile', (req, res) => {
   const token = req.headers.authorization?.split(' ')[1];
-  
+
   try {
     const decoded = jwt.verify(token, SECRET_KEY);
     const user = getUserById(decoded.userId);
@@ -181,12 +183,14 @@ app.get('/profile', (req, res) => {
 Authorization framework for delegated access.
 
 **Roles**:
+
 - **Resource Owner**: End user
 - **Client**: Application requesting access
 - **Authorization Server**: Issues tokens
 - **Resource Server**: Hosts protected resources
 
 **Flow Example** (Authorization Code):
+
 1. Client redirects to auth server
 2. User authenticates and grants permission
 3. Auth server redirects back with code
@@ -196,6 +200,7 @@ Authorization framework for delegated access.
 #### 4. Multi-Factor Authentication (MFA)
 
 Requires multiple verification factors:
+
 - **Something you know**: Password
 - **Something you have**: Phone, hardware token
 - **Something you are**: Biometric
@@ -218,6 +223,7 @@ async function verifyPassword(password, hash) {
 ```
 
 **Best Practices**:
+
 - ✅ Use bcrypt, scrypt, or Argon2
 - ✅ Minimum 8 characters (12+ recommended)
 - ✅ Require mix of characters
@@ -234,11 +240,13 @@ async function verifyPassword(password, hash) {
 Injecting malicious scripts into web pages.
 
 **Types**:
+
 1. **Stored XSS**: Malicious script stored in database
 2. **Reflected XSS**: Script in URL reflected in response
 3. **DOM-based XSS**: Client-side script manipulation
 
 **Prevention**:
+
 ```javascript
 // ❌ Vulnerable
 element.innerHTML = userInput;
@@ -254,7 +262,7 @@ function escapeHTML(str) {
       '<': '&lt;',
       '>': '&gt;',
       '"': '&quot;',
-      "'": '&#39;'
+      "'": '&#39;',
     };
     return map[match];
   });
@@ -270,6 +278,7 @@ element.innerHTML = DOMPurify.sanitize(userInput);
 Tricks user into executing unwanted actions.
 
 **Prevention**:
+
 ```javascript
 // CSRF token
 app.get('/form', (req, res) => {
@@ -294,6 +303,7 @@ Set-Cookie: sessionId=abc; SameSite=Strict; Secure; HttpOnly
 Injecting malicious SQL code.
 
 **Prevention**:
+
 ```javascript
 // ❌ Vulnerable
 const query = `SELECT * FROM users WHERE username = '${username}'`;
@@ -326,6 +336,7 @@ if (allowedOrigins.includes(origin)) {
 Tricking users into clicking hidden elements.
 
 **Prevention**:
+
 ```http
 X-Frame-Options: DENY
 X-Frame-Options: SAMEORIGIN
@@ -398,6 +409,7 @@ function decrypt(text, key) {
 Different keys for encryption (public) and decryption (private).
 
 **Use Cases**:
+
 - TLS/SSL certificates
 - Digital signatures
 - SSH keys
@@ -420,7 +432,7 @@ Verify authenticity and integrity.
 
 ```javascript
 const { privateKey, publicKey } = crypto.generateKeyPairSync('rsa', {
-  modulusLength: 2048
+  modulusLength: 2048,
 });
 
 // Sign
@@ -460,6 +472,7 @@ function isValidUsername(username) {
 ### Output Encoding
 
 Encode data based on context:
+
 - **HTML context**: Escape `< > & " '`
 - **JavaScript context**: Use JSON.stringify()
 - **URL context**: Use encodeURIComponent()
@@ -476,7 +489,7 @@ res.cookie('token', token, {
   httpOnly: true,
   secure: true,
   sameSite: 'strict',
-  maxAge: 3600000
+  maxAge: 3600000,
 });
 
 // ✅ For sensitive client-side data, encrypt first
@@ -492,7 +505,7 @@ const rateLimit = require('express-rate-limit');
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // Limit each IP to 100 requests per windowMs
-  message: 'Too many requests, please try again later'
+  message: 'Too many requests, please try again later',
 });
 
 app.use('/api/', limiter);
@@ -501,7 +514,7 @@ app.use('/api/', limiter);
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 5,
-  skipSuccessfulRequests: true
+  skipSuccessfulRequests: true,
 });
 
 app.use('/api/login', authLimiter);
@@ -525,6 +538,7 @@ catch (error) {
 ## Security Testing
 
 ### Tools
+
 - **OWASP ZAP**: Security scanner
 - **Burp Suite**: Web vulnerability scanner
 - **nmap**: Network scanner
@@ -532,6 +546,7 @@ catch (error) {
 - **Nikto**: Web server scanner
 
 ### Checklist
+
 - [ ] HTTPS enforced everywhere
 - [ ] Security headers configured
 - [ ] Authentication implemented securely
@@ -552,6 +567,7 @@ catch (error) {
 ## Glossary Terms
 
 **Key Terms Covered**:
+
 - Authentication
 - Authenticator
 - Certificate authority

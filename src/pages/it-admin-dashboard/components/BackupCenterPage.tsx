@@ -4,7 +4,6 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { Database, Download, Upload, Clock, HardDrive, RefreshCw, Calendar } from 'lucide-react';
 import { CleanSelect } from '../../../components/shared';
 
-
 interface Backup {
   id: number;
   date: string;

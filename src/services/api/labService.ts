@@ -74,7 +74,10 @@ export class LabService {
   }
 
   // Add instruction (instructor)
-  static async addInstruction(labId: string, data: { instructionText: string; orderIndex: number; fileId?: number }): Promise<LabInstruction> {
+  static async addInstruction(
+    labId: string,
+    data: { instructionText: string; orderIndex: number; fileId?: number }
+  ): Promise<LabInstruction> {
     return ApiClient.post<LabInstruction>('/labs/' + labId + '/instructions', data);
   }
 
@@ -86,7 +89,9 @@ export class LabService {
   // Get my submission (student)
   static async getMySubmission(labId: string): Promise<LabSubmission | null> {
     try {
-      const data = await ApiClient.get<LabSubmission | LabSubmission[]>('/labs/' + labId + '/submissions/my');
+      const data = await ApiClient.get<LabSubmission | LabSubmission[]>(
+        '/labs/' + labId + '/submissions/my'
+      );
       // Handle both [] (empty array) and null/undefined as "not submitted"
       if (!data || (Array.isArray(data) && data.length === 0)) {
         return null;
@@ -109,7 +114,7 @@ export class LabService {
       formData.append('file', file);
     }
     return ApiClient.post<LabSubmission>('/labs/' + labId + '/submit', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
+      headers: { 'Content-Type': 'multipart/form-data' },
     });
   }
 
@@ -119,8 +124,31 @@ export class LabService {
   }
 
   // Grade a submission (instructor/TA)
-  static async gradeSubmission(labId: string, submissionId: string, score: number, feedback: string): Promise<LabSubmission> {
-    return ApiClient.put<LabSubmission>('/labs/' + labId + '/submissions/' + submissionId + '/grade', { score, feedback });
+  static async gradeSubmission(
+    labId: string,
+    submissionId: string,
+    score: number,
+    feedback: string
+  ): Promise<LabSubmission> {
+    return ApiClient.put<LabSubmission>(
+      '/labs/' + labId + '/submissions/' + submissionId + '/grade',
+      { score, feedback }
+    );
+  }
+
+  // Get instructions for a lab
+  static async getInstructions(labId: string): Promise<LabInstruction[]> {
+    return ApiClient.get<LabInstruction[]>('/labs/' + labId + '/instructions');
+  }
+
+  // Get attendance for a lab (instructor/TA)
+  static async getAttendance(labId: string): Promise<any[]> {
+    return ApiClient.get<any[]>('/labs/' + labId + '/attendance');
+  }
+
+  // Publish a lab (change status to published)
+  static async publish(labId: string): Promise<Lab> {
+    return ApiClient.put<Lab>('/labs/' + labId, { status: 'published' });
   }
 }
 

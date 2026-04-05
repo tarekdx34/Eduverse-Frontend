@@ -165,7 +165,14 @@ export function SmartTodoReminder() {
       tags: [newTask.category],
     };
     setTodos([todo, ...todos]);
-    setNewTask({ title: '', description: '', dueDate: '', dueTime: '', priority: 'medium', category: 'Academic' });
+    setNewTask({
+      title: '',
+      description: '',
+      dueDate: '',
+      dueTime: '',
+      priority: 'medium',
+      category: 'Academic',
+    });
     setShowAddForm(false);
   };
 
@@ -397,14 +404,18 @@ export function SmartTodoReminder() {
 
       {/* Add Task Form */}
       {showAddForm && (
-        <div className={`rounded-2xl p-5 mb-6 space-y-4 ${isDark ? 'bg-card-dark border border-white/5' : 'bg-white border border-slate-200'}`}>
+        <div
+          className={`rounded-2xl p-5 mb-6 space-y-4 ${isDark ? 'bg-card-dark border border-white/5' : 'bg-white border border-slate-200'}`}
+        >
           <input
             type="text"
             placeholder={isRTL ? 'عنوان المهمة...' : 'Task title...'}
             value={newTask.title}
             onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
             className={`w-full px-4 py-2.5 rounded-xl text-sm font-medium border focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)]/30 ${
-              isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500' : 'bg-slate-50 border-slate-200 text-slate-800 placeholder:text-slate-400'
+              isDark
+                ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500'
+                : 'bg-slate-50 border-slate-200 text-slate-800 placeholder:text-slate-400'
             }`}
           />
           <input
@@ -413,7 +424,9 @@ export function SmartTodoReminder() {
             value={newTask.description}
             onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
             className={`w-full px-4 py-2.5 rounded-xl text-sm border focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)]/30 ${
-              isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500' : 'bg-slate-50 border-slate-200 text-slate-800 placeholder:text-slate-400'
+              isDark
+                ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500'
+                : 'bg-slate-50 border-slate-200 text-slate-800 placeholder:text-slate-400'
             }`}
           />
           <div className="flex flex-wrap gap-3">
@@ -422,7 +435,9 @@ export function SmartTodoReminder() {
               value={newTask.dueDate}
               onChange={(e) => setNewTask({ ...newTask, dueDate: e.target.value })}
               className={`px-3 py-2 rounded-xl text-sm border focus:outline-none ${
-                isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-slate-50 border-slate-200 text-slate-700'
+                isDark
+                  ? 'bg-white/5 border-white/10 text-white'
+                  : 'bg-slate-50 border-slate-200 text-slate-700'
               }`}
             />
             <input
@@ -430,14 +445,20 @@ export function SmartTodoReminder() {
               value={newTask.dueTime}
               onChange={(e) => setNewTask({ ...newTask, dueTime: e.target.value })}
               className={`px-3 py-2 rounded-xl text-sm border focus:outline-none ${
-                isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-slate-50 border-slate-200 text-slate-700'
+                isDark
+                  ? 'bg-white/5 border-white/10 text-white'
+                  : 'bg-slate-50 border-slate-200 text-slate-700'
               }`}
             />
             <select
               value={newTask.priority}
-              onChange={(e) => setNewTask({ ...newTask, priority: e.target.value as 'high' | 'medium' | 'low' })}
+              onChange={(e) =>
+                setNewTask({ ...newTask, priority: e.target.value as 'high' | 'medium' | 'low' })
+              }
               className={`px-3 py-2 rounded-xl text-sm border focus:outline-none ${
-                isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-slate-50 border-slate-200 text-slate-700'
+                isDark
+                  ? 'bg-white/5 border-white/10 text-white'
+                  : 'bg-slate-50 border-slate-200 text-slate-700'
               }`}
             >
               <option value="high">{isRTL ? 'عالية' : 'High'}</option>
@@ -448,7 +469,9 @@ export function SmartTodoReminder() {
               value={newTask.category}
               onChange={(e) => setNewTask({ ...newTask, category: e.target.value })}
               className={`px-3 py-2 rounded-xl text-sm border focus:outline-none ${
-                isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-slate-50 border-slate-200 text-slate-700'
+                isDark
+                  ? 'bg-white/5 border-white/10 text-white'
+                  : 'bg-slate-50 border-slate-200 text-slate-700'
               }`}
             >
               <option value="Academic">{isRTL ? 'أكاديمي' : 'Academic'}</option>

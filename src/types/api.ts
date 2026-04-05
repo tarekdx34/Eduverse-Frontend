@@ -193,7 +193,14 @@ export interface User {
   email: string;
   firstName: string;
   lastName: string;
-  role: 'student' | 'instructor' | 'admin' | 'ta' | 'teaching_assistant' | 'it_admin' | 'department_head';
+  role:
+    | 'student'
+    | 'instructor'
+    | 'admin'
+    | 'ta'
+    | 'teaching_assistant'
+    | 'it_admin'
+    | 'department_head';
   profilePicture?: string;
   phoneNumber?: string;
   status: 'active' | 'inactive' | 'suspended';

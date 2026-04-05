@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { X, FileText, FlaskConical, FolderKanban, Plus, Trash2 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { CleanSelect } from '../../../components/shared';
 import { toInputDate } from '../../../lib/formatters';
-
 
 export type AssignmentFormData = {
   id?: number;
@@ -46,19 +45,29 @@ export type AssignmentFormData = {
 type AssignmentModalProps = {
   open: boolean;
   assignment: AssignmentFormData | null;
-  courseOptions?: Array<{ value: string; label: string }>;
+  courses: Array<{ value: string; label: string }>;
   onClose: () => void;
   onSave: (data: AssignmentFormData) => void;
 };
 
-function Toggle({ value, onChange, isDark }: { value: boolean; onChange: (v: boolean) => void; isDark: boolean }) {
+function Toggle({
+  value,
+  onChange,
+  isDark,
+}: {
+  value: boolean;
+  onChange: (v: boolean) => void;
+  isDark: boolean;
+}) {
   return (
     <button
       type="button"
       onClick={() => onChange(!value)}
       className={`relative w-10 h-5 rounded-full transition-colors ${value ? 'bg-indigo-600' : isDark ? 'bg-gray-600' : 'bg-gray-300'}`}
     >
-      <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform ${value ? 'translate-x-5' : ''}`} />
+      <span
+        className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform ${value ? 'translate-x-5' : ''}`}
+      />
     </button>
   );
 }
@@ -69,7 +78,6 @@ const TYPE_CONFIG = {
   project: { label: 'Project', icon: FolderKanban, color: 'amber' },
 } as const;
 
-const MOCK_COURSES = ['CS101', 'CS201', 'CS301'];
 const LAB_ROOMS = ['Lab A-101', 'Lab A-102', 'Lab B-201', 'Lab C-301', 'Virtual Lab'];
 const DELIVERABLE_OPTIONS = ['Documentation', 'Code', 'Report', 'Presentation'];
 
@@ -107,14 +115,54 @@ const defaultFormData: AssignmentFormData = {
   enablePeerReview: false,
 };
 
-export function AssignmentModal({ open, assignment, courseOptions, onClose, onSave }: AssignmentModalProps) {
+export function AssignmentModal({
+  open,
+  assignment,
+  courses = [],
+  onClose,
+  onSave,
+}: AssignmentModalProps) {
   const { isDark } = useTheme();
   const [formData, setFormData] = useState<AssignmentFormData>({ ...defaultFormData });
 
-  const resolvedCourseOptions =
-    courseOptions && courseOptions.length > 0
-      ? courseOptions
-      : MOCK_COURSES.map((course) => ({ value: course, label: course }));
+  // Accessibility: refs for focus management
+  const modalRef = useRef<HTMLDivElement>(null);
+  const previousActiveElement = useRef<HTMLElement | null>(null);
+
+  // Focus management - focus modal on open, restore on close
+  useEffect(() => {
+    if (open) {
+      previousActiveElement.current = document.activeElement as HTMLElement;
+      setTimeout(() => modalRef.current?.focus(), 0);
+    } else if (previousActiveElement.current) {
+      previousActiveElement.current.focus();
+    }
+  }, [open]);
+
+  // Keyboard handler for Escape and focus trap
+  const handleKeyDown = useCallback(
+    (event: React.KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        onClose();
+      }
+      if (event.key === 'Tab' && modalRef.current) {
+        const focusableElements = modalRef.current.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        const firstElement = focusableElements[0];
+        const lastElement = focusableElements[focusableElements.length - 1];
+        if (event.shiftKey && document.activeElement === firstElement) {
+          event.preventDefault();
+          lastElement?.focus();
+        } else if (!event.shiftKey && document.activeElement === lastElement) {
+          event.preventDefault();
+          firstElement?.focus();
+        }
+      }
+    },
+    [onClose]
+  );
 
   useEffect(() => {
     if (assignment) {
@@ -127,9 +175,9 @@ export function AssignmentModal({ open, assignment, courseOptions, onClose, onSa
   useEffect(() => {
     if (!open || assignment) return;
     if ((formData.course || '').trim()) return;
-    if (resolvedCourseOptions.length === 0) return;
-    setFormData((prev) => ({ ...prev, course: resolvedCourseOptions[0].value }));
-  }, [open, assignment, formData.course, resolvedCourseOptions]);
+    if (courses.length === 0) return;
+    setFormData((prev) => ({ ...prev, course: courses[0].value }));
+  }, [open, assignment, formData.course, courses]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -141,7 +189,7 @@ export function AssignmentModal({ open, assignment, courseOptions, onClose, onSa
   };
 
   const update = <K extends keyof AssignmentFormData>(key: K, value: AssignmentFormData[K]) => {
-    setFormData(prev => ({ ...prev, [key]: value }));
+    setFormData((prev) => ({ ...prev, [key]: value }));
   };
 
   const addMilestone = () => {
@@ -149,7 +197,10 @@ export function AssignmentModal({ open, assignment, courseOptions, onClose, onSa
   };
 
   const removeMilestone = (index: number) => {
-    update('milestones', (formData.milestones || []).filter((_, i) => i !== index));
+    update(
+      'milestones',
+      (formData.milestones || []).filter((_, i) => i !== index)
+    );
   };
 
   const updateMilestone = (index: number, field: 'title' | 'weight', value: string | number) => {
@@ -160,7 +211,10 @@ export function AssignmentModal({ open, assignment, courseOptions, onClose, onSa
 
   const toggleDeliverable = (item: string) => {
     const current = formData.deliverables || [];
-    update('deliverables', current.includes(item) ? current.filter(d => d !== item) : [...current, item]);
+    update(
+      'deliverables',
+      current.includes(item) ? current.filter((d) => d !== item) : [...current, item]
+    );
   };
 
   if (!open) return null;
@@ -169,20 +223,44 @@ export function AssignmentModal({ open, assignment, courseOptions, onClose, onSa
   const labelCls = `block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`;
   const inputCls = `w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-gray-500' : 'border-gray-300 bg-white text-gray-900 placeholder:text-gray-400'}`;
   const selectCls = `w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? 'bg-gray-700 border-white/10 text-white' : 'border-gray-300 bg-white text-gray-900'}`;
-  const optionStyle: React.CSSProperties = { backgroundColor: isDark ? '#1f2937' : '#ffffff', color: isDark ? '#ffffff' : '#111827' };
+  const optionStyle: React.CSSProperties = {
+    backgroundColor: isDark ? '#1f2937' : '#ffffff',
+    color: isDark ? '#ffffff' : '#111827',
+  };
   const sectionTitle = `text-sm font-semibold mb-3 ${isDark ? 'text-gray-200' : 'text-gray-800'}`;
 
   const typeLabel = TYPE_CONFIG[assignmentType].label;
 
   return (
-    <div className="fixed inset-0 bg-black/10 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className={`rounded-lg shadow-xl w-full max-w-2xl mx-4 flex flex-col max-h-[90vh] ${isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'}`}>
-        <div className={`flex items-center justify-between p-6 border-b shrink-0 ${isDark ? 'border-white/10' : ''}`}>
-          <h2 className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+    <div
+      className="fixed inset-0 bg-black/10 backdrop-blur-sm flex items-center justify-center z-50"
+      role="presentation"
+    >
+      <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="assignment-modal-title"
+        tabIndex={-1}
+        onKeyDown={handleKeyDown}
+        className={`rounded-lg shadow-xl w-full max-w-2xl mx-4 flex flex-col max-h-[90vh] outline-none ${isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'}`}
+      >
+        <div
+          className={`flex items-center justify-between p-6 border-b shrink-0 ${isDark ? 'border-white/10' : ''}`}
+        >
+          <h2
+            id="assignment-modal-title"
+            className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}
+          >
             {assignment ? `Edit ${typeLabel}` : `Create New ${typeLabel}`}
           </h2>
-          <button onClick={onClose} className={`transition-colors ${isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'}`}>
-            <X size={24} />
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close dialog"
+            className={`p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${isDark ? 'text-gray-400 hover:text-gray-200 hover:bg-white/10' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}
+          >
+            <X size={24} aria-hidden="true" />
           </button>
         </div>
 
@@ -191,7 +269,7 @@ export function AssignmentModal({ open, assignment, courseOptions, onClose, onSa
           <div>
             <label className={labelCls}>Type</label>
             <div className="grid grid-cols-3 gap-2">
-              {(Object.keys(TYPE_CONFIG) as Array<keyof typeof TYPE_CONFIG>).map(type => {
+              {(Object.keys(TYPE_CONFIG) as Array<keyof typeof TYPE_CONFIG>).map((type) => {
                 const cfg = TYPE_CONFIG[type];
                 const Icon = cfg.icon;
                 const selected = assignmentType === type;
@@ -232,7 +310,7 @@ export function AssignmentModal({ open, assignment, courseOptions, onClose, onSa
                 type="text"
                 required
                 value={formData.title}
-                onChange={e => update('title', e.target.value)}
+                onChange={(e) => update('title', e.target.value)}
                 className={inputCls}
                 placeholder={`e.g., ${assignmentType === 'lab' ? 'Lab 3: Circuit Analysis' : assignmentType === 'project' ? 'Final Project: Web App' : 'Quiz 1: Variables'}`}
               />
@@ -243,7 +321,7 @@ export function AssignmentModal({ open, assignment, courseOptions, onClose, onSa
               <textarea
                 rows={3}
                 value={formData.description || ''}
-                onChange={e => update('description', e.target.value)}
+                onChange={(e) => update('description', e.target.value)}
                 className={inputCls}
                 placeholder="Provide a brief description..."
               />
@@ -252,9 +330,15 @@ export function AssignmentModal({ open, assignment, courseOptions, onClose, onSa
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className={labelCls}>Course</label>
-                <CleanSelect value={formData.course || ''} onChange={e => update('course', e.target.value)} className={selectCls}>
-                  <option value="" style={optionStyle}>Select course</option>
-                  {resolvedCourseOptions.map((course) => (
+                <CleanSelect
+                  value={formData.course || ''}
+                  onChange={(e) => update('course', e.target.value)}
+                  className={selectCls}
+                >
+                  <option value="" style={optionStyle}>
+                    Select course
+                  </option>
+                  {courses.map((course) => (
                     <option key={course.value} value={course.value} style={optionStyle}>
                       {course.label}
                     </option>
@@ -265,7 +349,7 @@ export function AssignmentModal({ open, assignment, courseOptions, onClose, onSa
               <div>
                 <label className={labelCls}>Difficulty</label>
                 <div className="flex gap-1">
-                  {(['easy', 'medium', 'hard'] as const).map(d => {
+                  {(['easy', 'medium', 'hard'] as const).map((d) => {
                     const selected = formData.difficulty === d;
                     const colors = {
                       easy: selected ? 'bg-green-100 text-green-700 border-green-400' : '',
@@ -278,7 +362,9 @@ export function AssignmentModal({ open, assignment, courseOptions, onClose, onSa
                       hard: selected ? 'bg-red-900/30 text-red-300 border-red-500' : '',
                     };
                     const active = isDark ? darkColors[d] : colors[d];
-                    const base = isDark ? 'border-white/10 text-gray-400' : 'border-gray-200 text-gray-500';
+                    const base = isDark
+                      ? 'border-white/10 text-gray-400'
+                      : 'border-gray-200 text-gray-500';
                     return (
                       <button
                         key={d}
@@ -301,7 +387,7 @@ export function AssignmentModal({ open, assignment, courseOptions, onClose, onSa
                   type="date"
                   required
                   value={toInputDate(formData.dueDate)}
-                  onChange={e => update('dueDate', e.target.value)}
+                  onChange={(e) => update('dueDate', e.target.value)}
                   className={inputCls}
                   style={isDark ? { colorScheme: 'dark' } : undefined}
                 />
@@ -310,12 +396,18 @@ export function AssignmentModal({ open, assignment, courseOptions, onClose, onSa
                 <label className={labelCls}>Status</label>
                 <CleanSelect
                   value={formData.status}
-                  onChange={e => update('status', e.target.value as 'draft' | 'open' | 'closed')}
+                  onChange={(e) => update('status', e.target.value as 'draft' | 'open' | 'closed')}
                   className={selectCls}
                 >
-                  <option value="draft" style={optionStyle}>Draft</option>
-                  <option value="open" style={optionStyle}>Open</option>
-                  <option value="closed" style={optionStyle}>Closed</option>
+                  <option value="draft" style={optionStyle}>
+                    Draft
+                  </option>
+                  <option value="open" style={optionStyle}>
+                    Open
+                  </option>
+                  <option value="closed" style={optionStyle}>
+                    Closed
+                  </option>
                 </CleanSelect>
               </div>
             </div>
@@ -327,7 +419,7 @@ export function AssignmentModal({ open, assignment, courseOptions, onClose, onSa
                   type="number"
                   min="0"
                   value={formData.submissions}
-                  onChange={e => update('submissions', parseInt(e.target.value) || 0)}
+                  onChange={(e) => update('submissions', parseInt(e.target.value) || 0)}
                   className={inputCls}
                 />
               </div>
@@ -336,34 +428,66 @@ export function AssignmentModal({ open, assignment, courseOptions, onClose, onSa
 
           {/* Assignment-specific fields */}
           {assignmentType === 'assignment' && (
-            <div className={`border rounded-lg p-4 space-y-3 ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
+            <div
+              className={`border rounded-lg p-4 space-y-3 ${isDark ? 'border-white/10' : 'border-gray-200'}`}
+            >
               <p className={sectionTitle}>Assignment Options</p>
               <div className="flex items-center justify-between">
-                <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Auto-Grading</span>
-                <Toggle value={!!formData.autoGrading} onChange={v => update('autoGrading', v)} isDark={isDark} />
+                <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                  Auto-Grading
+                </span>
+                <Toggle
+                  value={!!formData.autoGrading}
+                  onChange={(v) => update('autoGrading', v)}
+                  isDark={isDark}
+                />
               </div>
               <div className="flex items-center justify-between">
-                <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Plagiarism Detection</span>
-                <Toggle value={!!formData.plagiarismDetection} onChange={v => update('plagiarismDetection', v)} isDark={isDark} />
+                <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                  Plagiarism Detection
+                </span>
+                <Toggle
+                  value={!!formData.plagiarismDetection}
+                  onChange={(v) => update('plagiarismDetection', v)}
+                  isDark={isDark}
+                />
               </div>
               <div className="flex items-center justify-between">
-                <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Allow Late Submissions</span>
-                <Toggle value={!!formData.allowLateSubmissions} onChange={v => update('allowLateSubmissions', v)} isDark={isDark} />
+                <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                  Allow Late Submissions
+                </span>
+                <Toggle
+                  value={!!formData.allowLateSubmissions}
+                  onChange={(v) => update('allowLateSubmissions', v)}
+                  isDark={isDark}
+                />
               </div>
             </div>
           )}
 
           {/* Lab-specific fields */}
           {assignmentType === 'lab' && (
-            <div className={`border rounded-lg p-4 space-y-4 ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
+            <div
+              className={`border rounded-lg p-4 space-y-4 ${isDark ? 'border-white/10' : 'border-gray-200'}`}
+            >
               <p className={sectionTitle}>Lab Details</p>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className={labelCls}>Lab Room</label>
-                  <CleanSelect value={formData.labRoom || ''} onChange={e => update('labRoom', e.target.value)} className={selectCls}>
-                    <option value="" style={optionStyle}>Select room</option>
-                    {LAB_ROOMS.map(r => <option key={r} value={r} style={optionStyle}>{r}</option>)}
+                  <CleanSelect
+                    value={formData.labRoom || ''}
+                    onChange={(e) => update('labRoom', e.target.value)}
+                    className={selectCls}
+                  >
+                    <option value="" style={optionStyle}>
+                      Select room
+                    </option>
+                    {LAB_ROOMS.map((r) => (
+                      <option key={r} value={r} style={optionStyle}>
+                        {r}
+                      </option>
+                    ))}
                   </CleanSelect>
                 </div>
                 <div>
@@ -373,7 +497,12 @@ export function AssignmentModal({ open, assignment, courseOptions, onClose, onSa
                     min="0"
                     step="0.5"
                     value={formData.estimatedDuration ?? ''}
-                    onChange={e => update('estimatedDuration', e.target.value ? parseFloat(e.target.value) : undefined)}
+                    onChange={(e) =>
+                      update(
+                        'estimatedDuration',
+                        e.target.value ? parseFloat(e.target.value) : undefined
+                      )
+                    }
                     className={inputCls}
                     placeholder="e.g., 2"
                   />
@@ -382,73 +511,165 @@ export function AssignmentModal({ open, assignment, courseOptions, onClose, onSa
 
               <div>
                 <label className={labelCls}>Objectives</label>
-                <textarea rows={2} value={formData.objectives || ''} onChange={e => update('objectives', e.target.value)} className={inputCls} placeholder="Lab objectives..." />
+                <textarea
+                  rows={2}
+                  value={formData.objectives || ''}
+                  onChange={(e) => update('objectives', e.target.value)}
+                  className={inputCls}
+                  placeholder="Lab objectives..."
+                />
               </div>
               <div>
                 <label className={labelCls}>Equipment Needed</label>
-                <textarea rows={2} value={formData.equipment || ''} onChange={e => update('equipment', e.target.value)} className={inputCls} placeholder="Required equipment..." />
+                <textarea
+                  rows={2}
+                  value={formData.equipment || ''}
+                  onChange={(e) => update('equipment', e.target.value)}
+                  className={inputCls}
+                  placeholder="Required equipment..."
+                />
               </div>
               <div>
                 <label className={labelCls}>Procedure / Steps</label>
-                <textarea rows={3} value={formData.procedure || ''} onChange={e => update('procedure', e.target.value)} className={inputCls} placeholder="Step-by-step procedure..." />
+                <textarea
+                  rows={3}
+                  value={formData.procedure || ''}
+                  onChange={(e) => update('procedure', e.target.value)}
+                  className={inputCls}
+                  placeholder="Step-by-step procedure..."
+                />
               </div>
 
-              <div className={`border rounded-lg p-3 space-y-3 ${isDark ? 'border-white/10 bg-white/5' : 'border-gray-100 bg-gray-50'}`}>
-                <p className={`text-xs font-semibold uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Safety Requirements</p>
+              <div
+                className={`border rounded-lg p-3 space-y-3 ${isDark ? 'border-white/10 bg-white/5' : 'border-gray-100 bg-gray-50'}`}
+              >
+                <p
+                  className={`text-xs font-semibold uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'}`}
+                >
+                  Safety Requirements
+                </p>
                 <div className="flex items-center justify-between">
-                  <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Require Lab Coat</span>
-                  <Toggle value={!!formData.requireLabCoat} onChange={v => update('requireLabCoat', v)} isDark={isDark} />
+                  <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                    Require Lab Coat
+                  </span>
+                  <Toggle
+                    value={!!formData.requireLabCoat}
+                    onChange={(v) => update('requireLabCoat', v)}
+                    isDark={isDark}
+                  />
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Require Safety Glasses</span>
-                  <Toggle value={!!formData.requireSafetyGlasses} onChange={v => update('requireSafetyGlasses', v)} isDark={isDark} />
+                  <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                    Require Safety Glasses
+                  </span>
+                  <Toggle
+                    value={!!formData.requireSafetyGlasses}
+                    onChange={(v) => update('requireSafetyGlasses', v)}
+                    isDark={isDark}
+                  />
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Require Gloves</span>
-                  <Toggle value={!!formData.requireGloves} onChange={v => update('requireGloves', v)} isDark={isDark} />
+                  <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                    Require Gloves
+                  </span>
+                  <Toggle
+                    value={!!formData.requireGloves}
+                    onChange={(v) => update('requireGloves', v)}
+                    isDark={isDark}
+                  />
                 </div>
                 <div>
                   <label className={labelCls}>Safety Instructions</label>
-                  <textarea rows={2} value={formData.safetyInstructions || ''} onChange={e => update('safetyInstructions', e.target.value)} className={inputCls} placeholder="Additional safety instructions..." />
+                  <textarea
+                    rows={2}
+                    value={formData.safetyInstructions || ''}
+                    onChange={(e) => update('safetyInstructions', e.target.value)}
+                    className={inputCls}
+                    placeholder="Additional safety instructions..."
+                  />
                 </div>
               </div>
 
               <div className="flex items-center justify-between">
-                <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Require Lab Report</span>
-                <Toggle value={!!formData.requireLabReport} onChange={v => update('requireLabReport', v)} isDark={isDark} />
+                <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                  Require Lab Report
+                </span>
+                <Toggle
+                  value={!!formData.requireLabReport}
+                  onChange={(v) => update('requireLabReport', v)}
+                  isDark={isDark}
+                />
               </div>
             </div>
           )}
 
           {/* Project-specific fields */}
           {assignmentType === 'project' && (
-            <div className={`border rounded-lg p-4 space-y-4 ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
+            <div
+              className={`border rounded-lg p-4 space-y-4 ${isDark ? 'border-white/10' : 'border-gray-200'}`}
+            >
               <p className={sectionTitle}>Project Details</p>
 
               <div>
                 <label className={labelCls}>Scope</label>
-                <textarea rows={2} value={formData.scope || ''} onChange={e => update('scope', e.target.value)} className={inputCls} placeholder="Define the project scope..." />
+                <textarea
+                  rows={2}
+                  value={formData.scope || ''}
+                  onChange={(e) => update('scope', e.target.value)}
+                  className={inputCls}
+                  placeholder="Define the project scope..."
+                />
               </div>
               <div>
                 <label className={labelCls}>Learning Objectives</label>
-                <textarea rows={2} value={formData.learningObjectives || ''} onChange={e => update('learningObjectives', e.target.value)} className={inputCls} placeholder="What students will learn..." />
+                <textarea
+                  rows={2}
+                  value={formData.learningObjectives || ''}
+                  onChange={(e) => update('learningObjectives', e.target.value)}
+                  className={inputCls}
+                  placeholder="What students will learn..."
+                />
               </div>
 
-              <div className={`border rounded-lg p-3 space-y-3 ${isDark ? 'border-white/10 bg-white/5' : 'border-gray-100 bg-gray-50'}`}>
-                <p className={`text-xs font-semibold uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Team Configuration</p>
+              <div
+                className={`border rounded-lg p-3 space-y-3 ${isDark ? 'border-white/10 bg-white/5' : 'border-gray-100 bg-gray-50'}`}
+              >
+                <p
+                  className={`text-xs font-semibold uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'}`}
+                >
+                  Team Configuration
+                </p>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className={labelCls}>Min Team Size</label>
-                    <input type="number" min="1" value={formData.minTeamSize ?? 2} onChange={e => update('minTeamSize', parseInt(e.target.value) || 1)} className={inputCls} />
+                    <input
+                      type="number"
+                      min="1"
+                      value={formData.minTeamSize ?? 2}
+                      onChange={(e) => update('minTeamSize', parseInt(e.target.value) || 1)}
+                      className={inputCls}
+                    />
                   </div>
                   <div>
                     <label className={labelCls}>Max Team Size</label>
-                    <input type="number" min="1" value={formData.maxTeamSize ?? 4} onChange={e => update('maxTeamSize', parseInt(e.target.value) || 1)} className={inputCls} />
+                    <input
+                      type="number"
+                      min="1"
+                      value={formData.maxTeamSize ?? 4}
+                      onChange={(e) => update('maxTeamSize', parseInt(e.target.value) || 1)}
+                      className={inputCls}
+                    />
                   </div>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Allow Individual Work</span>
-                  <Toggle value={!!formData.allowIndividual} onChange={v => update('allowIndividual', v)} isDark={isDark} />
+                  <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                    Allow Individual Work
+                  </span>
+                  <Toggle
+                    value={!!formData.allowIndividual}
+                    onChange={(v) => update('allowIndividual', v)}
+                    isDark={isDark}
+                  />
                 </div>
               </div>
 
@@ -456,7 +677,11 @@ export function AssignmentModal({ open, assignment, courseOptions, onClose, onSa
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <label className={labelCls}>Milestones</label>
-                  <button type="button" onClick={addMilestone} className="flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-700 font-medium">
+                  <button
+                    type="button"
+                    onClick={addMilestone}
+                    className="flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-700 font-medium"
+                  >
                     <Plus size={14} /> Add Milestone
                   </button>
                 </div>
@@ -466,7 +691,7 @@ export function AssignmentModal({ open, assignment, courseOptions, onClose, onSa
                       <input
                         type="text"
                         value={m.title}
-                        onChange={e => updateMilestone(i, 'title', e.target.value)}
+                        onChange={(e) => updateMilestone(i, 'title', e.target.value)}
                         className={`flex-1 px-2 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? 'bg-white/5 border-white/10 text-white' : 'border-gray-300 bg-white'}`}
                         placeholder="Milestone title"
                       />
@@ -476,12 +701,20 @@ export function AssignmentModal({ open, assignment, courseOptions, onClose, onSa
                           min="0"
                           max="100"
                           value={m.weight}
-                          onChange={e => updateMilestone(i, 'weight', parseInt(e.target.value) || 0)}
+                          onChange={(e) =>
+                            updateMilestone(i, 'weight', parseInt(e.target.value) || 0)
+                          }
                           className={`w-16 px-2 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? 'bg-white/5 border-white/10 text-white' : 'border-gray-300 bg-white'}`}
                         />
-                        <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>%</span>
+                        <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                          %
+                        </span>
                       </div>
-                      <button type="button" onClick={() => removeMilestone(i)} className="text-red-400 hover:text-red-600 p-1">
+                      <button
+                        type="button"
+                        onClick={() => removeMilestone(i)}
+                        className="text-red-400 hover:text-red-600 p-1"
+                      >
                         <Trash2 size={14} />
                       </button>
                     </div>
@@ -493,18 +726,27 @@ export function AssignmentModal({ open, assignment, courseOptions, onClose, onSa
               <div>
                 <label className={labelCls}>Deliverables</label>
                 <div className="flex flex-wrap gap-2">
-                  {DELIVERABLE_OPTIONS.map(item => {
+                  {DELIVERABLE_OPTIONS.map((item) => {
                     const checked = (formData.deliverables || []).includes(item);
                     return (
                       <label
                         key={item}
                         className={`flex items-center gap-2 px-3 py-1.5 rounded-md border text-sm cursor-pointer transition-all ${
                           checked
-                            ? isDark ? 'bg-indigo-900/30 border-indigo-500 text-indigo-300' : 'bg-indigo-50 border-indigo-400 text-indigo-700'
-                            : isDark ? 'border-white/10 text-gray-400' : 'border-gray-200 text-gray-500'
+                            ? isDark
+                              ? 'bg-indigo-900/30 border-indigo-500 text-indigo-300'
+                              : 'bg-indigo-50 border-indigo-400 text-indigo-700'
+                            : isDark
+                              ? 'border-white/10 text-gray-400'
+                              : 'border-gray-200 text-gray-500'
                         }`}
                       >
-                        <input type="checkbox" checked={checked} onChange={() => toggleDeliverable(item)} className="sr-only" />
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => toggleDeliverable(item)}
+                          className="sr-only"
+                        />
                         {item}
                       </label>
                     );
@@ -514,18 +756,40 @@ export function AssignmentModal({ open, assignment, courseOptions, onClose, onSa
 
               {/* Additional toggles */}
               <div className="space-y-3">
-                <p className={`text-xs font-semibold uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Additional</p>
+                <p
+                  className={`text-xs font-semibold uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'}`}
+                >
+                  Additional
+                </p>
                 <div className="flex items-center justify-between">
-                  <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Require Presentation</span>
-                  <Toggle value={!!formData.requirePresentation} onChange={v => update('requirePresentation', v)} isDark={isDark} />
+                  <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                    Require Presentation
+                  </span>
+                  <Toggle
+                    value={!!formData.requirePresentation}
+                    onChange={(v) => update('requirePresentation', v)}
+                    isDark={isDark}
+                  />
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Require Documentation</span>
-                  <Toggle value={!!formData.requireDocumentation} onChange={v => update('requireDocumentation', v)} isDark={isDark} />
+                  <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                    Require Documentation
+                  </span>
+                  <Toggle
+                    value={!!formData.requireDocumentation}
+                    onChange={(v) => update('requireDocumentation', v)}
+                    isDark={isDark}
+                  />
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Enable Peer Review</span>
-                  <Toggle value={!!formData.enablePeerReview} onChange={v => update('enablePeerReview', v)} isDark={isDark} />
+                  <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                    Enable Peer Review
+                  </span>
+                  <Toggle
+                    value={!!formData.enablePeerReview}
+                    onChange={(v) => update('enablePeerReview', v)}
+                    isDark={isDark}
+                  />
                 </div>
               </div>
             </div>

@@ -22,7 +22,9 @@ export function FeatureContent({
     case 'summarizer':
       return <SummarizerContent />;
     case 'quiz':
-      return <QuizContent quizDifficulty={quizDifficulty} onDifficultyChange={onQuizDifficultyChange} />;
+      return (
+        <QuizContent quizDifficulty={quizDifficulty} onDifficultyChange={onQuizDifficultyChange} />
+      );
     case 'feedback':
       return <FeedbackContent />;
     case 'chatbot':

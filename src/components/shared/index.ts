@@ -1,5 +1,8 @@
 // Shared Components - Used by both Student and Instructor Dashboards
 
+// Accessible Modal with focus trapping
+export { AccessibleModal } from './AccessibleModal';
+
 // File Upload
 export { FileUploadDropzone } from './FileUploadDropzone';
 export type { UploadedFile } from './FileUploadDropzone';

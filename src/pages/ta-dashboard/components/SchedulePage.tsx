@@ -15,7 +15,6 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { CleanSelect } from '../../../components/shared';
 
-
 type ScheduleEvent = {
   id: string;
   title: string;

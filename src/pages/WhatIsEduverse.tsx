@@ -26,8 +26,7 @@ export default function WhatIsEduverse() {
         {
           icon: 'sync',
           title: 'Seamless Synchronization',
-          description:
-            'Access your courses and materials anytime, anywhere, on any device.',
+          description: 'Access your courses and materials anytime, anywhere, on any device.',
         },
       ],
       imageAlt:
@@ -41,20 +40,17 @@ export default function WhatIsEduverse() {
         {
           icon: 'neurology',
           title: 'منصة مدعومة بالذكاء الاصطناعي',
-          description:
-            'استفد من الذكاء الاصطناعي لمسارات التعلم الشخصية والتصحيح الآلي.',
+          description: 'استفد من الذكاء الاصطناعي لمسارات التعلم الشخصية والتصحيح الآلي.',
         },
         {
           icon: 'school',
           title: 'مركز على الجامعات',
-          description:
-            'مبني من الصفر لتلبية الاحتياجات المعقدة لمؤسسات التعليم العالي.',
+          description: 'مبني من الصفر لتلبية الاحتياجات المعقدة لمؤسسات التعليم العالي.',
         },
         {
           icon: 'sync',
           title: 'مزامنة سلسة',
-          description:
-            'يمكنك الوصول إلى دوراتك ومواداك في أي وقت وفي أي مكان على أي جهاز.',
+          description: 'يمكنك الوصول إلى دوراتك ومواداك في أي وقت وفي أي مكان على أي جهاز.',
         },
       ],
       imageAlt:

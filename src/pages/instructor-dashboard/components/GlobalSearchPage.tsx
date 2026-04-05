@@ -21,7 +21,14 @@ import {
   Star,
 } from 'lucide-react';
 
-type Category = 'all' | 'students' | 'courses' | 'assignments' | 'grades' | 'materials' | 'announcements';
+type Category =
+  | 'all'
+  | 'students'
+  | 'courses'
+  | 'assignments'
+  | 'grades'
+  | 'materials'
+  | 'announcements';
 
 interface SearchResult {
   title: string;
@@ -42,25 +49,115 @@ const CATEGORIES: { key: Category; label: string; icon: React.ReactNode; color: 
 ];
 
 const MOCK_RESULTS: SearchResult[] = [
-  { title: 'John Smith', subtitle: 'CS 101, CS 201 • john.smith@university.edu', icon: <Users size={18} />, category: 'students', color: '#3B82F6' },
-  { title: 'Emily Johnson', subtitle: 'CS 101 • emily.j@university.edu', icon: <Users size={18} />, category: 'students', color: '#3B82F6' },
-  { title: 'CS 101 - Introduction to Computer Science', subtitle: '45 students • Fall 2024', icon: <BookOpen size={18} />, category: 'courses', color: '#F59E0B' },
-  { title: 'CS 201 - Data Structures', subtitle: '32 students • Fall 2024', icon: <BookOpen size={18} />, category: 'courses', color: '#F59E0B' },
-  { title: 'Assignment 3: Linked Lists', subtitle: 'CS 201 • Due: Oct 15, 2024 • 28 submissions', icon: <FileText size={18} />, category: 'assignments', color: '#EC4899' },
-  { title: 'Midterm Exam', subtitle: 'CS 101 • Due: Oct 20, 2024 • 42 submissions', icon: <FileText size={18} />, category: 'assignments', color: '#EC4899' },
-  { title: 'CS 101 - Midterm Grades', subtitle: 'Posted Oct 25, 2024 • 45 students', icon: <BarChart3 size={18} />, category: 'grades', color: '#0EA5E9' },
-  { title: 'Week 5 Lecture Slides', subtitle: 'CS 101 • PDF • 2.4 MB', icon: <FileText size={18} />, category: 'materials', color: '#06B6D4' },
-  { title: 'Lab 3 Instructions', subtitle: 'CS 201 • PDF • 1.1 MB', icon: <FileText size={18} />, category: 'materials', color: '#06B6D4' },
-  { title: 'Exam Schedule Update', subtitle: 'CS 101, CS 201 • Oct 10, 2024', icon: <Megaphone size={18} />, category: 'announcements', color: '#F59E0B' },
+  {
+    title: 'John Smith',
+    subtitle: 'CS 101, CS 201 • john.smith@university.edu',
+    icon: <Users size={18} />,
+    category: 'students',
+    color: '#3B82F6',
+  },
+  {
+    title: 'Emily Johnson',
+    subtitle: 'CS 101 • emily.j@university.edu',
+    icon: <Users size={18} />,
+    category: 'students',
+    color: '#3B82F6',
+  },
+  {
+    title: 'CS 101 - Introduction to Computer Science',
+    subtitle: '45 students • Fall 2024',
+    icon: <BookOpen size={18} />,
+    category: 'courses',
+    color: '#F59E0B',
+  },
+  {
+    title: 'CS 201 - Data Structures',
+    subtitle: '32 students • Fall 2024',
+    icon: <BookOpen size={18} />,
+    category: 'courses',
+    color: '#F59E0B',
+  },
+  {
+    title: 'Assignment 3: Linked Lists',
+    subtitle: 'CS 201 • Due: Oct 15, 2024 • 28 submissions',
+    icon: <FileText size={18} />,
+    category: 'assignments',
+    color: '#EC4899',
+  },
+  {
+    title: 'Midterm Exam',
+    subtitle: 'CS 101 • Due: Oct 20, 2024 • 42 submissions',
+    icon: <FileText size={18} />,
+    category: 'assignments',
+    color: '#EC4899',
+  },
+  {
+    title: 'CS 101 - Midterm Grades',
+    subtitle: 'Posted Oct 25, 2024 • 45 students',
+    icon: <BarChart3 size={18} />,
+    category: 'grades',
+    color: '#0EA5E9',
+  },
+  {
+    title: 'Week 5 Lecture Slides',
+    subtitle: 'CS 101 • PDF • 2.4 MB',
+    icon: <FileText size={18} />,
+    category: 'materials',
+    color: '#06B6D4',
+  },
+  {
+    title: 'Lab 3 Instructions',
+    subtitle: 'CS 201 • PDF • 1.1 MB',
+    icon: <FileText size={18} />,
+    category: 'materials',
+    color: '#06B6D4',
+  },
+  {
+    title: 'Exam Schedule Update',
+    subtitle: 'CS 101, CS 201 • Oct 10, 2024',
+    icon: <Megaphone size={18} />,
+    category: 'announcements',
+    color: '#F59E0B',
+  },
 ];
 
 const QUICK_ACTIONS = [
-  { title: 'Grade Submissions', icon: <ClipboardCheck size={22} />, color: '#3B82F6', description: 'Review and grade' },
-  { title: 'Create Assignment', icon: <FilePlus size={22} />, color: '#F59E0B', description: 'New assignment' },
-  { title: 'Upload Materials', icon: <Upload size={22} />, color: '#06B6D4', description: 'Add resources' },
-  { title: 'Post Announcement', icon: <Megaphone size={22} />, color: '#EC4899', description: 'Notify students' },
-  { title: 'Take Attendance', icon: <UserCheck size={22} />, color: '#10B981', description: 'Record attendance' },
-  { title: 'View Reports', icon: <BarChart3 size={22} />, color: '#3B82F6', description: 'Analytics' },
+  {
+    title: 'Grade Submissions',
+    icon: <ClipboardCheck size={22} />,
+    color: '#3B82F6',
+    description: 'Review and grade',
+  },
+  {
+    title: 'Create Assignment',
+    icon: <FilePlus size={22} />,
+    color: '#F59E0B',
+    description: 'New assignment',
+  },
+  {
+    title: 'Upload Materials',
+    icon: <Upload size={22} />,
+    color: '#06B6D4',
+    description: 'Add resources',
+  },
+  {
+    title: 'Post Announcement',
+    icon: <Megaphone size={22} />,
+    color: '#EC4899',
+    description: 'Notify students',
+  },
+  {
+    title: 'Take Attendance',
+    icon: <UserCheck size={22} />,
+    color: '#10B981',
+    description: 'Record attendance',
+  },
+  {
+    title: 'View Reports',
+    icon: <BarChart3 size={22} />,
+    color: '#3B82F6',
+    description: 'Analytics',
+  },
 ];
 
 const SEARCH_TIPS = [
@@ -104,7 +201,8 @@ export function GlobalSearchPage() {
     if (!searchQuery.trim()) return [];
     const q = searchQuery.toLowerCase();
     return MOCK_RESULTS.filter((r) => {
-      const matchesQuery = r.title.toLowerCase().includes(q) || r.subtitle.toLowerCase().includes(q);
+      const matchesQuery =
+        r.title.toLowerCase().includes(q) || r.subtitle.toLowerCase().includes(q);
       const matchesCategory = activeCategory === 'all' || r.category === activeCategory;
       return matchesQuery && matchesCategory;
     });
@@ -115,7 +213,10 @@ export function GlobalSearchPage() {
     if (!searchQuery.trim()) return [];
     if (filteredResults.length > 0) return filteredResults;
     // If query is entered but no specific match, show all that match category
-    const byCategory = activeCategory === 'all' ? MOCK_RESULTS : MOCK_RESULTS.filter((r) => r.category === activeCategory);
+    const byCategory =
+      activeCategory === 'all'
+        ? MOCK_RESULTS
+        : MOCK_RESULTS.filter((r) => r.category === activeCategory);
     return byCategory;
   }, [searchQuery, filteredResults, activeCategory]);
 
@@ -162,14 +263,17 @@ export function GlobalSearchPage() {
     : 'border-gray-300 bg-white text-gray-900 placeholder-gray-500';
 
   const showInitial = !searchQuery.trim();
-  const showNoResults = hasSearched && !isSearching && displayResults.length === 0 && searchQuery.trim();
+  const showNoResults =
+    hasSearched && !isSearching && displayResults.length === 0 && searchQuery.trim();
   const showResults = hasSearched && !isSearching && displayResults.length > 0;
 
   return (
     <div className="max-w-7xl mx-auto space-y-6" dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Search Bar */}
       <div className={`${cardClass} p-6`}>
-        <div className={`relative flex items-center gap-3 ${inputClass} border rounded-xl px-4 py-3`}>
+        <div
+          className={`relative flex items-center gap-3 ${inputClass} border rounded-xl px-4 py-3`}
+        >
           <Search size={22} className={subTextClass} />
           <input
             ref={inputRef}
@@ -387,7 +491,9 @@ export function GlobalSearchPage() {
       {/* No Results State */}
       {showNoResults && (
         <div className="flex flex-col items-center justify-center py-20 space-y-4">
-          <div className={`w-16 h-16 rounded-full flex items-center justify-center ${isDark ? 'bg-white/5' : 'bg-gray-100'}`}>
+          <div
+            className={`w-16 h-16 rounded-full flex items-center justify-center ${isDark ? 'bg-white/5' : 'bg-gray-100'}`}
+          >
             <SearchX size={32} className={subTextClass} />
           </div>
           <h3 className={`text-lg font-semibold ${textClass}`}>No results found</h3>

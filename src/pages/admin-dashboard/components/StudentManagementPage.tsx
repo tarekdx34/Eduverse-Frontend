@@ -2,14 +2,27 @@ import { useState, useMemo, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { adminService } from '../../../services/adminService';
-import { GraduationCap, Search, Filter, Plus, Minus, Wrench, X, Trash2, BookOpen, Loader2, Eye, EyeOff, AlertCircle, Pencil } from 'lucide-react';
+import {
+  GraduationCap,
+  Search,
+  Filter,
+  Plus,
+  Minus,
+  Wrench,
+  X,
+  Trash2,
+  BookOpen,
+  Loader2,
+  Eye,
+  EyeOff,
+  AlertCircle,
+  Pencil,
+} from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../../../context/AuthContext';
 import { CleanSelect } from '../../../components/shared';
 import { ADMIN_DEPARTMENT } from '../constants';
-
-
 
 interface Student {
   id: number;
@@ -22,31 +35,123 @@ interface Student {
 }
 
 const mockStudents: Student[] = [
-  { id: 1, studentId: 'STU-2024-001', name: 'Sara Mohamed', email: 'sara.m@university.edu', year: '2nd', enrolledCourses: ['CS201', 'CS203', 'MATH201'], status: 'active' },
-  { id: 2, studentId: 'STU-2024-002', name: 'Omar Ali', email: 'omar.a@university.edu', year: '3rd', enrolledCourses: ['CS301', 'CS303'], status: 'active' },
-  { id: 3, studentId: 'STU-2024-003', name: 'Fatima Nour', email: 'fatima.n@university.edu', year: '1st', enrolledCourses: ['CS101', 'CS103', 'MATH101', 'PHY101'], status: 'active' },
-  { id: 4, studentId: 'STU-2024-004', name: 'Hassan Youssef', email: 'hassan.y@university.edu', year: '4th', enrolledCourses: ['CS401', 'CS403'], status: 'active' },
-  { id: 5, studentId: 'STU-2024-005', name: 'Layla Ibrahim', email: 'layla.i@university.edu', year: '2nd', enrolledCourses: ['CS201'], status: 'on-hold' },
-  { id: 6, studentId: 'STU-2024-006', name: 'Khaled Mansour', email: 'khaled.m@university.edu', year: '3rd', enrolledCourses: ['CS301', 'CS305', 'CS307'], status: 'active' },
-  { id: 7, studentId: 'STU-2024-007', name: 'Nadia Samir', email: 'nadia.s@university.edu', year: '1st', enrolledCourses: ['CS101', 'CS103'], status: 'active' },
-  { id: 8, studentId: 'STU-2024-008', name: 'Tariq Hassan', email: 'tariq.h@university.edu', year: '4th', enrolledCourses: [], status: 'graduated' },
+  {
+    id: 1,
+    studentId: 'STU-2024-001',
+    name: 'Sara Mohamed',
+    email: 'sara.m@university.edu',
+    year: '2nd',
+    enrolledCourses: ['CS201', 'CS203', 'MATH201'],
+    status: 'active',
+  },
+  {
+    id: 2,
+    studentId: 'STU-2024-002',
+    name: 'Omar Ali',
+    email: 'omar.a@university.edu',
+    year: '3rd',
+    enrolledCourses: ['CS301', 'CS303'],
+    status: 'active',
+  },
+  {
+    id: 3,
+    studentId: 'STU-2024-003',
+    name: 'Fatima Nour',
+    email: 'fatima.n@university.edu',
+    year: '1st',
+    enrolledCourses: ['CS101', 'CS103', 'MATH101', 'PHY101'],
+    status: 'active',
+  },
+  {
+    id: 4,
+    studentId: 'STU-2024-004',
+    name: 'Hassan Youssef',
+    email: 'hassan.y@university.edu',
+    year: '4th',
+    enrolledCourses: ['CS401', 'CS403'],
+    status: 'active',
+  },
+  {
+    id: 5,
+    studentId: 'STU-2024-005',
+    name: 'Layla Ibrahim',
+    email: 'layla.i@university.edu',
+    year: '2nd',
+    enrolledCourses: ['CS201'],
+    status: 'on-hold',
+  },
+  {
+    id: 6,
+    studentId: 'STU-2024-006',
+    name: 'Khaled Mansour',
+    email: 'khaled.m@university.edu',
+    year: '3rd',
+    enrolledCourses: ['CS301', 'CS305', 'CS307'],
+    status: 'active',
+  },
+  {
+    id: 7,
+    studentId: 'STU-2024-007',
+    name: 'Nadia Samir',
+    email: 'nadia.s@university.edu',
+    year: '1st',
+    enrolledCourses: ['CS101', 'CS103'],
+    status: 'active',
+  },
+  {
+    id: 8,
+    studentId: 'STU-2024-008',
+    name: 'Tariq Hassan',
+    email: 'tariq.h@university.edu',
+    year: '4th',
+    enrolledCourses: [],
+    status: 'graduated',
+  },
 ];
 
 const availableCourses = [
-  'CS101', 'CS103', 'CS201', 'CS203', 'CS301', 'CS303',
-  'CS305', 'CS307', 'CS401', 'CS403', 'MATH101', 'MATH201', 'PHY101',
+  'CS101',
+  'CS103',
+  'CS201',
+  'CS203',
+  'CS301',
+  'CS303',
+  'CS305',
+  'CS307',
+  'CS401',
+  'CS403',
+  'MATH101',
+  'MATH201',
+  'PHY101',
 ];
 
-const enrollmentConflicts: Record<string, { course: string; conflict: string; resolution: string }[]> = {
+const enrollmentConflicts: Record<
+  string,
+  { course: string; conflict: string; resolution: string }[]
+> = {
   'STU-2024-001': [
-    { course: 'CS203', conflict: 'Schedule overlaps with MATH201 (Mon 10-12)', resolution: 'Move to section B (Mon 14-16)' },
+    {
+      course: 'CS203',
+      conflict: 'Schedule overlaps with MATH201 (Mon 10-12)',
+      resolution: 'Move to section B (Mon 14-16)',
+    },
   ],
   'STU-2024-003': [
-    { course: 'PHY101', conflict: 'Exceeds max credit hours (20/18)', resolution: 'Drop PHY101 or request overload approval' },
+    {
+      course: 'PHY101',
+      conflict: 'Exceeds max credit hours (20/18)',
+      resolution: 'Drop PHY101 or request overload approval',
+    },
   ],
 };
 
-type ModalType = 'add-course' | 'remove-course' | 'fix-enrollment' | 'edit-student' | 'delete-student' | null;
+type ModalType =
+  | 'add-course'
+  | 'remove-course'
+  | 'fix-enrollment'
+  | 'edit-student'
+  | 'delete-student'
+  | null;
 
 export function StudentManagementPage() {
   const { isDark, primaryHex } = useTheme() as any;
@@ -95,7 +200,7 @@ export function StudentManagementPage() {
       toast.error('Update failed', {
         description: error?.response?.data?.message || 'Failed to update student profile',
       });
-    }
+    },
   });
 
   const createStudentMutation = useMutation({
@@ -110,12 +215,13 @@ export function StudentManagementPage() {
       });
     },
     onError: (error: any) => {
-      const message = error?.response?.data?.message || error?.message || 'Failed to create student';
+      const message =
+        error?.response?.data?.message || error?.message || 'Failed to create student';
       setFormError(message);
       toast.error('Registration failed', {
         description: message,
       });
-    }
+    },
   });
 
   const deleteStudentMutation = useMutation({
@@ -139,7 +245,7 @@ export function StudentManagementPage() {
           description: error?.response?.data?.message || 'Failed to delete student',
         });
       }
-    }
+    },
   });
 
   const students = useMemo(() => {
@@ -156,7 +262,12 @@ export function StudentManagementPage() {
         email: user.email,
         year: user.year || '4th',
         enrolledCourses: localEnrollments[id] || baseEnrolled,
-        status: user.status === 'active' ? 'active' : (user.status === 'graduated' ? 'graduated' : 'on-hold'),
+        status:
+          user.status === 'active'
+            ? 'active'
+            : user.status === 'graduated'
+              ? 'graduated'
+              : 'on-hold',
       };
     });
   }, [studentsData, isMockMode, localEnrollments]);
@@ -168,7 +279,6 @@ export function StudentManagementPage() {
       return matchesYear && matchesStatus;
     });
   }, [students, yearFilter, statusFilter]);
-
 
   const openModal = (type: ModalType, student: Student) => {
     setSelectedStudent(student);
@@ -186,10 +296,13 @@ export function StudentManagementPage() {
     if (!selectedStudent || !selectedCourse) return;
     setLocalEnrollments((prev) => ({
       ...prev,
-      [selectedStudent.id]: [...(prev[selectedStudent.id] || selectedStudent.enrolledCourses), selectedCourse]
+      [selectedStudent.id]: [
+        ...(prev[selectedStudent.id] || selectedStudent.enrolledCourses),
+        selectedCourse,
+      ],
     }));
     toast.success('Course added', {
-      description: `${selectedCourse} has been added to ${selectedStudent.name}'s schedule.`
+      description: `${selectedCourse} has been added to ${selectedStudent.name}'s schedule.`,
     });
     closeModal();
   };
@@ -198,10 +311,12 @@ export function StudentManagementPage() {
     if (!selectedStudent) return;
     setLocalEnrollments((prev) => ({
       ...prev,
-      [selectedStudent.id]: (prev[selectedStudent.id] || selectedStudent.enrolledCourses).filter((c) => c !== course)
+      [selectedStudent.id]: (prev[selectedStudent.id] || selectedStudent.enrolledCourses).filter(
+        (c) => c !== course
+      ),
     }));
     toast.success('Course removed', {
-      description: `${course} has been removed from ${selectedStudent.name}'s schedule.`
+      description: `${course} has been removed from ${selectedStudent.name}'s schedule.`,
     });
     closeModal();
   };
@@ -218,7 +333,11 @@ export function StudentManagementPage() {
       'on-hold': 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20',
       graduated: 'bg-blue-500/10 text-blue-500 border border-blue-500/20',
     };
-    const labels: Record<string, string> = { active: 'Active', 'on-hold': 'On Hold', graduated: 'Graduated' };
+    const labels: Record<string, string> = {
+      active: 'Active',
+      'on-hold': 'On Hold',
+      graduated: 'Graduated',
+    };
     return (
       <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${styles[status]}`}>
         {labels[status]}
@@ -230,7 +349,7 @@ export function StudentManagementPage() {
   const headingClass = `${isDark ? 'text-white' : 'text-slate-900'}`;
   const labelClass = `${isDark ? 'text-slate-300' : 'text-slate-600'}`;
   const inputClass = `${isDark ? 'bg-slate-800/50 border-slate-700 text-white placeholder-slate-500' : 'bg-white border-slate-300 text-slate-900 placeholder-slate-400'} border rounded-lg px-3 py-2 text-sm focus:outline-none transition-all duration-200`;
-  
+
   // Custom focus ring style using the accent color
   const getFocusStyle = (isFocused: boolean) => ({
     borderColor: isFocused ? accentColor : undefined,
@@ -255,18 +374,20 @@ export function StudentManagementPage() {
             <h1 className={`text-2xl font-bold leading-none m-0 ${headingClass}`}>
               {t('students') || 'Students'}
             </h1>
-            <span 
+            <span
               className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-full border flex-shrink-0"
-              style={{ 
-                backgroundColor: `${accentColor}10`, 
+              style={{
+                backgroundColor: `${accentColor}10`,
                 color: accentColor,
-                borderColor: `${accentColor}20`
+                borderColor: `${accentColor}20`,
               }}
             >
               {ADMIN_DEPARTMENT}
             </span>
           </div>
-          <p className={`text-sm mt-2.5 ${labelClass}`}>Manage department student enrollments and records</p>
+          <p className={`text-sm mt-2.5 ${labelClass}`}>
+            Manage department student enrollments and records
+          </p>
         </div>
         <button
           onClick={() => setShowAddStudentModal(true)}
@@ -282,7 +403,9 @@ export function StudentManagementPage() {
       <div className="w-full">
         <div className="flex flex-col sm:flex-row gap-4 items-center">
           <div className="relative flex-1 w-full">
-            <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`} />
+            <Search
+              className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+            />
             <input
               type="text"
               placeholder="Search by name, ID, or email..."
@@ -351,7 +474,9 @@ export function StudentManagementPage() {
                 filteredStudents.map((student) => (
                   <tr key={student.id} className={`${rowHoverClass} transition-colors`}>
                     <td className={`px-4 py-3 font-medium ${headingClass}`}>{student.name}</td>
-                    <td className={`px-4 py-3 ${labelClass} font-mono text-xs`}>{student.studentId}</td>
+                    <td className={`px-4 py-3 ${labelClass} font-mono text-xs`}>
+                      {student.studentId}
+                    </td>
                     <td className={`px-4 py-3 ${labelClass}`}>{student.email}</td>
                     <td className={`px-4 py-3 ${labelClass}`}>{student.year}</td>
                     <td className="px-4 py-3">
@@ -368,7 +493,11 @@ export function StudentManagementPage() {
                             </span>
                           ))
                         ) : (
-                          <span className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>None</span>
+                          <span
+                            className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                          >
+                            None
+                          </span>
                         )}
                       </div>
                     </td>
@@ -381,7 +510,9 @@ export function StudentManagementPage() {
                             <button
                               onClick={() => openModal('edit-student', student)}
                               className={`p-1.5 rounded-lg transition-all duration-200 active:scale-95 ${
-                                isDark ? 'hover:bg-slate-700/50 text-slate-400 hover:text-white' : 'hover:bg-slate-100 text-slate-500 hover:text-slate-900'
+                                isDark
+                                  ? 'hover:bg-slate-700/50 text-slate-400 hover:text-white'
+                                  : 'hover:bg-slate-100 text-slate-500 hover:text-slate-900'
                               }`}
                             >
                               <Pencil className="w-4 h-4" />
@@ -392,7 +523,9 @@ export function StudentManagementPage() {
                             <button
                               onClick={() => openModal('fix-enrollment', student)}
                               className={`p-1.5 rounded-lg transition-all duration-200 active:scale-95 ${
-                                isDark ? 'hover:bg-amber-500/10 text-slate-400 hover:text-amber-500' : 'hover:bg-amber-50 text-slate-500 hover:text-amber-600'
+                                isDark
+                                  ? 'hover:bg-amber-500/10 text-slate-400 hover:text-amber-500'
+                                  : 'hover:bg-amber-50 text-slate-500 hover:text-amber-600'
                               }`}
                             >
                               <Wrench className="w-4 h-4" />
@@ -415,7 +548,12 @@ export function StudentManagementPage() {
                           <Tooltip text="Remove Course" accentColor={accentColor}>
                             <button
                               onClick={() => openModal('remove-course', student)}
-                              style={{ backgroundColor: isDark ? 'rgba(239, 68, 68, 0.15)' : 'rgba(239, 68, 68, 0.08)', color: '#ef4444' }}
+                              style={{
+                                backgroundColor: isDark
+                                  ? 'rgba(239, 68, 68, 0.15)'
+                                  : 'rgba(239, 68, 68, 0.08)',
+                                color: '#ef4444',
+                              }}
                               className="p-1.5 rounded-lg hover:bg-opacity-25 transition-all duration-200 active:scale-95"
                             >
                               <Minus className="w-4 h-4" />
@@ -428,7 +566,9 @@ export function StudentManagementPage() {
                           <button
                             onClick={() => openModal('delete-student', student)}
                             className={`p-1.5 rounded-lg transition-all duration-200 active:scale-95 ${
-                              isDark ? 'hover:bg-red-500/20 text-slate-400 hover:text-red-400' : 'hover:bg-red-50 text-slate-500 hover:text-red-600'
+                              isDark
+                                ? 'hover:bg-red-500/20 text-slate-400 hover:text-red-400'
+                                : 'hover:bg-red-50 text-slate-500 hover:text-red-600'
                             }`}
                           >
                             <Trash2 className="w-4 h-4" />
@@ -446,7 +586,6 @@ export function StudentManagementPage() {
                 </tr>
               )}
             </tbody>
-
           </table>
         </div>
       </div>
@@ -467,13 +606,17 @@ export function StudentManagementPage() {
             {/* Add Course Modal */}
             {activeModal === 'add-course' && (
               <>
-                <h2 className={`text-lg font-semibold ${headingClass} flex items-center gap-2 mb-4`}>
+                <h2
+                  className={`text-lg font-semibold ${headingClass} flex items-center gap-2 mb-4`}
+                >
                   <BookOpen className="w-5 h-5" style={{ color: accentColor }} />
                   Add Course — {selectedStudent.name}
                 </h2>
                 {coursesNotEnrolled.length > 0 ? (
                   <>
-                    <label className={`block text-sm font-medium mb-2 ${labelClass}`}>Select a course to enroll</label>
+                    <label className={`block text-sm font-medium mb-2 ${labelClass}`}>
+                      Select a course to enroll
+                    </label>
                     <CleanSelect
                       value={selectedCourse}
                       onChange={(e) => setSelectedCourse(e.target.value)}
@@ -481,15 +624,17 @@ export function StudentManagementPage() {
                     >
                       <option value="">Choose course...</option>
                       {coursesNotEnrolled.map((c) => (
-                        <option key={c} value={c}>{c}</option>
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
                       ))}
                     </CleanSelect>
                     <button
                       onClick={handleAddCourse}
                       disabled={!selectedCourse}
-                      style={{ 
+                      style={{
                         backgroundColor: accentColor,
-                        boxShadow: `0 10px 15px -3px ${accentColor}33, 0 4px 6px -4px ${accentColor}33`
+                        boxShadow: `0 10px 15px -3px ${accentColor}33, 0 4px 6px -4px ${accentColor}33`,
                       }}
                       className="w-full py-2.5 rounded-xl hover:opacity-90 text-white font-bold text-sm transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed mt-2"
                     >
@@ -497,7 +642,9 @@ export function StudentManagementPage() {
                     </button>
                   </>
                 ) : (
-                  <p className={`text-sm ${labelClass}`}>Student is already enrolled in all available courses.</p>
+                  <p className={`text-sm ${labelClass}`}>
+                    Student is already enrolled in all available courses.
+                  </p>
                 )}
               </>
             )}
@@ -505,7 +652,9 @@ export function StudentManagementPage() {
             {/* Remove Course Modal */}
             {activeModal === 'remove-course' && (
               <>
-                <h2 className={`text-lg font-semibold ${headingClass} flex items-center gap-2 mb-4`}>
+                <h2
+                  className={`text-lg font-semibold ${headingClass} flex items-center gap-2 mb-4`}
+                >
                   <Minus className="w-5 h-5" style={{ color: accentColor }} />
                   Remove Course — {selectedStudent.name}
                 </h2>
@@ -536,7 +685,9 @@ export function StudentManagementPage() {
             {/* Fix Enrollment Modal */}
             {activeModal === 'fix-enrollment' && (
               <>
-                <h2 className={`text-lg font-semibold ${headingClass} flex items-center gap-2 mb-4`}>
+                <h2
+                  className={`text-lg font-semibold ${headingClass} flex items-center gap-2 mb-4`}
+                >
                   <Wrench className="w-5 h-5" style={{ color: accentColor }} />
                   Fix Enrollment — {selectedStudent.name}
                 </h2>
@@ -548,7 +699,11 @@ export function StudentManagementPage() {
                         className={`p-3 rounded-lg ${isDark ? 'bg-yellow-500/5 border border-yellow-500/20' : 'bg-yellow-50 border border-yellow-200'}`}
                       >
                         <p className={`text-sm font-medium ${headingClass}`}>{item.course}</p>
-                        <p className={`text-xs mt-1 ${isDark ? 'text-yellow-400' : 'text-yellow-700'}`}>{item.conflict}</p>
+                        <p
+                          className={`text-xs mt-1 ${isDark ? 'text-yellow-400' : 'text-yellow-700'}`}
+                        >
+                          {item.conflict}
+                        </p>
                         <button
                           onClick={() => handleFixConflict(item.resolution)}
                           style={{ backgroundColor: accentColor }}
@@ -580,17 +735,21 @@ export function StudentManagementPage() {
                     <p className="text-sm text-slate-500">This action cannot be undone.</p>
                   </div>
                 </div>
-                
+
                 <p className={`text-sm mb-6 ${labelClass} leading-relaxed`}>
-                  Are you sure you want to delete <span className="font-bold text-red-500">{selectedStudent.name}</span>? 
-                  All their academic records and enrollment history will be permanently removed from the system.
+                  Are you sure you want to delete{' '}
+                  <span className="font-bold text-red-500">{selectedStudent.name}</span>? All their
+                  academic records and enrollment history will be permanently removed from the
+                  system.
                 </p>
 
                 <div className="flex gap-3">
                   <button
                     onClick={closeModal}
                     className={`flex-1 py-2.5 rounded-xl font-semibold text-sm transition-all ${
-                      isDark ? 'bg-slate-800 text-white hover:bg-slate-700' : 'bg-slate-100 text-slate-900 hover:bg-slate-200'
+                      isDark
+                        ? 'bg-slate-800 text-white hover:bg-slate-700'
+                        : 'bg-slate-100 text-slate-900 hover:bg-slate-200'
                     }`}
                   >
                     Cancel
@@ -612,8 +771,8 @@ export function StudentManagementPage() {
 
             {/* Edit Student Modal */}
             {activeModal === 'edit-student' && (
-              <EditStudentContent 
-                student={selectedStudent} 
+              <EditStudentContent
+                student={selectedStudent}
                 onSave={(data: any) => {
                   const { email, ...updateData } = data;
                   updateStudentMutation.mutate({ id: selectedStudent.id, data: updateData });
@@ -632,19 +791,28 @@ export function StudentManagementPage() {
       {/* Add Student Modal */}
       {showAddStudentModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4 animate-in fade-in duration-200">
-          <div className={`${cardClass} w-full max-w-lg shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200`}>
+          <div
+            className={`${cardClass} w-full max-w-lg shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200`}
+          >
             {/* Modal Header */}
-            <div className={`px-6 py-4 border-b flex items-center justify-between ${isDark ? 'border-white/5 bg-slate-800/50' : 'border-slate-100 bg-slate-50/50'}`}>
+            <div
+              className={`px-6 py-4 border-b flex items-center justify-between ${isDark ? 'border-white/5 bg-slate-800/50' : 'border-slate-100 bg-slate-50/50'}`}
+            >
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-[accentColor]/10" style={{ color: accentColor, backgroundColor: `${accentColor}15` }}>
+                <div
+                  className="p-2 rounded-lg bg-[accentColor]/10"
+                  style={{ color: accentColor, backgroundColor: `${accentColor}15` }}
+                >
                   <Plus className="w-5 h-5" />
                 </div>
                 <div>
                   <h2 className={`text-lg font-bold ${headingClass}`}>Register New Student</h2>
-                  <p className="text-xs text-slate-500">Create a new student account in the system</p>
+                  <p className="text-xs text-slate-500">
+                    Create a new student account in the system
+                  </p>
                 </div>
               </div>
-              <button 
+              <button
                 onClick={() => {
                   setShowAddStudentModal(false);
                   setFormError(null);
@@ -656,25 +824,29 @@ export function StudentManagementPage() {
             </div>
 
             {/* Modal Body */}
-            <form 
+            <form
               onSubmit={(e) => {
                 e.preventDefault();
                 setFormError(null);
-                
+
                 // Fix: Skip phone if empty to avoid validation errors
                 const submitData = { ...newStudent };
                 if (!submitData.phone || !submitData.phone.trim()) {
                   delete submitData.phone;
                 }
-                
+
                 createStudentMutation.mutate(submitData);
-              }} 
+              }}
               className="p-6 space-y-4"
             >
               {formError && (
-                <div className={`p-3 rounded-lg flex gap-3 text-sm animate-in slide-in-from-top-2 duration-300 ${
-                  isDark ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 'bg-red-50 text-red-700 border border-red-100'
-                }`}>
+                <div
+                  className={`p-3 rounded-lg flex gap-3 text-sm animate-in slide-in-from-top-2 duration-300 ${
+                    isDark
+                      ? 'bg-red-500/10 text-red-400 border border-red-500/20'
+                      : 'bg-red-50 text-red-700 border border-red-100'
+                  }`}
+                >
                   <AlertCircle className="w-5 h-5 shrink-0" />
                   <p>{formError}</p>
                 </div>
@@ -682,7 +854,9 @@ export function StudentManagementPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className={`text-xs font-bold uppercase tracking-wider ${labelClass}`}>First Name</label>
+                  <label className={`text-xs font-bold uppercase tracking-wider ${labelClass}`}>
+                    First Name
+                  </label>
                   <input
                     required
                     type="text"
@@ -699,7 +873,9 @@ export function StudentManagementPage() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className={`text-xs font-bold uppercase tracking-wider ${labelClass}`}>Last Name</label>
+                  <label className={`text-xs font-bold uppercase tracking-wider ${labelClass}`}>
+                    Last Name
+                  </label>
                   <input
                     required
                     type="text"
@@ -718,9 +894,14 @@ export function StudentManagementPage() {
               </div>
 
               <div className="space-y-1.5">
-                <label className={`text-xs font-bold uppercase tracking-wider ${labelClass}`}>Email Address</label>
+                <label className={`text-xs font-bold uppercase tracking-wider ${labelClass}`}>
+                  Email Address
+                </label>
                 <div className="relative group">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-[accentColor]" style={{ color: undefined }} />
+                  <Search
+                    className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-[accentColor]"
+                    style={{ color: undefined }}
+                  />
                   <input
                     required
                     type="email"
@@ -740,11 +921,13 @@ export function StudentManagementPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className={`text-xs font-bold uppercase tracking-wider ${labelClass}`}>Password</label>
+                  <label className={`text-xs font-bold uppercase tracking-wider ${labelClass}`}>
+                    Password
+                  </label>
                   <div className="relative group">
                     <input
                       required
-                      type={showPassword ? "text" : "password"}
+                      type={showPassword ? 'text' : 'password'}
                       placeholder="Minimum 8 chars"
                       value={newStudent.password}
                       onChange={(e) => setNewStudent({ ...newStudent, password: e.target.value })}
@@ -764,10 +947,14 @@ export function StudentManagementPage() {
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
-                  <p className="text-[10px] text-slate-500 mt-1">Must include Upper, Lower, Number & Special</p>
+                  <p className="text-[10px] text-slate-500 mt-1">
+                    Must include Upper, Lower, Number & Special
+                  </p>
                 </div>
                 <div className="space-y-1.5">
-                  <label className={`text-xs font-bold uppercase tracking-wider ${labelClass}`}>Phone (Optional)</label>
+                  <label className={`text-xs font-bold uppercase tracking-wider ${labelClass}`}>
+                    Phone (Optional)
+                  </label>
                   <input
                     type="tel"
                     placeholder="+201234567890"
@@ -784,15 +971,24 @@ export function StudentManagementPage() {
                 </div>
               </div>
 
-              <div className={`p-3 rounded-lg flex gap-3 text-xs border`} style={{ 
-                backgroundColor: `${accentColor}08`, 
-                borderColor: `${accentColor}15`,
-                color: isDark ? '#cbd5e1' : '#475569'
-              }}>
-                <div className="p-1 rounded text-white h-fit" style={{ backgroundColor: accentColor }}>
+              <div
+                className={`p-3 rounded-lg flex gap-3 text-xs border`}
+                style={{
+                  backgroundColor: `${accentColor}08`,
+                  borderColor: `${accentColor}15`,
+                  color: isDark ? '#cbd5e1' : '#475569',
+                }}
+              >
+                <div
+                  className="p-1 rounded text-white h-fit"
+                  style={{ backgroundColor: accentColor }}
+                >
                   <BookOpen className="w-3 h-3" />
                 </div>
-                <p>New students are automatically assigned to the <strong>{ADMIN_DEPARTMENT}</strong> department and given the default student role.</p>
+                <p>
+                  New students are automatically assigned to the <strong>{ADMIN_DEPARTMENT}</strong>{' '}
+                  department and given the default student role.
+                </p>
               </div>
 
               {/* Modal Footer */}
@@ -804,7 +1000,9 @@ export function StudentManagementPage() {
                     setFormError(null);
                   }}
                   className={`flex-1 py-2.5 rounded-lg border font-semibold text-sm transition-all ${
-                    isDark ? 'border-white/10 text-slate-300 hover:bg-white/5' : 'border-slate-200 text-slate-600 hover:bg-slate-50 shadow-sm'
+                    isDark
+                      ? 'border-white/10 text-slate-300 hover:bg-white/5'
+                      : 'border-slate-200 text-slate-600 hover:bg-slate-50 shadow-sm'
                   }`}
                 >
                   Cancel
@@ -812,9 +1010,9 @@ export function StudentManagementPage() {
                 <button
                   type="submit"
                   disabled={createStudentMutation.isPending}
-                  style={{ 
+                  style={{
                     backgroundColor: accentColor,
-                    boxShadow: `0 10px 15px -3px ${accentColor}33, 0 4px 6px -4px ${accentColor}33`
+                    boxShadow: `0 10px 15px -3px ${accentColor}33, 0 4px 6px -4px ${accentColor}33`,
                   }}
                   className="flex-1 py-2.5 rounded-lg text-white font-semibold text-sm hover:opacity-90 transition-all active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -839,7 +1037,15 @@ export function StudentManagementPage() {
   );
 }
 
-function Tooltip({ children, text, accentColor }: { children: React.ReactNode; text: string; accentColor: string }) {
+function Tooltip({
+  children,
+  text,
+  accentColor,
+}: {
+  children: React.ReactNode;
+  text: string;
+  accentColor: string;
+}) {
   const { isDark } = useTheme() as any;
   const [show, setShow] = useState(false);
   const timeoutRef = useRef<any>(null);
@@ -854,19 +1060,26 @@ function Tooltip({ children, text, accentColor }: { children: React.ReactNode; t
   };
 
   return (
-    <div className="relative flex items-center justify-center" onMouseEnter={onEnter} onMouseLeave={onLeave}>
+    <div
+      className="relative flex items-center justify-center"
+      onMouseEnter={onEnter}
+      onMouseLeave={onLeave}
+    >
       {children}
       {show && (
         <div className="absolute bottom-full mb-2 z-[60] pointer-events-none animate-in fade-in slide-in-from-bottom-1 duration-150">
-          <div 
+          <div
             className={`px-2.5 py-1 rounded-lg text-[10px] font-bold whitespace-nowrap border shadow-xl ${
-              isDark 
-                ? 'bg-slate-800 text-slate-200 border-white/10 shadow-black/20' 
+              isDark
+                ? 'bg-slate-800 text-slate-200 border-white/10 shadow-black/20'
                 : 'bg-white text-slate-600 border-slate-100 shadow-slate-200/50'
             }`}
           >
             {/* Minimal accent line */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-4 h-[2px] rounded-full" style={{ backgroundColor: accentColor }} />
+            <div
+              className="absolute top-0 left-1/2 -translate-x-1/2 w-4 h-[2px] rounded-full"
+              style={{ backgroundColor: accentColor }}
+            />
             {text}
           </div>
         </div>
@@ -877,7 +1090,16 @@ function Tooltip({ children, text, accentColor }: { children: React.ReactNode; t
 
 // --- Sub-components ---
 
-function EditStudentContent({ student, onSave, isSubmitting, accentColor, isDark, labelClass, inputClass, headingClass }: any) {
+function EditStudentContent({
+  student,
+  onSave,
+  isSubmitting,
+  accentColor,
+  isDark,
+  labelClass,
+  inputClass,
+  headingClass,
+}: any) {
   const [formData, setFormData] = useState({
     firstName: student.name.split(' ')[0] || '',
     lastName: student.name.split(' ').slice(1).join(' ') || '',
@@ -899,32 +1121,52 @@ function EditStudentContent({ student, onSave, isSubmitting, accentColor, isDark
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className={`block text-xs font-semibold uppercase tracking-wider mb-1.5 ${labelClass}`}>First Name</label>
+            <label
+              className={`block text-xs font-semibold uppercase tracking-wider mb-1.5 ${labelClass}`}
+            >
+              First Name
+            </label>
             <input
               type="text"
               required
               value={formData.firstName}
               onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
               className={`${inputClass} w-full`}
-              onFocus={(e) => { e.target.style.borderColor = accentColor; }}
-              onBlur={(e) => { e.target.style.borderColor = ''; }}
+              onFocus={(e) => {
+                e.target.style.borderColor = accentColor;
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = '';
+              }}
             />
           </div>
           <div>
-            <label className={`block text-xs font-semibold uppercase tracking-wider mb-1.5 ${labelClass}`}>Last Name</label>
+            <label
+              className={`block text-xs font-semibold uppercase tracking-wider mb-1.5 ${labelClass}`}
+            >
+              Last Name
+            </label>
             <input
               type="text"
               required
               value={formData.lastName}
               onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
               className={`${inputClass} w-full`}
-              onFocus={(e) => { e.target.style.borderColor = accentColor; }}
-              onBlur={(e) => { e.target.style.borderColor = ''; }}
+              onFocus={(e) => {
+                e.target.style.borderColor = accentColor;
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = '';
+              }}
             />
           </div>
         </div>
         <div>
-          <label className={`block text-xs font-semibold uppercase tracking-wider mb-1.5 ${labelClass}`}>Email Address</label>
+          <label
+            className={`block text-xs font-semibold uppercase tracking-wider mb-1.5 ${labelClass}`}
+          >
+            Email Address
+          </label>
           <div className="relative">
             <input
               type="email"
@@ -942,9 +1184,9 @@ function EditStudentContent({ student, onSave, isSubmitting, accentColor, isDark
         <button
           type="submit"
           disabled={isSubmitting}
-          style={{ 
+          style={{
             backgroundColor: accentColor,
-            boxShadow: `0 10px 15px -3px ${accentColor}33`
+            boxShadow: `0 10px 15px -3px ${accentColor}33`,
           }}
           className="w-full py-2.5 rounded-xl hover:opacity-90 text-white font-bold text-sm transition-all active:scale-[0.98] disabled:opacity-50 mt-2 flex items-center justify-center gap-2"
         >

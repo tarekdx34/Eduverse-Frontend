@@ -17,4 +17,11 @@ export interface AIFeature {
   badge?: string;
 }
 
-export type FeatureId = 'summarizer' | 'quiz' | 'feedback' | 'chatbot' | 'voice' | 'image-to-text' | 'flashcards';
+export type FeatureId =
+  | 'summarizer'
+  | 'quiz'
+  | 'feedback'
+  | 'chatbot'
+  | 'voice'
+  | 'image-to-text'
+  | 'flashcards';

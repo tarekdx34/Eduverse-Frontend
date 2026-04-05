@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Calendar, Clock, Users, Check, X, AlertCircle, Settings } from 'lucide-react';
 import { CleanSelect } from './';
 
-
 export interface RegistrationPeriod {
   id: string;
   courseId: string;
@@ -108,9 +107,7 @@ export function CourseRegistrationPeriod({
   const saveEditing = () => {
     if (!editingId || !editForm) return;
 
-    const updatedPeriods = periods.map((p) =>
-      p.id === editingId ? { ...p, ...editForm } : p
-    );
+    const updatedPeriods = periods.map((p) => (p.id === editingId ? { ...p, ...editForm } : p));
     setPeriods(updatedPeriods);
     onUpdatePeriod(editingId, editForm);
     setEditingId(null);
@@ -365,8 +362,8 @@ export function CourseRegistrationPeriod({
                           period.enrolled >= period.capacity
                             ? 'bg-orange-500'
                             : period.enrolled >= period.capacity * 0.8
-                            ? 'bg-yellow-500'
-                            : 'bg-green-500'
+                              ? 'bg-yellow-500'
+                              : 'bg-green-500'
                         }`}
                         style={{ width: `${getEnrollmentProgress(period)}%` }}
                       />
@@ -490,7 +487,10 @@ export function CourseRegistrationPeriod({
                     min="0"
                     value={newPeriod.waitlistCapacity}
                     onChange={(e) =>
-                      setNewPeriod({ ...newPeriod, waitlistCapacity: parseInt(e.target.value) || 0 })
+                      setNewPeriod({
+                        ...newPeriod,
+                        waitlistCapacity: parseInt(e.target.value) || 0,
+                      })
                     }
                     disabled={!newPeriod.waitlistEnabled}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 disabled:bg-gray-100"

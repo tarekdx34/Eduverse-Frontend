@@ -31,6 +31,7 @@ import {
   NotificationsPage,
   AIAssistantPage,
   LabResourcesPage,
+  AssignmentGradingPage,
 } from './components';
 import { QuizzesPage } from './components/QuizzesPage';
 import { DashboardHeader, DashboardSidebar, MessagingChat } from '../../components/shared';
@@ -53,6 +54,7 @@ type TabKey =
   | 'courses'
   | 'labs'
   | 'quizzes'
+  | 'assignments'
   | 'grading'
   | 'students'
   | 'schedule'
@@ -71,6 +73,7 @@ const TABS: { key: TabKey; label: string; icon: any; group: string }[] = [
   { key: 'courses', label: 'Courses', icon: BookOpen, group: 'Teaching' },
   { key: 'labs', label: 'Labs', icon: Beaker, group: 'Teaching' },
   { key: 'quizzes', label: 'Quizzes', icon: HelpCircle, group: 'Teaching' },
+  { key: 'assignments', label: 'Assignments', icon: FileText, group: 'Teaching' },
   { key: 'lab-resources', label: 'Lab Resources', icon: FolderOpen, group: 'Teaching' },
   { key: 'grading', label: 'Grading', icon: FileText, group: 'Teaching' },
   { key: 'students', label: 'Students', icon: Users, group: 'Students' },
@@ -213,15 +216,13 @@ function TADashboardContent() {
         )}
 
         {/* Labs Tab */}
-        {activeTab === 'labs' && (
-          <LabsPage
-            labs={selectedCourseId ? LABS.filter((l) => l.courseId === selectedCourseId) : LABS}
-            onViewLab={handleViewLab}
-          />
-        )}
+        {activeTab === 'labs' && <LabsPage />}
 
         {/* Quizzes Tab */}
         {activeTab === 'quizzes' && <QuizzesPage />}
+
+        {/* Assignments Tab */}
+        {activeTab === 'assignments' && <AssignmentGradingPage />}
 
         {/* Grading Tab */}
         {activeTab === 'grading' && (

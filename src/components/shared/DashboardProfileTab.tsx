@@ -55,12 +55,14 @@ export function DashboardProfileTab({
   const { user } = useAuth();
   const mergedProfileData: ProfileData = {
     ...profileData,
-    ...(user ? {
-      fullName: user.fullName || `${user.firstName} ${user.lastName}`,
-      email: user.email,
-      role: user.roles?.[0] || profileData.role,
-      studentId: String(user.userId),
-    } : {}),
+    ...(user
+      ? {
+          fullName: user.fullName || `${user.firstName} ${user.lastName}`,
+          email: user.email,
+          role: user.roles?.[0] || profileData.role,
+          studentId: String(user.userId),
+        }
+      : {}),
   };
   const [isEditing, setIsEditing] = useState(false);
   const [data, setData] = useState(mergedProfileData);
@@ -427,7 +429,6 @@ export function DashboardProfileTab({
             </div>
           )}
         </div>
-
       </div>
     </div>
   );

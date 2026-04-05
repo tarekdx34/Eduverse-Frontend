@@ -32,7 +32,6 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { CleanSelect } from '../../../components/shared';
 
-
 interface AnalyticsReportsPageProps {
   analytics: any;
   onExport: (format: string) => void;
@@ -72,8 +71,12 @@ export function AnalyticsReportsPage({ analytics, onExport }: AnalyticsReportsPa
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('analytics')}</h1>
-          <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('systemWideAnalytics')}</p>
+          <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+            {t('analytics')}
+          </h1>
+          <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+            {t('systemWideAnalytics')}
+          </p>
         </div>
         <div className="flex items-center gap-3">
           <CleanSelect
@@ -106,21 +109,25 @@ export function AnalyticsReportsPage({ analytics, onExport }: AnalyticsReportsPa
       </div>
 
       {/* Report Type Tabs */}
-      <div className={`p-2 rounded-xl border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+      <div
+        className={`p-2 rounded-xl border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
+      >
         <div className="flex gap-2">
           {[
             { id: 'users', label: t('userAnalytics'), icon: Users },
             { id: 'courses', label: t('courseAnalytics'), icon: BookOpen },
             { id: 'engagement', label: t('engagement'), icon: TrendingUp },
             { id: 'ai', label: t('aiUsage'), icon: Brain },
-          ].map(tab => (
+          ].map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveReport(tab.id)}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 activeReport === tab.id
                   ? 'bg-red-600 text-white'
-                  : isDark ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-100'
+                  : isDark
+                    ? 'text-gray-300 hover:bg-gray-700'
+                    : 'text-gray-700 hover:bg-gray-100'
               }`}
             >
               <tab.icon size={18} />
@@ -134,8 +141,12 @@ export function AnalyticsReportsPage({ analytics, onExport }: AnalyticsReportsPa
       {activeReport === 'users' && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* User Growth Chart */}
-          <div className={`lg:col-span-2 rounded-xl p-6 border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-            <h3 className={`text-lg font-semibold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('userGrowthTrend')}</h3>
+          <div
+            className={`lg:col-span-2 rounded-xl p-6 border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
+          >
+            <h3 className={`text-lg font-semibold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              {t('userGrowthTrend')}
+            </h3>
             <ResponsiveContainer width="100%" height={300}>
               <AreaChart data={analytics.userGrowth}>
                 <defs>
@@ -149,21 +160,56 @@ export function AnalyticsReportsPage({ analytics, onExport }: AnalyticsReportsPa
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#374151' : '#f0f0f0'} />
-                <XAxis dataKey="month" tick={{ fill: isDark ? '#9ca3af' : '#6b7280', fontSize: 12 }} />
+                <XAxis
+                  dataKey="month"
+                  tick={{ fill: isDark ? '#9ca3af' : '#6b7280', fontSize: 12 }}
+                />
                 <YAxis tick={{ fill: isDark ? '#9ca3af' : '#6b7280', fontSize: 12 }} />
-                <Tooltip contentStyle={{ backgroundColor: isDark ? '#1f2937' : 'white', border: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`, borderRadius: '8px' }} />
-                <Area type="monotone" dataKey="students" stroke="#3b82f6" strokeWidth={2} fill="url(#studentGrad)" name="Students" />
-                <Area type="monotone" dataKey="instructors" stroke="#10b981" strokeWidth={2} fill="url(#instructorGrad)" name="Instructors" />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: isDark ? '#1f2937' : 'white',
+                    border: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`,
+                    borderRadius: '8px',
+                  }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="students"
+                  stroke="#3b82f6"
+                  strokeWidth={2}
+                  fill="url(#studentGrad)"
+                  name="Students"
+                />
+                <Area
+                  type="monotone"
+                  dataKey="instructors"
+                  stroke="#10b981"
+                  strokeWidth={2}
+                  fill="url(#instructorGrad)"
+                  name="Instructors"
+                />
               </AreaChart>
             </ResponsiveContainer>
           </div>
 
           {/* Role Distribution */}
-          <div className={`rounded-xl p-6 border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-            <h3 className={`text-lg font-semibold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('userDistribution')}</h3>
+          <div
+            className={`rounded-xl p-6 border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
+          >
+            <h3 className={`text-lg font-semibold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              {t('userDistribution')}
+            </h3>
             <ResponsiveContainer width="100%" height={250}>
               <PieChart>
-                <Pie data={roleDistribution} cx="50%" cy="50%" innerRadius={50} outerRadius={80} dataKey="value" label>
+                <Pie
+                  data={roleDistribution}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={50}
+                  outerRadius={80}
+                  dataKey="value"
+                  label
+                >
                   {roleDistribution.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
@@ -182,10 +228,23 @@ export function AnalyticsReportsPage({ analytics, onExport }: AnalyticsReportsPa
               { label: t('newThisMonth'), value: '320', change: '+18%', positive: true },
               { label: t('inactiveUsers'), value: '245', change: '-8%', positive: true },
             ].map((stat, index) => (
-              <div key={index} className={`p-4 rounded-xl border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-                <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{stat.label}</div>
-                <div className={`text-2xl font-bold mt-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{stat.value}</div>
-                <div className={`text-sm mt-1 ${stat.positive ? 'text-green-600' : 'text-red-600'}`}>{stat.change}</div>
+              <div
+                key={index}
+                className={`p-4 rounded-xl border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
+              >
+                <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                  {stat.label}
+                </div>
+                <div
+                  className={`text-2xl font-bold mt-1 ${isDark ? 'text-white' : 'text-gray-900'}`}
+                >
+                  {stat.value}
+                </div>
+                <div
+                  className={`text-sm mt-1 ${stat.positive ? 'text-green-600' : 'text-red-600'}`}
+                >
+                  {stat.change}
+                </div>
               </div>
             ))}
           </div>
@@ -196,14 +255,27 @@ export function AnalyticsReportsPage({ analytics, onExport }: AnalyticsReportsPa
       {activeReport === 'courses' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Course Performance Chart */}
-          <div className={`rounded-xl p-6 border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-            <h3 className={`text-lg font-semibold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('coursePerformance')}</h3>
+          <div
+            className={`rounded-xl p-6 border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
+          >
+            <h3 className={`text-lg font-semibold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              {t('coursePerformance')}
+            </h3>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={coursePerformance}>
                 <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#374151' : '#f0f0f0'} />
-                <XAxis dataKey="course" tick={{ fill: isDark ? '#9ca3af' : '#6b7280', fontSize: 12 }} />
+                <XAxis
+                  dataKey="course"
+                  tick={{ fill: isDark ? '#9ca3af' : '#6b7280', fontSize: 12 }}
+                />
                 <YAxis tick={{ fill: isDark ? '#9ca3af' : '#6b7280', fontSize: 12 }} />
-                <Tooltip contentStyle={{ backgroundColor: isDark ? '#1f2937' : 'white', border: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`, borderRadius: '8px' }} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: isDark ? '#1f2937' : 'white',
+                    border: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`,
+                    borderRadius: '8px',
+                  }}
+                />
                 <Bar dataKey="avgGrade" fill="#3b82f6" name="Avg Grade" />
                 <Bar dataKey="completion" fill="#10b981" name="Completion %" />
               </BarChart>
@@ -211,14 +283,32 @@ export function AnalyticsReportsPage({ analytics, onExport }: AnalyticsReportsPa
           </div>
 
           {/* Course Engagement */}
-          <div className={`rounded-xl p-6 border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-            <h3 className={`text-lg font-semibold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('engagementByCourse')}</h3>
+          <div
+            className={`rounded-xl p-6 border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
+          >
+            <h3 className={`text-lg font-semibold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              {t('engagementByCourse')}
+            </h3>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={analytics.courseEngagement} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#374151' : '#f0f0f0'} />
-                <XAxis type="number" tick={{ fill: isDark ? '#9ca3af' : '#6b7280', fontSize: 12 }} />
-                <YAxis dataKey="course" type="category" tick={{ fill: isDark ? '#9ca3af' : '#6b7280', fontSize: 12 }} width={60} />
-                <Tooltip contentStyle={{ backgroundColor: isDark ? '#1f2937' : 'white', border: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`, borderRadius: '8px' }} />
+                <XAxis
+                  type="number"
+                  tick={{ fill: isDark ? '#9ca3af' : '#6b7280', fontSize: 12 }}
+                />
+                <YAxis
+                  dataKey="course"
+                  type="category"
+                  tick={{ fill: isDark ? '#9ca3af' : '#6b7280', fontSize: 12 }}
+                  width={60}
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: isDark ? '#1f2937' : 'white',
+                    border: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`,
+                    borderRadius: '8px',
+                  }}
+                />
                 <Bar dataKey="avgAttendance" fill="#8b5cf6" name="Attendance %" />
                 <Bar dataKey="activeStudents" fill="#f59e0b" name="Active Students" />
               </BarChart>
@@ -226,28 +316,69 @@ export function AnalyticsReportsPage({ analytics, onExport }: AnalyticsReportsPa
           </div>
 
           {/* Course Stats */}
-          <div className={`lg:col-span-2 rounded-xl p-6 border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-            <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('courseStatistics')}</h3>
+          <div
+            className={`lg:col-span-2 rounded-xl p-6 border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
+          >
+            <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              {t('courseStatistics')}
+            </h3>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className={isDark ? 'border-b border-gray-700' : 'border-b border-gray-200'}>
-                    <th className={`text-left py-3 px-4 text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{t('course')}</th>
-                    <th className={`text-left py-3 px-4 text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{t('avgGrade')}</th>
-                    <th className={`text-left py-3 px-4 text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{t('attendance')}</th>
-                    <th className={`text-left py-3 px-4 text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{t('activeUsers')}</th>
-                    <th className={`text-left py-3 px-4 text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{t('enrollmentTrends')}</th>
+                    <th
+                      className={`text-left py-3 px-4 text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-600'}`}
+                    >
+                      {t('course')}
+                    </th>
+                    <th
+                      className={`text-left py-3 px-4 text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-600'}`}
+                    >
+                      {t('avgGrade')}
+                    </th>
+                    <th
+                      className={`text-left py-3 px-4 text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-600'}`}
+                    >
+                      {t('attendance')}
+                    </th>
+                    <th
+                      className={`text-left py-3 px-4 text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-600'}`}
+                    >
+                      {t('activeUsers')}
+                    </th>
+                    <th
+                      className={`text-left py-3 px-4 text-sm font-semibold ${isDark ? 'text-gray-300' : 'text-gray-600'}`}
+                    >
+                      {t('enrollmentTrends')}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {analytics.courseEngagement?.map((course: any, index: number) => (
-                    <tr key={index} className={isDark ? 'border-b border-gray-700' : 'border-b border-gray-100'}>
-                      <td className={`py-3 px-4 font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{course.course}</td>
-                      <td className={`py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{course.avgGrade}%</td>
-                      <td className={`py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{course.avgAttendance}%</td>
-                      <td className={`py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{course.activeStudents}</td>
+                    <tr
+                      key={index}
+                      className={isDark ? 'border-b border-gray-700' : 'border-b border-gray-100'}
+                    >
+                      <td
+                        className={`py-3 px-4 font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}
+                      >
+                        {course.course}
+                      </td>
+                      <td className={`py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                        {course.avgGrade}%
+                      </td>
+                      <td className={`py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                        {course.avgAttendance}%
+                      </td>
+                      <td className={`py-3 px-4 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                        {course.activeStudents}
+                      </td>
                       <td className="py-3 px-4">
-                        <span className={`px-2 py-1 ${isDark ? 'bg-green-900/50 text-green-300' : 'bg-green-100 text-green-700'} text-xs rounded-full`}>+5%</span>
+                        <span
+                          className={`px-2 py-1 ${isDark ? 'bg-green-900/50 text-green-300' : 'bg-green-100 text-green-700'} text-xs rounded-full`}
+                        >
+                          +5%
+                        </span>
                       </td>
                     </tr>
                   ))}
@@ -261,18 +392,49 @@ export function AnalyticsReportsPage({ analytics, onExport }: AnalyticsReportsPa
       {/* Engagement Analytics */}
       {activeReport === 'engagement' && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className={`lg:col-span-2 rounded-xl p-6 border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-            <h3 className={`text-lg font-semibold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('weeklyEngagement')}</h3>
+          <div
+            className={`lg:col-span-2 rounded-xl p-6 border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
+          >
+            <h3 className={`text-lg font-semibold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              {t('weeklyEngagement')}
+            </h3>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={engagementData}>
                 <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#374151' : '#f0f0f0'} />
-                <XAxis dataKey="name" tick={{ fill: isDark ? '#9ca3af' : '#6b7280', fontSize: 12 }} />
+                <XAxis
+                  dataKey="name"
+                  tick={{ fill: isDark ? '#9ca3af' : '#6b7280', fontSize: 12 }}
+                />
                 <YAxis tick={{ fill: isDark ? '#9ca3af' : '#6b7280', fontSize: 12 }} />
-                <Tooltip contentStyle={{ backgroundColor: isDark ? '#1f2937' : 'white', border: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`, borderRadius: '8px' }} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: isDark ? '#1f2937' : 'white',
+                    border: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`,
+                    borderRadius: '8px',
+                  }}
+                />
                 <Legend />
-                <Line type="monotone" dataKey="logins" stroke="#3b82f6" strokeWidth={2} name="Logins" />
-                <Line type="monotone" dataKey="submissions" stroke="#10b981" strokeWidth={2} name="Submissions" />
-                <Line type="monotone" dataKey="messages" stroke="#f59e0b" strokeWidth={2} name="Messages" />
+                <Line
+                  type="monotone"
+                  dataKey="logins"
+                  stroke="#3b82f6"
+                  strokeWidth={2}
+                  name="Logins"
+                />
+                <Line
+                  type="monotone"
+                  dataKey="submissions"
+                  stroke="#10b981"
+                  strokeWidth={2}
+                  name="Submissions"
+                />
+                <Line
+                  type="monotone"
+                  dataKey="messages"
+                  stroke="#f59e0b"
+                  strokeWidth={2}
+                  name="Messages"
+                />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -284,14 +446,48 @@ export function AnalyticsReportsPage({ analytics, onExport }: AnalyticsReportsPa
               { label: 'Avg Session Duration', value: '24 min', icon: Calendar, color: 'purple' },
               { label: 'Peak Hours', value: '2-4 PM', icon: TrendingUp, color: 'orange' },
             ].map((stat, index) => (
-              <div key={index} className={`p-4 rounded-xl border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+              <div
+                key={index}
+                className={`p-4 rounded-xl border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
+              >
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg" style={{ backgroundColor: isDark ? { blue: 'rgba(59,130,246,0.2)', green: 'rgba(16,185,129,0.2)', purple: 'rgba(139,92,246,0.2)', orange: 'rgba(249,115,22,0.2)' }[stat.color] : { blue: '#dbeafe', green: '#dcfce7', purple: '#ede9fe', orange: '#ffedd5' }[stat.color] }}>
-                    <stat.icon style={{ color: { blue: '#2563eb', green: '#16a34a', purple: '#7c3aed', orange: '#ea580c' }[stat.color] }} size={20} />
+                  <div
+                    className="p-2 rounded-lg"
+                    style={{
+                      backgroundColor: isDark
+                        ? {
+                            blue: 'rgba(59,130,246,0.2)',
+                            green: 'rgba(16,185,129,0.2)',
+                            purple: 'rgba(139,92,246,0.2)',
+                            orange: 'rgba(249,115,22,0.2)',
+                          }[stat.color]
+                        : {
+                            blue: '#dbeafe',
+                            green: '#dcfce7',
+                            purple: '#ede9fe',
+                            orange: '#ffedd5',
+                          }[stat.color],
+                    }}
+                  >
+                    <stat.icon
+                      style={{
+                        color: {
+                          blue: '#2563eb',
+                          green: '#16a34a',
+                          purple: '#7c3aed',
+                          orange: '#ea580c',
+                        }[stat.color],
+                      }}
+                      size={20}
+                    />
                   </div>
                   <div>
-                    <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{stat.label}</div>
-                    <div className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{stat.value}</div>
+                    <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                      {stat.label}
+                    </div>
+                    <div className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                      {stat.value}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -305,25 +501,53 @@ export function AnalyticsReportsPage({ analytics, onExport }: AnalyticsReportsPa
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
             {analytics.aiUsage?.map((item: any, index: number) => (
-              <div key={index} className={`p-4 rounded-xl border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+              <div
+                key={index}
+                className={`p-4 rounded-xl border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
+              >
                 <div className="flex items-center justify-between mb-2">
-                  <span className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{item.feature}</span>
-                  <span className={`text-xs font-medium ${isDark ? 'text-green-400' : 'text-green-600'}`}>{item.trend}</span>
+                  <span
+                    className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}
+                  >
+                    {item.feature}
+                  </span>
+                  <span
+                    className={`text-xs font-medium ${isDark ? 'text-green-400' : 'text-green-600'}`}
+                  >
+                    {item.trend}
+                  </span>
                 </div>
-                <div className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{item.usage.toLocaleString()}</div>
-                <div className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>requests this month</div>
+                <div className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  {item.usage.toLocaleString()}
+                </div>
+                <div className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                  requests this month
+                </div>
               </div>
             ))}
           </div>
 
-          <div className={`rounded-xl p-6 border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-            <h3 className={`text-lg font-semibold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('aiUsageStats')}</h3>
+          <div
+            className={`rounded-xl p-6 border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
+          >
+            <h3 className={`text-lg font-semibold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              {t('aiUsageStats')}
+            </h3>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={analytics.aiUsage}>
                 <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#374151' : '#f0f0f0'} />
-                <XAxis dataKey="feature" tick={{ fill: isDark ? '#9ca3af' : '#6b7280', fontSize: 12 }} />
+                <XAxis
+                  dataKey="feature"
+                  tick={{ fill: isDark ? '#9ca3af' : '#6b7280', fontSize: 12 }}
+                />
                 <YAxis tick={{ fill: isDark ? '#9ca3af' : '#6b7280', fontSize: 12 }} />
-                <Tooltip contentStyle={{ backgroundColor: isDark ? '#1f2937' : 'white', border: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`, borderRadius: '8px' }} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: isDark ? '#1f2937' : 'white',
+                    border: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`,
+                    borderRadius: '8px',
+                  }}
+                />
                 <Bar dataKey="usage" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>

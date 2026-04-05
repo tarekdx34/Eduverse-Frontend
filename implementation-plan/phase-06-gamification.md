@@ -9,24 +9,26 @@
 ## 6.1 Gamification Module
 
 ### Database Tables
-| Table | Description |
-|-------|-------------|
-| `achievements` | Achievement definitions with criteria |
-| `badges` | Badge definitions and metadata |
-| `user_badges` | Badges earned by users |
-| `user_levels` | User gamification levels and XP tracking |
-| `daily_streaks` | Learning streak tracking |
-| `xp_transactions` | Experience points earned/spent |
-| `leaderboards` | Leaderboard definitions |
-| `leaderboard_rankings` | User rankings on leaderboards |
-| `milestone_definitions` | Milestone thresholds for badges |
-| `points_rules` | Rules for earning/spending points |
-| `rewards` | Reward definitions |
-| `reward_redemptions` | Reward redemption history |
+
+| Table                   | Description                              |
+| ----------------------- | ---------------------------------------- |
+| `achievements`          | Achievement definitions with criteria    |
+| `badges`                | Badge definitions and metadata           |
+| `user_badges`           | Badges earned by users                   |
+| `user_levels`           | User gamification levels and XP tracking |
+| `daily_streaks`         | Learning streak tracking                 |
+| `xp_transactions`       | Experience points earned/spent           |
+| `leaderboards`          | Leaderboard definitions                  |
+| `leaderboard_rankings`  | User rankings on leaderboards            |
+| `milestone_definitions` | Milestone thresholds for badges          |
+| `points_rules`          | Rules for earning/spending points        |
+| `rewards`               | Reward definitions                       |
+| `reward_redemptions`    | Reward redemption history                |
 
 ### Entity Definitions
 
 #### Badge Entity
+
 ```typescript
 @Entity('badges')
 export class Badge {
@@ -57,6 +59,7 @@ export class Badge {
 ```
 
 #### UserBadge Entity
+
 ```typescript
 @Entity('user_badges')
 export class UserBadge {
@@ -81,7 +84,7 @@ export class UserBadge {
   earnedAt: Date;
 
   @Column({ type: 'varchar', length: 50, nullable: true })
-  earnedContext: string;  // 'course_completion', 'quiz_perfect', etc.
+  earnedContext: string; // 'course_completion', 'quiz_perfect', etc.
 
   @Column({ type: 'bigint', unsigned: true, nullable: true })
   contextId: number;
@@ -92,6 +95,7 @@ export class UserBadge {
 ```
 
 #### UserLevel Entity
+
 ```typescript
 @Entity('user_levels')
 export class UserLevel {
@@ -124,7 +128,7 @@ export class UserLevel {
   totalPointsSpent: number;
 
   @Column({ type: 'varchar', length: 50, nullable: true })
-  title: string;  // 'Novice', 'Scholar', 'Expert', etc.
+  title: string; // 'Novice', 'Scholar', 'Expert', etc.
 
   @UpdateDateColumn()
   updatedAt: Date;
@@ -132,6 +136,7 @@ export class UserLevel {
 ```
 
 #### DailyStreak Entity
+
 ```typescript
 @Entity('daily_streaks')
 export class DailyStreak {
@@ -159,6 +164,7 @@ export class DailyStreak {
 ```
 
 #### XpTransaction Entity
+
 ```typescript
 @Entity('xp_transactions')
 export class XpTransaction {
@@ -169,13 +175,13 @@ export class XpTransaction {
   userId: number;
 
   @Column({ type: 'int' })
-  amount: number;  // Positive for earned, negative for spent
+  amount: number; // Positive for earned, negative for spent
 
   @Column({ type: 'enum', enum: ['earned', 'spent', 'bonus', 'penalty'] })
   transactionType: string;
 
   @Column({ type: 'varchar', length: 100 })
-  source: string;  // 'assignment_complete', 'quiz_passed', 'streak_bonus', etc.
+  source: string; // 'assignment_complete', 'quiz_passed', 'streak_bonus', etc.
 
   @Column({ type: 'bigint', unsigned: true, nullable: true })
   sourceId: number;
@@ -189,6 +195,7 @@ export class XpTransaction {
 ```
 
 #### LeaderboardRanking Entity
+
 ```typescript
 @Entity('leaderboard_rankings')
 export class LeaderboardRanking {
@@ -221,36 +228,37 @@ export class LeaderboardRanking {
 
 ### API Endpoints
 
-| Method | Endpoint | Description | Roles |
-|--------|----------|-------------|-------|
-| **Profile** | | | |
-| GET | `/api/gamification/profile` | Get current user's gamification profile (level, XP, streaks) | STUDENT |
-| GET | `/api/gamification/profile/:userId` | Get any user's profile | INSTRUCTOR, ADMIN |
-| **Achievements** | | | |
-| GET | `/api/gamification/achievements` | List all achievements | ALL |
-| GET | `/api/gamification/achievements/my` | Get user's earned achievements | STUDENT |
-| GET | `/api/gamification/achievements/progress` | Get progress toward achievements | STUDENT |
-| **Badges** | | | |
-| GET | `/api/gamification/badges` | List all available badges | ALL |
-| GET | `/api/gamification/badges/my` | Get user's earned badges | STUDENT |
-| **Leaderboard** | | | |
-| GET | `/api/gamification/leaderboard` | Get leaderboard (filter by course, global) | ALL |
-| GET | `/api/gamification/leaderboard/my-rank` | Get current user's rank | STUDENT |
-| **Streaks** | | | |
-| GET | `/api/gamification/streaks` | Get user's streak info | STUDENT |
-| **Rewards** | | | |
-| GET | `/api/gamification/rewards` | List available rewards | STUDENT |
-| POST | `/api/gamification/rewards/:id/redeem` | Redeem a reward | STUDENT |
-| GET | `/api/gamification/rewards/my` | Get redemption history | STUDENT |
-| **XP History** | | | |
-| GET | `/api/gamification/xp/history` | Get XP transaction history | STUDENT |
-| **Admin** | | | |
-| POST | `/api/gamification/achievements` | Create achievement | ADMIN |
-| POST | `/api/gamification/badges` | Create badge | ADMIN |
-| POST | `/api/gamification/rewards` | Create reward | ADMIN |
-| PUT | `/api/gamification/points-rules` | Update points rules | ADMIN |
+| Method           | Endpoint                                  | Description                                                  | Roles             |
+| ---------------- | ----------------------------------------- | ------------------------------------------------------------ | ----------------- |
+| **Profile**      |                                           |                                                              |                   |
+| GET              | `/api/gamification/profile`               | Get current user's gamification profile (level, XP, streaks) | STUDENT           |
+| GET              | `/api/gamification/profile/:userId`       | Get any user's profile                                       | INSTRUCTOR, ADMIN |
+| **Achievements** |                                           |                                                              |                   |
+| GET              | `/api/gamification/achievements`          | List all achievements                                        | ALL               |
+| GET              | `/api/gamification/achievements/my`       | Get user's earned achievements                               | STUDENT           |
+| GET              | `/api/gamification/achievements/progress` | Get progress toward achievements                             | STUDENT           |
+| **Badges**       |                                           |                                                              |                   |
+| GET              | `/api/gamification/badges`                | List all available badges                                    | ALL               |
+| GET              | `/api/gamification/badges/my`             | Get user's earned badges                                     | STUDENT           |
+| **Leaderboard**  |                                           |                                                              |                   |
+| GET              | `/api/gamification/leaderboard`           | Get leaderboard (filter by course, global)                   | ALL               |
+| GET              | `/api/gamification/leaderboard/my-rank`   | Get current user's rank                                      | STUDENT           |
+| **Streaks**      |                                           |                                                              |                   |
+| GET              | `/api/gamification/streaks`               | Get user's streak info                                       | STUDENT           |
+| **Rewards**      |                                           |                                                              |                   |
+| GET              | `/api/gamification/rewards`               | List available rewards                                       | STUDENT           |
+| POST             | `/api/gamification/rewards/:id/redeem`    | Redeem a reward                                              | STUDENT           |
+| GET              | `/api/gamification/rewards/my`            | Get redemption history                                       | STUDENT           |
+| **XP History**   |                                           |                                                              |                   |
+| GET              | `/api/gamification/xp/history`            | Get XP transaction history                                   | STUDENT           |
+| **Admin**        |                                           |                                                              |                   |
+| POST             | `/api/gamification/achievements`          | Create achievement                                           | ADMIN             |
+| POST             | `/api/gamification/badges`                | Create badge                                                 | ADMIN             |
+| POST             | `/api/gamification/rewards`               | Create reward                                                | ADMIN             |
+| PUT              | `/api/gamification/points-rules`          | Update points rules                                          | ADMIN             |
 
 ### Query Parameters
+
 ```typescript
 interface QueryLeaderboardDto {
   courseId?: number;
@@ -262,6 +270,7 @@ interface QueryLeaderboardDto {
 ```
 
 ### Business Logic
+
 1. **XP Awarding**: Auto-award XP when students complete activities:
    - Assignment submitted: +10 XP
    - Assignment graded A: +25 XP
@@ -276,6 +285,7 @@ interface QueryLeaderboardDto {
 6. **Reward Redemption**: Check user has enough points. Deduct points. Grant reward.
 
 ### Frontend Components Using This Module
+
 - **Student**: Gamification.tsx
 
 ---
@@ -283,15 +293,17 @@ interface QueryLeaderboardDto {
 ## 6.2 Tasks & Reminders Module
 
 ### Database Tables
-| Table | Description |
-|-------|-------------|
-| `student_tasks` | Student task/todo tracking |
-| `task_completion` | Task completion records |
+
+| Table                | Description                        |
+| -------------------- | ---------------------------------- |
+| `student_tasks`      | Student task/todo tracking         |
+| `task_completion`    | Task completion records            |
 | `deadline_reminders` | Assignment/task deadline reminders |
 
 ### Entity Definitions
 
 #### StudentTask Entity
+
 ```typescript
 @Entity('student_tasks')
 export class StudentTask {
@@ -311,7 +323,11 @@ export class StudentTask {
   @Column({ type: 'text', nullable: true })
   description: string;
 
-  @Column({ type: 'enum', enum: ['pending', 'in_progress', 'completed', 'cancelled'], default: 'pending' })
+  @Column({
+    type: 'enum',
+    enum: ['pending', 'in_progress', 'completed', 'cancelled'],
+    default: 'pending',
+  })
   status: string;
 
   @Column({ type: 'enum', enum: ['low', 'medium', 'high', 'urgent'], default: 'medium' })
@@ -324,13 +340,13 @@ export class StudentTask {
   courseId: number;
 
   @Column({ type: 'varchar', length: 50, nullable: true })
-  category: string;  // 'study', 'assignment', 'project', 'personal'
+  category: string; // 'study', 'assignment', 'project', 'personal'
 
   @Column({ type: 'tinyint', default: 0 })
-  isAutoGenerated: boolean;  // Auto-created from assignments/quizzes
+  isAutoGenerated: boolean; // Auto-created from assignments/quizzes
 
   @Column({ type: 'varchar', length: 50, nullable: true })
-  sourceType: string;  // 'assignment', 'quiz', 'lab'
+  sourceType: string; // 'assignment', 'quiz', 'lab'
 
   @Column({ type: 'bigint', unsigned: true, nullable: true })
   sourceId: number;
@@ -344,6 +360,7 @@ export class StudentTask {
 ```
 
 #### DeadlineReminder Entity
+
 ```typescript
 @Entity('deadline_reminders')
 export class DeadlineReminder {
@@ -354,7 +371,7 @@ export class DeadlineReminder {
   userId: number;
 
   @Column({ type: 'varchar', length: 50 })
-  entityType: string;  // 'assignment', 'quiz', 'lab', 'task'
+  entityType: string; // 'assignment', 'quiz', 'lab', 'task'
 
   @Column({ type: 'bigint', unsigned: true })
   entityId: number;
@@ -366,7 +383,7 @@ export class DeadlineReminder {
   deadline: Date;
 
   @Column({ type: 'timestamp' })
-  reminderTime: Date;  // When to send the reminder
+  reminderTime: Date; // When to send the reminder
 
   @Column({ type: 'tinyint', default: 0 })
   isSent: boolean;
@@ -381,20 +398,21 @@ export class DeadlineReminder {
 
 ### API Endpoints
 
-| Method | Endpoint | Description | Roles |
-|--------|----------|-------------|-------|
-| GET | `/api/tasks` | List user's tasks (filter by status, priority, course) | STUDENT |
-| POST | `/api/tasks` | Create a task | STUDENT |
-| GET | `/api/tasks/:id` | Get task details | STUDENT |
-| PATCH | `/api/tasks/:id` | Update task | STUDENT |
-| PATCH | `/api/tasks/:id/complete` | Mark task as complete | STUDENT |
-| DELETE | `/api/tasks/:id` | Delete task | STUDENT |
-| GET | `/api/tasks/upcoming` | Get tasks due soon (next 7 days) | STUDENT |
-| GET | `/api/reminders` | Get upcoming reminders | STUDENT |
-| POST | `/api/reminders` | Create custom reminder | STUDENT |
-| DELETE | `/api/reminders/:id` | Delete reminder | STUDENT |
+| Method | Endpoint                  | Description                                            | Roles   |
+| ------ | ------------------------- | ------------------------------------------------------ | ------- |
+| GET    | `/api/tasks`              | List user's tasks (filter by status, priority, course) | STUDENT |
+| POST   | `/api/tasks`              | Create a task                                          | STUDENT |
+| GET    | `/api/tasks/:id`          | Get task details                                       | STUDENT |
+| PATCH  | `/api/tasks/:id`          | Update task                                            | STUDENT |
+| PATCH  | `/api/tasks/:id/complete` | Mark task as complete                                  | STUDENT |
+| DELETE | `/api/tasks/:id`          | Delete task                                            | STUDENT |
+| GET    | `/api/tasks/upcoming`     | Get tasks due soon (next 7 days)                       | STUDENT |
+| GET    | `/api/reminders`          | Get upcoming reminders                                 | STUDENT |
+| POST   | `/api/reminders`          | Create custom reminder                                 | STUDENT |
+| DELETE | `/api/reminders/:id`      | Delete reminder                                        | STUDENT |
 
 ### Business Logic
+
 1. **Auto-generation**: When an assignment/quiz/lab is published, auto-create tasks for enrolled students.
 2. **Smart Reminders**: Auto-create reminders at 1 day and 1 hour before deadlines.
 3. **Priority Auto-Set**: Tasks with deadlines within 24 hours → `urgent`. Within 3 days → `high`.
@@ -402,6 +420,7 @@ export class DeadlineReminder {
 5. **Overdue Detection**: Mark tasks as overdue if past due date and not completed.
 
 ### Frontend Components Using This Module
+
 - **Student**: SmartTodoReminder.tsx
 
 ---

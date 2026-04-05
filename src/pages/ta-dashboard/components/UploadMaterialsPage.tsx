@@ -1,9 +1,23 @@
 import React, { useState } from 'react';
-import { Upload, FileText, Film, Code, Image, Archive, Sparkles, Search, Trash2, Eye, Download, Cloud, X, Plus } from 'lucide-react';
+import {
+  Upload,
+  FileText,
+  Film,
+  Code,
+  Image,
+  Archive,
+  Sparkles,
+  Search,
+  Trash2,
+  Eye,
+  Download,
+  Cloud,
+  X,
+  Plus,
+} from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { CleanSelect } from '../../../components/shared';
-
 
 type FileType = 'All' | 'PDF' | 'Video' | 'Code' | 'Image' | 'Archive' | 'AI Generated';
 type SortOption = 'Recent' | 'By Name' | 'By Size';
@@ -19,23 +33,76 @@ type Material = {
 };
 
 const MOCK_MATERIALS: Material[] = [
-  { id: 'm1', name: 'Lab_3_Instructions.pdf', size: '2.4 MB', date: 'Jan 15, 2024', uploadedBy: 'Dr. Smith', type: 'PDF', aiGenerated: false },
-  { id: 'm2', name: 'Synchronization_Demo.mp4', size: '145 MB', date: 'Jan 14, 2024', uploadedBy: 'TA Assistant', type: 'Video', aiGenerated: false },
-  { id: 'm3', name: 'semaphore_examples.cpp', size: '8.2 KB', date: 'Jan 13, 2024', uploadedBy: 'Dr. Smith', type: 'Code', aiGenerated: false },
-  { id: 'm4', name: 'AI_Study_Guide_Lab3.pdf', size: '1.8 MB', date: 'Jan 12, 2024', uploadedBy: 'AI Generated', type: 'PDF', aiGenerated: true },
-  { id: 'm5', name: 'process_diagram.png', size: '420 KB', date: 'Jan 11, 2024', uploadedBy: 'TA Assistant', type: 'Image', aiGenerated: false },
-  { id: 'm6', name: 'lab_resources.zip', size: '12.5 MB', date: 'Jan 10, 2024', uploadedBy: 'Dr. Smith', type: 'Archive', aiGenerated: false },
+  {
+    id: 'm1',
+    name: 'Lab_3_Instructions.pdf',
+    size: '2.4 MB',
+    date: 'Jan 15, 2024',
+    uploadedBy: 'Dr. Smith',
+    type: 'PDF',
+    aiGenerated: false,
+  },
+  {
+    id: 'm2',
+    name: 'Synchronization_Demo.mp4',
+    size: '145 MB',
+    date: 'Jan 14, 2024',
+    uploadedBy: 'TA Assistant',
+    type: 'Video',
+    aiGenerated: false,
+  },
+  {
+    id: 'm3',
+    name: 'semaphore_examples.cpp',
+    size: '8.2 KB',
+    date: 'Jan 13, 2024',
+    uploadedBy: 'Dr. Smith',
+    type: 'Code',
+    aiGenerated: false,
+  },
+  {
+    id: 'm4',
+    name: 'AI_Study_Guide_Lab3.pdf',
+    size: '1.8 MB',
+    date: 'Jan 12, 2024',
+    uploadedBy: 'AI Generated',
+    type: 'PDF',
+    aiGenerated: true,
+  },
+  {
+    id: 'm5',
+    name: 'process_diagram.png',
+    size: '420 KB',
+    date: 'Jan 11, 2024',
+    uploadedBy: 'TA Assistant',
+    type: 'Image',
+    aiGenerated: false,
+  },
+  {
+    id: 'm6',
+    name: 'lab_resources.zip',
+    size: '12.5 MB',
+    date: 'Jan 10, 2024',
+    uploadedBy: 'Dr. Smith',
+    type: 'Archive',
+    aiGenerated: false,
+  },
 ];
 
 const FILE_TYPE_FILTERS: FileType[] = ['All', 'PDF', 'Video', 'Code', 'AI Generated'];
 
 function getFileIcon(type: Material['type']) {
   switch (type) {
-    case 'PDF': return <FileText className="w-5 h-5 text-red-400" />;
-    case 'Video': return <Film className="w-5 h-5 text-blue-400" />;
-    case 'Code': return <Code className="w-5 h-5 text-green-400" />;
-    case 'Image': return <Image className="w-5 h-5 text-blue-400" />;
-    case 'Archive': return <Archive className="w-5 h-5 text-yellow-400" />;
+    case 'PDF':
+      return <FileText className="w-5 h-5 text-red-400" />;
+    case 'Video':
+      return <Film className="w-5 h-5 text-blue-400" />;
+    case 'Code':
+      return <Code className="w-5 h-5 text-green-400" />;
+    case 'Image':
+      return <Image className="w-5 h-5 text-blue-400" />;
+    case 'Archive':
+      return <Archive className="w-5 h-5 text-yellow-400" />;
   }
 }
 
@@ -85,7 +152,11 @@ export function UploadMaterialsPage() {
       id: `m${Date.now()}`,
       name: uploadFileName,
       size: '0 KB',
-      date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+      date: new Date().toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      }),
       uploadedBy: 'TA Assistant',
       type: uploadFileType,
       aiGenerated: false,
@@ -107,7 +178,9 @@ export function UploadMaterialsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className={`text-2xl font-bold ${headingClass}`}>Upload Materials</h1>
-          <p className={`mt-1 text-sm ${subtextClass}`}>Manage and share course resources with your students</p>
+          <p className={`mt-1 text-sm ${subtextClass}`}>
+            Manage and share course resources with your students
+          </p>
         </div>
         <div className="flex items-center gap-3">
           <button
@@ -178,14 +251,18 @@ export function UploadMaterialsPage() {
       >
         <Cloud className={`w-10 h-10 mb-3 ${isDark ? 'text-slate-400' : 'text-gray-400'}`} />
         <p className={`font-semibold ${headingClass}`}>Upload Materials</p>
-        <p className={`text-sm mt-1 ${subtextClass}`}>Add PDFs, videos, code files or other resources</p>
+        <p className={`text-sm mt-1 ${subtextClass}`}>
+          Add PDFs, videos, code files or other resources
+        </p>
       </div>
 
       {/* Filter Bar */}
       <div className={cardClass}>
         <div className="flex flex-col md:flex-row md:items-center gap-4">
           <div className="relative flex-1">
-            <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? 'text-slate-400' : 'text-gray-400'}`} />
+            <Search
+              className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? 'text-slate-400' : 'text-gray-400'}`}
+            />
             <input
               type="text"
               placeholder="Search materials..."
@@ -227,7 +304,9 @@ export function UploadMaterialsPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {filteredMaterials.map((material) => (
           <div key={material.id} className={`${cardClass} flex items-start gap-4 relative`}>
-            <div className={`flex-shrink-0 p-2 rounded-lg ${isDark ? 'bg-white/10' : 'bg-gray-100'}`}>
+            <div
+              className={`flex-shrink-0 p-2 rounded-lg ${isDark ? 'bg-white/10' : 'bg-gray-100'}`}
+            >
               {getFileIcon(material.type)}
             </div>
             <div className="flex-1 min-w-0">
@@ -240,16 +319,24 @@ export function UploadMaterialsPage() {
                   </span>
                 )}
               </div>
-              <div className={`flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-xs ${subtextClass}`}>
+              <div
+                className={`flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-xs ${subtextClass}`}
+              >
                 <span>{material.size}</span>
                 <span>{material.date}</span>
                 <span>{material.uploadedBy}</span>
               </div>
               <div className="flex items-center gap-2 mt-3">
-                <button className={`p-1.5 rounded-md transition-colors ${isDark ? 'hover:bg-white/10 text-slate-400 hover:text-white' : 'hover:bg-gray-100 text-gray-500 hover:text-gray-700'}`} title="View">
+                <button
+                  className={`p-1.5 rounded-md transition-colors ${isDark ? 'hover:bg-white/10 text-slate-400 hover:text-white' : 'hover:bg-gray-100 text-gray-500 hover:text-gray-700'}`}
+                  title="View"
+                >
                   <Eye className="w-4 h-4" />
                 </button>
-                <button className={`p-1.5 rounded-md transition-colors ${isDark ? 'hover:bg-white/10 text-slate-400 hover:text-white' : 'hover:bg-gray-100 text-gray-500 hover:text-gray-700'}`} title="Download">
+                <button
+                  className={`p-1.5 rounded-md transition-colors ${isDark ? 'hover:bg-white/10 text-slate-400 hover:text-white' : 'hover:bg-gray-100 text-gray-500 hover:text-gray-700'}`}
+                  title="Download"
+                >
                   <Download className="w-4 h-4" />
                 </button>
                 {deleteConfirmId === material.id ? (
@@ -292,16 +379,23 @@ export function UploadMaterialsPage() {
       {/* Upload Modal */}
       {showUploadModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className={`w-full max-w-md rounded-xl p-6 ${isDark ? 'bg-gray-800 border border-white/10' : 'bg-white border border-gray-200'}`}>
+          <div
+            className={`w-full max-w-md rounded-xl p-6 ${isDark ? 'bg-gray-800 border border-white/10' : 'bg-white border border-gray-200'}`}
+          >
             <div className="flex items-center justify-between mb-4">
               <h2 className={`text-lg font-semibold ${headingClass}`}>Upload Material</h2>
-              <button onClick={() => setShowUploadModal(false)} className={`p-1 rounded-md ${isDark ? 'hover:bg-white/10 text-slate-400' : 'hover:bg-gray-100 text-gray-500'}`}>
+              <button
+                onClick={() => setShowUploadModal(false)}
+                className={`p-1 rounded-md ${isDark ? 'hover:bg-white/10 text-slate-400' : 'hover:bg-gray-100 text-gray-500'}`}
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
             <div className="space-y-4">
               <div>
-                <label className={`block text-sm font-medium mb-1 ${headingClass}`}>File Name</label>
+                <label className={`block text-sm font-medium mb-1 ${headingClass}`}>
+                  File Name
+                </label>
                 <input
                   type="text"
                   placeholder="Enter file name..."
@@ -311,7 +405,9 @@ export function UploadMaterialsPage() {
                 />
               </div>
               <div>
-                <label className={`block text-sm font-medium mb-1 ${headingClass}`}>File Type</label>
+                <label className={`block text-sm font-medium mb-1 ${headingClass}`}>
+                  File Type
+                </label>
                 <CleanSelect
                   value={uploadFileType}
                   onChange={(e) => setUploadFileType(e.target.value as Material['type'])}

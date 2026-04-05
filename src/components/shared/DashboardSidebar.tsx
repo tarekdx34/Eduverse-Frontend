@@ -207,7 +207,7 @@ export function DashboardSidebar({
             aria-hidden="true"
           />
           <div
-            className={`relative z-10 ${isClosing ? (isRTL ? 'sidebar-exit-rtl' : 'sidebar-exit') : (isRTL ? 'sidebar-enter-rtl float-right' : 'sidebar-enter float-left')}`}
+            className={`relative z-10 ${isClosing ? (isRTL ? 'sidebar-exit-rtl' : 'sidebar-exit') : isRTL ? 'sidebar-enter-rtl float-right' : 'sidebar-enter float-left'}`}
           >
             {sidebarContent}
           </div>

@@ -9,57 +9,60 @@
 ## 8.1 User Management Module (Enhanced)
 
 ### Current State
+
 The Auth module already handles login, register, JWT, and basic user operations. This phase enhances it with full admin-level user management.
 
 ### Database Tables (Already Exist)
-| Table | Description |
-|-------|-------------|
-| `users` | User accounts with profiles |
-| `user_roles` | Maps users to roles |
+
+| Table                  | Description                               |
+| ---------------------- | ----------------------------------------- |
+| `users`                | User accounts with profiles               |
+| `user_roles`           | Maps users to roles                       |
 | `language_preferences` | User language/format/timezone preferences |
-| `theme_preferences` | User UI theme preferences |
+| `theme_preferences`    | User UI theme preferences                 |
 
 ### New/Enhanced API Endpoints
 
-| Method | Endpoint | Description | Roles |
-|--------|----------|-------------|-------|
-| **Admin User Management** | | | |
-| GET | `/api/users` | List all users (paginated, filterable) | ADMIN, IT_ADMIN |
-| POST | `/api/users` | Create user (admin creates accounts) | ADMIN, IT_ADMIN |
-| GET | `/api/users/:id` | Get user details | ADMIN, IT_ADMIN |
-| PUT | `/api/users/:id` | Update user (admin edit) | ADMIN, IT_ADMIN |
-| DELETE | `/api/users/:id` | Deactivate/delete user | ADMIN, IT_ADMIN |
-| PATCH | `/api/users/:id/status` | Change user status (active/suspended/inactive) | ADMIN, IT_ADMIN |
-| PATCH | `/api/users/:id/roles` | Assign/remove roles | ADMIN, IT_ADMIN |
-| POST | `/api/users/bulk-create` | Bulk create users (CSV import) | ADMIN, IT_ADMIN |
-| POST | `/api/users/bulk-status` | Bulk status change | ADMIN, IT_ADMIN |
-| **Profile Management** | | | |
-| GET | `/api/users/profile` | Get current user profile | ALL |
-| PUT | `/api/users/profile` | Update current user profile | ALL |
-| POST | `/api/users/profile/avatar` | Upload profile picture | ALL |
-| **Preferences** | | | |
-| GET | `/api/users/preferences` | Get user preferences (language, theme, notifications) | ALL |
-| PUT | `/api/users/preferences` | Update preferences | ALL |
-| GET | `/api/users/preferences/language` | Get language preference | ALL |
-| PUT | `/api/users/preferences/language` | Update language preference | ALL |
-| GET | `/api/users/preferences/theme` | Get theme preference | ALL |
-| PUT | `/api/users/preferences/theme` | Update theme preference | ALL |
-| **Password & Security** | | | |
-| PATCH | `/api/users/password` | Change own password | ALL |
-| PATCH | `/api/users/:id/reset-password` | Force reset user's password | ADMIN |
-| PUT | `/api/users/2fa` | Enable/disable 2FA | ALL |
-| **Search & Filter** | | | |
-| GET | `/api/users/search` | Search users by name, email, department | ALL |
-| GET | `/api/users/by-role/:role` | List users by role | ADMIN, IT_ADMIN |
-| GET | `/api/users/by-department/:departmentId` | List users by department | ADMIN, IT_ADMIN |
-| GET | `/api/users/stats` | User statistics (total, by role, by status) | ADMIN, IT_ADMIN |
+| Method                    | Endpoint                                 | Description                                           | Roles           |
+| ------------------------- | ---------------------------------------- | ----------------------------------------------------- | --------------- |
+| **Admin User Management** |                                          |                                                       |                 |
+| GET                       | `/api/users`                             | List all users (paginated, filterable)                | ADMIN, IT_ADMIN |
+| POST                      | `/api/users`                             | Create user (admin creates accounts)                  | ADMIN, IT_ADMIN |
+| GET                       | `/api/users/:id`                         | Get user details                                      | ADMIN, IT_ADMIN |
+| PUT                       | `/api/users/:id`                         | Update user (admin edit)                              | ADMIN, IT_ADMIN |
+| DELETE                    | `/api/users/:id`                         | Deactivate/delete user                                | ADMIN, IT_ADMIN |
+| PATCH                     | `/api/users/:id/status`                  | Change user status (active/suspended/inactive)        | ADMIN, IT_ADMIN |
+| PATCH                     | `/api/users/:id/roles`                   | Assign/remove roles                                   | ADMIN, IT_ADMIN |
+| POST                      | `/api/users/bulk-create`                 | Bulk create users (CSV import)                        | ADMIN, IT_ADMIN |
+| POST                      | `/api/users/bulk-status`                 | Bulk status change                                    | ADMIN, IT_ADMIN |
+| **Profile Management**    |                                          |                                                       |                 |
+| GET                       | `/api/users/profile`                     | Get current user profile                              | ALL             |
+| PUT                       | `/api/users/profile`                     | Update current user profile                           | ALL             |
+| POST                      | `/api/users/profile/avatar`              | Upload profile picture                                | ALL             |
+| **Preferences**           |                                          |                                                       |                 |
+| GET                       | `/api/users/preferences`                 | Get user preferences (language, theme, notifications) | ALL             |
+| PUT                       | `/api/users/preferences`                 | Update preferences                                    | ALL             |
+| GET                       | `/api/users/preferences/language`        | Get language preference                               | ALL             |
+| PUT                       | `/api/users/preferences/language`        | Update language preference                            | ALL             |
+| GET                       | `/api/users/preferences/theme`           | Get theme preference                                  | ALL             |
+| PUT                       | `/api/users/preferences/theme`           | Update theme preference                               | ALL             |
+| **Password & Security**   |                                          |                                                       |                 |
+| PATCH                     | `/api/users/password`                    | Change own password                                   | ALL             |
+| PATCH                     | `/api/users/:id/reset-password`          | Force reset user's password                           | ADMIN           |
+| PUT                       | `/api/users/2fa`                         | Enable/disable 2FA                                    | ALL             |
+| **Search & Filter**       |                                          |                                                       |                 |
+| GET                       | `/api/users/search`                      | Search users by name, email, department               | ALL             |
+| GET                       | `/api/users/by-role/:role`               | List users by role                                    | ADMIN, IT_ADMIN |
+| GET                       | `/api/users/by-department/:departmentId` | List users by department                              | ADMIN, IT_ADMIN |
+| GET                       | `/api/users/stats`                       | User statistics (total, by role, by status)           | ADMIN, IT_ADMIN |
 
 ### Query Parameters
+
 ```typescript
 interface QueryUsersDto {
-  search?: string;       // Search in name, email
-  role?: string;         // Filter by role
-  status?: string;       // active, suspended, inactive, pending
+  search?: string; // Search in name, email
+  role?: string; // Filter by role
+  status?: string; // active, suspended, inactive, pending
   departmentId?: number;
   campusId?: number;
   sortBy?: 'name' | 'email' | 'createdAt' | 'lastLoginAt';
@@ -72,6 +75,7 @@ interface QueryUsersDto {
 ### DTOs
 
 #### CreateUserDto (Admin)
+
 ```typescript
 export class AdminCreateUserDto {
   @IsEmail()
@@ -88,7 +92,7 @@ export class AdminCreateUserDto {
   @IsString()
   @MinLength(8)
   @IsOptional()
-  password?: string;  // Auto-generate if not provided
+  password?: string; // Auto-generate if not provided
 
   @IsArray()
   @IsEnum(Role, { each: true })
@@ -108,11 +112,12 @@ export class AdminCreateUserDto {
 
   @IsBoolean()
   @IsOptional()
-  sendWelcomeEmail?: boolean;  // Default true
+  sendWelcomeEmail?: boolean; // Default true
 }
 ```
 
 #### UpdateProfileDto
+
 ```typescript
 export class UpdateProfileDto {
   @IsString()
@@ -144,15 +149,16 @@ export class UpdateProfileDto {
 ```
 
 #### UpdatePreferencesDto
+
 ```typescript
 export class UpdatePreferencesDto {
   @IsString()
   @IsOptional()
-  language?: string;  // 'en', 'ar', 'fr', etc.
+  language?: string; // 'en', 'ar', 'fr', etc.
 
   @IsString()
   @IsOptional()
-  theme?: string;  // 'light', 'dark', 'system'
+  theme?: string; // 'light', 'dark', 'system'
 
   @IsString()
   @IsOptional()
@@ -164,11 +170,12 @@ export class UpdatePreferencesDto {
 
   @IsString()
   @IsOptional()
-  timeFormat?: string;  // '12h', '24h'
+  timeFormat?: string; // '12h', '24h'
 }
 ```
 
 ### Business Logic
+
 1. **Bulk Import**: Parse CSV file with user data. Validate each row. Create users in batch.
 2. **Welcome Email**: Send welcome email with temporary password when admin creates account.
 3. **Status Management**: `PENDING` → `ACTIVE` → `SUSPENDED` → `INACTIVE`.
@@ -177,45 +184,48 @@ export class UpdatePreferencesDto {
 6. **Password Policy**: Min 8 chars, at least 1 uppercase, 1 number, 1 special char.
 
 ### Frontend Components Using This Module
-- **Admin**: StudentManagementPage.tsx *(active as `students` tab)*
-- ~~**Admin**: UserManagementPage.tsx~~ *(Not in Admin sidebar — deleted; StudentManagementPage used instead)*
-- **IT Admin**: UserManagementPage.tsx *(active as `users` tab)*
-- **All Dashboards**: ProfilePage.tsx / DashboardProfileTab.tsx *(active as `profile` tab)*
-- **Student**: SettingsPreferences.tsx *(active as `settings` tab)*
-- ~~**Instructor**: SettingsPage.tsx~~ *(Removed from Instructor sidebar — task I16)*
+
+- **Admin**: StudentManagementPage.tsx _(active as `students` tab)_
+- ~~**Admin**: UserManagementPage.tsx~~ _(Not in Admin sidebar — deleted; StudentManagementPage used instead)_
+- **IT Admin**: UserManagementPage.tsx _(active as `users` tab)_
+- **All Dashboards**: ProfilePage.tsx / DashboardProfileTab.tsx _(active as `profile` tab)_
+- **Student**: SettingsPreferences.tsx _(active as `settings` tab)_
+- ~~**Instructor**: SettingsPage.tsx~~ _(Removed from Instructor sidebar — task I16)_
 
 ---
 
 ## 8.2 Roles & Permissions Module (Enhanced)
 
 ### Database Tables (Already Exist)
-| Table | Description |
-|-------|-------------|
-| `roles` | Role definitions |
-| `permissions` | Permission definitions |
-| `role_permissions` | Role-permission mappings |
+
+| Table                  | Description                                  |
+| ---------------------- | -------------------------------------------- |
+| `roles`                | Role definitions                             |
+| `permissions`          | Permission definitions                       |
+| `role_permissions`     | Role-permission mappings                     |
 | `ta_instructor_access` | TA access permissions granted by instructors |
 
 ### API Endpoints
 
-| Method | Endpoint | Description | Roles |
-|--------|----------|-------------|-------|
-| GET | `/api/roles` | List all roles with permissions | ADMIN, IT_ADMIN |
-| GET | `/api/roles/:id` | Get role details with full permission matrix | ADMIN, IT_ADMIN |
-| POST | `/api/roles` | Create custom role | ADMIN, IT_ADMIN |
-| PUT | `/api/roles/:id` | Update custom role | ADMIN, IT_ADMIN |
-| DELETE | `/api/roles/:id` | Delete custom role (if no users assigned) | ADMIN, IT_ADMIN |
-| PUT | `/api/roles/:id/permissions` | Update role permissions | ADMIN, IT_ADMIN |
-| GET | `/api/permissions` | List all available permissions | ADMIN, IT_ADMIN |
-| GET | `/api/permissions/modules` | List permission modules (courses, users, etc.) | ADMIN, IT_ADMIN |
-| **TA Access** | | | |
-| GET | `/api/ta-access/:taId` | Get TA's access permissions | INSTRUCTOR |
-| PUT | `/api/ta-access/:taId` | Grant/revoke TA permissions | INSTRUCTOR |
+| Method        | Endpoint                     | Description                                    | Roles           |
+| ------------- | ---------------------------- | ---------------------------------------------- | --------------- |
+| GET           | `/api/roles`                 | List all roles with permissions                | ADMIN, IT_ADMIN |
+| GET           | `/api/roles/:id`             | Get role details with full permission matrix   | ADMIN, IT_ADMIN |
+| POST          | `/api/roles`                 | Create custom role                             | ADMIN, IT_ADMIN |
+| PUT           | `/api/roles/:id`             | Update custom role                             | ADMIN, IT_ADMIN |
+| DELETE        | `/api/roles/:id`             | Delete custom role (if no users assigned)      | ADMIN, IT_ADMIN |
+| PUT           | `/api/roles/:id/permissions` | Update role permissions                        | ADMIN, IT_ADMIN |
+| GET           | `/api/permissions`           | List all available permissions                 | ADMIN, IT_ADMIN |
+| GET           | `/api/permissions/modules`   | List permission modules (courses, users, etc.) | ADMIN, IT_ADMIN |
+| **TA Access** |                              |                                                |                 |
+| GET           | `/api/ta-access/:taId`       | Get TA's access permissions                    | INSTRUCTOR      |
+| PUT           | `/api/ta-access/:taId`       | Grant/revoke TA permissions                    | INSTRUCTOR      |
 
 ### Permission Matrix Structure
+
 ```typescript
 interface PermissionModule {
-  module: string;    // 'courses', 'users', 'grades', etc.
+  module: string; // 'courses', 'users', 'grades', etc.
   actions: {
     create: boolean;
     read: boolean;
@@ -233,6 +243,7 @@ interface RolePermissions {
 ```
 
 ### Business Logic
+
 1. **Built-in Roles**: STUDENT, INSTRUCTOR, TA, ADMIN, IT_ADMIN cannot be deleted.
 2. **Custom Roles**: Allow creating custom roles with specific permission sets.
 3. **Permission Inheritance**: Custom roles can inherit from built-in roles.
@@ -240,8 +251,9 @@ interface RolePermissions {
 5. **TA Access Control**: Instructors grant specific permissions to their TAs per course.
 
 ### Frontend Components Using This Module
-- ~~**Admin**: RoleManagementPage.tsx~~ *(Not in Admin sidebar — deleted)*
-- **IT Admin**: RoleManagementPage.tsx *(active as `roles` tab)*
+
+- ~~**Admin**: RoleManagementPage.tsx~~ _(Not in Admin sidebar — deleted)_
+- **IT Admin**: RoleManagementPage.tsx _(active as `roles` tab)_
 
 ---
 

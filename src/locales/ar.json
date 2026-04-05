@@ -195,7 +195,20 @@
     "submittingKeyboardHint": "Ctrl/Cmd+Enter للتسليم",
     "instructions": "التعليمات",
     "resources": "الموارد",
-    "downloadResource": "تحميل"
+    "downloadResource": "تحميل",
+    "gradeAssignmentSubmissions": "تصحيح تقديمات الواجب",
+    "selectSubmissionToGrade": "اختر تقديماً لتصحيحه",
+    "submissionText": "نص التقديم",
+    "file": "ملف",
+    "enterValidScore": "أدخل درجة صحيحة",
+    "provideFeedback": "قدم تعليقات بناءة...",
+    "previousFeedback": "التعليقات السابقة",
+    "submitGrade": "إرسال الدرجة",
+    "submitting": "جاري الإرسال...",
+    "lateSubmission": "تقديم متأخر",
+    "assignmentNotFound": "الواجب غير موجود",
+    "cannotAccessAsTA": "لا يمكن الوصول كمعيد - الدور مقيد",
+    "cannotCreateDeleteAsTA": "المعيدون لا يستطيعون إنشاء أو حذف الواجبات"
   },
   "quizzes": {
     "title": "الاختبارات",
@@ -371,7 +384,21 @@
     "formSafetyNotes": "ملاحظات السلامة",
     "addInstruction": "إضافة تعليمات",
     "instructionContent": "محتوى التعليمات",
-    "removeInstruction": "إزالة التعليمات"
+    "removeInstruction": "إزالة التعليمات",
+    "noEnrolledCourses": "لا توجد دورات مسجلة",
+    "enrollInCoursesPrompt": "سجل في دورات لعرض مهام المختبر.",
+    "backToLabs": "العودة إلى المختبرات",
+    "yourSubmission": "تقديمك",
+    "submitYourWork": "قدم عملك",
+    "submitted": "تم التقديم",
+    "enterSubmissionText": "أدخل نص التقديم هنا...",
+    "attachFileOptional": "إرفاق ملف (اختياري)",
+    "clickToUploadFile": "انقر لتحميل الملف",
+    "submitting": "جاري التقديم...",
+    "labSubmittedSuccessfully": "تم تقديم المختبر بنجاح!",
+    "selectCourse": "اختر الدورة",
+    "noLabsAvailable": "لا توجد مختبرات متاحة",
+    "noLabsForCourse": "لا توجد مهام مختبر لهذه الدورة بعد."
   },
   "grades": {
     "title": "الدرجات",
@@ -456,4 +483,3 @@
     "loadingContent": "المحتوى قيد التحميل. يرجى الانتظار."
   }
 }
-

@@ -10,7 +10,7 @@ import {
   Camera,
   Save,
   X,
-  ArrowLeft
+  ArrowLeft,
 } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -31,7 +31,7 @@ export default function ProfilePage() {
     minor: 'Mathematics',
     gpa: '3.85',
     expectedGraduation: '2024-06-15',
-    bio: 'Passionate computer science student with a keen interest in artificial intelligence and software development. Active member of the programming club and participant in various hackathons.'
+    bio: 'Passionate computer science student with a keen interest in artificial intelligence and software development. Active member of the programming club and participant in various hackathons.',
   });
 
   const handleSave = () => {
@@ -253,7 +253,7 @@ export default function ProfilePage() {
                     {new Date(profileData.dateOfBirth).toLocaleDateString('en-US', {
                       year: 'numeric',
                       month: 'long',
-                      day: 'numeric'
+                      day: 'numeric',
                     })}
                   </p>
                 </div>
@@ -307,7 +307,7 @@ export default function ProfilePage() {
                     {new Date(profileData.enrollmentDate).toLocaleDateString('en-US', {
                       year: 'numeric',
                       month: 'long',
-                      day: 'numeric'
+                      day: 'numeric',
                     })}
                   </p>
                 </div>
@@ -318,7 +318,7 @@ export default function ProfilePage() {
                     {new Date(profileData.expectedGraduation).toLocaleDateString('en-US', {
                       year: 'numeric',
                       month: 'long',
-                      day: 'numeric'
+                      day: 'numeric',
                     })}
                   </p>
                 </div>
@@ -349,23 +349,23 @@ export default function ProfilePage() {
                   {
                     title: "Dean's List",
                     description: 'Fall 2023 Semester',
-                    icon: 'Trophy'
+                    icon: 'Trophy',
                   },
                   {
                     title: 'Hackathon Winner',
                     description: 'University Code Challenge 2023',
-                    icon: 'Star'
+                    icon: 'Star',
                   },
                   {
                     title: 'Research Publication',
                     description: 'AI Conference Paper',
-                    icon: 'BookOpen'
+                    icon: 'BookOpen',
                   },
                   {
                     title: 'Academic Scholarship',
                     description: 'Merit-based Award',
-                    icon: 'Award'
-                  }
+                    icon: 'Award',
+                  },
                 ].map((achievement, idx) => (
                   <div
                     key={idx}
@@ -404,7 +404,7 @@ export default function ProfilePage() {
                       'Node.js',
                       'SQL',
                       'Machine Learning',
-                      'Data Structures'
+                      'Data Structures',
                     ].map((skill, idx) => (
                       <span
                         key={idx}
@@ -424,7 +424,7 @@ export default function ProfilePage() {
                       'Web Development',
                       'Mobile Apps',
                       'Open Source',
-                      'Competitive Programming'
+                      'Competitive Programming',
                     ].map((interest, idx) => (
                       <span
                         key={idx}
@@ -442,9 +442,12 @@ export default function ProfilePage() {
                     {[
                       { name: 'Programming Club', role: 'President' },
                       { name: 'AI Research Group', role: 'Member' },
-                      { name: 'Computer Science Society', role: 'Vice President' }
+                      { name: 'Computer Science Society', role: 'Vice President' },
                     ].map((club, idx) => (
-                      <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div
+                        key={idx}
+                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                      >
                         <span className="text-sm text-gray-900">{club.name}</span>
                         <span className="text-xs text-gray-600 bg-white px-2 py-1 rounded border border-gray-200">
                           {club.role}

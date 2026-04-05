@@ -36,7 +36,11 @@ const modes: { key: Mode; label: string; icon: React.ElementType }[] = [
 
 const quickActions = [
   { label: 'Grade Assistance', text: 'Help me grade this student submission', icon: Clipboard },
-  { label: 'Generate Feedback', text: 'Generate constructive feedback for student work', icon: FileText },
+  {
+    label: 'Generate Feedback',
+    text: 'Generate constructive feedback for student work',
+    icon: FileText,
+  },
   { label: 'Create Rubric', text: 'Create a grading rubric for this assignment', icon: Sparkles },
   { label: 'Explain Concept', text: 'Explain this concept in simple terms', icon: Lightbulb },
   { label: 'Generate Quiz', text: 'Generate quiz questions for this topic', icon: Brain },
@@ -49,7 +53,7 @@ const mockResponses: Record<Mode, { text: string; suggestions: string[] }> = {
     suggestions: ['Tell me more', 'Show an example', 'What else can you help with?'],
   },
   grading: {
-    text: "Based on the rubric criteria, I recommend the following approach:\n\n• **Correctness (40%):** Check if the solution produces the expected output for all test cases\n• **Code Quality (30%):** Evaluate readability, naming conventions, and structure\n• **Documentation (15%):** Verify comments and documentation completeness\n• **Efficiency (15%):** Assess algorithm complexity and optimization\n\nWould you like me to generate detailed feedback for a specific submission?",
+    text: 'Based on the rubric criteria, I recommend the following approach:\n\n• **Correctness (40%):** Check if the solution produces the expected output for all test cases\n• **Code Quality (30%):** Evaluate readability, naming conventions, and structure\n• **Documentation (15%):** Verify comments and documentation completeness\n• **Efficiency (15%):** Assess algorithm complexity and optimization\n\nWould you like me to generate detailed feedback for a specific submission?',
     suggestions: ['Generate feedback template', 'Show grading rubric', 'Compare submissions'],
   },
   teaching: {
@@ -57,8 +61,12 @@ const mockResponses: Record<Mode, { text: string; suggestions: string[] }> = {
     suggestions: ['Create a lesson plan', 'Suggest visual aids', 'Generate practice problems'],
   },
   analysis: {
-    text: "Looking at the data, I can see the following trends:\n\n📊 **Performance Summary:**\n• Average class score: 78.5% (↑ 3.2% from last week)\n• Submission rate: 92% (stable)\n• Topics with lowest scores: Recursion (65%), Dynamic Programming (68%)\n\n⚠️ **Areas of Concern:**\n• 8 students scored below 60% on the latest assignment\n• Lab attendance dropped 5% this week\n\nShall I drill deeper into any of these metrics?",
-    suggestions: ['Show student breakdown', 'Identify at-risk students', 'Compare with previous semester'],
+    text: 'Looking at the data, I can see the following trends:\n\n📊 **Performance Summary:**\n• Average class score: 78.5% (↑ 3.2% from last week)\n• Submission rate: 92% (stable)\n• Topics with lowest scores: Recursion (65%), Dynamic Programming (68%)\n\n⚠️ **Areas of Concern:**\n• 8 students scored below 60% on the latest assignment\n• Lab attendance dropped 5% this week\n\nShall I drill deeper into any of these metrics?',
+    suggestions: [
+      'Show student breakdown',
+      'Identify at-risk students',
+      'Compare with previous semester',
+    ],
   },
 };
 
@@ -134,14 +142,20 @@ export function AIAssistantPage() {
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-3">
             <div className="relative">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${isDark ? 'bg-blue-500/20' : 'bg-blue-100'}`}>
+              <div
+                className={`w-10 h-10 rounded-full flex items-center justify-center ${isDark ? 'bg-blue-500/20' : 'bg-blue-100'}`}
+              >
                 <Sparkles className={`w-5 h-5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
               </div>
               <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-900" />
             </div>
             <div>
-              <h2 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>TA AI Assistant</h2>
-              <p className={`text-xs ${isDark ? 'text-green-400' : 'text-green-600'}`}>Online — Ready to help</p>
+              <h2 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                TA AI Assistant
+              </h2>
+              <p className={`text-xs ${isDark ? 'text-green-400' : 'text-green-600'}`}>
+                Online — Ready to help
+              </p>
             </div>
           </div>
 
@@ -173,7 +187,10 @@ export function AIAssistantPage() {
       <div className={`${cardClass} border rounded-lg flex-1 flex flex-col overflow-hidden`}>
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {messages.map((msg) => (
-            <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+            <div
+              key={msg.id}
+              className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+            >
               <div className={`max-w-[75%] ${msg.role === 'user' ? '' : ''}`}>
                 {/* Bubble */}
                 <div
@@ -194,8 +211,12 @@ export function AIAssistantPage() {
                 />
 
                 {/* Timestamp & actions */}
-                <div className={`flex items-center gap-2 mt-1 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <span className={`text-[10px] ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{msg.timestamp}</span>
+                <div
+                  className={`flex items-center gap-2 mt-1 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                >
+                  <span className={`text-[10px] ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                    {msg.timestamp}
+                  </span>
                   {msg.role === 'ai' && (
                     <div className="flex items-center gap-1">
                       <button
@@ -251,10 +272,16 @@ export function AIAssistantPage() {
                       : 'bg-gray-50 border-gray-200 hover:bg-gray-100 text-gray-700'
                   }`}
                 >
-                  <Icon className={`w-4 h-4 mt-0.5 shrink-0 ${isDark ? 'text-blue-400' : 'text-blue-500'}`} />
+                  <Icon
+                    className={`w-4 h-4 mt-0.5 shrink-0 ${isDark ? 'text-blue-400' : 'text-blue-500'}`}
+                  />
                   <div>
                     <p className="text-xs font-medium">{label}</p>
-                    <p className={`text-[10px] mt-0.5 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{text}</p>
+                    <p
+                      className={`text-[10px] mt-0.5 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}
+                    >
+                      {text}
+                    </p>
                   </div>
                 </button>
               ))}
@@ -264,11 +291,22 @@ export function AIAssistantPage() {
           {/* Typing indicator */}
           {isTyping && (
             <div className="flex justify-start">
-              <div className={`px-4 py-3 rounded-2xl rounded-bl-md ${isDark ? 'bg-white/10' : 'bg-gray-100'}`}>
+              <div
+                className={`px-4 py-3 rounded-2xl rounded-bl-md ${isDark ? 'bg-white/10' : 'bg-gray-100'}`}
+              >
                 <div className="flex items-center gap-1">
-                  <span className={`w-2 h-2 rounded-full animate-bounce ${isDark ? 'bg-blue-400' : 'bg-blue-500'}`} style={{ animationDelay: '0ms' }} />
-                  <span className={`w-2 h-2 rounded-full animate-bounce ${isDark ? 'bg-blue-400' : 'bg-blue-500'}`} style={{ animationDelay: '150ms' }} />
-                  <span className={`w-2 h-2 rounded-full animate-bounce ${isDark ? 'bg-blue-400' : 'bg-blue-500'}`} style={{ animationDelay: '300ms' }} />
+                  <span
+                    className={`w-2 h-2 rounded-full animate-bounce ${isDark ? 'bg-blue-400' : 'bg-blue-500'}`}
+                    style={{ animationDelay: '0ms' }}
+                  />
+                  <span
+                    className={`w-2 h-2 rounded-full animate-bounce ${isDark ? 'bg-blue-400' : 'bg-blue-500'}`}
+                    style={{ animationDelay: '150ms' }}
+                  />
+                  <span
+                    className={`w-2 h-2 rounded-full animate-bounce ${isDark ? 'bg-blue-400' : 'bg-blue-500'}`}
+                    style={{ animationDelay: '300ms' }}
+                  />
                 </div>
               </div>
             </div>
@@ -285,7 +323,9 @@ export function AIAssistantPage() {
           <button
             type="button"
             className={`p-2 rounded-lg transition-colors ${
-              isDark ? 'text-gray-400 hover:text-gray-200 hover:bg-white/10' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+              isDark
+                ? 'text-gray-400 hover:text-gray-200 hover:bg-white/10'
+                : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
             }`}
             title="Attach file"
           >

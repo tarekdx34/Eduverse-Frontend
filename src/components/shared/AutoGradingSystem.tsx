@@ -96,7 +96,12 @@ export function AutoGradingSystem({
     }
   };
 
-  const handleScoreUpdate = (submissionId: string, questionId: string, newScore: number, newFeedback: string) => {
+  const handleScoreUpdate = (
+    submissionId: string,
+    questionId: string,
+    newScore: number,
+    newFeedback: string
+  ) => {
     const updatedSubmissions = submissions.map((sub) => {
       if (sub.id !== submissionId) return sub;
 
@@ -112,7 +117,7 @@ export function AutoGradingSystem({
         ...sub,
         answers: updatedAnswers,
         totalScore,
-        status: updatedAnswers.some((a) => a.needsReview) ? 'auto-graded' : 'reviewed' as const,
+        status: updatedAnswers.some((a) => a.needsReview) ? 'auto-graded' : ('reviewed' as const),
       };
     });
 
@@ -171,9 +176,7 @@ export function AutoGradingSystem({
   };
 
   const pendingCount = submissions.filter((s) => s.status === 'pending').length;
-  const needsReviewCount = submissions.filter((s) =>
-    s.answers.some((a) => a.needsReview)
-  ).length;
+  const needsReviewCount = submissions.filter((s) => s.answers.some((a) => a.needsReview)).length;
 
   const currentSubmission = submissions.find((s) => s.id === selectedSubmission);
 
@@ -189,7 +192,8 @@ export function AutoGradingSystem({
             <div>
               <h3 className="font-semibold text-gray-900">Auto-Grading System</h3>
               <p className="text-sm text-gray-600">
-                {submissions.length} submissions • {pendingCount} pending • {needsReviewCount} need review
+                {submissions.length} submissions • {pendingCount} pending • {needsReviewCount} need
+                review
               </p>
             </div>
           </div>
@@ -271,14 +275,15 @@ export function AutoGradingSystem({
                 </div>
                 <div className="flex items-center gap-3">
                   {getStatusBadge(currentSubmission.status)}
-                  {currentSubmission.status !== 'finalized' && currentSubmission.status !== 'pending' && (
-                    <button
-                      onClick={() => finalizeGrade(currentSubmission.id)}
-                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
-                    >
-                      Finalize Grade
-                    </button>
-                  )}
+                  {currentSubmission.status !== 'finalized' &&
+                    currentSubmission.status !== 'pending' && (
+                      <button
+                        onClick={() => finalizeGrade(currentSubmission.id)}
+                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
+                      >
+                        Finalize Grade
+                      </button>
+                    )}
                 </div>
               </div>
 
@@ -325,7 +330,9 @@ export function AutoGradingSystem({
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
-                              <span className="text-sm font-medium text-gray-500">Q{index + 1}</span>
+                              <span className="text-sm font-medium text-gray-500">
+                                Q{index + 1}
+                              </span>
                               {answer.needsReview && (
                                 <span className="px-2 py-0.5 bg-orange-100 text-orange-700 rounded text-xs">
                                   Needs Review
@@ -336,7 +343,8 @@ export function AutoGradingSystem({
                           </div>
                           <div className="flex items-center gap-2">
                             <span className="text-sm font-medium">
-                              {answer.autoScore !== undefined ? answer.autoScore : '—'}/{answer.maxScore}
+                              {answer.autoScore !== undefined ? answer.autoScore : '—'}/
+                              {answer.maxScore}
                             </span>
                             {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                           </div>
@@ -347,7 +355,9 @@ export function AutoGradingSystem({
                         <div className="px-4 pb-4 border-t border-gray-200 pt-4">
                           {/* Student's Answer */}
                           <div className="mb-4">
-                            <p className="text-xs font-medium text-gray-500 mb-1">Student's Answer:</p>
+                            <p className="text-xs font-medium text-gray-500 mb-1">
+                              Student's Answer:
+                            </p>
                             <div className="p-3 bg-white rounded border border-gray-200">
                               <p className="text-sm text-gray-900">{answer.answer}</p>
                             </div>
@@ -356,7 +366,9 @@ export function AutoGradingSystem({
                           {/* Correct Answer */}
                           {answer.correctAnswer && (
                             <div className="mb-4">
-                              <p className="text-xs font-medium text-gray-500 mb-1">Correct Answer:</p>
+                              <p className="text-xs font-medium text-gray-500 mb-1">
+                                Correct Answer:
+                              </p>
                               <div className="p-3 bg-green-50 rounded border border-green-200">
                                 <p className="text-sm text-green-800">{answer.correctAnswer}</p>
                               </div>
@@ -383,7 +395,9 @@ export function AutoGradingSystem({
                                   }
                                   className="w-24 px-3 py-2 border border-gray-300 rounded-lg text-sm"
                                 />
-                                <span className="text-sm text-gray-500 ml-2">/ {answer.maxScore}</span>
+                                <span className="text-sm text-gray-500 ml-2">
+                                  / {answer.maxScore}
+                                </span>
                               </div>
                               <div>
                                 <label className="text-xs font-medium text-gray-500 mb-1 block">
@@ -428,7 +442,9 @@ export function AutoGradingSystem({
                             <div>
                               {answer.feedback && (
                                 <div className="mb-3">
-                                  <p className="text-xs font-medium text-gray-500 mb-1">Feedback:</p>
+                                  <p className="text-xs font-medium text-gray-500 mb-1">
+                                    Feedback:
+                                  </p>
                                   <p className="text-sm text-gray-700">{answer.feedback}</p>
                                 </div>
                               )}

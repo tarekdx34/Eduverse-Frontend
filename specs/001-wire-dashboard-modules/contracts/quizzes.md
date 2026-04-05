@@ -5,6 +5,7 @@
 ## Quiz CRUD
 
 ### List Quizzes
+
 ```http
 GET /api/quizzes
 ```
@@ -18,6 +19,7 @@ GET /api/quizzes
 | `limit` | number | No | Items per page (default: 20) |
 
 **Response:** `200 OK`
+
 ```json
 {
   "data": [
@@ -44,11 +46,13 @@ GET /api/quizzes
 ---
 
 ### Get Quiz with Questions
+
 ```http
 GET /api/quizzes/:id
 ```
 
 **Response:** `200 OK`
+
 ```json
 {
   "id": "uuid",
@@ -69,9 +73,7 @@ GET /api/quizzes/:id
       "questionText": "string",
       "points": "decimal-string",
       "order": "number",
-      "options": [
-        { "id": "uuid", "text": "string", "isCorrect": "boolean" }
-      ]
+      "options": [{ "id": "uuid", "text": "string", "isCorrect": "boolean" }]
     }
   ]
 }
@@ -80,6 +82,7 @@ GET /api/quizzes/:id
 ---
 
 ### Create Quiz (Instructor)
+
 ```http
 POST /api/quizzes
 Authorization: Bearer <token>
@@ -87,6 +90,7 @@ Content-Type: application/json
 ```
 
 **Request Body:**
+
 ```json
 {
   "courseId": "uuid",
@@ -107,6 +111,7 @@ Content-Type: application/json
 ---
 
 ### Update Quiz (Instructor)
+
 ```http
 PUT /api/quizzes/:id
 Authorization: Bearer <token>
@@ -115,6 +120,7 @@ Authorization: Bearer <token>
 ---
 
 ### Delete Quiz (Instructor)
+
 ```http
 DELETE /api/quizzes/:id
 Authorization: Bearer <token>
@@ -127,6 +133,7 @@ Authorization: Bearer <token>
 ## Question Management
 
 ### Add Question
+
 ```http
 POST /api/quizzes/:quizId/questions
 Authorization: Bearer <token>
@@ -134,6 +141,7 @@ Content-Type: application/json
 ```
 
 **Request Body:**
+
 ```json
 {
   "questionType": "mcq",
@@ -154,6 +162,7 @@ Content-Type: application/json
 ---
 
 ### Update Question
+
 ```http
 PUT /api/quizzes/:quizId/questions/:questionId
 Authorization: Bearer <token>
@@ -162,6 +171,7 @@ Authorization: Bearer <token>
 ---
 
 ### Delete Question
+
 ```http
 DELETE /api/quizzes/:quizId/questions/:questionId
 Authorization: Bearer <token>
@@ -172,6 +182,7 @@ Authorization: Bearer <token>
 ---
 
 ### Reorder Questions
+
 ```http
 PATCH /api/quizzes/:quizId/questions/reorder
 Authorization: Bearer <token>
@@ -179,6 +190,7 @@ Content-Type: application/json
 ```
 
 **Request Body:**
+
 ```json
 {
   "questionIds": ["uuid1", "uuid2", "uuid3"]
@@ -192,12 +204,14 @@ Content-Type: application/json
 ## Student Attempts
 
 ### Start Attempt
+
 ```http
 POST /api/quizzes/:quizId/attempts
 Authorization: Bearer <token>
 ```
 
 **Response:** `201 Created`
+
 ```json
 {
   "id": "uuid",
@@ -222,6 +236,7 @@ Authorization: Bearer <token>
 ---
 
 ### Save Progress (Auto-save)
+
 ```http
 PATCH /api/quizzes/:quizId/attempts/:attemptId/progress
 Authorization: Bearer <token>
@@ -229,6 +244,7 @@ Content-Type: application/json
 ```
 
 **Request Body:**
+
 ```json
 {
   "answers": [
@@ -243,6 +259,7 @@ Content-Type: application/json
 ---
 
 ### Submit Attempt
+
 ```http
 POST /api/quizzes/:quizId/attempts/:attemptId/submit
 Authorization: Bearer <token>
@@ -250,6 +267,7 @@ Content-Type: application/json
 ```
 
 **Request Body:**
+
 ```json
 {
   "answers": [
@@ -260,6 +278,7 @@ Content-Type: application/json
 ```
 
 **Response:** `200 OK`
+
 ```json
 {
   "id": "uuid",
@@ -281,6 +300,7 @@ Content-Type: application/json
 ---
 
 ### Get Attempt
+
 ```http
 GET /api/quizzes/:quizId/attempts/:attemptId
 Authorization: Bearer <token>
@@ -291,12 +311,14 @@ Authorization: Bearer <token>
 ---
 
 ### Get My Attempts
+
 ```http
 GET /api/quizzes/:quizId/my-attempts
 Authorization: Bearer <token>
 ```
 
 **Response:** `200 OK`
+
 ```json
 [
   {
@@ -314,6 +336,7 @@ Authorization: Bearer <token>
 ## Instructor/TA Grading
 
 ### Get All Attempts
+
 ```http
 GET /api/quizzes/:quizId/attempts
 Authorization: Bearer <token>
@@ -326,6 +349,7 @@ Authorization: Bearer <token>
 | `needsGrading` | boolean | Only attempts with ungraded essays |
 
 **Response:** `200 OK`
+
 ```json
 [
   {
@@ -344,6 +368,7 @@ Authorization: Bearer <token>
 ---
 
 ### Grade Attempt (Manual Questions)
+
 ```http
 PATCH /api/quizzes/:quizId/attempts/:attemptId/grade
 Authorization: Bearer <token>
@@ -351,6 +376,7 @@ Content-Type: application/json
 ```
 
 **Request Body:**
+
 ```json
 {
   "grades": [
@@ -370,12 +396,14 @@ Content-Type: application/json
 ## Statistics
 
 ### Get Quiz Statistics
+
 ```http
 GET /api/quizzes/:quizId/statistics
 Authorization: Bearer <token>
 ```
 
 **Response:** `200 OK`
+
 ```json
 {
   "totalAttempts": "number",

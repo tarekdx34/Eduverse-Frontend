@@ -1,5 +1,16 @@
 import { useState } from 'react';
-import { Building2, Globe, Users, BookOpen, HardDrive, Settings, Plus, Edit2, Trash2, ExternalLink } from 'lucide-react';
+import {
+  Building2,
+  Globe,
+  Users,
+  BookOpen,
+  HardDrive,
+  Settings,
+  Plus,
+  Edit2,
+  Trash2,
+  ExternalLink,
+} from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 
@@ -10,7 +21,12 @@ interface MultiCampusPageProps {
   onDeleteCampus: (id: number) => void;
 }
 
-export function MultiCampusPage({ campuses, onAddCampus, onEditCampus, onDeleteCampus }: MultiCampusPageProps) {
+export function MultiCampusPage({
+  campuses,
+  onAddCampus,
+  onEditCampus,
+  onDeleteCampus,
+}: MultiCampusPageProps) {
   const { isDark, primaryHex } = useTheme() as any;
   const accentColor = primaryHex || '#3b82f6';
   const { t } = useLanguage();
@@ -22,10 +38,14 @@ export function MultiCampusPage({ campuses, onAddCampus, onEditCampus, onDeleteC
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return 'bg-green-100 text-green-700';
-      case 'maintenance': return 'bg-yellow-100 text-yellow-700';
-      case 'inactive': return 'bg-gray-100 text-gray-600';
-      default: return 'bg-gray-100 text-gray-600';
+      case 'active':
+        return 'bg-green-100 text-green-700';
+      case 'maintenance':
+        return 'bg-yellow-100 text-yellow-700';
+      case 'inactive':
+        return 'bg-gray-100 text-gray-600';
+      default:
+        return 'bg-gray-100 text-gray-600';
     }
   };
 
@@ -51,46 +71,64 @@ export function MultiCampusPage({ campuses, onAddCampus, onEditCampus, onDeleteC
 
       {/* Overview Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className={`rounded-xl border p-6 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+        <div
+          className={`rounded-xl border p-6 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
+        >
           <div className="flex items-center gap-3 mb-2">
             <div className={`p-2 rounded-lg ${isDark ? 'bg-blue-900/50' : 'bg-blue-50'}`}>
               <Building2 className={`w-5 h-5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
             </div>
-            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('totalCampuses')}</p>
+            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+              {t('totalCampuses')}
+            </p>
           </div>
-          <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{campuses.length}</p>
+          <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+            {campuses.length}
+          </p>
         </div>
 
-        <div className={`rounded-xl border p-6 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+        <div
+          className={`rounded-xl border p-6 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
+        >
           <div className="flex items-center gap-3 mb-2">
             <div className={`p-2 rounded-lg ${isDark ? 'bg-blue-900/50' : 'bg-blue-50'}`}>
               <Users className={`w-5 h-5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
             </div>
-            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('totalStudents')}</p>
+            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+              {t('totalStudents')}
+            </p>
           </div>
           <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
             {(totalStudents / 1000).toFixed(1)}K
           </p>
         </div>
 
-        <div className={`rounded-xl border p-6 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+        <div
+          className={`rounded-xl border p-6 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
+        >
           <div className="flex items-center gap-3 mb-2">
             <div className={`p-2 rounded-lg ${isDark ? 'bg-green-900/50' : 'bg-green-50'}`}>
               <BookOpen className={`w-5 h-5 ${isDark ? 'text-green-400' : 'text-green-600'}`} />
             </div>
-            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('totalInstructors')}</p>
+            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+              {t('totalInstructors')}
+            </p>
           </div>
           <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
             {totalInstructors.toLocaleString()}
           </p>
         </div>
 
-        <div className={`rounded-xl border p-6 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+        <div
+          className={`rounded-xl border p-6 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
+        >
           <div className="flex items-center gap-3 mb-2">
             <div className={`p-2 rounded-lg ${isDark ? 'bg-blue-900/50' : 'bg-blue-50'}`}>
               <HardDrive className={`w-5 h-5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
             </div>
-            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{t('totalStorage')}</p>
+            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+              {t('totalStorage')}
+            </p>
           </div>
           <p className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
             {totalStorage.toFixed(1)} TB
@@ -99,7 +137,9 @@ export function MultiCampusPage({ campuses, onAddCampus, onEditCampus, onDeleteC
       </div>
 
       {/* Campus List */}
-      <div className={`rounded-xl border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+      <div
+        className={`rounded-xl border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
+      >
         <div className={`p-6 border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
           <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
             {t('campusOverview')}
@@ -114,13 +154,17 @@ export function MultiCampusPage({ campuses, onAddCampus, onEditCampus, onDeleteC
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <div className={`p-2 rounded-lg ${isDark ? 'bg-blue-900/50' : 'bg-blue-50'}`}>
-                    <Building2 className={`w-5 h-5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
+                    <Building2
+                      className={`w-5 h-5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`}
+                    />
                   </div>
                   <div>
                     <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
                       {campus.name}
                     </h3>
-                    <span className={`px-2 py-0.5 rounded text-xs font-medium ${getStatusColor(campus.status)}`}>
+                    <span
+                      className={`px-2 py-0.5 rounded text-xs font-medium ${getStatusColor(campus.status)}`}
+                    >
                       {campus.status}
                     </span>
                   </div>
@@ -148,7 +192,9 @@ export function MultiCampusPage({ campuses, onAddCampus, onEditCampus, onDeleteC
                   target="_blank"
                   rel="noopener noreferrer"
                   className={`text-sm flex items-center gap-1 ${
-                    isDark ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'
+                    isDark
+                      ? 'text-blue-400 hover:text-blue-300'
+                      : 'text-blue-600 hover:text-blue-700'
                   }`}
                 >
                   {campus.domain}
@@ -161,19 +207,25 @@ export function MultiCampusPage({ campuses, onAddCampus, onEditCampus, onDeleteC
                   <p className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
                     {(campus.students / 1000).toFixed(1)}K
                   </p>
-                  <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{t('students')}</p>
+                  <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                    {t('students')}
+                  </p>
                 </div>
                 <div>
                   <p className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
                     {campus.instructors}
                   </p>
-                  <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{t('instructors')}</p>
+                  <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                    {t('instructors')}
+                  </p>
                 </div>
                 <div>
                   <p className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
                     {campus.storage}
                   </p>
-                  <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{t('storage')}</p>
+                  <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                    {t('storage')}
+                  </p>
                 </div>
               </div>
 

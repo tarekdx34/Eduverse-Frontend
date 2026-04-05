@@ -1,9 +1,29 @@
 import React, { useState } from 'react';
-import { Bell, MessageCircle, FileText, AlertTriangle, Brain, Settings, Search, Check, Trash2, ChevronDown, ChevronUp, CheckSquare, Square } from 'lucide-react';
+import {
+  Bell,
+  MessageCircle,
+  FileText,
+  AlertTriangle,
+  Brain,
+  Settings,
+  Search,
+  Check,
+  Trash2,
+  ChevronDown,
+  ChevronUp,
+  CheckSquare,
+  Square,
+} from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 
-type NotificationType = 'question' | 'submission' | 'plagiarism' | 'ai_alert' | 'system' | 'deadline';
+type NotificationType =
+  | 'question'
+  | 'submission'
+  | 'plagiarism'
+  | 'ai_alert'
+  | 'system'
+  | 'deadline';
 
 type Notification = {
   id: string;
@@ -24,7 +44,8 @@ const NOTIFICATIONS: Notification[] = [
     title: 'Question in Lab 3 Thread',
     sender: 'Ahmed Hassan',
     preview: 'About process synchronization',
-    fullMessage: 'Hi, I have a question about process synchronization in Lab 3. Specifically, I\'m confused about how semaphores work in the producer-consumer problem. Could you explain the difference between binary and counting semaphores?',
+    fullMessage:
+      "Hi, I have a question about process synchronization in Lab 3. Specifically, I'm confused about how semaphores work in the producer-consumer problem. Could you explain the difference between binary and counting semaphores?",
     time: '5 mins ago',
     type: 'question',
     badge: 'Lab 3',
@@ -36,7 +57,8 @@ const NOTIFICATIONS: Notification[] = [
     title: 'New Lab Submission',
     sender: 'Sara Johnson',
     preview: 'Lab assignment submitted',
-    fullMessage: 'Sara Johnson has submitted her Lab 3 assignment. The submission includes all required files and was submitted before the deadline. Please review and grade at your earliest convenience.',
+    fullMessage:
+      'Sara Johnson has submitted her Lab 3 assignment. The submission includes all required files and was submitted before the deadline. Please review and grade at your earliest convenience.',
     time: '15 mins ago',
     type: 'submission',
     badge: 'Lab 3',
@@ -47,7 +69,8 @@ const NOTIFICATIONS: Notification[] = [
     title: 'Plagiarism Check Request',
     sender: 'Dr. Michael Chen',
     preview: 'Check plagiarism report',
-    fullMessage: 'Please review the plagiarism report for Assignment 2. The automated system flagged two submissions with a similarity score above 85%. Check the detailed report and provide your assessment before the grades are finalized.',
+    fullMessage:
+      'Please review the plagiarism report for Assignment 2. The automated system flagged two submissions with a similarity score above 85%. Check the detailed report and provide your assessment before the grades are finalized.',
     time: '1 hour ago',
     type: 'plagiarism',
     badge: 'Assignment 2',
@@ -58,7 +81,8 @@ const NOTIFICATIONS: Notification[] = [
     title: 'Students Needing Support',
     sender: 'CampusOne AI',
     preview: '2 struggling students in Lab 4',
-    fullMessage: 'AI analysis has identified 2 students who may need additional support in Lab 4. Their recent quiz scores and lab completion rates suggest they are falling behind. Consider reaching out to offer extra office hours or tutoring sessions.',
+    fullMessage:
+      'AI analysis has identified 2 students who may need additional support in Lab 4. Their recent quiz scores and lab completion rates suggest they are falling behind. Consider reaching out to offer extra office hours or tutoring sessions.',
     time: '2 hours ago',
     type: 'ai_alert',
     badge: 'Lab 4',
@@ -69,7 +93,8 @@ const NOTIFICATIONS: Notification[] = [
     title: 'System Maintenance',
     sender: 'CampusOne System',
     preview: 'Update scheduled 2 AM tonight',
-    fullMessage: 'Scheduled system maintenance will occur tonight at 2:00 AM. The platform will be unavailable for approximately 30 minutes. All submissions and grades will be preserved. No action is required on your part.',
+    fullMessage:
+      'Scheduled system maintenance will occur tonight at 2:00 AM. The platform will be unavailable for approximately 30 minutes. All submissions and grades will be preserved. No action is required on your part.',
     time: '3 hours ago',
     type: 'system',
     badge: 'System',
@@ -80,7 +105,8 @@ const NOTIFICATIONS: Notification[] = [
     title: 'Lab Deadline Extension?',
     sender: 'Emily Rodriguez',
     preview: 'Asked about extending deadline',
-    fullMessage: 'Hi, I was wondering if it would be possible to get a deadline extension for Lab 3. I\'ve been dealing with some personal issues and haven\'t been able to complete the assignment on time. I would really appreciate even a 2-day extension.',
+    fullMessage:
+      "Hi, I was wondering if it would be possible to get a deadline extension for Lab 3. I've been dealing with some personal issues and haven't been able to complete the assignment on time. I would really appreciate even a 2-day extension.",
     time: '5 hours ago',
     type: 'deadline',
     badge: 'Lab 3',
@@ -109,23 +135,35 @@ const FILTERS: { key: FilterKey; label: string }[] = [
 
 function getTypeIcon(type: NotificationType) {
   switch (type) {
-    case 'question': return <MessageCircle className="w-5 h-5" />;
-    case 'submission': return <FileText className="w-5 h-5" />;
-    case 'plagiarism': return <AlertTriangle className="w-5 h-5" />;
-    case 'ai_alert': return <Brain className="w-5 h-5" />;
-    case 'system': return <Settings className="w-5 h-5" />;
-    case 'deadline': return <Bell className="w-5 h-5" />;
+    case 'question':
+      return <MessageCircle className="w-5 h-5" />;
+    case 'submission':
+      return <FileText className="w-5 h-5" />;
+    case 'plagiarism':
+      return <AlertTriangle className="w-5 h-5" />;
+    case 'ai_alert':
+      return <Brain className="w-5 h-5" />;
+    case 'system':
+      return <Settings className="w-5 h-5" />;
+    case 'deadline':
+      return <Bell className="w-5 h-5" />;
   }
 }
 
 function getTypeColor(type: NotificationType, isDark: boolean) {
   switch (type) {
-    case 'question': return isDark ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-600';
-    case 'submission': return isDark ? 'bg-green-500/20 text-green-400' : 'bg-green-100 text-green-600';
-    case 'plagiarism': return isDark ? 'bg-red-500/20 text-red-400' : 'bg-red-100 text-red-600';
-    case 'ai_alert': return isDark ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-600';
-    case 'system': return isDark ? 'bg-slate-500/20 text-slate-400' : 'bg-slate-100 text-slate-600';
-    case 'deadline': return isDark ? 'bg-amber-500/20 text-amber-400' : 'bg-amber-100 text-amber-600';
+    case 'question':
+      return isDark ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-600';
+    case 'submission':
+      return isDark ? 'bg-green-500/20 text-green-400' : 'bg-green-100 text-green-600';
+    case 'plagiarism':
+      return isDark ? 'bg-red-500/20 text-red-400' : 'bg-red-100 text-red-600';
+    case 'ai_alert':
+      return isDark ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-600';
+    case 'system':
+      return isDark ? 'bg-slate-500/20 text-slate-400' : 'bg-slate-100 text-slate-600';
+    case 'deadline':
+      return isDark ? 'bg-amber-500/20 text-amber-400' : 'bg-amber-100 text-amber-600';
   }
 }
 
@@ -139,11 +177,12 @@ export function NotificationsPage() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const unreadCount = notifications.filter((n) => !n.read).length;
 
-  const filtered = notifications.filter(n => {
+  const filtered = notifications.filter((n) => {
     const matchesFilter = FILTER_MAP[activeFilter].includes(n.type);
-    const matchesSearch = searchQuery === '' ||
+    const matchesSearch =
+      searchQuery === '' ||
       n.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       n.sender.toLowerCase().includes(searchQuery.toLowerCase()) ||
       n.preview.toLowerCase().includes(searchQuery.toLowerCase());
@@ -151,11 +190,11 @@ export function NotificationsPage() {
   });
 
   const handleMarkAllRead = () => {
-    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
   };
 
   const handleToggleSelect = (id: string) => {
-    setSelectedIds(prev => {
+    setSelectedIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
@@ -164,7 +203,7 @@ export function NotificationsPage() {
   };
 
   const handleSelectAll = () => {
-    setSelectedIds(new Set(filtered.map(n => n.id)));
+    setSelectedIds(new Set(filtered.map((n) => n.id)));
   };
 
   const handleDeselectAll = () => {
@@ -172,14 +211,12 @@ export function NotificationsPage() {
   };
 
   const handleMarkSelectedRead = () => {
-    setNotifications(prev =>
-      prev.map(n => selectedIds.has(n.id) ? { ...n, read: true } : n)
-    );
+    setNotifications((prev) => prev.map((n) => (selectedIds.has(n.id) ? { ...n, read: true } : n)));
     setSelectedIds(new Set());
   };
 
   const handleDeleteSelected = () => {
-    setNotifications(prev => prev.filter(n => !selectedIds.has(n.id)));
+    setNotifications((prev) => prev.filter((n) => !selectedIds.has(n.id)));
     setSelectedIds(new Set());
   };
 
@@ -210,12 +247,14 @@ export function NotificationsPage() {
 
       {/* Search */}
       <div className="relative">
-        <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? 'text-slate-400' : 'text-gray-400'}`} />
+        <Search
+          className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? 'text-slate-400' : 'text-gray-400'}`}
+        />
         <input
           type="text"
           placeholder="Search notifications..."
           value={searchQuery}
-          onChange={e => setSearchQuery(e.target.value)}
+          onChange={(e) => setSearchQuery(e.target.value)}
           className={`w-full pl-10 pr-4 py-2.5 rounded-lg border text-sm transition-colors ${
             isDark
               ? 'bg-white/5 border-white/10 text-white placeholder-slate-500 focus:border-blue-500'
@@ -226,7 +265,7 @@ export function NotificationsPage() {
 
       {/* Filter Chips */}
       <div className="flex flex-wrap gap-2">
-        {FILTERS.map(filter => {
+        {FILTERS.map((filter) => {
           const isActive = activeFilter === filter.key;
           return (
             <button
@@ -250,9 +289,11 @@ export function NotificationsPage() {
 
       {/* Selection Bar */}
       {selectedIds.size > 0 && (
-        <div className={`flex flex-wrap items-center gap-3 border rounded-lg p-3 ${
-          isDark ? 'bg-blue-500/10 border-blue-500/30' : 'bg-blue-50 border-blue-200'
-        }`}>
+        <div
+          className={`flex flex-wrap items-center gap-3 border rounded-lg p-3 ${
+            isDark ? 'bg-blue-500/10 border-blue-500/30' : 'bg-blue-50 border-blue-200'
+          }`}
+        >
           <span className={`text-sm font-medium ${isDark ? 'text-blue-400' : 'text-blue-700'}`}>
             {selectedIds.size} selected
           </span>
@@ -260,7 +301,9 @@ export function NotificationsPage() {
             <button
               onClick={handleSelectAll}
               className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
-                isDark ? 'bg-white/10 text-slate-300 hover:bg-white/20' : 'bg-white text-gray-700 hover:bg-gray-100'
+                isDark
+                  ? 'bg-white/10 text-slate-300 hover:bg-white/20'
+                  : 'bg-white text-gray-700 hover:bg-gray-100'
               }`}
             >
               Select All
@@ -268,7 +311,9 @@ export function NotificationsPage() {
             <button
               onClick={handleDeselectAll}
               className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
-                isDark ? 'bg-white/10 text-slate-300 hover:bg-white/20' : 'bg-white text-gray-700 hover:bg-gray-100'
+                isDark
+                  ? 'bg-white/10 text-slate-300 hover:bg-white/20'
+                  : 'bg-white text-gray-700 hover:bg-gray-100'
               }`}
             >
               Deselect All
@@ -276,7 +321,9 @@ export function NotificationsPage() {
             <button
               onClick={handleMarkSelectedRead}
               className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
-                isDark ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30' : 'bg-green-50 text-green-700 hover:bg-green-100'
+                isDark
+                  ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30'
+                  : 'bg-green-50 text-green-700 hover:bg-green-100'
               }`}
             >
               <Check className="w-3 h-3 inline-block mr-1 -mt-0.5" />
@@ -285,7 +332,9 @@ export function NotificationsPage() {
             <button
               onClick={handleDeleteSelected}
               className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
-                isDark ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30' : 'bg-red-50 text-red-700 hover:bg-red-100'
+                isDark
+                  ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
+                  : 'bg-red-50 text-red-700 hover:bg-red-100'
               }`}
             >
               <Trash2 className="w-3 h-3 inline-block mr-1 -mt-0.5" />
@@ -298,15 +347,21 @@ export function NotificationsPage() {
       {/* Notifications List */}
       <div className="space-y-3">
         {filtered.length === 0 && (
-          <div className={`text-center py-12 border rounded-lg ${
-            isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'
-          }`}>
-            <Bell className={`w-10 h-10 mx-auto mb-3 ${isDark ? 'text-slate-500' : 'text-gray-400'}`} />
-            <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>No notifications found</p>
+          <div
+            className={`text-center py-12 border rounded-lg ${
+              isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'
+            }`}
+          >
+            <Bell
+              className={`w-10 h-10 mx-auto mb-3 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}
+            />
+            <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
+              No notifications found
+            </p>
           </div>
         )}
 
-        {filtered.map(notification => {
+        {filtered.map((notification) => {
           const isExpanded = expandedId === notification.id;
           const isSelected = selectedIds.has(notification.id);
 
@@ -323,15 +378,18 @@ export function NotificationsPage() {
                   onClick={() => handleToggleSelect(notification.id)}
                   className={`mt-1 flex-shrink-0 ${isDark ? 'text-slate-400 hover:text-white' : 'text-gray-400 hover:text-gray-700'}`}
                 >
-                  {isSelected
-                    ? <CheckSquare className="w-4 h-4 text-blue-500" />
-                    : <Square className="w-4 h-4" />
-                  }
+                  {isSelected ? (
+                    <CheckSquare className="w-4 h-4 text-blue-500" />
+                  ) : (
+                    <Square className="w-4 h-4" />
+                  )}
                 </button>
 
                 {/* Type Icon */}
                 <div className="relative flex-shrink-0">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${getTypeColor(notification.type, isDark)}`}>
+                  <div
+                    className={`w-10 h-10 rounded-full flex items-center justify-center ${getTypeColor(notification.type, isDark)}`}
+                  >
                     {getTypeIcon(notification.type)}
                   </div>
                   {!notification.read && (
@@ -343,28 +401,40 @@ export function NotificationsPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-4">
                     <div className="min-w-0">
-                      <h3 className={`text-sm truncate ${
-                        !notification.read ? 'font-bold' : 'font-medium'
-                      } ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                      <h3
+                        className={`text-sm truncate ${
+                          !notification.read ? 'font-bold' : 'font-medium'
+                        } ${isDark ? 'text-white' : 'text-gray-900'}`}
+                      >
                         {notification.title}
                       </h3>
-                      <p className={`text-xs mt-0.5 ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
+                      <p
+                        className={`text-xs mt-0.5 ${isDark ? 'text-slate-400' : 'text-gray-500'}`}
+                      >
                         {notification.sender}
                       </p>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                        isDark ? 'bg-white/10 text-slate-300' : 'bg-gray-100 text-gray-600'
-                      }`}>
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                          isDark ? 'bg-white/10 text-slate-300' : 'bg-gray-100 text-gray-600'
+                        }`}
+                      >
                         {notification.badge}
                       </span>
                       <button
                         onClick={() => setExpandedId(isExpanded ? null : notification.id)}
                         className={`p-1 rounded transition-colors ${
-                          isDark ? 'hover:bg-white/10 text-slate-400' : 'hover:bg-gray-100 text-gray-400'
+                          isDark
+                            ? 'hover:bg-white/10 text-slate-400'
+                            : 'hover:bg-gray-100 text-gray-400'
                         }`}
                       >
-                        {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                        {isExpanded ? (
+                          <ChevronUp className="w-4 h-4" />
+                        ) : (
+                          <ChevronDown className="w-4 h-4" />
+                        )}
                       </button>
                     </div>
                   </div>
@@ -386,9 +456,11 @@ export function NotificationsPage() {
 
                   {/* Expanded Content */}
                   {isExpanded && (
-                    <div className={`mt-4 p-4 rounded-lg text-sm ${
-                      isDark ? 'bg-white/5 text-slate-300' : 'bg-gray-50 text-gray-700'
-                    }`}>
+                    <div
+                      className={`mt-4 p-4 rounded-lg text-sm ${
+                        isDark ? 'bg-white/5 text-slate-300' : 'bg-gray-50 text-gray-700'
+                      }`}
+                    >
                       {notification.fullMessage}
                     </div>
                   )}

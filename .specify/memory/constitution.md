@@ -101,20 +101,21 @@ All features MUST prioritize responsive, performant user experiences:
 
 The following technology choices are binding for all features:
 
-| Layer | Technology | Version/Notes |
-|-------|------------|---------------|
-| Framework | React | 19.x with hooks |
-| Build | Vite (rolldown) | Fast HMR, ESM-native |
-| Styling | Tailwind CSS | 4.x utility-first |
-| UI Primitives | Radix UI | Accessible components |
-| State | React Context + TanStack Query | Server state caching |
-| Routing | React Router | v7.x |
-| Forms | React Hook Form + Zod | Schema validation |
-| HTTP Client | Axios | Centralized in ApiClient |
-| Icons | Lucide React | Consistent iconography |
-| Charts | Recharts | Dashboard visualizations |
+| Layer         | Technology                     | Version/Notes            |
+| ------------- | ------------------------------ | ------------------------ |
+| Framework     | React                          | 19.x with hooks          |
+| Build         | Vite (rolldown)                | Fast HMR, ESM-native     |
+| Styling       | Tailwind CSS                   | 4.x utility-first        |
+| UI Primitives | Radix UI                       | Accessible components    |
+| State         | React Context + TanStack Query | Server state caching     |
+| Routing       | React Router                   | v7.x                     |
+| Forms         | React Hook Form + Zod          | Schema validation        |
+| HTTP Client   | Axios                          | Centralized in ApiClient |
+| Icons         | Lucide React                   | Consistent iconography   |
+| Charts        | Recharts                       | Dashboard visualizations |
 
 **Constraints**:
+
 - Bundle size MUST remain under 500KB gzipped for initial load
 - Largest Contentful Paint MUST be under 2.5 seconds on 3G
 - No jQuery or legacy DOM manipulation libraries
@@ -132,6 +133,7 @@ All contributions MUST follow this workflow:
 7. **Merge**: Squash merge to `main`; delete feature branch
 
 **Quality Gates**:
+
 - Lint MUST pass
 - Build MUST succeed (`npm run build`)
 - No console errors in browser dev tools
@@ -142,6 +144,7 @@ All contributions MUST follow this workflow:
 This constitution supersedes all informal practices and conflicting documentation.
 
 **Amendment Process**:
+
 1. Propose changes via PR to this document with rationale
 2. Team review and discussion required
 3. Approval from project lead required for principle changes
@@ -151,6 +154,7 @@ This constitution supersedes all informal practices and conflicting documentatio
    - PATCH: Clarifications and typo fixes
 
 **Compliance**:
+
 - All PRs MUST be verified against relevant principles before approval
 - Complexity beyond constitution guidelines MUST be documented with justification
 - Violations MUST be raised and resolved before merge

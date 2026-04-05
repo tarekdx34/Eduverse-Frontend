@@ -16,6 +16,7 @@ import {
   Menu,
   Megaphone,
   Bell,
+  Beaker,
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../../context/AuthContext';
@@ -54,6 +55,7 @@ import {
   SelectedSectionSummary,
   AIAttendanceModal,
   UploadMaterialsPage,
+  LabsPage,
 } from './components';
 import {
   MessagingChat,
@@ -93,6 +95,7 @@ type TabKey =
   | 'roster'
   | 'grades'
   | 'assignments'
+  | 'labs'
   | 'quizzes'
   | 'schedule'
   | 'materials'
@@ -124,6 +127,13 @@ const TABS: { key: TabKey; label: string; labelAr: string; icon: any; group: str
     label: 'Assignments',
     labelAr: 'الواجبات',
     icon: CheckSquare,
+    group: 'Teaching',
+  },
+  {
+    key: 'labs',
+    label: 'Labs',
+    labelAr: 'المعامل',
+    icon: Beaker,
     group: 'Teaching',
   },
   {
@@ -186,14 +196,46 @@ function InstructorDashboardContent() {
 
   const liveStats = useMemo(() => {
     if (isMockMode) return DASHBOARD_STATS;
-    if (!teachingCoursesLive) return [
-      { label: t('totalStudents'), value: '0', change: '--', trend: 'neutral', icon: Users, color: primaryColor },
-      { label: t('activeCourses'), value: '0', change: '--', trend: 'neutral', icon: BookOpen, color: primaryColor },
-      { label: t('avgAttendance'), value: '0%', change: '--', trend: 'neutral', icon: CheckSquare, color: primaryColor },
-      { label: t('pendingGrades'), value: '0', change: '--', trend: 'neutral', icon: FileText, color: primaryColor },
-    ];
-    
-    const totalStudents = teachingCoursesLive.reduce((acc: number, s: any) => acc + (s.enrolledCount || 0), 0);
+    if (!teachingCoursesLive)
+      return [
+        {
+          label: t('totalStudents'),
+          value: '0',
+          change: '--',
+          trend: 'neutral',
+          icon: Users,
+          color: primaryColor,
+        },
+        {
+          label: t('activeCourses'),
+          value: '0',
+          change: '--',
+          trend: 'neutral',
+          icon: BookOpen,
+          color: primaryColor,
+        },
+        {
+          label: t('avgAttendance'),
+          value: '0%',
+          change: '--',
+          trend: 'neutral',
+          icon: CheckSquare,
+          color: primaryColor,
+        },
+        {
+          label: t('pendingGrades'),
+          value: '0',
+          change: '--',
+          trend: 'neutral',
+          icon: FileText,
+          color: primaryColor,
+        },
+      ];
+
+    const totalStudents = teachingCoursesLive.reduce(
+      (acc: number, s: any) => acc + (s.enrolledCount || 0),
+      0
+    );
     const activeSections = teachingCoursesLive.length;
 
     return [
@@ -240,25 +282,25 @@ function InstructorDashboardContent() {
 
   const liveUpcomingClasses = useMemo(() => {
     if (isMockMode || !upcomingClassesLive) return UPCOMING_CLASSES;
-    
+
     // Map backend schedule items to the format expected by the frontend component
     return upcomingClassesLive.map((item, index) => {
       // Create a date object for today with the item's start time
       const today = new Date();
       const [hours, minutes] = item.startTime.split(':');
       let dateString = '';
-      
+
       if (hours && minutes) {
         today.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
         dateString = today.toISOString();
       }
-      
+
       return {
         id: item.scheduleId ? String(item.scheduleId) : `class-${index}`,
         title: `${item.courseCode} - ${item.courseName}`,
         time: `${item.startTime} - ${item.endTime}`,
         location: item.room,
-        type: item.type === 'lecture' ? 'Lecture' : (item.type === 'lab' ? 'Lab' : 'Session'),
+        type: item.type === 'lecture' ? 'Lecture' : item.type === 'lab' ? 'Lab' : 'Session',
         date: dateString,
       };
     });
@@ -272,13 +314,13 @@ function InstructorDashboardContent() {
 
   const liveRecentActivity = useMemo(() => {
     if (isMockMode || !notificationsLive) return RECENT_ACTIVITY;
-    
+
     return notificationsLive.map((item, index) => {
       // Create a relative time string
       const date = new Date(item.createdAt);
       const now = new Date();
       const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-      
+
       let timeString = '';
       if (diffInHours < 1) {
         const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
@@ -295,9 +337,19 @@ function InstructorDashboardContent() {
         title: item.title,
         description: item.message,
         time: timeString,
-        icon: item.type === 'assignment' ? FileText : (item.type === 'system' ? Bell : Users),
-        color: item.type === 'system' ? 'text-amber-500' : (item.type === 'assignment' ? 'text-blue-500' : 'text-emerald-500'),
-        bgColor: item.type === 'system' ? 'bg-amber-100 dark:bg-amber-500/20' : (item.type === 'assignment' ? 'bg-blue-100 dark:bg-blue-500/20' : 'bg-emerald-100 dark:bg-emerald-500/20'),
+        icon: item.type === 'assignment' ? FileText : item.type === 'system' ? Bell : Users,
+        color:
+          item.type === 'system'
+            ? 'text-amber-500'
+            : item.type === 'assignment'
+              ? 'text-blue-500'
+              : 'text-emerald-500',
+        bgColor:
+          item.type === 'system'
+            ? 'bg-amber-100 dark:bg-amber-500/20'
+            : item.type === 'assignment'
+              ? 'bg-blue-100 dark:bg-blue-500/20'
+              : 'bg-emerald-100 dark:bg-emerald-500/20',
       };
     });
   }, [isMockMode, notificationsLive]);
@@ -310,28 +362,30 @@ function InstructorDashboardContent() {
 
   const livePendingTasks = useMemo(() => {
     if (isMockMode || !allAssignmentsLive) return PENDING_TASKS;
-    
+
     // Safety check if data is an array or object with data property
-    const assignmentsArray = Array.isArray(allAssignmentsLive) 
-      ? allAssignmentsLive 
+    const assignmentsArray = Array.isArray(allAssignmentsLive)
+      ? allAssignmentsLive
       : (allAssignmentsLive as any).data || [];
 
     // Map backend assignments to "pending tasks" expected by frontend
-    const mappedTasks = assignmentsArray.map((assignment: any, index: number) => {
-      // Create a task object based on the assignment data
-      // We simulate pending grading or review needed based on assignment details
-      const isPastDue = new Date(assignment.dueDate) < new Date();
-      
-      return {
-        id: assignment.id || `task-${index}`,
-        title: `Grade ${assignment.title}`,
-        course: assignment.course?.code || 'Course',
-        deadline: new Date(assignment.dueDate || Date.now()).toLocaleDateString(),
-        priority: isPastDue ? 'High' : (assignment.weight > 15 ? 'Medium' : 'Low'),
-        type: 'grading',
-        icon: FileText,
-      };
-    }).slice(0, 4); // Limit to top 4 tasks for the dashboard view
+    const mappedTasks = assignmentsArray
+      .map((assignment: any, index: number) => {
+        // Create a task object based on the assignment data
+        // We simulate pending grading or review needed based on assignment details
+        const isPastDue = new Date(assignment.dueDate) < new Date();
+
+        return {
+          id: assignment.id || `task-${index}`,
+          title: `Grade ${assignment.title}`,
+          course: assignment.course?.code || 'Course',
+          deadline: new Date(assignment.dueDate || Date.now()).toLocaleDateString(),
+          priority: isPastDue ? 'High' : assignment.weight > 15 ? 'Medium' : 'Low',
+          type: 'grading',
+          icon: FileText,
+        };
+      })
+      .slice(0, 4); // Limit to top 4 tasks for the dashboard view
 
     // If we have less than 4 tasks, we could append some default ones or just show what we have
     return mappedTasks.length > 0 ? mappedTasks : PENDING_TASKS.slice(0, 1);
@@ -350,25 +404,30 @@ function InstructorDashboardContent() {
   });
 
   const { performanceData, engagementData } = useMemo(() => {
-    if (isMockMode || !analyticsLive) return { performanceData: undefined, engagementData: undefined };
-    
+    if (isMockMode || !analyticsLive)
+      return { performanceData: undefined, engagementData: undefined };
+
     // Safety check just in case the backend returns empty arrays
     if (!analyticsLive.courseBreakdown || analyticsLive.courseBreakdown.length === 0) {
       return { performanceData: undefined, engagementData: undefined };
     }
 
     // Determine performanceData from the courseBreakdown
-    const calculatedPerformance = analyticsLive.courseBreakdown.slice(0, 5).map(course => ({
-      course: (course.courseId || course.analyticsId || course.id) ? `Course ${course.courseId || course.id || course.analyticsId}` : 'Unknown',
+    const calculatedPerformance = analyticsLive.courseBreakdown.slice(0, 5).map((course) => ({
+      course:
+        course.courseId || course.analyticsId || course.id
+          ? `Course ${course.courseId || course.id || course.analyticsId}`
+          : 'Unknown',
       value: course.averageGrade ? Number(course.averageGrade) : 0,
     }));
 
     // If teachingCoursesLive is available, let's map the names perfectly
     if (teachingCoursesLive) {
-      calculatedPerformance.forEach(perf => {
-        const matchingCourse = teachingCoursesLive.find((c: any) => 
-          String(c.id) === perf.course.replace('Course ', '') || 
-          String(c.courseId) === perf.course.replace('Course ', '')
+      calculatedPerformance.forEach((perf) => {
+        const matchingCourse = teachingCoursesLive.find(
+          (c: any) =>
+            String(c.id) === perf.course.replace('Course ', '') ||
+            String(c.courseId) === perf.course.replace('Course ', '')
         );
         if (matchingCourse) {
           perf.course = matchingCourse.courseCode || matchingCourse.name || perf.course;
@@ -392,7 +451,7 @@ function InstructorDashboardContent() {
     };
   }, [isMockMode, analyticsLive, teachingCoursesLive]);
 
-  const { data: assignmentsLive } = useQuery({
+  const { data: assignmentsLive, isLoading: isLoadingAssignments } = useQuery({
     queryKey: ['course-assignments', activeSectionId],
     queryFn: () => {
       const section = (teachingCoursesLive || []).find(
@@ -497,10 +556,19 @@ function InstructorDashboardContent() {
   });
 
   const gradeAssignmentSubmissionMutation = useMutation({
-    mutationFn: ({ assignmentId, submissionId, score }: { assignmentId: number; submissionId: number; score: number }) =>
-      AssignmentService.gradeSubmission(String(assignmentId), submissionId, { score }),
+    mutationFn: ({
+      assignmentId,
+      submissionId,
+      score,
+    }: {
+      assignmentId: number;
+      submissionId: number;
+      score: number;
+    }) => AssignmentService.gradeSubmission(String(assignmentId), submissionId, { score }),
     onSuccess: (_response, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['assignment-submissions', variables.assignmentId] });
+      queryClient.invalidateQueries({
+        queryKey: ['assignment-submissions', variables.assignmentId],
+      });
       queryClient.invalidateQueries({ queryKey: ['course-assignments', activeSectionId] });
       setDraftSubmissionScores((prev) => {
         const next = { ...prev };
@@ -582,7 +650,9 @@ function InstructorDashboardContent() {
         courseName: s.course?.name || s.courseName || 'Unknown Course',
         courseCode: s.course?.code || s.courseCode || 'UNK',
         enrolled: s.section?.currentEnrollment || s.enrolledCount || 0,
-        status: (s.status?.toLowerCase() || s.section?.status?.toLowerCase() || 'active') as 'active' | 'archived',
+        status: (s.status?.toLowerCase() || s.section?.status?.toLowerCase() || 'active') as
+          | 'active'
+          | 'archived',
         averageGrade: s.averageGrade || 0,
         attendanceRate: s.attendanceRate || 0,
         semester: s.semester?.name || s.semesterName || 'N/A',
@@ -723,12 +793,17 @@ function InstructorDashboardContent() {
       return SECTIONS.find((s) => String(s.sectionId) === activeSectionId) || null;
     }
     const liveSection =
-      (teachingCoursesLive || []).find((s: any) => String(s.section?.id || s.sectionId || s.id) === activeSectionId) ||
-      null;
+      (teachingCoursesLive || []).find(
+        (s: any) => String(s.section?.id || s.sectionId || s.id) === activeSectionId
+      ) || null;
     if (!liveSection) return null;
 
     const sectionNumber =
-      liveSection.section?.sectionNumber || liveSection.sectionNumber || liveSection.sectionLabel || liveSection.section?.id || activeSectionId;
+      liveSection.section?.sectionNumber ||
+      liveSection.sectionNumber ||
+      liveSection.sectionLabel ||
+      liveSection.section?.id ||
+      activeSectionId;
 
     return {
       courseCode: liveSection.course?.code || liveSection.courseCode || 'N/A',
@@ -766,9 +841,10 @@ function InstructorDashboardContent() {
     };
 
     const selectedModalCourseId = Number(data.course);
-    const resolvedCourseId = Number.isFinite(selectedModalCourseId) && selectedModalCourseId > 0
-      ? selectedModalCourseId
-      : Number(selectedCourseId ?? activeSectionId);
+    const resolvedCourseId =
+      Number.isFinite(selectedModalCourseId) && selectedModalCourseId > 0
+        ? selectedModalCourseId
+        : Number(selectedCourseId ?? activeSectionId);
 
     const payload = {
       title: data.title,
@@ -842,7 +918,10 @@ function InstructorDashboardContent() {
     setAssignmentToDelete(null);
   };
 
-  const handleAssignmentStatusChange = async (id: number, newStatus: 'draft' | 'open' | 'closed') => {
+  const handleAssignmentStatusChange = async (
+    id: number,
+    newStatus: 'draft' | 'open' | 'closed'
+  ) => {
     if (!activeSectionId) return;
     const sectionAssignments = assignmentsData[activeSectionId] || [];
     const current = sectionAssignments.find((a) => a.id === id);
@@ -1190,6 +1269,9 @@ function InstructorDashboardContent() {
           {/* Quizzes */}
           {activeTab === 'quizzes' && <QuizzesPage courses={coursesData} />}
 
+          {/* Labs */}
+          {activeTab === 'labs' && <LabsPage />}
+
           {/* Schedule */}
           {activeTab === 'schedule' && <SchedulePage />}
 
@@ -1302,14 +1384,110 @@ function InstructorDashboardContent() {
                 />
               </div>
               <SelectedSectionSummary section={selectedSection as any} />
-              <AssignmentsList
-                data={activeSectionId ? assignmentsData[activeSectionId] || [] : []}
-                onEdit={handleEditAssignment}
-                onDelete={handleDeleteAssignment}
-                onCreate={handleCreateAssignment}
-                onStatusChange={handleAssignmentStatusChange}
-                onViewSubmissions={handleViewAssignmentSubmissions}
-              />
+
+              {/* Loading Skeleton for Assignments */}
+              {!isMockMode && isLoadingAssignments ? (
+                <div className="space-y-4 animate-pulse">
+                  {[1, 2, 3].map((i) => (
+                    <div
+                      key={i}
+                      className={`border rounded-xl p-5 ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <div
+                          className={
+                            'h-5 w-2/3 rounded ' + (isDark ? 'bg-white/10' : 'bg-slate-200')
+                          }
+                        />
+                        <div className="flex gap-1">
+                          <div
+                            className={
+                              'h-8 w-8 rounded-lg ' + (isDark ? 'bg-white/10' : 'bg-slate-200')
+                            }
+                          />
+                          <div
+                            className={
+                              'h-8 w-8 rounded-lg ' + (isDark ? 'bg-white/10' : 'bg-slate-200')
+                            }
+                          />
+                        </div>
+                      </div>
+                      <div
+                        className={
+                          'h-4 w-32 mb-2 rounded ' + (isDark ? 'bg-white/5' : 'bg-slate-100')
+                        }
+                      />
+                      <div
+                        className={
+                          'h-4 w-24 mb-3 rounded ' + (isDark ? 'bg-white/5' : 'bg-slate-100')
+                        }
+                      />
+                      <div className="flex items-center justify-between">
+                        <div
+                          className={
+                            'h-6 w-16 rounded-full ' + (isDark ? 'bg-white/10' : 'bg-slate-200')
+                          }
+                        />
+                        <div
+                          className={
+                            'h-9 w-32 rounded-lg ' + (isDark ? 'bg-white/10' : 'bg-slate-200')
+                          }
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : !isMockMode &&
+                activeSectionId &&
+                (assignmentsData[activeSectionId] || []).length === 0 ? (
+                /* Empty State */
+                <div
+                  className={`border rounded-xl p-12 text-center ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}
+                >
+                  <div
+                    className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 ${isDark ? 'bg-white/10' : 'bg-slate-100'}`}
+                  >
+                    <svg
+                      className={`w-8 h-8 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                      />
+                    </svg>
+                  </div>
+                  <h3
+                    className={`text-lg font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}
+                  >
+                    No Assignments Yet
+                  </h3>
+                  <p className={`text-sm mb-4 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                    Get started by creating your first assignment for this course section.
+                  </p>
+                  <button
+                    onClick={handleCreateAssignment}
+                    className="px-4 py-2 rounded-lg text-white font-medium hover:opacity-90 transition-colors"
+                    style={{ backgroundColor: primaryHex }}
+                  >
+                    Create Assignment
+                  </button>
+                </div>
+              ) : (
+                /* Assignments List */
+                <AssignmentsList
+                  data={activeSectionId ? assignmentsData[activeSectionId] || [] : []}
+                  onEdit={handleEditAssignment}
+                  onDelete={handleDeleteAssignment}
+                  onCreate={handleCreateAssignment}
+                  onStatusChange={handleAssignmentStatusChange}
+                  onViewSubmissions={handleViewAssignmentSubmissions}
+                />
+              )}
 
               {selectedAssignmentForSubmissions && (
                 <div
@@ -1317,7 +1495,9 @@ function InstructorDashboardContent() {
                 >
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
                     <div>
-                      <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                      <h3
+                        className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}
+                      >
                         Submissions: {selectedAssignmentForSubmissions.title}
                       </h3>
                       <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
@@ -1333,23 +1513,30 @@ function InstructorDashboardContent() {
                   </div>
 
                   {isMockMode ? (
-                    <div className={`text-sm rounded-lg p-4 ${isDark ? 'bg-white/5 text-slate-300' : 'bg-gray-50 text-gray-700'}`}>
+                    <div
+                      className={`text-sm rounded-lg p-4 ${isDark ? 'bg-white/5 text-slate-300' : 'bg-gray-50 text-gray-700'}`}
+                    >
                       Submissions and grading are available in Live Mode only.
                     </div>
                   ) : isLoadingAssignmentSubmissions ? (
-                    <div className={`text-sm rounded-lg p-4 ${isDark ? 'bg-white/5 text-slate-300' : 'bg-gray-50 text-gray-700'}`}>
+                    <div
+                      className={`text-sm rounded-lg p-4 ${isDark ? 'bg-white/5 text-slate-300' : 'bg-gray-50 text-gray-700'}`}
+                    >
                       Loading submissions...
                     </div>
                   ) : assignmentSubmissions.length === 0 ? (
-                    <div className={`text-sm rounded-lg p-4 ${isDark ? 'bg-white/5 text-slate-300' : 'bg-gray-50 text-gray-700'}`}>
+                    <div
+                      className={`text-sm rounded-lg p-4 ${isDark ? 'bg-white/5 text-slate-300' : 'bg-gray-50 text-gray-700'}`}
+                    >
                       No submissions yet for this assignment.
                     </div>
                   ) : (
                     <div className="space-y-3">
                       {assignmentSubmissions.map((submission: AssignmentSubmission) => {
-                        const studentName = submission.user?.firstName || submission.user?.lastName
-                          ? `${submission.user?.firstName || ''} ${submission.user?.lastName || ''}`.trim()
-                          : `Student #${submission.userId}`;
+                        const studentName =
+                          submission.user?.firstName || submission.user?.lastName
+                            ? `${submission.user?.firstName || ''} ${submission.user?.lastName || ''}`.trim()
+                            : `Student #${submission.userId}`;
                         const draftValue = draftSubmissionScores[submission.id] ?? '';
                         const status = String(submission.submissionStatus || '').toLowerCase();
 
@@ -1360,8 +1547,14 @@ function InstructorDashboardContent() {
                           >
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                               <div>
-                                <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{studentName}</p>
-                                <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                                <p
+                                  className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}
+                                >
+                                  {studentName}
+                                </p>
+                                <p
+                                  className={`text-xs ${isDark ? 'text-slate-400' : 'text-gray-600'}`}
+                                >
                                   Submitted {new Date(submission.submittedAt).toLocaleString()}
                                 </p>
                               </div>
@@ -1379,7 +1572,9 @@ function InstructorDashboardContent() {
                                 max={100}
                                 step={1}
                                 value={draftValue}
-                                onChange={(e) => handleSubmissionScoreDraftChange(submission.id, e.target.value)}
+                                onChange={(e) =>
+                                  handleSubmissionScoreDraftChange(submission.id, e.target.value)
+                                }
                                 placeholder="Score"
                                 className={`w-24 px-2 py-1.5 rounded-lg border text-sm ${isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
                               />

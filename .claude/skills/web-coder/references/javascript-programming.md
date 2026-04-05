@@ -5,9 +5,11 @@ Comprehensive reference for JavaScript, ECMAScript, programming concepts, and mo
 ## Core Concepts
 
 ### JavaScript
+
 High-level, interpreted programming language that conforms to the ECMAScript specification. Primary language for web development alongside HTML and CSS.
 
 **Key Characteristics**:
+
 - Dynamically typed
 - Prototype-based inheritance
 - First-class functions
@@ -15,9 +17,11 @@ High-level, interpreted programming language that conforms to the ECMAScript spe
 - Asynchronous execution
 
 ### ECMAScript
+
 The standardized specification that JavaScript implements.
 
 **Major Versions**:
+
 - **ES5** (2009): Strict mode, JSON support
 - **ES6/ES2015**: Classes, arrow functions, promises, modules
 - **ES2016+**: Async/await, optional chaining, nullish coalescing
@@ -28,7 +32,7 @@ The standardized specification that JavaScript implements.
 
 ```javascript
 // String
-let name = "John";
+let name = 'John';
 let greeting = 'Hello';
 let template = `Hello, ${name}!`; // Template literal
 
@@ -59,7 +63,7 @@ let sym = Symbol('description');
 ### Type Checking
 
 ```javascript
-typeof "hello"; // "string"
+typeof 'hello'; // "string"
 typeof 42; // "number"
 typeof true; // "boolean"
 typeof undefined; // "undefined"
@@ -67,7 +71,7 @@ typeof null; // "object" (historical bug)
 typeof Symbol(); // "symbol"
 typeof {}; // "object"
 typeof []; // "object"
-typeof function() {}; // "function"
+typeof function () {}; // "function"
 
 // Better array check
 Array.isArray([]); // true
@@ -80,24 +84,25 @@ value === null; // true if null
 
 ```javascript
 // Implicit coercion
-"5" + 2; // "52" (string concatenation)
-"5" - 2; // 3 (numeric subtraction)
-"5" * "2"; // 10 (numeric multiplication)
-!!"value"; // true (boolean conversion)
+'5' + 2; // "52" (string concatenation)
+'5' - 2; // 3 (numeric subtraction)
+'5' * '2'; // 10 (numeric multiplication)
+!!'value'; // true (boolean conversion)
 
 // Explicit conversion
 String(123); // "123"
-Number("123"); // 123
-Number("abc"); // NaN
+Number('123'); // 123
+Number('abc'); // NaN
 Boolean(0); // false
 Boolean(1); // true
-parseInt("123px"); // 123
-parseFloat("3.14"); // 3.14
+parseInt('123px'); // 123
+parseFloat('3.14'); // 3.14
 ```
 
 ### Truthy and Falsy Values
 
 **Falsy values** (evaluate to false):
+
 - `false`
 - `0`, `-0`
 - `""` (empty string)
@@ -106,6 +111,7 @@ parseFloat("3.14"); // 3.14
 - `NaN`
 
 **Everything else is truthy**, including:
+
 - `"0"` (string)
 - `"false"` (string)
 - `[]` (empty array)
@@ -116,7 +122,7 @@ parseFloat("3.14"); // 3.14
 
 ```javascript
 // var (function-scoped, hoisted - avoid in modern code)
-var oldStyle = "avoid this";
+var oldStyle = 'avoid this';
 
 // let (block-scoped, can be reassigned)
 let count = 0;
@@ -127,8 +133,8 @@ const MAX = 100;
 MAX = 200; // ✗ TypeError
 
 // const with objects/arrays (content can change)
-const person = { name: "John" };
-person.name = "Jane"; // ✓ works (mutating object)
+const person = { name: 'John' };
+person.name = 'Jane'; // ✓ works (mutating object)
 person = {}; // ✗ TypeError (reassigning variable)
 ```
 
@@ -145,7 +151,7 @@ function greet(name) {
 ### Function Expression
 
 ```javascript
-const greet = function(name) {
+const greet = function (name) {
   return `Hello, ${name}!`;
 };
 ```
@@ -163,7 +169,7 @@ const multiply = (a, b) => {
 };
 
 // Single parameter (parentheses optional)
-const square = x => x * x;
+const square = (x) => x * x;
 
 // No parameters
 const getRandom = () => Math.random();
@@ -175,23 +181,26 @@ const makePerson = (name, age) => ({ name, age });
 ### First-Class Functions
 
 Functions are values that can be:
+
 - Assigned to variables
 - Passed as arguments
 - Returned from other functions
 
 ```javascript
 // Assign to variable
-const fn = function() { return 42; };
+const fn = function () {
+  return 42;
+};
 
 // Pass as argument
 function execute(callback) {
   return callback();
 }
-execute(() => console.log("Hello"));
+execute(() => console.log('Hello'));
 
 // Return from function
 function createMultiplier(factor) {
-  return function(x) {
+  return function (x) {
     return x * factor;
   };
 }
@@ -206,7 +215,7 @@ Functions that remember their lexical scope:
 ```javascript
 function createCounter() {
   let count = 0; // Private variable
-  
+
   return {
     increment() {
       count++;
@@ -218,7 +227,7 @@ function createCounter() {
     },
     getCount() {
       return count;
-    }
+    },
   };
 }
 
@@ -237,11 +246,11 @@ Function passed as an argument to be executed later:
 // Array methods use callbacks
 const numbers = [1, 2, 3, 4, 5];
 
-numbers.forEach(num => console.log(num));
+numbers.forEach((num) => console.log(num));
 
-const doubled = numbers.map(num => num * 2);
+const doubled = numbers.map((num) => num * 2);
 
-const evens = numbers.filter(num => num % 2 === 0);
+const evens = numbers.filter((num) => num % 2 === 0);
 
 const sum = numbers.reduce((acc, num) => acc + num, 0);
 ```
@@ -249,19 +258,19 @@ const sum = numbers.reduce((acc, num) => acc + num, 0);
 ### IIFE (Immediately Invoked Function Expression)
 
 ```javascript
-(function() {
+(function () {
   // Code here runs immediately
-  console.log("IIFE executed");
+  console.log('IIFE executed');
 })();
 
 // With parameters
-(function(name) {
+(function (name) {
   console.log(`Hello, ${name}`);
-})("World");
+})('World');
 
 // Arrow function IIFE
 (() => {
-  console.log("Arrow IIFE");
+  console.log('Arrow IIFE');
 })();
 ```
 
@@ -272,11 +281,11 @@ const sum = numbers.reduce((acc, num) => acc + num, 0);
 ```javascript
 // Object literal
 const person = {
-  name: "John",
+  name: 'John',
   age: 30,
   greet() {
     return `Hello, I'm ${this.name}`;
-  }
+  },
 };
 
 // Constructor function
@@ -285,24 +294,28 @@ function Person(name, age) {
   this.age = age;
 }
 
-const john = new Person("John", 30);
+const john = new Person('John', 30);
 
 // Object.create
-const proto = { greet() { return "Hello"; } };
+const proto = {
+  greet() {
+    return 'Hello';
+  },
+};
 const obj = Object.create(proto);
 ```
 
 ### Accessing Properties
 
 ```javascript
-const obj = { name: "John", age: 30 };
+const obj = { name: 'John', age: 30 };
 
 // Dot notation
 obj.name; // "John"
 
 // Bracket notation
-obj["age"]; // 30
-const key = "name";
+obj['age']; // 30
+const key = 'name';
 obj[key]; // "John"
 
 // Optional chaining (ES2020)
@@ -313,7 +326,7 @@ obj.getName?.(); // undefined (no error if getName doesn't exist)
 ### Object Methods
 
 ```javascript
-const person = { name: "John", age: 30, city: "NYC" };
+const person = { name: 'John', age: 30, city: 'NYC' };
 
 // Get keys
 Object.keys(person); // ["name", "age", "city"]
@@ -325,10 +338,10 @@ Object.values(person); // ["John", 30, "NYC"]
 Object.entries(person); // [["name", "John"], ["age", 30], ["city", "NYC"]]
 
 // Assign (merge objects)
-const extended = Object.assign({}, person, { country: "USA" });
+const extended = Object.assign({}, person, { country: 'USA' });
 
 // Spread operator (modern alternative)
-const merged = { ...person, country: "USA" };
+const merged = { ...person, country: 'USA' };
 
 // Freeze (make immutable)
 Object.freeze(person);
@@ -342,18 +355,20 @@ Object.seal(person);
 
 ```javascript
 // Object destructuring
-const person = { name: "John", age: 30, city: "NYC" };
+const person = { name: 'John', age: 30, city: 'NYC' };
 const { name, age } = person;
 
 // With different variable names
 const { name: personName, age: personAge } = person;
 
 // With defaults
-const { name, country = "USA" } = person;
+const { name, country = 'USA' } = person;
 
 // Nested destructuring
-const user = { profile: { email: "john@example.com" } };
-const { profile: { email } } = user;
+const user = { profile: { email: 'john@example.com' } };
+const {
+  profile: { email },
+} = user;
 
 // Array destructuring
 const numbers = [1, 2, 3, 4, 5];
@@ -371,7 +386,7 @@ const [a, , c] = numbers;
 // Create arrays
 const arr = [1, 2, 3];
 const empty = [];
-const mixed = [1, "two", { three: 3 }, [4]];
+const mixed = [1, 'two', { three: 3 }, [4]];
 
 // Access elements
 arr[0]; // 1
@@ -386,24 +401,28 @@ arr.shift(); // Remove from beginning
 arr.splice(1, 2, 'a', 'b'); // Remove 2 elements at index 1, insert 'a', 'b'
 
 // Iteration
-arr.forEach(item => console.log(item));
-for (let item of arr) { console.log(item); }
-for (let i = 0; i < arr.length; i++) { console.log(arr[i]); }
+arr.forEach((item) => console.log(item));
+for (let item of arr) {
+  console.log(item);
+}
+for (let i = 0; i < arr.length; i++) {
+  console.log(arr[i]);
+}
 
 // Transformation
-const doubled = arr.map(x => x * 2);
-const evens = arr.filter(x => x % 2 === 0);
+const doubled = arr.map((x) => x * 2);
+const evens = arr.filter((x) => x % 2 === 0);
 const sum = arr.reduce((acc, x) => acc + x, 0);
 
 // Search
 arr.includes(2); // true
 arr.indexOf(2); // Index or -1
-arr.find(x => x > 2); // First matching element
-arr.findIndex(x => x > 2); // Index of first match
+arr.find((x) => x > 2); // First matching element
+arr.findIndex((x) => x > 2); // Index of first match
 
 // Test
-arr.some(x => x > 5); // true if any match
-arr.every(x => x > 0); // true if all match
+arr.some((x) => x > 5); // true if any match
+arr.every((x) => x > 0); // true if all match
 
 // Sort and reverse
 arr.sort((a, b) => a - b); // Ascending
@@ -417,7 +436,10 @@ const spread = [...arr, 4, 5];
 const portion = arr.slice(1, 3); // Index 1 to 3 (exclusive)
 
 // Flat (flatten nested arrays)
-[[1, 2], [3, 4]].flat(); // [1, 2, 3, 4]
+[
+  [1, 2],
+  [3, 4],
+].flat(); // [1, 2, 3, 4]
 ```
 
 ## Control Flow
@@ -447,15 +469,15 @@ switch (value) {
     // code for 2 or 3
     break;
   default:
-    // default code
+  // default code
 }
 
 // Nullish coalescing (ES2020)
-const value = null ?? "default"; // "default"
-const value = 0 ?? "default"; // 0 (0 is not nullish)
+const value = null ?? 'default'; // "default"
+const value = 0 ?? 'default'; // 0 (0 is not nullish)
 
 // Logical OR for defaults (pre-ES2020)
-const value = falsy || "default";
+const value = falsy || 'default';
 
 // Optional chaining
 const city = user?.address?.city;
@@ -507,11 +529,11 @@ for (let i = 0; i < 10; i++) {
 ```javascript
 function fetchData(callback) {
   setTimeout(() => {
-    callback("Data received");
+    callback('Data received');
   }, 1000);
 }
 
-fetchData(data => console.log(data));
+fetchData((data) => console.log(data));
 ```
 
 ### Promises
@@ -522,18 +544,18 @@ const promise = new Promise((resolve, reject) => {
   setTimeout(() => {
     const success = true;
     if (success) {
-      resolve("Success!");
+      resolve('Success!');
     } else {
-      reject("Error!");
+      reject('Error!');
     }
   }, 1000);
 });
 
 // Use promise
 promise
-  .then(result => console.log(result))
-  .catch(error => console.error(error))
-  .finally(() => console.log("Done"));
+  .then((result) => console.log(result))
+  .catch((error) => console.error(error))
+  .finally(() => console.log('Done'));
 
 // Promise utilities
 Promise.all([promise1, promise2]); // Wait for all
@@ -557,7 +579,7 @@ async function fetchData() {
 }
 
 // Use async function
-fetchData().then(data => console.log(data));
+fetchData().then((data) => console.log(data));
 
 // Top-level await (ES2022, in modules)
 const data = await fetchData();
@@ -572,25 +594,25 @@ class Person {
     this.name = name;
     this.age = age;
   }
-  
+
   // Instance method
   greet() {
     return `Hello, I'm ${this.name}`;
   }
-  
+
   // Getter
   get info() {
     return `${this.name}, ${this.age}`;
   }
-  
+
   // Setter
   set birthYear(year) {
     this.age = new Date().getFullYear() - year;
   }
-  
+
   // Static method
   static species() {
-    return "Homo sapiens";
+    return 'Homo sapiens';
   }
 }
 
@@ -600,7 +622,7 @@ class Employee extends Person {
     super(name, age); // Call parent constructor
     this.jobTitle = jobTitle;
   }
-  
+
   // Override method
   greet() {
     return `${super.greet()}, I'm a ${this.jobTitle}`;
@@ -608,11 +630,11 @@ class Employee extends Person {
 }
 
 // Usage
-const john = new Person("John", 30);
+const john = new Person('John', 30);
 john.greet(); // "Hello, I'm John"
 Person.species(); // "Homo sapiens"
 
-const jane = new Employee("Jane", 25, "Developer");
+const jane = new Employee('Jane', 25, 'Developer');
 jane.greet(); // "Hello, I'm Jane, I'm a Developer"
 ```
 
@@ -643,7 +665,7 @@ import { add as sum } from './math.js'; // Rename
 module.exports = {
   add(a, b) {
     return a + b;
-  }
+  },
 };
 
 // Import
@@ -656,28 +678,29 @@ const math = require('./math');
 // Try/catch
 try {
   // Code that might throw
-  throw new Error("Something went wrong");
+  throw new Error('Something went wrong');
 } catch (error) {
   console.error(error.message);
 } finally {
   // Always runs
-  console.log("Cleanup");
+  console.log('Cleanup');
 }
 
 // Custom errors
 class ValidationError extends Error {
   constructor(message) {
     super(message);
-    this.name = "ValidationError";
+    this.name = 'ValidationError';
   }
 }
 
-throw new ValidationError("Invalid input");
+throw new ValidationError('Invalid input');
 ```
 
 ## Best Practices
 
 ### Do's
+
 - ✅ Use `const` by default, `let` when needed
 - ✅ Use strict mode (`'use strict';`)
 - ✅ Use arrow functions for callbacks
@@ -690,6 +713,7 @@ throw new ValidationError("Invalid input");
 - ✅ Use modern ES6+ features
 
 ### Don'ts
+
 - ❌ Use `var` (use `let` or `const`)
 - ❌ Pollute global scope
 - ❌ Use `==` (use `===` for strict equality)
@@ -702,6 +726,7 @@ throw new ValidationError("Invalid input");
 ## Glossary Terms
 
 **Key Terms Covered**:
+
 - Algorithm
 - Argument
 - Array

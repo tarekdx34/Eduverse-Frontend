@@ -35,7 +35,8 @@ export function VoiceRecorder({
   const recognitionRef = useRef<any>(null);
 
   // Check for Web Speech API support
-  const isSpeechRecognitionSupported = typeof window !== 'undefined' && 
+  const isSpeechRecognitionSupported =
+    typeof window !== 'undefined' &&
     ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window);
 
   const formatTime = (seconds: number): string => {
@@ -67,7 +68,7 @@ export function VoiceRecorder({
     try {
       setError(null);
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      
+
       const mediaRecorder = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
@@ -82,7 +83,7 @@ export function VoiceRecorder({
         const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
         setAudioBlob(blob);
         setAudioUrl(URL.createObjectURL(blob));
-        
+
         if (onRecordingComplete) {
           onRecordingComplete(blob);
         }
@@ -112,9 +113,10 @@ export function VoiceRecorder({
   };
 
   const startSpeechRecognition = () => {
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const SpeechRecognition =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
-    
+
     recognition.continuous = true;
     recognition.interimResults = true;
     recognition.lang = 'en-US';
@@ -240,8 +242,8 @@ export function VoiceRecorder({
                   ? 'bg-yellow-100 animate-pulse'
                   : 'bg-red-100 animate-pulse'
                 : audioBlob
-                ? 'bg-green-100'
-                : 'bg-gray-100'
+                  ? 'bg-green-100'
+                  : 'bg-gray-100'
             }`}
           >
             {isRecording ? (
@@ -258,26 +260,20 @@ export function VoiceRecorder({
           </div>
 
           {/* Duration */}
-          <p className="text-2xl font-mono font-bold text-gray-900 mt-4">
-            {formatTime(duration)}
-          </p>
+          <p className="text-2xl font-mono font-bold text-gray-900 mt-4">{formatTime(duration)}</p>
           <p className="text-sm text-gray-500">
             {isRecording
               ? isPaused
                 ? 'Paused'
                 : 'Recording...'
               : audioBlob
-              ? 'Recording complete'
-              : 'Ready to record'}
+                ? 'Recording complete'
+                : 'Ready to record'}
           </p>
         </div>
 
         {/* Error Message */}
-        {error && (
-          <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">
-            {error}
-          </div>
-        )}
+        {error && <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">{error}</div>}
 
         {/* Controls */}
         <div className="flex items-center justify-center gap-4 mb-6">
@@ -371,7 +367,8 @@ export function VoiceRecorder({
         {/* Hint */}
         {!isSpeechRecognitionSupported && (
           <p className="text-xs text-yellow-600 mt-4">
-            Real-time transcription not supported in this browser. Audio will be recorded without transcription.
+            Real-time transcription not supported in this browser. Audio will be recorded without
+            transcription.
           </p>
         )}
       </div>

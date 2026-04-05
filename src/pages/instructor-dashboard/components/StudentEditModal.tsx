@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { CleanSelect } from '../../../components/shared';
 
-
 export type StudentModel = {
   id: number;
   name: string;

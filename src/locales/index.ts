@@ -39,7 +39,7 @@ i18n.on('languageChanged', (lng) => {
   const htmlElement = document.documentElement;
   htmlElement.lang = lng;
   htmlElement.dir = lng === 'ar' ? 'rtl' : 'ltr';
-  
+
   // Store language preference
   localStorage.setItem('preferredLanguage', lng);
 });

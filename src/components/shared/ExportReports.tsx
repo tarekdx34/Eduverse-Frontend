@@ -57,14 +57,16 @@ export function ExportReports({
     const csvContent = [
       headers.join(','),
       ...rows.map((row) =>
-        row.map((cell) => {
-          const cellStr = String(cell);
-          // Escape quotes and wrap in quotes if contains comma
-          if (cellStr.includes(',') || cellStr.includes('"')) {
-            return `"${cellStr.replace(/"/g, '""')}"`;
-          }
-          return cellStr;
-        }).join(',')
+        row
+          .map((cell) => {
+            const cellStr = String(cell);
+            // Escape quotes and wrap in quotes if contains comma
+            if (cellStr.includes(',') || cellStr.includes('"')) {
+              return `"${cellStr.replace(/"/g, '""')}"`;
+            }
+            return cellStr;
+          })
+          .join(',')
       ),
     ].join('\n');
 
@@ -78,10 +80,9 @@ export function ExportReports({
     const { headers, rows, filename = 'export' } = exportData;
 
     // Create tab-separated content (basic Excel compatibility)
-    const content = [
-      headers.join('\t'),
-      ...rows.map((row) => row.map(String).join('\t')),
-    ].join('\n');
+    const content = [headers.join('\t'), ...rows.map((row) => row.map(String).join('\t'))].join(
+      '\n'
+    );
 
     const blob = new Blob([content], { type: 'application/vnd.ms-excel' });
     downloadBlob(blob, `${filename}.xlsx`);
@@ -190,9 +191,7 @@ export function ExportReports({
           </div>
           <div>
             <h3 className="font-semibold text-gray-900">Export Report</h3>
-            <p className="text-sm text-gray-600">
-              Download your data in various formats
-            </p>
+            <p className="text-sm text-gray-600">Download your data in various formats</p>
           </div>
         </div>
       </div>
@@ -254,11 +253,12 @@ export function ExportReports({
                 disabled={isExporting !== null}
                 className={`
                   relative flex flex-col items-center p-4 border-2 rounded-xl transition-all
-                  ${isExporting === format.id
-                    ? 'border-indigo-500 bg-indigo-50'
-                    : exportSuccess === format.id
-                    ? 'border-green-500 bg-green-50'
-                    : 'border-gray-200 hover:border-indigo-300 hover:bg-gray-50'
+                  ${
+                    isExporting === format.id
+                      ? 'border-indigo-500 bg-indigo-50'
+                      : exportSuccess === format.id
+                        ? 'border-green-500 bg-green-50'
+                        : 'border-gray-200 hover:border-indigo-300 hover:bg-gray-50'
                   }
                   ${isExporting !== null && isExporting !== format.id ? 'opacity-50' : ''}
                 `}
@@ -273,9 +273,7 @@ export function ExportReports({
                   )}
                 </div>
                 <span className="font-medium text-gray-900">{format.label}</span>
-                <span className="text-xs text-gray-500 text-center mt-1">
-                  {format.description}
-                </span>
+                <span className="text-xs text-gray-500 text-center mt-1">{format.description}</span>
               </button>
             ))}
           </div>
@@ -286,10 +284,7 @@ export function ExportReports({
           <div className="mt-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm flex items-center gap-2">
             <X size={16} />
             <span>{error}</span>
-            <button
-              onClick={() => setError(null)}
-              className="ml-auto p-1 hover:bg-red-100 rounded"
-            >
+            <button onClick={() => setError(null)} className="ml-auto p-1 hover:bg-red-100 rounded">
               <X size={14} />
             </button>
           </div>

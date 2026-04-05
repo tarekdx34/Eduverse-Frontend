@@ -6,43 +6,56 @@ export interface Quiz {
   courseId: string;
   title: string;
   description: string | null;
+  instructions: string | null;
   quizType: 'practice' | 'graded';
-  timeLimit: number | null;
+  timeLimitMinutes: number | null;
   maxAttempts: number;
-  dueDate: string | null;
-  availableFrom: string | null;
+  passingScore: string | null;
   randomizeQuestions: number;
   showCorrectAnswers: number;
-  passingScore: string | null;
-  maxScore: string;
+  showAnswersAfter: 'immediately' | 'after_due' | 'never';
+  availableFrom: string | null;
+  availableUntil: string | null;
   weight: string;
-  status: 'draft' | 'published' | 'closed';
-  createdBy: string;
+  createdBy: number;
   createdAt?: string;
   updatedAt?: string;
-  course?: { id: string; name: string; code: string };
+  deletedAt?: string | null;
+  course?: { id: string; name: string; code: string; departmentId?: string };
+  creator?: { userId: number; firstName: string; lastName: string; email: string };
+  questions?: QuizQuestion[];
 }
 
 export interface QuizQuestion {
-  id: number;
+  id: string;
   quizId: string;
   questionType: 'mcq' | 'true_false' | 'short_answer' | 'essay' | 'matching' | '';
   questionText: string;
   options: string[] | null;
-  correctAnswer: string | null;
+  correctAnswer: string | null; // Index as string (e.g., "0", "1") for MCQ/true_false
+  explanation: string | null;
   points: string;
+  difficultyLevelId: string | null;
   orderIndex: number;
+  createdAt?: string;
+  updatedAt?: string;
+  difficultyLevel?: { id: string; name: string } | null;
 }
 
 export interface QuizAttempt {
   id: string;
   quizId: string;
   userId: number;
+  attemptNumber: number;
   startedAt: string;
   submittedAt: string | null;
-  status: 'in_progress' | 'submitted' | 'graded';
   score: string | null;
+  timeTakenMinutes: number | null;
+  status: 'in_progress' | 'submitted' | 'graded';
+  ipAddress: string | null;
   answers?: AttemptAnswer[];
+  questions?: QuizQuestion[];
+  quiz?: Quiz;
   user?: { userId: number; firstName: string; lastName: string; email: string };
 }
 
@@ -67,7 +80,14 @@ export interface AttemptResult {
     isCorrect: boolean;
     pointsEarned: number;
     correctAnswer?: string;
+    selectedAnswer?: string;
+    questionText?: string;
   }[];
+}
+
+export interface MyAttemptsResponse {
+  data: QuizAttempt[];
+  total: number;
 }
 
 export interface CourseProgress {
@@ -143,7 +163,11 @@ export class QuizService {
   }
 
   // Update question
-  static async updateQuestion(quizId: string, questionId: number, question: Partial<QuizQuestion>): Promise<QuizQuestion> {
+  static async updateQuestion(
+    quizId: string,
+    questionId: number,
+    question: Partial<QuizQuestion>
+  ): Promise<QuizQuestion> {
     return ApiClient.put<QuizQuestion>('/quizzes/' + quizId + '/questions/' + questionId, question);
   }
 
@@ -161,11 +185,18 @@ export class QuizService {
 
   // Start a new attempt - POST /quizzes/:quizId/attempts/start
   static async startAttempt(quizId: string): Promise<QuizAttempt & { questions?: QuizQuestion[] }> {
-    return ApiClient.post<QuizAttempt & { questions?: QuizQuestion[] }>('/quizzes/' + quizId + '/attempts/start', {});
+    return ApiClient.post<QuizAttempt & { questions?: QuizQuestion[] }>(
+      '/quizzes/' + quizId + '/attempts/start',
+      {}
+    );
   }
 
   // Submit attempt - POST /quizzes/attempts/:attemptId/submit
-  static async submitAttempt(quizId: string, attemptId: string, answers: { questionId: number; selectedOption?: string[]; answerText?: string }[]): Promise<AttemptResult> {
+  static async submitAttempt(
+    quizId: string,
+    attemptId: string,
+    answers: { questionId: number; selectedOption?: string[]; answerText?: string }[]
+  ): Promise<AttemptResult> {
     return ApiClient.post<AttemptResult>('/quizzes/attempts/' + attemptId + '/submit', { answers });
   }
 
@@ -175,14 +206,29 @@ export class QuizService {
   }
 
   // Save progress (auto-save) - PATCH /quizzes/:quizId/attempts/:attemptId/progress
-  static async saveProgress(quizId: string, attemptId: string, answers: { questionId: number; selectedOption?: string[]; answerText?: string }[]): Promise<QuizAttempt> {
-    return ApiClient.patch<QuizAttempt>('/quizzes/' + quizId + '/attempts/' + attemptId + '/progress', { answers });
-  }
 
   // Get my attempts - GET /quizzes/my-attempts
   static async getMyAttempts(quizId?: string): Promise<QuizAttempt[]> {
     const params = quizId ? { quizId } : undefined;
-    return ApiClient.get<QuizAttempt[]>('/quizzes/my-attempts', { params });
+    const response = await ApiClient.get<MyAttemptsResponse | QuizAttempt[]>('/quizzes/my-attempts', { params });
+    // Handle both { data: [], total } and array responses
+    return Array.isArray(response) ? response : response.data;
+  }
+
+  // Get in-progress attempt for a quiz - GET /quizzes/my-attempts?quizId=X&status=in_progress
+  static async getInProgressAttempt(quizId: string): Promise<QuizAttempt | null> {
+    try {
+      const response = await ApiClient.get<{ data: QuizAttempt[]; total: number } | QuizAttempt[]>(
+        '/quizzes/my-attempts',
+        {
+          params: { quizId, status: 'in_progress' },
+        }
+      );
+      const attempts = Array.isArray(response) ? response : response.data;
+      return attempts.length > 0 ? attempts[0] : null;
+    } catch {
+      return null;
+    }
   }
 
   // ============ ATTEMPTS (Instructor/TA) ============
@@ -198,7 +244,11 @@ export class QuizService {
   }
 
   // Grade attempt - POST /quizzes/attempts/:attemptId/grade
-  static async gradeAttempt(quizId: string, attemptId: string, grades: { questionId: number; pointsEarned: number }[]): Promise<QuizAttempt> {
+  static async gradeAttempt(
+    quizId: string,
+    attemptId: string,
+    grades: { questionId: number; pointsEarned: number }[]
+  ): Promise<QuizAttempt> {
     return ApiClient.post<QuizAttempt>('/quizzes/attempts/' + attemptId + '/grade', { grades });
   }
 
@@ -225,8 +275,15 @@ export class QuizService {
   }
 
   // Save progress (auto-save) - PATCH /quizzes/:quizId/attempts/:attemptId/progress
-  static async saveProgress(quizId: string, attemptId: string, answers: { questionId: number; selectedOption?: string[]; answerText?: string }[]): Promise<QuizAttempt> {
-    return ApiClient.patch<QuizAttempt>('/quizzes/' + quizId + '/attempts/' + attemptId + '/progress', { answers });
+  static async saveProgress(
+    quizId: string,
+    attemptId: string,
+    answers: { questionId: number; selectedOption?: string[]; answerText?: string }[]
+  ): Promise<QuizAttempt> {
+    return ApiClient.patch<QuizAttempt>(
+      '/quizzes/' + quizId + '/attempts/' + attemptId + '/progress',
+      { answers }
+    );
   }
 }
 

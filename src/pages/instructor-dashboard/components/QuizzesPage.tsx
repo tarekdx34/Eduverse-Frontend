@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   ClipboardList,
   Users,
@@ -14,11 +14,13 @@ import {
   Trash2,
   Loader2,
 } from 'lucide-react';
+import { toast } from 'sonner';
+import { CourseService } from '../../../services/api/courseService';
 import { CustomDropdown } from './CustomDropdown';
+import { ConfirmDialog } from './ConfirmDialog';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { CleanSelect } from '../../../components/shared';
-
 
 interface QuizQuestion {
   id: number;
@@ -89,11 +91,6 @@ const deriveQuizStatus = (quiz: any): { label: string; color: string } => {
   return { label: 'Active', color: 'bg-green-100 text-green-700' };
 };
 
-const courseLectures: Record<string, string[]> = {
-  'Calculus I': ['Lecture 1: Limits', 'Lecture 2: Continuity', 'Lecture 3: Derivatives Intro'],
-  'Calculus II': ['Lecture 1: Integration', 'Lecture 2: Techniques', 'Lecture 3: Applications'],
-  'Physics I': ['Lecture 1: Kinematics', 'Lecture 2: Dynamics', 'Lecture 3: Energy'],
-};
 
 const MOCK_QUIZZES: QuizData[] = [
   {
@@ -200,7 +197,7 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
   const [listError, setListError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
-  
+
   // Filters
   const [selectedCourse, setSelectedCourse] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState('all');
@@ -227,7 +224,7 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
         const response = await QuizService.getAll(params);
         // QuizService.getAll returns { data: Quiz[], total: number }
         const liveQuizzes = response.data || [];
-        
+
         // Map backend Quiz model to UI QuizData model
         const mapped = liveQuizzes.map((q: any) => {
           const statusMeta = deriveQuizStatus(q);
@@ -236,12 +233,15 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
             title: q.title,
             subject: q.course?.name || q.courseName || 'Unknown Course',
             subjectColor: 'bg-indigo-100 text-indigo-700',
-            date: new Date(q.availableFrom || q.createdAt || Date.now()).toLocaleDateString('en-US', {
-              month: 'short',
-              day: 'numeric',
-              hour: 'numeric',
-              minute: '2-digit',
-            }),
+            date: new Date(q.availableFrom || q.createdAt || Date.now()).toLocaleDateString(
+              'en-US',
+              {
+                month: 'short',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit',
+              }
+            ),
             questions: q.totalQuestions || 0,
             attempted: 0, // We'll need another call to get stats per quiz or add it to endpoint
             total: 0,
@@ -253,15 +253,13 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
             raw: q,
           };
         });
-        
+
         setQuizzes(mapped);
       } catch (err) {
         console.error('Failed to load quizzes', err);
         if (hasToken) {
           setQuizzes([]);
-          setListError(
-            err instanceof Error ? err.message : 'Failed to load quizzes in Live Mode.'
-          );
+          setListError(err instanceof Error ? err.message : 'Failed to load quizzes in Live Mode.');
         } else {
           // Keep demo fallback if no auth token is present.
           setQuizzes(MOCK_QUIZZES);
@@ -270,7 +268,7 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
         setLoading(false);
       }
     }
-    
+
     fetchQuizzes();
   }, [selectedCourse, refreshKey]);
 
@@ -284,6 +282,43 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
   // AI generation modal state
   const [showAIModal, setShowAIModal] = useState(false);
   const [aiCourse, setAiCourse] = useState('');
+  const [availableModules, setAvailableModules] = useState<string[]>([]);
+  const [loadingModules, setLoadingModules] = useState(false);
+
+  // Fetch modules/lectures for AI Quiz Generation
+  useEffect(() => {
+    if (!aiCourse) {
+      setAvailableModules([]);
+      return;
+    }
+
+    const fetchModules = async () => {
+      try {
+        setLoadingModules(true);
+        // TODO: Use CourseService.getModules(aiCourse) when available
+        // Fallback: Fetch structure and filter lectures
+        const structure = await CourseService.getStructure(Number(aiCourse));
+        // Map structure items to simple titles for now, filtering for lectures/materials
+        const modules = structure
+          .filter((item: any) => 
+            item.organizationType === 'lecture' || 
+            item.material?.materialType === 'lecture' ||
+            item.material?.materialType === 'document' // Include documents as potential "modules" for quiz generation
+          )
+          .map((item: any) => item.title || item.material?.title)
+          .filter(Boolean);
+        
+        setAvailableModules(modules);
+      } catch (error) {
+        console.error('Failed to fetch modules:', error);
+        toast.error('Failed to load course modules');
+      } finally {
+        setLoadingModules(false);
+      }
+    };
+
+    fetchModules();
+  }, [aiCourse]);
   const [aiLectures, setAiLectures] = useState<string[]>([]);
   const [aiNumQuestions, setAiNumQuestions] = useState(5);
   const [aiDifficulty, setAiDifficulty] = useState('Medium');
@@ -300,6 +335,54 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
   const [loadingStats, setLoadingStats] = useState(false);
   const [publishingIndex, setPublishingIndex] = useState<number | null>(null);
 
+  // Delete confirmation state
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [quizToDelete, setQuizToDelete] = useState<number | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Accessibility: refs for focus management
+  const quizModalRef = useRef<HTMLDivElement>(null);
+  const aiModalRef = useRef<HTMLDivElement>(null);
+  const previousActiveElement = useRef<HTMLElement | null>(null);
+
+  // Focus management for modals
+  useEffect(() => {
+    if (showCreateQuiz) {
+      previousActiveElement.current = document.activeElement as HTMLElement;
+      setTimeout(() => quizModalRef.current?.focus(), 0);
+    } else if (showAIModal) {
+      previousActiveElement.current = document.activeElement as HTMLElement;
+      setTimeout(() => aiModalRef.current?.focus(), 0);
+    } else if (previousActiveElement.current) {
+      previousActiveElement.current.focus();
+    }
+  }, [showCreateQuiz, showAIModal]);
+
+  // Keyboard handler for Escape and focus trap
+  const handleModalKeyDown = useCallback(
+    (event: React.KeyboardEvent, closeModal: () => void, modalRef: React.RefObject<HTMLDivElement | null>) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeModal();
+      }
+      if (event.key === 'Tab' && modalRef.current) {
+        const focusableElements = modalRef.current.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        const firstElement = focusableElements[0];
+        const lastElement = focusableElements[focusableElements.length - 1];
+        if (event.shiftKey && document.activeElement === firstElement) {
+          event.preventDefault();
+          lastElement?.focus();
+        } else if (!event.shiftKey && document.activeElement === lastElement) {
+          event.preventDefault();
+          firstElement?.focus();
+        }
+      }
+    },
+    []
+  );
+
   // --- Helpers ---
   const openCreateForm = () => {
     setFormData(defaultFormData());
@@ -314,9 +397,9 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
       const QuizService = (await import('../../../services/api/quizService')).default;
       const quiz = quizzes[index];
       const quizId = quiz.raw?.quizId || quiz.raw?.id || quiz.id;
-      
+
       const fullQuiz = await QuizService.getById(quizId);
-      
+
       const questions: QuizQuestion[] = (fullQuiz.questions || []).map((q: any) => ({
         id: q.questionId || q.id,
         type: q.questionType === 'short_answer' ? 'text' : 'mcq',
@@ -325,7 +408,7 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
         correctOption: q.correctAnswer !== undefined ? Number(q.correctAnswer) : 0,
         correctOptions: Array.isArray(q.correctAnswer) ? q.correctAnswer : [],
       }));
-      
+
       setFormData({
         title: fullQuiz.title || quiz.title,
         course: String(fullQuiz.courseId || quiz.raw?.courseId || ''),
@@ -354,14 +437,21 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
 
     if (!title) {
       setFormError('Quiz title is required.');
+      toast.error('Quiz title is required.');
       return;
     }
     if (!Number.isFinite(courseId) || courseId <= 0) {
       setFormError('Please select a valid course from the dropdown.');
+      toast.error('Please select a valid course from the dropdown.');
       return;
     }
     if (hasInvalidQuestion) {
-      setFormError('Each question needs text, and MCQ/checkbox questions need at least two options.');
+      setFormError(
+        'Each question needs text, and MCQ/checkbox questions need at least two options.'
+      );
+      toast.error(
+        'Each question needs text, and MCQ/checkbox questions need at least two options.'
+      );
       return;
     }
 
@@ -369,7 +459,7 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
       setFormError(null);
       setIsSaving(true);
       const QuizService = (await import('../../../services/api/quizService')).default;
-      
+
       const payload = {
         title,
         courseId,
@@ -384,10 +474,15 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
         const quizId = existingQuiz.raw?.quizId || existingQuiz.raw?.id || existingQuiz.id;
         await QuizService.updateQuiz(quizId, payload);
         // Updating questions correctly is complex for this MVP, assuming user creates new ones instead
+
+        // Invalidate cache after successful update
+        setRefreshKey((r) => r + 1);
+
+        toast.success('Quiz updated successfully');
       } else {
         const newQuiz = await QuizService.createQuiz(payload);
         const quizId = newQuiz.quizId || (newQuiz as any).id;
-        
+
         // Add questions
         for (const [index, q] of formData.questions.entries()) {
           // correctAnswer must be a string - convert index to option text, or join multiple for checkbox
@@ -395,26 +490,37 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
           if (q.type === 'mcq' && q.options[q.correctOption]) {
             correctAnswer = q.options[q.correctOption];
           } else if (q.type === 'checkbox' && q.correctOptions.length > 0) {
-            correctAnswer = q.correctOptions.map(idx => q.options[idx] || '').filter(Boolean).join(',');
+            correctAnswer = q.correctOptions
+              .map((idx) => q.options[idx] || '')
+              .filter(Boolean)
+              .join(',');
           }
-          
+
           await QuizService.addQuestion(quizId, {
             questionText: q.text,
-            questionType: q.type === 'text' ? 'short_answer' : q.type === 'checkbox' ? 'mcq' : 'mcq',
+            questionType:
+              q.type === 'text' ? 'short_answer' : q.type === 'checkbox' ? 'mcq' : 'mcq',
             points: 10,
             options: q.type === 'mcq' || q.type === 'checkbox' ? q.options : undefined,
             correctAnswer: correctAnswer || '',
-            orderIndex: index
+            orderIndex: index,
           });
         }
+
+        // Invalidate cache after successful creation
+        setRefreshKey((r) => r + 1);
+
+        toast.success('Quiz created successfully');
       }
-      
+
       setShowCreateQuiz(false);
       setFormData(defaultFormData());
-      setRefreshKey(r => r + 1); // trigger list refresh
     } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : 'Failed to save quiz. Please try again.';
       console.error('Failed to save quiz', err);
-      setFormError(err instanceof Error ? err.message : 'Failed to save quiz in Live Mode.');
+      setFormError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsSaving(false);
     }
@@ -476,7 +582,7 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
       const quiz = quizzes[index];
       const quizId = quiz.raw?.quizId || quiz.raw?.id || quiz.id;
       await QuizService.updateQuiz(quizId, { availableFrom: new Date().toISOString() });
-      setRefreshKey(r => r + 1);
+      setRefreshKey((r) => r + 1);
     } catch (err) {
       console.error('Failed to publish', err);
       setActionError(err instanceof Error ? err.message : 'Failed to publish quiz.');
@@ -529,6 +635,33 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
     }
   };
 
+  const handleDeleteClick = (index: number) => {
+    setQuizToDelete(index);
+    setShowDeleteConfirm(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (quizToDelete === null) return;
+
+    try {
+      setIsDeleting(true);
+      const QuizService = (await import('../../../services/api/quizService')).default;
+      const quiz = quizzes[quizToDelete];
+      const quizId = quiz.raw?.quizId || quiz.raw?.id || quiz.id;
+
+      await QuizService.delete(quizId);
+      toast.success('Quiz deleted successfully');
+      setShowDeleteConfirm(false);
+      setQuizToDelete(null);
+      setRefreshKey((r) => r + 1); // Refresh quiz list
+    } catch (err) {
+      console.error('Failed to delete quiz', err);
+      toast.error(err instanceof Error ? err.message : 'Failed to delete quiz');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   // Mock attempts data
   const mockAttempts = [
     { name: 'Ahmed Mohamed', score: 92, time: '18 min', date: 'May 14' },
@@ -560,82 +693,82 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className={`text-2xl font-bold ${headingCls}`}>
-            {t('quizzesManagement')}
-          </h2>
-          <p className={`${subCls} mt-1 text-sm`}>{t('quizzesDescription')}</p>
+          <h2 className={`text-2xl font-bold ${headingCls}`}>Quizzes Management</h2>
+          <p className={`${subCls} mt-1 text-sm`}>Create and manage quizzes for your courses</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-            <button
-              onClick={() => setShowAIModal(true)}
-              className="flex items-center gap-2 px-4 py-2 text-white rounded-lg transition-colors"
-              style={{ backgroundColor: primaryHex }}
-            >
-              <Sparkles size={20} />
-              {t('generateWithAI') || 'AI Generate Quiz'}
-            </button>
-            <button
-              onClick={openCreateForm}
-              className="flex items-center gap-2 px-4 py-2 text-white rounded-lg transition-colors"
-              style={{ backgroundColor: primaryHex }}
-            >
-              <ClipboardList size={20} />
-              {t('createNewQuiz')}
-            </button>
-          </div>
+          <button
+            onClick={() => setShowAIModal(true)}
+            className="flex items-center gap-2 px-4 py-2 text-white rounded-lg transition-colors"
+            style={{ backgroundColor: primaryHex }}
+          >
+            <Sparkles size={20} />
+            AI Generate Quiz
+          </button>
+          <button
+            onClick={openCreateForm}
+            className="flex items-center gap-2 px-4 py-2 text-white rounded-lg transition-colors"
+            style={{ backgroundColor: primaryHex }}
+          >
+            <ClipboardList size={20} />
+            Create New Quiz
+          </button>
+        </div>
       </div>
 
       {/* Filters */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          <CustomDropdown
-            label={t('courseLabel') || 'Course'}
-            value={selectedCourse}
-            options={[
-              { value: 'all', label: t('allCourses') || 'All Courses' },
-              ...liveCourseOptions
-            ]}
-            onChange={(val) => setSelectedCourse(val as string)}
-            stackLabel
-            fullWidth
-          />
-          <CustomDropdown
-            label={t('statusLabel') || 'Status'}
-            value={selectedStatus}
-            options={[
-              { value: 'all', label: t('all') || 'All' },
-              { value: 'active', label: t('active') || 'Active' },
-              { value: 'closed', label: t('closed') || 'Closed' },
-            ]}
-            onChange={(val) => setSelectedStatus(val as string)}
-            stackLabel
-            fullWidth
-          />
-          <div className="w-full flex flex-col gap-1.5 sm:col-span-2 lg:col-span-1">
-            <span
-              className={`text-sm font-medium whitespace-nowrap ${isDark ? 'text-slate-400' : 'text-gray-600'}`}
-            >
-              {t('search')}
-            </span>
-            <div className="relative w-full">
-              <Search
-                className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}
-                size={18}
-              />
-              <input
-                type="text"
-                placeholder={t('searchQuizzes') || 'Search quizzes...'}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${inputCls}`}
-              />
-            </div>
+        <CustomDropdown
+          label="Course"
+          value={selectedCourse}
+          options={[
+            { value: 'all', label: 'All Courses' },
+            ...liveCourseOptions,
+          ]}
+          onChange={(val) => setSelectedCourse(val as string)}
+          stackLabel
+          fullWidth
+        />
+        <CustomDropdown
+          label="Status"
+          value={selectedStatus}
+          options={[
+            { value: 'all', label: 'All' },
+            { value: 'active', label: 'Active' },
+            { value: 'closed', label: 'Closed' },
+          ]}
+          onChange={(val) => setSelectedStatus(val as string)}
+          stackLabel
+          fullWidth
+        />
+        <div className="w-full flex flex-col gap-1.5 sm:col-span-2 lg:col-span-1">
+          <span
+            className={`text-sm font-medium whitespace-nowrap ${isDark ? 'text-slate-400' : 'text-gray-600'}`}
+          >
+            Search
+          </span>
+          <div className="relative w-full">
+            <Search
+              className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}
+              size={18}
+            />
+            <input
+              type="text"
+              placeholder="Search quizzes..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${inputCls}`}
+            />
           </div>
         </div>
+      </div>
 
       {/* Quiz Cards */}
       <div className="space-y-4">
         {actionError && (
-          <div className={`p-4 rounded-lg border ${isDark ? 'border-red-500/40 bg-red-500/10 text-red-200' : 'border-red-200 bg-red-50 text-red-700'}`}>
+          <div
+            className={`p-4 rounded-lg border ${isDark ? 'border-red-500/40 bg-red-500/10 text-red-200' : 'border-red-200 bg-red-50 text-red-700'}`}
+          >
             {actionError}
           </div>
         )}
@@ -644,210 +777,262 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
             <Loader2 className="animate-spin text-indigo-500" size={32} />
           </div>
         ) : listError ? (
-          <div className={`p-4 rounded-lg border ${isDark ? 'border-red-500/40 bg-red-500/10 text-red-200' : 'border-red-200 bg-red-50 text-red-700'}`}>
+          <div
+            className={`p-4 rounded-lg border ${isDark ? 'border-red-500/40 bg-red-500/10 text-red-200' : 'border-red-200 bg-red-50 text-red-700'}`}
+          >
             {listError}
           </div>
-        ) : quizzes.filter(q => {
-            const matchesSearch = q.title.toLowerCase().includes(searchQuery.toLowerCase());
-            const matchesStatus = selectedStatus === 'all' || q.status.toLowerCase() === selectedStatus.toLowerCase();
-            return matchesSearch && matchesStatus;
-        }).map((quiz, index) => (
-            <div key={index} className={`rounded-xl p-4 sm:p-6 border shadow-sm ${cardCls}`}>
-              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-4">
-                <div className="flex-1 min-w-0">
-                  <div className="flex flex-wrap items-center gap-3 mb-2">
-                    <h3 className={`text-lg font-semibold truncate ${headingCls}`}>{quiz.title}</h3>
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs font-medium ${quiz.subjectColor}`}
-                      style={getSubjectStyle(quiz.subjectColor)}
-                    >
-                      {quiz.subject}
-                    </span>
-                  </div>
-                  <div className={`flex items-center gap-2 text-sm ${subCls} mb-4`}>
-                    <Calendar size={14} />
-                    <span>{quiz.date}</span>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-4 sm:gap-6">
-                    <div className="flex items-center gap-2 text-sm">
-                      <ClipboardList
-                        size={16}
-                        className={isDark ? 'text-slate-500' : 'text-gray-400'}
-                      />
-                      <span className={`${headingCls} font-medium`}>{quiz.questions}</span>
-                      <span className={subCls}>{t('questions')}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <Users size={16} className={isDark ? 'text-slate-500' : 'text-gray-400'} />
-                      <span className={`${headingCls} font-medium`}>
-                        {quiz.attempted}/{quiz.total}
-                      </span>
-                      <span className={subCls}>{t('attempted')}</span>
-                    </div>
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs font-medium ${quiz.difficultyColor}`}
-                    >
-                      {quiz.difficulty}
-                    </span>
-                    <div className="flex items-center gap-2 text-sm">
-                      <Clock size={16} className={isDark ? 'text-slate-500' : 'text-gray-400'} />
-                      <span className={subCls}>
-                        {quiz.duration} {t('minDuration')}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <span
-                  className={`px-3 py-1 rounded-full text-xs font-medium self-start ${quiz.statusColor}`}
-                >
-                  {quiz.status}
-                </span>
-              </div>
-              <div
-                className={`flex flex-wrap items-center gap-2 pt-4 border-t ${isDark ? 'border-white/10' : 'border-gray-200'}`}
-              >
-                <button
-                  onClick={() => loadAttempts(index)}
-                  className={`flex items-center gap-2 px-3 py-2 text-sm ${btnSecCls} focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-500 rounded-lg transition-colors`}
-                >
-                  <Eye size={16} />
-                  {t('viewAttempts')}
-                </button>
-                <button
-                  onClick={() => openEditForm(index)}
-                  className={`flex items-center gap-2 px-3 py-2 text-sm ${btnSecCls} focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-500 rounded-lg transition-colors`}
-                >
-                  <Edit size={16} />
-                  {t('editQuiz')}
-                </button>
-                <button
-                  onClick={() => setShowAIModal(true)}
-                  className="flex items-center gap-2 px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-500 rounded-lg transition-colors"
-                >
-                  <Sparkles size={16} />
-                  {t('generateWithAI')}
-                </button>
-                <button
-                  onClick={() => analyzeResults(index)}
-                  className={`flex items-center gap-2 px-3 py-2 text-sm ${btnSecCls} focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-500 rounded-lg transition-colors`}
-                >
-                  <BarChart3 size={16} />
-                  {t('analyzeResults')}
-                </button>
-                {quiz.status !== 'Active' && quiz.status !== 'published' && (
-                  <button
-                    onClick={() => publishQuiz(index)}
-                    disabled={publishingIndex === index}
-                    className="flex items-center gap-2 px-3 py-2 text-sm text-green-600 hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-green-500 rounded-lg transition-colors ml-auto"
-                  >
-                    {publishingIndex === index ? 'Publishing...' : t('publish') || 'Publish'}
-                  </button>
-                )}
-              </div>
-
-              {/* View Attempts Panel */}
-              {viewAttemptsIndex === index && (
-                <div className={`mt-4 p-4 rounded-lg border ${cardCls}`}>
-                  <h4 className={`font-semibold mb-3 ${headingCls}`}>{t('viewAttempts')}</h4>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className={subCls}>
-                          <th className="text-left pb-2 font-medium">Student</th>
-                          <th className="text-left pb-2 font-medium">Score</th>
-                          <th className="text-left pb-2 font-medium">Time (min)</th>
-                          <th className="text-left pb-2 font-medium">Date</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {loadingAttempts ? (
-                          <tr><td colSpan={4} className="py-4 text-center">Loading attempts...</td></tr>
-                        ) : attemptsData?.length === 0 ? (
-                          <tr><td colSpan={4} className="py-4 text-center text-gray-500">No attempts found for this quiz</td></tr>
-                        ) : attemptsData?.map((a, i) => {
-                          const scoreValue = Number(a.percentage ?? a.score);
-                          const hasScore = Number.isFinite(scoreValue);
-                          const scoreClass = !hasScore
-                            ? subCls
-                            : scoreValue >= 90
-                              ? 'text-green-500'
-                              : scoreValue >= 70
-                                ? 'text-yellow-500'
-                                : 'text-red-500';
-
-                          return (
-                            <tr
-                              key={i}
-                              className={`border-t ${isDark ? 'border-white/10' : 'border-gray-100'}`}
-                            >
-                              <td className={`py-2 ${headingCls}`}>{a.user?.firstName || 'Unknown'} {a.user?.lastName || ''}</td>
-                              <td className={`py-2 ${scoreClass} font-medium`}>
-                                {hasScore ? `${scoreValue.toFixed(1)}%` : '-'}
-                              </td>
-                              <td className={`py-2 ${subCls}`}>
-                                {a.startedAt && a.submittedAt ? Math.round((new Date(a.submittedAt).getTime() - new Date(a.startedAt).getTime()) / 60000) : '-'}
-                              </td>
-                              <td className={`py-2 ${subCls}`}>{new Date(a.submittedAt || a.startedAt).toLocaleDateString()}</td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
-
-              {/* Analysis Results Panel */}
-              {viewAnalysisIndex === index && (
-                <div className={`mt-4 p-4 rounded-lg border ${cardCls}`}>
-                  <h4 className={`font-semibold mb-3 ${headingCls}`}>{t('analyzeResults')}</h4>
-                  {loadingStats ? (
-                    <div className="flex justify-center py-4 text-indigo-500"><Loader2 className="animate-spin" size={24} /></div>
-                  ) : !statsData ? (
-                    <div className="py-4 text-center text-gray-500">Stats not available yet</div>
-                  ) : (
-                    <>
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                        <div className="p-3 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800">
-                          <p className={`text-xs ${subCls} mb-1`}>Average Score</p>
-                          <p className={`text-lg font-bold text-indigo-600 dark:text-indigo-400`}>
-                            {statsData.averageScore?.toFixed(0) || 0}%
-                          </p>
-                        </div>
-                        <div className="p-3 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800">
-                          <p className={`text-xs ${subCls} mb-1`}>Highest Score</p>
-                          <p className={`text-lg font-bold text-green-600 dark:text-green-400`}>
-                            {statsData.highestScore?.toFixed(0) || 0}%
-                          </p>
-                        </div>
-                        <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800">
-                          <p className={`text-xs ${subCls} mb-1`}>Lowest Score</p>
-                          <p className={`text-lg font-bold text-red-600 dark:text-red-400`}>
-                            {statsData.lowestScore?.toFixed(0) || 0}%
-                          </p>
-                        </div>
-                        <div className="p-3 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-100 dark:border-yellow-800">
-                          <p className={`text-xs ${subCls} mb-1`}>Pass Rate</p>
-                          <p className={`text-lg font-bold text-yellow-600 dark:text-yellow-400`}>
-                            {(Number(statsData.passRatePercentage ?? statsData.passRate ?? 0)).toFixed(0)}%
-                          </p>
-                        </div>
-                      </div>
-                      <div
-                        className={`mt-4 pt-4 border-t ${isDark ? 'border-white/10' : 'border-gray-100'}`}
+        ) : (
+          quizzes
+            .filter((q) => {
+              const matchesSearch = q.title.toLowerCase().includes(searchQuery.toLowerCase());
+              const matchesStatus =
+                selectedStatus === 'all' || q.status.toLowerCase() === selectedStatus.toLowerCase();
+              return matchesSearch && matchesStatus;
+            })
+            .map((quiz, index) => (
+              <div key={index} className={`rounded-xl p-4 sm:p-6 border shadow-sm ${cardCls}`}>
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-4">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-3 mb-2">
+                      <h3 className={`text-lg font-semibold truncate ${headingCls}`}>
+                        {quiz.title}
+                      </h3>
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${quiz.subjectColor}`}
+                        style={getSubjectStyle(quiz.subjectColor)}
                       >
-                        <p className={`text-sm ${subCls}`}>
-                          <span className={`font-medium ${headingCls}`}>{statsData.totalAttempts || 0}</span> total attempts from{' '}
-                          <span className={`font-medium ${headingCls}`}>{statsData.uniqueStudents ?? statsData.completedAttempts ?? 0}</span> unique students.
-                        </p>
+                        {quiz.subject}
+                      </span>
+                    </div>
+                    <div className={`flex items-center gap-2 text-sm ${subCls} mb-4`}>
+                      <Calendar size={14} />
+                      <span>{quiz.date}</span>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-4 sm:gap-6">
+                      <div className="flex items-center gap-2 text-sm">
+                        <ClipboardList
+                          size={16}
+                          className={isDark ? 'text-slate-500' : 'text-gray-400'}
+                        />
+                        <span className={`${headingCls} font-medium`}>{quiz.questions}</span>
+                        <span className={subCls}>Questions</span>
                       </div>
-                    </>
+                      <div className="flex items-center gap-2 text-sm">
+                        <Users size={16} className={isDark ? 'text-slate-500' : 'text-gray-400'} />
+                        <span className={`${headingCls} font-medium`}>
+                          {quiz.attempted}/{quiz.total}
+                        </span>
+                        <span className={subCls}>Attempted</span>
+                      </div>
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${quiz.difficultyColor}`}
+                      >
+                        {quiz.difficulty}
+                      </span>
+                      <div className="flex items-center gap-2 text-sm">
+                        <Clock size={16} className={isDark ? 'text-slate-500' : 'text-gray-400'} />
+                        <span className={subCls}>
+                          {quiz.duration} min
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <span
+                    className={`px-3 py-1 rounded-full text-xs font-medium self-start ${quiz.statusColor}`}
+                  >
+                    {quiz.status}
+                  </span>
+                </div>
+                <div
+                  className={`flex flex-wrap items-center gap-2 pt-4 border-t ${isDark ? 'border-white/10' : 'border-gray-200'}`}
+                >
+                  <button
+                    onClick={() => loadAttempts(index)}
+                    className={`flex items-center gap-2 px-3 py-2 text-sm ${btnSecCls} focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-500 rounded-lg transition-colors`}
+                  >
+                    <Eye size={16} />
+                    View Attempts
+                  </button>
+                  <button
+                    onClick={() => openEditForm(index)}
+                    className={`flex items-center gap-2 px-3 py-2 text-sm ${btnSecCls} focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-500 rounded-lg transition-colors`}
+                  >
+                    <Edit size={16} />
+                    Edit Quiz
+                  </button>
+                  <button
+                    onClick={() => setShowAIModal(true)}
+                    className="flex items-center gap-2 px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-500 rounded-lg transition-colors"
+                  >
+                    <Sparkles size={16} />
+                    AI Generate
+                  </button>
+                  <button
+                    onClick={() => analyzeResults(index)}
+                    className={`flex items-center gap-2 px-3 py-2 text-sm ${btnSecCls} focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-500 rounded-lg transition-colors`}
+                  >
+                    <BarChart3 size={16} />
+                    Analyze Results
+                  </button>
+                  <button
+                    onClick={() => handleDeleteClick(index)}
+                    disabled={isDeleting}
+                    className="flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-red-500 rounded-lg transition-colors disabled:opacity-50"
+                  >
+                    {isDeleting ? (
+                      <Loader2 size={16} className="animate-spin" />
+                    ) : (
+                      <Trash2 size={16} />
+                    )}
+                    {isDeleting ? 'Deleting...' : 'Delete'}
+                  </button>
+                  {quiz.status !== 'Active' && quiz.status !== 'published' && (
+                    <button
+                      onClick={() => publishQuiz(index)}
+                      disabled={publishingIndex === index}
+                      className="flex items-center gap-2 px-3 py-2 text-sm text-green-600 hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-green-500 rounded-lg transition-colors ml-auto"
+                    >
+                      {publishingIndex === index ? 'Publishing...' : 'Publish'}
+                    </button>
                   )}
                 </div>
-              )}
-            </div>
-          ))}
-        </div>
+
+                {/* View Attempts Panel */}
+                {viewAttemptsIndex === index && (
+                  <div className={`mt-4 p-4 rounded-lg border ${cardCls}`}>
+                    <h4 className={`font-semibold mb-3 ${headingCls}`}>View Attempts</h4>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className={subCls}>
+                            <th className="text-left pb-2 font-medium">Student</th>
+                            <th className="text-left pb-2 font-medium">Score</th>
+                            <th className="text-left pb-2 font-medium">Time (min)</th>
+                            <th className="text-left pb-2 font-medium">Date</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {loadingAttempts ? (
+                            <tr>
+                              <td colSpan={4} className="py-4 text-center">
+                                Loading attempts...
+                              </td>
+                            </tr>
+                          ) : attemptsData?.length === 0 ? (
+                            <tr>
+                              <td colSpan={4} className="py-4 text-center text-gray-500">
+                                No attempts found for this quiz
+                              </td>
+                            </tr>
+                          ) : (
+                            attemptsData?.map((a, i) => {
+                              const scoreValue = Number(a.percentage ?? a.score);
+                              const hasScore = Number.isFinite(scoreValue);
+                              const scoreClass = !hasScore
+                                ? subCls
+                                : scoreValue >= 90
+                                  ? 'text-green-500'
+                                  : scoreValue >= 70
+                                    ? 'text-yellow-500'
+                                    : 'text-red-500';
+
+                              return (
+                                <tr
+                                  key={i}
+                                  className={`border-t ${isDark ? 'border-white/10' : 'border-gray-100'}`}
+                                >
+                                  <td className={`py-2 ${headingCls}`}>
+                                    {a.user?.firstName || 'Unknown'} {a.user?.lastName || ''}
+                                  </td>
+                                  <td className={`py-2 ${scoreClass} font-medium`}>
+                                    {hasScore ? `${scoreValue.toFixed(1)}%` : '-'}
+                                  </td>
+                                  <td className={`py-2 ${subCls}`}>
+                                    {a.startedAt && a.submittedAt
+                                      ? Math.round(
+                                          (new Date(a.submittedAt).getTime() -
+                                            new Date(a.startedAt).getTime()) /
+                                            60000
+                                        )
+                                      : '-'}
+                                  </td>
+                                  <td className={`py-2 ${subCls}`}>
+                                    {new Date(a.submittedAt || a.startedAt).toLocaleDateString()}
+                                  </td>
+                                </tr>
+                              );
+                            })
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+                {/* Analysis Results Panel */}
+                {viewAnalysisIndex === index && (
+                  <div className={`mt-4 p-4 rounded-lg border ${cardCls}`}>
+                    <h4 className={`font-semibold mb-3 ${headingCls}`}>Analyze Results</h4>
+                    {loadingStats ? (
+                      <div className="flex justify-center py-4 text-indigo-500">
+                        <Loader2 className="animate-spin" size={24} />
+                      </div>
+                    ) : !statsData ? (
+                      <div className="py-4 text-center text-gray-500">Stats not available yet</div>
+                    ) : (
+                      <>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                          <div className="p-3 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800">
+                            <p className={`text-xs ${subCls} mb-1`}>Average Score</p>
+                            <p className={`text-lg font-bold text-indigo-600 dark:text-indigo-400`}>
+                              {statsData.averageScore?.toFixed(0) || 0}%
+                            </p>
+                          </div>
+                          <div className="p-3 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800">
+                            <p className={`text-xs ${subCls} mb-1`}>Highest Score</p>
+                            <p className={`text-lg font-bold text-green-600 dark:text-green-400`}>
+                              {statsData.highestScore?.toFixed(0) || 0}%
+                            </p>
+                          </div>
+                          <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800">
+                            <p className={`text-xs ${subCls} mb-1`}>Lowest Score</p>
+                            <p className={`text-lg font-bold text-red-600 dark:text-red-400`}>
+                              {statsData.lowestScore?.toFixed(0) || 0}%
+                            </p>
+                          </div>
+                          <div className="p-3 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-100 dark:border-yellow-800">
+                            <p className={`text-xs ${subCls} mb-1`}>Pass Rate</p>
+                            <p className={`text-lg font-bold text-yellow-600 dark:text-yellow-400`}>
+                              {Number(
+                                statsData.passRatePercentage ?? statsData.passRate ?? 0
+                              ).toFixed(0)}
+                              %
+                            </p>
+                          </div>
+                        </div>
+                        <div
+                          className={`mt-4 pt-4 border-t ${isDark ? 'border-white/10' : 'border-gray-100'}`}
+                        >
+                          <p className={`text-sm ${subCls}`}>
+                            <span className={`font-medium ${headingCls}`}>
+                              {statsData.totalAttempts || 0}
+                            </span>{' '}
+                            total attempts from{' '}
+                            <span className={`font-medium ${headingCls}`}>
+                              {statsData.uniqueStudents ?? statsData.completedAttempts ?? 0}
+                            </span>{' '}
+                            unique students.
+                          </p>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))
+        )}
+      </div>
 
       {/* Create / Edit Quiz Modal */}
       {showCreateQuiz && (
@@ -855,7 +1040,7 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
           <div className={modalCls}>
             <div className="flex items-center justify-between mb-6">
               <h2 className={`text-xl font-bold ${headingCls}`}>
-                {editingIndex !== null ? t('editQuiz') : t('createNewQuiz')}
+                {editingIndex !== null ? 'Edit Quiz' : 'Create New Quiz'}
               </h2>
               <button
                 onClick={() => setShowCreateQuiz(false)}
@@ -919,7 +1104,7 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
             {/* Questions */}
             <div className="space-y-4 mb-6">
               <h3 className={`text-lg font-semibold ${headingCls}`}>
-                {t('questions') || 'Questions'} ({formData.questions.length})
+                Questions ({formData.questions.length})
               </h3>
               {formData.questions.map((q, qIdx) => (
                 <div key={q.id} className={`p-4 rounded-lg border ${cardCls}`}>
@@ -1029,7 +1214,9 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
 
             {/* Actions */}
             {formError && (
-              <div className={`mb-4 p-3 rounded-lg border ${isDark ? 'border-red-500/40 bg-red-500/10 text-red-200' : 'border-red-200 bg-red-50 text-red-700'}`}>
+              <div
+                className={`mb-4 p-3 rounded-lg border ${isDark ? 'border-red-500/40 bg-red-500/10 text-red-200' : 'border-red-200 bg-red-50 text-red-700'}`}
+              >
                 {formError}
               </div>
             )}
@@ -1050,11 +1237,7 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
                 className="px-6 py-2 text-sm text-white rounded-lg transition-colors"
                 style={{ backgroundColor: isSaving ? '#94a3b8' : primaryHex }}
               >
-                {isSaving
-                  ? 'Saving...'
-                  : editingIndex !== null
-                    ? 'Update Quiz'
-                    : 'Save Quiz'}
+                {isSaving ? 'Saving...' : editingIndex !== null ? 'Update Quiz' : 'Save Quiz'}
               </button>
             </div>
           </div>
@@ -1090,9 +1273,9 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
                   className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${inputCls}`}
                 >
                   <option value="">Select course</option>
-                  {Object.keys(courseLectures).map((c) => (
-                    <option key={c} value={c}>
-                      {c}
+                  {liveCourseOptions.map((c) => (
+                    <option key={c.value} value={c.value}>
+                      {c.label}
                     </option>
                   ))}
                 </CleanSelect>
@@ -1106,24 +1289,30 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
                   <div
                     className={`p-3 border rounded-lg space-y-2 ${isDark ? 'border-white/10' : 'border-gray-200'}`}
                   >
-                    {courseLectures[aiCourse]?.map((lec) => (
-                      <label
-                        key={lec}
-                        className={`flex items-center gap-2 text-sm cursor-pointer ${headingCls}`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={aiLectures.includes(lec)}
-                          onChange={(e) =>
-                            setAiLectures((prev) =>
-                              e.target.checked ? [...prev, lec] : prev.filter((l) => l !== lec)
-                            )
-                          }
-                          className="accent-indigo-600"
-                        />
-                        {lec}
-                      </label>
-                    ))}
+                    {loadingModules ? (
+                      <div className="text-center py-4 text-sm text-gray-500">Loading modules...</div>
+                    ) : availableModules.length > 0 ? (
+                      availableModules.map((lec) => (
+                        <label
+                          key={lec}
+                          className={`flex items-center gap-2 text-sm cursor-pointer ${headingCls}`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={aiLectures.includes(lec)}
+                            onChange={(e) =>
+                              setAiLectures((prev) =>
+                                e.target.checked ? [...prev, lec] : prev.filter((l) => l !== lec)
+                              )
+                            }
+                            className="accent-indigo-600"
+                          />
+                          {lec}
+                        </label>
+                      ))
+                    ) : (
+                      <div className="text-center py-4 text-sm text-gray-500">No modules found</div>
+                    )}
                   </div>
                 </div>
               )}
@@ -1186,9 +1375,20 @@ export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        open={showDeleteConfirm}
+        title="Delete Quiz"
+        message="Are you sure you want to delete this quiz? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setShowDeleteConfirm(false)}
+      />
     </div>
   );
 }
 
 export default QuizzesPage;
-

@@ -9,9 +9,11 @@
 ## 10.1 Payments Module
 
 ### Database Tables
+
 May need new tables or extend existing schema:
 
 #### Proposed Tables
+
 ```sql
 CREATE TABLE payments (
   payment_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -56,31 +58,32 @@ CREATE TABLE user_subscriptions (
 
 ### API Endpoints
 
-| Method | Endpoint | Description | Roles |
-|--------|----------|-------------|-------|
-| **Student Payments** | | | |
-| GET | `/api/payments/my` | Get payment history for current user | STUDENT |
-| GET | `/api/payments/my/balance` | Get outstanding balance | STUDENT |
-| POST | `/api/payments/pay` | Make a payment | STUDENT |
-| GET | `/api/payments/invoices` | List invoices | STUDENT |
-| GET | `/api/payments/invoices/:id/download` | Download invoice PDF | STUDENT |
-| **Admin Payments** | | | |
-| GET | `/api/payments` | List all payments (paginated, filtered) | ADMIN |
-| GET | `/api/payments/:id` | Get payment details | ADMIN |
-| POST | `/api/payments/refund/:id` | Process refund | ADMIN |
-| GET | `/api/payments/revenue` | Revenue dashboard data (monthly) | ADMIN |
-| GET | `/api/payments/revenue/by-department` | Revenue by department | ADMIN |
-| GET | `/api/payments/transactions` | Transaction list with filters | ADMIN |
-| **Subscriptions** | | | |
-| GET | `/api/subscriptions/plans` | List subscription plans | ALL |
-| POST | `/api/subscriptions/subscribe` | Subscribe to a plan | STUDENT |
-| DELETE | `/api/subscriptions/cancel` | Cancel subscription | STUDENT |
-| GET | `/api/subscriptions/my` | Get current subscription | STUDENT |
-| **Payment Config** | | | |
-| GET | `/api/payments/methods` | List enabled payment methods | ALL |
-| PUT | `/api/payments/methods/:method` | Enable/disable payment method | ADMIN |
+| Method               | Endpoint                              | Description                             | Roles   |
+| -------------------- | ------------------------------------- | --------------------------------------- | ------- |
+| **Student Payments** |                                       |                                         |         |
+| GET                  | `/api/payments/my`                    | Get payment history for current user    | STUDENT |
+| GET                  | `/api/payments/my/balance`            | Get outstanding balance                 | STUDENT |
+| POST                 | `/api/payments/pay`                   | Make a payment                          | STUDENT |
+| GET                  | `/api/payments/invoices`              | List invoices                           | STUDENT |
+| GET                  | `/api/payments/invoices/:id/download` | Download invoice PDF                    | STUDENT |
+| **Admin Payments**   |                                       |                                         |         |
+| GET                  | `/api/payments`                       | List all payments (paginated, filtered) | ADMIN   |
+| GET                  | `/api/payments/:id`                   | Get payment details                     | ADMIN   |
+| POST                 | `/api/payments/refund/:id`            | Process refund                          | ADMIN   |
+| GET                  | `/api/payments/revenue`               | Revenue dashboard data (monthly)        | ADMIN   |
+| GET                  | `/api/payments/revenue/by-department` | Revenue by department                   | ADMIN   |
+| GET                  | `/api/payments/transactions`          | Transaction list with filters           | ADMIN   |
+| **Subscriptions**    |                                       |                                         |         |
+| GET                  | `/api/subscriptions/plans`            | List subscription plans                 | ALL     |
+| POST                 | `/api/subscriptions/subscribe`        | Subscribe to a plan                     | STUDENT |
+| DELETE               | `/api/subscriptions/cancel`           | Cancel subscription                     | STUDENT |
+| GET                  | `/api/subscriptions/my`               | Get current subscription                | STUDENT |
+| **Payment Config**   |                                       |                                         |         |
+| GET                  | `/api/payments/methods`               | List enabled payment methods            | ALL     |
+| PUT                  | `/api/payments/methods/:method`       | Enable/disable payment method           | ADMIN   |
 
 ### Query Parameters
+
 ```typescript
 interface QueryPaymentsDto {
   userId?: number;
@@ -96,6 +99,7 @@ interface QueryPaymentsDto {
 ```
 
 ### Business Logic
+
 1. **Payment Gateway Integration**: Abstract payment provider (Stripe, PayPal).
 2. **Invoice Generation**: Auto-generate invoices for tuition/fees.
 3. **Refund Processing**: Validate refund eligibility. Process through payment gateway.
@@ -104,21 +108,24 @@ interface QueryPaymentsDto {
 6. **Subscription Management**: Handle billing cycles, renewals, cancellations.
 
 ### Frontend Components Using This Module
-- **Student**: PaymentHistory.tsx *(active as `payments` tab)*
-- ~~**Admin**: PaymentManagementPage.tsx~~ *(Not in Admin sidebar — deleted)*
+
+- **Student**: PaymentHistory.tsx _(active as `payments` tab)_
+- ~~**Admin**: PaymentManagementPage.tsx~~ _(Not in Admin sidebar — deleted)_
 
 ---
 
 ## 10.2 Certificates Module
 
 ### Database Tables
-| Table | Description |
-|-------|-------------|
+
+| Table          | Description                    |
+| -------------- | ------------------------------ |
 | `certificates` | Course completion certificates |
 
 ### Entity Definition
 
 #### Certificate Entity
+
 ```typescript
 @Entity('certificates')
 export class Certificate {
@@ -143,7 +150,7 @@ export class Certificate {
   sectionId: number;
 
   @Column({ type: 'varchar', length: 100, unique: true })
-  certificateNumber: string;  // Unique certificate ID for verification
+  certificateNumber: string; // Unique certificate ID for verification
 
   @Column({ length: 200 })
   title: string;
@@ -164,7 +171,7 @@ export class Certificate {
   expiryDate: string;
 
   @Column({ type: 'varchar', length: 500, nullable: true })
-  certificateUrl: string;  // PDF URL
+  certificateUrl: string; // PDF URL
 
   @Column({ type: 'varchar', length: 500, nullable: true })
   verificationUrl: string;
@@ -182,18 +189,19 @@ export class Certificate {
 
 ### API Endpoints
 
-| Method | Endpoint | Description | Roles |
-|--------|----------|-------------|-------|
-| GET | `/api/certificates/my` | List user's certificates | STUDENT |
-| GET | `/api/certificates/:id` | Get certificate details | STUDENT, ADMIN |
-| GET | `/api/certificates/:id/download` | Download certificate PDF | STUDENT |
-| GET | `/api/certificates/verify/:number` | Verify certificate by number (public) | NONE (public) |
-| POST | `/api/certificates/generate` | Generate certificate for student | INSTRUCTOR, ADMIN |
-| POST | `/api/certificates/bulk-generate` | Bulk generate for completed students | ADMIN |
-| PATCH | `/api/certificates/:id/revoke` | Revoke a certificate | ADMIN |
-| GET | `/api/certificates` | List all certificates (admin) | ADMIN |
+| Method | Endpoint                           | Description                           | Roles             |
+| ------ | ---------------------------------- | ------------------------------------- | ----------------- |
+| GET    | `/api/certificates/my`             | List user's certificates              | STUDENT           |
+| GET    | `/api/certificates/:id`            | Get certificate details               | STUDENT, ADMIN    |
+| GET    | `/api/certificates/:id/download`   | Download certificate PDF              | STUDENT           |
+| GET    | `/api/certificates/verify/:number` | Verify certificate by number (public) | NONE (public)     |
+| POST   | `/api/certificates/generate`       | Generate certificate for student      | INSTRUCTOR, ADMIN |
+| POST   | `/api/certificates/bulk-generate`  | Bulk generate for completed students  | ADMIN             |
+| PATCH  | `/api/certificates/:id/revoke`     | Revoke a certificate                  | ADMIN             |
+| GET    | `/api/certificates`                | List all certificates (admin)         | ADMIN             |
 
 ### Business Logic
+
 1. **Auto-generation**: When a student completes a course with passing grade, auto-generate certificate.
 2. **Unique Number**: Generate unique certificate number (e.g., `EDU-2025-CS101-00001`).
 3. **PDF Generation**: Generate PDF with course name, student name, grade, date, signatures.
@@ -202,6 +210,7 @@ export class Certificate {
 6. **Templates**: Support multiple certificate templates per course type.
 
 ### Frontend Components Using This Module
+
 - **Student**: GradesTranscript.tsx (download certificates)
 
 ---

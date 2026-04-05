@@ -169,7 +169,10 @@ export function Header() {
               </Button>
             </div>
             <Button
-              onClick={() => { handlelogin(); setMobileMenuOpen(false); }}
+              onClick={() => {
+                handlelogin();
+                setMobileMenuOpen(false);
+              }}
               variant="outline"
               className="w-full rounded-md"
             >

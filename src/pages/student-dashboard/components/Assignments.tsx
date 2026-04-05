@@ -25,7 +25,11 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { CustomDropdown } from '../../../components/shared';
 import { useApi } from '../../../hooks/useApi';
-import { AssignmentService, Assignment as ApiAssignment, AssignmentSubmission } from '../../../services/api/assignmentService';
+import {
+  AssignmentService,
+  Assignment as ApiAssignment,
+  AssignmentSubmission,
+} from '../../../services/api/assignmentService';
 
 const ASSIGNMENT_COLORS = [
   { color: 'bg-orange-500', colorLight: 'bg-orange-50', colorBorder: 'border-orange-500' },
@@ -191,7 +195,7 @@ const getStatusBadge = (status: string) => {
 const getStatusIcon = (status: string, submissionStatus?: string) => {
   // Use submission status if available for pending assignments
   const effectiveStatus = submissionStatus && status === 'pending' ? submissionStatus : status;
-  
+
   switch (effectiveStatus) {
     case 'pending':
     case 'not-submitted':
@@ -219,7 +223,7 @@ export default function Assignments() {
 
   const { data: apiAssignments, loading: apiLoading } = useApi(async () => {
     const assignments = await AssignmentService.getAll();
-    
+
     // Transform to component format
     return assignments.map((a: ApiAssignment, i: number) => {
       const colors = ASSIGNMENT_COLORS[i % ASSIGNMENT_COLORS.length];
@@ -248,7 +252,7 @@ export default function Assignments() {
   useEffect(() => {
     const loadSubmissionStatuses = async () => {
       if (!apiAssignments || apiAssignments.length === 0) return;
-      
+
       setIsLoadingSubmissions(true);
       try {
         const assignmentsWithStatus = await Promise.all(
@@ -284,7 +288,8 @@ export default function Assignments() {
     loadSubmissionStatuses();
   }, [apiAssignments]);
 
-  const assignments = assignmentsWithSubmissions.length > 0 ? assignmentsWithSubmissions : apiAssignments || [];
+  const assignments =
+    assignmentsWithSubmissions.length > 0 ? assignmentsWithSubmissions : apiAssignments || [];
 
   const getUrgencyLabel = (daysUntil: number) => {
     if (daysUntil < 0)
@@ -329,12 +334,8 @@ export default function Assignments() {
   const completedAssignments = assignments.filter(
     (a) => a.submissionStatus === 'submitted' || a.submissionStatus === 'graded'
   );
-  const submittedAssignments = assignments.filter(
-    (a) => a.submissionStatus === 'submitted'
-  );
-  const gradedAssignments = assignments.filter(
-    (a) => a.submissionStatus === 'graded'
-  );
+  const submittedAssignments = assignments.filter((a) => a.submissionStatus === 'submitted');
+  const gradedAssignments = assignments.filter((a) => a.submissionStatus === 'graded');
 
   // Apply filter
   let filteredAssignments = assignments;
@@ -348,8 +349,63 @@ export default function Assignments() {
 
   if (apiLoading || isLoadingSubmissions) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+      <div className="space-y-6 animate-pulse">
+        {/* Skeleton Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <div className={`h-8 w-48 rounded-lg ${isDark ? 'bg-white/10' : 'bg-slate-200'}`} />
+            <div className={`h-4 w-72 mt-2 rounded-lg ${isDark ? 'bg-white/5' : 'bg-slate-100'}`} />
+          </div>
+        </div>
+
+        {/* Skeleton Stats Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map((i) => (
+            <div
+              key={i}
+              className={`${isDark ? 'bg-white/5' : 'bg-white'} rounded-[2.5rem] p-5 border ${isDark ? 'border-white/10' : 'border-slate-100'}`}
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <div
+                  className={`w-10 h-10 rounded-xl ${isDark ? 'bg-white/10' : 'bg-slate-200'}`}
+                />
+                <div className={`h-3 w-20 rounded ${isDark ? 'bg-white/10' : 'bg-slate-200'}`} />
+              </div>
+              <div className={`h-6 w-16 mt-2 rounded ${isDark ? 'bg-white/10' : 'bg-slate-200'}`} />
+            </div>
+          ))}
+        </div>
+
+        {/* Skeleton Assignment Cards */}
+        <div className="space-y-4">
+          <div className={`h-6 w-40 rounded ${isDark ? 'bg-white/10' : 'bg-slate-200'}`} />
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className={`${isDark ? 'bg-white/5' : 'bg-white'} rounded-[2.5rem] p-6 border ${isDark ? 'border-white/10' : 'border-slate-100'}`}
+            >
+              <div className="flex items-start gap-4">
+                <div
+                  className={`w-14 h-14 rounded-2xl ${isDark ? 'bg-white/10' : 'bg-slate-200'}`}
+                />
+                <div className="flex-1">
+                  <div className={`h-5 w-3/4 rounded ${isDark ? 'bg-white/10' : 'bg-slate-200'}`} />
+                  <div
+                    className={`h-4 w-1/2 mt-2 rounded ${isDark ? 'bg-white/5' : 'bg-slate-100'}`}
+                  />
+                  <div className="flex gap-3 mt-4">
+                    <div
+                      className={`h-8 w-24 rounded-full ${isDark ? 'bg-white/10' : 'bg-slate-200'}`}
+                    />
+                    <div
+                      className={`h-8 w-20 rounded-full ${isDark ? 'bg-white/10' : 'bg-slate-200'}`}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -386,7 +442,7 @@ export default function Assignments() {
   const getStatusBadgeDark = (status: string, submissionStatus?: string) => {
     // Use submission status if available for pending assignments
     const effectiveStatus = submissionStatus && status === 'pending' ? submissionStatus : status;
-    
+
     switch (effectiveStatus) {
       case 'pending':
       case 'not-submitted':
@@ -448,7 +504,9 @@ export default function Assignments() {
                 Filter
               </button>
               {showFilterDropdown && (
-                <div className={`absolute top-full right-0 mt-2 w-48 rounded-lg shadow-lg z-50 ${isDark ? 'bg-card-dark border border-white/10' : 'bg-white border border-slate-200'}`}>
+                <div
+                  className={`absolute top-full right-0 mt-2 w-48 rounded-lg shadow-lg z-50 ${isDark ? 'bg-card-dark border border-white/10' : 'bg-white border border-slate-200'}`}
+                >
                   <div className="p-2">
                     {['all', 'pending', 'submitted', 'graded'].map((status) => (
                       <button
@@ -463,12 +521,14 @@ export default function Assignments() {
                               ? 'bg-white/10 text-white'
                               : 'bg-blue-50 text-blue-700'
                             : isDark
-                            ? 'text-slate-300 hover:bg-white/5'
-                            : 'text-slate-700 hover:bg-slate-50'
+                              ? 'text-slate-300 hover:bg-white/5'
+                              : 'text-slate-700 hover:bg-slate-50'
                         }`}
                       >
                         {filterStatus === status && <Check className="w-4 h-4" />}
-                        <span className="capitalize">{status === 'all' ? 'All Assignments' : status}</span>
+                        <span className="capitalize">
+                          {status === 'all' ? 'All Assignments' : status}
+                        </span>
                       </button>
                     ))}
                   </div>
@@ -492,7 +552,9 @@ export default function Assignments() {
                 {filterStatus === 'all' ? t('allCaughtUp') : `No ${filterStatus} assignments`}
               </h3>
               <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
-                {filterStatus === 'all' ? t('noPendingAssignments') : `You don't have any ${filterStatus} assignments right now.`}
+                {filterStatus === 'all'
+                  ? t('noPendingAssignments')
+                  : `You don't have any ${filterStatus} assignments right now.`}
               </p>
             </div>
           ) : (
@@ -527,10 +589,15 @@ export default function Assignments() {
                           >
                             {getStatusIcon(assignment.status, assignment.submissionStatus)}
                             <span className="capitalize">
-                              {assignment.submissionStatus === 'not-submitted' ? t('notSubmitted') : 
-                               assignment.submissionStatus === 'submitted' ? t('submitted') :
-                               assignment.submissionStatus === 'graded' ? t('graded') :
-                               assignment.status === 'in-progress' ? t('inProgress') : t('pending')}
+                              {assignment.submissionStatus === 'not-submitted'
+                                ? t('notSubmitted')
+                                : assignment.submissionStatus === 'submitted'
+                                  ? t('submitted')
+                                  : assignment.submissionStatus === 'graded'
+                                    ? t('graded')
+                                    : assignment.status === 'in-progress'
+                                      ? t('inProgress')
+                                      : t('pending')}
                             </span>
                           </span>
                         </div>
@@ -660,10 +727,13 @@ export default function Assignments() {
                         className="flex-1 px-3 py-2 bg-[var(--accent-color)] text-white rounded-lg hover:opacity-90 transition-all flex items-center justify-center gap-1.5 text-sm font-medium"
                       >
                         <span>
-                          {assignment.submissionStatus === 'not-submitted' ? t('submitWork') || 'Submit Work' : 
-                           assignment.submissionStatus === 'submitted' ? t('viewSubmission') || 'View Submission' :
-                           assignment.submissionStatus === 'graded' ? t('viewGrade') || 'View Grade' :
-                           t('continueWork') || 'Continue Work'}
+                          {assignment.submissionStatus === 'not-submitted'
+                            ? t('submitWork') || 'Submit Work'
+                            : assignment.submissionStatus === 'submitted'
+                              ? t('viewSubmission') || 'View Submission'
+                              : assignment.submissionStatus === 'graded'
+                                ? t('viewGrade') || 'View Grade'
+                                : t('continueWork') || 'Continue Work'}
                         </span>
                         <ChevronRight className="w-3 h-3" />
                       </button>
@@ -914,4 +984,3 @@ export default function Assignments() {
     </div>
   );
 }
-

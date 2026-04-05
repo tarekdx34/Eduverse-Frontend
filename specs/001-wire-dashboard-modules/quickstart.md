@@ -51,19 +51,20 @@ App runs at `http://localhost:5173`
 
 ## Test Accounts
 
-| Role | Email | Password |
-|------|-------|----------|
-| Student | student.tarek@example.com | SecureP@ss123 |
+| Role       | Email                        | Password      |
+| ---------- | ---------------------------- | ------------- |
+| Student    | student.tarek@example.com    | SecureP@ss123 |
 | Instructor | instructor.tarek@example.com | SecureP@ss123 |
-| TA | ta.tarek@example.com | SecureP@ss123 |
-| Admin | admin.tarek@example.com | SecureP@ss123 |
-| IT Admin | it_admin.tarek@example.com | SecureP@ss123 |
+| TA         | ta.tarek@example.com         | SecureP@ss123 |
+| Admin      | admin.tarek@example.com      | SecureP@ss123 |
+| IT Admin   | it_admin.tarek@example.com   | SecureP@ss123 |
 
 ---
 
 ## Key File Locations
 
 ### Services (API Layer)
+
 ```
 src/services/api/
 ├── client.ts              # HTTP client (Axios + Fetch)
@@ -76,6 +77,7 @@ src/services/api/
 ### Dashboard Components
 
 **Student:**
+
 ```
 src/pages/student-dashboard/components/
 ├── Assignments.tsx        # View & submit assignments
@@ -85,6 +87,7 @@ src/pages/student-dashboard/components/
 ```
 
 **Instructor:**
+
 ```
 src/pages/instructor-dashboard/components/
 ├── AssignmentsList.tsx    # Assignment list (prop-based)
@@ -94,6 +97,7 @@ src/pages/instructor-dashboard/components/
 ```
 
 **TA:**
+
 ```
 src/pages/ta-dashboard/components/
 ├── QuizzesPage.tsx        # View quizzes + grade essays
@@ -101,6 +105,7 @@ src/pages/ta-dashboard/components/
 ```
 
 ### Hooks & Context
+
 ```
 src/hooks/useApi.ts        # Data fetching hook
 src/context/AuthContext.tsx # Auth state + role detection
@@ -108,6 +113,7 @@ src/context/LanguageContext.tsx # i18n (to be migrated)
 ```
 
 ### Types (To Be Created)
+
 ```
 src/types/api.ts           # Centralized API type definitions
 ```
@@ -177,10 +183,7 @@ import { QuizService } from '@/services/api/quizService';
 const quizzes = MOCK_QUIZZES;
 
 // After (API)
-const { data: quizzes, loading, error } = useApi(
-  () => QuizService.getAll(),
-  []
-);
+const { data: quizzes, loading, error } = useApi(() => QuizService.getAll(), []);
 ```
 
 3. Handle loading/error:
@@ -237,7 +240,7 @@ function Component() {
   const { user } = useAuth();
   const isTA = user?.roles.includes('teaching_assistant');
   const isInstructor = user?.roles.includes('instructor');
-  
+
   return (
     <>
       {isInstructor && <Button>Create</Button>}

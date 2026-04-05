@@ -77,7 +77,9 @@ export const discussionService = {
 
   // Delete discussion
   deleteDiscussion: (id: string) =>
-    client.delete<{ success?: boolean; message?: string }>(`/discussions/${id}`).then((r) => r.data),
+    client
+      .delete<{ success?: boolean; message?: string }>(`/discussions/${id}`)
+      .then((r) => r.data),
 
   // Reply to discussion
   replyToDiscussion: (id: string, messageText: string) =>

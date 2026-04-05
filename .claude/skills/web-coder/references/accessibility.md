@@ -5,6 +5,7 @@ Web accessibility ensures content is usable by everyone, including people with d
 ## WCAG (Web Content Accessibility Guidelines)
 
 ### Levels
+
 - **A**: Minimum level
 - **AA**: Standard target (legal requirement in many jurisdictions)
 - **AAA**: Enhanced accessibility
@@ -23,19 +24,22 @@ Web accessibility ensures content is usable by everyone, including people with d
 ```html
 <!-- Landmark roles -->
 <nav role="navigation">
-<main role="main">
-<aside role="complementary">
-<footer role="contentinfo">
-
-<!-- Widget roles -->
-<div role="button" tabindex="0">Click me</div>
-<div role="tab" aria-selected="true">Tab 1</div>
-<div role="dialog" aria-labelledby="dialogTitle">
-
-<!-- Document structure -->
-<div role="list">
-  <div role="listitem">Item 1</div>
-</div>
+  <main role="main">
+    <aside role="complementary">
+      <footer role="contentinfo">
+        <!-- Widget roles -->
+        <div role="button" tabindex="0">Click me</div>
+        <div role="tab" aria-selected="true">Tab 1</div>
+        <div role="dialog" aria-labelledby="dialogTitle">
+          <!-- Document structure -->
+          <div role="list">
+            <div role="listitem">Item 1</div>
+          </div>
+        </div>
+      </footer>
+    </aside>
+  </main>
+</nav>
 ```
 
 ### ARIA Attributes
@@ -43,12 +47,12 @@ Web accessibility ensures content is usable by everyone, including people with d
 ```html
 <!-- States -->
 <button aria-pressed="true">Toggle</button>
-<input aria-invalid="true" aria-errormessage="error1">
+<input aria-invalid="true" aria-errormessage="error1" />
 <div aria-expanded="false" aria-controls="menu">Menu</div>
 
 <!-- Properties -->
-<img alt="" aria-hidden="true">
-<input aria-label="Search" type="search">
+<img alt="" aria-hidden="true" />
+<input aria-label="Search" type="search" />
 <dialog aria-labelledby="title" aria-describedby="desc">
   <h2 id="title">Dialog Title</h2>
   <p id="desc">Description</p>
@@ -56,12 +60,10 @@ Web accessibility ensures content is usable by everyone, including people with d
 
 <!-- Relationships -->
 <label id="label1" for="input1">Name:</label>
-<input id="input1" aria-labelledby="label1">
+<input id="input1" aria-labelledby="label1" />
 
 <!-- Live regions -->
-<div aria-live="polite" aria-atomic="true">
-  Status updated
-</div>
+<div aria-live="polite" aria-atomic="true">Status updated</div>
 ```
 
 ## Keyboard Navigation
@@ -88,7 +90,7 @@ Web accessibility ensures content is usable by everyone, including people with d
 
 ```javascript
 element.addEventListener('keydown', (e) => {
-  switch(e.key) {
+  switch (e.key) {
     case 'Enter':
     case ' ': // Space
       // Activate
@@ -123,12 +125,12 @@ element.addEventListener('keydown', (e) => {
 
 <!-- ✅ Good: proper headings hierarchy -->
 <h1>Page Title</h1>
-  <h2>Section</h2>
-    <h3>Subsection</h3>
+<h2>Section</h2>
+<h3>Subsection</h3>
 
 <!-- ❌ Bad: skipping levels -->
 <h1>Page Title</h1>
-  <h3>Skipped h2</h3>
+<h3>Skipped h2</h3>
 ```
 
 ## Forms Accessibility
@@ -137,40 +139,29 @@ element.addEventListener('keydown', (e) => {
 <form>
   <!-- Labels -->
   <label for="name">Name:</label>
-  <input type="text" id="name" name="name" required aria-required="true">
-  
+  <input type="text" id="name" name="name" required aria-required="true" />
+
   <!-- Error messages -->
-  <input
-    type="email"
-    id="email"
-    aria-invalid="true"
-    aria-describedby="email-error">
-  <span id="email-error" role="alert">
-    Please enter a valid email
-  </span>
-  
+  <input type="email" id="email" aria-invalid="true" aria-describedby="email-error" />
+  <span id="email-error" role="alert"> Please enter a valid email </span>
+
   <!-- Fieldset for groups -->
   <fieldset>
     <legend>Choose an option</legend>
     <label>
-      <input type="radio" name="option" value="a">
+      <input type="radio" name="option" value="a" />
       Option A
     </label>
     <label>
-      <input type="radio" name="option" value="b">
+      <input type="radio" name="option" value="b" />
       Option B
     </label>
   </fieldset>
-  
+
   <!-- Help text -->
   <label for="password">Password:</label>
-  <input
-    type="password"
-    id="password"
-    aria-describedby="password-help">
-  <span id="password-help">
-    Must be at least 8 characters
-  </span>
+  <input type="password" id="password" aria-describedby="password-help" />
+  <span id="password-help"> Must be at least 8 characters </span>
 </form>
 ```
 
@@ -178,23 +169,21 @@ element.addEventListener('keydown', (e) => {
 
 ```html
 <!-- Informative image -->
-<img src="chart.png" alt="Sales increased 50% in Q1">
+<img src="chart.png" alt="Sales increased 50% in Q1" />
 
 <!-- Decorative image -->
-<img src="decorative.png" alt="" role="presentation">
+<img src="decorative.png" alt="" role="presentation" />
 
 <!-- Complex image -->
 <figure>
-  <img src="data-viz.png" alt="Sales data visualization">
-  <figcaption>
-    Detailed description of the data...
-  </figcaption>
+  <img src="data-viz.png" alt="Sales data visualization" />
+  <figcaption>Detailed description of the data...</figcaption>
 </figure>
 
 <!-- Video with captions -->
 <video controls>
-  <source src="video.mp4" type="video/mp4">
-  <track kind="captions" src="captions.vtt" srclang="en" label="English">
+  <source src="video.mp4" type="video/mp4" />
+  <track kind="captions" src="captions.vtt" srclang="en" label="English" />
 </video>
 ```
 
@@ -229,9 +218,7 @@ element.addEventListener('keydown', (e) => {
 
 ```html
 <!-- Skip links for navigation -->
-<a href="#main-content" class="skip-link">
-  Skip to main content
-</a>
+<a href="#main-content" class="skip-link"> Skip to main content </a>
 
 <!-- Accessible headings -->
 <h1>Main heading (only one)</h1>
@@ -244,9 +231,7 @@ element.addEventListener('keydown', (e) => {
 <a href="/article">Read more about accessibility</a>
 
 <!-- Hidden content (screen reader only) -->
-<span class="sr-only">
-  Additional context for screen readers
-</span>
+<span class="sr-only"> Additional context for screen readers </span>
 ```
 
 ```css
@@ -291,7 +276,7 @@ element.addEventListener('keydown', (e) => {
 function openModal() {
   modal.showModal();
   modal.querySelector('button').focus();
-  
+
   // Trap focus
   modal.addEventListener('keydown', (e) => {
     if (e.key === 'Tab') {
@@ -326,6 +311,7 @@ function openModal() {
 ## Glossary Terms
 
 **Key Terms Covered**:
+
 - Accessibility
 - Accessibility tree
 - Accessible description

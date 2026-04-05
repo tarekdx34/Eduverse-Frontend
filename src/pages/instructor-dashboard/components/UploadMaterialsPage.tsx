@@ -286,7 +286,10 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
 
     // --- File Upload ---
     if (uploadType === 'file') {
-      if (!selectedFile) { setUploadError('Please select a file to upload.'); return; }
+      if (!selectedFile) {
+        setUploadError('Please select a file to upload.');
+        return;
+      }
       setMutating(true);
       setUploadError('');
       setUploadProgress(0);
@@ -297,7 +300,12 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
           selectedFile,
           {
             title: createForm.title.trim(),
-            materialType: createForm.materialType as 'document' | 'lecture' | 'slide' | 'reading' | 'other',
+            materialType: createForm.materialType as
+              | 'document'
+              | 'lecture'
+              | 'slide'
+              | 'reading'
+              | 'other',
             description: createForm.description || undefined,
             weekNumber: parseWeekNumber(createForm.weekNumber),
             isPublished: createForm.isPublished,
@@ -320,7 +328,10 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
 
     // --- YouTube Video Upload ---
     if (uploadType === 'video') {
-      if (!selectedFile) { setUploadError('Please select a video file to upload.'); return; }
+      if (!selectedFile) {
+        setUploadError('Please select a video file to upload.');
+        return;
+      }
       setMutating(true);
       setUploadError('');
       setUploadProgress(0);
@@ -799,23 +810,40 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
             {/* Upload Type Selector — Create mode only */}
             {showCreateModal && (
               <div className="flex gap-2 mb-4">
-                {([
-                  { type: 'text' as UploadType, icon: <FileText size={15} />, label: 'Text / Link' },
-                  { type: 'file' as UploadType, icon: <FolderOpen size={15} />, label: 'File Upload' },
+                {[
+                  {
+                    type: 'text' as UploadType,
+                    icon: <FileText size={15} />,
+                    label: 'Text / Link',
+                  },
+                  {
+                    type: 'file' as UploadType,
+                    icon: <FolderOpen size={15} />,
+                    label: 'File Upload',
+                  },
                   { type: 'video' as UploadType, icon: <Film size={15} />, label: 'YouTube Video' },
-                ]).map(({ type, icon, label }) => (
+                ].map(({ type, icon, label }) => (
                   <button
                     key={type}
                     disabled={mutating}
-                    onClick={() => { setUploadType(type); setSelectedFile(null); setUploadError(''); setUploadProgress(0); }}
+                    onClick={() => {
+                      setUploadType(type);
+                      setSelectedFile(null);
+                      setUploadError('');
+                      setUploadProgress(0);
+                    }}
                     className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg text-xs font-medium border transition-all disabled:opacity-40 ${
                       uploadType === type
                         ? 'text-white border-transparent'
                         : isDark
-                        ? 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10'
-                        : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                          ? 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10'
+                          : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
                     }`}
-                    style={uploadType === type ? { backgroundColor: primaryHex, borderColor: primaryHex } : {}}
+                    style={
+                      uploadType === type
+                        ? { backgroundColor: primaryHex, borderColor: primaryHex }
+                        : {}
+                    }
                   >
                     {icon} {label}
                   </button>
@@ -880,19 +908,25 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
                     <textarea
                       rows={2}
                       value={form.description}
-                      onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
+                      onChange={(e) =>
+                        setForm((prev) => ({ ...prev, description: e.target.value }))
+                      }
                       placeholder="Description (optional)"
                       disabled={mutating}
                       className={`w-full px-3 py-2 border rounded-lg resize-none disabled:opacity-60 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500' : 'bg-white border-slate-300'}`}
                     />
 
                     {/* Publish toggle */}
-                    <label className={`flex items-center gap-2 text-sm ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                    <label
+                      className={`flex items-center gap-2 text-sm ${isDark ? 'text-slate-300' : 'text-slate-700'}`}
+                    >
                       <input
                         type="checkbox"
                         checked={form.isPublished}
                         disabled={mutating}
-                        onChange={(e) => setForm((prev) => ({ ...prev, isPublished: e.target.checked }))}
+                        onChange={(e) =>
+                          setForm((prev) => ({ ...prev, isPublished: e.target.checked }))
+                        }
                       />
                       Publish immediately
                     </label>
@@ -900,139 +934,172 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
                 );
 
                 // ── File Upload mode ──────────────────────────────────────
-                if (isFileMode) return (
-                  <>
-                    {commonFields}
+                if (isFileMode)
+                  return (
+                    <>
+                      {commonFields}
 
-                    {/* File dropzone */}
-                    <div
-                      onClick={() => !mutating && fileInputRef.current?.click()}
-                      className={`mt-1 border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors ${
-                        mutating ? 'opacity-50 cursor-not-allowed' :
-                        isDark ? 'border-white/20 hover:border-white/40 text-slate-400' : 'border-slate-300 hover:border-slate-400 text-slate-500'
-                      }`}
-                    >
-                      <FolderOpen size={28} className="mx-auto mb-2 opacity-60" />
-                      {selectedFile ? (
-                        <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'}`}>
-                          📄 {selectedFile.name}
-                        </p>
-                      ) : (
-                        <>
-                          <p className="text-sm font-medium">Click to select a file</p>
-                          <p className="text-xs mt-1 opacity-70">PDF, DOC, DOCX, PPT, PPTX, XLS, XLSX, TXT</p>
-                        </>
-                      )}
-                    </div>
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt"
-                      className="hidden"
-                      onChange={(e) => { setSelectedFile(e.target.files?.[0] ?? null); setUploadError(''); }}
-                    />
-
-                    {/* Progress bar */}
-                    {uploadProgress > 0 && (
-                      <div>
-                        <div className={`w-full rounded-full h-2 ${isDark ? 'bg-white/10' : 'bg-slate-100'}`}>
-                          <div
-                            className="h-2 rounded-full transition-all duration-300"
-                            style={{ width: `${uploadProgress}%`, backgroundColor: primaryHex }}
-                          />
-                        </div>
-                        <p className={`text-xs mt-1 text-center ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                          Uploading... {uploadProgress}%
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Inline error */}
-                    {uploadError && (
-                      <p className="text-sm text-red-500 flex items-center gap-1">
-                        <AlertTriangle size={14} /> {uploadError}
-                      </p>
-                    )}
-                  </>
-                );
-
-                // ── YouTube Video mode ────────────────────────────────────
-                if (isVideoMode) return (
-                  <>
-                    {commonFields}
-
-                    {/* Warning banner */}
-                    <div className={`flex items-start gap-2 p-3 rounded-lg text-sm ${isDark ? 'bg-yellow-500/10 text-yellow-300 border border-yellow-500/20' : 'bg-yellow-50 text-yellow-700 border border-yellow-200'}`}>
-                      <AlertTriangle size={16} className="flex-shrink-0 mt-0.5" />
-                      <span>Video will be uploaded to YouTube. This may take several minutes depending on file size.</span>
-                    </div>
-
-                    {/* Video dropzone */}
-                    <div
-                      onClick={() => !mutating && videoInputRef.current?.click()}
-                      className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors ${
-                        mutating ? 'opacity-50 cursor-not-allowed' :
-                        isDark ? 'border-white/20 hover:border-white/40 text-slate-400' : 'border-slate-300 hover:border-slate-400 text-slate-500'
-                      }`}
-                    >
-                      <Film size={28} className="mx-auto mb-2 opacity-60" />
-                      {selectedFile ? (
-                        <>
-                          <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'}`}>
-                            🎬 {selectedFile.name}
-                          </p>
-                          <p className="text-xs mt-1 opacity-70">
-                            {(selectedFile.size / 1024 / 1024).toFixed(1)} MB
-                          </p>
-                        </>
-                      ) : (
-                        <>
-                          <p className="text-sm font-medium">Click to select a video file</p>
-                          <p className="text-xs mt-1 opacity-70">MP4, MOV, AVI, MKV, WebM</p>
-                        </>
-                      )}
-                    </div>
-                    <input
-                      ref={videoInputRef}
-                      type="file"
-                      accept=".mp4,.mov,.avi,.mkv,.webm,video/*"
-                      className="hidden"
-                      onChange={(e) => { setSelectedFile(e.target.files?.[0] ?? null); setUploadError(''); }}
-                    />
-
-                    {/* Progress bar */}
-                    {uploadProgress > 0 && (
-                      <div>
-                        <div className={`w-full rounded-full h-2 ${isDark ? 'bg-white/10' : 'bg-slate-100'}`}>
-                          <div
-                            className="h-2 rounded-full transition-all duration-300"
-                            style={{ width: `${uploadProgress}%`, backgroundColor: '#ef4444' }}
-                          />
-                        </div>
-                        <p className="text-xs mt-1 text-center text-red-500">
-                          Uploading to YouTube... {uploadProgress}%
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Inline error */}
-                    {uploadError && (
-                      <div className="text-sm text-red-500">
-                        <p className="flex items-center gap-1"><AlertTriangle size={14} /> {uploadError}</p>
-                        {youtubeAuthUrl && (
-                          <a
-                            href={youtubeAuthUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="mt-1 inline-block text-blue-500 underline text-xs"
+                      {/* File dropzone */}
+                      <div
+                        onClick={() => !mutating && fileInputRef.current?.click()}
+                        className={`mt-1 border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors ${
+                          mutating
+                            ? 'opacity-50 cursor-not-allowed'
+                            : isDark
+                              ? 'border-white/20 hover:border-white/40 text-slate-400'
+                              : 'border-slate-300 hover:border-slate-400 text-slate-500'
+                        }`}
+                      >
+                        <FolderOpen size={28} className="mx-auto mb-2 opacity-60" />
+                        {selectedFile ? (
+                          <p
+                            className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'}`}
                           >
-                            Open YouTube OAuth Authorization →
-                          </a>
+                            📄 {selectedFile.name}
+                          </p>
+                        ) : (
+                          <>
+                            <p className="text-sm font-medium">Click to select a file</p>
+                            <p className="text-xs mt-1 opacity-70">
+                              PDF, DOC, DOCX, PPT, PPTX, XLS, XLSX, TXT
+                            </p>
+                          </>
                         )}
                       </div>
-                    )}
-                  </>
-                );
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt"
+                        className="hidden"
+                        onChange={(e) => {
+                          setSelectedFile(e.target.files?.[0] ?? null);
+                          setUploadError('');
+                        }}
+                      />
+
+                      {/* Progress bar */}
+                      {uploadProgress > 0 && (
+                        <div>
+                          <div
+                            className={`w-full rounded-full h-2 ${isDark ? 'bg-white/10' : 'bg-slate-100'}`}
+                          >
+                            <div
+                              className="h-2 rounded-full transition-all duration-300"
+                              style={{ width: `${uploadProgress}%`, backgroundColor: primaryHex }}
+                            />
+                          </div>
+                          <p
+                            className={`text-xs mt-1 text-center ${isDark ? 'text-slate-400' : 'text-slate-500'}`}
+                          >
+                            Uploading... {uploadProgress}%
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Inline error */}
+                      {uploadError && (
+                        <p className="text-sm text-red-500 flex items-center gap-1">
+                          <AlertTriangle size={14} /> {uploadError}
+                        </p>
+                      )}
+                    </>
+                  );
+
+                // ── YouTube Video mode ────────────────────────────────────
+                if (isVideoMode)
+                  return (
+                    <>
+                      {commonFields}
+
+                      {/* Warning banner */}
+                      <div
+                        className={`flex items-start gap-2 p-3 rounded-lg text-sm ${isDark ? 'bg-yellow-500/10 text-yellow-300 border border-yellow-500/20' : 'bg-yellow-50 text-yellow-700 border border-yellow-200'}`}
+                      >
+                        <AlertTriangle size={16} className="flex-shrink-0 mt-0.5" />
+                        <span>
+                          Video will be uploaded to YouTube. This may take several minutes depending
+                          on file size.
+                        </span>
+                      </div>
+
+                      {/* Video dropzone */}
+                      <div
+                        onClick={() => !mutating && videoInputRef.current?.click()}
+                        className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors ${
+                          mutating
+                            ? 'opacity-50 cursor-not-allowed'
+                            : isDark
+                              ? 'border-white/20 hover:border-white/40 text-slate-400'
+                              : 'border-slate-300 hover:border-slate-400 text-slate-500'
+                        }`}
+                      >
+                        <Film size={28} className="mx-auto mb-2 opacity-60" />
+                        {selectedFile ? (
+                          <>
+                            <p
+                              className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'}`}
+                            >
+                              🎬 {selectedFile.name}
+                            </p>
+                            <p className="text-xs mt-1 opacity-70">
+                              {(selectedFile.size / 1024 / 1024).toFixed(1)} MB
+                            </p>
+                          </>
+                        ) : (
+                          <>
+                            <p className="text-sm font-medium">Click to select a video file</p>
+                            <p className="text-xs mt-1 opacity-70">MP4, MOV, AVI, MKV, WebM</p>
+                          </>
+                        )}
+                      </div>
+                      <input
+                        ref={videoInputRef}
+                        type="file"
+                        accept=".mp4,.mov,.avi,.mkv,.webm,video/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          setSelectedFile(e.target.files?.[0] ?? null);
+                          setUploadError('');
+                        }}
+                      />
+
+                      {/* Progress bar */}
+                      {uploadProgress > 0 && (
+                        <div>
+                          <div
+                            className={`w-full rounded-full h-2 ${isDark ? 'bg-white/10' : 'bg-slate-100'}`}
+                          >
+                            <div
+                              className="h-2 rounded-full transition-all duration-300"
+                              style={{ width: `${uploadProgress}%`, backgroundColor: '#ef4444' }}
+                            />
+                          </div>
+                          <p className="text-xs mt-1 text-center text-red-500">
+                            Uploading to YouTube... {uploadProgress}%
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Inline error */}
+                      {uploadError && (
+                        <div className="text-sm text-red-500">
+                          <p className="flex items-center gap-1">
+                            <AlertTriangle size={14} /> {uploadError}
+                          </p>
+                          {youtubeAuthUrl && (
+                            <a
+                              href={youtubeAuthUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="mt-1 inline-block text-blue-500 underline text-xs"
+                            >
+                              Open YouTube OAuth Authorization →
+                            </a>
+                          )}
+                        </div>
+                      )}
+                    </>
+                  );
 
                 // ── Text / Link mode (default) ────────────────────────────
                 return commonFields;
@@ -1058,11 +1125,11 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
                   ? uploadType === 'video'
                     ? `Uploading ${uploadProgress}%`
                     : uploadType === 'file'
-                    ? `Uploading ${uploadProgress}%`
-                    : 'Saving...'
+                      ? `Uploading ${uploadProgress}%`
+                      : 'Saving...'
                   : showCreateModal
-                  ? 'Create'
-                  : 'Save'}
+                    ? 'Create'
+                    : 'Save'}
               </button>
             </div>
           </div>

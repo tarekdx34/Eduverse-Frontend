@@ -195,7 +195,20 @@
     "submittingKeyboardHint": "Ctrl/Cmd+Enter to submit",
     "instructions": "Instructions",
     "resources": "Resources",
-    "downloadResource": "Download"
+    "downloadResource": "Download",
+    "gradeAssignmentSubmissions": "Grade assignment submissions",
+    "selectSubmissionToGrade": "Select a submission to grade",
+    "submissionText": "Submission Text",
+    "file": "File",
+    "enterValidScore": "Enter a valid score",
+    "provideFeedback": "Provide constructive feedback...",
+    "previousFeedback": "Previous Feedback",
+    "submitGrade": "Submit Grade",
+    "submitting": "Submitting...",
+    "lateSubmission": "Late submission",
+    "assignmentNotFound": "Assignment not found",
+    "cannotAccessAsTA": "Cannot access as TA - role restricted",
+    "cannotCreateDeleteAsTA": "Teaching assistants cannot create or delete assignments"
   },
   "quizzes": {
     "title": "Quizzes",
@@ -241,6 +254,8 @@
     "draft": "Draft",
     "published": "Published",
     "closed": "Closed",
+    "active": "Active",
+    "scheduled": "Scheduled",
     "quizDetails": "Quiz Details",
     "attemptDetails": "Attempt Details",
     "startedAt": "Started At",
@@ -371,7 +386,21 @@
     "formSafetyNotes": "Safety Notes",
     "addInstruction": "Add Instruction",
     "instructionContent": "Instruction Content",
-    "removeInstruction": "Remove Instruction"
+    "removeInstruction": "Remove Instruction",
+    "noEnrolledCourses": "No Enrolled Courses",
+    "enrollInCoursesPrompt": "Enroll in courses to view lab assignments.",
+    "backToLabs": "Back to Labs",
+    "yourSubmission": "Your Submission",
+    "submitYourWork": "Submit Your Work",
+    "submitted": "Submitted",
+    "enterSubmissionText": "Enter your submission text here...",
+    "attachFileOptional": "Attach File (optional)",
+    "clickToUploadFile": "Click to upload file",
+    "submitting": "Submitting...",
+    "labSubmittedSuccessfully": "Lab submitted successfully!",
+    "selectCourse": "Select Course",
+    "noLabsAvailable": "No Labs Available",
+    "noLabsForCourse": "No lab assignments for this course yet."
   },
   "grades": {
     "title": "Grades",
@@ -456,4 +485,3 @@
     "loadingContent": "Content is loading. Please wait."
   }
 }
-

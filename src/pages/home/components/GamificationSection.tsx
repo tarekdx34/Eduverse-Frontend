@@ -8,21 +8,24 @@ export function GamificationSection() {
       rank: 1,
       name: 'Tarek Mohamed',
       xp: '12,450 XP',
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDFaZxxzkIFF_Bg73OV5kyL3bwbKFCZci0VtW95SV20HZAgUAXVPPaYRXfyHxXdUsEQiMQKbMv_C8hN2Un2VoFvSgp0npdJddXP1UHpEUwzL74a6MtbdE-ouCw4Zm1o5hCVr3gj-urdAVZRD8Mg_dr2eovnrfgahY2-jMdjLUp1SojmIJiBiMgwPFZ4tdkHwUGlRu1I8OB_kuJ-va5y9OAib5IVrWVSkZLLEaZq0NZliRHJLNaEr2qwmE251sB8hZsm3Zsh1z2o1tM',
+      image:
+        'https://lh3.googleusercontent.com/aida-public/AB6AXuDFaZxxzkIFF_Bg73OV5kyL3bwbKFCZci0VtW95SV20HZAgUAXVPPaYRXfyHxXdUsEQiMQKbMv_C8hN2Un2VoFvSgp0npdJddXP1UHpEUwzL74a6MtbdE-ouCw4Zm1o5hCVr3gj-urdAVZRD8Mg_dr2eovnrfgahY2-jMdjLUp1SojmIJiBiMgwPFZ4tdkHwUGlRu1I8OB_kuJ-va5y9OAib5IVrWVSkZLLEaZq0NZliRHJLNaEr2qwmE251sB8hZsm3Zsh1z2o1tM',
       premium: true,
     },
     {
       rank: 2,
       name: 'Amir Mohamed',
       xp: '11,980 XP',
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAWpL1MaMbDUQkr4mOIO83dTcsB-Vd2YMBKzBWY9ONAjhamRH4TwcWsR8qU26kjqkD3ebJFEFAI-Xre_0dw9zkvZGozM_IrMAAWaCBDRbBZmseLW_mvJ8p4stYUYU_FKt5SaP7ubr8CuG3vSyeMFVbddLzsOE_YsohhxBsZhkWMgq_KN3CCMpxrxJVP27CvT1cBp-n7s6qHq0A0w3PndbkbNxjPpYUt_GDqdG_hZ-Ufhs-HWCl1QEnIx284Bp9v7GqffpbNLoMNfs4',
+      image:
+        'https://lh3.googleusercontent.com/aida-public/AB6AXuAWpL1MaMbDUQkr4mOIO83dTcsB-Vd2YMBKzBWY9ONAjhamRH4TwcWsR8qU26kjqkD3ebJFEFAI-Xre_0dw9zkvZGozM_IrMAAWaCBDRbBZmseLW_mvJ8p4stYUYU_FKt5SaP7ubr8CuG3vSyeMFVbddLzsOE_YsohhxBsZhkWMgq_KN3CCMpxrxJVP27CvT1cBp-n7s6qHq0A0w3PndbkbNxjPpYUt_GDqdG_hZ-Ufhs-HWCl1QEnIx284Bp9v7GqffpbNLoMNfs4',
       premium: false,
     },
     {
       rank: 3,
       name: 'Awab',
       xp: '11,230 XP',
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAaxwE-P3xrcD24bynl-K13gpChyOeTGGM1RaeYhdtKmAgGeHyaf31cQabY8A8zNtruGK2wYiVlbgrlOwd3BRXfE7FuY_nmisIPh8D2EdsYUkpt-xfmMbWZb-B_iqIWII3H2_ZkGIkcql4BDftsLW_jAStg1NZcX4scoQXuSdbXv7vKq-_mAKD_javxTPeE_M-_Jwqjq6ykmlw9KGJ93DJQo-IXI5L-QLD9XHQgM5dtksArSyflQjT6uX03GsK1MHoSU1uVuB5vNB4',
+      image:
+        'https://lh3.googleusercontent.com/aida-public/AB6AXuAaxwE-P3xrcD24bynl-K13gpChyOeTGGM1RaeYhdtKmAgGeHyaf31cQabY8A8zNtruGK2wYiVlbgrlOwd3BRXfE7FuY_nmisIPh8D2EdsYUkpt-xfmMbWZb-B_iqIWII3H2_ZkGIkcql4BDftsLW_jAStg1NZcX4scoQXuSdbXv7vKq-_mAKD_javxTPeE_M-_Jwqjq6ykmlw9KGJ93DJQo-IXI5L-QLD9XHQgM5dtksArSyflQjT6uX03GsK1MHoSU1uVuB5vNB4',
       premium: false,
     },
   ];
@@ -31,19 +34,22 @@ export function GamificationSection() {
     {
       name: t('Stellar Starter', 'بداية نجمية'),
       icon: 'rocket_launch',
-      background: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBOL_LJ5xAsBPDc0bfLlxpDneOgWb0KOAKwmDZ1g3jZAcrSPZ8iNU0JH0sIMozVJG6JP5EMwgYUgcaDU1Hn6cIenI1yfMOmlilJwP_86Sg4ceGUcja47VjLneeE0WRDc8Rhcn04DMwgKDTYQQkqVQNLDEaYM-w_pO5_tq29-_NUA53uM2WgRvX6_Kytjv-6yKInDVuasDA6JYjH_ff9Je4foYjcw-5Ycu6SrIr-ynIfKnzBK7tNz7jJiDanlwmNmggYPk2AwxzXQJY',
+      background:
+        'https://lh3.googleusercontent.com/aida-public/AB6AXuBOL_LJ5xAsBPDc0bfLlxpDneOgWb0KOAKwmDZ1g3jZAcrSPZ8iNU0JH0sIMozVJG6JP5EMwgYUgcaDU1Hn6cIenI1yfMOmlilJwP_86Sg4ceGUcja47VjLneeE0WRDc8Rhcn04DMwgKDTYQQkqVQNLDEaYM-w_pO5_tq29-_NUA53uM2WgRvX6_Kytjv-6yKInDVuasDA6JYjH_ff9Je4foYjcw-5Ycu6SrIr-ynIfKnzBK7tNz7jJiDanlwmNmggYPk2AwxzXQJY',
       locked: false,
     },
     {
       name: t('Quantum Thinker', 'مفكر الكم'),
       icon: 'psychology',
-      background: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAEn4SbHxMckHHtsXSJXaBOeDuBIyMOpxzm3kY00-rn4r33XzlDUS1nICY0qADqMWuK35cDYJ6sLAAVHRNh9UwUjbz04EWMtireVzNeKAf-wqu8YjaMy8hgKMltSLBexTAp-Aze6WbuxGHNTvIpzuTodLvqekrfk58qhd7Jxb3uhLW1pxjPHiP9TnB0NtjTc_j8e1rhLQnhPV-YhqlzXmLnzOQ2CH4Yx5AIuABHphT1hY-4SwQUIM0WPiBIuXAwbEgIDWZGjyETGWk',
+      background:
+        'https://lh3.googleusercontent.com/aida-public/AB6AXuAEn4SbHxMckHHtsXSJXaBOeDuBIyMOpxzm3kY00-rn4r33XzlDUS1nICY0qADqMWuK35cDYJ6sLAAVHRNh9UwUjbz04EWMtireVzNeKAf-wqu8YjaMy8hgKMltSLBexTAp-Aze6WbuxGHNTvIpzuTodLvqekrfk58qhd7Jxb3uhLW1pxjPHiP9TnB0NtjTc_j8e1rhLQnhPV-YhqlzXmLnzOQ2CH4Yx5AIuABHphT1hY-4SwQUIM0WPiBIuXAwbEgIDWZGjyETGWk',
       locked: false,
     },
     {
       name: t('Collaboration Champ', 'بطل التعاون'),
       icon: 'groups',
-      background: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDo2vvwaf5BTKP8vTfcvlgeyT55br10n6IV1OZyA7l4UW6CXhh0bla_9K65y1CsMVIIGqq8WwUQdSrQe8q4hyTKpNWLmFXFcRJwQMV8hONNTxKI3eR_WngIC_p1d9lkGDra0zCw2Ai2hF0rZ2nD1E-NSGh013atqwog_ESHeTkUercWZBbhl37fza5g7ciLvXK-imMqSzEkL3shgRl2SK90ZN9dd1omB0mOKAVHBDUvlLOQYzjQSSKKY7vejCZMjshZ1G4w2J1NF00',
+      background:
+        'https://lh3.googleusercontent.com/aida-public/AB6AXuDo2vvwaf5BTKP8vTfcvlgeyT55br10n6IV1OZyA7l4UW6CXhh0bla_9K65y1CsMVIIGqq8WwUQdSrQe8q4hyTKpNWLmFXFcRJwQMV8hONNTxKI3eR_WngIC_p1d9lkGDra0zCw2Ai2hF0rZ2nD1E-NSGh013atqwog_ESHeTkUercWZBbhl37fza5g7ciLvXK-imMqSzEkL3shgRl2SK90ZN9dd1omB0mOKAVHBDUvlLOQYzjQSSKKY7vejCZMjshZ1G4w2J1NF00',
       locked: false,
     },
   ];
@@ -76,7 +82,7 @@ export function GamificationSection() {
                 </p>
               </div>
               <p className="text-muted-foreground text-base font-normal leading-normal mb-6">
-                {t('See who\'s leading the charge this week.', 'اعرف من يتصدر هذا الأسبوع.')}
+                {t("See who's leading the charge this week.", 'اعرف من يتصدر هذا الأسبوع.')}
               </p>
               <div className="flex flex-col gap-4 grow">
                 {leaderboard.map((student) => (
@@ -93,9 +99,7 @@ export function GamificationSection() {
                       <p className="text-foreground font-medium">{student.name}</p>
                       <p
                         className={`text-sm ${
-                          student.premium
-                            ? 'text-primary font-bold'
-                            : 'text-muted-foreground'
+                          student.premium ? 'text-primary font-bold' : 'text-muted-foreground'
                         }`}
                       >
                         {student.xp}
@@ -170,7 +174,10 @@ export function GamificationSection() {
                 </div>
                 <div className="flex justify-between items-center">
                   <p className="text-muted-foreground text-sm font-normal leading-normal">
-                    {t('Great progress! Just 250 XP to the next level.', 'تقدم رائع! يتبقى 250 XP للمستوى التالي.')}
+                    {t(
+                      'Great progress! Just 250 XP to the next level.',
+                      'تقدم رائع! يتبقى 250 XP للمستوى التالي.'
+                    )}
                   </p>
                   <span className="flex items-center gap-1 text-green-500 text-sm font-medium">
                     <span className="material-symbols-outlined text-base">trending_up</span>
@@ -185,4 +192,3 @@ export function GamificationSection() {
     </section>
   );
 }
-

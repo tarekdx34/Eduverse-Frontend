@@ -2,7 +2,6 @@ import { Sparkles, Brain } from 'lucide-react';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { CleanSelect } from '../../../../../components/shared';
 
-
 interface QuizContentProps {
   quizDifficulty: string;
   onDifficultyChange: (difficulty: string) => void;

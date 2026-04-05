@@ -22,7 +22,7 @@ const translations: Record<Language, Record<string, string>> = {
     darkMode: 'Dark Mode',
     lightMode: 'Light Mode',
     viewProfile: 'View Profile',
-    
+
     // Sidebar
     dashboard: 'Dashboard',
     myClass: 'My Class',
@@ -40,7 +40,7 @@ const translations: Record<Language, Record<string, string>> = {
     payments: 'Payments',
     chat: 'Chat',
     settings: 'Settings',
-    
+
     // Dashboard
     welcomeBack: 'Welcome back',
     semesterSummary: 'Semester Summary',
@@ -50,18 +50,18 @@ const translations: Record<Language, Record<string, string>> = {
     todaySchedule: "Today's Schedule",
     quickActions: 'Quick Actions',
     recentActivity: 'Recent Activity',
-    
+
     // StatsCard
     outOf: 'out of',
     hours: 'hours',
     totalCredits: 'Total Credits',
     pendingTasks: 'Pending Tasks',
     tasks: 'tasks',
-    
+
     // DailySchedule
     noClassesToday: 'No classes scheduled for today',
     room: 'Room',
-    
+
     // ClassTab / My Courses
     myCourses: 'My Courses',
     enrolled: 'Enrolled',
@@ -72,7 +72,7 @@ const translations: Record<Language, Record<string, string>> = {
     progress: 'Progress',
     viewAll: 'View All',
     courseMaterials: 'Course Materials',
-    
+
     // Course Registration
     courseRegistration: 'Course Registration',
     availableCourses: 'Available Courses',
@@ -89,7 +89,7 @@ const translations: Record<Language, Record<string, string>> = {
     springTerm: 'Spring Term',
     fallTerm: 'Fall Term',
     summerTerm: 'Summer Term',
-    
+
     // Assignments
     assignmentsDue: 'Assignments Due',
     submitted: 'Submitted',
@@ -108,7 +108,7 @@ const translations: Record<Language, Record<string, string>> = {
     lateSubmission: 'Late Submission',
     daysLeft: 'days left',
     hoursLeft: 'hours left',
-    
+
     // Grades & Transcript
     gradeHistory: 'Grade History',
     transcript: 'Transcript',
@@ -125,7 +125,7 @@ const translations: Record<Language, Record<string, string>> = {
     officialTranscript: 'Official Transcript',
     gradesAndTranscript: 'Grades & Transcript',
     academicRecord: 'Academic Record',
-    
+
     // Attendance
     attendanceOverview: 'Attendance Overview',
     present: 'Present',
@@ -142,7 +142,7 @@ const translations: Record<Language, Record<string, string>> = {
     warning: 'Warning',
     attendanceWarning: 'Your attendance is below the required minimum',
     overallAttendance: 'Overall Attendance',
-    
+
     // Schedule
     weeklySchedule: 'Weekly Schedule',
     classSchedule: 'Class Schedule',
@@ -168,7 +168,7 @@ const translations: Record<Language, Record<string, string>> = {
     lab: 'Lab',
     tutorial: 'Tutorial',
     exam: 'Exam',
-    
+
     // AI Features
     aiAssistant: 'AI Assistant',
     aiPoweredTools: 'AI-Powered Learning Tools',
@@ -194,7 +194,7 @@ const translations: Record<Language, Record<string, string>> = {
     noteSummarizer: 'Note Summarizer',
     quizGenerator: 'Quiz Generator',
     personalizedRecommendations: 'Personalized Recommendations',
-    
+
     // Gamification
     points: 'Points',
     badges: 'Badges',
@@ -213,7 +213,7 @@ const translations: Record<Language, Record<string, string>> = {
     yourRank: 'Your Rank',
     topStudents: 'Top Students',
     gamificationAchievements: 'Achievements & Rewards',
-    
+
     // Community
     discussions: 'Discussions',
     announcements: 'Announcements',
@@ -233,7 +233,7 @@ const translations: Record<Language, Record<string, string>> = {
     groupName: 'Group Name',
     groupDescription: 'Group Description',
     courseCommunity: 'Course Community',
-    
+
     // Labs
     labInstructions: 'Lab Instructions',
     labObjectives: 'Lab Objectives',
@@ -248,7 +248,7 @@ const translations: Record<Language, Record<string, string>> = {
     procedure: 'Procedure',
     step: 'Step',
     labSession: 'Lab Session',
-    
+
     // Analytics
     progressAnalytics: 'Progress & Analytics',
     studyHours: 'Study Hours',
@@ -263,7 +263,7 @@ const translations: Record<Language, Record<string, string>> = {
     completionRate: 'Completion Rate',
     improvementAreas: 'Areas for Improvement',
     yourProgress: 'Your Progress',
-    
+
     // Todo
     todoReminder: 'Todo & Reminders',
     addTask: 'Add Task',
@@ -282,7 +282,7 @@ const translations: Record<Language, Record<string, string>> = {
     todayTasks: "Today's Tasks",
     upcomingTasks: 'Upcoming Tasks',
     smartTodo: 'Smart Todo List',
-    
+
     // Notifications
     allNotifications: 'All Notifications',
     unread: 'Unread',
@@ -292,7 +292,7 @@ const translations: Record<Language, Record<string, string>> = {
     noNotifications: 'No notifications',
     newNotification: 'New Notification',
     notificationCenter: 'Notification Center',
-    
+
     // Chat / Messaging
     messages: 'Messages',
     sendMessage: 'Send Message',
@@ -307,7 +307,7 @@ const translations: Record<Language, Record<string, string>> = {
     classmates: 'Classmates',
     teachingAssistants: 'Teaching Assistants',
     messagingChat: 'Messaging',
-    
+
     // Payments
     paymentHistory: 'Payment History',
     tuitionFees: 'Tuition & Fees',
@@ -323,7 +323,7 @@ const translations: Record<Language, Record<string, string>> = {
     paymentPlan: 'Payment Plan',
     financialAid: 'Financial Aid',
     scholarships: 'Scholarships',
-    
+
     // Settings
     settingsPreferences: 'Settings & Preferences',
     customizeExperience: 'Customize your learning experience',
@@ -364,7 +364,7 @@ const translations: Record<Language, Record<string, string>> = {
     soundAlerts: 'Sound Alerts',
     deadlineReminders: 'Deadline Reminders',
     gradeUpdates: 'Grade Updates',
-    
+
     // Global Search
     globalSearch: 'Global Search',
     searchResults: 'Search Results',
@@ -373,7 +373,7 @@ const translations: Record<Language, Record<string, string>> = {
     courses: 'Courses',
     files: 'Files',
     people: 'People',
-    
+
     // Common
     loading: 'Loading...',
     error: 'Error',
@@ -465,9 +465,10 @@ const translations: Record<Language, Record<string, string>> = {
     confirmRegistration: 'Confirm Registration',
     joinWaitlistQuestion: 'Join Waitlist?',
     registerConfirmText: 'You are about to register for',
-    waitlistConfirmText: 'This course is full. You\'ll be added to the waitlist for',
+    waitlistConfirmText: "This course is full. You'll be added to the waitlist for",
     creditLimitWarning: 'Credit Limit Warning',
-    creditLimitText: 'Adding this course will exceed your credit limit. You may need advisor approval.',
+    creditLimitText:
+      'Adding this course will exceed your credit limit. You may need advisor approval.',
 
     // Assignments
     assignmentTracker: 'Assignment Tracker',
@@ -530,13 +531,13 @@ const translations: Record<Language, Record<string, string>> = {
     keepWorking: 'Keep working to achieve excellence!',
     aiStudyRecommendations: 'AI-Powered Study Recommendations',
     optimalStudyTime: 'Optimal Study Time',
-    optimalStudyDesc: 'Based on your activity, you\'re most productive between',
+    optimalStudyDesc: "Based on your activity, you're most productive between",
     scheduleDifficult: 'Schedule difficult topics during this time',
     focusPriority: 'Focus Priority',
     prioritizeDesc: 'Prioritize',
     assignmentsDueWeak: 'assignments due + weak topics identified',
     keepItUp: 'Keep It Up!',
-    streakDesc: 'You\'re on a',
+    streakDesc: "You're on a",
     dayStreak: 'day streak',
     meetingGoals: 'of meeting study goals',
     maintainConsistency: 'Maintain consistency for best results',
@@ -563,7 +564,7 @@ const translations: Record<Language, Record<string, string>> = {
     darkMode: 'الوضع الداكن',
     lightMode: 'الوضع الفاتح',
     viewProfile: 'عرض الملف الشخصي',
-    
+
     // Sidebar
     dashboard: 'لوحة التحكم',
     myClass: 'صفي',
@@ -581,7 +582,7 @@ const translations: Record<Language, Record<string, string>> = {
     payments: 'المدفوعات',
     chat: 'المحادثة',
     settings: 'الإعدادات',
-    
+
     // Dashboard
     welcomeBack: 'مرحباً بعودتك',
     semesterSummary: 'ملخص الفصل الدراسي',
@@ -591,18 +592,18 @@ const translations: Record<Language, Record<string, string>> = {
     todaySchedule: 'جدول اليوم',
     quickActions: 'إجراءات سريعة',
     recentActivity: 'النشاط الأخير',
-    
+
     // StatsCard
     outOf: 'من',
     hours: 'ساعات',
     totalCredits: 'إجمالي الساعات',
     pendingTasks: 'المهام المعلقة',
     tasks: 'مهام',
-    
+
     // DailySchedule
     noClassesToday: 'لا توجد محاضرات مجدولة لليوم',
     room: 'القاعة',
-    
+
     // ClassTab / My Courses
     myCourses: 'مقرراتي',
     enrolled: 'مسجل',
@@ -613,7 +614,7 @@ const translations: Record<Language, Record<string, string>> = {
     progress: 'التقدم',
     viewAll: 'عرض الكل',
     courseMaterials: 'مواد المقرر',
-    
+
     // Course Registration
     courseRegistration: 'تسجيل المقررات',
     availableCourses: 'المقررات المتاحة',
@@ -630,7 +631,7 @@ const translations: Record<Language, Record<string, string>> = {
     springTerm: 'الفصل الربيعي',
     fallTerm: 'الفصل الخريفي',
     summerTerm: 'الفصل الصيفي',
-    
+
     // Assignments
     assignmentsDue: 'الواجبات المستحقة',
     submitted: 'تم التسليم',
@@ -649,7 +650,7 @@ const translations: Record<Language, Record<string, string>> = {
     lateSubmission: 'تسليم متأخر',
     daysLeft: 'أيام متبقية',
     hoursLeft: 'ساعات متبقية',
-    
+
     // Grades & Transcript
     gradeHistory: 'سجل الدرجات',
     transcript: 'السجل الأكاديمي',
@@ -666,7 +667,7 @@ const translations: Record<Language, Record<string, string>> = {
     officialTranscript: 'السجل الأكاديمي الرسمي',
     gradesAndTranscript: 'الدرجات والسجل الأكاديمي',
     academicRecord: 'السجل الأكاديمي',
-    
+
     // Attendance
     attendanceOverview: 'نظرة عامة على الحضور',
     present: 'حاضر',
@@ -683,7 +684,7 @@ const translations: Record<Language, Record<string, string>> = {
     warning: 'تحذير',
     attendanceWarning: 'نسبة حضورك أقل من الحد الأدنى المطلوب',
     overallAttendance: 'الحضور الإجمالي',
-    
+
     // Schedule
     weeklySchedule: 'الجدول الأسبوعي',
     classSchedule: 'جدول المحاضرات',
@@ -709,7 +710,7 @@ const translations: Record<Language, Record<string, string>> = {
     lab: 'معمل',
     tutorial: 'تدريب',
     exam: 'اختبار',
-    
+
     // AI Features
     aiAssistant: 'مساعد الذكاء الاصطناعي',
     aiPoweredTools: 'أدوات التعلم بالذكاء الاصطناعي',
@@ -735,7 +736,7 @@ const translations: Record<Language, Record<string, string>> = {
     noteSummarizer: 'ملخص الملاحظات',
     quizGenerator: 'منشئ الاختبارات',
     personalizedRecommendations: 'توصيات مخصصة',
-    
+
     // Gamification
     points: 'النقاط',
     badges: 'الشارات',
@@ -754,7 +755,7 @@ const translations: Record<Language, Record<string, string>> = {
     yourRank: 'ترتيبك',
     topStudents: 'أفضل الطلاب',
     gamificationAchievements: 'الإنجازات والمكافآت',
-    
+
     // Community
     discussions: 'المناقشات',
     announcements: 'الإعلانات',
@@ -774,7 +775,7 @@ const translations: Record<Language, Record<string, string>> = {
     groupName: 'اسم المجموعة',
     groupDescription: 'وصف المجموعة',
     courseCommunity: 'مجتمع المقرر',
-    
+
     // Labs
     labInstructions: 'تعليمات المعمل',
     labObjectives: 'أهداف المعمل',
@@ -789,7 +790,7 @@ const translations: Record<Language, Record<string, string>> = {
     procedure: 'الإجراءات',
     step: 'خطوة',
     labSession: 'جلسة المعمل',
-    
+
     // Analytics
     progressAnalytics: 'التقدم والتحليلات',
     studyHours: 'ساعات الدراسة',
@@ -804,7 +805,7 @@ const translations: Record<Language, Record<string, string>> = {
     completionRate: 'نسبة الإنجاز',
     improvementAreas: 'مجالات التحسين',
     yourProgress: 'تقدمك',
-    
+
     // Todo
     todoReminder: 'المهام والتذكيرات',
     addTask: 'إضافة مهمة',
@@ -823,7 +824,7 @@ const translations: Record<Language, Record<string, string>> = {
     todayTasks: 'مهام اليوم',
     upcomingTasks: 'المهام القادمة',
     smartTodo: 'قائمة المهام الذكية',
-    
+
     // Notifications
     allNotifications: 'جميع الإشعارات',
     unread: 'غير مقروء',
@@ -833,7 +834,7 @@ const translations: Record<Language, Record<string, string>> = {
     noNotifications: 'لا توجد إشعارات',
     newNotification: 'إشعار جديد',
     notificationCenter: 'مركز الإشعارات',
-    
+
     // Chat / Messaging
     messages: 'الرسائل',
     sendMessage: 'إرسال رسالة',
@@ -848,7 +849,7 @@ const translations: Record<Language, Record<string, string>> = {
     classmates: 'زملاء الدراسة',
     teachingAssistants: 'المعيدون',
     messagingChat: 'المراسلة',
-    
+
     // Payments
     paymentHistory: 'سجل المدفوعات',
     tuitionFees: 'الرسوم الدراسية',
@@ -864,7 +865,7 @@ const translations: Record<Language, Record<string, string>> = {
     paymentPlan: 'خطة الدفع',
     financialAid: 'المساعدة المالية',
     scholarships: 'المنح الدراسية',
-    
+
     // Settings
     settingsPreferences: 'الإعدادات والتفضيلات',
     customizeExperience: 'خصص تجربة التعلم الخاصة بك',
@@ -905,7 +906,7 @@ const translations: Record<Language, Record<string, string>> = {
     soundAlerts: 'تنبيهات صوتية',
     deadlineReminders: 'تذكيرات المواعيد النهائية',
     gradeUpdates: 'تحديثات الدرجات',
-    
+
     // Global Search
     globalSearch: 'البحث الشامل',
     searchResults: 'نتائج البحث',
@@ -914,7 +915,7 @@ const translations: Record<Language, Record<string, string>> = {
     courses: 'المقررات',
     files: 'الملفات',
     people: 'الأشخاص',
-    
+
     // Common
     loading: 'جاري التحميل...',
     error: 'خطأ',
@@ -1008,7 +1009,8 @@ const translations: Record<Language, Record<string, string>> = {
     registerConfirmText: 'أنت على وشك التسجيل في',
     waitlistConfirmText: 'هذا المقرر مكتمل. سيتم إضافتك لقائمة الانتظار لـ',
     creditLimitWarning: 'تحذير حد الساعات',
-    creditLimitText: 'إضافة هذا المقرر ستتجاوز الحد المسموح للساعات. قد تحتاج لموافقة المرشد الأكاديمي.',
+    creditLimitText:
+      'إضافة هذا المقرر ستتجاوز الحد المسموح للساعات. قد تحتاج لموافقة المرشد الأكاديمي.',
 
     // Assignments
     assignmentTracker: 'متتبع الواجبات',

@@ -1,11 +1,4 @@
-import {
-  FileText,
-  Brain,
-  MessageSquare,
-  Mic,
-  Image as ImageIcon,
-  Layers,
-} from 'lucide-react';
+import { FileText, Brain, MessageSquare, Mic, Image as ImageIcon, Layers } from 'lucide-react';
 import { AIFeature } from './types';
 
 export const aiFeatures: AIFeature[] = [
@@ -13,7 +6,8 @@ export const aiFeatures: AIFeature[] = [
     id: 'summarizer',
     title: 'Smart Summarizer',
     subtitle: 'Intelligent Content Condensing',
-    description: 'Transform lengthy documents, research papers, and lecture notes into concise, actionable summaries in seconds',
+    description:
+      'Transform lengthy documents, research papers, and lecture notes into concise, actionable summaries in seconds',
     icon: FileText,
     color: 'bg-blue-600',
     bgLight: 'bg-blue-50',
@@ -23,13 +17,14 @@ export const aiFeatures: AIFeature[] = [
     usageCount: 45,
     lastUsed: '2 hours ago',
     features: ['PDF & DOCX Support', 'Key Points Extraction', 'Smart Highlighting'],
-    badge: 'Popular'
+    badge: 'Popular',
   },
   {
     id: 'quiz',
     title: 'Quiz Generator',
     subtitle: 'Adaptive Learning Assessment',
-    description: 'Create personalized quizzes with AI-powered difficulty adjustment to match your learning pace and knowledge level',
+    description:
+      'Create personalized quizzes with AI-powered difficulty adjustment to match your learning pace and knowledge level',
     icon: Brain,
     color: 'bg-purple-600',
     bgLight: 'bg-purple-50',
@@ -39,13 +34,14 @@ export const aiFeatures: AIFeature[] = [
     usageCount: 28,
     lastUsed: '1 day ago',
     features: ['Adaptive Difficulty', 'Instant Grading', 'Performance Analytics'],
-    badge: 'New'
+    badge: 'New',
   },
   {
     id: 'feedback',
     title: 'Writing Assistant',
     subtitle: 'Professional Feedback Engine',
-    description: 'Receive comprehensive, constructive feedback on your assignments with advanced grammar, style, and clarity analysis',
+    description:
+      'Receive comprehensive, constructive feedback on your assignments with advanced grammar, style, and clarity analysis',
     icon: MessageSquare,
     color: 'bg-emerald-600',
     bgLight: 'bg-emerald-50',
@@ -54,13 +50,14 @@ export const aiFeatures: AIFeature[] = [
     borderColor: 'border-emerald-500',
     usageCount: 32,
     lastUsed: '3 hours ago',
-    features: ['Grammar Check', 'Style Enhancement', 'Plagiarism Detection']
+    features: ['Grammar Check', 'Style Enhancement', 'Plagiarism Detection'],
   },
   {
     id: 'chatbot',
     title: 'Study Companion',
     subtitle: '24/7 AI Learning Assistant',
-    description: 'Get instant, intelligent answers to your academic questions with context-aware responses tailored to your courses',
+    description:
+      'Get instant, intelligent answers to your academic questions with context-aware responses tailored to your courses',
     icon: MessageSquare,
     color: 'bg-[#7C3AED]',
     bgLight: 'bg-[#7C3AED]/10',
@@ -70,13 +67,14 @@ export const aiFeatures: AIFeature[] = [
     usageCount: 156,
     lastUsed: '10 minutes ago',
     features: ['24/7 Availability', 'Multi-Subject Support', 'Context Memory'],
-    badge: 'Most Used'
+    badge: 'Most Used',
   },
   {
     id: 'voice',
     title: 'Voice Transcriber',
     subtitle: 'Smart Audio to Text',
-    description: 'Convert lectures, meetings, and voice notes into accurate, searchable text with automatic timestamp marking',
+    description:
+      'Convert lectures, meetings, and voice notes into accurate, searchable text with automatic timestamp marking',
     icon: Mic,
     color: 'bg-pink-600',
     bgLight: 'bg-pink-50',
@@ -85,13 +83,14 @@ export const aiFeatures: AIFeature[] = [
     borderColor: 'border-pink-500',
     usageCount: 67,
     lastUsed: '5 hours ago',
-    features: ['Real-time Processing', 'Multi-language', 'Speaker Detection']
+    features: ['Real-time Processing', 'Multi-language', 'Speaker Detection'],
   },
   {
     id: 'flashcards',
     title: 'Smart Flashcards',
     subtitle: 'AI-Powered Memory Cards',
-    description: 'Create intelligent flashcards from your study materials with spaced repetition for effective memorization',
+    description:
+      'Create intelligent flashcards from your study materials with spaced repetition for effective memorization',
     icon: Layers,
     color: 'bg-cyan-600',
     bgLight: 'bg-cyan-50',
@@ -101,13 +100,14 @@ export const aiFeatures: AIFeature[] = [
     usageCount: 34,
     lastUsed: '3 hours ago',
     features: ['Auto-Generation', 'Spaced Repetition', 'Progress Tracking'],
-    badge: 'New'
+    badge: 'New',
   },
   {
     id: 'image-to-text',
     title: 'OCR Scanner',
     subtitle: 'Visual Text Extraction',
-    description: 'Instantly extract and digitize text from images, diagrams, handwritten notes, and scanned documents',
+    description:
+      'Instantly extract and digitize text from images, diagrams, handwritten notes, and scanned documents',
     icon: ImageIcon,
     color: 'bg-teal-600',
     bgLight: 'bg-teal-50',
@@ -116,6 +116,6 @@ export const aiFeatures: AIFeature[] = [
     borderColor: 'border-teal-500',
     usageCount: 23,
     lastUsed: '2 days ago',
-    features: ['Handwriting Support', 'Multi-format', 'Batch Processing']
-  }
+    features: ['Handwriting Support', 'Multi-format', 'Batch Processing'],
+  },
 ];

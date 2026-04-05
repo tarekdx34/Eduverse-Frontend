@@ -14,7 +14,7 @@ async function waitForCondition(condition, timeout = 5000, interval = 100) {
     if (await condition()) {
       return true;
     }
-    await new Promise(resolve => setTimeout(resolve, interval));
+    await new Promise((resolve) => setTimeout(resolve, interval));
   }
   throw new Error('Condition not met within timeout');
 }
@@ -26,11 +26,11 @@ async function waitForCondition(condition, timeout = 5000, interval = 100) {
  */
 function captureConsoleLogs(page) {
   const logs = [];
-  page.on('console', msg => {
+  page.on('console', (msg) => {
     logs.push({
       type: msg.type(),
       text: msg.text(),
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   });
   return logs;
@@ -52,5 +52,5 @@ async function captureScreenshot(page, name) {
 module.exports = {
   waitForCondition,
   captureConsoleLogs,
-  captureScreenshot
+  captureScreenshot,
 };

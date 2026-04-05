@@ -1,9 +1,20 @@
 import React, { useState } from 'react';
-import { Calendar, Clock, MapPin, Users, Plus, Edit2, Trash2, Video, Check, X, Settings } from 'lucide-react';
+import {
+  Calendar,
+  Clock,
+  MapPin,
+  Users,
+  Plus,
+  Edit2,
+  Trash2,
+  Video,
+  Check,
+  X,
+  Settings,
+} from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { CleanSelect } from '../../../components/shared';
-
 
 type ScheduleSlot = {
   id: string;
@@ -25,15 +36,60 @@ type Appointment = {
 };
 
 const MOCK_SLOTS: ScheduleSlot[] = [
-  { id: 's1', day: 'Monday', startTime: '14:00', endTime: '16:00', location: 'Room 205', type: 'in-person', active: true },
-  { id: 's2', day: 'Wednesday', startTime: '10:00', endTime: '12:00', location: 'Room 205', type: 'in-person', active: true },
-  { id: 's3', day: 'Friday', startTime: '15:00', endTime: '17:00', location: 'Online - Zoom', type: 'online', active: true },
+  {
+    id: 's1',
+    day: 'Monday',
+    startTime: '14:00',
+    endTime: '16:00',
+    location: 'Room 205',
+    type: 'in-person',
+    active: true,
+  },
+  {
+    id: 's2',
+    day: 'Wednesday',
+    startTime: '10:00',
+    endTime: '12:00',
+    location: 'Room 205',
+    type: 'in-person',
+    active: true,
+  },
+  {
+    id: 's3',
+    day: 'Friday',
+    startTime: '15:00',
+    endTime: '17:00',
+    location: 'Online - Zoom',
+    type: 'online',
+    active: true,
+  },
 ];
 
 const MOCK_APPOINTMENTS: Appointment[] = [
-  { id: 'a1', studentName: 'John Smith', date: 'Mon, Feb 10', time: '2:30 PM', topic: 'Assignment Help', status: 'confirmed' },
-  { id: 'a2', studentName: 'Emily Davis', date: 'Mon, Feb 10', time: '3:00 PM', topic: 'Grade Discussion', status: 'pending' },
-  { id: 'a3', studentName: 'Michael Brown', date: 'Wed, Feb 12', time: '10:30 AM', topic: 'Lab Questions', status: 'confirmed' },
+  {
+    id: 'a1',
+    studentName: 'John Smith',
+    date: 'Mon, Feb 10',
+    time: '2:30 PM',
+    topic: 'Assignment Help',
+    status: 'confirmed',
+  },
+  {
+    id: 'a2',
+    studentName: 'Emily Davis',
+    date: 'Mon, Feb 10',
+    time: '3:00 PM',
+    topic: 'Grade Discussion',
+    status: 'pending',
+  },
+  {
+    id: 'a3',
+    studentName: 'Michael Brown',
+    date: 'Wed, Feb 12',
+    time: '10:30 AM',
+    topic: 'Lab Questions',
+    status: 'confirmed',
+  },
 ];
 
 export function OfficeHoursPage() {
@@ -46,7 +102,13 @@ export function OfficeHoursPage() {
   const [enableOfficeHours, setEnableOfficeHours] = useState(true);
   const [allowRequests, setAllowRequests] = useState(true);
   const [calendarIntegration, setCalendarIntegration] = useState(false);
-  const [newSlot, setNewSlot] = useState({ day: 'Monday', startTime: '', endTime: '', location: '', type: 'in-person' as 'in-person' | 'online' });
+  const [newSlot, setNewSlot] = useState({
+    day: 'Monday',
+    startTime: '',
+    endTime: '',
+    location: '',
+    type: 'in-person' as 'in-person' | 'online',
+  });
 
   const cardClass = `border rounded-lg p-6 ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`;
   const headingClass = isDark ? 'text-white' : 'text-gray-900';
@@ -74,7 +136,9 @@ export function OfficeHoursPage() {
   };
 
   const handleConfirm = (id: string) => {
-    setAppointments(appointments.map((a) => (a.id === id ? { ...a, status: 'confirmed' as const } : a)));
+    setAppointments(
+      appointments.map((a) => (a.id === id ? { ...a, status: 'confirmed' as const } : a))
+    );
   };
 
   const handleDecline = (id: string) => {
@@ -87,7 +151,9 @@ export function OfficeHoursPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h2 className={`text-2xl font-bold ${headingClass}`}>Office Hours</h2>
-          <p className={`mt-1 ${subTextClass}`}>Manage your office hours schedule and student appointments</p>
+          <p className={`mt-1 ${subTextClass}`}>
+            Manage your office hours schedule and student appointments
+          </p>
         </div>
         <button
           onClick={() => setShowModal(true)}
@@ -139,7 +205,9 @@ export function OfficeHoursPage() {
       <div className={cardClass}>
         <div className="flex items-center justify-between mb-4">
           <h3 className={`text-lg font-semibold ${headingClass}`}>Weekly Schedule</h3>
-          <button className={`text-sm font-medium flex items-center gap-1 ${isDark ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'} transition-colors`}>
+          <button
+            className={`text-sm font-medium flex items-center gap-1 ${isDark ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'} transition-colors`}
+          >
             <Edit2 className="w-4 h-4" />
             Edit
           </button>
@@ -155,7 +223,9 @@ export function OfficeHoursPage() {
                   <p className={`font-medium ${headingClass}`}>{slot.day}</p>
                   <div className="flex items-center gap-2 mt-1">
                     <Clock className={`w-4 h-4 ${subTextClass}`} />
-                    <span className={`text-sm ${subTextClass}`}>{slot.startTime} - {slot.endTime}</span>
+                    <span className={`text-sm ${subTextClass}`}>
+                      {slot.startTime} - {slot.endTime}
+                    </span>
                   </div>
                   <div className="flex items-center gap-2 mt-1">
                     <MapPin className={`w-4 h-4 ${subTextClass}`} />
@@ -163,8 +233,14 @@ export function OfficeHoursPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${slot.type === 'online' ? 'bg-blue-100 text-blue-700' : 'bg-blue-100 text-blue-700'}`}>
-                    {slot.type === 'online' ? <Video className="w-3 h-3" /> : <MapPin className="w-3 h-3" />}
+                  <span
+                    className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${slot.type === 'online' ? 'bg-blue-100 text-blue-700' : 'bg-blue-100 text-blue-700'}`}
+                  >
+                    {slot.type === 'online' ? (
+                      <Video className="w-3 h-3" />
+                    ) : (
+                      <MapPin className="w-3 h-3" />
+                    )}
                     {slot.type === 'online' ? 'Online' : 'In-person'}
                   </span>
                   <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
@@ -174,7 +250,9 @@ export function OfficeHoursPage() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <button className={`p-2 rounded-lg transition-colors ${isDark ? 'text-slate-400 hover:text-blue-400 hover:bg-white/10' : 'text-gray-400 hover:text-blue-600 hover:bg-blue-50'}`}>
+                <button
+                  className={`p-2 rounded-lg transition-colors ${isDark ? 'text-slate-400 hover:text-blue-400 hover:bg-white/10' : 'text-gray-400 hover:text-blue-600 hover:bg-blue-50'}`}
+                >
                   <Edit2 className="w-4 h-4" />
                 </button>
                 <button
@@ -213,8 +291,14 @@ export function OfficeHoursPage() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${appt.status === 'confirmed' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
-                  {appt.status === 'confirmed' ? <Check className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
+                <span
+                  className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${appt.status === 'confirmed' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}
+                >
+                  {appt.status === 'confirmed' ? (
+                    <Check className="w-3 h-3" />
+                  ) : (
+                    <Clock className="w-3 h-3" />
+                  )}
                   {appt.status === 'confirmed' ? 'Confirmed' : 'Pending'}
                 </span>
                 {appt.status === 'pending' && (
@@ -249,13 +333,17 @@ export function OfficeHoursPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className={`font-medium ${headingClass}`}>Enable Office Hours</p>
-              <p className={`text-sm ${subTextClass}`}>Make your office hours visible to students</p>
+              <p className={`text-sm ${subTextClass}`}>
+                Make your office hours visible to students
+              </p>
             </div>
             <button
               onClick={() => setEnableOfficeHours(!enableOfficeHours)}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${enableOfficeHours ? 'bg-blue-600' : isDark ? 'bg-white/20' : 'bg-gray-300'}`}
             >
-              <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${enableOfficeHours ? 'translate-x-6' : 'translate-x-1'}`} />
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${enableOfficeHours ? 'translate-x-6' : 'translate-x-1'}`}
+              />
             </button>
           </div>
           <div className="flex items-center justify-between">
@@ -267,7 +355,9 @@ export function OfficeHoursPage() {
               onClick={() => setAllowRequests(!allowRequests)}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${allowRequests ? 'bg-blue-600' : isDark ? 'bg-white/20' : 'bg-gray-300'}`}
             >
-              <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${allowRequests ? 'translate-x-6' : 'translate-x-1'}`} />
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${allowRequests ? 'translate-x-6' : 'translate-x-1'}`}
+              />
             </button>
           </div>
           <div className="flex items-center justify-between">
@@ -279,7 +369,9 @@ export function OfficeHoursPage() {
               onClick={() => setCalendarIntegration(!calendarIntegration)}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${calendarIntegration ? 'bg-blue-600' : isDark ? 'bg-white/20' : 'bg-gray-300'}`}
             >
-              <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${calendarIntegration ? 'translate-x-6' : 'translate-x-1'}`} />
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${calendarIntegration ? 'translate-x-6' : 'translate-x-1'}`}
+              />
             </button>
           </div>
         </div>
@@ -288,10 +380,15 @@ export function OfficeHoursPage() {
       {/* Add New Slot Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className={`w-full max-w-md mx-4 rounded-lg p-6 ${isDark ? 'bg-gray-800 border border-white/10' : 'bg-white border border-gray-200'}`}>
+          <div
+            className={`w-full max-w-md mx-4 rounded-lg p-6 ${isDark ? 'bg-gray-800 border border-white/10' : 'bg-white border border-gray-200'}`}
+          >
             <div className="flex items-center justify-between mb-4">
               <h3 className={`text-lg font-semibold ${headingClass}`}>Add New Slot</h3>
-              <button onClick={() => setShowModal(false)} className={`p-1 rounded-lg transition-colors ${isDark ? 'text-slate-400 hover:text-white' : 'text-gray-400 hover:text-gray-600'}`}>
+              <button
+                onClick={() => setShowModal(false)}
+                className={`p-1 rounded-lg transition-colors ${isDark ? 'text-slate-400 hover:text-white' : 'text-gray-400 hover:text-gray-600'}`}
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -303,14 +400,26 @@ export function OfficeHoursPage() {
                   onChange={(e) => setNewSlot({ ...newSlot, day: e.target.value })}
                   className={inputClass}
                 >
-                  {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((d) => (
-                    <option key={d} value={d}>{d}</option>
+                  {[
+                    'Monday',
+                    'Tuesday',
+                    'Wednesday',
+                    'Thursday',
+                    'Friday',
+                    'Saturday',
+                    'Sunday',
+                  ].map((d) => (
+                    <option key={d} value={d}>
+                      {d}
+                    </option>
                   ))}
                 </CleanSelect>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className={`block text-sm font-medium mb-1 ${headingClass}`}>Start Time</label>
+                  <label className={`block text-sm font-medium mb-1 ${headingClass}`}>
+                    Start Time
+                  </label>
                   <input
                     type="time"
                     value={newSlot.startTime}
@@ -319,7 +428,9 @@ export function OfficeHoursPage() {
                   />
                 </div>
                 <div>
-                  <label className={`block text-sm font-medium mb-1 ${headingClass}`}>End Time</label>
+                  <label className={`block text-sm font-medium mb-1 ${headingClass}`}>
+                    End Time
+                  </label>
                   <input
                     type="time"
                     value={newSlot.endTime}
@@ -342,7 +453,9 @@ export function OfficeHoursPage() {
                 <label className={`block text-sm font-medium mb-1 ${headingClass}`}>Type</label>
                 <CleanSelect
                   value={newSlot.type}
-                  onChange={(e) => setNewSlot({ ...newSlot, type: e.target.value as 'in-person' | 'online' })}
+                  onChange={(e) =>
+                    setNewSlot({ ...newSlot, type: e.target.value as 'in-person' | 'online' })
+                  }
                   className={inputClass}
                 >
                   <option value="in-person">In-person</option>

@@ -67,9 +67,7 @@ const formatDateTime = (value?: string) => {
   })}`;
 };
 
-const mapNotificationType = (
-  value?: string
-): Notification['type'] => {
+const mapNotificationType = (value?: string): Notification['type'] => {
   if (value === 'system') return 'system';
   if (value === 'assignment') return 'assignment';
   if (value === 'grade') return 'grade';
@@ -148,7 +146,9 @@ export function NotificationCenter() {
         rawCreatedAt: n.createdAt,
       }));
 
-      const sortedAnnouncements = (Array.isArray(announcementsResponse) ? announcementsResponse : [])
+      const sortedAnnouncements = (
+        Array.isArray(announcementsResponse) ? announcementsResponse : []
+      )
         .slice()
         .sort((a, b) => {
           if ((a.isPinned ?? 0) === 1 && (b.isPinned ?? 0) !== 1) return -1;
@@ -159,7 +159,9 @@ export function NotificationCenter() {
           );
         });
 
-      const mappedAnnouncements: Notification[] = sortedAnnouncements.map(mapAnnouncementToNotification);
+      const mappedAnnouncements: Notification[] = sortedAnnouncements.map(
+        mapAnnouncementToNotification
+      );
 
       setNotificationList([...mappedNotifications, ...mappedAnnouncements]);
       setUnreadCount(Number(unreadResponse?.count ?? 0));
@@ -178,7 +180,10 @@ export function NotificationCenter() {
     return (
       <div className="space-y-3">
         {[1, 2, 3].map((item) => (
-          <div key={item} className={`rounded-xl border-2 p-4 animate-pulse ${isDark ? 'bg-card-dark border-white/5' : 'bg-white border-slate-100'}`}>
+          <div
+            key={item}
+            className={`rounded-xl border-2 p-4 animate-pulse ${isDark ? 'bg-card-dark border-white/5' : 'bg-white border-slate-100'}`}
+          >
             <div className={`h-4 w-1/3 rounded ${isDark ? 'bg-white/10' : 'bg-slate-200'}`} />
             <div className={`h-3 w-full mt-3 rounded ${isDark ? 'bg-white/10' : 'bg-slate-200'}`} />
             <div className={`h-3 w-2/3 mt-2 rounded ${isDark ? 'bg-white/10' : 'bg-slate-200'}`} />
@@ -286,10 +291,14 @@ export function NotificationCenter() {
   };
 
   const markAllAsRead = () => {
-    setNotificationList((prev) => prev.map((n) => (n.source === 'notification' ? { ...n, read: true } : n)));
+    setNotificationList((prev) =>
+      prev.map((n) => (n.source === 'notification' ? { ...n, read: true } : n))
+    );
     setUnreadCount(0);
     NotificationService.markAllAsRead().catch((error) => {
-      toast.error(error instanceof Error ? error.message : 'Failed to mark all notifications as read');
+      toast.error(
+        error instanceof Error ? error.message : 'Failed to mark all notifications as read'
+      );
       void loadNotificationData();
     });
   };
@@ -397,7 +406,9 @@ export function NotificationCenter() {
                 >
                   No notifications yet
                 </h3>
-                <p className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}>You're all caught up!</p>
+                <p className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                  You're all caught up!
+                </p>
               </div>
             ) : (
               filteredNotifications.map((notification) => (
@@ -453,7 +464,8 @@ export function NotificationCenter() {
                       </div>
                       <p
                         className={`text-sm mb-2 ${
-                          notification.type === 'announcement' && expandedAnnouncementId !== notification.id
+                          notification.type === 'announcement' &&
+                          expandedAnnouncementId !== notification.id
                             ? 'line-clamp-3'
                             : ''
                         } ${isDark ? 'text-slate-400' : 'text-slate-600'}`}
@@ -475,8 +487,12 @@ export function NotificationCenter() {
                             {notification.isPublished === 1 ? 'Published' : 'Draft'}
                           </span>
                           <span className="text-xs text-slate-500">{notification.courseLabel}</span>
-                          <span className="text-xs text-slate-500">Author: {notification.authorName}</span>
-                          <span className="text-xs text-slate-500">Views: {notification.viewCount ?? 0}</span>
+                          <span className="text-xs text-slate-500">
+                            Author: {notification.authorName}
+                          </span>
+                          <span className="text-xs text-slate-500">
+                            Views: {notification.viewCount ?? 0}
+                          </span>
                           <button
                             onClick={(event) => {
                               event.stopPropagation();
@@ -487,7 +503,9 @@ export function NotificationCenter() {
                             type="button"
                             className="text-xs text-[var(--accent-color)] font-medium"
                           >
-                            {expandedAnnouncementId === notification.id ? 'Hide details' : 'View details'}
+                            {expandedAnnouncementId === notification.id
+                              ? 'Hide details'
+                              : 'View details'}
                           </button>
                         </div>
                       )}

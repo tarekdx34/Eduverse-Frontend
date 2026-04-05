@@ -108,10 +108,10 @@ function App() {
 
   return (
     <Router>
-      <Toaster 
-        position="top-right" 
-        expand={false} 
-        richColors 
+      <Toaster
+        position="top-right"
+        expand={false}
+        richColors
         theme={isDark ? 'dark' : 'light'}
         toastOptions={{
           style: {

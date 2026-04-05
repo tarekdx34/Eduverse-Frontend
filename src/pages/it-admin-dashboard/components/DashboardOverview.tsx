@@ -1,4 +1,13 @@
-import { Server, Activity, HardDrive, Wifi, Clock, AlertTriangle, CheckCircle, TrendingUp } from 'lucide-react';
+import {
+  Server,
+  Activity,
+  HardDrive,
+  Wifi,
+  Clock,
+  AlertTriangle,
+  CheckCircle,
+  TrendingUp,
+} from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { StatsCard } from './StatsCard';
@@ -10,26 +19,39 @@ interface DashboardOverviewProps {
   onNavigate: (tab: string) => void;
 }
 
-export function DashboardOverview({ stats, serverStatus, recentActivity, onNavigate }: DashboardOverviewProps) {
+export function DashboardOverview({
+  stats,
+  serverStatus,
+  recentActivity,
+  onNavigate,
+}: DashboardOverviewProps) {
   const { isDark, primaryHex } = useTheme() as any;
   const accentColor = primaryHex || '#3b82f6';
   const { t } = useLanguage();
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'healthy': return 'text-green-500';
-      case 'warning': return 'text-yellow-500';
-      case 'critical': return 'text-red-500';
-      default: return 'text-gray-500';
+      case 'healthy':
+        return 'text-green-500';
+      case 'warning':
+        return 'text-yellow-500';
+      case 'critical':
+        return 'text-red-500';
+      default:
+        return 'text-gray-500';
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'healthy': return <CheckCircle className="w-5 h-5 text-green-500" />;
-      case 'warning': return <AlertTriangle className="w-5 h-5 text-yellow-500" />;
-      case 'critical': return <AlertTriangle className="w-5 h-5 text-red-500" />;
-      default: return <Clock className="w-5 h-5 text-gray-500" />;
+      case 'healthy':
+        return <CheckCircle className="w-5 h-5 text-green-500" />;
+      case 'warning':
+        return <AlertTriangle className="w-5 h-5 text-yellow-500" />;
+      case 'critical':
+        return <AlertTriangle className="w-5 h-5 text-red-500" />;
+      default:
+        return <Clock className="w-5 h-5 text-gray-500" />;
     }
   };
 
@@ -55,10 +77,15 @@ export function DashboardOverview({ stats, serverStatus, recentActivity, onNavig
             comparison={stat.comparison}
             isPositive={stat.isPositive}
             icon={
-              index === 0 ? <Activity className={isDark ? 'text-blue-400' : 'text-blue-600'} /> :
-              index === 1 ? <Wifi className={isDark ? 'text-blue-400' : 'text-blue-600'} /> :
-              index === 2 ? <Server className={isDark ? 'text-green-400' : 'text-green-600'} /> :
-              <HardDrive className={isDark ? 'text-blue-400' : 'text-blue-600'} />
+              index === 0 ? (
+                <Activity className={isDark ? 'text-blue-400' : 'text-blue-600'} />
+              ) : index === 1 ? (
+                <Wifi className={isDark ? 'text-blue-400' : 'text-blue-600'} />
+              ) : index === 2 ? (
+                <Server className={isDark ? 'text-green-400' : 'text-green-600'} />
+              ) : (
+                <HardDrive className={isDark ? 'text-blue-400' : 'text-blue-600'} />
+              )
             }
           />
         ))}
@@ -67,7 +94,9 @@ export function DashboardOverview({ stats, serverStatus, recentActivity, onNavig
       {/* Server Status & Recent Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Server Status */}
-        <div className={`rounded-xl border p-6 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+        <div
+          className={`rounded-xl border p-6 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
+        >
           <div className="flex items-center justify-between mb-4">
             <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
               {t('serverStatus')}
@@ -88,12 +117,18 @@ export function DashboardOverview({ stats, serverStatus, recentActivity, onNavig
                 <div className="flex items-center gap-3">
                   {getStatusIcon(server.status)}
                   <div>
-                    <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{server.name}</p>
-                    <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{server.location}</p>
+                    <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                      {server.name}
+                    </p>
+                    <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                      {server.location}
+                    </p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                  <p
+                    className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}
+                  >
                     {t('cpu')}: {server.cpu}%
                   </p>
                   <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
@@ -106,7 +141,9 @@ export function DashboardOverview({ stats, serverStatus, recentActivity, onNavig
         </div>
 
         {/* Recent Activity */}
-        <div className={`rounded-xl border p-6 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+        <div
+          className={`rounded-xl border p-6 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
+        >
           <div className="flex items-center justify-between mb-4">
             <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
               {t('recentItActivity')}
@@ -128,9 +165,15 @@ export function DashboardOverview({ stats, serverStatus, recentActivity, onNavig
                   <Activity className={`w-4 h-4 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{activity.action}</p>
-                  <p className={`text-sm truncate ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{activity.details}</p>
-                  <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{activity.timestamp}</p>
+                  <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    {activity.action}
+                  </p>
+                  <p className={`text-sm truncate ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                    {activity.details}
+                  </p>
+                  <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                    {activity.timestamp}
+                  </p>
                 </div>
               </div>
             ))}
@@ -139,7 +182,9 @@ export function DashboardOverview({ stats, serverStatus, recentActivity, onNavig
       </div>
 
       {/* Quick Actions */}
-      <div className={`rounded-xl border p-6 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+      <div
+        className={`rounded-xl border p-6 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
+      >
         <h2 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
           {t('quickActions')}
         </h2>

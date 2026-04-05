@@ -29,19 +29,17 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     const htmlElement = document.documentElement;
     htmlElement.lang = currentLanguage;
     htmlElement.dir = currentLanguage === 'ar' ? 'rtl' : 'ltr';
-    
+
     // Also update body dir for compatibility
     document.body.dir = currentLanguage === 'ar' ? 'rtl' : 'ltr';
-    
+
     // Store preference
     localStorage.setItem('preferredLanguage', currentLanguage);
   }, [currentLanguage]);
 
   return (
     <LanguageContext.Provider value={{ language: currentLanguage, setLanguage, t }}>
-      <div dir={currentLanguage === 'ar' ? 'rtl' : 'ltr'}>
-        {children}
-      </div>
+      <div dir={currentLanguage === 'ar' ? 'rtl' : 'ltr'}>{children}</div>
     </LanguageContext.Provider>
   );
 }

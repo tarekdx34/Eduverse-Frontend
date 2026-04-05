@@ -33,7 +33,8 @@ export function useApi<T>(
     let cancelled = false;
     setState((prev) => ({ ...prev, loading: true, error: null }));
 
-    fetcherRef.current()
+    fetcherRef
+      .current()
       .then((data) => {
         if (!cancelled) setState({ data, loading: false, error: null });
       })
@@ -44,7 +45,9 @@ export function useApi<T>(
         }
       });
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, deps); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {

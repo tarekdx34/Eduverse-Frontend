@@ -62,7 +62,9 @@ export class AssignmentService {
   // Get my submission for an assignment (student)
   static async getMySubmission(assignmentId: string): Promise<AssignmentSubmission | null> {
     try {
-      return await ApiClient.get<AssignmentSubmission>('/assignments/' + assignmentId + '/submissions/my');
+      return await ApiClient.get<AssignmentSubmission>(
+        '/assignments/' + assignmentId + '/submissions/my'
+      );
     } catch (error: any) {
       if (error.message?.includes('404') || error.response?.status === 404) {
         return null; // Not submitted yet
@@ -72,20 +74,33 @@ export class AssignmentService {
   }
 
   // Submit text (student)
-  static async submitText(assignmentId: string, submissionText: string): Promise<AssignmentSubmission> {
-    return ApiClient.post<AssignmentSubmission>('/assignments/' + assignmentId + '/submit', { submissionText });
+  static async submitText(
+    assignmentId: string,
+    submissionText: string
+  ): Promise<AssignmentSubmission> {
+    return ApiClient.post<AssignmentSubmission>('/assignments/' + assignmentId + '/submit', {
+      submissionText,
+    });
   }
 
   // Submit file (student) with optional text
-  static async submitFile(assignmentId: string, file: File, submissionText?: string): Promise<AssignmentSubmission> {
+  static async submitFile(
+    assignmentId: string,
+    file: File,
+    submissionText?: string
+  ): Promise<AssignmentSubmission> {
     const formData = new FormData();
     formData.append('file', file);
     if (submissionText) {
       formData.append('submissionText', submissionText);
     }
-    return ApiClient.post<AssignmentSubmission>('/assignments/' + assignmentId + '/submit', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    });
+    return ApiClient.post<AssignmentSubmission>(
+      '/assignments/' + assignmentId + '/submit',
+      formData,
+      {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      }
+    );
   }
 
   // Get all submissions for an assignment (instructor/TA)
@@ -94,8 +109,16 @@ export class AssignmentService {
   }
 
   // Grade a submission (instructor/TA)
-  static async gradeSubmission(assignmentId: string, submissionId: string, score: number, feedback: string): Promise<AssignmentSubmission> {
-    return ApiClient.put<AssignmentSubmission>('/assignments/' + assignmentId + '/submissions/' + submissionId + '/grade', { score, feedback });
+  static async gradeSubmission(
+    assignmentId: string,
+    submissionId: string,
+    score: number,
+    feedback: string
+  ): Promise<AssignmentSubmission> {
+    return ApiClient.put<AssignmentSubmission>(
+      '/assignments/' + assignmentId + '/submissions/' + submissionId + '/grade',
+      { score, feedback }
+    );
   }
 }
 

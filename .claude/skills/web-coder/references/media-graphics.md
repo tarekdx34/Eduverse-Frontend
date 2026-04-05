@@ -9,14 +9,16 @@ Multimedia content, graphics, and related technologies for the web.
 Lossy compression for photographs.
 
 **Characteristics**:
+
 - Good for photos
 - No transparency support
 - Small file size
 - Quality degrades with editing
 
 **Usage**:
+
 ```html
-<img src="photo.jpg" alt="Photo">
+<img src="photo.jpg" alt="Photo" />
 ```
 
 ### PNG
@@ -24,13 +26,14 @@ Lossy compression for photographs.
 Lossless compression with transparency.
 
 **Characteristics**:
+
 - Supports alpha channel (transparency)
 - Larger file size than JPEG
 - Good for logos, graphics, screenshots
 - PNG-8 (256 colors) vs PNG-24 (16M colors)
 
 ```html
-<img src="logo.png" alt="Logo">
+<img src="logo.png" alt="Logo" />
 ```
 
 ### WebP
@@ -38,6 +41,7 @@ Lossless compression with transparency.
 Modern format with better compression.
 
 **Characteristics**:
+
 - Smaller than JPEG/PNG
 - Supports transparency
 - Supports animation
@@ -45,8 +49,8 @@ Modern format with better compression.
 
 ```html
 <picture>
-  <source srcset="image.webp" type="image/webp">
-  <img src="image.jpg" alt="Fallback">
+  <source srcset="image.webp" type="image/webp" />
+  <img src="image.jpg" alt="Fallback" />
 </picture>
 ```
 
@@ -55,6 +59,7 @@ Modern format with better compression.
 Next-generation image format.
 
 **Characteristics**:
+
 - Better compression than WebP
 - Supports HDR
 - Slower encoding
@@ -65,6 +70,7 @@ Next-generation image format.
 Animated images (limited colors).
 
 **Characteristics**:
+
 - 256 colors max
 - Supports animation
 - Simple transparency (no alpha)
@@ -75,6 +81,7 @@ Animated images (limited colors).
 XML-based vector graphics.
 
 **Characteristics**:
+
 - Scalable without quality loss
 - Small file size for simple graphics
 - CSS/JS manipulatable
@@ -87,21 +94,22 @@ XML-based vector graphics.
 </svg>
 
 <!-- External SVG -->
-<img src="icon.svg" alt="Icon">
+<img src="icon.svg" alt="Icon" />
 ```
 
 **Creating SVG**:
+
 ```html
 <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
   <!-- Rectangle -->
   <rect x="10" y="10" width="80" height="60" fill="red" />
-  
+
   <!-- Circle -->
   <circle cx="150" cy="40" r="30" fill="blue" />
-  
+
   <!-- Path -->
   <path d="M10 100 L100 100 L50 150 Z" fill="green" />
-  
+
   <!-- Text -->
   <text x="50" y="180" font-size="20">Hello SVG</text>
 </svg>
@@ -177,7 +185,7 @@ ctx.globalCompositeOperation = 'source-over';
 
 // Export
 const dataURL = canvas.toDataURL('image/png');
-canvas.toBlob(blob => {
+canvas.toBlob((blob) => {
   // Use blob
 }, 'image/png');
 ```
@@ -187,12 +195,14 @@ canvas.toBlob(blob => {
 3D graphics in the browser.
 
 **Use Cases**:
+
 - 3D visualizations
 - Games
 - Data visualization
 - VR/AR
 
 **Libraries**:
+
 - **Three.js**: Easy 3D graphics
 - **Babylon.js**: Game engine
 - **PixiJS**: 2D WebGL renderer
@@ -232,13 +242,14 @@ animate();
 
 ```html
 <video controls width="640" height="360">
-  <source src="video.mp4" type="video/mp4">
-  <source src="video.webm" type="video/webm">
+  <source src="video.mp4" type="video/mp4" />
+  <source src="video.webm" type="video/webm" />
   Your browser doesn't support video.
 </video>
 ```
 
 **Attributes**:
+
 - `controls`: Show playback controls
 - `autoplay`: Start automatically
 - `loop`: Repeat video
@@ -282,8 +293,8 @@ video.addEventListener('timeupdate', () => {});
 
 ```html
 <audio controls>
-  <source src="audio.mp3" type="audio/mpeg">
-  <source src="audio.ogg" type="audio/ogg">
+  <source src="audio.mp3" type="audio/mpeg" />
+  <source src="audio.ogg" type="audio/ogg" />
 </audio>
 ```
 
@@ -303,21 +314,21 @@ const audioContext = new AudioContext();
 
 // Load audio
 fetch('audio.mp3')
-  .then(response => response.arrayBuffer())
-  .then(arrayBuffer => audioContext.decodeAudioData(arrayBuffer))
-  .then(audioBuffer => {
+  .then((response) => response.arrayBuffer())
+  .then((arrayBuffer) => audioContext.decodeAudioData(arrayBuffer))
+  .then((audioBuffer) => {
     // Create source
     const source = audioContext.createBufferSource();
     source.buffer = audioBuffer;
-    
+
     // Create gain node (volume)
     const gainNode = audioContext.createGain();
     gainNode.gain.value = 0.5;
-    
+
     // Connect: source -> gain -> destination
     source.connect(gainNode);
     gainNode.connect(audioContext.destination);
-    
+
     // Play
     source.start();
   });
@@ -329,21 +340,17 @@ fetch('audio.mp3')
 
 ```html
 <!-- Different resolutions -->
-<img src="image-800.jpg"
-     srcset="image-400.jpg 400w,
-             image-800.jpg 800w,
-             image-1200.jpg 1200w"
-     sizes="(max-width: 600px) 100vw,
+<img
+  src="image-800.jpg"
+  srcset="image-400.jpg 400w, image-800.jpg 800w, image-1200.jpg 1200w"
+  sizes="(max-width: 600px) 100vw,
             (max-width: 900px) 50vw,
             800px"
-     alt="Responsive image">
+  alt="Responsive image"
+/>
 
 <!-- Pixel density -->
-<img src="image.jpg"
-     srcset="image.jpg 1x,
-             image@2x.jpg 2x,
-             image@3x.jpg 3x"
-     alt="High DPI image">
+<img src="image.jpg" srcset="image.jpg 1x, image@2x.jpg 2x, image@3x.jpg 3x" alt="High DPI image" />
 ```
 
 ### Picture Element
@@ -353,15 +360,15 @@ Art direction and format switching:
 ```html
 <picture>
   <!-- Different formats -->
-  <source srcset="image.avif" type="image/avif">
-  <source srcset="image.webp" type="image/webp">
-  
+  <source srcset="image.avif" type="image/avif" />
+  <source srcset="image.webp" type="image/webp" />
+
   <!-- Different crops for mobile/desktop -->
-  <source media="(max-width: 600px)" srcset="image-mobile.jpg">
-  <source media="(min-width: 601px)" srcset="image-desktop.jpg">
-  
+  <source media="(max-width: 600px)" srcset="image-mobile.jpg" />
+  <source media="(min-width: 601px)" srcset="image-desktop.jpg" />
+
   <!-- Fallback -->
-  <img src="image.jpg" alt="Fallback">
+  <img src="image.jpg" alt="Fallback" />
 </picture>
 ```
 
@@ -385,13 +392,14 @@ Art direction and format switching:
    - Consider device pixel ratio
 
 4. **Lazy loading**:
+
    ```html
-   <img src="image.jpg" loading="lazy" alt="Lazy loaded">
+   <img src="image.jpg" loading="lazy" alt="Lazy loaded" />
    ```
 
 5. **Dimensions**:
    ```html
-   <img src="image.jpg" width="800" height="600" alt="With dimensions">
+   <img src="image.jpg" width="800" height="600" alt="With dimensions" />
    ```
 
 ## Image Loading Techniques
@@ -400,16 +408,16 @@ Art direction and format switching:
 
 ```html
 <!-- Native lazy loading -->
-<img src="image.jpg" loading="lazy" alt="Image">
+<img src="image.jpg" loading="lazy" alt="Image" />
 
 <!-- Intersection Observer -->
-<img data-src="image.jpg" class="lazy" alt="Image">
+<img data-src="image.jpg" class="lazy" alt="Image" />
 ```
 
 ```javascript
 const images = document.querySelectorAll('.lazy');
 const observer = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
+  entries.forEach((entry) => {
     if (entry.isIntersecting) {
       const img = entry.target;
       img.src = img.dataset.src;
@@ -418,17 +426,14 @@ const observer = new IntersectionObserver((entries) => {
   });
 });
 
-images.forEach(img => observer.observe(img));
+images.forEach((img) => observer.observe(img));
 ```
 
 ### Progressive Enhancement
 
 ```html
 <!-- Low quality placeholder -->
-<img src="image-tiny.jpg"
-     data-src="image-full.jpg"
-     class="blur"
-     alt="Progressive image">
+<img src="image-tiny.jpg" data-src="image-full.jpg" class="blur" alt="Progressive image" />
 ```
 
 ## Favicon
@@ -437,15 +442,15 @@ Website icon:
 
 ```html
 <!-- Standard -->
-<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" href="/favicon.ico" sizes="any" />
 
 <!-- Modern -->
-<link rel="icon" href="/icon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="icon" href="/icon.svg" type="image/svg+xml" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
 <!-- Multiple sizes -->
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
 ```
 
 ## Multimedia Best Practices
@@ -476,6 +481,7 @@ Website icon:
 ## Glossary Terms
 
 **Key Terms Covered**:
+
 - Alpha
 - Baseline (image)
 - Baseline (scripting)

@@ -5,6 +5,7 @@
 ## Endpoints
 
 ### List Assignments
+
 ```http
 GET /api/assignments
 ```
@@ -16,6 +17,7 @@ GET /api/assignments
 | `status` | string | No | Filter by status: `draft`, `published`, `closed` |
 
 **Response:** `200 OK`
+
 ```json
 [
   {
@@ -39,11 +41,13 @@ GET /api/assignments
 ---
 
 ### Get Assignment
+
 ```http
 GET /api/assignments/:id
 ```
 
 **Response:** `200 OK`
+
 ```json
 {
   "id": "uuid",
@@ -63,6 +67,7 @@ GET /api/assignments/:id
 ---
 
 ### Create Assignment (Instructor)
+
 ```http
 POST /api/assignments
 Authorization: Bearer <token>
@@ -70,6 +75,7 @@ Content-Type: application/json
 ```
 
 **Request Body:**
+
 ```json
 {
   "courseId": "uuid",
@@ -85,6 +91,7 @@ Content-Type: application/json
 ```
 
 **Response:** `201 Created`
+
 ```json
 { "id": "uuid", ... }
 ```
@@ -92,6 +99,7 @@ Content-Type: application/json
 ---
 
 ### Update Assignment (Instructor)
+
 ```http
 PUT /api/assignments/:id
 Authorization: Bearer <token>
@@ -105,6 +113,7 @@ Content-Type: application/json
 ---
 
 ### Delete Assignment (Instructor)
+
 ```http
 DELETE /api/assignments/:id
 Authorization: Bearer <token>
@@ -115,12 +124,14 @@ Authorization: Bearer <token>
 ---
 
 ### Get My Submission (Student)
+
 ```http
 GET /api/assignments/:assignmentId/my-submission
 Authorization: Bearer <token>
 ```
 
 **Response:** `200 OK`
+
 ```json
 {
   "id": "uuid",
@@ -140,6 +151,7 @@ Authorization: Bearer <token>
 ---
 
 ### Submit Text (Student)
+
 ```http
 POST /api/assignments/:assignmentId/submit
 Authorization: Bearer <token>
@@ -147,6 +159,7 @@ Content-Type: application/json
 ```
 
 **Request Body:**
+
 ```json
 {
   "submissionText": "string"
@@ -158,6 +171,7 @@ Content-Type: application/json
 ---
 
 ### Submit File (Student)
+
 ```http
 POST /api/assignments/:assignmentId/submit
 Authorization: Bearer <token>
@@ -174,12 +188,14 @@ Content-Type: multipart/form-data
 ---
 
 ### Get All Submissions (Instructor/TA)
+
 ```http
 GET /api/assignments/:assignmentId/submissions
 Authorization: Bearer <token>
 ```
 
 **Response:** `200 OK`
+
 ```json
 [
   {
@@ -196,6 +212,7 @@ Authorization: Bearer <token>
 ---
 
 ### Grade Submission (Instructor/TA)
+
 ```http
 PATCH /api/assignments/:assignmentId/submissions/:submissionId/grade
 Authorization: Bearer <token>
@@ -203,6 +220,7 @@ Content-Type: application/json
 ```
 
 **Request Body:**
+
 ```json
 {
   "score": "decimal-string",
@@ -216,12 +234,12 @@ Content-Type: application/json
 
 ## Error Responses
 
-| Status | Meaning |
-|--------|---------|
-| `400` | Invalid request body |
-| `401` | Not authenticated |
-| `403` | Not authorized (wrong role) |
-| `404` | Resource not found |
-| `409` | Conflict (e.g., already submitted) |
-| `413` | File too large |
-| `422` | Validation error |
+| Status | Meaning                            |
+| ------ | ---------------------------------- |
+| `400`  | Invalid request body               |
+| `401`  | Not authenticated                  |
+| `403`  | Not authorized (wrong role)        |
+| `404`  | Resource not found                 |
+| `409`  | Conflict (e.g., already submitted) |
+| `413`  | File too large                     |
+| `422`  | Validation error                   |

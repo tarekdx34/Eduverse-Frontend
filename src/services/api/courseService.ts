@@ -182,7 +182,10 @@ export class CourseService {
   }
 
   static async createMaterial(courseId: number, data: any): Promise<CourseMaterial> {
-    const response = await ApiClient.post<{ data: CourseMaterial }>(`/courses/${courseId}/materials`, data);
+    const response = await ApiClient.post<{ data: CourseMaterial }>(
+      `/courses/${courseId}/materials`,
+      data
+    );
     return response.data;
   }
 
@@ -295,27 +298,26 @@ export const materialService = {
     formData.append('video', file); // field name MUST be "video"
     formData.append('title', metadata.title);
     if (metadata.description) formData.append('description', metadata.description);
-    if (metadata.weekNumber !== undefined) formData.append('weekNumber', String(metadata.weekNumber));
-    if (metadata.orderIndex !== undefined) formData.append('orderIndex', String(metadata.orderIndex));
-    if (metadata.isPublished !== undefined) formData.append('isPublished', String(metadata.isPublished));
+    if (metadata.weekNumber !== undefined)
+      formData.append('weekNumber', String(metadata.weekNumber));
+    if (metadata.orderIndex !== undefined)
+      formData.append('orderIndex', String(metadata.orderIndex));
+    if (metadata.isPublished !== undefined)
+      formData.append('isPublished', String(metadata.isPublished));
     if (metadata.tags) formData.append('tags', metadata.tags);
 
     const base = normalizeApiBase(import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081');
     const token = localStorage.getItem(TOKEN_KEYS.ACCESS_TOKEN);
-    const response = await axios.post(
-      `${base}/courses/${courseId}/materials/video`,
-      formData,
-      {
-        headers: {
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        onUploadProgress: (e) => {
-          if (onProgress && e.total) {
-            onProgress(Math.round((e.loaded * 100) / e.total));
-          }
-        },
-      }
-    );
+    const response = await axios.post(`${base}/courses/${courseId}/materials/video`, formData, {
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      onUploadProgress: (e) => {
+        if (onProgress && e.total) {
+          onProgress(Math.round((e.loaded * 100) / e.total));
+        }
+      },
+    });
     return response.data;
   },
 
@@ -336,33 +338,32 @@ export const materialService = {
     formData.append('title', metadata.title);
     formData.append('materialType', metadata.materialType);
     if (metadata.description) formData.append('description', metadata.description);
-    if (metadata.weekNumber !== undefined) formData.append('weekNumber', String(metadata.weekNumber));
-    if (metadata.isPublished !== undefined) formData.append('isPublished', String(metadata.isPublished));
+    if (metadata.weekNumber !== undefined)
+      formData.append('weekNumber', String(metadata.weekNumber));
+    if (metadata.isPublished !== undefined)
+      formData.append('isPublished', String(metadata.isPublished));
 
     const base = normalizeApiBase(import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081');
     const token = localStorage.getItem(TOKEN_KEYS.ACCESS_TOKEN);
-    const response = await axios.post(
-      `${base}/courses/${courseId}/materials`,
-      formData,
-      {
-        headers: {
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        onUploadProgress: (e) => {
-          if (onProgress && e.total) {
-            onProgress(Math.round((e.loaded * 100) / e.total));
-          }
-        },
-      }
-    );
+    const response = await axios.post(`${base}/courses/${courseId}/materials`, formData, {
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      onUploadProgress: (e) => {
+        if (onProgress && e.total) {
+          onProgress(Math.round((e.loaded * 100) / e.total));
+        }
+      },
+    });
     return response.data;
   },
 
-  getYouTubeAuthUrl: () =>
-    ApiClient.get<{ authUrl: string }>('/youtube/auth'),
+  getYouTubeAuthUrl: () => ApiClient.get<{ authUrl: string }>('/youtube/auth'),
 
   getGoogleDriveAuthUrl: () =>
-    ApiClient.get<{ authUrl: string; scopes: string[]; instructions: string }>('/google-drive/auth'),
+    ApiClient.get<{ authUrl: string; scopes: string[]; instructions: string }>(
+      '/google-drive/auth'
+    ),
 };
 
 export const structureService = {

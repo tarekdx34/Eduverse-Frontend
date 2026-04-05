@@ -21,20 +21,20 @@ export interface UseQuizTimerReturn {
 
 /**
  * Hook for managing quiz timer with auto-save functionality
- * 
+ *
  * Features:
  * - Client-side countdown timer
  * - Auto-save at regular intervals (default 30 seconds)
  * - Pause/resume functionality
  * - Formatted time display (MM:SS)
  * - Auto-submit on timer expiration
- * 
+ *
  * @param timeLimit - Quiz time limit in seconds
  * @param onTimeExpired - Callback when timer expires
  * @param onAutoSave - Async callback for auto-save (server sync)
  * @param autoSaveInterval - Interval for auto-save in seconds (default 30)
  * @returns Timer state and control functions
- * 
+ *
  * @example
  * const {
  *   timeRemaining,
@@ -60,7 +60,7 @@ export function useQuizTimer({
   const [isExpired, setIsExpired] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [isAutoSaving, setIsAutoSaving] = useState(false);
-  
+
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const autoSaveIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const lastAutoSaveRef = useRef(0);
@@ -85,7 +85,7 @@ export function useQuizTimer({
     intervalRef.current = setInterval(() => {
       setTimeRemaining((prev) => {
         const newTime = prev - 1;
-        
+
         if (newTime <= 0) {
           setIsExpired(true);
           if (onTimeExpired) {
@@ -93,7 +93,7 @@ export function useQuizTimer({
           }
           return 0;
         }
-        
+
         return newTime;
       });
     }, 1000);
@@ -119,7 +119,7 @@ export function useQuizTimer({
     autoSaveIntervalRef.current = setInterval(async () => {
       const now = Date.now();
       const timeSinceLastSave = (now - lastAutoSaveRef.current) / 1000;
-      
+
       // Only save if enough time has passed (avoid rapid consecutive saves)
       if (timeSinceLastSave >= autoSaveInterval) {
         try {
@@ -186,10 +186,7 @@ export function useQuizTimer({
  * Hook for display-only timer (no auto-save)
  * Use this for simple countdown displays
  */
-export function useSimpleTimer(
-  timeLimit: number,
-  onTimeExpired?: () => void
-) {
+export function useSimpleTimer(timeLimit: number, onTimeExpired?: () => void) {
   const { timeRemaining, isExpired, timeRemainingFormatted } = useQuizTimer({
     timeLimit,
     onTimeExpired,

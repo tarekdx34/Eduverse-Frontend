@@ -18,9 +18,15 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { CleanSelect } from '../../../components/shared';
 
-
 type Tab = 'all' | 'threats' | 'sessions';
-type ActivityType = 'All' | 'Login' | 'Logout' | 'Password Change' | 'Permission Change' | 'Data Export' | 'Failed Login';
+type ActivityType =
+  | 'All'
+  | 'Login'
+  | 'Logout'
+  | 'Password Change'
+  | 'Permission Change'
+  | 'Data Export'
+  | 'Failed Login';
 
 interface ActivityLog {
   id: number;
@@ -56,20 +62,99 @@ interface ActiveSession {
 }
 
 const activityLogs: ActivityLog[] = [
-  { id: 1, timestamp: '2025-02-25 10:30', user: 'admin@uni.edu', activity: 'Login', ip: '192.168.1.100', status: 'Success', details: 'Dashboard access' },
-  { id: 2, timestamp: '2025-02-25 10:15', user: 'dr.smith@uni.edu', activity: 'Password Change', ip: '192.168.1.101', status: 'Success', details: 'Self-service' },
-  { id: 3, timestamp: '2025-02-25 09:45', user: 'unknown', activity: 'Failed Login', ip: '45.33.32.156', status: 'Failed', details: 'Invalid credentials (3rd attempt)' },
-  { id: 4, timestamp: '2025-02-25 09:30', user: 'admin@uni.edu', activity: 'Permission Change', ip: '192.168.1.100', status: 'Success', details: 'Updated TA role' },
-  { id: 5, timestamp: '2025-02-25 09:00', user: 'dr.johnson@uni.edu', activity: 'Data Export', ip: '192.168.1.102', status: 'Success', details: 'Student grades CSV' },
-  { id: 6, timestamp: '2025-02-24 23:45', user: 'unknown', activity: 'Failed Login', ip: '89.43.107.22', status: 'Failed', details: 'Brute force detected' },
-  { id: 7, timestamp: '2025-02-24 22:00', user: 'system', activity: 'Auto Backup', ip: '10.0.0.1', status: 'Success', details: 'Nightly backup' },
-  { id: 8, timestamp: '2025-02-24 18:30', user: 'ta.ahmed@uni.edu', activity: 'Login', ip: '192.168.1.103', status: 'Success', details: 'Mobile access' },
+  {
+    id: 1,
+    timestamp: '2025-02-25 10:30',
+    user: 'admin@uni.edu',
+    activity: 'Login',
+    ip: '192.168.1.100',
+    status: 'Success',
+    details: 'Dashboard access',
+  },
+  {
+    id: 2,
+    timestamp: '2025-02-25 10:15',
+    user: 'dr.smith@uni.edu',
+    activity: 'Password Change',
+    ip: '192.168.1.101',
+    status: 'Success',
+    details: 'Self-service',
+  },
+  {
+    id: 3,
+    timestamp: '2025-02-25 09:45',
+    user: 'unknown',
+    activity: 'Failed Login',
+    ip: '45.33.32.156',
+    status: 'Failed',
+    details: 'Invalid credentials (3rd attempt)',
+  },
+  {
+    id: 4,
+    timestamp: '2025-02-25 09:30',
+    user: 'admin@uni.edu',
+    activity: 'Permission Change',
+    ip: '192.168.1.100',
+    status: 'Success',
+    details: 'Updated TA role',
+  },
+  {
+    id: 5,
+    timestamp: '2025-02-25 09:00',
+    user: 'dr.johnson@uni.edu',
+    activity: 'Data Export',
+    ip: '192.168.1.102',
+    status: 'Success',
+    details: 'Student grades CSV',
+  },
+  {
+    id: 6,
+    timestamp: '2025-02-24 23:45',
+    user: 'unknown',
+    activity: 'Failed Login',
+    ip: '89.43.107.22',
+    status: 'Failed',
+    details: 'Brute force detected',
+  },
+  {
+    id: 7,
+    timestamp: '2025-02-24 22:00',
+    user: 'system',
+    activity: 'Auto Backup',
+    ip: '10.0.0.1',
+    status: 'Success',
+    details: 'Nightly backup',
+  },
+  {
+    id: 8,
+    timestamp: '2025-02-24 18:30',
+    user: 'ta.ahmed@uni.edu',
+    activity: 'Login',
+    ip: '192.168.1.103',
+    status: 'Success',
+    details: 'Mobile access',
+  },
 ];
 
 const threatAlerts: ThreatAlert[] = [
-  { id: 1, severity: 'critical', message: 'Brute force attempt detected from IP 89.43.107.22', timeAgo: '2h ago' },
-  { id: 2, severity: 'warning', message: '3 failed login attempts for dr.smith@uni.edu', timeAgo: '4h ago' },
-  { id: 3, severity: 'info', message: 'Unusual login location for ta.ahmed@uni.edu', timeAgo: '6h ago' },
+  {
+    id: 1,
+    severity: 'critical',
+    message: 'Brute force attempt detected from IP 89.43.107.22',
+    timeAgo: '2h ago',
+  },
+  {
+    id: 2,
+    severity: 'warning',
+    message: '3 failed login attempts for dr.smith@uni.edu',
+    timeAgo: '4h ago',
+  },
+  {
+    id: 3,
+    severity: 'info',
+    message: 'Unusual login location for ta.ahmed@uni.edu',
+    timeAgo: '6h ago',
+  },
 ];
 
 const blockedIPs: BlockedIP[] = [
@@ -79,14 +164,57 @@ const blockedIPs: BlockedIP[] = [
 ];
 
 const activeSessions: ActiveSession[] = [
-  { id: 1, user: 'admin@uni.edu', ip: '192.168.1.100', browser: 'Chrome/Windows', lastActive: 'Active now', duration: '2h 30m' },
-  { id: 2, user: 'dr.smith@uni.edu', ip: '192.168.1.101', browser: 'Firefox/Mac', lastActive: '5 min ago', duration: '45m' },
-  { id: 3, user: 'dr.johnson@uni.edu', ip: '192.168.1.102', browser: 'Safari/iOS', lastActive: '15 min ago', duration: '1h 20m' },
-  { id: 4, user: 'ta.ahmed@uni.edu', ip: '192.168.1.103', browser: 'Chrome/Android', lastActive: '30 min ago', duration: '20m' },
-  { id: 5, user: 'student1@uni.edu', ip: '192.168.1.104', browser: 'Edge/Windows', lastActive: '1h ago', duration: '3h 15m' },
+  {
+    id: 1,
+    user: 'admin@uni.edu',
+    ip: '192.168.1.100',
+    browser: 'Chrome/Windows',
+    lastActive: 'Active now',
+    duration: '2h 30m',
+  },
+  {
+    id: 2,
+    user: 'dr.smith@uni.edu',
+    ip: '192.168.1.101',
+    browser: 'Firefox/Mac',
+    lastActive: '5 min ago',
+    duration: '45m',
+  },
+  {
+    id: 3,
+    user: 'dr.johnson@uni.edu',
+    ip: '192.168.1.102',
+    browser: 'Safari/iOS',
+    lastActive: '15 min ago',
+    duration: '1h 20m',
+  },
+  {
+    id: 4,
+    user: 'ta.ahmed@uni.edu',
+    ip: '192.168.1.103',
+    browser: 'Chrome/Android',
+    lastActive: '30 min ago',
+    duration: '20m',
+  },
+  {
+    id: 5,
+    user: 'student1@uni.edu',
+    ip: '192.168.1.104',
+    browser: 'Edge/Windows',
+    lastActive: '1h ago',
+    duration: '3h 15m',
+  },
 ];
 
-const activityTypes: ActivityType[] = ['All', 'Login', 'Logout', 'Password Change', 'Permission Change', 'Data Export', 'Failed Login'];
+const activityTypes: ActivityType[] = [
+  'All',
+  'Login',
+  'Logout',
+  'Password Change',
+  'Permission Change',
+  'Data Export',
+  'Failed Login',
+];
 
 export function SecurityLogsPage() {
   const { isDark, primaryHex } = useTheme() as any;
@@ -171,7 +299,9 @@ export function SecurityLogsPage() {
           <Shield className="w-8 h-8 text-blue-600" />
           <div>
             <h1 className={`text-2xl font-bold ${textPrimary}`}>Security & Logs</h1>
-            <p className={textSecondary}>Monitor system security, activity logs, and active sessions</p>
+            <p className={textSecondary}>
+              Monitor system security, activity logs, and active sessions
+            </p>
           </div>
         </div>
       </div>
@@ -198,7 +328,9 @@ export function SecurityLogsPage() {
       {activeTab === 'all' && (
         <div className="space-y-6">
           {/* Security Alerts Banner */}
-          <div className={`rounded-xl border border-yellow-500 ${isDark ? 'bg-yellow-900/20' : 'bg-yellow-50'} p-4 flex items-center justify-between`}>
+          <div
+            className={`rounded-xl border border-yellow-500 ${isDark ? 'bg-yellow-900/20' : 'bg-yellow-50'} p-4 flex items-center justify-between`}
+          >
             <div className="flex items-center gap-3">
               <AlertTriangle className="w-5 h-5 text-yellow-500" />
               <span className={`font-medium ${isDark ? 'text-yellow-300' : 'text-yellow-800'}`}>
@@ -217,7 +349,9 @@ export function SecurityLogsPage() {
           <div className={cardClass}>
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="relative flex-1">
-                <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${textSecondary}`} />
+                <Search
+                  className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${textSecondary}`}
+                />
                 <input
                   type="text"
                   placeholder="Search by user, IP, or details..."
@@ -234,7 +368,9 @@ export function SecurityLogsPage() {
                   className={`px-3 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
                 >
                   {activityTypes.map((type) => (
-                    <option key={type} value={type}>{type}</option>
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
                   ))}
                 </CleanSelect>
               </div>
@@ -247,12 +383,36 @@ export function SecurityLogsPage() {
               <table className="w-full">
                 <thead>
                   <tr className={tableHeaderBg}>
-                    <th className={`text-left px-4 py-3 text-xs font-medium uppercase tracking-wider ${textSecondary}`}>Timestamp</th>
-                    <th className={`text-left px-4 py-3 text-xs font-medium uppercase tracking-wider ${textSecondary}`}>User</th>
-                    <th className={`text-left px-4 py-3 text-xs font-medium uppercase tracking-wider ${textSecondary}`}>Activity</th>
-                    <th className={`text-left px-4 py-3 text-xs font-medium uppercase tracking-wider ${textSecondary}`}>IP Address</th>
-                    <th className={`text-left px-4 py-3 text-xs font-medium uppercase tracking-wider ${textSecondary}`}>Status</th>
-                    <th className={`text-left px-4 py-3 text-xs font-medium uppercase tracking-wider ${textSecondary}`}>Details</th>
+                    <th
+                      className={`text-left px-4 py-3 text-xs font-medium uppercase tracking-wider ${textSecondary}`}
+                    >
+                      Timestamp
+                    </th>
+                    <th
+                      className={`text-left px-4 py-3 text-xs font-medium uppercase tracking-wider ${textSecondary}`}
+                    >
+                      User
+                    </th>
+                    <th
+                      className={`text-left px-4 py-3 text-xs font-medium uppercase tracking-wider ${textSecondary}`}
+                    >
+                      Activity
+                    </th>
+                    <th
+                      className={`text-left px-4 py-3 text-xs font-medium uppercase tracking-wider ${textSecondary}`}
+                    >
+                      IP Address
+                    </th>
+                    <th
+                      className={`text-left px-4 py-3 text-xs font-medium uppercase tracking-wider ${textSecondary}`}
+                    >
+                      Status
+                    </th>
+                    <th
+                      className={`text-left px-4 py-3 text-xs font-medium uppercase tracking-wider ${textSecondary}`}
+                    >
+                      Details
+                    </th>
                   </tr>
                 </thead>
                 <tbody className={`divide-y ${isDark ? 'divide-gray-700' : 'divide-gray-200'}`}>
@@ -279,7 +439,9 @@ export function SecurityLogsPage() {
                 </tbody>
               </table>
               {filteredLogs.length === 0 && (
-                <div className={`text-center py-8 ${textSecondary}`}>No activity logs match your filters.</div>
+                <div className={`text-center py-8 ${textSecondary}`}>
+                  No activity logs match your filters.
+                </div>
               )}
             </div>
           </div>
@@ -292,9 +454,24 @@ export function SecurityLogsPage() {
           {/* Threat Stats */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {[
-              { label: 'Active Threats', value: '3', icon: <AlertTriangle className="w-6 h-6 text-red-500" />, color: 'text-red-500' },
-              { label: 'Blocked IPs', value: '12', icon: <Ban className="w-6 h-6 text-yellow-500" />, color: 'text-yellow-500' },
-              { label: 'Failed Logins (24h)', value: '8', icon: <XCircle className="w-6 h-6 text-orange-500" />, color: 'text-orange-500' },
+              {
+                label: 'Active Threats',
+                value: '3',
+                icon: <AlertTriangle className="w-6 h-6 text-red-500" />,
+                color: 'text-red-500',
+              },
+              {
+                label: 'Blocked IPs',
+                value: '12',
+                icon: <Ban className="w-6 h-6 text-yellow-500" />,
+                color: 'text-yellow-500',
+              },
+              {
+                label: 'Failed Logins (24h)',
+                value: '8',
+                icon: <XCircle className="w-6 h-6 text-orange-500" />,
+                color: 'text-orange-500',
+              },
             ].map((stat) => (
               <div key={stat.label} className={cardClass}>
                 <div className="flex items-center justify-between">
@@ -320,12 +497,20 @@ export function SecurityLogsPage() {
                     className={`rounded-lg border-l-4 ${styles.border} ${styles.bg} p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3`}
                   >
                     <div className="flex items-start gap-3">
-                      {alert.severity === 'critical' && <XCircle className={`w-5 h-5 mt-0.5 ${styles.icon}`} />}
-                      {alert.severity === 'warning' && <AlertTriangle className={`w-5 h-5 mt-0.5 ${styles.icon}`} />}
-                      {alert.severity === 'info' && <Eye className={`w-5 h-5 mt-0.5 ${styles.icon}`} />}
+                      {alert.severity === 'critical' && (
+                        <XCircle className={`w-5 h-5 mt-0.5 ${styles.icon}`} />
+                      )}
+                      {alert.severity === 'warning' && (
+                        <AlertTriangle className={`w-5 h-5 mt-0.5 ${styles.icon}`} />
+                      )}
+                      {alert.severity === 'info' && (
+                        <Eye className={`w-5 h-5 mt-0.5 ${styles.icon}`} />
+                      )}
                       <div>
                         <div className="flex items-center gap-2 mb-1">
-                          <span className={`px-2 py-0.5 rounded text-xs font-semibold uppercase ${styles.badge}`}>
+                          <span
+                            className={`px-2 py-0.5 rounded text-xs font-semibold uppercase ${styles.badge}`}
+                          >
                             {alert.severity}
                           </span>
                           <span className={`text-xs ${textSecondary}`}>{alert.timeAgo}</span>
@@ -337,7 +522,9 @@ export function SecurityLogsPage() {
                       <button className="hover:opacity-90 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-colors">
                         Investigate
                       </button>
-                      <button className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ${isDark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-600 hover:bg-gray-100'}`}>
+                      <button
+                        className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ${isDark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-600 hover:bg-gray-100'}`}
+                      >
                         Dismiss
                       </button>
                     </div>
@@ -354,15 +541,34 @@ export function SecurityLogsPage() {
               <table className="w-full">
                 <thead>
                   <tr className={tableHeaderBg}>
-                    <th className={`text-left px-4 py-3 text-xs font-medium uppercase tracking-wider ${textSecondary}`}>IP Address</th>
-                    <th className={`text-left px-4 py-3 text-xs font-medium uppercase tracking-wider ${textSecondary}`}>Block Date</th>
-                    <th className={`text-left px-4 py-3 text-xs font-medium uppercase tracking-wider ${textSecondary}`}>Reason</th>
-                    <th className={`text-left px-4 py-3 text-xs font-medium uppercase tracking-wider ${textSecondary}`}>Actions</th>
+                    <th
+                      className={`text-left px-4 py-3 text-xs font-medium uppercase tracking-wider ${textSecondary}`}
+                    >
+                      IP Address
+                    </th>
+                    <th
+                      className={`text-left px-4 py-3 text-xs font-medium uppercase tracking-wider ${textSecondary}`}
+                    >
+                      Block Date
+                    </th>
+                    <th
+                      className={`text-left px-4 py-3 text-xs font-medium uppercase tracking-wider ${textSecondary}`}
+                    >
+                      Reason
+                    </th>
+                    <th
+                      className={`text-left px-4 py-3 text-xs font-medium uppercase tracking-wider ${textSecondary}`}
+                    >
+                      Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody className={`divide-y ${isDark ? 'divide-gray-700' : 'divide-gray-200'}`}>
                   {blockedIPs.map((entry, idx) => (
-                    <tr key={entry.id} className={idx % 2 === 0 ? '' : isDark ? 'bg-gray-750' : 'bg-gray-50/50'}>
+                    <tr
+                      key={entry.id}
+                      className={idx % 2 === 0 ? '' : isDark ? 'bg-gray-750' : 'bg-gray-50/50'}
+                    >
                       <td className={`px-4 py-3 text-sm font-mono ${textPrimary}`}>
                         <div className="flex items-center gap-2">
                           <Ban className="w-4 h-4 text-red-500" />
@@ -372,7 +578,9 @@ export function SecurityLogsPage() {
                       <td className={`px-4 py-3 text-sm ${textSecondary}`}>{entry.blockDate}</td>
                       <td className={`px-4 py-3 text-sm ${textSecondary}`}>{entry.reason}</td>
                       <td className="px-4 py-3">
-                        <button className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ${isDark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-600 hover:bg-gray-100'}`}>
+                        <button
+                          className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ${isDark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-600 hover:bg-gray-100'}`}
+                        >
                           Unblock
                         </button>
                       </td>
@@ -408,7 +616,9 @@ export function SecurityLogsPage() {
                 >
                   <div className="flex items-center gap-4 flex-1 flex-wrap">
                     <div className="flex items-center gap-2 min-w-[180px]">
-                      <Lock className={`w-4 h-4 ${session.lastActive === 'Active now' ? 'text-green-500' : textSecondary}`} />
+                      <Lock
+                        className={`w-4 h-4 ${session.lastActive === 'Active now' ? 'text-green-500' : textSecondary}`}
+                      />
                       <span className={`text-sm font-medium ${textPrimary}`}>{session.user}</span>
                     </div>
                     <div className="flex items-center gap-2 min-w-[130px]">
@@ -421,7 +631,9 @@ export function SecurityLogsPage() {
                     </div>
                     <div className="flex items-center gap-2 min-w-[100px]">
                       <Clock className={`w-4 h-4 ${textSecondary}`} />
-                      <span className={`text-sm ${session.lastActive === 'Active now' ? 'text-green-500 font-medium' : textSecondary}`}>
+                      <span
+                        className={`text-sm ${session.lastActive === 'Active now' ? 'text-green-500 font-medium' : textSecondary}`}
+                      >
                         {session.lastActive}
                       </span>
                     </div>
@@ -441,11 +653,15 @@ export function SecurityLogsPage() {
       {/* Add IP Rule Modal */}
       {showIPModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className={`rounded-xl border shadow-xl p-6 w-full max-w-md ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+          <div
+            className={`rounded-xl border shadow-xl p-6 w-full max-w-md ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
+          >
             <h3 className={`text-lg font-semibold mb-4 ${textPrimary}`}>Add IP Rule</h3>
             <div className="space-y-4">
               <div>
-                <label className={`block text-sm font-medium mb-1 ${textSecondary}`}>IP Address</label>
+                <label className={`block text-sm font-medium mb-1 ${textSecondary}`}>
+                  IP Address
+                </label>
                 <input
                   type="text"
                   placeholder="e.g. 192.168.1.100"
@@ -455,7 +671,9 @@ export function SecurityLogsPage() {
                 />
               </div>
               <div>
-                <label className={`block text-sm font-medium mb-1 ${textSecondary}`}>Rule Type</label>
+                <label className={`block text-sm font-medium mb-1 ${textSecondary}`}>
+                  Rule Type
+                </label>
                 <CleanSelect
                   value={ipForm.ruleType}
                   onChange={(e) => setIpForm({ ...ipForm, ruleType: e.target.value })}

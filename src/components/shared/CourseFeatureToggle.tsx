@@ -13,27 +13,119 @@ export interface CourseFeature {
 
 const DEFAULT_FEATURES: CourseFeature[] = [
   // Content Features
-  { id: 'lectures', name: 'Lectures', description: 'Video and live lectures', category: 'content', enabled: true },
-  { id: 'materials', name: 'Course Materials', description: 'PDFs, documents, and resources', category: 'content', enabled: true },
-  { id: 'syllabus', name: 'Syllabus', description: 'Course outline and schedule', category: 'content', enabled: true, locked: true },
-  
+  {
+    id: 'lectures',
+    name: 'Lectures',
+    description: 'Video and live lectures',
+    category: 'content',
+    enabled: true,
+  },
+  {
+    id: 'materials',
+    name: 'Course Materials',
+    description: 'PDFs, documents, and resources',
+    category: 'content',
+    enabled: true,
+  },
+  {
+    id: 'syllabus',
+    name: 'Syllabus',
+    description: 'Course outline and schedule',
+    category: 'content',
+    enabled: true,
+    locked: true,
+  },
+
   // Interaction Features
-  { id: 'discussions', name: 'Discussion Forums', description: 'Student discussion boards', category: 'interaction', enabled: true },
-  { id: 'announcements', name: 'Announcements', description: 'Course announcements', category: 'interaction', enabled: true, locked: true },
-  { id: 'messaging', name: 'Direct Messaging', description: 'Private student messages', category: 'interaction', enabled: true },
-  { id: 'office-hours', name: 'Office Hours', description: 'Virtual office hours booking', category: 'interaction', enabled: false },
-  
+  {
+    id: 'discussions',
+    name: 'Discussion Forums',
+    description: 'Student discussion boards',
+    category: 'interaction',
+    enabled: true,
+  },
+  {
+    id: 'announcements',
+    name: 'Announcements',
+    description: 'Course announcements',
+    category: 'interaction',
+    enabled: true,
+    locked: true,
+  },
+  {
+    id: 'messaging',
+    name: 'Direct Messaging',
+    description: 'Private student messages',
+    category: 'interaction',
+    enabled: true,
+  },
+  {
+    id: 'office-hours',
+    name: 'Office Hours',
+    description: 'Virtual office hours booking',
+    category: 'interaction',
+    enabled: false,
+  },
+
   // Assessment Features
-  { id: 'assignments', name: 'Assignments', description: 'Homework and projects', category: 'assessment', enabled: true },
-  { id: 'quizzes', name: 'Quizzes', description: 'Online quizzes and tests', category: 'assessment', enabled: true },
-  { id: 'grades', name: 'Grade Book', description: 'Student can view grades', category: 'assessment', enabled: true },
-  { id: 'peer-review', name: 'Peer Review', description: 'Student peer assessments', category: 'assessment', enabled: false },
-  
+  {
+    id: 'assignments',
+    name: 'Assignments',
+    description: 'Homework and projects',
+    category: 'assessment',
+    enabled: true,
+  },
+  {
+    id: 'quizzes',
+    name: 'Quizzes',
+    description: 'Online quizzes and tests',
+    category: 'assessment',
+    enabled: true,
+  },
+  {
+    id: 'grades',
+    name: 'Grade Book',
+    description: 'Student can view grades',
+    category: 'assessment',
+    enabled: true,
+  },
+  {
+    id: 'peer-review',
+    name: 'Peer Review',
+    description: 'Student peer assessments',
+    category: 'assessment',
+    enabled: false,
+  },
+
   // AI Features
-  { id: 'ai-tutor', name: 'AI Tutor', description: 'AI-powered student assistance', category: 'ai', enabled: true },
-  { id: 'ai-quiz-gen', name: 'AI Quiz Generator', description: 'Auto-generate quiz questions', category: 'ai', enabled: true },
-  { id: 'ai-grading', name: 'AI Auto-Grading', description: 'Automated assignment grading', category: 'ai', enabled: false },
-  { id: 'ai-attendance', name: 'AI Attendance', description: 'Photo-based attendance', category: 'ai', enabled: false },
+  {
+    id: 'ai-tutor',
+    name: 'AI Tutor',
+    description: 'AI-powered student assistance',
+    category: 'ai',
+    enabled: true,
+  },
+  {
+    id: 'ai-quiz-gen',
+    name: 'AI Quiz Generator',
+    description: 'Auto-generate quiz questions',
+    category: 'ai',
+    enabled: true,
+  },
+  {
+    id: 'ai-grading',
+    name: 'AI Auto-Grading',
+    description: 'Automated assignment grading',
+    category: 'ai',
+    enabled: false,
+  },
+  {
+    id: 'ai-attendance',
+    name: 'AI Attendance',
+    description: 'Photo-based attendance',
+    category: 'ai',
+    enabled: false,
+  },
 ];
 
 interface CourseFeatureToggleProps {
@@ -102,13 +194,16 @@ export function CourseFeatureToggle({
     onFeaturesChange(updatedFeatures);
   };
 
-  const groupedFeatures = features.reduce((acc, feature) => {
-    if (!acc[feature.category]) {
-      acc[feature.category] = [];
-    }
-    acc[feature.category].push(feature);
-    return acc;
-  }, {} as Record<string, CourseFeature[]>);
+  const groupedFeatures = features.reduce(
+    (acc, feature) => {
+      if (!acc[feature.category]) {
+        acc[feature.category] = [];
+      }
+      acc[feature.category].push(feature);
+      return acc;
+    },
+    {} as Record<string, CourseFeature[]>
+  );
 
   const enabledCount = features.filter((f) => f.enabled).length;
   const totalCount = features.length;
@@ -183,7 +278,12 @@ export function CourseFeatureToggle({
                     stroke="currentColor"
                     viewBox="0 0 24 24"
                   >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
                   </svg>
                 </div>
               </div>
@@ -250,8 +350,8 @@ export function CourseFeatureToggle({
         <div className="flex items-start gap-2 text-xs text-gray-500">
           <Info size={14} className="flex-shrink-0 mt-0.5" />
           <p>
-            Locked features (<Lock size={10} className="inline" />) are required for the course to function properly.
-            Disabling features will hide them from students immediately.
+            Locked features (<Lock size={10} className="inline" />) are required for the course to
+            function properly. Disabling features will hide them from students immediately.
           </p>
         </div>
       </div>

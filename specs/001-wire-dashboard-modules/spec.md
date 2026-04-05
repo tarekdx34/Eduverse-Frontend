@@ -5,7 +5,7 @@
 **Status**: Clarified  
 **Input**: Wire Labs, Assignments, and Quizzes across Student, Instructor, and TA dashboards to live NestJS backend
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Student Views and Submits Assignments (Priority: P1)
 
@@ -144,7 +144,7 @@ As a teaching assistant, I need to view assignments, quizzes, and labs for my as
 - What happens when the API returns an empty list? → Display empty state with helpful message (e.g., "No assignments yet")
 - How does the system handle concurrent grading by multiple TAs? → Last-write-wins with optimistic locking (backend handles conflicts)
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -216,7 +216,7 @@ As a teaching assistant, I need to view assignments, quizzes, and labs for my as
 - **Lab**: Practical assignment with ordered instructions, due date, max score
 - **LabSubmission**: Student's lab work with status, graded feedback
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

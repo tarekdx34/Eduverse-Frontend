@@ -7,7 +7,12 @@ interface TooltipProps {
   position?: 'top' | 'bottom' | 'left' | 'right';
 }
 
-export function Tooltip({ children, text, accentColor = '#3b82f6', position = 'top' }: TooltipProps) {
+export function Tooltip({
+  children,
+  text,
+  accentColor = '#3b82f6',
+  position = 'top',
+}: TooltipProps) {
   const [isVisible, setIsVisible] = useState(false);
 
   const positionClasses = {
@@ -25,18 +30,22 @@ export function Tooltip({ children, text, accentColor = '#3b82f6', position = 't
   };
 
   return (
-    <div 
+    <div
       className="relative inline-block"
       onMouseEnter={() => setIsVisible(true)}
       onMouseLeave={() => setIsVisible(false)}
     >
       {children}
       {isVisible && (
-        <div className={`absolute z-[100] px-2 py-1 text-xs font-semibold text-white whitespace-nowrap rounded shadow-lg animate-in fade-in zoom-in duration-200 ${positionClasses[position]}`}
-             style={{ backgroundColor: accentColor }}>
+        <div
+          className={`absolute z-[100] px-2 py-1 text-xs font-semibold text-white whitespace-nowrap rounded shadow-lg animate-in fade-in zoom-in duration-200 ${positionClasses[position]}`}
+          style={{ backgroundColor: accentColor }}
+        >
           {text}
-          <div className={`absolute border-4 border-transparent ${arrowClasses[position]}`}
-               style={{ color: accentColor }} />
+          <div
+            className={`absolute border-4 border-transparent ${arrowClasses[position]}`}
+            style={{ color: accentColor }}
+          />
         </div>
       )}
     </div>

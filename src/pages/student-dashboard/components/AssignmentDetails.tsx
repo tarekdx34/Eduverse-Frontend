@@ -43,10 +43,17 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
   const { t, language } = useLanguage();
 
   // Locale-aware date formatting helper
-  const formatDate = (dateString: string | null | undefined, options?: Intl.DateTimeFormatOptions) => {
+  const formatDate = (
+    dateString: string | null | undefined,
+    options?: Intl.DateTimeFormatOptions
+  ) => {
     if (!dateString) return '';
     const locale = language === 'ar' ? 'ar-EG' : 'en-US';
-    const defaultOptions: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric', year: 'numeric' };
+    const defaultOptions: Intl.DateTimeFormatOptions = {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    };
     return new Date(dateString).toLocaleDateString(locale, options || defaultOptions);
   };
 
@@ -54,8 +61,11 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
     if (!dateString) return '';
     const locale = language === 'ar' ? 'ar-EG' : 'en-US';
     return new Date(dateString).toLocaleString(locale, {
-      month: 'short', day: 'numeric', year: 'numeric',
-      hour: '2-digit', minute: '2-digit'
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
     });
   };
 
@@ -96,7 +106,7 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
     const handleKeyPress = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
         e.preventDefault();
-        if (!isSubmitted && attachedFiles.length > 0 || submissionText) {
+        if ((!isSubmitted && attachedFiles.length > 0) || submissionText) {
           handleSubmit();
         }
       }
@@ -136,10 +146,8 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
   }
 
   // Calculate days until due
-  const daysUntil = assignment.dueDate 
-    ? getDaysUntilDue(assignment.dueDate.split('T')[0])
-    : null;
-  
+  const daysUntil = assignment.dueDate ? getDaysUntilDue(assignment.dueDate.split('T')[0]) : null;
+
   // Check if already submitted
   const isSubmitted = mySubmission !== null;
   const submissionStatus = mySubmission?.submissionStatus || 'Not submitted';
@@ -163,7 +171,7 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
     try {
       await submitAssignment({
         text: submissionText,
-        files: attachedFiles
+        files: attachedFiles,
       });
       toast.success('Assignment submitted successfully!');
       refetchSubmission(); // Refresh submission status
@@ -172,7 +180,8 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
       setSubmissionText(''); // Clear text
     } catch (error) {
       console.error('Submit failed:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to submit assignment. Please try again.';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Failed to submit assignment. Please try again.';
       toast.error(errorMessage);
     }
   };
@@ -214,8 +223,8 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
                   assignment.status === 'published'
                     ? 'bg-blue-50 border-blue-200 text-blue-700'
                     : assignment.status === 'draft'
-                    ? 'bg-gray-50 border-gray-200 text-gray-700'
-                    : 'bg-red-50 border-red-200 text-red-700'
+                      ? 'bg-gray-50 border-gray-200 text-gray-700'
+                      : 'bg-red-50 border-red-200 text-red-700'
                 }`}
               >
                 {assignment.status}
@@ -245,9 +254,7 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
             </p>
           </div>
           <p className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-            {assignment.dueDate 
-              ? formatDate(assignment.dueDate)
-              : t('assignments.dueDate')}
+            {assignment.dueDate ? formatDate(assignment.dueDate) : t('assignments.dueDate')}
           </p>
           <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
             {assignment.dueDate ? '11:59 PM' : '-'}
@@ -259,7 +266,9 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
         >
           <div className="flex items-center gap-3 mb-2">
             <div className={`p-2 rounded-lg ${isDark ? 'bg-white/5' : 'bg-slate-50'}`}>
-              <Clock className={`w-5 h-5 ${daysUntil !== null && daysUntil <= 2 ? 'text-red-500' : 'text-amber-500'}`} />
+              <Clock
+                className={`w-5 h-5 ${daysUntil !== null && daysUntil <= 2 ? 'text-red-500' : 'text-amber-500'}`}
+              />
             </div>
             <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">
               Time Left
@@ -268,8 +277,12 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
           <p
             className={`text-xl font-bold ${daysUntil !== null && daysUntil <= 2 ? 'text-red-500' : isDark ? 'text-white' : 'text-slate-900'}`}
           >
-            {daysUntil !== null 
-              ? (daysUntil > 0 ? `${daysUntil} days left` : daysUntil === 0 ? 'Due today' : 'Overdue')
+            {daysUntil !== null
+              ? daysUntil > 0
+                ? `${daysUntil} days left`
+                : daysUntil === 0
+                  ? 'Due today'
+                  : 'Overdue'
               : 'No due date'}
           </p>
         </div>
@@ -300,7 +313,9 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
             <div className="p-6">
               <div className="prose max-w-none">
                 <div className="whitespace-pre-wrap text-slate-700 leading-relaxed">
-                  {assignment.detailedDescription || assignment.description || 'No description provided.'}
+                  {assignment.detailedDescription ||
+                    assignment.description ||
+                    'No description provided.'}
                 </div>
               </div>
             </div>
@@ -311,7 +326,9 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
             <div className="glass rounded-[2.5rem] shadow-sm overflow-hidden">
               <div className="bg-gradient-to-r from-background-light to-white p-6 border-b border-slate-100">
                 <h2 className="text-slate-800 font-semibold">Grading Rubric</h2>
-                <p className="text-slate-600 text-sm mt-1">Total: {assignment.points || assignment.maxScore} points</p>
+                <p className="text-slate-600 text-sm mt-1">
+                  Total: {assignment.points || assignment.maxScore} points
+                </p>
               </div>
               <div className="p-6">
                 <div className="space-y-4">
@@ -342,24 +359,29 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
             </div>
             <div className="p-6">
               {/* File Upload Area */}
-              <div className="border-2 border-dashed border-slate-200 rounded-xl p-8 text-center hover:border-[var(--accent-color)] hover:bg-[var(--accent-color)]/10/50 transition-all mb-4" role="region" aria-label={t('assignments.attachFiles')}>
+              <div
+                className="border-2 border-dashed border-slate-200 rounded-xl p-8 text-center hover:border-[var(--accent-color)] hover:bg-[var(--accent-color)]/10/50 transition-all mb-4"
+                role="region"
+                aria-label={t('assignments.attachFiles')}
+              >
                 <Upload className="w-12 h-12 text-slate-500 mx-auto mb-3" aria-hidden="true" />
                 <p className="text-slate-800 mb-2 font-medium">{t('assignments.dragDropFiles')}</p>
-                <label htmlFor="file-upload" className="inline-flex items-center gap-2 px-6 py-3 bg-[var(--accent-color)] text-white rounded-lg cursor-pointer hover:opacity-90 transition-colors">
+                <label
+                  htmlFor="file-upload"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-[var(--accent-color)] text-white rounded-lg cursor-pointer hover:opacity-90 transition-colors"
+                >
                   <Paperclip className="w-4 h-4" aria-hidden="true" />
                   <span>{t('assignments.attachFiles')}</span>
-                  <input 
+                  <input
                     id="file-upload"
-                    type="file" 
-                    multiple 
-                    onChange={handleFileAttach} 
-                    className="hidden" 
+                    type="file"
+                    multiple
+                    onChange={handleFileAttach}
+                    className="hidden"
                     aria-label={t('assignments.attachFiles')}
                   />
                 </label>
-                <p className="text-slate-500 text-xs mt-3">
-                  PDF, DOC, DOCX, ZIP, RAR (Max 50MB)
-                </p>
+                <p className="text-slate-500 text-xs mt-3">PDF, DOC, DOCX, ZIP, RAR (Max 50MB)</p>
               </div>
 
               {/* Attached Files */}
@@ -375,7 +397,10 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
                         className="flex items-center justify-between p-3 border border-slate-100 rounded-lg hover:bg-slate-50"
                       >
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-[var(--accent-color)]/10 rounded-lg flex items-center justify-center" aria-hidden="true">
+                          <div
+                            className="w-10 h-10 bg-[var(--accent-color)]/10 rounded-lg flex items-center justify-center"
+                            aria-hidden="true"
+                          >
                             <File className="w-5 h-5 text-[var(--accent-color)]" />
                           </div>
                           <div>
@@ -414,15 +439,25 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
                   aria-label={t('assignments.yourResponse')}
                   aria-describedby="submission-notes-hint"
                 />
-                <p id="submission-notes-hint" className="text-slate-600 text-sm mt-1">{t('assignments.submittingKeyboardHint')}</p>
+                <p id="submission-notes-hint" className="text-slate-600 text-sm mt-1">
+                  {t('assignments.submittingKeyboardHint')}
+                </p>
               </div>
 
               {/* Submit Button */}
               <button
                 onClick={handleSubmit}
-                disabled={isSubmitted || submitting || (attachedFiles.length === 0 && !submissionText)}
+                disabled={
+                  isSubmitted || submitting || (attachedFiles.length === 0 && !submissionText)
+                }
                 className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-[var(--accent-color)] to-[var(--accent-color)] text-white rounded-xl hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none font-medium"
-                aria-label={isSubmitted ? t('assignments.submitted') : submitting ? t('assignments.submittingAssignment') : t('assignments.submitButton')}
+                aria-label={
+                  isSubmitted
+                    ? t('assignments.submitted')
+                    : submitting
+                      ? t('assignments.submittingAssignment')
+                      : t('assignments.submitButton')
+                }
                 aria-busy={submitting}
               >
                 {submitting ? (
@@ -449,12 +484,18 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
                   {t('assignments.attachFiles')}
                 </p>
               )}
-              
+
               {isSubmitted && mySubmission && (
-                <div className={`mt-4 p-4 ${mySubmission.isLate ? 'bg-amber-50 border-amber-200' : 'bg-emerald-50 border-emerald-200'} border rounded-lg`}>
+                <div
+                  className={`mt-4 p-4 ${mySubmission.isLate ? 'bg-amber-50 border-amber-200' : 'bg-emerald-50 border-emerald-200'} border rounded-lg`}
+                >
                   <div className="flex items-center gap-2 mb-2">
-                    <CheckCircle className={`w-5 h-5 ${mySubmission.isLate ? 'text-amber-600' : 'text-emerald-600'}`} />
-                    <p className={`${mySubmission.isLate ? 'text-amber-900' : 'text-emerald-900'} font-medium`}>
+                    <CheckCircle
+                      className={`w-5 h-5 ${mySubmission.isLate ? 'text-amber-600' : 'text-emerald-600'}`}
+                    />
+                    <p
+                      className={`${mySubmission.isLate ? 'text-amber-900' : 'text-emerald-900'} font-medium`}
+                    >
                       {t('assignments.submitted')}
                     </p>
                     {mySubmission.isLate && (
@@ -465,26 +506,46 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
                       </span>
                     )}
                   </div>
-                  <p className={`${mySubmission.isLate ? 'text-amber-700' : 'text-emerald-700'} text-sm`}>
-                    {t('assignments.statusLabel')}: <span className="font-medium">{submissionStatus}</span>
+                  <p
+                    className={`${mySubmission.isLate ? 'text-amber-700' : 'text-emerald-700'} text-sm`}
+                  >
+                    {t('assignments.statusLabel')}:{' '}
+                    <span className="font-medium">{submissionStatus}</span>
                   </p>
-                  <p className={`${mySubmission.isLate ? 'text-amber-700' : 'text-emerald-700'} text-sm`}>
+                  <p
+                    className={`${mySubmission.isLate ? 'text-amber-700' : 'text-emerald-700'} text-sm`}
+                  >
                     {t('assignments.submittedAt')}: {formatDateTime(mySubmission.submittedAt)}
                   </p>
                   {mySubmission.score && (
-                    <p className={`${mySubmission.isLate ? 'text-amber-700' : 'text-emerald-700'} text-sm mt-1`}>
-                      {t('assignments.score')}: <span className="font-bold">{mySubmission.score}/{assignment.maxScore}</span>
+                    <p
+                      className={`${mySubmission.isLate ? 'text-amber-700' : 'text-emerald-700'} text-sm mt-1`}
+                    >
+                      {t('assignments.score')}:{' '}
+                      <span className="font-bold">
+                        {mySubmission.score}/{assignment.maxScore}
+                      </span>
                       {mySubmission.isLate && assignment.latePenalty && (
                         <span className="text-amber-600 ml-2 text-xs">
-                          ({t('assignments.afterPenalty')}: {parseFloat(mySubmission.score) * (1 - assignment.latePenalty / 100)}/{assignment.maxScore})
+                          ({t('assignments.afterPenalty')}:{' '}
+                          {parseFloat(mySubmission.score) * (1 - assignment.latePenalty / 100)}/
+                          {assignment.maxScore})
                         </span>
                       )}
                     </p>
                   )}
                   {mySubmission.feedback && (
                     <div className="mt-2">
-                      <p className={`${mySubmission.isLate ? 'text-amber-900' : 'text-emerald-900'} text-sm font-medium`}>{t('assignments.feedback')}:</p>
-                      <p className={`${mySubmission.isLate ? 'text-amber-700' : 'text-emerald-700'} text-sm`}>{mySubmission.feedback}</p>
+                      <p
+                        className={`${mySubmission.isLate ? 'text-amber-900' : 'text-emerald-900'} text-sm font-medium`}
+                      >
+                        {t('assignments.feedback')}:
+                      </p>
+                      <p
+                        className={`${mySubmission.isLate ? 'text-amber-700' : 'text-emerald-700'} text-sm`}
+                      >
+                        {mySubmission.feedback}
+                      </p>
                     </div>
                   )}
                 </div>
@@ -504,17 +565,27 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
               {(assignment.instructor || assignment.createdBy) && (
                 <div>
                   <p className="text-slate-600 text-sm mb-1 font-medium">Instructor</p>
-                  <p className="text-slate-800 font-medium">{assignment.instructor || 'Instructor Name Not Available'}</p>
+                  <p className="text-slate-800 font-medium">
+                    {assignment.instructor || 'Instructor Name Not Available'}
+                  </p>
                   {assignment.instructorEmail && (
-                    <p className="text-[var(--accent-color)] text-sm">{assignment.instructorEmail}</p>
+                    <p className="text-[var(--accent-color)] text-sm">
+                      {assignment.instructorEmail}
+                    </p>
                   )}
                 </div>
               )}
               {assignment.dateAssigned && (
                 <div className="border-t border-slate-100 pt-4">
-                  <p className="text-slate-600 text-sm mb-1 font-medium">{t('assignments.dueDate')}</p>
+                  <p className="text-slate-600 text-sm mb-1 font-medium">
+                    {t('assignments.dueDate')}
+                  </p>
                   <p className="text-slate-800 font-medium">
-                    {formatDate(assignment.dateAssigned, { month: 'long', day: 'numeric', year: 'numeric' })}
+                    {formatDate(assignment.dateAssigned, {
+                      month: 'long',
+                      day: 'numeric',
+                      year: 'numeric',
+                    })}
                   </p>
                 </div>
               )}
@@ -586,7 +657,9 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
                   </button>
                 ))}
                 {(!assignment.resources || assignment.resources.length === 0) && (
-                  <p className="text-center text-slate-500 text-sm py-4">No resources available for this assignment</p>
+                  <p className="text-center text-slate-500 text-sm py-4">
+                    No resources available for this assignment
+                  </p>
                 )}
               </div>
             </div>
@@ -619,7 +692,9 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
             <div className="w-16 h-16 bg-[var(--accent-color)]/10 rounded-full flex items-center justify-center mx-auto mb-4">
               <Send className="w-8 h-8 text-[var(--accent-color)]" />
             </div>
-            <h2 className="text-slate-800 text-center mb-2 font-semibold">{t('assignments.confirmSubmit')}</h2>
+            <h2 className="text-slate-800 text-center mb-2 font-semibold">
+              {t('assignments.confirmSubmit')}
+            </h2>
             <p className="text-slate-600 text-center mb-6">
               {t('assignments.confirmSubmitMessage')}
             </p>
@@ -627,7 +702,9 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
               <div className="flex gap-3">
                 <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-amber-900 text-sm mb-1 font-medium">{t('assignments.attachedFiles')}: {attachedFiles.length}</p>
+                  <p className="text-amber-900 text-sm mb-1 font-medium">
+                    {t('assignments.attachedFiles')}: {attachedFiles.length}
+                  </p>
                 </div>
               </div>
             </div>
@@ -656,9 +733,7 @@ export default function AssignmentDetails({ assignmentId, onBack }: AssignmentDe
               <CheckCircle className="w-10 h-10 text-emerald-600" />
             </div>
             <h2 className="text-2xl font-bold text-slate-800 mb-2">{t('assignments.success')}</h2>
-            <p className="text-slate-600 mb-8 leading-relaxed">
-              {t('assignments.successMessage')}
-            </p>
+            <p className="text-slate-600 mb-8 leading-relaxed">{t('assignments.successMessage')}</p>
             <button
               onClick={handleSuccessClose}
               className="w-full px-6 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-all font-semibold shadow-lg shadow-emerald-200"

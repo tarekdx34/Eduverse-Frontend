@@ -2,7 +2,7 @@ import { ClassTab } from './components';
 
 /**
  * ClassTab Component Integration Example
- * 
+ *
  * This shows how to integrate the ClassTab component with tabs
  * in the student dashboard.
  */
@@ -44,11 +44,11 @@ export function ClassTabExample2() {
 
 /**
  * Integration with TabPanel component (for use in StudentDashboard)
- * 
+ *
  * Add to StudentDashboardPage.tsx:
- * 
+ *
  * import { ClassTab } from './components';
- * 
+ *
  * <Tabs>
  *   <TabList>
  *     <Tab>My Class</Tab>

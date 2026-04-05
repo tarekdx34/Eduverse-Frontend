@@ -215,13 +215,19 @@ export function AIInsightsPage() {
         <div className="flex items-center gap-3 flex-wrap justify-between">
           <div className="flex items-center gap-2">
             <Brain size={18} className={isDark ? 'text-blue-400' : 'text-blue-500'} />
-            <span className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>AI Stats</span>
+            <span className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              AI Stats
+            </span>
           </div>
           <div className="flex items-center gap-6 flex-wrap">
             {aiStats.map((stat) => (
               <div key={stat.label} className="flex items-center gap-2">
-                <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{stat.label}:</span>
-                <span className={`text-sm font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{stat.value}</span>
+                <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                  {stat.label}:
+                </span>
+                <span className={`text-sm font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  {stat.value}
+                </span>
               </div>
             ))}
           </div>
@@ -235,7 +241,10 @@ export function AIInsightsPage() {
           <div className="flex flex-col flex-1">
             <div className="flex-1 overflow-y-auto p-6 space-y-4" style={{ maxHeight: '400px' }}>
               {messages.map((msg) => (
-                <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                <div
+                  key={msg.id}
+                  className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                >
                   <div className="max-w-[75%]">
                     <div
                       className={`rounded-2xl px-4 py-3 text-sm ${
@@ -250,15 +259,22 @@ export function AIInsightsPage() {
                     >
                       {msg.role === 'ai' && (
                         <div className="flex items-center gap-1.5 mb-1">
-                          <Sparkles size={14} className={isDark ? 'text-blue-400' : 'text-blue-500'} />
-                          <span className={`text-xs font-semibold ${isDark ? 'text-blue-400' : 'text-blue-500'}`}>
+                          <Sparkles
+                            size={14}
+                            className={isDark ? 'text-blue-400' : 'text-blue-500'}
+                          />
+                          <span
+                            className={`text-xs font-semibold ${isDark ? 'text-blue-400' : 'text-blue-500'}`}
+                          >
                             AI Assistant
                           </span>
                         </div>
                       )}
                       {msg.text}
                     </div>
-                    <span className={`text-xs mt-1 block ${msg.role === 'user' ? 'text-right' : ''} ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                    <span
+                      className={`text-xs mt-1 block ${msg.role === 'user' ? 'text-right' : ''} ${isDark ? 'text-gray-500' : 'text-gray-400'}`}
+                    >
                       {msg.timestamp}
                     </span>
                   </div>
@@ -267,11 +283,22 @@ export function AIInsightsPage() {
 
               {isTyping && (
                 <div className="flex justify-start">
-                  <div className={`rounded-2xl px-4 py-3 text-sm ${isDark ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-900'}`}>
+                  <div
+                    className={`rounded-2xl px-4 py-3 text-sm ${isDark ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-900'}`}
+                  >
                     <div className="flex items-center gap-1">
-                      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                      <span
+                        className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                        style={{ animationDelay: '0ms' }}
+                      />
+                      <span
+                        className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                        style={{ animationDelay: '150ms' }}
+                      />
+                      <span
+                        className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                        style={{ animationDelay: '300ms' }}
+                      />
                     </div>
                   </div>
                 </div>
@@ -281,8 +308,12 @@ export function AIInsightsPage() {
 
             {/* Quick Action Cards */}
             {messages.length <= 1 && (
-              <div className={`px-6 pb-4 grid grid-cols-2 gap-3 border-t ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
-                <div className={`col-span-2 pt-4 pb-1 text-xs font-medium ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+              <div
+                className={`px-6 pb-4 grid grid-cols-2 gap-3 border-t ${isDark ? 'border-gray-700' : 'border-gray-200'}`}
+              >
+                <div
+                  className={`col-span-2 pt-4 pb-1 text-xs font-medium ${isDark ? 'text-gray-400' : 'text-gray-500'}`}
+                >
                   Quick Actions
                 </div>
                 {quickActions.map((action) => {
@@ -307,7 +338,9 @@ export function AIInsightsPage() {
 
             {/* Suggestions after AI response */}
             {messages.length > 1 && !isTyping && messages[messages.length - 1].role === 'ai' && (
-              <div className={`px-6 pb-4 flex gap-2 flex-wrap border-t pt-3 ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+              <div
+                className={`px-6 pb-4 flex gap-2 flex-wrap border-t pt-3 ${isDark ? 'border-gray-700' : 'border-gray-200'}`}
+              >
                 {['Tell me more', 'Show details', 'Generate report'].map((suggestion) => (
                   <button
                     key={suggestion}
@@ -331,7 +364,9 @@ export function AIInsightsPage() {
           <div className="p-6 space-y-4">
             <div className="flex items-center gap-2 mb-2">
               <BarChart3 size={18} className={isDark ? 'text-blue-400' : 'text-blue-500'} />
-              <h3 className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>AI-Generated Insights</h3>
+              <h3 className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                AI-Generated Insights
+              </h3>
             </div>
             {analyticsInsights.map((insight) => {
               const Icon = insight.icon;
@@ -346,8 +381,14 @@ export function AIInsightsPage() {
                     <Icon size={18} className={isDark ? 'text-blue-400' : 'text-blue-500'} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h4 className={`text-sm font-semibold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{insight.title}</h4>
-                    <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{insight.text}</p>
+                    <h4
+                      className={`text-sm font-semibold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}
+                    >
+                      {insight.title}
+                    </h4>
+                    <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                      {insight.text}
+                    </p>
                   </div>
                   <button
                     onClick={() => {
@@ -373,7 +414,9 @@ export function AIInsightsPage() {
           <div className="p-6 space-y-4">
             <div className="flex items-center gap-2 mb-2">
               <Lightbulb size={18} className={isDark ? 'text-blue-400' : 'text-blue-500'} />
-              <h3 className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>AI Recommendations</h3>
+              <h3 className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                AI Recommendations
+              </h3>
             </div>
             {recommendations.map((rec) => {
               const Icon = rec.icon;
@@ -389,11 +432,15 @@ export function AIInsightsPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${styles.badge}`}>
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-xs font-semibold ${styles.badge}`}
+                        >
                           {rec.priority}
                         </span>
                       </div>
-                      <p className={`text-sm ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>{rec.text}</p>
+                      <p className={`text-sm ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
+                        {rec.text}
+                      </p>
                       <div className="flex gap-2 mt-3">
                         <button
                           className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${

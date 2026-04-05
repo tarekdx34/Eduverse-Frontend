@@ -5,6 +5,7 @@
 ## Lab CRUD
 
 ### List Labs
+
 ```http
 GET /api/labs
 ```
@@ -16,6 +17,7 @@ GET /api/labs
 | `status` | string | No | Filter by status |
 
 **Response:** `200 OK`
+
 ```json
 [
   {
@@ -38,11 +40,13 @@ GET /api/labs
 ---
 
 ### Get Lab with Instructions
+
 ```http
 GET /api/labs/:id
 ```
 
 **Response:** `200 OK`
+
 ```json
 {
   "id": "uuid",
@@ -69,6 +73,7 @@ GET /api/labs/:id
 ---
 
 ### Create Lab (Instructor)
+
 ```http
 POST /api/labs
 Authorization: Bearer <token>
@@ -76,6 +81,7 @@ Content-Type: application/json
 ```
 
 **Request Body:**
+
 ```json
 {
   "courseId": "uuid",
@@ -95,6 +101,7 @@ Content-Type: application/json
 ---
 
 ### Update Lab (Instructor)
+
 ```http
 PUT /api/labs/:id
 Authorization: Bearer <token>
@@ -104,6 +111,7 @@ Content-Type: application/json
 ---
 
 ### Delete Lab (Instructor)
+
 ```http
 DELETE /api/labs/:id
 Authorization: Bearer <token>
@@ -116,6 +124,7 @@ Authorization: Bearer <token>
 ## Instruction Management
 
 ### Add Instruction
+
 ```http
 POST /api/labs/:labId/instructions
 Authorization: Bearer <token>
@@ -123,6 +132,7 @@ Content-Type: application/json
 ```
 
 **Request Body:**
+
 ```json
 {
   "order": "number",
@@ -136,6 +146,7 @@ Content-Type: application/json
 ---
 
 ### Update Instruction
+
 ```http
 PUT /api/labs/:labId/instructions/:instructionId
 Authorization: Bearer <token>
@@ -145,6 +156,7 @@ Content-Type: application/json
 ---
 
 ### Delete Instruction
+
 ```http
 DELETE /api/labs/:labId/instructions/:instructionId
 Authorization: Bearer <token>
@@ -155,6 +167,7 @@ Authorization: Bearer <token>
 ---
 
 ### Reorder Instructions
+
 ```http
 PATCH /api/labs/:labId/instructions/reorder
 Authorization: Bearer <token>
@@ -162,6 +175,7 @@ Content-Type: application/json
 ```
 
 **Request Body:**
+
 ```json
 {
   "instructionIds": ["uuid1", "uuid2", "uuid3"]
@@ -175,12 +189,14 @@ Content-Type: application/json
 ## Student Submissions
 
 ### Get My Submission
+
 ```http
 GET /api/labs/:labId/my-submission
 Authorization: Bearer <token>
 ```
 
 **Response:** `200 OK`
+
 ```json
 {
   "id": "uuid",
@@ -200,6 +216,7 @@ Authorization: Bearer <token>
 ---
 
 ### Submit Lab
+
 ```http
 POST /api/labs/:labId/submit
 Authorization: Bearer <token>
@@ -212,7 +229,7 @@ Content-Type: multipart/form-data
 | `submissionText` | string | No | Lab report text |
 | `file` | File | No | Upload file (max 10MB) |
 
-*At least one of `submissionText` or `file` required*
+_At least one of `submissionText` or `file` required_
 
 **Response:** `201 Created`
 
@@ -221,12 +238,14 @@ Content-Type: multipart/form-data
 ## Instructor/TA Operations
 
 ### Get All Submissions
+
 ```http
 GET /api/labs/:labId/submissions
 Authorization: Bearer <token>
 ```
 
 **Response:** `200 OK`
+
 ```json
 [
   {
@@ -247,6 +266,7 @@ Authorization: Bearer <token>
 ---
 
 ### Grade Submission
+
 ```http
 PATCH /api/labs/:labId/submissions/:submissionId/grade
 Authorization: Bearer <token>
@@ -254,6 +274,7 @@ Content-Type: application/json
 ```
 
 **Request Body:**
+
 ```json
 {
   "score": "decimal-string",
@@ -266,6 +287,7 @@ Content-Type: application/json
 ---
 
 ### Update Submission Status
+
 ```http
 PATCH /api/labs/:labId/submissions/:submissionId/status
 Authorization: Bearer <token>
@@ -273,6 +295,7 @@ Content-Type: application/json
 ```
 
 **Request Body:**
+
 ```json
 {
   "status": "graded | returned | resubmit"
@@ -285,12 +308,12 @@ Content-Type: application/json
 
 ## Error Responses
 
-| Status | Meaning |
-|--------|---------|
-| `400` | Invalid request body |
-| `401` | Not authenticated |
-| `403` | Not authorized (wrong role) |
-| `404` | Resource not found |
-| `409` | Conflict (e.g., already submitted) |
-| `413` | File too large |
-| `422` | Validation error |
+| Status | Meaning                            |
+| ------ | ---------------------------------- |
+| `400`  | Invalid request body               |
+| `401`  | Not authenticated                  |
+| `403`  | Not authorized (wrong role)        |
+| `404`  | Resource not found                 |
+| `409`  | Conflict (e.g., already submitted) |
+| `413`  | File too large                     |
+| `422`  | Validation error                   |

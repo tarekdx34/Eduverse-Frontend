@@ -9,16 +9,18 @@
 ## 9.1 Security & Audit Module
 
 ### Database Tables
-| Table | Description |
-|-------|-------------|
-| `security_logs` | Security events (login, permission changes) |
-| `audit_logs` | Comprehensive audit trail of actions |
-| `activity_logs` | General user activity tracking (shared with analytics) |
-| `login_attempts` | Login attempt history |
+
+| Table            | Description                                            |
+| ---------------- | ------------------------------------------------------ |
+| `security_logs`  | Security events (login, permission changes)            |
+| `audit_logs`     | Comprehensive audit trail of actions                   |
+| `activity_logs`  | General user activity tracking (shared with analytics) |
+| `login_attempts` | Login attempt history                                  |
 
 ### Entity Definitions
 
 #### SecurityLog Entity
+
 ```typescript
 @Entity('security_logs')
 export class SecurityLog {
@@ -28,7 +30,22 @@ export class SecurityLog {
   @Column({ type: 'bigint', unsigned: true, nullable: true })
   userId: number;
 
-  @Column({ type: 'enum', enum: ['login_success', 'login_failure', 'logout', 'password_change', 'permission_change', 'role_change', 'account_locked', 'suspicious_activity', 'ip_blocked', 'session_hijack', 'brute_force'] })
+  @Column({
+    type: 'enum',
+    enum: [
+      'login_success',
+      'login_failure',
+      'logout',
+      'password_change',
+      'permission_change',
+      'role_change',
+      'account_locked',
+      'suspicious_activity',
+      'ip_blocked',
+      'session_hijack',
+      'brute_force',
+    ],
+  })
   eventType: string;
 
   @Column({ type: 'enum', enum: ['info', 'warning', 'critical'], default: 'info' })
@@ -55,6 +72,7 @@ export class SecurityLog {
 ```
 
 #### AuditLog Entity
+
 ```typescript
 @Entity('audit_logs')
 export class AuditLog {
@@ -65,10 +83,10 @@ export class AuditLog {
   userId: number;
 
   @Column({ type: 'varchar', length: 50 })
-  action: string;  // 'CREATE', 'UPDATE', 'DELETE', 'VIEW'
+  action: string; // 'CREATE', 'UPDATE', 'DELETE', 'VIEW'
 
   @Column({ type: 'varchar', length: 50 })
-  entityType: string;  // 'user', 'course', 'grade', etc.
+  entityType: string; // 'user', 'course', 'grade', etc.
 
   @Column({ type: 'bigint', unsigned: true, nullable: true })
   entityId: number;
@@ -89,28 +107,29 @@ export class AuditLog {
 
 ### API Endpoints
 
-| Method | Endpoint | Description | Roles |
-|--------|----------|-------------|-------|
-| **Security Logs** | | | |
-| GET | `/api/security/logs` | List security events (filter by type, severity, date) | ADMIN, IT_ADMIN |
-| GET | `/api/security/logs/stats` | Security dashboard stats | ADMIN, IT_ADMIN |
-| GET | `/api/security/threats` | List active threats/alerts | IT_ADMIN |
-| **Audit Logs** | | | |
-| GET | `/api/audit/logs` | List audit trail (filter by user, action, entity) | ADMIN, IT_ADMIN |
-| GET | `/api/audit/logs/entity/:type/:id` | Get audit history for specific entity | ADMIN, IT_ADMIN |
-| **Sessions** | | | |
-| GET | `/api/security/sessions` | List active user sessions | ADMIN, IT_ADMIN |
-| DELETE | `/api/security/sessions/:id` | Revoke a session | ADMIN, IT_ADMIN |
-| DELETE | `/api/security/sessions/user/:userId` | Revoke all user sessions | ADMIN, IT_ADMIN |
-| **IP Management** | | | |
-| GET | `/api/security/blocked-ips` | List blocked IPs | IT_ADMIN |
-| POST | `/api/security/block-ip` | Block an IP address | IT_ADMIN |
-| DELETE | `/api/security/blocked-ips/:id` | Unblock IP | IT_ADMIN |
-| **Export** | | | |
-| POST | `/api/security/logs/export` | Export security logs | IT_ADMIN |
-| POST | `/api/audit/logs/export` | Export audit logs | IT_ADMIN |
+| Method            | Endpoint                              | Description                                           | Roles           |
+| ----------------- | ------------------------------------- | ----------------------------------------------------- | --------------- |
+| **Security Logs** |                                       |                                                       |                 |
+| GET               | `/api/security/logs`                  | List security events (filter by type, severity, date) | ADMIN, IT_ADMIN |
+| GET               | `/api/security/logs/stats`            | Security dashboard stats                              | ADMIN, IT_ADMIN |
+| GET               | `/api/security/threats`               | List active threats/alerts                            | IT_ADMIN        |
+| **Audit Logs**    |                                       |                                                       |                 |
+| GET               | `/api/audit/logs`                     | List audit trail (filter by user, action, entity)     | ADMIN, IT_ADMIN |
+| GET               | `/api/audit/logs/entity/:type/:id`    | Get audit history for specific entity                 | ADMIN, IT_ADMIN |
+| **Sessions**      |                                       |                                                       |                 |
+| GET               | `/api/security/sessions`              | List active user sessions                             | ADMIN, IT_ADMIN |
+| DELETE            | `/api/security/sessions/:id`          | Revoke a session                                      | ADMIN, IT_ADMIN |
+| DELETE            | `/api/security/sessions/user/:userId` | Revoke all user sessions                              | ADMIN, IT_ADMIN |
+| **IP Management** |                                       |                                                       |                 |
+| GET               | `/api/security/blocked-ips`           | List blocked IPs                                      | IT_ADMIN        |
+| POST              | `/api/security/block-ip`              | Block an IP address                                   | IT_ADMIN        |
+| DELETE            | `/api/security/blocked-ips/:id`       | Unblock IP                                            | IT_ADMIN        |
+| **Export**        |                                       |                                                       |                 |
+| POST              | `/api/security/logs/export`           | Export security logs                                  | IT_ADMIN        |
+| POST              | `/api/audit/logs/export`              | Export audit logs                                     | IT_ADMIN        |
 
 ### Business Logic
+
 1. **Auto-logging**: Use NestJS interceptors to automatically log all write operations.
 2. **Threat Detection**: Flag multiple failed login attempts. Auto-block after threshold.
 3. **Session Management**: Allow admins to view and revoke active sessions.
@@ -118,48 +137,51 @@ export class AuditLog {
 5. **Retention**: Keep security logs for 90 days, audit logs for 1 year.
 
 ### Frontend Components Using This Module
-- ~~**Admin**: SecurityLogsPage.tsx~~ *(Not in Admin sidebar — deleted)*
-- **IT Admin**: SecurityPage.tsx, SecurityLogsPage.tsx *(active as `security` and `security-logs` tabs)*
+
+- ~~**Admin**: SecurityLogsPage.tsx~~ _(Not in Admin sidebar — deleted)_
+- **IT Admin**: SecurityPage.tsx, SecurityLogsPage.tsx _(active as `security` and `security-logs` tabs)_
 
 ---
 
 ## 9.2 System Settings Module
 
 ### Database Tables
-| Table | Description |
-|-------|-------------|
-| `system_settings` | Global platform configuration |
+
+| Table               | Description                              |
+| ------------------- | ---------------------------------------- |
+| `system_settings`   | Global platform configuration            |
 | `branding_settings` | Campus-specific branding (logos, colors) |
-| `api_integrations` | External API integrations |
-| `api_rate_limits` | API rate limiting config |
+| `api_integrations`  | External API integrations                |
+| `api_rate_limits`   | API rate limiting config                 |
 
 ### API Endpoints
 
-| Method | Endpoint | Description | Roles |
-|--------|----------|-------------|-------|
-| **System Settings** | | | |
-| GET | `/api/settings` | Get all system settings | ADMIN, IT_ADMIN |
-| PUT | `/api/settings` | Update system settings | ADMIN, IT_ADMIN |
-| GET | `/api/settings/:key` | Get specific setting | ADMIN, IT_ADMIN |
-| PUT | `/api/settings/:key` | Update specific setting | ADMIN, IT_ADMIN |
-| **Branding** | | | |
-| GET | `/api/settings/branding` | Get branding settings | ALL |
-| PUT | `/api/settings/branding` | Update branding | ADMIN, IT_ADMIN |
-| POST | `/api/settings/branding/logo` | Upload logo | ADMIN, IT_ADMIN |
-| **Integrations** | | | |
-| GET | `/api/integrations` | List API integrations | ADMIN, IT_ADMIN |
-| POST | `/api/integrations` | Add integration | IT_ADMIN |
-| PUT | `/api/integrations/:id` | Update integration | IT_ADMIN |
-| DELETE | `/api/integrations/:id` | Remove integration | IT_ADMIN |
-| POST | `/api/integrations/:id/test` | Test integration connection | IT_ADMIN |
-| POST | `/api/integrations/:id/sync` | Trigger sync | IT_ADMIN |
-| **Rate Limits** | | | |
-| GET | `/api/settings/rate-limits` | Get rate limit configs | IT_ADMIN |
-| PUT | `/api/settings/rate-limits` | Update rate limits | IT_ADMIN |
-| **Email Config** | | | |
-| POST | `/api/settings/email/test` | Test SMTP connection | ADMIN, IT_ADMIN |
+| Method              | Endpoint                      | Description                 | Roles           |
+| ------------------- | ----------------------------- | --------------------------- | --------------- |
+| **System Settings** |                               |                             |                 |
+| GET                 | `/api/settings`               | Get all system settings     | ADMIN, IT_ADMIN |
+| PUT                 | `/api/settings`               | Update system settings      | ADMIN, IT_ADMIN |
+| GET                 | `/api/settings/:key`          | Get specific setting        | ADMIN, IT_ADMIN |
+| PUT                 | `/api/settings/:key`          | Update specific setting     | ADMIN, IT_ADMIN |
+| **Branding**        |                               |                             |                 |
+| GET                 | `/api/settings/branding`      | Get branding settings       | ALL             |
+| PUT                 | `/api/settings/branding`      | Update branding             | ADMIN, IT_ADMIN |
+| POST                | `/api/settings/branding/logo` | Upload logo                 | ADMIN, IT_ADMIN |
+| **Integrations**    |                               |                             |                 |
+| GET                 | `/api/integrations`           | List API integrations       | ADMIN, IT_ADMIN |
+| POST                | `/api/integrations`           | Add integration             | IT_ADMIN        |
+| PUT                 | `/api/integrations/:id`       | Update integration          | IT_ADMIN        |
+| DELETE              | `/api/integrations/:id`       | Remove integration          | IT_ADMIN        |
+| POST                | `/api/integrations/:id/test`  | Test integration connection | IT_ADMIN        |
+| POST                | `/api/integrations/:id/sync`  | Trigger sync                | IT_ADMIN        |
+| **Rate Limits**     |                               |                             |                 |
+| GET                 | `/api/settings/rate-limits`   | Get rate limit configs      | IT_ADMIN        |
+| PUT                 | `/api/settings/rate-limits`   | Update rate limits          | IT_ADMIN        |
+| **Email Config**    |                               |                             |                 |
+| POST                | `/api/settings/email/test`    | Test SMTP connection        | ADMIN, IT_ADMIN |
 
 ### Business Logic
+
 1. **Settings Cache**: Cache settings in memory. Invalidate on update.
 2. **Validation**: Validate setting values against their expected types.
 3. **Audit**: Log all settings changes in audit log.
@@ -167,48 +189,51 @@ export class AuditLog {
 5. **Integration Health**: Periodically check integration health status.
 
 ### Frontend Components Using This Module
-- ~~**Admin**: SettingsHubPage.tsx, SystemConfigPage.tsx~~ *(Not in Admin sidebar — deleted)*
-- **IT Admin**: SystemConfigPage.tsx, IntegrationsPage.tsx *(active as `config` and `integrations` tabs)*
+
+- ~~**Admin**: SettingsHubPage.tsx, SystemConfigPage.tsx~~ _(Not in Admin sidebar — deleted)_
+- **IT Admin**: SystemConfigPage.tsx, IntegrationsPage.tsx _(active as `config` and `integrations` tabs)_
 
 ---
 
 ## 9.3 Monitoring & Infrastructure Module
 
 ### Database Tables
-| Table | Description |
-|-------|-------------|
+
+| Table               | Description                       |
+| ------------------- | --------------------------------- |
 | `server_monitoring` | Server health/resource monitoring |
-| `system_errors` | Application error logging |
-| `ssl_certificates` | SSL certificate management |
+| `system_errors`     | Application error logging         |
+| `ssl_certificates`  | SSL certificate management        |
 
 ### API Endpoints
 
-| Method | Endpoint | Description | Roles |
-|--------|----------|-------------|-------|
-| **Server Monitoring** | | | |
-| GET | `/api/monitoring/servers` | List servers with status | IT_ADMIN |
-| GET | `/api/monitoring/servers/:id` | Get server details | IT_ADMIN |
-| POST | `/api/monitoring/servers` | Add server to monitoring | IT_ADMIN |
-| PUT | `/api/monitoring/servers/:id` | Update server config | IT_ADMIN |
-| DELETE | `/api/monitoring/servers/:id` | Remove from monitoring | IT_ADMIN |
-| POST | `/api/monitoring/servers/:id/restart` | Restart server | IT_ADMIN |
-| **Health** | | | |
-| GET | `/api/monitoring/health` | System health check (CPU, memory, disk, DB) | IT_ADMIN |
-| GET | `/api/monitoring/metrics` | Performance metrics | IT_ADMIN |
-| GET | `/api/monitoring/uptime` | Uptime statistics | IT_ADMIN |
-| **Error Logs** | | | |
-| GET | `/api/errors` | List application errors (filter by severity, type) | IT_ADMIN |
-| GET | `/api/errors/:id` | Get error details with stack trace | IT_ADMIN |
-| PUT | `/api/errors/:id` | Update error status (acknowledged, resolved) | IT_ADMIN |
-| DELETE | `/api/errors/:id` | Delete error log | IT_ADMIN |
-| GET | `/api/errors/stats` | Error statistics | IT_ADMIN |
-| **SSL** | | | |
-| GET | `/api/ssl/certificates` | List SSL certificates | IT_ADMIN |
-| POST | `/api/ssl/certificates` | Add certificate | IT_ADMIN |
-| PUT | `/api/ssl/certificates/:id/renew` | Renew certificate | IT_ADMIN |
-| GET | `/api/ssl/certificates/expiring` | Certificates expiring soon | IT_ADMIN |
+| Method                | Endpoint                              | Description                                        | Roles    |
+| --------------------- | ------------------------------------- | -------------------------------------------------- | -------- |
+| **Server Monitoring** |                                       |                                                    |          |
+| GET                   | `/api/monitoring/servers`             | List servers with status                           | IT_ADMIN |
+| GET                   | `/api/monitoring/servers/:id`         | Get server details                                 | IT_ADMIN |
+| POST                  | `/api/monitoring/servers`             | Add server to monitoring                           | IT_ADMIN |
+| PUT                   | `/api/monitoring/servers/:id`         | Update server config                               | IT_ADMIN |
+| DELETE                | `/api/monitoring/servers/:id`         | Remove from monitoring                             | IT_ADMIN |
+| POST                  | `/api/monitoring/servers/:id/restart` | Restart server                                     | IT_ADMIN |
+| **Health**            |                                       |                                                    |          |
+| GET                   | `/api/monitoring/health`              | System health check (CPU, memory, disk, DB)        | IT_ADMIN |
+| GET                   | `/api/monitoring/metrics`             | Performance metrics                                | IT_ADMIN |
+| GET                   | `/api/monitoring/uptime`              | Uptime statistics                                  | IT_ADMIN |
+| **Error Logs**        |                                       |                                                    |          |
+| GET                   | `/api/errors`                         | List application errors (filter by severity, type) | IT_ADMIN |
+| GET                   | `/api/errors/:id`                     | Get error details with stack trace                 | IT_ADMIN |
+| PUT                   | `/api/errors/:id`                     | Update error status (acknowledged, resolved)       | IT_ADMIN |
+| DELETE                | `/api/errors/:id`                     | Delete error log                                   | IT_ADMIN |
+| GET                   | `/api/errors/stats`                   | Error statistics                                   | IT_ADMIN |
+| **SSL**               |                                       |                                                    |          |
+| GET                   | `/api/ssl/certificates`               | List SSL certificates                              | IT_ADMIN |
+| POST                  | `/api/ssl/certificates`               | Add certificate                                    | IT_ADMIN |
+| PUT                   | `/api/ssl/certificates/:id/renew`     | Renew certificate                                  | IT_ADMIN |
+| GET                   | `/api/ssl/certificates/expiring`      | Certificates expiring soon                         | IT_ADMIN |
 
 ### Business Logic
+
 1. **Health Checks**: Collect CPU, memory, disk usage, DB connection status.
 2. **Alerting**: Alert when resources exceed thresholds (CPU > 90%, disk > 85%).
 3. **Error Grouping**: Group similar errors by stack trace. Track occurrence count.
@@ -216,6 +241,7 @@ export class AuditLog {
 5. **Uptime Tracking**: Record uptime/downtime events.
 
 ### Frontend Components Using This Module
+
 - **IT Admin**: DashboardOverview.tsx, MonitoringPage.tsx, ErrorLogsPage.tsx
 
 ---
@@ -224,19 +250,20 @@ export class AuditLog {
 
 ### API Endpoints
 
-| Method | Endpoint | Description | Roles |
-|--------|----------|-------------|-------|
-| GET | `/api/backups` | List backup history | ADMIN, IT_ADMIN |
-| POST | `/api/backups` | Create manual backup | IT_ADMIN |
-| POST | `/api/backups/:id/restore` | Restore from backup | IT_ADMIN |
-| DELETE | `/api/backups/:id` | Delete backup | IT_ADMIN |
-| GET | `/api/backups/schedule` | Get backup schedule | IT_ADMIN |
-| PUT | `/api/backups/schedule` | Update backup schedule | IT_ADMIN |
-| GET | `/api/backups/:id/download` | Download backup file | IT_ADMIN |
-| POST | `/api/backups/integrity-check` | Run integrity check | IT_ADMIN |
-| GET | `/api/database/stats` | Database size, tables, connections | IT_ADMIN |
+| Method | Endpoint                       | Description                        | Roles           |
+| ------ | ------------------------------ | ---------------------------------- | --------------- |
+| GET    | `/api/backups`                 | List backup history                | ADMIN, IT_ADMIN |
+| POST   | `/api/backups`                 | Create manual backup               | IT_ADMIN        |
+| POST   | `/api/backups/:id/restore`     | Restore from backup                | IT_ADMIN        |
+| DELETE | `/api/backups/:id`             | Delete backup                      | IT_ADMIN        |
+| GET    | `/api/backups/schedule`        | Get backup schedule                | IT_ADMIN        |
+| PUT    | `/api/backups/schedule`        | Update backup schedule             | IT_ADMIN        |
+| GET    | `/api/backups/:id/download`    | Download backup file               | IT_ADMIN        |
+| POST   | `/api/backups/integrity-check` | Run integrity check                | IT_ADMIN        |
+| GET    | `/api/database/stats`          | Database size, tables, connections | IT_ADMIN        |
 
 ### Business Logic
+
 1. **Scheduled Backups**: Cron job for automated backups (daily, weekly configurable).
 2. **Backup Types**: Full backup, incremental backup, database-only.
 3. **Storage**: Store backups locally or upload to cloud storage.
@@ -245,8 +272,9 @@ export class AuditLog {
 6. **Database Stats**: Query MySQL for database size, table sizes, active connections.
 
 ### Frontend Components Using This Module
-- ~~**Admin**: BackupCenterPage.tsx~~ *(Not in Admin sidebar — deleted)*
-- **IT Admin**: BackupCenterPage.tsx, DatabasePage.tsx *(active as `backup` and `database` tabs)*
+
+- ~~**Admin**: BackupCenterPage.tsx~~ _(Not in Admin sidebar — deleted)_
+- **IT Admin**: BackupCenterPage.tsx, DatabasePage.tsx _(active as `backup` and `database` tabs)_
 
 ---
 

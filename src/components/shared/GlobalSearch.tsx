@@ -473,9 +473,7 @@ export function GlobalSearch({
           <div
             className={`border-b overflow-x-auto lg:overflow-x-visible scrollbar-thin ${isDark ? 'border-white/10' : 'border-slate-100'}`}
           >
-            <div
-              className={`px-4 py-3 flex lg:flex-wrap gap-2 min-w-min lg:min-w-0`}
-            >
+            <div className={`px-4 py-3 flex lg:flex-wrap gap-2 min-w-min lg:min-w-0`}>
               {filters.map((filter) => (
                 <button
                   key={filter.id}

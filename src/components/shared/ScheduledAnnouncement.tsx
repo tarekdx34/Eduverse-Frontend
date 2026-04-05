@@ -37,9 +37,7 @@ export function ScheduledAnnouncement({
 
   const handleCourseToggle = (courseId: string) => {
     setSelectedCourses((prev) =>
-      prev.includes(courseId)
-        ? prev.filter((id) => id !== courseId)
-        : [...prev, courseId]
+      prev.includes(courseId) ? prev.filter((id) => id !== courseId) : [...prev, courseId]
     );
   };
 
@@ -112,10 +110,7 @@ export function ScheduledAnnouncement({
             <p className="text-sm text-gray-600">Send now or schedule for later</p>
           </div>
         </div>
-        <button
-          onClick={onCancel}
-          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-        >
+        <button onClick={onCancel} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
           <X size={20} className="text-gray-500" />
         </button>
       </div>
@@ -138,9 +133,7 @@ export function ScheduledAnnouncement({
 
         {/* Content */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Message Content *
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Message Content *</label>
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
@@ -154,13 +147,8 @@ export function ScheduledAnnouncement({
         {/* Target Audience */}
         <div>
           <div className="flex items-center justify-between mb-2">
-            <label className="text-sm font-medium text-gray-700">
-              Target Courses *
-            </label>
-            <button
-              onClick={handleSelectAll}
-              className="text-xs text-blue-600 hover:text-blue-700"
-            >
+            <label className="text-sm font-medium text-gray-700">Target Courses *</label>
+            <button onClick={handleSelectAll} className="text-xs text-blue-600 hover:text-blue-700">
               {selectedCourses.length === courses.length ? 'Deselect All' : 'Select All'}
             </button>
           </div>
@@ -170,9 +158,10 @@ export function ScheduledAnnouncement({
                 key={course.id}
                 className={`
                   flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition-colors
-                  ${selectedCourses.includes(course.id)
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-200 hover:bg-gray-50'
+                  ${
+                    selectedCourses.includes(course.id)
+                      ? 'border-blue-500 bg-blue-50'
+                      : 'border-gray-200 hover:bg-gray-50'
                   }
                 `}
               >
@@ -190,9 +179,7 @@ export function ScheduledAnnouncement({
 
         {/* Scheduling */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            When to Send
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">When to Send</label>
           <div className="flex gap-4 mb-4">
             <label
               className={`
@@ -237,7 +224,10 @@ export function ScheduledAnnouncement({
               <div>
                 <label className="block text-xs text-gray-600 mb-1">Date</label>
                 <div className="relative">
-                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                  <Calendar
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                    size={16}
+                  />
                   <input
                     type="date"
                     value={scheduledDate}
@@ -250,7 +240,10 @@ export function ScheduledAnnouncement({
               <div>
                 <label className="block text-xs text-gray-600 mb-1">Time</label>
                 <div className="relative">
-                  <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                  <Clock
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                    size={16}
+                  />
                   <input
                     type="time"
                     value={scheduledTime}
@@ -295,10 +288,7 @@ export function ScheduledAnnouncement({
           <div className="p-3 bg-red-50 text-red-700 rounded-lg text-sm flex items-center gap-2">
             <AlertCircle size={16} />
             <span>{error}</span>
-            <button
-              onClick={() => setError(null)}
-              className="ml-auto p-1 hover:bg-red-100 rounded"
-            >
+            <button onClick={() => setError(null)} className="ml-auto p-1 hover:bg-red-100 rounded">
               <X size={14} />
             </button>
           </div>

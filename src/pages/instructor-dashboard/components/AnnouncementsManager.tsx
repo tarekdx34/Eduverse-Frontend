@@ -43,7 +43,9 @@ const getErrorMessage = (error: unknown) => {
   return 'Something went wrong. Please try again.';
 };
 
-const normalizeAnnouncements = (payload: Announcement[] | { data?: Announcement[] } | undefined) => {
+const normalizeAnnouncements = (
+  payload: Announcement[] | { data?: Announcement[] } | undefined
+) => {
   if (!payload) return [];
   if (Array.isArray(payload)) return payload;
   return Array.isArray(payload.data) ? payload.data : [];
@@ -138,7 +140,10 @@ export function AnnouncementsManager() {
       }
     });
 
-    return [{ id: '0', label: 'Campus-wide' }, ...Array.from(map, ([id, label]) => ({ id, label }))];
+    return [
+      { id: '0', label: 'Campus-wide' },
+      ...Array.from(map, ([id, label]) => ({ id, label })),
+    ];
   }, [announcements]);
 
   const openCreate = () => {
@@ -149,13 +154,13 @@ export function AnnouncementsManager() {
 
   const openEdit = (announcement: Announcement) => {
     setEditingAnnouncement(announcement);
-      setForm({
-        title: announcement.title,
-        content: announcement.content,
-        courseId: String(announcement.course?.id ?? 0),
-        priority: announcement.priority ?? 'medium',
-        publishNow: announcement.isPublished === 1,
-      });
+    setForm({
+      title: announcement.title,
+      content: announcement.content,
+      courseId: String(announcement.course?.id ?? 0),
+      priority: announcement.priority ?? 'medium',
+      publishNow: announcement.isPublished === 1,
+    });
     setShowCreateModal(true);
     setOpenMenuId(null);
   };
@@ -332,11 +337,13 @@ export function AnnouncementsManager() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            {([
-              { key: 'all', label: 'All' },
-              { key: 'published', label: 'Published' },
-              { key: 'draft', label: 'Drafts' },
-            ] as const).map((f) => (
+            {(
+              [
+                { key: 'all', label: 'All' },
+                { key: 'published', label: 'Published' },
+                { key: 'draft', label: 'Drafts' },
+              ] as const
+            ).map((f) => (
               <button
                 key={f.key}
                 onClick={() => setFilter(f.key)}
@@ -355,7 +362,10 @@ export function AnnouncementsManager() {
           </div>
 
           <div className="relative">
-            <Search size={18} className={`absolute left-3 top-1/2 -translate-y-1/2 ${textSecondary}`} />
+            <Search
+              size={18}
+              className={`absolute left-3 top-1/2 -translate-y-1/2 ${textSecondary}`}
+            />
             <input
               type="text"
               placeholder="Search announcements..."
@@ -385,7 +395,9 @@ export function AnnouncementsManager() {
                         {a.isPinned === 1 && <Pin className="w-4 h-4 text-amber-500" />}
                       </div>
 
-                      <h3 className={`text-lg font-semibold flex items-center gap-2 ${textPrimary}`}>
+                      <h3
+                        className={`text-lg font-semibold flex items-center gap-2 ${textPrimary}`}
+                      >
                         <span
                           className={`w-2 h-2 rounded-full ${
                             a.priority === 'urgent'
@@ -405,7 +417,9 @@ export function AnnouncementsManager() {
                       <div className="flex flex-wrap items-center gap-3 mt-3 text-sm">
                         <span
                           className={`px-2 py-0.5 rounded text-xs font-medium ${
-                            isDark ? 'bg-indigo-500/20 text-indigo-400' : 'bg-indigo-50 text-indigo-700'
+                            isDark
+                              ? 'bg-indigo-500/20 text-indigo-400'
+                              : 'bg-indigo-50 text-indigo-700'
                           }`}
                         >
                           {getCourseLabel(a)}
@@ -416,7 +430,9 @@ export function AnnouncementsManager() {
                             isDark ? 'bg-blue-500/20 text-blue-300' : 'bg-blue-50 text-blue-700'
                           }`}
                         >
-                          {a.announcementType ?? (a as Announcement & { type?: string }).type ?? 'course'}
+                          {a.announcementType ??
+                            (a as Announcement & { type?: string }).type ??
+                            'course'}
                         </span>
                         <span
                           className={`px-2 py-0.5 rounded text-xs font-medium ${
@@ -456,7 +472,9 @@ export function AnnouncementsManager() {
                           <button
                             onClick={() => openEdit(a)}
                             className={`w-full flex items-center gap-2 px-4 py-2 text-sm ${
-                              isDark ? 'hover:bg-white/5 text-gray-300' : 'hover:bg-gray-50 text-gray-700'
+                              isDark
+                                ? 'hover:bg-white/5 text-gray-300'
+                                : 'hover:bg-gray-50 text-gray-700'
                             }`}
                           >
                             <Edit3 size={14} /> Edit
@@ -476,7 +494,9 @@ export function AnnouncementsManager() {
                           <button
                             onClick={() => handlePin(a)}
                             className={`w-full flex items-center gap-2 px-4 py-2 text-sm ${
-                              isDark ? 'hover:bg-white/5 text-gray-300' : 'hover:bg-gray-50 text-gray-700'
+                              isDark
+                                ? 'hover:bg-white/5 text-gray-300'
+                                : 'hover:bg-gray-50 text-gray-700'
                             }`}
                           >
                             <Pin size={14} /> {a.isPinned === 1 ? 'Unpin' : 'Pin'}
@@ -526,7 +546,9 @@ export function AnnouncementsManager() {
 
       {showCreateModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className={`rounded-xl shadow-xl w-full max-w-2xl ${isDark ? 'bg-[#1e293b]' : 'bg-white'}`}>
+          <div
+            className={`rounded-xl shadow-xl w-full max-w-2xl ${isDark ? 'bg-[#1e293b]' : 'bg-white'}`}
+          >
             <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-white/10">
               <h2 className={`text-xl font-semibold ${textPrimary}`}>
                 {editingAnnouncement ? 'Edit Announcement' : 'New Announcement'}
@@ -565,7 +587,9 @@ export function AnnouncementsManager() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className={`block text-sm font-medium mb-1.5 ${textPrimary}`}>Course</label>
+                  <label className={`block text-sm font-medium mb-1.5 ${textPrimary}`}>
+                    Course
+                  </label>
                   <CleanSelect
                     value={form.courseId}
                     onChange={(e) => setForm((f) => ({ ...f, courseId: e.target.value }))}
@@ -579,17 +603,19 @@ export function AnnouncementsManager() {
                   </CleanSelect>
                 </div>
                 <div>
-                  <label className={`block text-sm font-medium mb-1.5 ${textPrimary}`}>Priority</label>
-                    <CleanSelect
-                      value={form.priority}
-                      onChange={(e) => setForm((f) => ({ ...f, priority: e.target.value }))}
-                      className={inputClass}
-                    >
-                      <option value="low">Low</option>
-                      <option value="medium">Medium</option>
-                      <option value="high">High</option>
-                      <option value="urgent">Urgent</option>
-                    </CleanSelect>
+                  <label className={`block text-sm font-medium mb-1.5 ${textPrimary}`}>
+                    Priority
+                  </label>
+                  <CleanSelect
+                    value={form.priority}
+                    onChange={(e) => setForm((f) => ({ ...f, priority: e.target.value }))}
+                    className={inputClass}
+                  >
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                    <option value="urgent">Urgent</option>
+                  </CleanSelect>
                 </div>
               </div>
 
@@ -610,7 +636,9 @@ export function AnnouncementsManager() {
                   setEditingAnnouncement(null);
                 }}
                 className={`px-4 py-2 rounded-lg text-sm ${
-                  isDark ? 'bg-white/5 text-gray-300 hover:bg-white/10' : 'bg-gray-100 text-gray-600'
+                  isDark
+                    ? 'bg-white/5 text-gray-300 hover:bg-white/10'
+                    : 'bg-gray-100 text-gray-600'
                 }`}
               >
                 Cancel
@@ -629,12 +657,16 @@ export function AnnouncementsManager() {
 
       {showDeleteConfirm && deletingAnnouncement && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className={`rounded-xl shadow-xl w-full max-w-sm ${isDark ? 'bg-[#1e293b]' : 'bg-white'}`}>
+          <div
+            className={`rounded-xl shadow-xl w-full max-w-sm ${isDark ? 'bg-[#1e293b]' : 'bg-white'}`}
+          >
             <div className="p-6 text-center">
               <div className="mx-auto w-12 h-12 rounded-full bg-red-100 dark:bg-red-500/20 flex items-center justify-center mb-4">
                 <AlertTriangle size={24} className="text-red-500" />
               </div>
-              <h3 className={`text-lg font-semibold mb-2 ${textPrimary}`}>Delete this announcement?</h3>
+              <h3 className={`text-lg font-semibold mb-2 ${textPrimary}`}>
+                Delete this announcement?
+              </h3>
               <p className={`text-sm font-medium ${textPrimary}`}>{deletingAnnouncement.title}</p>
             </div>
             <div className="flex gap-3 p-6 pt-0">

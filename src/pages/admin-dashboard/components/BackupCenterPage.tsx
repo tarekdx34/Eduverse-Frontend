@@ -17,7 +17,6 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { CleanSelect } from '../../../components/shared';
 
-
 type TabId = 'overview' | 'backups' | 'export';
 type ExportFormat = 'csv' | 'xlsx' | 'pdf' | 'json';
 type BackupFrequency = 'daily' | 'weekly' | 'monthly';
@@ -40,11 +39,46 @@ interface ExportHistoryItem {
 }
 
 const backupHistory: BackupEntry[] = [
-  { id: 1, type: 'Full Backup', size: '2.1 GB', date: 'Feb 25, 2025 02:00', trigger: 'Auto', status: 'completed' },
-  { id: 2, type: 'Full Backup', size: '2.0 GB', date: 'Feb 24, 2025 02:00', trigger: 'Auto', status: 'completed' },
-  { id: 3, type: 'Manual Backup', size: '1.8 GB', date: 'Feb 23, 2025 14:30', trigger: 'Manual', status: 'completed' },
-  { id: 4, type: 'Full Backup', size: '2.0 GB', date: 'Feb 22, 2025 02:00', trigger: 'Auto', status: 'completed' },
-  { id: 5, type: 'Full Backup', size: '1.9 GB', date: 'Feb 21, 2025 02:00', trigger: 'Auto', status: 'failed' },
+  {
+    id: 1,
+    type: 'Full Backup',
+    size: '2.1 GB',
+    date: 'Feb 25, 2025 02:00',
+    trigger: 'Auto',
+    status: 'completed',
+  },
+  {
+    id: 2,
+    type: 'Full Backup',
+    size: '2.0 GB',
+    date: 'Feb 24, 2025 02:00',
+    trigger: 'Auto',
+    status: 'completed',
+  },
+  {
+    id: 3,
+    type: 'Manual Backup',
+    size: '1.8 GB',
+    date: 'Feb 23, 2025 14:30',
+    trigger: 'Manual',
+    status: 'completed',
+  },
+  {
+    id: 4,
+    type: 'Full Backup',
+    size: '2.0 GB',
+    date: 'Feb 22, 2025 02:00',
+    trigger: 'Auto',
+    status: 'completed',
+  },
+  {
+    id: 5,
+    type: 'Full Backup',
+    size: '1.9 GB',
+    date: 'Feb 21, 2025 02:00',
+    trigger: 'Auto',
+    status: 'failed',
+  },
 ];
 
 const exportHistoryData: ExportHistoryItem[] = [
@@ -88,8 +122,8 @@ export function BackupCenterPage() {
   const btnOutline = `border ${isDark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`;
 
   const toggleCategory = (key: string) => {
-    setSelectedCategories(prev =>
-      prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
+    setSelectedCategories((prev) =>
+      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
     );
   };
 
@@ -98,7 +132,7 @@ export function BackupCenterPage() {
     setExporting(true);
     setExportProgress(0);
     const interval = setInterval(() => {
-      setExportProgress(prev => {
+      setExportProgress((prev) => {
         if (prev >= 100) {
           clearInterval(interval);
           setExporting(false);
@@ -146,13 +180,19 @@ export function BackupCenterPage() {
       <div className={cardClass}>
         <h3 className={`text-lg font-semibold mb-4 ${textPrimary}`}>Quick Actions</h3>
         <div className="flex flex-wrap gap-3">
-          <button className={`px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2 transition-colors ${btnPrimary}`}>
+          <button
+            className={`px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2 transition-colors ${btnPrimary}`}
+          >
             <Upload size={16} /> Backup Now
           </button>
-          <button className={`px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2 transition-colors ${btnOutline}`}>
+          <button
+            className={`px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2 transition-colors ${btnOutline}`}
+          >
             <Clock size={16} /> Schedule Backup
           </button>
-          <button className={`px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2 transition-colors ${btnOutline}`}>
+          <button
+            className={`px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2 transition-colors ${btnOutline}`}
+          >
             <Download size={16} /> Export Data
           </button>
         </div>
@@ -167,14 +207,17 @@ export function BackupCenterPage() {
             { label: 'Files', size: '1.5 GB', pct: 31.25, color: 'bg-blue-500' },
             { label: 'Media', size: '0.8 GB', pct: 16.67, color: 'bg-amber-500' },
             { label: 'Logs', size: '0.4 GB', pct: 8.33, color: 'bg-emerald-500' },
-          ].map(item => (
+          ].map((item) => (
             <div key={item.label}>
               <div className="flex justify-between text-sm mb-1">
                 <span className={textPrimary}>{item.label}</span>
                 <span className={textSecondary}>{item.size}</span>
               </div>
               <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                <div className={`${item.color} h-2 rounded-full`} style={{ width: `${item.pct}%` }} />
+                <div
+                  className={`${item.color} h-2 rounded-full`}
+                  style={{ width: `${item.pct}%` }}
+                />
               </div>
             </div>
           ))}
@@ -202,7 +245,9 @@ export function BackupCenterPage() {
               onClick={() => setAutoBackupEnabled(!autoBackupEnabled)}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${autoBackupEnabled ? '' : 'bg-gray-300 dark:bg-gray-600'}`}
             >
-              <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${autoBackupEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${autoBackupEnabled ? 'translate-x-6' : 'translate-x-1'}`}
+              />
             </button>
           </div>
 
@@ -211,7 +256,7 @@ export function BackupCenterPage() {
             <label className={`block text-sm font-medium mb-1 ${textPrimary}`}>Frequency</label>
             <CleanSelect
               value={backupFrequency}
-              onChange={e => setBackupFrequency(e.target.value as BackupFrequency)}
+              onChange={(e) => setBackupFrequency(e.target.value as BackupFrequency)}
               className={`w-full rounded-lg border px-3 py-2 text-sm ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
             >
               <option value="daily">Daily</option>
@@ -230,7 +275,7 @@ export function BackupCenterPage() {
               min={7}
               max={90}
               value={retentionDays}
-              onChange={e => setRetentionDays(Number(e.target.value))}
+              onChange={(e) => setRetentionDays(Number(e.target.value))}
               className="w-full accent-blue-600"
             />
           </div>
@@ -238,7 +283,9 @@ export function BackupCenterPage() {
           {/* Time */}
           <div>
             <label className={`block text-sm font-medium mb-1 ${textPrimary}`}>Backup Time</label>
-            <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}>
+            <div
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+            >
               <Clock size={16} className={textSecondary} />
               02:00 AM
             </div>
@@ -253,14 +300,19 @@ export function BackupCenterPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className={`border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
-                {['Type', 'Size', 'Date', 'Trigger', 'Status', 'Actions'].map(h => (
-                  <th key={h} className={`text-left py-3 px-3 font-medium ${textSecondary}`}>{h}</th>
+                {['Type', 'Size', 'Date', 'Trigger', 'Status', 'Actions'].map((h) => (
+                  <th key={h} className={`text-left py-3 px-3 font-medium ${textSecondary}`}>
+                    {h}
+                  </th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {backupHistory.map(b => (
-                <tr key={b.id} className={`border-b ${isDark ? 'border-gray-700/50' : 'border-gray-100'}`}>
+              {backupHistory.map((b) => (
+                <tr
+                  key={b.id}
+                  className={`border-b ${isDark ? 'border-gray-700/50' : 'border-gray-100'}`}
+                >
                   <td className={`py-3 px-3 ${textPrimary}`}>
                     <div className="flex items-center gap-2">
                       <Archive size={16} className="text-blue-500" />
@@ -270,11 +322,13 @@ export function BackupCenterPage() {
                   <td className={`py-3 px-3 ${textSecondary}`}>{b.size}</td>
                   <td className={`py-3 px-3 ${textSecondary}`}>{b.date}</td>
                   <td className="py-3 px-3">
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                      b.trigger === 'Auto'
-                        ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                        : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                    }`}>
+                    <span
+                      className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                        b.trigger === 'Auto'
+                          ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                          : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                      }`}
+                    >
                       {b.trigger}
                     </span>
                   </td>
@@ -292,15 +346,24 @@ export function BackupCenterPage() {
                   <td className="py-3 px-3">
                     <div className="flex items-center gap-2">
                       {b.status === 'completed' ? (
-                        <button className={`p-1.5 rounded-lg transition-colors ${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`} title="Download">
+                        <button
+                          className={`p-1.5 rounded-lg transition-colors ${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
+                          title="Download"
+                        >
                           <Download size={15} className={textSecondary} />
                         </button>
                       ) : (
-                        <button className={`p-1.5 rounded-lg transition-colors ${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`} title="Retry">
+                        <button
+                          className={`p-1.5 rounded-lg transition-colors ${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
+                          title="Retry"
+                        >
                           <RefreshCw size={15} className="text-amber-500" />
                         </button>
                       )}
-                      <button className={`p-1.5 rounded-lg transition-colors ${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`} title="Delete">
+                      <button
+                        className={`p-1.5 rounded-lg transition-colors ${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
+                        title="Delete"
+                      >
                         <Trash2 size={15} className="text-red-500" />
                       </button>
                     </div>
@@ -323,7 +386,7 @@ export function BackupCenterPage() {
           <h3 className={`text-lg font-semibold ${textPrimary}`}>Data Selection</h3>
           <div className="flex gap-2">
             <button
-              onClick={() => setSelectedCategories(dataCategories.map(c => c.key))}
+              onClick={() => setSelectedCategories(dataCategories.map((c) => c.key))}
               className={`text-xs px-3 py-1 rounded-lg transition-colors ${btnOutline}`}
             >
               Select All
@@ -337,13 +400,17 @@ export function BackupCenterPage() {
           </div>
         </div>
         <div className="space-y-3">
-          {dataCategories.map(cat => (
+          {dataCategories.map((cat) => (
             <label
               key={cat.key}
               className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
                 selectedCategories.includes(cat.key)
-                  ? isDark ? 'bg-blue-900/20 border border-blue-700' : 'bg-blue-50 border border-blue-200'
-                  : isDark ? 'hover:bg-gray-700/50' : 'hover:bg-gray-50'
+                  ? isDark
+                    ? 'bg-blue-900/20 border border-blue-700'
+                    : 'bg-blue-50 border border-blue-200'
+                  : isDark
+                    ? 'hover:bg-gray-700/50'
+                    : 'hover:bg-gray-50'
               }`}
             >
               <input
@@ -365,13 +432,15 @@ export function BackupCenterPage() {
       <div className={cardClass}>
         <h3 className={`text-lg font-semibold mb-4 ${textPrimary}`}>Export Format</h3>
         <div className="flex flex-wrap gap-3">
-          {(['csv', 'xlsx', 'pdf', 'json'] as ExportFormat[]).map(fmt => (
+          {(['csv', 'xlsx', 'pdf', 'json'] as ExportFormat[]).map((fmt) => (
             <label
               key={fmt}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border cursor-pointer transition-colors ${
                 exportFormat === fmt
                   ? ' border-blue-600 text-white'
-                  : isDark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                  : isDark
+                    ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
+                    : 'border-gray-300 text-gray-700 hover:bg-gray-50'
               }`}
             >
               <input
@@ -418,7 +487,7 @@ export function BackupCenterPage() {
       <div className={cardClass}>
         <h3 className={`text-lg font-semibold mb-4 ${textPrimary}`}>Export History</h3>
         <div className="space-y-3">
-          {exportHistoryData.map(item => (
+          {exportHistoryData.map((item) => (
             <div
               key={item.id}
               className={`flex items-center justify-between p-3 rounded-lg ${isDark ? 'bg-gray-700/50' : 'bg-gray-50'}`}
@@ -427,10 +496,15 @@ export function BackupCenterPage() {
                 <FileText size={18} className="text-blue-500" />
                 <div>
                   <p className={`text-sm font-medium ${textPrimary}`}>{item.name}</p>
-                  <p className={`text-xs ${textSecondary}`}>{item.format} · {item.size} · {item.date}</p>
+                  <p className={`text-xs ${textSecondary}`}>
+                    {item.format} · {item.size} · {item.date}
+                  </p>
                 </div>
               </div>
-              <button className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-gray-600' : 'hover:bg-gray-200'}`} title="Download">
+              <button
+                className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-gray-600' : 'hover:bg-gray-200'}`}
+                title="Download"
+              >
                 <Download size={16} className={textSecondary} />
               </button>
             </div>
@@ -450,14 +524,16 @@ export function BackupCenterPage() {
 
       {/* Tabs */}
       <div className={`flex gap-1 p-1 rounded-xl ${isDark ? 'bg-gray-800' : 'bg-gray-100'}`}>
-        {tabs.map(tab => (
+        {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
               activeTab === tab.id
                 ? `${btnPrimary} shadow-sm`
-                : isDark ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'
+                : isDark
+                  ? 'text-gray-400 hover:text-white'
+                  : 'text-gray-600 hover:text-gray-900'
             }`}
           >
             {tab.icon}
