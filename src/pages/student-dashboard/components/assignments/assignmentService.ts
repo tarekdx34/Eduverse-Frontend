@@ -97,9 +97,8 @@ export const StudentAssignmentService = {
     if (submissionText) {
       formData.append('submissionText', submissionText);
     }
-    return ApiClient.post<AssignmentSubmission>(`/assignments/${assignmentId}/submit`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    // Don't set Content-Type header - let browser set it with boundary
+    return ApiClient.post<AssignmentSubmission>(`/assignments/${assignmentId}/submit`, formData);
   },
 
   /**
@@ -111,12 +110,10 @@ export const StudentAssignmentService = {
   async uploadSubmissionFile(assignmentId: string, file: File): Promise<{ fileId: number }> {
     const formData = new FormData();
     formData.append('file', file);
+    // Don't set Content-Type header - let browser set it with boundary
     return ApiClient.post<{ fileId: number }>(
       `/assignments/${assignmentId}/submissions/upload`,
-      formData,
-      {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      }
+      formData
     );
   },
 };

@@ -297,10 +297,14 @@ export function useAssignment(assignmentId: string) {
     setLoading(true);
     setError(null);
     try {
-      const [assignmentData, submissionData] = await Promise.all([
-        StudentAssignmentService.getById(assignmentId),
-        StudentAssignmentService.getMySubmission(assignmentId),
-      ]);
+      console.log('[useAssignment] Fetching assignment:', assignmentId);
+      
+      // Fetch assignment first
+      const assignmentResponse = await StudentAssignmentService.getById(assignmentId);
+      console.log('[useAssignment] Assignment response:', assignmentResponse);
+      
+      // Handle possible paginated response for single assignment
+      const assignmentData = (assignmentResponse as any)?.data || assignmentResponse;
       
       // Normalize field names: handle both 'id' and 'assignmentId'
       const normalizedAssignment = {
@@ -308,9 +312,20 @@ export function useAssignment(assignmentId: string) {
         id: (assignmentData as any).id || (assignmentData as any).assignmentId || assignmentId,
       };
       
+      console.log('[useAssignment] Normalized assignment:', normalizedAssignment);
       setAssignment(normalizedAssignment as Assignment);
-      setSubmission(submissionData);
+      
+      // Fetch submission separately (don't fail if it doesn't exist)
+      try {
+        const submissionData = await StudentAssignmentService.getMySubmission(assignmentId);
+        console.log('[useAssignment] Submission:', submissionData);
+        setSubmission(submissionData);
+      } catch (submissionErr) {
+        console.log('[useAssignment] No submission found (this is OK)');
+        setSubmission(null);
+      }
     } catch (err) {
+      console.error('[useAssignment] Error fetching assignment:', err);
       const message = err instanceof Error ? err.message : 'Failed to load assignment';
       setError(message);
       toast.error(message);

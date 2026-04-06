@@ -62,72 +62,53 @@ const QuizTaker: React.FC<QuizTakerProps> = ({
       if (!answer) {
         return {
           questionId: question.id,
-          answer: null,
+          answerText: '',
         };
       }
 
-      let transformedAnswer: any;
+      let answerText = '';
 
-      switch (question.type) {
+      switch (question.type || question.questionType) {
         case 'mcq': {
-          const selectedIndex = answer.selectedOption
-            ? questions
-                .find((q) => q.id === question.id)
-                ?.options?.findIndex(
-                  (opt) =>
-                    opt === answer.selectedOption || opt.id === answer.selectedOption
-                )
-            : -1;
-          transformedAnswer = {
-            selectedOption: selectedIndex >= 0 ? [String(selectedIndex)] : [],
-          };
+          // For MCQ, send the selected option text
+          answerText = answer.selectedOption || answer || '';
           break;
         }
 
         case 'true_false': {
-          const boolValue = answer.selectedOption === 'true' || answer.selectedOption === true;
-          transformedAnswer = {
-            selectedOption: [boolValue ? '0' : '1'],
-          };
+          // For true/false, send 'true' or 'false'
+          answerText = String(answer.selectedOption || answer || 'false');
           break;
         }
 
         case 'short_answer':
         case 'essay': {
-          transformedAnswer = {
-            answerText: answer.answerText || '',
-          };
+          // For text answers, send the text directly
+          answerText = answer.answerText || answer || '';
           break;
         }
 
         case 'matching': {
-          const pairs = answer.matchingPairs as MatchingPair[] | undefined;
-          transformedAnswer = {
-            matchingPairs: pairs || [],
-          };
+          // For matching, serialize the pairs as JSON string
+          const pairs = answer.matchingPairs || [];
+          answerText = JSON.stringify(pairs);
           break;
         }
 
         case 'multiple_select': {
-          const selectedIndices = (answer.selectedOptions as string[])?.map((opt) => {
-            const idx = question.options?.findIndex(
-              (o) => o === opt || o?.id === opt
-            );
-            return String(idx);
-          }) || [];
-          transformedAnswer = {
-            selectedOptions: selectedIndices,
-          };
+          // For multiple select, serialize selected options as JSON
+          const selected = answer.selectedOptions || [];
+          answerText = JSON.stringify(selected);
           break;
         }
 
         default:
-          transformedAnswer = answer;
+          answerText = typeof answer === 'string' ? answer : JSON.stringify(answer);
       }
 
       return {
         questionId: question.id,
-        answer: transformedAnswer,
+        answerText,
       };
     });
 
@@ -203,7 +184,15 @@ const QuizTaker: React.FC<QuizTakerProps> = ({
 
     try {
       const answersArray = transformAnswersForApi();
+      console.log('[QuizTaker] Submitting answers:', JSON.stringify(answersArray, null, 2));
+      console.log('[QuizTaker] Number of answers:', answersArray.length);
+      console.log('[QuizTaker] Sample answer:', answersArray[0]);
+      
       const result = await QuizService.submitAttempt(quizId, attemptId, answersArray);
+      console.log('[QuizTaker] Submit result:', result);
+      console.log('[QuizTaker] Result percentage:', result.percentage);
+      console.log('[QuizTaker] Result answers:', result.answers);
+      
       toast.success(t('quiz.submittedSuccessfully'));
       onSubmit(result);
     } catch (error) {
@@ -349,11 +338,15 @@ const QuizTaker: React.FC<QuizTakerProps> = ({
           }`}
         >
           <QuestionDisplay
-            question={currentQuestion}
-            answer={answers[currentQuestion.id]}
+            id={currentQuestion.id}
+            questionNumber={currentQuestionIndex + 1}
+            questionType={currentQuestion.questionType || currentQuestion.type || 'mcq'}
+            questionText={currentQuestion.questionText}
+            options={currentQuestion.options}
+            matchingPairs={currentQuestion.matchingPairs}
+            points={parseFloat(currentQuestion.points || '0')}
+            selectedAnswer={answers[currentQuestion.id] || null}
             onAnswerChange={(answer) => handleAnswerChange(currentQuestion.id, answer)}
-            isSkipped={skippedQuestions.has(currentQuestion.id)}
-            isDark={isDark}
           />
         </div>
 

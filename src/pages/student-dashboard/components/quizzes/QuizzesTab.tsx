@@ -110,6 +110,8 @@ const QuizzesTab = () => {
       try {
         // 1. Fetch full quiz with questions
         const fullQuiz = await QuizService.getById(quizId);
+        console.log('[QuizzesTab] Full quiz data:', fullQuiz);
+        console.log('[QuizzesTab] Questions from quiz:', fullQuiz.questions);
 
         // 2. Check for existing in-progress attempt
         const existingAttempt = await QuizService.getInProgressAttempt(quizId);
@@ -133,13 +135,41 @@ const QuizzesTab = () => {
         } else {
           // Start new attempt
           attempt = await QuizService.startAttempt(quizId);
+          console.log('[QuizzesTab] New attempt started:', attempt);
+          console.log('[QuizzesTab] Questions from attempt:', attempt.questions);
         }
+
+        // Use questions from attempt if available, otherwise from quiz
+        const questions = (attempt as any).questions || fullQuiz.questions || [];
+        console.log('[QuizzesTab] Final questions array:', questions);
+        console.log('[QuizzesTab] Questions count:', questions.length);
+        
+        // Normalize question IDs (handle both id and questionId fields)
+        const normalizedQuestions = questions.map((q: any) => ({
+          ...q,
+          id: String(q.id || q.questionId || q.question_id || ''),
+          type: q.questionType || q.type || 'mcq',
+          points: String(q.points || '0'),
+        }));
+        
+        console.log('[QuizzesTab] Normalized questions:', normalizedQuestions);
 
         // Calculate remaining time for resumed attempts
         const startTime = new Date(attempt.startedAt).getTime();
         const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
         const totalSeconds = (fullQuiz.timeLimitMinutes || 30) * 60;
-        const remainingSeconds = Math.max(0, totalSeconds - elapsedSeconds);
+        let remainingSeconds = Math.max(0, totalSeconds - elapsedSeconds);
+
+        // Check if the resumed attempt has expired
+        let isNewAttempt = !existingAttempt;
+        if (existingAttempt && remainingSeconds <= 0) {
+          toast.error('Previous attempt has expired. Starting a new attempt...');
+          // Start a new attempt instead
+          attempt = await QuizService.startAttempt(quizId);
+          savedAnswers = {}; // Clear saved answers
+          isNewAttempt = true;
+          remainingSeconds = totalSeconds; // Full time for new attempt
+        }
 
         // Get remaining attempts
         const myAttempts = await QuizService.getMyAttempts(quizId);
@@ -148,8 +178,8 @@ const QuizzesTab = () => {
         setActiveQuiz({
           quizId,
           attemptId: attempt.id,
-          questions: fullQuiz.questions || [],
-          timeLimitSeconds: existingAttempt ? remainingSeconds : totalSeconds,
+          questions: normalizedQuestions,
+          timeLimitSeconds: isNewAttempt ? totalSeconds : remainingSeconds,
           quizTitle: fullQuiz.title,
           courseCode: fullQuiz.course?.code || 'Course',
           courseColor: '#3B82F6',
@@ -161,6 +191,7 @@ const QuizzesTab = () => {
         });
         setView('active');
       } catch (error: any) {
+        console.error('[QuizzesTab] Error starting quiz:', error);
         if (error.message?.includes('Maximum attempts')) {
           toast.error('Maximum attempts reached');
         } else {
@@ -180,6 +211,9 @@ const QuizzesTab = () => {
   const handleQuizSubmit = useCallback((result: AttemptResult) => {
     const questions = activeQuiz?.questions || [];
     const passingScore = activeQuiz?.passingScore || 50;
+    
+    // Defensive: Handle case where answers array might be undefined
+    const answers = result.answers || [];
 
     const resultData: QuizResultData = {
       score: result.totalScore,
@@ -187,12 +221,12 @@ const QuizzesTab = () => {
       percentage: result.percentage,
       passed: result.percentage >= passingScore,
       grade: getLetterGrade(result.percentage),
-      correct: result.answers.filter((a) => a.isCorrect).length,
-      wrong: result.answers.filter(
+      correct: answers.filter((a) => a.isCorrect).length,
+      wrong: answers.filter(
         (a) => !a.isCorrect && a.selectedAnswer
       ).length,
-      skipped: result.answers.filter((a) => !a.selectedAnswer).length,
-      questions: result.answers.map((a) => ({
+      skipped: answers.filter((a) => !a.selectedAnswer).length,
+      questions: answers.map((a) => ({
         questionId: String(a.questionId),
         questionText: a.questionText || '',
         questionType: 'mcq', // Default, could be improved

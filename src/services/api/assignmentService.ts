@@ -107,12 +107,10 @@ export class AssignmentService {
     if (submissionText) {
       formData.append('submissionText', submissionText);
     }
+    // Don't set Content-Type - let browser add boundary automatically
     return ApiClient.post<AssignmentSubmission>(
       '/assignments/' + assignmentId + '/submit',
-      formData,
-      {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      }
+      formData
     );
   }
 
@@ -146,12 +144,10 @@ export class AssignmentService {
   static async uploadInstructions(assignmentId: string, file: File): Promise<void> {
     const formData = new FormData();
     formData.append('file', file);
+    // Don't set Content-Type - let browser add boundary automatically
     return ApiClient.post<void>(
       '/assignments/' + assignmentId + '/instructions/upload',
-      formData,
-      {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      }
+      formData
     );
   }
 
@@ -162,12 +158,10 @@ export class AssignmentService {
   ): Promise<{ fileId: number }> {
     const formData = new FormData();
     formData.append('file', file);
+    // Don't set Content-Type - let browser add boundary automatically
     return ApiClient.post<{ fileId: number }>(
       '/assignments/' + assignmentId + '/submissions/upload',
-      formData,
-      {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      }
+      formData
     );
   }
 

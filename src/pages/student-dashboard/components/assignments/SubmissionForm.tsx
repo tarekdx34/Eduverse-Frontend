@@ -44,6 +44,7 @@ export function SubmissionForm({ assignment, onSubmitSuccess, disabled = false }
   const availableTabs = getAvailableTabs();
   const [activeTab, setActiveTab] = useState<TabType>(availableTabs[0]);
   const [submitting, setSubmitting] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<string>('');
   const [showConfirmation, setShowConfirmation] = useState(false);
 
   // Form state for each type
@@ -77,13 +78,22 @@ export function SubmissionForm({ assignment, onSubmitSuccess, disabled = false }
     if (!isValid() || submitting || disabled) return;
 
     setSubmitting(true);
+    setUploadProgress('');
     try {
       switch (activeTab) {
         case 'text':
           await StudentAssignmentService.submitText(assignment.id, textContent);
           break;
         case 'file':
-          await StudentAssignmentService.submitFile(assignment.id, files[0]);
+          // Two-step process: 1) Upload file, 2) Submit with fileId
+          setUploadProgress('Uploading file...');
+          console.log('[SubmissionForm] Uploading file...');
+          const { fileId } = await StudentAssignmentService.uploadSubmissionFile(assignment.id, files[0]);
+          console.log('[SubmissionForm] File uploaded, fileId:', fileId);
+          
+          setUploadProgress('Submitting assignment...');
+          console.log('[SubmissionForm] Submitting with fileId...');
+          await StudentAssignmentService.submitWithFileId(assignment.id, fileId);
           break;
         case 'link':
           await StudentAssignmentService.submitLink(assignment.id, linkUrl);
