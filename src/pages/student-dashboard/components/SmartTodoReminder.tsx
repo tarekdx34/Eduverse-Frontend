@@ -14,7 +14,7 @@ import {
 import { useState } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { defaultAssignments as assignments } from './Assignments';
+// Note: defaultAssignments removed - use real assignment data from API
 
 interface Todo {
   id: number | string;
@@ -33,19 +33,8 @@ export function SmartTodoReminder() {
   const { isDark, primaryHex } = useTheme() as any;
   const accentColor = primaryHex || '#3b82f6';
 
-  const assignmentTodos: Todo[] = assignments
-    .filter((a) => a.status === 'pending' || a.status === 'in-progress')
-    .map((a) => ({
-      id: `assign-${a.id}`,
-      title: a.title,
-      description: a.course,
-      dueDate: a.dueDate,
-      dueTime: a.dueTime,
-      priority: a.priority as 'high' | 'medium' | 'low',
-      category: 'Assignment',
-      isCompleted: false,
-      tags: [a.courseCode, a.type],
-    }));
+  // TODO: Fetch actual assignments from API and convert to todos
+  const assignmentTodos: Todo[] = [];
 
   const [todos, setTodos] = useState<Todo[]>([
     ...assignmentTodos,

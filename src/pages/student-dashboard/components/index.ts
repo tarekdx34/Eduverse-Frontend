@@ -7,8 +7,9 @@ export { default as PaymentHistory } from './PaymentHistory';
 export { default as ClassTab } from './ClassTab';
 export { default as WeeklySchedule } from './WeeklySchedule';
 export { default as GradesTranscript } from './GradesTranscript';
-export { default as Assignments } from './Assignments';
-export { default as AssignmentDetails } from './AssignmentDetails';
+// New modular assignments implementation
+export { AssignmentsPage as Assignments } from './assignments';
+// Legacy exports removed - AssignmentDetails integrated into AssignmentsPage
 export { default as AcademicCalendar } from './AcademicCalendar';
 export { default as ClassSchedule } from './ClassSchedule';
 export { AIFeatures } from './AIFeatures';
@@ -23,4 +24,5 @@ export { GlobalSearch } from './GlobalSearch';
 export { SettingsPreferences } from './SettingsPreferences';
 export { AINotes } from './AINotes';
 export { QuizTaking } from './QuizTaking';
+export { QuizzesTab } from './quizzes';
 export { GradeAnalysis } from './GradeAnalysis';

@@ -39,7 +39,7 @@ import {
   CourseCommunity,
   LabInstructions,
   SettingsPreferences,
-  QuizTaking,
+  QuizzesTab,
 } from './components';
 import { DashboardHeader, DashboardSidebar, MessagingChat } from '../../components/shared';
 import { DashboardProfileTab } from '../../components/shared/DashboardProfileTab';
@@ -417,7 +417,7 @@ function StudentDashboardContent() {
               {activeTab === 'labs' && <LabInstructions />}
               {activeTab === 'calendar' && <AcademicCalendar />}
               {activeTab === 'ai' && <AIFeatures />}
-              {activeTab === 'quizzes' && <QuizTaking />}
+              {activeTab === 'quizzes' && <QuizzesTab />}
               {activeTab === 'grades' && <GradesTranscript />}
               {activeTab === 'attendance' && <AttendanceOverview />}
               {activeTab === 'todo' && <SmartTodoReminder />}
