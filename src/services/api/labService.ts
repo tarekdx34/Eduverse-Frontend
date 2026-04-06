@@ -106,15 +106,26 @@ export class LabService {
     }
   }
 
-  // Submit lab (student)
+  // Submit lab text and/or file (student)
   static async submit(labId: string, submissionText: string, file?: File): Promise<LabSubmission> {
-    const formData = new FormData();
-    formData.append('submissionText', submissionText);
+    let uploadedFileId: number | null = null;
+    
     if (file) {
+      const formData = new FormData();
       formData.append('file', file);
+      console.log('[LabService] Firing upload request...');
+      const uploadResponse = await ApiClient.post<any>('/labs/' + labId + '/submissions/upload', formData);
+      console.log('[LabService] Upload raw response:', uploadResponse);
+      
+      // Capture the fileId given returned from the server
+      uploadedFileId = uploadResponse?.fileId || uploadResponse?.id || uploadResponse?.file?.id || null;
+      console.log('[LabService] Extracted uploadedFileId:', uploadedFileId);
     }
-    return ApiClient.post<LabSubmission>('/labs/' + labId + '/submit', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
+    
+    // Always call /submit to update text and trigger any 'submitted' state updates
+    return ApiClient.post<LabSubmission>('/labs/' + labId + '/submit', { 
+      submissionText: submissionText || null,
+      fileId: uploadedFileId
     });
   }
 
