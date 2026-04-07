@@ -1,818 +1,1055 @@
-import React, { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   CalendarDays,
   Sparkles,
   ChevronLeft,
   ChevronRight,
-  Plus,
-  X,
-  Trash2,
-  Edit3,
   Clock,
   MapPin,
+  AlertCircle,
+  Loader2,
+  CheckCircle2,
 } from 'lucide-react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { CustomDropdown } from './CustomDropdown';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { CleanSelect } from '../../../components/shared';
-import { toInputDate } from '../../../lib/formatters';
+import { useAuth } from '../../../context/AuthContext';
+import {
+  ScheduleService,
+  type CampusEvent,
+  type CampusEventQuery,
+  type ClassScheduleItem,
+  type DailyScheduleResponse,
+  type ExamScheduleItem,
+  type OfficeHoursSlot,
+  type OfficeHoursSuggestion,
+  type PersonalEventScheduleItem,
+} from '../../../services/api/scheduleService';
 
-// ── Types ──────────────────────────────────────────────────────────────────────
-interface CalendarEvent {
-  id: number;
-  title: string;
-  type: 'lecture' | 'lab' | 'officeHours' | 'meeting' | 'deadline' | 'grading' | 'exam';
-  course?: string;
+type ViewMode = 'month' | 'week' | 'day';
+type ItemKind = 'class' | 'exam' | 'event' | 'campus_event' | 'office_hours';
+type CampusSource = 'all' | 'my';
+
+type UnifiedScheduleItem = {
+  id: string;
+  kind: ItemKind;
   date: string;
   startTime: string;
   endTime: string;
+  title: string;
+  subtitle?: string;
   location?: string;
   color: string;
-  bgColor: string;
-}
-
-// ── Mock Data ──────────────────────────────────────────────────────────────────
-const initialEvents: CalendarEvent[] = [
-  {
-    id: 1,
-    title: 'Calculus Lecture',
-    type: 'lecture',
-    course: 'Calculus I',
-    date: '2025-05-12',
-    startTime: '09:00',
-    endTime: '10:00',
-    location: 'Room 201',
-    color: 'text-blue-700',
-    bgColor: 'bg-blue-100',
-  },
-  {
-    id: 2,
-    title: 'Physics Lecture',
-    type: 'lecture',
-    course: 'Physics II',
-    date: '2025-05-13',
-    startTime: '13:00',
-    endTime: '14:00',
-    location: 'Room 305',
-    color: 'text-blue-700',
-    bgColor: 'bg-blue-100',
-  },
-  {
-    id: 3,
-    title: 'Digital Logic Lab',
-    type: 'lab',
-    course: 'Digital Logic',
-    date: '2025-05-14',
-    startTime: '10:00',
-    endTime: '11:00',
-    location: 'Lab 3',
-    color: 'text-orange-700',
-    bgColor: 'bg-orange-100',
-  },
-  {
-    id: 4,
-    title: 'CS Quiz',
-    type: 'exam',
-    course: 'Computer Science',
-    date: '2025-05-14',
-    startTime: '11:30',
-    endTime: '12:30',
-    location: 'Hall A',
-    color: '',
-    bgColor: '',
-  },
-  {
-    id: 5,
-    title: 'Office Hours',
-    type: 'officeHours',
-    date: '2025-05-15',
-    startTime: '12:00',
-    endTime: '13:00',
-    location: 'Office 110',
-    color: 'text-green-700',
-    bgColor: 'bg-green-100',
-  },
-  {
-    id: 6,
-    title: 'Department Meeting',
-    type: 'meeting',
-    date: '2025-05-15',
-    startTime: '16:00',
-    endTime: '17:00',
-    location: 'Conference Room',
-    color: 'text-amber-700',
-    bgColor: 'bg-amber-100',
-  },
-  {
-    id: 7,
-    title: 'Assignment Deadline',
-    type: 'deadline',
-    course: 'Calculus I',
-    date: '2025-05-16',
-    startTime: '23:00',
-    endTime: '23:59',
-    color: 'text-red-700',
-    bgColor: 'bg-red-100',
-  },
-  {
-    id: 8,
-    title: 'Grading Session',
-    type: 'grading',
-    course: 'Physics II',
-    date: '2025-05-16',
-    startTime: '13:00',
-    endTime: '14:00',
-    location: 'Office 110',
-    color: 'text-cyan-700',
-    bgColor: 'bg-cyan-100',
-  },
-];
-
-const EVENT_TYPES = [
-  'lecture',
-  'lab',
-  'officeHours',
-  'meeting',
-  'deadline',
-  'grading',
-  'exam',
-] as const;
-const TYPE_COLORS: Record<string, { color: string; bgColor: string }> = {
-  lecture: { color: 'text-blue-700', bgColor: 'bg-blue-100' },
-  lab: { color: 'text-orange-700', bgColor: 'bg-orange-100' },
-  officeHours: { color: 'text-green-700', bgColor: 'bg-green-100' },
-  meeting: { color: 'text-amber-700', bgColor: 'bg-amber-100' },
-  deadline: { color: 'text-red-700', bgColor: 'bg-red-100' },
-  grading: { color: 'text-cyan-700', bgColor: 'bg-cyan-100' },
-  exam: { color: '', bgColor: '' },
+  isMandatory?: boolean;
+  registrationRequired?: boolean;
+  campusEvent?: CampusEvent;
+  classItem?: ClassScheduleItem;
+  examItem?: ExamScheduleItem;
+  personalEvent?: PersonalEventScheduleItem;
+  officeHoursSlot?: OfficeHoursSlot;
 };
 
-const HOURS = Array.from({ length: 13 }, (_, i) => i + 8); // 8AM-8PM
+const typeStyles: Record<ItemKind, { text: string; bg: string; border: string }> = {
+  class: { text: 'text-blue-700', bg: 'bg-blue-100', border: 'border-blue-400' },
+  exam: { text: 'text-red-700', bg: 'bg-red-100', border: 'border-red-400' },
+  event: { text: 'text-purple-700', bg: 'bg-purple-100', border: 'border-purple-400' },
+  campus_event: { text: 'text-emerald-700', bg: 'bg-emerald-100', border: 'border-emerald-400' },
+  office_hours: { text: 'text-amber-700', bg: 'bg-amber-100', border: 'border-amber-400' },
+};
 
-// ── Helpers ────────────────────────────────────────────────────────────────────
-function startOfWeek(d: Date): Date {
+const pad = (n: number) => String(n).padStart(2, '0');
+
+const toISODate = (date: Date) =>
+  `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+
+const startOfWeek = (d: Date) => {
   const date = new Date(d);
+  date.setHours(0, 0, 0, 0);
   date.setDate(date.getDate() - date.getDay());
   return date;
-}
+};
 
-function formatDateISO(d: Date): string {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
-}
+const endOfWeek = (d: Date) => {
+  const date = startOfWeek(d);
+  date.setDate(date.getDate() + 6);
+  return date;
+};
 
-function formatHour(h: number): string {
-  if (h === 0 || h === 12) return `12:00 ${h < 12 ? 'AM' : 'PM'}`;
-  return `${h > 12 ? h - 12 : h}:00 ${h >= 12 ? 'PM' : 'AM'}`;
-}
+const startOfMonth = (d: Date) => new Date(d.getFullYear(), d.getMonth(), 1);
+const endOfMonth = (d: Date) => new Date(d.getFullYear(), d.getMonth() + 1, 0);
 
-function formatTime24to12(t: string): string {
-  const [hStr, mStr] = t.split(':');
-  let h = parseInt(hStr, 10);
+const normalizeTime = (value: string) => {
+  if (!value) return '00:00';
+  if (value.includes('T')) {
+    const dt = new Date(value);
+    return `${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
+  }
+  const [h = '00', m = '00'] = value.split(':');
+  return `${pad(Number(h))}:${pad(Number(m))}`;
+};
+
+const formatTime24To12 = (time: string) => {
+  const [hStr, mStr] = normalizeTime(time).split(':');
+  let h = Number(hStr);
   const suffix = h >= 12 ? 'PM' : 'AM';
   if (h === 0) h = 12;
   else if (h > 12) h -= 12;
   return `${h}:${mStr} ${suffix}`;
-}
+};
 
-function isSameDay(a: Date, b: Date): boolean {
-  return (
-    a.getFullYear() === b.getFullYear() &&
-    a.getMonth() === b.getMonth() &&
-    a.getDate() === b.getDate()
-  );
-}
+const formatDateHeader = (isoDate: string, locale: 'en' | 'ar') => {
+  const date = new Date(`${isoDate}T00:00:00`);
+  return date.toLocaleDateString(locale === 'ar' ? 'ar-EG' : 'en-US', {
+    weekday: 'long',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+};
 
-const MONTH_NAMES = [
-  'January',
-  'February',
-  'March',
-  'April',
-  'May',
-  'June',
-  'July',
-  'August',
-  'September',
-  'October',
-  'November',
-  'December',
-];
-const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-const DAY_NAMES_FULL = [
-  'Sunday',
-  'Monday',
-  'Tuesday',
-  'Wednesday',
-  'Thursday',
-  'Friday',
-  'Saturday',
-];
+const addDays = (date: Date, days: number) => {
+  const next = new Date(date);
+  next.setDate(next.getDate() + days);
+  return next;
+};
 
-// ── Component ──────────────────────────────────────────────────────────────────
-export function SchedulePage() {
-  const { t, isRTL } = useLanguage();
-  const { isDark, primaryHex = '#3b82f6' } = useTheme() as any;
-
-  // State
-  const [viewMode, setViewMode] = useState<'month' | 'week' | 'day'>('week');
-  const [currentDate, setCurrentDate] = useState(new Date(2025, 4, 14)); // May 14 2025
-  const [events, setEvents] = useState<CalendarEvent[]>(initialEvents);
-  const [showEventModal, setShowEventModal] = useState(false);
-  const [showEventDetails, setShowEventDetails] = useState<CalendarEvent | null>(null);
-  const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
-  const [courseFilter, setCourseFilter] = useState('all');
-  const [typeFilter, setTypeFilter] = useState('all');
-
-  // Form state
-  const emptyForm = {
-    title: '',
-    type: 'lecture' as CalendarEvent['type'],
-    course: '',
-    date: '',
-    startTime: '09:00',
-    endTime: '10:00',
-    location: '',
-  };
-  const [formData, setFormData] = useState(emptyForm);
-
-  const today = new Date();
-
-  // Filtered events
-  const filteredEvents = useMemo(() => {
-    return events.filter((e) => {
-      if (courseFilter !== 'all' && e.course !== courseFilter) return false;
-      if (typeFilter !== 'all' && e.type !== typeFilter) return false;
-      return true;
-    });
-  }, [events, courseFilter, typeFilter]);
-
-  const courseOptions = useMemo(() => {
-    const courses = Array.from(new Set(events.map((e) => e.course).filter(Boolean))) as string[];
-    return [
-      { value: 'all', label: t('allCourses') },
-      ...courses.map((c) => ({ value: c, label: c })),
-    ];
-  }, [events, t]);
-
-  // Navigation
-  const navigatePrev = () => {
-    const d = new Date(currentDate);
-    if (viewMode === 'month') d.setMonth(d.getMonth() - 1);
-    else if (viewMode === 'week') d.setDate(d.getDate() - 7);
-    else d.setDate(d.getDate() - 1);
-    setCurrentDate(d);
-  };
-  const navigateNext = () => {
-    const d = new Date(currentDate);
-    if (viewMode === 'month') d.setMonth(d.getMonth() + 1);
-    else if (viewMode === 'week') d.setDate(d.getDate() + 7);
-    else d.setDate(d.getDate() + 1);
-    setCurrentDate(d);
-  };
-  const goToToday = () => setCurrentDate(new Date());
-
-  // CRUD
-  const openCreateModal = (date?: string, time?: string) => {
-    setEditingEvent(null);
-    setFormData({
-      ...emptyForm,
-      date: date || formatDateISO(currentDate),
-      startTime: time || '09:00',
-      endTime: time
-        ? `${String(parseInt(time.split(':')[0], 10) + 1).padStart(2, '0')}:00`
-        : '10:00',
-    });
-    setShowEventModal(true);
-  };
-  const openEditModal = (ev: CalendarEvent) => {
-    setEditingEvent(ev);
-    setFormData({
-      title: ev.title,
-      type: ev.type,
-      course: ev.course || '',
-      date: ev.date,
-      startTime: ev.startTime,
-      endTime: ev.endTime,
-      location: ev.location || '',
-    });
-    setShowEventDetails(null);
-    setShowEventModal(true);
-  };
-  const saveEvent = () => {
-    const colors = TYPE_COLORS[formData.type] || TYPE_COLORS.lecture;
-    if (editingEvent) {
-      setEvents((prev) =>
-        prev.map((e) => (e.id === editingEvent.id ? { ...e, ...formData, ...colors } : e))
-      );
-    } else {
-      const newId = Math.max(0, ...events.map((e) => e.id)) + 1;
-      setEvents((prev) => [...prev, { id: newId, ...formData, ...colors }]);
-    }
-    setShowEventModal(false);
-    setEditingEvent(null);
-  };
-  const deleteEvent = (id: number) => {
-    setEvents((prev) => prev.filter((e) => e.id !== id));
-    setShowEventDetails(null);
-    setShowEventModal(false);
-  };
-
-  // Header label
-  const headerLabel = useMemo(() => {
-    if (viewMode === 'month')
-      return `${MONTH_NAMES[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
-    if (viewMode === 'day')
-      return `${DAY_NAMES_FULL[currentDate.getDay()]}, ${MONTH_NAMES[currentDate.getMonth()]} ${currentDate.getDate()}, ${currentDate.getFullYear()}`;
-    const ws = startOfWeek(currentDate);
-    const we = new Date(ws);
-    we.setDate(we.getDate() + 6);
-    return `${MONTH_NAMES[ws.getMonth()]} ${ws.getDate()} - ${MONTH_NAMES[we.getMonth()]} ${we.getDate()}, ${we.getFullYear()}`;
-  }, [currentDate, viewMode]);
-
-  // Dark mode helpers
-  const pageBg = isDark ? 'bg-transparent' : 'bg-gray-50';
-  const cardBg = isDark ? 'bg-gray-800/50 border-white/10' : 'bg-white border-gray-200';
-  const headerText = isDark ? 'text-white' : 'text-gray-900';
-  const subtitleText = isDark ? 'text-gray-400' : 'text-gray-600';
-  const slotBorder = isDark ? 'border-white/5' : 'border-gray-100';
-  const toggleBg = isDark ? 'bg-gray-700' : 'bg-gray-100';
-  const toggleInactive = isDark
-    ? 'text-gray-300 hover:bg-gray-600'
-    : 'text-gray-600 hover:bg-white';
-  const dayHeaderText = isDark ? 'text-gray-300' : 'text-gray-700';
-  const timeText = isDark ? 'text-gray-500' : 'text-gray-500';
-  const modalBg = isDark ? 'bg-gray-800 border-white/10' : 'bg-white border-gray-200';
-  const inputBg = isDark
-    ? 'bg-gray-700 border-gray-600 text-white'
-    : 'bg-white border-gray-300 text-gray-900';
-
-  const getEventStyle = (event: CalendarEvent): React.CSSProperties | undefined => {
-    if (event.type !== 'exam') return undefined;
+const getRangeByView = (currentDate: Date, viewMode: ViewMode) => {
+  if (viewMode === 'day') {
+    const day = toISODate(currentDate);
+    return { startDate: day, endDate: day };
+  }
+  if (viewMode === 'week') {
     return {
-      backgroundColor: isDark ? `${primaryHex}26` : `${primaryHex}1A`,
-      color: primaryHex,
+      startDate: toISODate(startOfWeek(currentDate)),
+      endDate: toISODate(endOfWeek(currentDate)),
+    };
+  }
+  return {
+    startDate: toISODate(startOfMonth(currentDate)),
+    endDate: toISODate(endOfMonth(currentDate)),
+  };
+};
+
+const weekdayNameToIndex: Record<string, number> = {
+  sunday: 0,
+  sun: 0,
+  monday: 1,
+  mon: 1,
+  tuesday: 2,
+  tue: 2,
+  tues: 2,
+  wednesday: 3,
+  wed: 3,
+  thursday: 4,
+  thu: 4,
+  thurs: 4,
+  friday: 5,
+  fri: 5,
+  saturday: 6,
+  sat: 6,
+};
+
+const normalizeOfficeHoursSlotsResponse = (payload: unknown): OfficeHoursSlot[] => {
+  const normalizeSlot = (value: unknown): OfficeHoursSlot | null => {
+    if (!value || typeof value !== 'object') return null;
+    const slot = value as Record<string, unknown>;
+    const slotIdRaw = slot.slotId ?? slot.id;
+    const instructorIdRaw = slot.instructorId;
+    const dayOfWeek = typeof slot.dayOfWeek === 'string' ? slot.dayOfWeek : '';
+    const startTime = typeof slot.startTime === 'string' ? slot.startTime : '';
+    const endTime = typeof slot.endTime === 'string' ? slot.endTime : '';
+    const location = typeof slot.location === 'string' ? slot.location : '';
+    const mode = typeof slot.mode === 'string' ? slot.mode : 'in_person';
+
+    if (!dayOfWeek || !startTime || !endTime) return null;
+
+    const slotId = Number(slotIdRaw);
+    const instructorId = Number(instructorIdRaw);
+    const maxAppointments = Number(slot.maxAppointments ?? 0);
+    const currentAppointments = Number(slot.currentAppointments ?? 0);
+
+    return {
+      slotId: Number.isFinite(slotId) ? slotId : 0,
+      instructorId: Number.isFinite(instructorId) ? instructorId : 0,
+      dayOfWeek,
+      startTime,
+      endTime,
+      location,
+      mode,
+      maxAppointments: Number.isFinite(maxAppointments) ? maxAppointments : 0,
+      currentAppointments: Number.isFinite(currentAppointments) ? currentAppointments : 0,
     };
   };
 
-  const getEventClasses = (event: CalendarEvent) =>
-    event.type === 'exam' ? '' : `${event.bgColor} ${event.color}`;
-
-  // ── Month View ─────────────────────────────────────────────────────────────
-  const renderMonthView = () => {
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth();
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-    const startDate = new Date(firstDay);
-    startDate.setDate(startDate.getDate() - startDate.getDay());
-
-    const weeks: Date[][] = [];
-    const cursor = new Date(startDate);
-    while (cursor <= lastDay || weeks.length < 5) {
-      const week: Date[] = [];
-      for (let i = 0; i < 7; i++) {
-        week.push(new Date(cursor));
-        cursor.setDate(cursor.getDate() + 1);
-      }
-      weeks.push(week);
-      if (weeks.length >= 6) break;
-    }
-
-    return (
-      <div className="p-4">
-        <div className="grid grid-cols-7 gap-1 mb-2">
-          {DAY_NAMES.map((d) => (
-            <div key={d} className={`text-xs font-medium text-center py-1 ${dayHeaderText}`}>
-              {d}
-            </div>
-          ))}
-        </div>
-        <div className="grid grid-cols-7 gap-1">
-          {weeks.flat().map((day, idx) => {
-            const iso = formatDateISO(day);
-            const dayEvents = filteredEvents.filter((e) => e.date === iso);
-            const isCurrentMonth = day.getMonth() === month;
-            const isToday = isSameDay(day, today);
-            return (
-              <button
-                key={idx}
-                onClick={() => {
-                  setCurrentDate(new Date(day));
-                  setViewMode('day');
-                }}
-                className={`relative p-2 min-h-[70px] rounded-lg text-left transition-colors ${
-                  isToday
-                    ? 'text-white'
-                    : isCurrentMonth
-                      ? isDark
-                        ? 'hover:bg-gray-700'
-                        : 'hover:bg-gray-50'
-                      : isDark
-                        ? 'opacity-40'
-                        : 'opacity-40'
-                } ${slotBorder} border`}
-                style={isToday ? { backgroundColor: primaryHex } : undefined}
-              >
-                <span
-                  className={`text-sm font-medium ${isToday ? 'text-white' : isCurrentMonth ? headerText : timeText}`}
-                >
-                  {day.getDate()}
-                </span>
-                {dayEvents.length > 0 && (
-                  <div className="flex gap-1 mt-1 flex-wrap">
-                    {dayEvents.slice(0, 3).map((ev) => (
-                      <span
-                        key={ev.id}
-                        className={`w-2 h-2 rounded-full ${ev.type === 'exam' ? '' : ev.bgColor}`}
-                        style={ev.type === 'exam' ? { backgroundColor: primaryHex } : undefined}
-                      />
-                    ))}
-                    {dayEvents.length > 3 && (
-                      <span className={`text-[10px] ${isToday ? 'text-white/80' : timeText}`}>
-                        +{dayEvents.length - 3}
-                      </span>
-                    )}
-                  </div>
-                )}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-    );
+  const fromArray = (value: unknown): OfficeHoursSlot[] => {
+    if (!Array.isArray(value)) return [];
+    return value.map(normalizeSlot).filter((slot): slot is OfficeHoursSlot => slot !== null);
   };
 
-  // ── Week View ──────────────────────────────────────────────────────────────
-  const renderWeekView = () => {
-    const ws = startOfWeek(currentDate);
-    const weekDays = Array.from({ length: 7 }, (_, i) => {
-      const d = new Date(ws);
-      d.setDate(d.getDate() + i);
-      return d;
-    });
+  if (Array.isArray(payload)) return fromArray(payload);
+  if (!payload || typeof payload !== 'object') return [];
 
-    return (
-      <div className="p-4 overflow-x-auto">
-        <div className="grid grid-cols-8 gap-2 mb-4 min-w-[700px]">
-          <div className={`text-xs font-medium ${timeText}`}>Time</div>
-          {weekDays.map((day) => (
-            <div
-              key={day.toISOString()}
-              className={`text-xs font-medium ${isSameDay(day, today) ? 'font-bold' : dayHeaderText}`}
-              style={isSameDay(day, today) ? { color: primaryHex } : undefined}
-            >
-              {DAY_NAMES[day.getDay()]} {MONTH_NAMES[day.getMonth()].slice(0, 3)} {day.getDate()}
-            </div>
-          ))}
-        </div>
-        {HOURS.map((hour) => (
-          <div key={hour} className="grid grid-cols-8 gap-2 mb-2 min-w-[700px]">
-            <div className={`text-xs ${timeText} py-2`}>{formatHour(hour)}</div>
-            {weekDays.map((day) => {
-              const iso = formatDateISO(day);
-              const hourStr = String(hour).padStart(2, '0');
-              const slotEvents = filteredEvents.filter((e) => {
-                if (e.date !== iso) return false;
-                const eHour = parseInt(e.startTime.split(':')[0], 10);
-                return eHour === hour;
-              });
-              return (
-                <div
-                  key={`${iso}-${hour}`}
-                  className={`border ${slotBorder} rounded p-1 min-h-[60px] cursor-pointer transition-colors ${isDark ? 'hover:bg-gray-700/50' : 'hover:bg-gray-50'}`}
-                  onClick={() => {
-                    if (slotEvents.length === 0) openCreateModal(iso, `${hourStr}:00`);
-                  }}
-                >
-                  {slotEvents.map((ev) => (
-                    <div
-                      key={ev.id}
-                      className={`${getEventClasses(ev)} p-2 rounded text-xs cursor-pointer mb-1`}
-                      style={getEventStyle(ev)}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setShowEventDetails(ev);
-                      }}
-                    >
-                      <div className="font-medium truncate">{ev.title}</div>
-                      <div>{formatTime24to12(ev.startTime)}</div>
-                    </div>
-                  ))}
-                </div>
-              );
-            })}
+  const obj = payload as Record<string, unknown>;
+  const dataSlots = fromArray(obj.data);
+  if (dataSlots.length) return dataSlots;
+  const slots = fromArray(obj.slots);
+  if (slots.length) return slots;
+  return fromArray(obj.results);
+};
+
+const getWeekdayIndex = (dayOfWeek: string): number | null => {
+  const normalized = dayOfWeek.trim().toLowerCase();
+  if (normalized in weekdayNameToIndex) return weekdayNameToIndex[normalized];
+
+  if (/^\d+$/.test(normalized)) {
+    const numeric = Number(normalized);
+    if (numeric >= 0 && numeric <= 6) return numeric;
+    if (numeric >= 1 && numeric <= 7) return numeric % 7;
+  }
+
+  return null;
+};
+
+const getDatesInRange = (startDate: string, endDate: string): string[] => {
+  const dates: string[] = [];
+  const start = new Date(`${startDate}T00:00:00`);
+  const end = new Date(`${endDate}T00:00:00`);
+
+  for (let cursor = new Date(start); cursor <= end; cursor = addDays(cursor, 1)) {
+    dates.push(toISODate(cursor));
+  }
+
+  return dates;
+};
+
+const getOfficeHoursModeLabel = (mode: string, t: (key: string) => string) => {
+  const normalized = mode.trim().toLowerCase();
+  if (normalized === 'in_person') return t('officeHoursInPerson');
+  if (normalized === 'online') return t('officeHoursOnline');
+  if (normalized === 'hybrid') return t('officeHoursHybrid');
+  return mode.replace(/_/g, ' ');
+};
+
+const buildLocalOfficeHoursSuggestions = (slots: OfficeHoursSlot[]): OfficeHoursSuggestion[] => {
+  const ranked = slots
+    .map<OfficeHoursSuggestion>((slot) => {
+      const maxAppointments = Math.max(0, slot.maxAppointments);
+      const currentAppointments = Math.max(0, slot.currentAppointments);
+      const remaining = Math.max(maxAppointments - currentAppointments, 0);
+      const utilization = maxAppointments > 0 ? currentAppointments / maxAppointments : 0;
+      const availabilityScore = maxAppointments > 0 ? (remaining / maxAppointments) * 100 : 50;
+      const [startHour] = normalizeTime(slot.startTime).split(':').map(Number);
+      const daytimeBonus = startHour >= 10 && startHour <= 14 ? 8 : 0;
+      const score = Math.round(availabilityScore + daytimeBonus);
+
+      const conflicts =
+        maxAppointments > 0 && currentAppointments >= maxAppointments
+          ? [
+              {
+                type: 'appointment',
+                title: 'Slot is full',
+                startTime: slot.startTime,
+                endTime: slot.endTime,
+                severity: 'hard',
+              },
+            ]
+          : [];
+
+      return {
+        slot,
+        score,
+        conflicts,
+        recommendation: utilization >= 1 ? 'has_conflicts' : 'good',
+      };
+    })
+    .sort((a, b) => b.score - a.score);
+
+  const bestCandidateIndex = ranked.findIndex((entry) => entry.recommendation !== 'has_conflicts');
+  if (bestCandidateIndex >= 0) {
+    ranked[bestCandidateIndex] = { ...ranked[bestCandidateIndex], recommendation: 'best' };
+  }
+
+  return ranked;
+};
+
+const isEventRegistered = (event: CampusEvent) => event.userRegistration?.status === 'registered';
+
+async function getMonthDays(currentDate: Date): Promise<DailyScheduleResponse[]> {
+  const monthStart = startOfMonth(currentDate);
+  const monthEnd = endOfMonth(currentDate);
+  const firstWeekStart = startOfWeek(monthStart);
+  const finalWeekEnd = endOfWeek(monthEnd);
+
+  const weekStarts: string[] = [];
+  for (let cursor = new Date(firstWeekStart); cursor <= finalWeekEnd; cursor = addDays(cursor, 7)) {
+    weekStarts.push(toISODate(cursor));
+  }
+
+  const weeks = await Promise.all(weekStarts.map((startDate) => ScheduleService.getWeeklyUnified(startDate)));
+  const map = new Map<string, DailyScheduleResponse>();
+  weeks.forEach((week) => {
+    (week.days || []).forEach((day) => {
+      map.set(day.date, day);
+    });
+  });
+
+  return Array.from(map.values()).filter(
+    (day) => day.date >= toISODate(monthStart) && day.date <= toISODate(monthEnd)
+  );
+}
+
+// Calendar view shared props
+interface CalendarViewProps {
+  currentDate: Date;
+  filteredItems: UnifiedScheduleItem[];
+  isDark: boolean;
+  headerText: string;
+  subtitleText: string;
+  primaryHex: string;
+  typeStyles: Record<ItemKind, { text: string; bg: string; border: string }>;
+  language: 'en' | 'ar';
+  noEventsText: string;
+  onSelectItem: (item: UnifiedScheduleItem) => void;
+}
+
+// Get color based on item kind
+const getEventColor = (kind: ItemKind): string => {
+  switch (kind) {
+    case 'class': return '#3b82f6';
+    case 'exam': return '#ef4444';
+    case 'event': return '#8b5cf6';
+    case 'campus_event': return '#10b981';
+    case 'office_hours': return '#f59e0b';
+    default: return '#6b7280';
+  }
+};
+
+// Month Calendar View Component
+function MonthCalendarView({
+  currentDate,
+  filteredItems,
+  isDark,
+  headerText,
+  subtitleText,
+  primaryHex,
+  onSelectItem,
+  onDateClick,
+}: CalendarViewProps & { onDateClick: (date: Date) => void }) {
+  const monthStart = startOfMonth(currentDate);
+  const monthEnd = endOfMonth(currentDate);
+  const calendarStart = startOfWeek(monthStart);
+  const calendarEnd = endOfWeek(monthEnd);
+
+  const weeks: Date[][] = [];
+  let currentWeek: Date[] = [];
+  let cursor = new Date(calendarStart);
+
+  while (cursor <= calendarEnd) {
+    currentWeek.push(new Date(cursor));
+    if (currentWeek.length === 7) {
+      weeks.push(currentWeek);
+      currentWeek = [];
+    }
+    cursor = addDays(cursor, 1);
+  }
+
+  const today = toISODate(new Date());
+  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+  const getItemsForDate = (date: Date) => {
+    const iso = toISODate(date);
+    return filteredItems.filter((item) => item.date === iso);
+  };
+
+  return (
+    <div className="h-full">
+      {/* Day headers */}
+      <div className="grid grid-cols-7 gap-px mb-1">
+        {dayNames.map((day) => (
+          <div
+            key={day}
+            className={`text-center text-xs font-semibold py-2 ${subtitleText}`}
+          >
+            {day}
           </div>
         ))}
       </div>
-    );
+
+      {/* Calendar grid */}
+      <div className={`grid grid-cols-7 gap-px rounded-lg overflow-hidden border ${isDark ? 'bg-white/10 border-white/10' : 'bg-gray-200 border-gray-200'}`}>
+        {weeks.map((week, weekIdx) =>
+          week.map((date, dayIdx) => {
+            const iso = toISODate(date);
+            const isCurrentMonth = date.getMonth() === currentDate.getMonth();
+            const isToday = iso === today;
+            const dayItems = getItemsForDate(date);
+
+            return (
+              <div
+                key={`${weekIdx}-${dayIdx}`}
+                className={`min-h-[100px] p-1 cursor-pointer transition-colors ${
+                  isDark ? 'bg-gray-800 hover:bg-gray-700' : 'bg-white hover:bg-gray-50'
+                } ${!isCurrentMonth ? 'opacity-40' : ''}`}
+                onClick={() => onDateClick(date)}
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <span
+                    className={`text-xs font-medium w-6 h-6 flex items-center justify-center rounded-full ${
+                      isToday
+                        ? 'text-white'
+                        : isCurrentMonth
+                        ? headerText
+                        : subtitleText
+                    }`}
+                    style={isToday ? { backgroundColor: primaryHex } : undefined}
+                  >
+                    {date.getDate()}
+                  </span>
+                  {dayItems.length > 3 && (
+                    <span className={`text-[10px] ${subtitleText}`}>+{dayItems.length - 3}</span>
+                  )}
+                </div>
+                <div className="space-y-0.5">
+                  {dayItems.slice(0, 3).map((item) => (
+                    <button
+                      key={item.id}
+                      className="w-full text-left px-1.5 py-0.5 rounded text-[10px] font-medium truncate transition-opacity hover:opacity-80"
+                      style={{
+                        backgroundColor: `${getEventColor(item.kind)}20`,
+                        color: getEventColor(item.kind),
+                        borderLeft: `2px solid ${getEventColor(item.kind)}`,
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onSelectItem(item);
+                      }}
+                      title={`${item.title} - ${formatTime24To12(item.startTime)}`}
+                    >
+                      {item.title}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Week Calendar View Component
+function WeekCalendarView({
+  currentDate,
+  filteredItems,
+  isDark,
+  headerText,
+  subtitleText,
+  primaryHex,
+  onSelectItem,
+}: CalendarViewProps) {
+  const weekStart = startOfWeek(currentDate);
+  const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
+  const today = toISODate(new Date());
+
+  const hours = Array.from({ length: 14 }, (_, i) => i + 7); // 7 AM to 8 PM
+
+  const getItemsForDate = (date: Date) => {
+    const iso = toISODate(date);
+    return filteredItems.filter((item) => item.date === iso);
   };
 
-  // ── Day View ───────────────────────────────────────────────────────────────
-  const renderDayView = () => {
-    const iso = formatDateISO(currentDate);
-    const dayEvents = filteredEvents.filter((e) => e.date === iso);
+  const getItemPosition = (item: UnifiedScheduleItem) => {
+    const [sh, sm] = item.startTime.split(':').map(Number);
+    const [eh, em] = item.endTime.split(':').map(Number);
+    const startMinutes = sh * 60 + sm;
+    const endMinutes = eh * 60 + em;
+    const dayStart = 7 * 60; // 7 AM
+    const top = ((startMinutes - dayStart) / 60) * 60; // 60px per hour
+    const height = Math.max(((endMinutes - startMinutes) / 60) * 60, 24);
+    return { top: Math.max(0, top), height };
+  };
 
-    return (
-      <div className="p-4">
-        {HOURS.map((hour) => {
-          const hourStr = String(hour).padStart(2, '0');
-          const slotEvents = dayEvents.filter((e) => {
-            const eH = parseInt(e.startTime.split(':')[0], 10);
-            return eH === hour;
-          });
+  return (
+    <div className="h-full overflow-auto">
+      {/* Day headers */}
+      <div className="grid grid-cols-8 gap-px sticky top-0 z-10">
+        <div className={`w-16 ${isDark ? 'bg-gray-800' : 'bg-white'}`} />
+        {days.map((date) => {
+          const iso = toISODate(date);
+          const isToday = iso === today;
           return (
             <div
-              key={hour}
-              className={`flex border-b ${slotBorder} min-h-[70px] cursor-pointer ${isDark ? 'hover:bg-gray-700/30' : 'hover:bg-gray-50'}`}
-              onClick={() => {
-                if (slotEvents.length === 0) openCreateModal(iso, `${hourStr}:00`);
-              }}
+              key={iso}
+              className={`text-center py-2 ${isDark ? 'bg-gray-800' : 'bg-white'}`}
             >
-              <div
-                className={`w-20 flex-shrink-0 text-xs ${timeText} py-3 ${isRTL ? 'text-left pl-3' : 'text-right pr-3'}`}
-              >
-                {formatHour(hour)}
+              <div className={`text-xs font-medium ${subtitleText}`}>
+                {date.toLocaleDateString('en-US', { weekday: 'short' })}
               </div>
-              <div className="flex-1 py-1 px-2 space-y-1">
-                {slotEvents.map((ev) => (
-                  <div
-                    key={ev.id}
-                    className={`${getEventClasses(ev)} p-3 rounded-lg text-sm cursor-pointer`}
-                    style={getEventStyle(ev)}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setShowEventDetails(ev);
-                    }}
-                  >
-                    <div className="font-medium">{ev.title}</div>
-                    <div className="flex items-center gap-3 mt-1 text-xs">
-                      <span className="flex items-center gap-1">
-                        <Clock size={12} /> {formatTime24to12(ev.startTime)} -{' '}
-                        {formatTime24to12(ev.endTime)}
-                      </span>
-                      {ev.location && (
-                        <span className="flex items-center gap-1">
-                          <MapPin size={12} /> {ev.location}
-                        </span>
-                      )}
-                    </div>
-                    {ev.course && <div className="text-xs mt-1 opacity-80">{ev.course}</div>}
-                  </div>
-                ))}
+              <div
+                className={`text-lg font-semibold mt-1 w-8 h-8 mx-auto flex items-center justify-center rounded-full ${
+                  isToday ? 'text-white' : headerText
+                }`}
+                style={isToday ? { backgroundColor: primaryHex } : undefined}
+              >
+                {date.getDate()}
               </div>
             </div>
           );
         })}
       </div>
-    );
-  };
 
-  // ── Event Details Popup ────────────────────────────────────────────────────
-  const renderEventDetails = () => {
-    if (!showEventDetails) return null;
-    const ev = showEventDetails;
-    return (
-      <div
-        className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
-        onClick={() => setShowEventDetails(null)}
-      >
-        <div
-          className={`rounded-xl border shadow-xl p-6 w-full max-w-md ${modalBg}`}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <h3 className={`text-lg font-semibold ${headerText}`}>{ev.title}</h3>
-              <span
-                className={`inline-block px-2 py-0.5 rounded text-xs font-medium mt-1 ${getEventClasses(ev)}`}
-                style={getEventStyle(ev)}
-              >
-                {ev.type}
-              </span>
-            </div>
-            <button
-              onClick={() => setShowEventDetails(null)}
-              className={`p-1 rounded-lg ${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
+      {/* Time grid */}
+      <div className="grid grid-cols-8 gap-px">
+        {/* Time labels column */}
+        <div className={`w-16 ${isDark ? 'bg-gray-800' : 'bg-gray-50'}`}>
+          {hours.map((hour) => (
+            <div
+              key={hour}
+              className={`h-[60px] text-right pr-2 text-xs ${subtitleText}`}
+              style={{ lineHeight: '60px' }}
             >
-              <X size={20} className={subtitleText} />
-            </button>
-          </div>
-          <div className={`space-y-2 text-sm ${subtitleText}`}>
-            {ev.course && (
-              <div>
-                <span className="font-medium">Course:</span> {ev.course}
-              </div>
-            )}
-            <div className="flex items-center gap-2">
-              <Clock size={14} /> {formatTime24to12(ev.startTime)} - {formatTime24to12(ev.endTime)}
+              {formatTime24To12(`${pad(hour)}:00`)}
             </div>
-            {ev.location && (
-              <div className="flex items-center gap-2">
-                <MapPin size={14} /> {ev.location}
-              </div>
-            )}
-            <div>
-              <span className="font-medium">Date:</span> {ev.date}
-            </div>
-          </div>
-          <div className="flex gap-2 mt-6">
-            <button
-              onClick={() => openEditModal(ev)}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-2 text-white rounded-lg transition-colors text-sm"
-              style={{ backgroundColor: primaryHex }}
-            >
-              <Edit3 size={14} /> Edit
-            </button>
-            <button
-              onClick={() => deleteEvent(ev.id)}
-              className="flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
-            >
-              <Trash2 size={14} /> Delete
-            </button>
-          </div>
+          ))}
         </div>
+
+        {/* Day columns */}
+        {days.map((date) => {
+          const iso = toISODate(date);
+          const dayItems = getItemsForDate(date);
+
+          return (
+            <div
+              key={iso}
+              className={`relative border-l ${isDark ? 'border-white/10' : 'border-gray-200'}`}
+            >
+              {/* Hour lines */}
+              {hours.map((hour) => (
+                <div
+                  key={hour}
+                  className={`h-[60px] border-b ${isDark ? 'border-white/5' : 'border-gray-100'}`}
+                />
+              ))}
+
+              {/* Events */}
+              {dayItems.map((item) => {
+                const { top, height } = getItemPosition(item);
+                const color = getEventColor(item.kind);
+
+                return (
+                  <button
+                    key={item.id}
+                    className="absolute left-0.5 right-0.5 rounded px-1 py-0.5 text-left overflow-hidden transition-opacity hover:opacity-90"
+                    style={{
+                      top: `${top}px`,
+                      height: `${height}px`,
+                      backgroundColor: `${color}20`,
+                      borderLeft: `3px solid ${color}`,
+                    }}
+                    onClick={() => onSelectItem(item)}
+                  >
+                    <div className="text-[10px] font-semibold truncate" style={{ color }}>
+                      {item.title}
+                    </div>
+                    {height > 30 && (
+                      <div className={`text-[9px] ${subtitleText} truncate`}>
+                        {formatTime24To12(item.startTime)}
+                      </div>
+                    )}
+                    {height > 45 && item.location && (
+                      <div className={`text-[9px] ${subtitleText} truncate`}>
+                        {item.location}
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          );
+        })}
       </div>
-    );
+    </div>
+  );
+}
+
+// Day Calendar View Component
+function DayCalendarView({
+  currentDate,
+  filteredItems,
+  isDark,
+  subtitleText,
+  noEventsText,
+  onSelectItem,
+}: CalendarViewProps) {
+  const iso = toISODate(currentDate);
+  const dayItems = filteredItems.filter((item) => item.date === iso);
+  const hours = Array.from({ length: 16 }, (_, i) => i + 6); // 6 AM to 9 PM
+
+  const getItemPosition = (item: UnifiedScheduleItem) => {
+    const [sh, sm] = item.startTime.split(':').map(Number);
+    const [eh, em] = item.endTime.split(':').map(Number);
+    const startMinutes = sh * 60 + sm;
+    const endMinutes = eh * 60 + em;
+    const dayStart = 6 * 60; // 6 AM
+    const top = ((startMinutes - dayStart) / 60) * 60;
+    const height = Math.max(((endMinutes - startMinutes) / 60) * 60, 30);
+    return { top: Math.max(0, top), height };
   };
 
-  // ── Add/Edit Event Modal ───────────────────────────────────────────────────
-  const renderEventModal = () => {
-    if (!showEventModal) return null;
-    return (
-      <div
-        className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
-        onClick={() => {
-          setShowEventModal(false);
-          setEditingEvent(null);
-        }}
-      >
-        <div
-          className={`rounded-xl border shadow-xl p-6 w-full max-w-lg ${modalBg}`}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div className="flex items-center justify-between mb-6">
-            <h3 className={`text-lg font-semibold ${headerText}`}>
-              {editingEvent ? 'Edit Event' : 'Add Event'}
-            </h3>
-            <button
-              onClick={() => {
-                setShowEventModal(false);
-                setEditingEvent(null);
-              }}
-              className={`p-1 rounded-lg ${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
+  return (
+    <div className="h-full overflow-auto">
+      <div className="grid grid-cols-[80px_1fr] gap-px">
+        {/* Time labels column */}
+        <div className={`${isDark ? 'bg-gray-800' : 'bg-gray-50'}`}>
+          {hours.map((hour) => (
+            <div
+              key={hour}
+              className={`h-[60px] text-right pr-3 text-xs font-medium ${subtitleText}`}
+              style={{ lineHeight: '60px' }}
             >
-              <X size={20} className={subtitleText} />
-            </button>
-          </div>
-          <div className="space-y-4">
-            <div>
-              <label className={`block text-sm font-medium mb-1 ${headerText}`}>Title</label>
-              <input
-                value={formData.title}
-                onChange={(e) => setFormData((p) => ({ ...p, title: e.target.value }))}
-                className={`w-full px-3 py-2 rounded-lg border text-sm ${inputBg}`}
-                placeholder="Event title"
-              />
+              {formatTime24To12(`${pad(hour)}:00`)}
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className={`block text-sm font-medium mb-1 ${headerText}`}>Type</label>
-                <CleanSelect
-                  value={formData.type}
-                  onChange={(e) =>
-                    setFormData((p) => ({ ...p, type: e.target.value as CalendarEvent['type'] }))
-                  }
-                  className={`w-full px-3 py-2 rounded-lg border text-sm ${inputBg}`}
-                >
-                  {EVENT_TYPES.map((t) => (
-                    <option key={t} value={t}>
-                      {t}
-                    </option>
-                  ))}
-                </CleanSelect>
-              </div>
-              <div>
-                <label className={`block text-sm font-medium mb-1 ${headerText}`}>
-                  Course (optional)
-                </label>
-                <input
-                  value={formData.course}
-                  onChange={(e) => setFormData((p) => ({ ...p, course: e.target.value }))}
-                  className={`w-full px-3 py-2 rounded-lg border text-sm ${inputBg}`}
-                  placeholder="Course name"
-                />
-              </div>
-            </div>
-            <div>
-              <label className={`block text-sm font-medium mb-1 ${headerText}`}>Date</label>
-              <input
-                type="date"
-                value={toInputDate(formData.date)}
-                onChange={(e) => setFormData((p) => ({ ...p, date: e.target.value }))}
-                className={`w-full px-3 py-2 rounded-lg border text-sm ${inputBg}`}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className={`block text-sm font-medium mb-1 ${headerText}`}>Start Time</label>
-                <input
-                  type="time"
-                  value={formData.startTime}
-                  onChange={(e) => setFormData((p) => ({ ...p, startTime: e.target.value }))}
-                  className={`w-full px-3 py-2 rounded-lg border text-sm ${inputBg}`}
-                />
-              </div>
-              <div>
-                <label className={`block text-sm font-medium mb-1 ${headerText}`}>End Time</label>
-                <input
-                  type="time"
-                  value={formData.endTime}
-                  onChange={(e) => setFormData((p) => ({ ...p, endTime: e.target.value }))}
-                  className={`w-full px-3 py-2 rounded-lg border text-sm ${inputBg}`}
-                />
-              </div>
-            </div>
-            <div>
-              <label className={`block text-sm font-medium mb-1 ${headerText}`}>
-                Location (optional)
-              </label>
-              <input
-                value={formData.location}
-                onChange={(e) => setFormData((p) => ({ ...p, location: e.target.value }))}
-                className={`w-full px-3 py-2 rounded-lg border text-sm ${inputBg}`}
-                placeholder="Room / Hall"
-              />
-            </div>
-          </div>
-          <div className="flex gap-2 mt-6">
-            <button
-              onClick={saveEvent}
-              disabled={!formData.title || !formData.date}
-              className="flex-1 px-4 py-2 text-white rounded-lg transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{ backgroundColor: primaryHex }}
-            >
-              {editingEvent ? 'Save Changes' : 'Create Event'}
-            </button>
-            {editingEvent && (
+          ))}
+        </div>
+
+        {/* Events column */}
+        <div className={`relative border-l ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
+          {/* Hour lines */}
+          {hours.map((hour) => (
+            <div
+              key={hour}
+              className={`h-[60px] border-b ${isDark ? 'border-white/5' : 'border-gray-100'}`}
+            />
+          ))}
+
+          {/* Events */}
+          {dayItems.map((item) => {
+            const { top, height } = getItemPosition(item);
+            const color = getEventColor(item.kind);
+
+            return (
               <button
-                onClick={() => deleteEvent(editingEvent.id)}
-                className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
+                key={item.id}
+                className="absolute left-1 right-1 rounded-lg px-3 py-2 text-left overflow-hidden transition-all hover:shadow-md"
+                style={{
+                  top: `${top}px`,
+                  height: `${height}px`,
+                  backgroundColor: `${color}15`,
+                  borderLeft: `4px solid ${color}`,
+                }}
+                onClick={() => onSelectItem(item)}
               >
-                <Trash2 size={14} /> Delete
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-semibold truncate" style={{ color }}>
+                      {item.title}
+                    </div>
+                    {height > 40 && (
+                      <div className={`text-xs ${subtitleText} mt-0.5`}>
+                        {formatTime24To12(item.startTime)} - {formatTime24To12(item.endTime)}
+                      </div>
+                    )}
+                    {height > 60 && item.location && (
+                      <div className={`text-xs ${subtitleText} mt-0.5 flex items-center gap-1`}>
+                        <MapPin size={10} />
+                        {item.location}
+                      </div>
+                    )}
+                  </div>
+                  <span
+                    className="px-1.5 py-0.5 rounded text-[10px] font-medium shrink-0"
+                    style={{
+                      backgroundColor: `${color}20`,
+                      color,
+                    }}
+                  >
+                    {item.kind.replace('_', ' ')}
+                  </span>
+                </div>
               </button>
-            )}
-            <button
-              onClick={() => {
-                setShowEventModal(false);
-                setEditingEvent(null);
-              }}
-              className={`px-4 py-2 rounded-lg border text-sm ${isDark ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}
-            >
-              Cancel
-            </button>
-          </div>
+            );
+          })}
+
+          {dayItems.length === 0 && (
+            <div className={`absolute inset-0 flex items-center justify-center ${subtitleText}`}>
+              {noEventsText}
+            </div>
+          )}
         </div>
       </div>
-    );
+    </div>
+  );
+}
+
+export function SchedulePage() {
+  const { t, language } = useLanguage();
+  const { isDark, primaryHex = '#3b82f6' } = useTheme() as { isDark: boolean; primaryHex: string };
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  const [viewMode, setViewMode] = useState<ViewMode>('week');
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [courseFilter, setCourseFilter] = useState('all');
+  const [typeFilter, setTypeFilter] = useState<'all' | ItemKind>('all');
+  const [campusSource, setCampusSource] = useState<CampusSource>('all');
+  const [selectedItem, setSelectedItem] = useState<UnifiedScheduleItem | null>(null);
+  const [latestSuggestions, setLatestSuggestions] = useState<OfficeHoursSuggestion[]>([]);
+
+  const { startDate, endDate } = useMemo(
+    () => getRangeByView(currentDate, viewMode),
+    [currentDate, viewMode]
+  );
+
+  const dayDate = toISODate(currentDate);
+  const weekStart = toISODate(startOfWeek(currentDate));
+
+  const dailyQuery = useQuery({
+    queryKey: ['schedule-daily-unified', dayDate],
+    queryFn: () => ScheduleService.getDailyUnified(dayDate),
+  });
+
+  const weeklyQuery = useQuery({
+    queryKey: ['schedule-weekly-unified', weekStart],
+    queryFn: () => ScheduleService.getWeeklyUnified(weekStart),
+  });
+
+  const monthQuery = useQuery({
+    queryKey: ['schedule-month-unified', currentDate.getFullYear(), currentDate.getMonth()],
+    queryFn: () => getMonthDays(currentDate),
+    enabled: viewMode === 'month',
+  });
+
+  const campusEventsQuery = useQuery({
+    queryKey: ['schedule-campus-events', campusSource, startDate, endDate],
+    queryFn: () => {
+      if (campusSource === 'my') {
+        return ScheduleService.getMyCampusEvents({ page: 1, limit: 200 });
+      }
+      const params: CampusEventQuery = {
+        page: 1,
+        limit: 200,
+        status: 'published',
+        fromDate: startDate,
+        toDate: endDate,
+      };
+      return ScheduleService.getCampusEvents(params);
+    },
+  });
+
+  const officeHoursQuery = useQuery({
+    queryKey: ['schedule-office-hours-slots', user?.userId],
+    queryFn: async () => {
+      const payload = (await ScheduleService.getMyOfficeHoursSlots()) as unknown;
+      return normalizeOfficeHoursSlotsResponse(payload);
+    },
+    enabled: Boolean(user?.userId),
+  });
+
+  const registerMutation = useMutation({
+    mutationFn: (eventId: number) => ScheduleService.registerForCampusEvent(eventId),
+    onSuccess: () => {
+      toast.success(t('campusEventRegisterSuccess'));
+      queryClient.invalidateQueries({ queryKey: ['schedule-campus-events'] });
+      queryClient.invalidateQueries({ queryKey: ['schedule-daily-unified'] });
+      queryClient.invalidateQueries({ queryKey: ['schedule-weekly-unified'] });
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || t('campusEventRegisterError'));
+    },
+  });
+
+  const unregisterMutation = useMutation({
+    mutationFn: (eventId: number) => ScheduleService.unregisterFromCampusEvent(eventId),
+    onSuccess: () => {
+      toast.success(t('campusEventUnregisterSuccess'));
+      queryClient.invalidateQueries({ queryKey: ['schedule-campus-events'] });
+      queryClient.invalidateQueries({ queryKey: ['schedule-daily-unified'] });
+      queryClient.invalidateQueries({ queryKey: ['schedule-weekly-unified'] });
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || t('campusEventUnregisterError'));
+    },
+  });
+
+  const suggestionMutation = useMutation({
+    mutationFn: async () => ({
+      suggestions: buildLocalOfficeHoursSuggestions(officeHoursQuery.data || []),
+    }),
+    onSuccess: (data) => {
+      const suggestions = data.suggestions || [];
+      setLatestSuggestions(suggestions);
+      if (!suggestions.length) {
+        toast.info(t('noSuggestionsFound'));
+        return;
+      }
+      const top = suggestions[0];
+      if (top) {
+        toast.success(`${t('suggestionsFound')}: ${suggestions.length}`);
+      }
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || t('suggestionsLoadError'));
+    },
+  });
+
+  const allScheduleDays = useMemo(() => {
+    if (viewMode === 'day') return dailyQuery.data ? [dailyQuery.data] : [];
+    if (viewMode === 'month') return monthQuery.data || [];
+    return weeklyQuery.data?.days || [];
+  }, [viewMode, dailyQuery.data, monthQuery.data, weeklyQuery.data]);
+
+  const officeHoursItems = useMemo<UnifiedScheduleItem[]>(() => {
+    const slots = officeHoursQuery.data || [];
+    if (!slots.length) return [];
+
+    const dates = getDatesInRange(startDate, endDate);
+    const items: UnifiedScheduleItem[] = [];
+
+    dates.forEach((isoDate) => {
+      const weekday = new Date(`${isoDate}T00:00:00`).getDay();
+      slots.forEach((slot) => {
+        const slotWeekday = getWeekdayIndex(slot.dayOfWeek);
+        if (slotWeekday === null || slotWeekday !== weekday) return;
+
+        items.push({
+          id: `office-hours-${slot.slotId}-${isoDate}`,
+          kind: 'office_hours',
+          date: isoDate,
+          startTime: normalizeTime(slot.startTime),
+          endTime: normalizeTime(slot.endTime),
+          title: t('officeHours'),
+          subtitle: getOfficeHoursModeLabel(slot.mode, t),
+          location: slot.location || t('locationTbd'),
+          color: '#f59e0b',
+          officeHoursSlot: slot,
+        });
+      });
+    });
+
+    return items;
+  }, [officeHoursQuery.data, startDate, endDate, t]);
+
+  const unifiedItems = useMemo<UnifiedScheduleItem[]>(() => {
+    const items: UnifiedScheduleItem[] = [];
+
+    allScheduleDays.forEach((day) => {
+      (day.schedules || []).forEach((entry) => {
+        const location = [entry.building, entry.room].filter(Boolean).join(' ').trim();
+        // API returns 'code' and 'name', not 'courseCode' and 'courseName'
+        const course = entry.section?.course as { code?: string; name?: string; courseCode?: string; courseName?: string } | undefined;
+        const courseCode = course?.code || course?.courseCode || t('unknownCourse');
+        const courseName = course?.name || course?.courseName || '';
+        const title = courseName ? `${courseCode} - ${courseName}` : courseCode;
+        items.push({
+          id: `class-${entry.id}-${day.date}`,
+          kind: 'class',
+          date: day.date,
+          startTime: normalizeTime(entry.startTime),
+          endTime: normalizeTime(entry.endTime),
+          title,
+          subtitle: entry.scheduleType,
+          location: location || t('locationTbd'),
+          color: '#3b82f6',
+          classItem: entry,
+        });
+      });
+
+      (day.exams || []).forEach((entry) => {
+        const start = normalizeTime(entry.startTime);
+        const [h, m] = start.split(':').map(Number);
+        const endDate = new Date(`${day.date}T${pad(h)}:${pad(m)}:00`);
+        endDate.setMinutes(endDate.getMinutes() + entry.durationMinutes);
+        const end = `${pad(endDate.getHours())}:${pad(endDate.getMinutes())}`;
+        items.push({
+          id: `exam-${entry.examId}`,
+          kind: 'exam',
+          date: entry.examDate || day.date,
+          startTime: start,
+          endTime: end,
+          title: `${entry.course.courseCode} ${entry.examType.toUpperCase()}`,
+          subtitle: entry.title || t('exam'),
+          location: entry.location || t('locationTbd'),
+          color: '#ef4444',
+          examItem: entry,
+        });
+      });
+
+      (day.events || []).forEach((entry) => {
+        items.push({
+          id: `event-${entry.eventId}`,
+          kind: 'event',
+          date: day.date,
+          startTime: normalizeTime(entry.startTime),
+          endTime: normalizeTime(entry.endTime),
+          title: entry.title,
+          subtitle: entry.eventType,
+          location: entry.location || undefined,
+          color: entry.color || '#8b5cf6',
+          personalEvent: entry,
+        });
+      });
+    });
+
+    (campusEventsQuery.data?.data || []).forEach((event) => {
+      const date = toISODate(new Date(event.startDatetime));
+      items.push({
+        id: `campus-${event.eventId}`,
+        kind: 'campus_event',
+        date,
+        startTime: normalizeTime(event.startDatetime),
+        endTime: normalizeTime(event.endDatetime),
+        title: event.title,
+        subtitle: event.eventType,
+        location: event.location || [event.building, event.room].filter(Boolean).join(' ').trim(),
+        color: event.color || '#10b981',
+        isMandatory: event.isMandatory,
+        registrationRequired: event.registrationRequired,
+        campusEvent: event,
+      });
+    });
+
+    items.push(...officeHoursItems);
+
+    return items.sort((a, b) => {
+      const dateCmp = a.date.localeCompare(b.date);
+      if (dateCmp !== 0) return dateCmp;
+      const timeCmp = a.startTime.localeCompare(b.startTime);
+      if (timeCmp !== 0) return timeCmp;
+      return a.id.localeCompare(b.id);
+    });
+  }, [allScheduleDays, campusEventsQuery.data, officeHoursItems, t]);
+
+  const courseOptions = useMemo(() => {
+    const set = new Set<string>();
+    unifiedItems.forEach((item) => {
+      const classCode = (item.classItem?.section?.course as { code?: string; courseCode?: string } | undefined)?.code 
+        || item.classItem?.section?.course?.courseCode;
+      const examCode = (item.examItem?.course as { code?: string; courseCode?: string } | undefined)?.code 
+        || item.examItem?.course?.courseCode;
+      const eventCode = (item.personalEvent?.course as { code?: string; courseCode?: string } | undefined)?.code 
+        || item.personalEvent?.course?.courseCode;
+      if (classCode) set.add(classCode);
+      else if (examCode) set.add(examCode);
+      else if (eventCode) set.add(eventCode);
+    });
+    return [{ value: 'all', label: t('allCourses') }, ...Array.from(set).map((c) => ({ value: c, label: c }))];
+  }, [unifiedItems, t]);
+
+  const filteredItems = useMemo(() => {
+    return unifiedItems.filter((item) => {
+      if (typeFilter !== 'all' && item.kind !== typeFilter) return false;
+      if (courseFilter === 'all') return true;
+      const classCode = (item.classItem?.section?.course as { code?: string; courseCode?: string } | undefined)?.code 
+        || item.classItem?.section?.course?.courseCode;
+      const examCode = (item.examItem?.course as { code?: string; courseCode?: string } | undefined)?.code 
+        || item.examItem?.course?.courseCode;
+      const eventCode = (item.personalEvent?.course as { code?: string; courseCode?: string } | undefined)?.code 
+        || item.personalEvent?.course?.courseCode;
+      if (classCode === courseFilter) return true;
+      if (examCode === courseFilter) return true;
+      if (eventCode === courseFilter) return true;
+      return false;
+    });
+  }, [unifiedItems, typeFilter, courseFilter]);
+
+  const upcomingItems = useMemo(() => {
+    const now = new Date();
+    const todayISO = toISODate(now);
+    const nowTime = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+    return filteredItems
+      .filter((item) => item.date > todayISO || (item.date === todayISO && item.startTime >= nowTime))
+      .slice(0, 6);
+  }, [filteredItems]);
+
+  const stats = useMemo(() => {
+    let totalMinutes = 0;
+    let lectures = 0;
+    let labs = 0;
+    filteredItems.forEach((item) => {
+      const [sh, sm] = item.startTime.split(':').map(Number);
+      const [eh, em] = item.endTime.split(':').map(Number);
+      const minutes = Math.max(0, eh * 60 + em - (sh * 60 + sm));
+      totalMinutes += minutes;
+      const type = item.classItem?.scheduleType?.toUpperCase?.();
+      if (type === 'LECTURE') lectures += 1;
+      if (type === 'LAB') labs += 1;
+    });
+    const hardConflicts = latestSuggestions.flatMap((s) => s.conflicts).filter((c) => c.severity === 'hard').length;
+    return {
+      totalHours: (totalMinutes / 60).toFixed(1),
+      lectures,
+      labs,
+      conflicts: hardConflicts,
+    };
+  }, [filteredItems, latestSuggestions]);
+
+  const isLoading =
+    dailyQuery.isLoading ||
+    weeklyQuery.isLoading ||
+    (viewMode === 'month' && monthQuery.isLoading) ||
+    campusEventsQuery.isLoading ||
+    officeHoursQuery.isLoading;
+  const hasError =
+    dailyQuery.error || weeklyQuery.error || monthQuery.error || campusEventsQuery.error;
+
+  const headerLabel = useMemo(() => {
+    if (viewMode === 'day') return formatDateHeader(toISODate(currentDate), language);
+    if (viewMode === 'week') {
+      const ws = startOfWeek(currentDate);
+      const we = endOfWeek(currentDate);
+      return `${formatDateHeader(toISODate(ws), language)} - ${formatDateHeader(toISODate(we), language)}`;
+    }
+    const start = startOfMonth(currentDate);
+    return start.toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-US', {
+      month: 'long',
+      year: 'numeric',
+    });
+  }, [currentDate, language, viewMode]);
+
+  const navigatePrev = () => {
+    if (viewMode === 'day') setCurrentDate((d) => addDays(d, -1));
+    else if (viewMode === 'week') setCurrentDate((d) => addDays(d, -7));
+    else setCurrentDate((d) => new Date(d.getFullYear(), d.getMonth() - 1, 1));
   };
 
-  // ── Sidebar upcoming events (derived from state) ───────────────────────────
-  const upcomingEvents = useMemo(() => {
-    const todayISO = formatDateISO(today);
-    return [...events]
-      .filter((e) => e.date >= todayISO)
-      .sort((a, b) => a.date.localeCompare(b.date) || a.startTime.localeCompare(b.startTime))
-      .slice(0, 4);
-  }, [events, today]);
+  const navigateNext = () => {
+    if (viewMode === 'day') setCurrentDate((d) => addDays(d, 1));
+    else if (viewMode === 'week') setCurrentDate((d) => addDays(d, 7));
+    else setCurrentDate((d) => new Date(d.getFullYear(), d.getMonth() + 1, 1));
+  };
+
+  const goToday = () => setCurrentDate(new Date());
+
+  const cardBg = isDark ? 'bg-gray-800/50 border-white/10' : 'bg-white border-gray-200';
+  const headerText = isDark ? 'text-white' : 'text-gray-900';
+  const subtitleText = isDark ? 'text-gray-400' : 'text-gray-600';
+  const inputCard = isDark ? 'bg-gray-800 border-white/10' : 'bg-white border-gray-200';
+  const selectedCourse = selectedItem?.classItem?.section?.course as
+    | { code?: string; name?: string; courseCode?: string; courseName?: string }
+    | undefined;
+  const selectedCourseCode = selectedCourse?.code || selectedCourse?.courseCode;
+  const selectedCourseName = selectedCourse?.name || selectedCourse?.courseName;
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className={`text-2xl font-bold ${headerText}`}>{t('teachingSchedule')}</h2>
           <p className={`${subtitleText} text-sm mt-1`}>{t('scheduleDescription')}</p>
         </div>
-        <button
-          onClick={() => openCreateModal()}
-          className="flex items-center gap-2 px-4 py-2 text-white rounded-lg transition-colors text-sm"
-          style={{ backgroundColor: primaryHex }}
-        >
-          <Plus size={16} /> Add Event
-        </button>
       </div>
 
-      {/* View toggles and filters */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 items-end">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
         <div className="sm:col-span-2 lg:col-span-1">
-          <div className={`flex items-center gap-1 ${toggleBg} rounded-xl p-1 w-full sm:w-fit`}>
+          <div className={`flex items-center gap-1 ${isDark ? 'bg-gray-700' : 'bg-gray-100'} rounded-xl p-1`}>
             {(['month', 'week', 'day'] as const).map((mode) => (
               <button
                 key={mode}
                 onClick={() => setViewMode(mode)}
-                className={`flex-1 sm:flex-none px-4 py-2 text-sm rounded-lg transition-all ${viewMode === mode ? 'text-white shadow-sm' : toggleInactive}`}
+                className={`flex-1 px-4 py-2 text-sm rounded-lg transition-all ${viewMode === mode ? 'text-white shadow-sm' : subtitleText}`}
                 style={viewMode === mode ? { backgroundColor: primaryHex } : undefined}
               >
                 {t(mode)}
@@ -835,22 +1072,31 @@ export function SchedulePage() {
           value={typeFilter}
           options={[
             { value: 'all', label: t('allEvents') },
-            { value: 'lecture', label: t('lectures') },
-            { value: 'lab', label: t('labs') },
-            { value: 'exam', label: 'Exams' },
-            { value: 'meeting', label: 'Meetings' },
-            { value: 'officeHours', label: t('officeHours') },
-            { value: 'deadline', label: 'Deadlines' },
-            { value: 'grading', label: 'Grading' },
+            { value: 'class', label: t('classSessions') },
+            { value: 'exam', label: t('exam') },
+            { value: 'event', label: t('personalEvents') },
+            { value: 'campus_event', label: t('campusEvents') },
+            { value: 'office_hours', label: t('officeHours') },
           ]}
-          onChange={setTypeFilter}
+          onChange={(value) => setTypeFilter(value as 'all' | ItemKind)}
+          stackLabel
+          fullWidth
+        />
+
+        <CustomDropdown
+          label={t('campusEventsSource')}
+          value={campusSource}
+          options={[
+            { value: 'all', label: t('allCampusEvents') },
+            { value: 'my', label: t('myCampusEvents') },
+          ]}
+          onChange={(value) => setCampusSource(value as CampusSource)}
           stackLabel
           fullWidth
         />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Calendar */}
         <div className={`lg:col-span-3 rounded-xl border shadow-sm overflow-hidden ${cardBg}`}>
           <div
             className={`p-4 border-b ${isDark ? 'border-white/10' : 'border-gray-200'} flex items-center justify-between`}
@@ -870,50 +1116,105 @@ export function SchedulePage() {
                 <ChevronRight size={20} className={subtitleText} />
               </button>
             </div>
-            <button
-              onClick={goToToday}
-              className="text-sm font-medium"
-              style={{ color: primaryHex }}
-            >
+            <button onClick={goToday} className="text-sm font-medium" style={{ color: primaryHex }}>
               {t('today')}
             </button>
           </div>
-          {viewMode === 'month' && renderMonthView()}
-          {viewMode === 'week' && renderWeekView()}
-          {viewMode === 'day' && renderDayView()}
+
+        <div className="p-4 min-h-[500px]">
+            {isLoading && (
+              <div className={`flex items-center justify-center gap-2 text-sm ${subtitleText} h-96`}>
+                <Loader2 size={16} className="animate-spin" />
+                {t('loadingSchedule')}
+              </div>
+            )}
+
+            {hasError && !isLoading && (
+              <div className={`rounded-lg border p-3 text-sm ${isDark ? 'border-red-400/40 text-red-300' : 'border-red-200 text-red-700'}`}>
+                {t('scheduleLoadError')}
+              </div>
+            )}
+
+            {/* Month Calendar View */}
+            {!isLoading && !hasError && viewMode === 'month' && (
+              <MonthCalendarView
+                currentDate={currentDate}
+                filteredItems={filteredItems}
+                isDark={isDark}
+                headerText={headerText}
+                subtitleText={subtitleText}
+                primaryHex={primaryHex}
+                typeStyles={typeStyles}
+                language={language}
+                noEventsText={t('officeHoursNoEventsScheduled')}
+                onSelectItem={setSelectedItem}
+                onDateClick={(date) => {
+                  setCurrentDate(date);
+                  setViewMode('day');
+                }}
+              />
+            )}
+
+            {/* Week Calendar View */}
+            {!isLoading && !hasError && viewMode === 'week' && (
+              <WeekCalendarView
+                currentDate={currentDate}
+                filteredItems={filteredItems}
+                isDark={isDark}
+                headerText={headerText}
+                subtitleText={subtitleText}
+                primaryHex={primaryHex}
+                typeStyles={typeStyles}
+                language={language}
+                noEventsText={t('officeHoursNoEventsScheduled')}
+                onSelectItem={setSelectedItem}
+              />
+            )}
+
+            {/* Day Calendar View */}
+            {!isLoading && !hasError && viewMode === 'day' && (
+              <DayCalendarView
+                currentDate={currentDate}
+                filteredItems={filteredItems}
+                isDark={isDark}
+                headerText={headerText}
+                subtitleText={subtitleText}
+                primaryHex={primaryHex}
+                typeStyles={typeStyles}
+                language={language}
+                noEventsText={t('officeHoursNoEventsScheduled')}
+                onSelectItem={setSelectedItem}
+              />
+            )}
+          </div>
         </div>
 
-        {/* Sidebar */}
         <div className="space-y-6">
-          {/* Upcoming Events */}
           <div className={`rounded-xl p-4 border shadow-sm ${cardBg}`}>
             <h3 className={`font-semibold ${headerText} mb-4`}>{t('upcomingTeachingEvents')}</h3>
             <div className="space-y-3">
-              {upcomingEvents.map((event) => (
-                <div
-                  key={event.id}
-                  className={`p-3 rounded-lg ${getEventClasses(event)} cursor-pointer`}
-                  style={getEventStyle(event)}
-                  onClick={() => setShowEventDetails(event)}
-                >
-                  <div className="font-medium text-sm">{event.title}</div>
-                  <div className="text-xs mt-1">{formatTime24to12(event.startTime)}</div>
-                  <div className="text-xs">
-                    {MONTH_NAMES[parseInt(event.date.split('-')[1], 10) - 1].slice(0, 3)}{' '}
-                    {parseInt(event.date.split('-')[2], 10)}
-                  </div>
-                </div>
-              ))}
-              {upcomingEvents.length === 0 && (
-                <p className={`text-sm ${subtitleText}`}>No upcoming events</p>
-              )}
+              {upcomingItems.map((item) => {
+                const styles = typeStyles[item.kind];
+                return (
+                  <button
+                    key={item.id}
+                    className={`w-full text-left p-3 rounded-lg border ${styles.bg} ${styles.text} ${styles.border}`}
+                    onClick={() => setSelectedItem(item)}
+                  >
+                    <div className="font-medium text-sm">{item.title}</div>
+                    <div className="text-xs mt-1">
+                      {formatDateHeader(item.date, language)} • {formatTime24To12(item.startTime)}
+                    </div>
+                  </button>
+                );
+              })}
+              {!upcomingItems.length && <p className={`text-sm ${subtitleText}`}>{t('noUpcomingEvents')}</p>}
             </div>
           </div>
 
-          {/* AI Assistant */}
           <div className={`rounded-xl p-4 border ${cardBg}`}>
             <div className="flex items-center gap-2 mb-3">
-              <div className="p-2 rounded-lg" style={{ backgroundColor: primaryHex + '20' }}>
+              <div className="p-2 rounded-lg" style={{ backgroundColor: `${primaryHex}20` }}>
                 <Sparkles style={{ color: primaryHex }} size={20} />
               </div>
               <h3 className={`font-semibold ${headerText}`}>{t('evySchedulingAssistant')}</h3>
@@ -921,47 +1222,148 @@ export function SchedulePage() {
             <p className={`text-sm ${subtitleText} mb-4`}>{t('scheduleAssistantDescription')}</p>
             <div className="space-y-2">
               <button
-                className={`w-full flex items-center justify-center gap-2 px-4 py-2 border rounded-lg transition-colors text-sm ${isDark ? 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'}`}
+                onClick={() => suggestionMutation.mutate()}
+                disabled={suggestionMutation.isPending}
+                className={`w-full flex items-center justify-center gap-2 px-4 py-2 border rounded-lg transition-colors text-sm ${isDark ? 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'} disabled:opacity-70`}
               >
+                {suggestionMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <AlertCircle size={14} />}
                 {t('detectConflicts')}
               </button>
               <button
-                className="w-full flex items-center justify-center gap-2 px-4 py-2 text-white rounded-lg transition-colors text-sm"
+                onClick={() => {
+                  suggestionMutation.mutate(undefined, {
+                    onSuccess: (data) => {
+                      const best = data.suggestions.find((s) => s.recommendation === 'best');
+                      if (!best) {
+                        toast.info(t('noBestSuggestion'));
+                        return;
+                      }
+                      toast.success(
+                        `${t('bestSlot')}: ${best.slot.dayOfWeek} ${formatTime24To12(best.slot.startTime)} - ${formatTime24To12(best.slot.endTime)}`
+                      );
+                    },
+                  });
+                }}
+                disabled={suggestionMutation.isPending}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2 text-white rounded-lg transition-colors text-sm disabled:opacity-70"
                 style={{ backgroundColor: primaryHex }}
               >
+                <CheckCircle2 size={14} />
                 {t('optimizeSchedule')}
               </button>
             </div>
           </div>
 
-          {/* Stats */}
           <div className={`rounded-xl p-4 border shadow-sm ${cardBg}`}>
             <h3 className={`font-semibold ${headerText} mb-4`}>{t('thisWeek')}</h3>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className={`text-sm ${subtitleText}`}>{t('totalHours')}</span>
-                <span className={`text-sm font-semibold ${headerText}`}>18.5h</span>
+                <span className={`text-sm font-semibold ${headerText}`}>{stats.totalHours}h</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className={`text-sm ${subtitleText}`}>{t('lectures')}</span>
-                <span className={`text-sm font-semibold ${headerText}`}>6</span>
+                <span className={`text-sm font-semibold ${headerText}`}>{stats.lectures}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className={`text-sm ${subtitleText}`}>{t('labs')}</span>
-                <span className={`text-sm font-semibold ${headerText}`}>4</span>
+                <span className={`text-sm font-semibold ${headerText}`}>{stats.labs}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className={`text-sm ${subtitleText}`}>{t('conflicts')}</span>
-                <span className="text-sm font-semibold text-red-600">0</span>
+                <span className={`text-sm font-semibold ${stats.conflicts > 0 ? 'text-red-600' : headerText}`}>
+                  {stats.conflicts}
+                </span>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Modals */}
-      {renderEventDetails()}
-      {renderEventModal()}
+      {selectedItem && (
+        <div
+          className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
+          onClick={() => setSelectedItem(null)}
+        >
+          <div
+            className={`rounded-xl border shadow-xl p-6 w-full max-w-lg ${inputCard}`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className={`text-lg font-semibold ${headerText}`}>{selectedItem.title}</h3>
+            <div className={`mt-3 space-y-2 text-sm ${subtitleText}`}>
+              <div>
+                <span className="font-medium">{t('dateLabel')}</span> {formatDateHeader(selectedItem.date, language)}
+              </div>
+              <div>
+                <span className="font-medium">{t('timeLabel')}</span>{' '}
+                {formatTime24To12(selectedItem.startTime)} - {formatTime24To12(selectedItem.endTime)}
+              </div>
+              <div>
+                <span className="font-medium">{t('locationLabel')}</span> {selectedItem.location || t('locationTbd')}
+              </div>
+              {selectedItem.subtitle && (
+                <div>
+                  <span className="font-medium">{t('typeLabel')}</span> {selectedItem.subtitle}
+                </div>
+              )}
+              {selectedCourseCode && (
+                <div>
+                  <span className="font-medium">{t('courseLabel')}</span>{' '}
+                  {selectedCourseName ? `${selectedCourseCode} - ${selectedCourseName}` : selectedCourseCode}
+                </div>
+              )}
+              {selectedItem.kind === 'office_hours' && selectedItem.officeHoursSlot && (
+                <>
+                  <div>
+                    <span className="font-medium">{t('officeHoursModeLabel')}</span>{' '}
+                    {getOfficeHoursModeLabel(selectedItem.officeHoursSlot.mode, t)}
+                  </div>
+                  <div>
+                    <span className="font-medium">{t('officeHoursAppointmentsLabel')}</span>{' '}
+                    {selectedItem.officeHoursSlot.currentAppointments}/{selectedItem.officeHoursSlot.maxAppointments}
+                  </div>
+                </>
+              )}
+              {selectedItem.campusEvent?.description && <p>{selectedItem.campusEvent.description}</p>}
+            </div>
+
+            {selectedItem.kind === 'campus_event' && selectedItem.campusEvent?.registrationRequired && (
+              <div className="mt-5">
+                {isEventRegistered(selectedItem.campusEvent) ? (
+                  <button
+                    className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 text-sm"
+                    onClick={() => unregisterMutation.mutate(selectedItem.campusEvent!.eventId)}
+                    disabled={unregisterMutation.isPending}
+                  >
+                    {t('unregister')}
+                  </button>
+                ) : (
+                  <button
+                    className="px-4 py-2 rounded-lg text-white text-sm"
+                    style={{ backgroundColor: primaryHex }}
+                    onClick={() => registerMutation.mutate(selectedItem.campusEvent!.eventId)}
+                    disabled={
+                      registerMutation.isPending ||
+                      selectedItem.campusEvent.spotsRemaining === 0
+                    }
+                  >
+                    {selectedItem.campusEvent.spotsRemaining === 0 ? t('eventFull') : t('register')}
+                  </button>
+                )}
+              </div>
+            )}
+
+            <div className="mt-6 flex justify-end">
+              <button
+                className={`px-4 py-2 rounded-lg border text-sm ${isDark ? 'border-white/10 text-slate-300' : 'border-gray-300 text-gray-700'}`}
+                onClick={() => setSelectedItem(null)}
+              >
+                {t('close')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
