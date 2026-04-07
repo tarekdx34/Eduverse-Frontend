@@ -15,6 +15,7 @@ const InstructorDashboard = lazy(() => import('./pages/instructor-dashboard/Inst
 const AdminDashboard = lazy(() => import('./pages/admin-dashboard/AdminDashboard'));
 const ITAdminDashboard = lazy(() => import('./pages/it-admin-dashboard/ITAdminDashboard'));
 const TADashboard = lazy(() => import('./pages/ta-dashboard/TADashboard'));
+const AttendancePage = lazy(() => import('./pages/attendance/AttendancePage'));
 
 // Placeholder for PageTitle and PageFallback - assuming these are defined elsewhere or will be added
 // For the purpose of this edit, we'll define simple versions.
@@ -252,6 +253,16 @@ function App() {
             element={
               <PageTitle title="IT Admin Dashboard">
                 <ITAdminDashboard />
+              </PageTitle>
+            }
+          />
+
+          {/* Instructor / TA lecture attendance (manual roll call) */}
+          <Route
+            path="/attendance"
+            element={
+              <PageTitle title="Attendance">
+                <AttendancePage />
               </PageTitle>
             }
           />

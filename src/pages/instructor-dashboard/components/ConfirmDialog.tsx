@@ -47,7 +47,7 @@ export function ConfirmDialog({
         </div>
 
         <div className="p-6">
-          <p className="text-gray-700">{message}</p>
+          <p className="text-gray-700 whitespace-pre-line">{message}</p>
         </div>
 
         <div className="flex gap-3 p-6 pt-0">
