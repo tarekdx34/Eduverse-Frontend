@@ -343,11 +343,49 @@ export function MySubmission({
           )}
 
           {/* File submission */}
-          {submission.file && (
-            <FilePreviewer
-              file={submission.file}
-              showDownload
-            />
+          {(submission.driveFile || submission.file) && (
+            <div
+              className={`p-5 rounded-xl border ${
+                isDark ? 'bg-white/5 border-white/10' : 'bg-slate-50 border-slate-200'
+              }`}
+            >
+              <div className="flex items-center gap-2 mb-3">
+                <FileText className={`w-4 h-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} />
+                <p className={`text-sm font-medium ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                  Submitted File{submission.driveFile ? `: ${submission.driveFile.fileName}` : ''}
+                </p>
+              </div>
+              {submission.driveFile ? (
+                <div>
+                  <iframe 
+                    src={submission.driveFile.iframeUrl} 
+                    className="w-full h-[500px] border border-slate-200 dark:border-slate-700 rounded-lg mb-3" 
+                    title="Submission Preview" 
+                  />
+                  <div className="flex gap-4">
+                    <a
+                      href={submission.driveFile.webViewLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`inline-flex items-center text-sm font-medium ${isDark ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'}`}
+                    >
+                      📎 Open in Drive
+                    </a>
+                    <a
+                      href={submission.driveFile.downloadUrl}
+                      className={`inline-flex items-center text-sm font-medium ${isDark ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'}`}
+                    >
+                      ⬇️ Download
+                    </a>
+                  </div>
+                </div>
+              ) : (
+                <FilePreviewer
+                  file={submission.file}
+                  showDownload
+                />
+              )}
+            </div>
           )}
         </div>
 

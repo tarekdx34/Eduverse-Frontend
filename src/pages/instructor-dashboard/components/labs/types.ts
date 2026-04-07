@@ -39,13 +39,23 @@ export interface LabInstruction {
   createdAt: string;
 }
 
-// Drive file reference
+// Drive file reference (legacy)
 export interface DriveFile {
   fileId: number;
   fileName: string;
   mimeType: string;
   webViewLink?: string;
   webContentLink?: string;
+}
+
+// New Drive file link format (from backend Drive integration)
+export interface DriveFileLink {
+  driveId: string;
+  driveFileId?: number;
+  fileName: string;
+  webViewLink: string;
+  iframeUrl: string;
+  downloadUrl: string;
 }
 
 // Lab submission
@@ -63,6 +73,7 @@ export interface LabSubmission {
   submissionText: string | null;
   fileId: number | null;
   file?: DriveFile;
+  driveFile?: DriveFileLink | null; // New: resolved Drive file metadata
   submissionStatus: SubmissionStatus;
   status?: string; // legacy
   score: string | null;
@@ -71,6 +82,12 @@ export interface LabSubmission {
   gradedAt?: string;
   isLate?: boolean;
   submittedAt: string;
+  // Additional properties for SubmissionList compatibility
+  studentName?: string;
+  studentEmail?: string;
+  text?: string;
+  fileUrl?: string;
+  fileName?: string;
 }
 
 // Lab attendance record

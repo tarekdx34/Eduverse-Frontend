@@ -185,6 +185,37 @@ export function AssignmentView({ assignmentId, onBack }: AssignmentViewProps) {
                 </p>
               )}
             </div>
+
+            {/* Instruction Files */}
+            {assignment.instructionFiles && assignment.instructionFiles.length > 0 && (
+              <div className="mt-8 space-y-3">
+                <h3 className={`font-semibold text-sm ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                  Attached Materials:
+                </h3>
+                {assignment.instructionFiles.map(file => (
+                  <div key={file.driveId} className={`flex items-center justify-between p-3 rounded-xl border ${isDark ? 'bg-white/5 border-white/10' : 'bg-slate-50 border-slate-200'}`}>
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2.5 rounded-lg ${isDark ? 'bg-[var(--accent-color)]/20 text-[var(--accent-color)]' : 'bg-[var(--accent-color)]/10 text-[var(--accent-color)]'}`}>
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                        </svg>
+                      </div>
+                      <span className={`font-medium text-sm ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>
+                        {file.fileName}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                       <a href={file.webViewLink} target="_blank" rel="noopener noreferrer" className={`px-4 py-2 rounded-lg text-xs font-medium transition-colors ${isDark ? 'bg-white/10 hover:bg-white/20 text-slate-300' : 'bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 shadow-sm'}`}>
+                         Open Reference
+                       </a>
+                       <a href={file.downloadUrl} className={`px-4 py-2 rounded-lg text-xs font-medium transition-colors text-white hover:opacity-90`} style={{ backgroundColor: 'var(--accent-color)' }}>
+                         Download
+                       </a>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Submission or View */}

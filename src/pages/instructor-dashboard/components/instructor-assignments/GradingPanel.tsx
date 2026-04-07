@@ -250,8 +250,8 @@ export function GradingPanel({
                 </div>
               )}
 
-              {/* File Submission */}
-              {submission.fileId && (
+              {/* File Submission - prioritize driveFile */}
+              {(submission.driveFile || submission.fileId) && (
                 <div>
                   <div className="flex items-center gap-2 mb-2">
                     <FileText
@@ -261,35 +261,67 @@ export function GradingPanel({
                     <span
                       className={`text-xs font-medium ${isDark ? 'text-slate-400' : 'text-gray-600'}`}
                     >
-                      File Submission
+                      File Submission{submission.driveFile ? `: ${submission.driveFile.fileName}` : ''}
                     </span>
                   </div>
                   <div
-                    className={`p-3 rounded border ${
+                    className={`rounded border ${
                       isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'
                     }`}
                   >
-                    {submission.file ? (
-                      <a
-                        href={submission.file.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={`text-sm hover:underline ${
-                          isDark ? 'text-indigo-400' : 'text-indigo-600'
-                        }`}
-                      >
-                        {submission.file.name || `File ID: ${submission.fileId}`}
-                      </a>
+                    {submission.driveFile ? (
+                      <div className="space-y-3">
+                        <iframe
+                          src={submission.driveFile.iframeUrl}
+                          className="w-full h-[400px] rounded-t border-b border-gray-200 dark:border-white/10"
+                          title="Submission Preview"
+                        />
+                        <div className="flex items-center gap-4 p-3">
+                          <a
+                            href={submission.driveFile.webViewLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={`text-sm hover:underline ${
+                              isDark ? 'text-indigo-400' : 'text-indigo-600'
+                            }`}
+                          >
+                            📎 Open in Drive
+                          </a>
+                          <a
+                            href={submission.driveFile.downloadUrl}
+                            className={`text-sm hover:underline ${
+                              isDark ? 'text-indigo-400' : 'text-indigo-600'
+                            }`}
+                          >
+                            ⬇️ Download
+                          </a>
+                        </div>
+                      </div>
+                    ) : submission.file ? (
+                      <div className="p-3">
+                        <a
+                          href={submission.file.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`text-sm hover:underline ${
+                            isDark ? 'text-indigo-400' : 'text-indigo-600'
+                          }`}
+                        >
+                          {submission.file.name || `File ID: ${submission.fileId}`}
+                        </a>
+                      </div>
                     ) : (
-                      <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-                        File ID: {submission.fileId}
-                      </span>
+                      <div className="p-3">
+                        <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                          File ID: {submission.fileId}
+                        </span>
+                      </div>
                     )}
                   </div>
                 </div>
               )}
 
-              {!submission.submissionText && !submission.submissionLink && !submission.fileId && (
+              {!submission.submissionText && !submission.submissionLink && !submission.fileId && !submission.driveFile && (
                 <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-gray-500'}`}>
                   No submission content available
                 </p>

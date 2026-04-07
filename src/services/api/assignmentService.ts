@@ -1,6 +1,14 @@
 import { ApiClient } from './client';
 
 // Backend response shapes
+export interface DriveFileLink {
+  driveId: string;
+  fileName: string;
+  webViewLink: string;
+  iframeUrl: string;
+  downloadUrl: string;
+}
+
 export interface Assignment {
   id: string;
   courseId: string;
@@ -20,6 +28,7 @@ export interface Assignment {
   createdAt?: string;
   updatedAt?: string;
   course?: { id: string; name: string; code: string };
+  instructionFiles?: DriveFileLink[];
 }
 
 // Type alias for backward compatibility
@@ -33,6 +42,7 @@ export interface AssignmentSubmission {
   submissionLink: string | null;
   fileId: number | null;
   file?: { id: number; name: string; url: string }; // Google Drive file info
+  driveFile?: DriveFileLink | null;
   submissionStatus: 'pending' | 'submitted' | 'graded';
   submittedAt: string;
   isLate: number; // 0 or 1
@@ -155,11 +165,11 @@ export class AssignmentService {
   static async uploadSubmissionFile(
     assignmentId: string,
     file: File
-  ): Promise<{ fileId: number }> {
+  ): Promise<any> {
     const formData = new FormData();
     formData.append('file', file);
     // Don't set Content-Type - let browser add boundary automatically
-    return ApiClient.post<{ fileId: number }>(
+    return ApiClient.post<any>(
       '/assignments/' + assignmentId + '/submissions/upload',
       formData
     );

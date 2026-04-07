@@ -1,6 +1,14 @@
 import { ApiClient } from './client';
 
 // Backend response shapes
+export interface DriveFileLink {
+  driveId: string;
+  fileName: string;
+  webViewLink: string;
+  iframeUrl: string;
+  downloadUrl: string;
+}
+
 export interface Lab {
   id: string;
   courseId: string;
@@ -16,6 +24,7 @@ export interface Lab {
   createdAt?: string;
   updatedAt?: string;
   course?: { id: string; name: string; code: string };
+  instructionFiles?: DriveFileLink[];
 }
 
 export interface LabInstruction {
@@ -37,6 +46,7 @@ export interface LabSubmission {
   userId: number;
   submissionText: string | null;
   fileId: number | null;
+  driveFile?: DriveFileLink | null;
   submissionStatus: 'pending' | 'submitted' | 'graded';
   submittedAt: string;
   user?: { userId: number; firstName: string; lastName: string; email: string };
@@ -117,8 +127,8 @@ export class LabService {
       const uploadResponse = await ApiClient.post<any>('/labs/' + labId + '/submissions/upload', formData);
       console.log('[LabService] Upload raw response:', uploadResponse);
       
-      // Capture the fileId given returned from the server
-      uploadedFileId = uploadResponse?.fileId || uploadResponse?.id || uploadResponse?.file?.id || null;
+      // Capture the fileId directly from the driveFile response metadata
+      uploadedFileId = uploadResponse?.driveFile?.driveFileId || uploadResponse?.driveFile?.id || uploadResponse?.fileId || uploadResponse?.id || null;
       console.log('[LabService] Extracted uploadedFileId:', uploadedFileId);
     }
     
@@ -141,9 +151,9 @@ export class LabService {
     score: number,
     feedback: string
   ): Promise<LabSubmission> {
-    return ApiClient.put<LabSubmission>(
+    return ApiClient.patch<LabSubmission>(
       '/labs/' + labId + '/submissions/' + submissionId + '/grade',
-      { score, feedback }
+      { score, feedback, status: 'graded' }
     );
   }
 

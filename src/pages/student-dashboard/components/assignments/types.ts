@@ -11,6 +11,14 @@ export interface Course {
   code: string;
 }
 
+export interface DriveFileLink {
+  driveId: string;
+  fileName: string;
+  webViewLink: string;
+  iframeUrl: string;
+  downloadUrl: string;
+}
+
 export interface DriveFile {
   id: number;
   name: string;
@@ -38,6 +46,7 @@ export interface Assignment {
   createdAt?: string;
   updatedAt?: string;
   course?: Course;
+  instructionFiles?: DriveFileLink[];
 }
 
 export interface AssignmentSubmission {
@@ -48,6 +57,7 @@ export interface AssignmentSubmission {
   submissionLink: string | null;
   fileId: number | null;
   file?: DriveFile;
+  driveFile?: DriveFileLink | null;
   submissionStatus: SubmissionStatus;
   submittedAt: string;
   isLate: number; // 0 or 1

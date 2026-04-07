@@ -61,7 +61,34 @@ export function MySubmission({ submission, maxScore, isDark }: MySubmissionProps
           </div>
         )}
 
-        {submission.fileId && (
+        {submission.driveFile ? (
+          <div className="mt-4">
+            <p className={`font-semibold mb-2 text-sm ${isDark ? 'text-emerald-300' : 'text-emerald-600'}`}>
+              Submitted File: {submission.driveFile.fileName}
+            </p>
+            <iframe 
+              src={submission.driveFile.iframeUrl} 
+              className="w-full h-[400px] rounded-lg border border-slate-200 dark:border-slate-700 mb-2"
+              title="File Preview"
+            />
+            <div className="flex gap-4">
+              <a
+                href={submission.driveFile.webViewLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`inline-flex items-center text-sm font-medium ${isDark ? 'text-emerald-400 hover:text-emerald-300' : 'text-emerald-700 hover:text-emerald-800'}`}
+              >
+                📎 Open in Drive
+              </a>
+              <a
+                href={submission.driveFile.downloadUrl}
+                className={`inline-flex items-center text-sm font-medium ${isDark ? 'text-emerald-400 hover:text-emerald-300' : 'text-emerald-700 hover:text-emerald-800'}`}
+              >
+                ⬇️ Download
+              </a>
+            </div>
+          </div>
+        ) : submission.fileId ? (
           <div className="mt-4">
             <a
               href={`/api/drive/files/${submission.fileId}`}
@@ -72,7 +99,7 @@ export function MySubmission({ submission, maxScore, isDark }: MySubmissionProps
               📎 View Submitted File
             </a>
           </div>
-        )}
+        ) : null}
 
         {submission.feedback && (
           <div className={`mt-4 p-4 rounded-lg border text-sm ${isDark ? 'bg-slate-800/50 border-slate-700 text-slate-300' : 'bg-white border-slate-200 text-slate-700'}`}>

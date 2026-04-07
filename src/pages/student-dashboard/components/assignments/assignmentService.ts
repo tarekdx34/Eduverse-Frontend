@@ -111,10 +111,12 @@ export const StudentAssignmentService = {
     const formData = new FormData();
     formData.append('file', file);
     // Don't set Content-Type header - let browser set it with boundary
-    return ApiClient.post<{ fileId: number }>(
+    const response = await ApiClient.post<any>(
       `/assignments/${assignmentId}/submissions/upload`,
       formData
     );
+    const fileId = response?.driveFile?.driveFileId || response?.driveFile?.id || response?.fileId || response?.id;
+    return { fileId };
   },
 };
 

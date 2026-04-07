@@ -171,12 +171,41 @@ export function LabView({ labId, onBack, isDark, accentColor = '#3b82f6' }: LabV
       {/* Tab Content */}
       <div className="mt-6">
         {activeTab === 'instructions' ? (
-          <div className={`rounded-2xl p-6 ${cardClass}`}>
-            <InstructionViewer 
-              instructions={lab.instructions || []} 
-              isDark={isDark} 
-              accentColor={accentColor} 
-            />
+          <div className={`space-y-6`}>
+            {lab.instructionFiles && lab.instructionFiles.length > 0 && (
+              <div className={`rounded-2xl p-6 ${cardClass}`}>
+                <h3 className={`font-semibold text-lg mb-4 ${textPrimary}`}>Attached Materials</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {lab.instructionFiles.map(file => (
+                    <div key={file.driveId} className={`flex flex-col p-4 rounded-xl border ${isDark ? 'bg-white/5 border-white/10' : 'bg-slate-50 border-slate-200'}`}>
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className={`p-2.5 rounded-lg text-white`} style={{ backgroundColor: accentColor }}>
+                          <BookOpen className="w-5 h-5" />
+                        </div>
+                        <span className={`font-medium text-sm truncate ${textPrimary}`} title={file.fileName}>
+                          {file.fileName}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 mt-auto pt-3 border-t border-slate-200 dark:border-white/10">
+                        <a href={file.webViewLink} target="_blank" rel="noopener noreferrer" className={`flex-1 text-center px-4 py-2 rounded-lg text-xs font-medium transition-colors ${isDark ? 'bg-white/10 hover:bg-white/20 text-slate-300' : 'bg-white border hover:bg-slate-50 text-slate-600'}`}>
+                          Open
+                        </a>
+                        <a href={file.downloadUrl} className={`flex-1 text-center px-4 py-2 rounded-lg text-xs font-medium transition-colors text-white hover:opacity-90`} style={{ backgroundColor: accentColor }}>
+                          Download
+                        </a>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            <div className={`rounded-2xl p-6 ${cardClass}`}>
+              <InstructionViewer 
+                instructions={lab.instructions || []} 
+                isDark={isDark} 
+                accentColor={accentColor} 
+              />
+            </div>
           </div>
         ) : (
           <div className={`rounded-2xl p-6 ${cardClass}`}>

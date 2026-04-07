@@ -14,6 +14,7 @@ import {
   Clock,
   Award,
   Loader,
+  AlertCircle,
 } from 'lucide-react';
 
 interface SubmissionListProps {
@@ -24,14 +25,14 @@ interface SubmissionListProps {
 }
 
 type FilterType = 'all' | 'pending' | 'graded';
-
+
 export const SubmissionList: React.FC<SubmissionListProps> = ({
   isOpen,
   lab,
   onClose,
   onGradeSubmission,
 }) => {
-  const { theme } = useTheme();
+  const { isDark } = useTheme();
   const { t } = useLanguage();
   const [submissions, setSubmissions] = useState<LabSubmission[]>([]);
   const [filteredSubmissions, setFilteredSubmissions] = useState<LabSubmission[]>([]);
@@ -39,7 +40,6 @@ export const SubmissionList: React.FC<SubmissionListProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
 
-  // Fetch submissions
   useEffect(() => {
     if (isOpen) {
       fetchSubmissions();
@@ -53,14 +53,13 @@ export const SubmissionList: React.FC<SubmissionListProps> = ({
       setSubmissions(data);
       filterSubmissions(data, activeFilter, searchQuery);
     } catch (error) {
-      toast.error(t('error.fetchSubmissions') || 'Failed to fetch submissions');
+      toast.error('Failed to fetch submissions');
       console.error('Failed to fetch submissions:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  // Filter submissions
   useEffect(() => {
     filterSubmissions(submissions, activeFilter, searchQuery);
   }, [activeFilter, searchQuery, submissions]);
@@ -72,27 +71,27 @@ export const SubmissionList: React.FC<SubmissionListProps> = ({
   ) => {
     let filtered = subs;
 
-    // Apply status filter
     if (filter === 'pending') {
       filtered = filtered.filter((sub) => !sub.gradedAt);
     } else if (filter === 'graded') {
       filtered = filtered.filter((sub) => sub.gradedAt);
     }
 
-    // Apply search filter
     if (search) {
-      const lowerSearch = search.toLowerCase();
-      filtered = filtered.filter(
-        (sub) =>
-          sub.studentName.toLowerCase().includes(lowerSearch) ||
-          sub.studentEmail.toLowerCase().includes(lowerSearch)
-      );
+      const query = search.toLowerCase();
+      filtered = filtered.filter((sub) => {
+        const studentName = sub.studentName || (sub.user ? `${sub.user.firstName} ${sub.user.lastName}` : '');
+        const studentEmail = sub.studentEmail || sub.user?.email || '';
+        return (
+          studentName.toLowerCase().includes(query) ||
+          studentEmail.toLowerCase().includes(query)
+        );
+      });
     }
 
     setFilteredSubmissions(filtered);
   };
 
-  // Calculate statistics
   const stats = {
     total: submissions.length,
     pending: submissions.filter((s) => !s.gradedAt).length,
@@ -102,80 +101,79 @@ export const SubmissionList: React.FC<SubmissionListProps> = ({
         ? (
             submissions
               .filter((s) => s.score !== null)
-              .reduce((acc, s) => acc + (s.score || 0), 0) /
+              .reduce((acc, s) => acc + parseFloat(s.score as any || '0'), 0) /
             submissions.filter((s) => s.score !== null).length
           ).toFixed(2)
-        : '0',
+        : '0.00',
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div
-        className={`bg-white dark:bg-slate-900 rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col ${
-          theme === 'dark' ? 'border border-slate-700' : ''
+        className={`rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col ${
+          isDark ? 'bg-slate-900' : 'bg-white'
         }`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-slate-700">
+        <div className={`flex items-center justify-between p-6 border-b ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-              {t('submissions.title') || 'Lab Submissions'}
+            <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+              Lab Submissions
             </h2>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+            <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
               {lab.title}
             </p>
           </div>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition"
-            aria-label="Close"
+            className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-white/10 text-slate-400' : 'hover:bg-gray-100 text-gray-500'}`}
           >
-            <X size={24} />
+            <X size={20} />
           </button>
         </div>
 
         {/* Statistics */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-6 bg-gray-50 dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700">
+        <div className={`grid grid-cols-4 gap-4 p-6 border-b ${isDark ? 'bg-slate-800 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
           <div>
-            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-              {t('submissions.total') || 'Total'}
+            <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+              Total
             </p>
-            <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
+            <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
               {stats.total}
             </p>
           </div>
           <div>
-            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-              {t('submissions.pending') || 'Pending'}
+            <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+              Pending
             </p>
-            <p className="text-xl sm:text-2xl font-bold text-yellow-600 dark:text-yellow-400">
+            <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
               {stats.pending}
             </p>
           </div>
           <div>
-            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-              {t('submissions.graded') || 'Graded'}
+            <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+              Graded
             </p>
-            <p className="text-xl sm:text-2xl font-bold text-green-600 dark:text-green-400">
+            <p className="text-2xl font-bold text-green-600 dark:text-green-400">
               {stats.graded}
             </p>
           </div>
           <div>
-            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-              {t('submissions.average') || 'Avg Score'}
+            <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+              Avg Score
             </p>
-            <p className="text-xl sm:text-2xl font-bold text-blue-600 dark:text-blue-400">
+            <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
               {stats.averageScore}
             </p>
           </div>
         </div>
 
         {/* Filters and Search */}
-        <div className="p-6 border-b border-gray-200 dark:border-slate-700 space-y-4">
+        <div className={`p-6 border-b space-y-4 ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
           {/* Filter Tabs */}
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex gap-2">
             {(['all', 'pending', 'graded'] as FilterType[]).map((filter) => (
               <button
                 key={filter}
@@ -183,27 +181,29 @@ export const SubmissionList: React.FC<SubmissionListProps> = ({
                 className={`px-4 py-2 rounded-lg font-medium transition ${
                   activeFilter === filter
                     ? 'bg-blue-600 text-white'
-                    : 'bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-slate-600'
+                    : isDark
+                      ? 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                 }`}
               >
-                {t(`filter.${filter}`) ||
-                  filter.charAt(0).toUpperCase() + filter.slice(1)}
+                {filter.charAt(0).toUpperCase() + filter.slice(1)}
               </button>
             ))}
           </div>
 
           {/* Search */}
           <div className="relative">
-            <Search
-              className="absolute left-3 top-3 text-gray-400"
-              size={20}
-            />
+            <Search className={`absolute left-3 top-3 ${isDark ? 'text-slate-400' : 'text-gray-400'}`} size={20} />
             <input
               type="text"
-              placeholder={t('search.placeholder') || 'Search by student name or email...'}
+              placeholder="Search by student name or email..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                isDark
+                  ? 'bg-slate-800 border-white/10 text-white placeholder-slate-500'
+                  : 'bg-white border-gray-300 placeholder-gray-500'
+              }`}
             />
           </div>
         </div>
@@ -214,63 +214,71 @@ export const SubmissionList: React.FC<SubmissionListProps> = ({
             <div className="flex items-center justify-center h-64">
               <div className="flex flex-col items-center gap-3">
                 <Loader className="animate-spin text-blue-600" size={32} />
-                <p className="text-gray-600 dark:text-gray-400">
-                  {t('loading') || 'Loading submissions...'}
+                <p className={isDark ? 'text-slate-400' : 'text-gray-600'}>
+                  Loading submissions...
                 </p>
               </div>
             </div>
           ) : filteredSubmissions.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-64 text-gray-500 dark:text-gray-400">
+            <div className={`flex flex-col items-center justify-center h-64 ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
               <FileText size={48} className="mb-4 opacity-50" />
-              <p className="text-lg font-medium text-gray-700 dark:text-gray-300">
-                {t('empty.submissions') || 'No submissions found'}
+              <p className={`text-lg font-medium ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>
+                No submissions found
               </p>
               <p className="text-sm mt-2">
                 {searchQuery || activeFilter !== 'all'
-                  ? t('empty.tryAdjusting') || 'Try adjusting your filters or search'
-                  : t('empty.noSubmissionsYet') || 'No submissions yet'}
+                  ? 'Try adjusting your filters or search'
+                  : 'No submissions yet'}
               </p>
             </div>
           ) : (
-            filteredSubmissions.map((submission) => (
+            filteredSubmissions.map((submission) => {
+              const studentName = submission.studentName || 
+                (submission.user ? `${submission.user.firstName} ${submission.user.lastName}` : 'Unknown Student');
+              const studentEmail = submission.studentEmail || submission.user?.email || '';
+              const submissionText = submission.text || submission.submissionText;
+              const hasDriveFile = submission.driveFile && submission.driveFile.webViewLink;
+              const hasLegacyFile = submission.fileUrl || (submission.file && submission.file.webContentLink);
+              
+              return (
               <div
                 key={submission.id}
-                className="p-4 border border-gray-200 dark:border-slate-700 rounded-lg hover:shadow-md dark:hover:shadow-slate-800 transition bg-white dark:bg-slate-800"
+                className={`p-4 border rounded-lg transition ${
+                  isDark
+                    ? 'bg-slate-800 border-white/10 hover:border-white/20'
+                    : 'bg-white border-gray-200 hover:shadow-md'
+                }`}
               >
                 {/* Student Info */}
                 <div className="flex items-start justify-between mb-3 gap-4">
                   <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center flex-shrink-0">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
+                      isDark ? 'bg-blue-900' : 'bg-blue-100'
+                    }`}>
                       <User className="text-blue-600 dark:text-blue-400" size={20} />
                     </div>
                     <div className="min-w-0">
-                      <h3 className="font-semibold text-gray-900 dark:text-white truncate">
-                        {submission.studentName}
+                      <h3 className={`font-semibold truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                        {studentName}
                       </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
-                        {submission.studentEmail}
+                      <p className={`text-sm truncate ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                        {studentEmail}
                       </p>
                     </div>
                   </div>
                   <div className="flex-shrink-0">
                     {submission.gradedAt ? (
-                      <div className="flex items-center gap-1 px-3 py-1 bg-green-100 dark:bg-green-900 rounded-full whitespace-nowrap">
-                        <CheckCircle
-                          size={16}
-                          className="text-green-600 dark:text-green-400"
-                        />
-                        <span className="text-xs sm:text-sm font-medium text-green-700 dark:text-green-300">
-                          {t('status.graded') || 'Graded'}
+                      <div className="flex items-center gap-1 px-3 py-1 bg-green-500/10 rounded-full">
+                        <CheckCircle size={16} className="text-green-600 dark:text-green-400" />
+                        <span className="text-sm font-medium text-green-700 dark:text-green-300">
+                          Graded
                         </span>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-1 px-3 py-1 bg-yellow-100 dark:bg-yellow-900 rounded-full whitespace-nowrap">
-                        <Clock
-                          size={16}
-                          className="text-yellow-600 dark:text-yellow-400"
-                        />
-                        <span className="text-xs sm:text-sm font-medium text-yellow-700 dark:text-yellow-300">
-                          {t('status.pending') || 'Pending'}
+                      <div className="flex items-center gap-1 px-3 py-1 bg-yellow-500/10 rounded-full">
+                        <Clock size={16} className="text-yellow-600 dark:text-yellow-400" />
+                        <span className="text-sm font-medium text-yellow-700 dark:text-yellow-300">
+                          Pending
                         </span>
                       </div>
                     )}
@@ -279,62 +287,84 @@ export const SubmissionList: React.FC<SubmissionListProps> = ({
 
                 {/* Submission Details */}
                 <div className="space-y-2 mb-3">
-                  <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                  <div className={`flex items-center gap-2 text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
                     <Calendar size={16} className="flex-shrink-0" />
                     <span>
-                      {new Date(submission.submittedAt).toLocaleString()}
+                      {new Date(submission.submittedAt).toLocaleString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
                     </span>
                   </div>
 
-                  {submission.text && (
-                    <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">
-                      {submission.text}
+                  {submissionText && (
+                    <p className={`text-sm line-clamp-2 ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>
+                      {submissionText}
                     </p>
                   )}
 
-                  {submission.fileUrl && (
+                  {/* Drive File Link */}
+                  {hasDriveFile && (
                     <a
-                      href={submission.fileUrl}
+                      href={submission.driveFile!.webViewLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:underline"
+                    >
+                      <FileText size={16} className="flex-shrink-0" />
+                      <span className="truncate">{submission.driveFile!.fileName}</span>
+                    </a>
+                  )}
+
+                  {/* Legacy File Link */}
+                  {!hasDriveFile && hasLegacyFile && (
+                    <a
+                      href={submission.fileUrl || submission.file?.webContentLink}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:underline"
                     >
                       <FileText size={16} className="flex-shrink-0" />
                       <span className="truncate">
-                        {submission.fileName || 'Download attachment'}
+                        {submission.fileName || submission.file?.fileName || 'Download file'}
                       </span>
                     </a>
                   )}
                 </div>
 
                 {/* Grade Info and Actions */}
-                <div className="flex items-center justify-between pt-3 border-t border-gray-200 dark:border-slate-700 gap-4">
-                  {submission.gradedAt && submission.score !== null && (
+                <div className={`flex items-center justify-between pt-3 border-t gap-4 ${
+                  isDark ? 'border-white/10' : 'border-gray-200'
+                }`}>
+                  {submission.gradedAt && submission.score !== null ? (
                     <div className="flex items-center gap-2">
-                      <Award
-                        size={18}
-                        className="text-blue-600 dark:text-blue-400 flex-shrink-0"
-                      />
-                      <span className="font-semibold text-gray-900 dark:text-white">
-                        {t('score') || 'Score'}: {submission.score}
+                      <Award size={18} className="text-blue-600 dark:text-blue-400 flex-shrink-0" />
+                      <span className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                        Score: {submission.score}
                       </span>
                     </div>
+                  ) : (
+                    <div /> 
                   )}
                   <button
                     onClick={() => onGradeSubmission(submission)}
-                    className={`px-4 py-2 rounded-lg font-medium transition flex-shrink-0 whitespace-nowrap ${
+                    className={`px-4 py-2 rounded-lg font-medium transition ${
                       submission.gradedAt
-                        ? 'bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-slate-600'
+                        ? isDark
+                          ? 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                         : 'bg-blue-600 text-white hover:bg-blue-700'
                     }`}
                   >
-                    {submission.gradedAt
-                      ? t('button.viewGrade') || 'View Grade'
-                      : t('button.grade') || 'Grade'}
+                    {submission.gradedAt ? 'View Grade' : 'Grade'}
                   </button>
                 </div>
               </div>
-            ))
+              );
+            })
           )}
         </div>
       </div>
