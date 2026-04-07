@@ -19,6 +19,7 @@ import {
   CourseMaterial,
   CourseMaterialsResponse,
   CourseStructureResponse,
+  getCourseMaterialPreviewUrl,
   materialService,
   structureService,
 } from '../../../services/api/courseService';
@@ -266,15 +267,20 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
     handleMaterialClick(lesson.materialId);
   };
 
-  const handleDownloadMaterial = (material: CourseMaterial) => {
-    if (!resolvedCourseId || !material.materialId) return;
-    const downloadUrl = materialService.getDownloadUrl(resolvedCourseId, material.materialId);
-    window.open(downloadUrl, '_blank', 'noopener,noreferrer');
-  };
-
   const materialsCount = materialsResponse.meta?.total || materialsResponse.data?.length || 0;
   const hasMaterials = (materialsResponse.data?.length || 0) > 0;
   const hasStructure = Object.keys(structureResponse.byWeek || {}).length > 0;
+  const selectedMaterialPreviewUrl = useMemo(
+    () => (selectedMaterial ? getCourseMaterialPreviewUrl(selectedMaterial) : null),
+    [selectedMaterial]
+  );
+  const hasLargePreviewViewer = Boolean(
+    selectedMaterial &&
+      (selectedMaterial.materialType === 'video' ||
+        (selectedMaterial.materialType !== 'link' &&
+          selectedMaterial.materialType !== 'other' &&
+          selectedMaterialPreviewUrl))
+  );
 
   const fallbackMaterialItems: MaterialListItem[] = useMemo(() => {
     return (materialsResponse.data || [])
@@ -410,7 +416,7 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
         <div className="flex-1">
           {/* Course Preview Video */}
           <div
-            className={`border rounded-lg overflow-hidden mb-6 h-64 sm:h-80 xl:h-96 ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}
+            className={`border rounded-lg overflow-hidden mb-6 ${hasLargePreviewViewer ? 'h-[70vh] min-h-[520px] xl:h-[76vh]' : 'h-64 sm:h-80 xl:h-96'} ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}
           >
             <div className="relative h-full">
               <button
@@ -450,11 +456,9 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
                     </h3>
                     <iframe
                       src={selectedMaterial.externalUrl}
-                      width="100%"
-                      height="400"
                       allowFullScreen
                       title={selectedMaterial.title}
-                      className="w-full rounded-lg border-0"
+                      className="w-full h-[52vh] min-h-[420px] rounded-lg border-0"
                     />
                     <p className={`mt-3 ${isDark ? 'text-slate-300' : 'text-gray-600'}`}>
                       {selectedMaterial.description || 'No description available.'}
@@ -463,51 +467,40 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
                 )}
 
               {selectedMaterial &&
-                selectedMaterial.fileId &&
-                selectedMaterial.materialType !== 'video' && (
-                  <div className="h-full flex items-center justify-center px-6">
-                    <div
-                      className={`max-w-xl w-full rounded-lg p-6 border ${isDark ? 'bg-slate-800 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
-                    >
-                      <h3 className="text-lg font-semibold mb-2">{selectedMaterial.title}</h3>
-                      <p className={`mb-4 ${isDark ? 'text-slate-300' : 'text-gray-600'}`}>
-                        {selectedMaterial.description ||
-                          'Download this document to view its content.'}
-                      </p>
-                      <button
-                        onClick={() => handleDownloadMaterial(selectedMaterial)}
-                        className="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700"
-                      >
-                        Download {selectedMaterial.materialType}
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-              {selectedMaterial &&
-                (selectedMaterial.materialType === 'lecture' ||
-                  selectedMaterial.materialType === 'slide') && (
-                  <div className="h-full flex items-center justify-center px-6">
-                    <div
-                      className={`max-w-xl w-full rounded-lg p-6 border ${isDark ? 'bg-slate-800 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
-                    >
-                      <h3 className="text-lg font-semibold mb-2">{selectedMaterial.title}</h3>
-                      <p className={`${isDark ? 'text-slate-300' : 'text-gray-600'}`}>
-                        {selectedMaterial.description || 'No additional description available.'}
-                      </p>
-                      <p className={`mt-2 text-sm ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
-                        {selectedMaterial.materialType} • Week{' '}
-                        {selectedMaterial.weekNumber || 'General'}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-              {selectedMaterial &&
                 selectedMaterial.materialType !== 'video' &&
-                selectedMaterial.materialType !== 'document' &&
-                selectedMaterial.materialType !== 'lecture' &&
-                selectedMaterial.materialType !== 'slide' && (
+                selectedMaterial.materialType !== 'link' &&
+                selectedMaterial.materialType !== 'other' && (
+                  <div className="h-full overflow-auto p-4 sm:p-6">
+                    <h3 className={`text-lg font-semibold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                      {selectedMaterial.title}
+                    </h3>
+                    {selectedMaterialPreviewUrl ? (
+                      <iframe
+                        src={selectedMaterialPreviewUrl}
+                        title={selectedMaterial.title}
+                        className="w-full h-[52vh] min-h-[420px] rounded-lg border-0"
+                      />
+                    ) : (
+                      <div
+                        className={`max-w-xl w-full rounded-lg p-6 border ${isDark ? 'bg-slate-800 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
+                      >
+                        <p className={`${isDark ? 'text-slate-300' : 'text-gray-600'}`}>
+                          Preview is unavailable for this material.
+                        </p>
+                      </div>
+                    )}
+                    <p className={`mt-3 ${isDark ? 'text-slate-300' : 'text-gray-600'}`}>
+                      {selectedMaterial.description || 'No description available.'}
+                    </p>
+                    <p className={`mt-2 text-sm ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
+                      {selectedMaterial.materialType} • Week {selectedMaterial.weekNumber || 'General'}
+                    </p>
+                  </div>
+                )}
+
+              {selectedMaterial &&
+                (selectedMaterial.materialType === 'link' ||
+                  selectedMaterial.materialType === 'other') && (
                   <div className="h-full flex items-center justify-center px-6">
                     <div
                       className={`max-w-xl w-full rounded-lg p-6 border ${isDark ? 'bg-slate-800 border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}

@@ -29,6 +29,7 @@ import {
   CourseMaterial,
   CourseMaterialsResponse,
   CourseStructureResponse,
+  getCourseMaterialPreviewUrl,
   materialService,
   structureService,
 } from '../../../services/api/courseService';
@@ -77,8 +78,33 @@ const materialTypeOptions = [
   { value: 'video', label: 'Video' },
   { value: 'lecture', label: 'Lecture' },
   { value: 'slide', label: 'Slide' },
+  { value: 'reading', label: 'Reading' },
   { value: 'link', label: 'Link' },
 ];
+
+const MAX_DOCUMENT_SIZE = 50 * 1024 * 1024;
+const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
+const documentMimeTypes = new Set([
+  'application/pdf',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.ms-powerpoint',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'text/plain',
+  'text/markdown',
+  'application/zip',
+]);
+const imageMimeTypes = new Set([
+  'image/jpeg',
+  'image/png',
+  'image/gif',
+  'image/webp',
+  'image/svg+xml',
+]);
+const documentExtensions = new Set(['pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx', 'txt', 'md', 'zip']);
+const imageExtensions = new Set(['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg']);
 
 const materialIcon = (type: string) => {
   switch (type) {
@@ -100,6 +126,32 @@ const parseWeekNumber = (value: string): number | undefined => {
   if (!trimmed) return undefined;
   const parsed = Number(trimmed);
   return Number.isFinite(parsed) ? parsed : undefined;
+};
+
+const validateDocumentUpload = (file: File): string | null => {
+  const ext = file.name.split('.').pop()?.toLowerCase() || '';
+  const categoryFromType = imageMimeTypes.has(file.type)
+    ? 'image'
+    : documentMimeTypes.has(file.type)
+      ? 'document'
+      : null;
+  const categoryFromExt = imageExtensions.has(ext)
+    ? 'image'
+    : documentExtensions.has(ext)
+      ? 'document'
+      : null;
+
+  if (!categoryFromType || !categoryFromExt || categoryFromType !== categoryFromExt) {
+    return 'Unsupported file type. Upload PDF, Office files, TXT/MD, ZIP, or image files only.';
+  }
+
+  const maxSize = categoryFromType === 'image' ? MAX_IMAGE_SIZE : MAX_DOCUMENT_SIZE;
+  if (file.size > maxSize) {
+    const maxSizeMB = maxSize / (1024 * 1024);
+    return `File size exceeds ${maxSizeMB}MB limit.`;
+  }
+
+  return null;
 };
 
 const uploaderName = (material: CourseMaterial): string => {
@@ -290,6 +342,11 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
         setUploadError('Please select a file to upload.');
         return;
       }
+      const validationError = validateDocumentUpload(selectedFile);
+      if (validationError) {
+        setUploadError(validationError);
+        return;
+      }
       setMutating(true);
       setUploadError('');
       setUploadProgress(0);
@@ -304,8 +361,7 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
               | 'document'
               | 'lecture'
               | 'slide'
-              | 'reading'
-              | 'other',
+              | 'reading',
             description: createForm.description || undefined,
             weekNumber: parseWeekNumber(createForm.weekNumber),
             isPublished: createForm.isPublished,
@@ -463,7 +519,7 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
   };
 
   const onDownload = (material: CourseMaterial) => {
-    if (!activeCourseId || !material.fileId) return;
+    if (!activeCourseId || !material.materialId) return;
     const url = materialService.getDownloadUrl(activeCourseId, material.materialId);
     window.open(url, '_blank', 'noopener,noreferrer');
   };
@@ -471,6 +527,13 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
   const renderMaterialCard = (material: CourseMaterial) => {
     const badgeClass = materialBadgeClasses[material.materialType] || materialBadgeClasses.document;
     const videoSrc = embedUrls[material.materialId] || material.externalUrl || '';
+    const documentPreviewSrc = getCourseMaterialPreviewUrl(material);
+    const canInlinePreview =
+      (material.materialType === 'document' ||
+        material.materialType === 'lecture' ||
+        material.materialType === 'slide' ||
+        material.materialType === 'reading') &&
+      !!documentPreviewSrc;
     const ytThumb = material.youtubeVideoId
       ? `https://img.youtube.com/vi/${material.youtubeVideoId}/mqdefault.jpg`
       : null;
@@ -541,6 +604,27 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
                 />
               </div>
             )}
+
+            {canInlinePreview && (
+              <div className="mt-3 rounded-lg overflow-hidden border border-slate-200">
+                <iframe
+                  src={documentPreviewSrc || ''}
+                  width="100%"
+                  height="380"
+                  title={`material-preview-${material.materialId}`}
+                />
+              </div>
+            )}
+
+            {!canInlinePreview &&
+              (material.materialType === 'document' ||
+                material.materialType === 'lecture' ||
+                material.materialType === 'slide' ||
+                material.materialType === 'reading') && (
+                <p className={`mt-3 text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                  Preview is unavailable for this file.
+                </p>
+              )}
           </div>
 
           <div className="flex items-center gap-1">
@@ -585,7 +669,7 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
               <Trash2 size={16} />
             </button>
 
-            {material.fileId && (
+            {material.materialType !== 'video' && material.materialType !== 'link' && (
               <button
                 onClick={() => onDownload(material)}
                 className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-white/10 text-slate-300' : 'hover:bg-slate-100 text-slate-600'}`}
@@ -884,7 +968,7 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
                         className={`w-full px-3 py-2 border rounded-lg disabled:opacity-60 ${isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-slate-300'}`}
                       >
                         {(isFileMode
-                          ? ['document', 'lecture', 'slide', 'reading', 'other']
+                          ? ['document', 'lecture', 'slide', 'reading']
                           : materialTypeOptions.filter((o) => o.value !== 'all').map((o) => o.value)
                         ).map((v) => (
                           <option key={v} value={v}>
@@ -969,10 +1053,19 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
                       <input
                         ref={fileInputRef}
                         type="file"
-                        accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt"
+                        accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.md,.zip,.jpg,.jpeg,.png,.gif,.webp,.svg"
                         className="hidden"
                         onChange={(e) => {
-                          setSelectedFile(e.target.files?.[0] ?? null);
+                          const nextFile = e.target.files?.[0] ?? null;
+                          if (nextFile) {
+                            const validationError = validateDocumentUpload(nextFile);
+                            if (validationError) {
+                              setSelectedFile(null);
+                              setUploadError(validationError);
+                              return;
+                            }
+                          }
+                          setSelectedFile(nextFile);
                           setUploadError('');
                         }}
                       />

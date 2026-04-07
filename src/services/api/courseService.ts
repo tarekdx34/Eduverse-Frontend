@@ -40,10 +40,13 @@ export interface CourseMaterial {
   fileId?: string | null;
   file?: unknown | null;
   driveFileId?: string | null;
-  materialType: 'document' | 'video' | 'lecture' | 'slide' | 'link';
+  materialType: 'document' | 'video' | 'lecture' | 'slide' | 'reading' | 'link' | 'other';
   title: string;
   description?: string;
   externalUrl?: string | null;
+  driveViewUrl?: string | null;
+  driveDownloadUrl?: string | null;
+  fileName?: string | null;
   youtubeVideoId?: string | null;
   orderIndex?: number;
   weekNumber?: number | null;
@@ -192,12 +195,7 @@ export class CourseService {
   static async uploadDocument(courseId: number, formData: FormData): Promise<CourseMaterial> {
     const response = await ApiClient.post<{ data: CourseMaterial }>(
       `/courses/${courseId}/materials/document`,
-      formData,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      }
+      formData
     );
     return response.data;
   }
@@ -230,6 +228,39 @@ const normalizeApiBase = (base: string): string => {
   return trimmed.endsWith('/api') ? trimmed : `${trimmed}/api`;
 };
 
+const extractGoogleDriveId = (url: string): string | null => {
+  const fromPath = url.match(/\/d\/([^/]+)/i)?.[1];
+  if (fromPath) return fromPath;
+  const fromQuery = url.match(/[?&]id=([^&]+)/i)?.[1];
+  return fromQuery || null;
+};
+
+const toPreviewUrl = (url: string): string => {
+  const trimmed = url.trim();
+  if (!trimmed) return '';
+  if (trimmed.includes('youtube.com') || trimmed.includes('youtu.be')) return trimmed;
+  if (!trimmed.includes('drive.google.com')) return trimmed;
+  if (trimmed.includes('/preview')) return trimmed;
+
+  const driveId = extractGoogleDriveId(trimmed);
+  if (!driveId) return trimmed;
+  return `https://drive.google.com/file/d/${driveId}/preview`;
+};
+
+export const getCourseMaterialPreviewUrl = (material: CourseMaterial): string | null => {
+  const candidates = [material.externalUrl, material.driveViewUrl, material.driveDownloadUrl].filter(
+    Boolean
+  ) as string[];
+  const firstCandidate = candidates.find((value) => value.trim().length > 0);
+  if (firstCandidate) return toPreviewUrl(firstCandidate);
+
+  if (material.driveFileId) {
+    return `https://drive.google.com/file/d/${material.driveFileId}/preview`;
+  }
+
+  return null;
+};
+
 export const materialService = {
   getMaterials: (courseId: string, params?: MaterialQueryParams) =>
     ApiClient.get<CourseMaterialsResponse>(`/courses/${courseId}/materials`, { params }),
@@ -249,11 +280,7 @@ export const materialService = {
   ) => ApiClient.post<CourseMaterial>(`/courses/${courseId}/materials`, data),
 
   uploadDocument: (courseId: string, formData: FormData) =>
-    ApiClient.post<CourseMaterial>(`/courses/${courseId}/materials/document`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    }),
+    ApiClient.post<CourseMaterial>(`/courses/${courseId}/materials/document`, formData),
 
   updateMaterial: (courseId: string, materialId: string, data: unknown) =>
     ApiClient.put<CourseMaterial>(`/courses/${courseId}/materials/${materialId}`, data),
@@ -326,7 +353,7 @@ export const materialService = {
     file: File,
     metadata: {
       title: string;
-      materialType: 'document' | 'lecture' | 'slide' | 'reading' | 'other';
+      materialType: 'document' | 'lecture' | 'slide' | 'reading';
       description?: string;
       weekNumber?: number;
       isPublished?: boolean;
@@ -334,7 +361,7 @@ export const materialService = {
     onProgress?: (percent: number) => void
   ) => {
     const formData = new FormData();
-    formData.append('file', file); // field name MUST be "file"
+    formData.append('document', file);
     formData.append('title', metadata.title);
     formData.append('materialType', metadata.materialType);
     if (metadata.description) formData.append('description', metadata.description);
@@ -345,7 +372,7 @@ export const materialService = {
 
     const base = normalizeApiBase(import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081');
     const token = localStorage.getItem(TOKEN_KEYS.ACCESS_TOKEN);
-    const response = await axios.post(`${base}/courses/${courseId}/materials`, formData, {
+    const response = await axios.post(`${base}/courses/${courseId}/materials/document`, formData, {
       headers: {
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
