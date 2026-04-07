@@ -35,6 +35,11 @@ import {
   structureService,
 } from '../../../services/api/courseService';
 import { toast } from 'sonner';
+import {
+  getBundleSuffix,
+  groupMaterialsIntoBundles,
+  type MaterialBundle,
+} from '../../../utils/materialBundles';
 
 type UploadMaterialsPageProps = {
   courseId?: string;
@@ -56,6 +61,10 @@ type ActivityItem = {
   status: 'completed' | 'processing';
   time: string;
 };
+
+type WeekMaterialEntry =
+  | { kind: 'bundle'; bundle: MaterialBundle }
+  | { kind: 'single'; material: CourseMaterial };
 
 const defaultFormState: MaterialFormState = {
   title: '',
@@ -172,6 +181,10 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedMaterial, setSelectedMaterial] = useState<CourseMaterial | null>(null);
+  const [editingBundle, setEditingBundle] = useState<MaterialBundle | null>(null);
+  const [deletingBundle, setDeletingBundle] = useState<MaterialBundle | null>(null);
+  const [expandedBundleKey, setExpandedBundleKey] = useState<string | null>(null);
+  const [selectedBundleDocumentId, setSelectedBundleDocumentId] = useState<string | null>(null);
 
   const [createForm, setCreateForm] = useState<MaterialFormState>(defaultFormState);
   const [editForm, setEditForm] = useState<MaterialFormState>(defaultFormState);
@@ -326,6 +339,8 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
     setBundleDocuments([]);
     setBundleUploadStatus('idle');
     setBundleUploadStep('');
+    setExpandedBundleKey(null);
+    setSelectedBundleDocumentId(null);
     setShowCreateModal(true);
   };
 
@@ -335,6 +350,8 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
   };
 
   const openEditModal = (material: CourseMaterial) => {
+    setEditingBundle(null);
+    setSelectedBundleDocumentId(null);
     setSelectedMaterial(material);
     setEditForm({
       title: material.title || '',
@@ -344,6 +361,26 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
       isPublished: material.isPublished === 1,
     });
     setShowEditModal(true);
+  };
+
+  const openBundleEditModal = (bundle: MaterialBundle) => {
+    setEditingBundle(bundle);
+    setSelectedBundleDocumentId(bundle.documents[0]?.materialId || null);
+    setSelectedMaterial(bundle.items[0] || null);
+    setEditForm({
+      title: bundle.baseTitle,
+      materialType: 'lecture',
+      description: bundle.instructions || '',
+      weekNumber: bundle.weekNumber == null ? '' : String(bundle.weekNumber),
+      isPublished: bundle.isPublished,
+    });
+    setShowEditModal(true);
+  };
+
+  const openBundleDeleteDialog = (bundle: MaterialBundle) => {
+    setSelectedMaterial(null);
+    setDeletingBundle(bundle);
+    setShowDeleteDialog(true);
   };
 
   const onCreateMaterial = async () => {
@@ -563,17 +600,38 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
   };
 
   const onUpdateMaterial = async () => {
-    if (!activeCourseId || !selectedMaterial) return;
+    if (!activeCourseId) return;
     setMutating(true);
     try {
-      await materialService.updateMaterial(activeCourseId, selectedMaterial.materialId, {
-        title: editForm.title.trim(),
-        description: editForm.description || undefined,
-        weekNumber: parseWeekNumber(editForm.weekNumber),
-        isPublished: editForm.isPublished,
-      });
-      toast.success('Material updated');
+      if (editingBundle && editingBundle.items.length > 0) {
+        const nextBaseTitle = editForm.title.trim();
+        await Promise.all(
+          editingBundle.items.map((material) =>
+            materialService.updateMaterial(activeCourseId, material.materialId, {
+              title: `${nextBaseTitle} - ${getBundleSuffix(material, editingBundle.baseTitle)}`,
+              description: editForm.description || undefined,
+              weekNumber: parseWeekNumber(editForm.weekNumber),
+              isPublished: editForm.isPublished,
+            })
+          )
+        );
+        toast.success('Lecture bundle updated');
+        setEditingBundle(null);
+        setSelectedBundleDocumentId(null);
+      } else if (selectedMaterial) {
+        await materialService.updateMaterial(activeCourseId, selectedMaterial.materialId, {
+          title: editForm.title.trim(),
+          description: editForm.description || undefined,
+          weekNumber: parseWeekNumber(editForm.weekNumber),
+          isPublished: editForm.isPublished,
+        });
+        toast.success('Material updated');
+      } else {
+        return;
+      }
+
       setShowEditModal(false);
+      setEditingBundle(null);
       await loadMaterials(activeCourseId);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to update material';
@@ -584,12 +642,30 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
   };
 
   const onDeleteMaterial = async () => {
-    if (!activeCourseId || !selectedMaterial) return;
+    if (!activeCourseId) return;
     setMutating(true);
     try {
-      await materialService.deleteMaterial(activeCourseId, selectedMaterial.materialId);
-      toast.success('Material deleted');
+      if (deletingBundle && deletingBundle.items.length > 0) {
+        await Promise.all(
+          deletingBundle.items.map((material) =>
+            materialService.deleteMaterial(activeCourseId, material.materialId)
+          )
+        );
+        toast.success('Lecture bundle deleted');
+        if (expandedBundleKey === deletingBundle.key) {
+          setExpandedBundleKey(null);
+          setSelectedBundleDocumentId(null);
+        }
+      } else if (selectedMaterial) {
+        await materialService.deleteMaterial(activeCourseId, selectedMaterial.materialId);
+        toast.success('Material deleted');
+      } else {
+        return;
+      }
+
       setShowDeleteDialog(false);
+      setDeletingBundle(null);
+      setSelectedMaterial(null);
       await loadMaterials(activeCourseId);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to delete material';
@@ -614,6 +690,22 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
     }
   };
 
+  const onToggleBundleVisibility = async (bundle: MaterialBundle) => {
+    if (!activeCourseId) return;
+    const nextVisibleState = bundle.items.some((item) => item.isPublished !== 1);
+    try {
+      await Promise.all(
+        bundle.items.map((item) =>
+          materialService.toggleVisibility(activeCourseId, item.materialId, nextVisibleState)
+        )
+      );
+      await loadMaterials(activeCourseId);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to update bundle visibility';
+      toast.error(message);
+    }
+  };
+
   const onLoadEmbed = async (material: CourseMaterial) => {
     if (!activeCourseId) return;
     try {
@@ -630,6 +722,117 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
     if (!activeCourseId || !material.materialId) return;
     const url = materialService.getDownloadUrl(activeCourseId, material.materialId);
     window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  const toggleBundlePreview = (bundle: MaterialBundle) => {
+    setExpandedBundleKey((prev) => (prev === bundle.key ? null : bundle.key));
+    setSelectedBundleDocumentId((prev) => {
+      if (prev && bundle.documents.some((doc) => doc.materialId === prev)) return prev;
+      return bundle.documents[0]?.materialId || null;
+    });
+  };
+
+  const renderBundlePreviewContent = (bundle: MaterialBundle) => {
+    const selectedDocument =
+      bundle.documents.find((doc) => doc.materialId === selectedBundleDocumentId) ||
+      bundle.documents[0] ||
+      null;
+    const selectedDocumentPreviewUrl = selectedDocument
+      ? getCourseMaterialPreviewUrl(selectedDocument)
+      : null;
+    const bundleVideoSrc = bundle.video
+      ? embedUrls[bundle.video.materialId] || bundle.video.externalUrl || ''
+      : '';
+
+    return (
+      <div className="mt-3 space-y-3">
+        {bundle.video && (
+          <div className={`rounded-lg border p-3 ${isDark ? 'border-white/10 bg-white/5' : 'border-slate-200 bg-slate-50'}`}>
+            <div className="flex items-center justify-between mb-2">
+              <p className={`text-xs font-medium ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+                Lecture Video
+              </p>
+              {!bundleVideoSrc && (
+                <button
+                  type="button"
+                  onClick={() => onLoadEmbed(bundle.video!)}
+                  className={`text-xs px-2 py-1 rounded ${isDark ? 'text-slate-200 bg-white/10 hover:bg-white/20' : 'text-slate-700 bg-slate-200 hover:bg-slate-300'}`}
+                >
+                  Load video
+                </button>
+              )}
+            </div>
+            {bundleVideoSrc ? (
+              <iframe
+                src={bundleVideoSrc}
+                width="100%"
+                height="260"
+                allowFullScreen
+                title={`bundle-video-${bundle.key}`}
+                className="rounded"
+              />
+            ) : (
+              <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                Video preview is unavailable.
+              </p>
+            )}
+          </div>
+        )}
+
+        <div className={`rounded-lg border p-3 ${isDark ? 'border-white/10 bg-white/5' : 'border-slate-200 bg-slate-50'}`}>
+          <p className={`text-xs font-medium mb-2 ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+            Bundle Files
+          </p>
+          {bundle.documents.length === 0 ? (
+            <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+              No files in this bundle.
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {bundle.documents.map((doc) => (
+                <div
+                  key={doc.materialId}
+                  className={`flex flex-wrap items-center justify-between gap-2 p-2 rounded border ${
+                    selectedDocument?.materialId === doc.materialId
+                      ? 'border-indigo-300 bg-indigo-50'
+                      : isDark
+                        ? 'border-white/10 bg-white/5'
+                        : 'border-slate-200 bg-white'
+                  }`}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setSelectedBundleDocumentId(doc.materialId)}
+                    className={`text-left text-sm flex-1 min-w-0 truncate ${isDark ? 'text-slate-200' : 'text-slate-700'}`}
+                    title={doc.title}
+                  >
+                    {doc.title}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onDownload(doc)}
+                    className="text-xs px-2 py-1 rounded bg-indigo-600 text-white hover:bg-indigo-700"
+                  >
+                    Open
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {selectedDocumentPreviewUrl && (
+          <div className="rounded-lg overflow-hidden border border-slate-200">
+            <iframe
+              src={selectedDocumentPreviewUrl}
+              width="100%"
+              height="360"
+              title={`bundle-document-${selectedDocument?.materialId || bundle.key}`}
+            />
+          </div>
+        )}
+      </div>
+    );
   };
 
   const renderMaterialCard = (material: CourseMaterial) => {
@@ -768,6 +971,7 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
 
             <button
               onClick={() => {
+                setDeletingBundle(null);
                 setSelectedMaterial(material);
                 setShowDeleteDialog(true);
               }}
@@ -791,6 +995,116 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
       </div>
     );
   };
+
+  const getWeekMaterialEntries = (items: CourseMaterial[]): WeekMaterialEntry[] => {
+    const { bundles, singles } = groupMaterialsIntoBundles(items);
+
+    const entries: Array<WeekMaterialEntry & { orderIndex: number }> = [
+      ...bundles.map((bundle) => ({
+        kind: 'bundle' as const,
+        bundle,
+        orderIndex: Math.min(...bundle.items.map((item) => Number(item.orderIndex || 0))),
+      })),
+      ...singles.map((material) => ({
+        kind: 'single' as const,
+        material,
+        orderIndex: Number(material.orderIndex || 0),
+      })),
+    ];
+
+    return entries
+      .sort((a, b) => a.orderIndex - b.orderIndex)
+      .map(({ orderIndex: _orderIndex, ...entry }) => entry);
+  };
+
+  const renderBundleCard = (bundle: MaterialBundle) => {
+    const hasVideo = Boolean(bundle.video);
+    const isExpanded = expandedBundleKey === bundle.key;
+
+    return (
+      <div
+        key={bundle.key}
+        className={`rounded-xl p-4 border shadow-sm ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}
+      >
+        <div className="flex items-start gap-3">
+          <div
+            className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${isDark ? 'bg-white/10' : 'bg-slate-100'}`}
+          >
+            <Package size={18} className="text-indigo-500" />
+          </div>
+
+          <button
+            type="button"
+            onClick={() => toggleBundlePreview(bundle)}
+            className="flex-1 min-w-0 text-left"
+          >
+            <div className="flex items-center gap-2 flex-wrap mb-1">
+              <h4 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                {bundle.baseTitle}
+              </h4>
+              <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700">
+                Lecture Bundle
+              </span>
+              <span
+                className={`px-2 py-0.5 rounded-full text-xs font-medium ${bundle.isPublished ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}`}
+              >
+                {bundle.isPublished ? 'Published' : 'Draft'}
+              </span>
+            </div>
+
+            <p className={`text-sm ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+              {bundle.instructions || 'No instructions'}
+            </p>
+
+            <div className={`mt-2 text-xs flex flex-wrap gap-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+              <span>{bundle.weekNumber == null ? 'General' : `Week ${bundle.weekNumber}`}</span>
+              <span>{hasVideo ? '1 video' : 'No video'}</span>
+              <span>{bundle.documents.length} files</span>
+            </div>
+
+            <p className={`mt-2 text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+              {isExpanded ? 'Click to collapse' : 'Click to view full bundle content'}
+            </p>
+          </button>
+
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => onToggleBundleVisibility(bundle)}
+              className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-white/10' : 'hover:bg-slate-100'}`}
+              title="Toggle bundle visibility"
+            >
+              {bundle.isPublished ? (
+                <Eye size={16} className="text-green-500" />
+              ) : (
+                <EyeOff size={16} className="text-slate-500" />
+              )}
+            </button>
+
+            <button
+              onClick={() => openBundleEditModal(bundle)}
+              className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-white/10 text-slate-300' : 'hover:bg-slate-100 text-slate-600'}`}
+              title="Edit lecture bundle"
+            >
+              <Edit size={16} />
+            </button>
+
+            <button
+              onClick={() => openBundleDeleteDialog(bundle)}
+              className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-white/10 text-red-300' : 'hover:bg-red-50 text-red-600'}`}
+              title="Delete lecture bundle"
+            >
+              <Trash2 size={16} />
+            </button>
+          </div>
+        </div>
+
+        {isExpanded && renderBundlePreviewContent(bundle)}
+      </div>
+    );
+  };
+
+  const renderWeekMaterialEntry = (entry: WeekMaterialEntry) =>
+    entry.kind === 'bundle' ? renderBundleCard(entry.bundle) : renderMaterialCard(entry.material);
 
   return (
     <div className="p-6" dir={isRTL ? 'rtl' : 'ltr'}>
@@ -939,7 +1253,7 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
                       <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>
                         {week === 'general' ? 'General / No Week' : `Week ${week}`}
                       </h3>
-                      {items.map(renderMaterialCard)}
+                      {getWeekMaterialEntries(items).map(renderWeekMaterialEntry)}
                     </section>
                   ))}
               </div>
@@ -988,10 +1302,22 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
             {/* Header */}
             <div className="flex items-center justify-between mb-4">
               <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                {showCreateModal ? 'Add Material' : 'Edit Material'}
+                {showCreateModal
+                  ? 'Add Material'
+                  : editingBundle
+                    ? 'Edit Lecture Bundle'
+                    : 'Edit Material'}
               </h2>
               <button
-                onClick={showCreateModal ? closeCreateModal : () => setShowEditModal(false)}
+                onClick={
+                  showCreateModal
+                    ? closeCreateModal
+                    : () => {
+                        setEditingBundle(null);
+                        setSelectedBundleDocumentId(null);
+                        setShowEditModal(false);
+                      }
+                }
                 disabled={mutating}
                 className={`p-2 rounded-lg disabled:opacity-40 ${isDark ? 'hover:bg-white/10 text-slate-300' : 'hover:bg-slate-100 text-slate-600'}`}
               >
@@ -1470,6 +1796,15 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
                     </>
                   );
 
+                if (!showCreateModal && editingBundle) {
+                  return (
+                    <>
+                      {commonFields}
+                      {renderBundlePreviewContent(editingBundle)}
+                    </>
+                  );
+                }
+
                 // ── Text / Link mode (default) ────────────────────────────
                 return commonFields;
               })()}
@@ -1478,7 +1813,15 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
             <div className="flex justify-end gap-2 mt-6">
               <button
                 disabled={mutating}
-                onClick={showCreateModal ? closeCreateModal : () => setShowEditModal(false)}
+                onClick={
+                  showCreateModal
+                    ? closeCreateModal
+                    : () => {
+                        setEditingBundle(null);
+                        setSelectedBundleDocumentId(null);
+                        setShowEditModal(false);
+                      }
+                }
                 className={`px-4 py-2 rounded-lg disabled:opacity-40 ${isDark ? 'text-slate-300 hover:bg-white/10' : 'text-slate-700 hover:bg-slate-100'}`}
               >
                 Cancel
@@ -1507,7 +1850,7 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
         </div>
       )}
 
-      {showDeleteDialog && selectedMaterial && (
+      {showDeleteDialog && (selectedMaterial || deletingBundle) && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div
             className={`w-full max-w-sm rounded-xl p-6 shadow-xl ${isDark ? 'bg-slate-800 border border-white/10' : 'bg-white'}`}
@@ -1515,14 +1858,17 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
             <h3
               className={`text-lg font-semibold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}
             >
-              Delete material?
+              {deletingBundle ? 'Delete lecture bundle?' : 'Delete material?'}
             </h3>
             <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-              {selectedMaterial.title}
+              {deletingBundle ? deletingBundle.baseTitle : selectedMaterial?.title}
             </p>
             <div className="flex justify-end gap-2 mt-6">
               <button
-                onClick={() => setShowDeleteDialog(false)}
+                onClick={() => {
+                  setShowDeleteDialog(false);
+                  setDeletingBundle(null);
+                }}
                 className={`px-4 py-2 rounded-lg ${isDark ? 'text-slate-300 hover:bg-white/10' : 'text-slate-700 hover:bg-slate-100'}`}
               >
                 Cancel

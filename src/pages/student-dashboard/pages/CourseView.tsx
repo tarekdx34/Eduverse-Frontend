@@ -25,6 +25,7 @@ import {
 } from '../../../services/api/courseService';
 import { enrollmentService, EnrolledCourse } from '../../../services/api/enrollmentService';
 import { announcementService, type Announcement } from '../../../services/api/announcementService';
+import { groupMaterialsIntoBundles, type MaterialBundle } from '../../../utils/materialBundles';
 
 interface Lesson {
   id: string;
@@ -62,6 +63,8 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [selectedLesson, setSelectedLesson] = useState<string | null>(null);
   const [selectedMaterial, setSelectedMaterial] = useState<CourseMaterial | null>(null);
+  const [selectedBundleKey, setSelectedBundleKey] = useState<string | null>(null);
+  const [selectedBundleDocumentId, setSelectedBundleDocumentId] = useState<string | null>(null);
   const [enrollment, setEnrollment] = useState<EnrolledCourse | null>(null);
   const [structureResponse, setStructureResponse] = useState<CourseStructureResponse>({
     data: [],
@@ -161,6 +164,8 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
         if (firstWeek) setExpandedSection(firstWeek);
         setSelectedLesson(null);
         setSelectedMaterial(null);
+        setSelectedBundleKey(null);
+        setSelectedBundleDocumentId(null);
       } catch {
         if (!mounted) return;
         setPageError('Failed to load course data');
@@ -240,6 +245,20 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
     });
   }, [structureResponse.byWeek]);
 
+  const bundleData = useMemo(
+    () => groupMaterialsIntoBundles(materialsResponse.data || []),
+    [materialsResponse.data]
+  );
+  const bundleByMaterialId = bundleData.bundleByMaterialId;
+  const bundleByKey = useMemo(
+    () =>
+      bundleData.bundles.reduce<Record<string, MaterialBundle>>((acc, bundle) => {
+        acc[bundle.key] = bundle;
+        return acc;
+      }, {}),
+    [bundleData.bundles]
+  );
+
   const getOrganizationIcon = (organizationType?: string) => {
     if (organizationType === 'lecture') return <BookOpen size={18} />;
     if (organizationType === 'lab') return <FlaskConical size={18} />;
@@ -252,8 +271,18 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
     const material = (materialsResponse.data || []).find((item) => item.materialId === materialId);
     if (!material) return;
 
-    setSelectedMaterial(material);
-    setSelectedLesson(materialId);
+    const bundle = bundleByMaterialId[material.materialId];
+    if (bundle) {
+      setSelectedBundleKey(bundle.key);
+      setSelectedBundleDocumentId(bundle.documents[0]?.materialId || null);
+      setSelectedMaterial(bundle.video || bundle.documents[0] || material);
+      setSelectedLesson(`bundle:${bundle.key}`);
+    } else {
+      setSelectedBundleKey(null);
+      setSelectedBundleDocumentId(null);
+      setSelectedMaterial(material);
+      setSelectedLesson(materialId);
+    }
 
     if (resolvedCourseId) {
       materialService.trackView(resolvedCourseId, materialId).catch(() => {});
@@ -261,7 +290,6 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
   };
 
   const handleOpenLesson = (lesson: Lesson) => {
-    setSelectedLesson(lesson.id);
     if (!lesson.materialId) return;
 
     handleMaterialClick(lesson.materialId);
@@ -274,24 +302,49 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
     () => (selectedMaterial ? getCourseMaterialPreviewUrl(selectedMaterial) : null),
     [selectedMaterial]
   );
+  const selectedBundle = selectedBundleKey ? bundleByKey[selectedBundleKey] || null : null;
+  const selectedBundleDocument = useMemo(() => {
+    if (!selectedBundle) return null;
+    return (
+      selectedBundle.documents.find((doc) => doc.materialId === selectedBundleDocumentId) ||
+      selectedBundle.documents[0] ||
+      null
+    );
+  }, [selectedBundle, selectedBundleDocumentId]);
+  const selectedBundleDocumentPreviewUrl = useMemo(
+    () => (selectedBundleDocument ? getCourseMaterialPreviewUrl(selectedBundleDocument) : null),
+    [selectedBundleDocument]
+  );
   const hasLargePreviewViewer = Boolean(
-    selectedMaterial &&
-      (selectedMaterial.materialType === 'video' ||
-        (selectedMaterial.materialType !== 'link' &&
-          selectedMaterial.materialType !== 'other' &&
-          selectedMaterialPreviewUrl))
+    selectedBundle ||
+      (selectedMaterial &&
+        (selectedMaterial.materialType === 'video' ||
+          (selectedMaterial.materialType !== 'link' &&
+            selectedMaterial.materialType !== 'other' &&
+            selectedMaterialPreviewUrl)))
   );
 
   const fallbackMaterialItems: MaterialListItem[] = useMemo(() => {
+    const seenBundles = new Set<string>();
     return (materialsResponse.data || [])
       .filter((item) => item.isPublished === 1)
-      .map((item) => ({
-        materialId: item.materialId,
-        title: item.title,
-        materialType: item.materialType,
-        weekNumber: item.weekNumber,
-      }));
-  }, [materialsResponse.data]);
+      .filter((item) => {
+        const bundle = bundleByMaterialId[item.materialId];
+        if (!bundle) return true;
+        if (seenBundles.has(bundle.key)) return false;
+        seenBundles.add(bundle.key);
+        return true;
+      })
+      .map((item) => {
+        const bundle = bundleByMaterialId[item.materialId];
+        return {
+          materialId: item.materialId,
+          title: bundle ? bundle.baseTitle : item.title,
+          materialType: bundle ? 'lecture' : item.materialType,
+          weekNumber: item.weekNumber,
+        } as MaterialListItem;
+      });
+  }, [bundleByMaterialId, materialsResponse.data]);
 
   if (pageLoading) {
     return (
@@ -426,7 +479,7 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
                 Generate AI Notes
               </button>
 
-              {!selectedMaterial && (
+              {!selectedMaterial && !selectedBundle && (
                 <div className="h-full flex items-center justify-center px-6">
                   <div className="text-center max-w-2xl">
                     <h2
@@ -445,7 +498,92 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
                 </div>
               )}
 
+              {selectedBundle && (
+                <div className="h-full overflow-auto p-4 sm:p-6 space-y-4">
+                  <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    {selectedBundle.baseTitle}
+                  </h3>
+
+                  {selectedBundle.video?.externalUrl && (
+                    <iframe
+                      src={selectedBundle.video.externalUrl}
+                      allowFullScreen
+                      title={selectedBundle.baseTitle}
+                      className="w-full h-[44vh] min-h-[340px] rounded-lg border-0"
+                    />
+                  )}
+
+                  <div className={`rounded-lg border p-3 ${isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
+                    <h4 className={`text-sm font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                      Instructions
+                    </h4>
+                    <p className={`text-sm whitespace-pre-wrap ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>
+                      {selectedBundle.instructions || 'No instructions available for this lecture.'}
+                    </p>
+                  </div>
+
+                  <div className={`rounded-lg border p-3 ${isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
+                    <h4 className={`text-sm font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                      Lecture Files
+                    </h4>
+                    {selectedBundle.documents.length === 0 ? (
+                      <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                        No lecture files attached.
+                      </p>
+                    ) : (
+                      <div className="space-y-2">
+                        {selectedBundle.documents.map((doc) => (
+                          <div
+                            key={doc.materialId}
+                            className={`flex flex-wrap items-center justify-between gap-2 p-2 rounded border ${
+                              selectedBundleDocument?.materialId === doc.materialId
+                                ? 'border-indigo-300 bg-indigo-50'
+                                : isDark
+                                  ? 'border-white/10 bg-white/5'
+                                  : 'border-gray-200 bg-white'
+                            }`}
+                          >
+                            <button
+                              type="button"
+                              onClick={() => setSelectedBundleDocumentId(doc.materialId)}
+                              className={`text-left text-sm flex-1 min-w-0 truncate ${
+                                isDark ? 'text-slate-200' : 'text-gray-800'
+                              }`}
+                              title={doc.title}
+                            >
+                              {doc.title}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const downloadUrl = materialService.getDownloadUrl(
+                                  resolvedCourseId,
+                                  doc.materialId
+                                );
+                                window.open(downloadUrl, '_blank', 'noopener,noreferrer');
+                              }}
+                              className="text-xs px-2 py-1 rounded bg-indigo-600 text-white hover:bg-indigo-700"
+                            >
+                              Open
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {selectedBundleDocumentPreviewUrl && (
+                    <iframe
+                      src={selectedBundleDocumentPreviewUrl}
+                      title={selectedBundleDocument?.title || selectedBundle.baseTitle}
+                      className="w-full h-[44vh] min-h-[340px] rounded-lg border-0"
+                    />
+                  )}
+                </div>
+              )}
+
               {selectedMaterial &&
+                !selectedBundle &&
                 selectedMaterial.materialType === 'video' &&
                 selectedMaterial.externalUrl && (
                   <div className="h-full overflow-auto p-4 sm:p-6">
@@ -467,6 +605,7 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
                 )}
 
               {selectedMaterial &&
+                !selectedBundle &&
                 selectedMaterial.materialType !== 'video' &&
                 selectedMaterial.materialType !== 'link' &&
                 selectedMaterial.materialType !== 'other' && (
@@ -499,6 +638,7 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
                 )}
 
               {selectedMaterial &&
+                !selectedBundle &&
                 (selectedMaterial.materialType === 'link' ||
                   selectedMaterial.materialType === 'other') && (
                   <div className="h-full flex items-center justify-center px-6">
@@ -801,42 +941,66 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
                   {expandedSection === section.id && (
                     <div className="border-t border-gray-200 bg-gray-50">
                       <div className="space-y-2 p-4">
-                        {section.lessons.map((lesson) => (
-                          <button
-                            key={lesson.id}
-                            onClick={() => handleOpenLesson(lesson)}
-                            disabled={!lesson.materialId}
-                            className={`w-full flex items-center gap-3 p-3 rounded-lg transition-colors text-left ${
-                              selectedLesson === lesson.id
-                                ? 'bg-indigo-50 border border-indigo-200'
-                                : 'bg-white border border-gray-200 hover:bg-white hover:border-indigo-200'
-                            }`}
-                          >
-                            <div className="text-indigo-600 shrink-0">
-                              {getOrganizationIcon(lesson.organizationType)}
-                            </div>
+                        {(() => {
+                          const seenBundleKeys = new Set<string>();
+                          const displayedLessons = section.lessons.filter((lesson) => {
+                            if (!lesson.materialId) return true;
+                            const bundle = bundleByMaterialId[lesson.materialId];
+                            if (!bundle) return true;
+                            if (seenBundleKeys.has(bundle.key)) return false;
+                            seenBundleKeys.add(bundle.key);
+                            return true;
+                          });
 
-                            <div className="flex-1 min-w-0">
-                              <p
-                                className={`text-sm font-medium truncate ${isDark ? 'text-white' : 'text-gray-900'}`}
+                          return displayedLessons.map((lesson) => {
+                            const bundle = lesson.materialId
+                              ? bundleByMaterialId[lesson.materialId]
+                              : undefined;
+                            const lessonKey = bundle ? `bundle:${bundle.key}` : lesson.id;
+
+                            return (
+                              <button
+                                key={lessonKey}
+                                onClick={() => handleOpenLesson(lesson)}
+                                disabled={!lesson.materialId}
+                                className={`w-full flex items-center gap-3 p-3 rounded-lg transition-colors text-left ${
+                                  selectedLesson === lessonKey
+                                    ? 'bg-indigo-50 border border-indigo-200'
+                                    : 'bg-white border border-gray-200 hover:bg-white hover:border-indigo-200'
+                                }`}
                               >
-                                {lesson.title}
-                              </p>
-                              <p className="text-xs text-gray-500">
-                                {lesson.organizationType || 'item'}
-                                {lesson.materialId ? ' • linked material' : ' • no linked material'}
-                              </p>
-                            </div>
+                                <div className="text-indigo-600 shrink-0">
+                                  {getOrganizationIcon(lesson.organizationType)}
+                                </div>
 
-                            <div className="shrink-0">
-                              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-white border border-gray-200">
-                                {lesson.type === 'video' && 'Video'}
-                                {lesson.type === 'resource' && 'Resource'}
-                                {lesson.type === 'quiz' && 'Quiz'}
-                              </span>
-                            </div>
-                          </button>
-                        ))}
+                                <div className="flex-1 min-w-0">
+                                  <p
+                                    className={`text-sm font-medium truncate ${isDark ? 'text-white' : 'text-gray-900'}`}
+                                  >
+                                    {bundle ? bundle.baseTitle : lesson.title}
+                                  </p>
+                                  <p className="text-xs text-gray-500">
+                                    {bundle
+                                      ? `lecture bundle • ${bundle.items.length} materials`
+                                      : `${lesson.organizationType || 'item'}${lesson.materialId ? ' • linked material' : ' • no linked material'}`}
+                                  </p>
+                                </div>
+
+                                <div className="shrink-0">
+                                  <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-white border border-gray-200">
+                                    {bundle
+                                      ? 'Bundle'
+                                      : lesson.type === 'video'
+                                        ? 'Video'
+                                        : lesson.type === 'resource'
+                                          ? 'Resource'
+                                          : 'Quiz'}
+                                  </span>
+                                </div>
+                              </button>
+                            );
+                          });
+                        })()}
                       </div>
                     </div>
                   )}
@@ -851,40 +1015,44 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
                 Course Materials
               </h4>
               <div className="space-y-2">
-                {fallbackMaterialItems.map((material) => (
-                  <button
-                    key={material.materialId}
-                    onClick={() => handleMaterialClick(material.materialId)}
-                    className={`w-full flex items-center justify-between gap-3 p-3 rounded-lg text-left border transition-colors ${
-                      selectedMaterial?.materialId === material.materialId
-                        ? 'bg-indigo-50 border-indigo-200'
-                        : isDark
-                          ? 'bg-slate-800 border-white/10 hover:border-blue-400'
-                          : 'bg-gray-50 border-gray-200 hover:border-blue-300'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="text-indigo-600 shrink-0">
-                        {getOrganizationIcon(material.materialType)}
-                      </span>
-                      <span
-                        className={`text-sm truncate ${isDark ? 'text-white' : 'text-gray-900'}`}
-                      >
-                        {material.title}
-                      </span>
-                    </div>
-                    <div className="shrink-0 text-right">
-                      <p className={`text-xs ${isDark ? 'text-slate-300' : 'text-gray-600'}`}>
-                        {material.materialType}
-                      </p>
-                      {material.weekNumber ? (
-                        <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
-                          Week {material.weekNumber}
+                {fallbackMaterialItems.map((material) => {
+                  const bundle = bundleByMaterialId[material.materialId];
+                  const rowKey = bundle ? `bundle:${bundle.key}` : material.materialId;
+                  return (
+                    <button
+                      key={material.materialId}
+                      onClick={() => handleMaterialClick(material.materialId)}
+                      className={`w-full flex items-center justify-between gap-3 p-3 rounded-lg text-left border transition-colors ${
+                        selectedLesson === rowKey
+                          ? 'bg-indigo-50 border-indigo-200'
+                          : isDark
+                            ? 'bg-slate-800 border-white/10 hover:border-blue-400'
+                            : 'bg-gray-50 border-gray-200 hover:border-blue-300'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-indigo-600 shrink-0">
+                          {getOrganizationIcon(material.materialType)}
+                        </span>
+                        <span
+                          className={`text-sm truncate ${isDark ? 'text-white' : 'text-gray-900'}`}
+                        >
+                          {material.title}
+                        </span>
+                      </div>
+                      <div className="shrink-0 text-right">
+                        <p className={`text-xs ${isDark ? 'text-slate-300' : 'text-gray-600'}`}>
+                          {bundle ? 'bundle' : material.materialType}
                         </p>
-                      ) : null}
-                    </div>
-                  </button>
-                ))}
+                        {material.weekNumber ? (
+                          <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
+                            Week {material.weekNumber}
+                          </p>
+                        ) : null}
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           ) : (

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { X, FileText, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { X, FileText, AlertCircle, ExternalLink, Download } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import type { Assignment, AssignmentStatus } from '../../../../services/api/assignmentService';
@@ -64,6 +64,7 @@ export function AssignmentCreateEdit({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [fileTypeInput, setFileTypeInput] = useState('');
   const [pendingInstructionFiles, setPendingInstructionFiles] = useState<File[]>([]);
+  const [selectedInstructionDriveId, setSelectedInstructionDriveId] = useState<string | null>(null);
 
   useEffect(() => {
     if (assignment) {
@@ -84,6 +85,7 @@ export function AssignmentCreateEdit({
         latePenalty: assignment.latePenalty || 0,
       });
       setFileTypeInput(assignment.allowedFileTypes?.join(', ') || '');
+      setSelectedInstructionDriveId(assignment.instructionFiles?.[0]?.driveId || null);
     } else {
       // Reset for new assignment
       setFormData({
@@ -100,6 +102,7 @@ export function AssignmentCreateEdit({
         latePenalty: 0,
       });
       setFileTypeInput('');
+      setSelectedInstructionDriveId(null);
     }
     setErrors({});
     setPendingInstructionFiles([]);
@@ -171,6 +174,14 @@ export function AssignmentCreateEdit({
   const handleFileTypesChange = (value: string) => {
     setFileTypeInput(value);
   };
+
+  const selectedInstructionFile = useMemo(() => {
+    if (!assignment?.instructionFiles?.length) return null;
+    return (
+      assignment.instructionFiles.find((file) => file.driveId === selectedInstructionDriveId) ||
+      assignment.instructionFiles[0]
+    );
+  }, [assignment?.instructionFiles, selectedInstructionDriveId]);
 
   if (!open) return null;
 
@@ -274,6 +285,93 @@ export function AssignmentCreateEdit({
           </div>
 
           {/* Instruction File Upload */}
+          {assignment && Array.isArray(assignment.instructionFiles) && assignment.instructionFiles.length > 0 && (
+            <div
+              className={`border rounded-lg p-4 ${
+                isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'
+              }`}
+            >
+              <div className="flex items-center gap-2 mb-3">
+                <FileText size={18} className={isDark ? 'text-slate-400' : 'text-gray-600'} />
+                <h3 className={`text-sm font-medium ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>
+                  Uploaded Instruction Files
+                </h3>
+              </div>
+              <div className="space-y-2">
+                {assignment.instructionFiles.map((file) => (
+                  <div
+                    key={file.driveId}
+                    className={`flex flex-wrap items-center justify-between gap-2 px-3 py-2 rounded-lg ${
+                      isDark ? 'bg-white/5' : 'bg-white'
+                    }`}
+                  >
+                    <span
+                      className={`text-sm truncate ${isDark ? 'text-slate-200' : 'text-gray-700'}`}
+                      title={file.fileName}
+                    >
+                      {file.fileName}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedInstructionDriveId(file.driveId)}
+                        className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded ${
+                          selectedInstructionFile?.driveId === file.driveId
+                            ? isDark
+                              ? 'text-indigo-200 bg-indigo-500/30'
+                              : 'text-indigo-700 bg-indigo-200'
+                            : isDark
+                              ? 'text-indigo-300 bg-indigo-500/20 hover:bg-indigo-500/30'
+                              : 'text-indigo-700 bg-indigo-100 hover:bg-indigo-200'
+                        }`}
+                      >
+                        <FileText size={12} />
+                        Preview
+                      </button>
+                      <a
+                        href={file.webViewLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded ${
+                          isDark
+                            ? 'text-blue-300 bg-blue-500/20 hover:bg-blue-500/30'
+                            : 'text-blue-700 bg-blue-100 hover:bg-blue-200'
+                        }`}
+                      >
+                        <ExternalLink size={12} />
+                        Open
+                      </a>
+                      <a
+                        href={file.downloadUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded ${
+                          isDark
+                            ? 'text-emerald-300 bg-emerald-500/20 hover:bg-emerald-500/30'
+                            : 'text-emerald-700 bg-emerald-100 hover:bg-emerald-200'
+                        }`}
+                      >
+                        <Download size={12} />
+                        Download
+                      </a>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {selectedInstructionFile && (
+                <div className="mt-3 rounded-lg overflow-hidden border border-slate-200">
+                  <iframe
+                    src={selectedInstructionFile.iframeUrl}
+                    width="100%"
+                    height="360"
+                    title={`assignment-instruction-${selectedInstructionFile.driveId}`}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+
           {assignment && onUploadInstructions && (
             <InstructionUpload
               assignmentId={assignment.id}

@@ -802,9 +802,15 @@ function InstructorDashboardContent() {
     setSelectedAssignmentForSubmissions(assignment);
   };
 
-  const handleEditAssignment = (assignment: Assignment) => {
+  const handleEditAssignment = async (assignment: Assignment) => {
     setEditingAssignment(assignment);
     setIsAssignmentModalOpen(true);
+    try {
+      const fullAssignment = await AssignmentService.getById(assignment.id);
+      setEditingAssignment(fullAssignment);
+    } catch {
+      // Keep modal usable with list data if fetching details fails.
+    }
   };
 
   const handleSaveAssignment = async (data: AssignmentFormData): Promise<Assignment | void> => {
