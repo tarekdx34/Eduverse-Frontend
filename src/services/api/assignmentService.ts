@@ -74,7 +74,7 @@ export class AssignmentService {
 
   // Update assignment (instructor)
   static async update(id: string, data: Partial<Assignment>): Promise<Assignment> {
-    return ApiClient.put<Assignment>('/assignments/' + id, data);
+    return ApiClient.patch<Assignment>('/assignments/' + id, data);
   }
 
   // Delete assignment (instructor)

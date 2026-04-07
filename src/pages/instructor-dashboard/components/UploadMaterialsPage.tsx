@@ -23,6 +23,7 @@ import {
   FolderOpen,
   Youtube,
   AlertTriangle,
+  Package,
 } from 'lucide-react';
 import { EnrollmentService } from '../../../services/api/enrollmentService';
 import {
@@ -39,7 +40,7 @@ type UploadMaterialsPageProps = {
   courseId?: string;
 };
 
-type UploadType = 'text' | 'file' | 'video';
+type UploadType = 'text' | 'file' | 'video' | 'bundle';
 
 type MaterialFormState = {
   title: string;
@@ -184,6 +185,14 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
 
+  // Bundle upload state
+  const [bundleVideo, setBundleVideo] = useState<File | null>(null);
+  const [bundleDocuments, setBundleDocuments] = useState<File[]>([]);
+  const [bundleUploadStatus, setBundleUploadStatus] = useState<'idle' | 'uploading' | 'done'>('idle');
+  const [bundleUploadStep, setBundleUploadStep] = useState<string>('');
+  const bundleVideoInputRef = useRef<HTMLInputElement>(null);
+  const bundleDocInputRef = useRef<HTMLInputElement>(null);
+
   const [materialsResponse, setMaterialsResponse] = useState<CourseMaterialsResponse>({ data: [] });
   const [structureResponse, setStructureResponse] = useState<CourseStructureResponse>({
     data: [],
@@ -313,6 +322,10 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
     setUploadProgress(0);
     setUploadError('');
     setYoutubeAuthUrl('');
+    setBundleVideo(null);
+    setBundleDocuments([]);
+    setBundleUploadStatus('idle');
+    setBundleUploadStep('');
     setShowCreateModal(true);
   };
 
@@ -335,6 +348,101 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
 
   const onCreateMaterial = async () => {
     if (!activeCourseId || !createForm.title.trim()) return;
+
+    // --- Lecture Bundle Upload ---
+    if (uploadType === 'bundle') {
+      if (!bundleVideo && bundleDocuments.length === 0) {
+        setUploadError('Please add a video or at least one document.');
+        return;
+      }
+
+      const invalidDocument = bundleDocuments.find((file) => validateDocumentUpload(file));
+      if (invalidDocument) {
+        const validationError = validateDocumentUpload(invalidDocument);
+        if (validationError) setUploadError(validationError);
+        return;
+      }
+
+      setMutating(true);
+      setUploadError('');
+      setUploadProgress(0);
+      setBundleUploadStatus('uploading');
+      addActivity(`Uploading lecture bundle: ${createForm.title}`, 'processing');
+
+      const totalItems = (bundleVideo ? 1 : 0) + bundleDocuments.length;
+      let completedItems = 0;
+      const baseTitle = createForm.title.trim();
+      const payload = {
+        description: createForm.description || undefined,
+        weekNumber: parseWeekNumber(createForm.weekNumber),
+        isPublished: createForm.isPublished,
+      };
+      const updateOverallProgress = (itemProgress: number) => {
+        if (totalItems <= 0) return;
+        const overall = Math.round(((completedItems + itemProgress / 100) / totalItems) * 100);
+        setUploadProgress(Math.min(100, Math.max(0, overall)));
+      };
+
+      try {
+        if (bundleVideo) {
+          setBundleUploadStep(`Uploading video: ${bundleVideo.name}`);
+          await materialService.uploadVideo(
+            activeCourseId,
+            bundleVideo,
+            {
+              title: `${baseTitle} - Video`,
+              ...payload,
+            },
+            (pct) => updateOverallProgress(pct)
+          );
+          completedItems += 1;
+          updateOverallProgress(0);
+        }
+
+        for (let i = 0; i < bundleDocuments.length; i += 1) {
+          const file = bundleDocuments[i];
+          const fileBaseName = file.name.replace(/\.[^.]+$/, '');
+          setBundleUploadStep(`Uploading file ${i + 1}/${bundleDocuments.length}: ${file.name}`);
+          await materialService.uploadFile(
+            activeCourseId,
+            file,
+            {
+              title: `${baseTitle} - ${fileBaseName}`,
+              materialType: createForm.materialType as
+                | 'document'
+                | 'lecture'
+                | 'slide'
+                | 'reading',
+              ...payload,
+            },
+            (pct) => updateOverallProgress(pct)
+          );
+          completedItems += 1;
+          updateOverallProgress(0);
+        }
+
+        setBundleUploadStatus('done');
+        setBundleUploadStep('Bundle uploaded successfully');
+        toast.success('Lecture bundle uploaded successfully');
+        addActivity(`Bundle uploaded: ${createForm.title}`, 'completed');
+        setShowCreateModal(false);
+        await loadMaterials(activeCourseId);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Failed to upload lecture bundle';
+        const isOAuthError = /oauth|token|authoriz/i.test(message);
+        setUploadError(
+          isOAuthError
+            ? 'YouTube not authorized. Please contact admin to set up YouTube integration.'
+            : message
+        );
+        setBundleUploadStatus('idle');
+        setBundleUploadStep('');
+        addActivity(`Bundle failed: ${createForm.title}`, 'completed');
+      } finally {
+        setMutating(false);
+      }
+      return;
+    }
 
     // --- File Upload ---
     if (uploadType === 'file') {
@@ -906,6 +1014,7 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
                     label: 'File Upload',
                   },
                   { type: 'video' as UploadType, icon: <Film size={15} />, label: 'YouTube Video' },
+                  { type: 'bundle' as UploadType, icon: <Package size={15} />, label: 'Lecture Bundle' },
                 ].map(({ type, icon, label }) => (
                   <button
                     key={type}
@@ -915,6 +1024,10 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
                       setSelectedFile(null);
                       setUploadError('');
                       setUploadProgress(0);
+                      setBundleVideo(null);
+                      setBundleDocuments([]);
+                      setBundleUploadStatus('idle');
+                      setBundleUploadStep('');
                     }}
                     className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg text-xs font-medium border transition-all disabled:opacity-40 ${
                       uploadType === type
@@ -941,6 +1054,7 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
                 const setForm = showCreateModal ? setCreateForm : setEditForm;
                 const isFileMode = showCreateModal && uploadType === 'file';
                 const isVideoMode = showCreateModal && uploadType === 'video';
+                const isBundleMode = showCreateModal && uploadType === 'bundle';
 
                 const commonFields = (
                   <>
@@ -967,7 +1081,7 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
                         }
                         className={`w-full px-3 py-2 border rounded-lg disabled:opacity-60 ${isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-slate-300'}`}
                       >
-                        {(isFileMode
+                        {(isFileMode || isBundleMode
                           ? ['document', 'lecture', 'slide', 'reading']
                           : materialTypeOptions.filter((o) => o.value !== 'all').map((o) => o.value)
                         ).map((v) => (
@@ -1194,6 +1308,168 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
                     </>
                   );
 
+                // ── Lecture Bundle mode ─────────────────────────────────────
+                if (isBundleMode)
+                  return (
+                    <>
+                      {commonFields}
+
+                      <div
+                        className={`flex items-start gap-2 p-3 rounded-lg text-sm ${isDark ? 'bg-blue-500/10 text-blue-300 border border-blue-500/20' : 'bg-blue-50 text-blue-700 border border-blue-200'}`}
+                      >
+                        <Package size={16} className="flex-shrink-0 mt-0.5" />
+                        <span>Upload one lecture video and multiple lecture files together.</span>
+                      </div>
+
+                      <div
+                        onClick={() => !mutating && bundleVideoInputRef.current?.click()}
+                        className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-colors ${
+                          mutating
+                            ? 'opacity-50 cursor-not-allowed'
+                            : isDark
+                              ? 'border-white/20 hover:border-white/40 text-slate-400'
+                              : 'border-slate-300 hover:border-slate-400 text-slate-500'
+                        }`}
+                      >
+                        <Film size={24} className="mx-auto mb-2 opacity-60" />
+                        {bundleVideo ? (
+                          <p
+                            className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'}`}
+                          >
+                            🎬 {bundleVideo.name}
+                          </p>
+                        ) : (
+                          <p className="text-sm font-medium">Select lecture video (optional)</p>
+                        )}
+                      </div>
+                      <input
+                        ref={bundleVideoInputRef}
+                        type="file"
+                        accept=".mp4,.mov,.avi,.mkv,.webm,video/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          setBundleVideo(e.target.files?.[0] ?? null);
+                          setUploadError('');
+                        }}
+                      />
+
+                      <div
+                        onClick={() => !mutating && bundleDocInputRef.current?.click()}
+                        className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-colors ${
+                          mutating
+                            ? 'opacity-50 cursor-not-allowed'
+                            : isDark
+                              ? 'border-white/20 hover:border-white/40 text-slate-400'
+                              : 'border-slate-300 hover:border-slate-400 text-slate-500'
+                        }`}
+                      >
+                        <FolderOpen size={24} className="mx-auto mb-2 opacity-60" />
+                        <p className="text-sm font-medium">Select lecture files (multiple)</p>
+                        <p className="text-xs mt-1 opacity-70">
+                          PDF, DOC, DOCX, PPT, PPTX, XLS, XLSX, TXT, MD, ZIP, images
+                        </p>
+                      </div>
+                      <input
+                        ref={bundleDocInputRef}
+                        type="file"
+                        multiple
+                        accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.md,.zip,.jpg,.jpeg,.png,.gif,.webp,.svg"
+                        className="hidden"
+                        onChange={(e) => {
+                          const selected = Array.from(e.target.files || []);
+                          if (selected.length === 0) return;
+                          const invalid = selected.find((file) => validateDocumentUpload(file));
+                          if (invalid) {
+                            const validationError = validateDocumentUpload(invalid);
+                            if (validationError) setUploadError(validationError);
+                            return;
+                          }
+                          setBundleDocuments((prev) => {
+                            const existingKeys = new Set(
+                              prev.map((f) => `${f.name}-${f.size}-${f.lastModified}`)
+                            );
+                            const next = [...prev];
+                            for (const file of selected) {
+                              const key = `${file.name}-${file.size}-${file.lastModified}`;
+                              if (!existingKeys.has(key)) {
+                                next.push(file);
+                                existingKeys.add(key);
+                              }
+                            }
+                            return next;
+                          });
+                          e.target.value = '';
+                          setUploadError('');
+                        }}
+                      />
+
+                      {bundleDocuments.length > 0 && (
+                        <div
+                          className={`rounded-lg border p-3 space-y-2 ${isDark ? 'border-white/10 bg-white/5' : 'border-slate-200 bg-slate-50'}`}
+                        >
+                          <p className={`text-xs font-medium ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+                            Selected files ({bundleDocuments.length})
+                          </p>
+                          {bundleDocuments.map((file, index) => (
+                            <div key={`${file.name}-${file.size}-${file.lastModified}`} className="flex items-center justify-between gap-2">
+                              <p
+                                className={`text-sm truncate ${isDark ? 'text-slate-200' : 'text-slate-700'}`}
+                                title={file.name}
+                              >
+                                {index + 1}. {file.name}
+                              </p>
+                              <button
+                                type="button"
+                                disabled={mutating}
+                                onClick={() =>
+                                  setBundleDocuments((prev) =>
+                                    prev.filter((_, docIndex) => docIndex !== index)
+                                  )
+                                }
+                                className={`p-1 rounded ${isDark ? 'text-slate-300 hover:bg-white/10' : 'text-slate-500 hover:bg-slate-200'} disabled:opacity-40`}
+                                aria-label={`Remove ${file.name}`}
+                              >
+                                <X size={14} />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {uploadProgress > 0 && (
+                        <div>
+                          <div
+                            className={`w-full rounded-full h-2 ${isDark ? 'bg-white/10' : 'bg-slate-100'}`}
+                          >
+                            <div
+                              className="h-2 rounded-full transition-all duration-300"
+                              style={{ width: `${uploadProgress}%`, backgroundColor: primaryHex }}
+                            />
+                          </div>
+                          <p
+                            className={`text-xs mt-1 text-center ${isDark ? 'text-slate-400' : 'text-slate-500'}`}
+                          >
+                            {bundleUploadStatus === 'uploading'
+                              ? `Uploading bundle... ${uploadProgress}%`
+                              : `Progress: ${uploadProgress}%`}
+                          </p>
+                        </div>
+                      )}
+
+                      {bundleUploadStep && (
+                        <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                          {bundleUploadStep}
+                        </p>
+                      )}
+
+                      {uploadError && (
+                        <p className="text-sm text-red-500 flex items-center gap-1">
+                          <AlertTriangle size={14} /> {uploadError}
+                        </p>
+                      )}
+                    </>
+                  );
+
                 // ── Text / Link mode (default) ────────────────────────────
                 return commonFields;
               })()}
@@ -1219,7 +1495,9 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
                     ? `Uploading ${uploadProgress}%`
                     : uploadType === 'file'
                       ? `Uploading ${uploadProgress}%`
-                      : 'Saving...'
+                      : uploadType === 'bundle'
+                        ? `Uploading ${uploadProgress}%`
+                        : 'Saving...'
                   : showCreateModal
                     ? 'Create'
                     : 'Save'}

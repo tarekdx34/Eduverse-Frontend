@@ -807,7 +807,7 @@ function InstructorDashboardContent() {
     setIsAssignmentModalOpen(true);
   };
 
-  const handleSaveAssignment = async (data: AssignmentFormData) => {
+  const handleSaveAssignment = async (data: AssignmentFormData): Promise<Assignment | void> => {
     if (!activeSectionId) return;
 
     const resolvedCourseId = Number(selectedCourseId ?? activeSectionId);
@@ -826,16 +826,21 @@ function InstructorDashboardContent() {
 
     try {
       if (data.id) {
-        await AssignmentService.update(data.id, payload as any);
+        const updatedAssignment = await AssignmentService.update(data.id, payload as any);
         toast.success('Assignment updated successfully');
+        queryClient.invalidateQueries({ queryKey: ['course-assignments', activeSectionId] });
+        setIsAssignmentModalOpen(false);
+        return updatedAssignment;
       } else {
-        await AssignmentService.create(payload as any);
+        const createdAssignment = await AssignmentService.create(payload as any);
         toast.success('Assignment created successfully');
+        queryClient.invalidateQueries({ queryKey: ['course-assignments', activeSectionId] });
+        setIsAssignmentModalOpen(false);
+        return createdAssignment;
       }
-      queryClient.invalidateQueries({ queryKey: ['course-assignments', activeSectionId] });
-      setIsAssignmentModalOpen(false);
     } catch (err: any) {
       toast.error(err?.message || 'Failed to save assignment');
+      throw err;
     }
   };
 
@@ -1484,7 +1489,7 @@ function InstructorDashboardContent() {
         courseId={String(activeSectionId || '')}
         onClose={() => setIsAssignmentModalOpen(false)}
         onSave={handleSaveAssignment}
-        onUploadInstructions={editingAssignment ? handleUploadInstructions : undefined}
+        onUploadInstructions={handleUploadInstructions}
       />
 
       <GradingPanel

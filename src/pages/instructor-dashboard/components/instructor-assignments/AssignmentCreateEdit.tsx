@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Upload, FileText, AlertCircle } from 'lucide-react';
+import { X, FileText, AlertCircle } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import type { Assignment, AssignmentStatus } from '../../../../services/api/assignmentService';
@@ -25,7 +25,7 @@ interface AssignmentCreateEditProps {
   assignment: Assignment | null;
   courseId: string;
   onClose: () => void;
-  onSave: (data: AssignmentFormData) => Promise<void>;
+  onSave: (data: AssignmentFormData) => Promise<Assignment | void>;
   onUploadInstructions?: (assignmentId: string, file: File) => Promise<void>;
 }
 
@@ -63,6 +63,7 @@ export function AssignmentCreateEdit({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [fileTypeInput, setFileTypeInput] = useState('');
+  const [pendingInstructionFiles, setPendingInstructionFiles] = useState<File[]>([]);
 
   useEffect(() => {
     if (assignment) {
@@ -101,6 +102,7 @@ export function AssignmentCreateEdit({
       setFileTypeInput('');
     }
     setErrors({});
+    setPendingInstructionFiles([]);
   }, [assignment, open]);
 
   const validateForm = (): boolean => {
@@ -145,7 +147,19 @@ export function AssignmentCreateEdit({
         .map((type) => type.trim().toLowerCase())
         .filter((type) => type.length > 0);
 
-      await onSave({ ...formData, allowedFileTypes });
+      const savedAssignment = await onSave({ ...formData, allowedFileTypes });
+
+      if (!assignment && pendingInstructionFiles.length > 0 && onUploadInstructions) {
+        const assignmentId = savedAssignment?.id;
+        if (!assignmentId) {
+          throw new Error('Assignment was created but no assignment ID was returned.');
+        }
+
+        for (const file of pendingInstructionFiles) {
+          await onUploadInstructions(assignmentId, file);
+        }
+      }
+
       onClose();
     } catch (error) {
       console.error('Error saving assignment:', error);
@@ -265,6 +279,93 @@ export function AssignmentCreateEdit({
               assignmentId={assignment.id}
               onUpload={onUploadInstructions}
             />
+          )}
+
+          {!assignment && onUploadInstructions && (
+            <div
+              className={`border rounded-lg p-4 ${
+                isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'
+              }`}
+            >
+              <div className="flex items-center gap-2 mb-3">
+                <FileText size={18} className={isDark ? 'text-slate-400' : 'text-gray-600'} />
+                <h3 className={`text-sm font-medium ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>
+                  Instruction Files
+                </h3>
+              </div>
+
+              <p className={`text-xs mb-3 ${isDark ? 'text-slate-500' : 'text-gray-500'}`}>
+                Select files now; they will upload automatically after the assignment is created.
+              </p>
+
+              <input
+                type="file"
+                multiple
+                accept=".pdf,.doc,.docx,.txt,.ppt,.pptx"
+                onChange={(e) => {
+                  const selected = Array.from(e.target.files || []);
+                  if (selected.length === 0) return;
+
+                  setPendingInstructionFiles((prev) => {
+                    const existingKeys = new Set(
+                      prev.map((f) => `${f.name}-${f.size}-${f.lastModified}`)
+                    );
+                    const next = [...prev];
+                    for (const file of selected) {
+                      const key = `${file.name}-${file.size}-${file.lastModified}`;
+                      if (!existingKeys.has(key)) {
+                        next.push(file);
+                        existingKeys.add(key);
+                      }
+                    }
+                    return next;
+                  });
+
+                  e.target.value = '';
+                }}
+                className={`w-full text-sm file:mr-3 file:px-3 file:py-2 file:rounded-lg file:border-0 file:text-white file:cursor-pointer ${
+                  isDark
+                    ? 'text-slate-300 file:bg-slate-600'
+                    : 'text-gray-700 file:bg-indigo-600'
+                }`}
+              />
+
+              {pendingInstructionFiles.length > 0 && (
+                <div className="mt-3 space-y-2">
+                  {pendingInstructionFiles.map((file, index) => (
+                    <div
+                      key={`${file.name}-${file.size}-${file.lastModified}`}
+                      className={`flex items-center justify-between gap-3 px-3 py-2 rounded-lg ${
+                        isDark ? 'bg-white/5' : 'bg-white'
+                      }`}
+                    >
+                      <span
+                        className={`text-sm truncate ${isDark ? 'text-slate-200' : 'text-gray-700'}`}
+                        title={file.name}
+                      >
+                        {index + 1}. {file.name}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setPendingInstructionFiles((prev) =>
+                            prev.filter((_, fileIndex) => fileIndex !== index)
+                          )
+                        }
+                        className={`p-1 rounded ${
+                          isDark
+                            ? 'text-slate-400 hover:bg-white/10'
+                            : 'text-gray-500 hover:bg-gray-200'
+                        }`}
+                        aria-label={`Remove ${file.name}`}
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           )}
 
           {/* Due Date, Max Score, Weight */}

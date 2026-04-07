@@ -93,11 +93,11 @@ describe('AssignmentService', () => {
     it('should update an assignment', async () => {
       const updateData = { title: 'Updated Title' };
       const mockResponse = { id: 1, ...updateData };
-      vi.mocked(api.put).mockResolvedValue({ data: mockResponse });
+      vi.mocked(api.patch).mockResolvedValue({ data: mockResponse });
 
       const result = await AssignmentService.update(1, updateData);
 
-      expect(api.put).toHaveBeenCalledWith('/assignments/1', updateData);
+      expect(api.patch).toHaveBeenCalledWith('/assignments/1', updateData);
       expect(result).toEqual(mockResponse);
     });
   });
