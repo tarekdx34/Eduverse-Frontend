@@ -168,6 +168,16 @@ const translations: Record<Language, Record<string, string>> = {
     lab: 'Lab',
     tutorial: 'Tutorial',
     exam: 'Exam',
+    allCourses: 'All Courses',
+    allTypes: 'All Types',
+    showWeekends: 'Show weekends',
+    exportICal: 'Export iCal',
+    scheduleConflictsDetected: 'Schedule conflicts detected',
+    overlappingSlotsFound: 'overlapping slot(s) were found',
+    allScheduleTypes: 'All schedule types',
+    viewAll: 'View all',
+    nowLabel: 'Now',
+    nextUp: 'Next up',
 
     // AI Features
     aiAssistant: 'AI Assistant',
@@ -710,6 +720,16 @@ const translations: Record<Language, Record<string, string>> = {
     lab: 'معمل',
     tutorial: 'تدريب',
     exam: 'اختبار',
+    allCourses: 'كل المقررات',
+    allTypes: 'كل الأنواع',
+    showWeekends: 'إظهار نهاية الأسبوع',
+    exportICal: 'تصدير iCal',
+    scheduleConflictsDetected: 'تم اكتشاف تعارضات في الجدول',
+    overlappingSlotsFound: 'تم العثور على تعارضات زمنية',
+    allScheduleTypes: 'كل أنواع الجداول',
+    viewAll: 'عرض الكل',
+    nowLabel: 'الآن',
+    nextUp: 'التالي',
 
     // AI Features
     aiAssistant: 'مساعد الذكاء الاصطناعي',

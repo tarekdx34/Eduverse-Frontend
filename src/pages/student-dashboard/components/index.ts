@@ -3,6 +3,7 @@ export { default as Header } from './Header';
 export { default as StatsCard } from './StatsCard';
 export { default as GpaChart } from './GpaChart';
 export { default as DailySchedule } from './DailySchedule';
+export { default as TodayClassesWidget } from './TodayClassesWidget';
 export { default as PaymentHistory } from './PaymentHistory';
 export { default as ClassTab } from './ClassTab';
 export { default as WeeklySchedule } from './WeeklySchedule';

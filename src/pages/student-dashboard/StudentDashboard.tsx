@@ -23,7 +23,6 @@ import {
 import {
   StatsCard,
   GpaChart,
-  DailySchedule,
   PaymentHistory,
   ClassTab,
   ClassSchedule,
@@ -41,10 +40,11 @@ import {
   SettingsPreferences,
   QuizzesTab,
 } from './components';
+import TodayClassesWidget from './components/TodayClassesWidget';
 import { DashboardHeader, DashboardSidebar, MessagingChat } from '../../components/shared';
 import { DashboardProfileTab } from '../../components/shared/DashboardProfileTab';
 import CourseViewPage from './pages/CourseView';
-import { GPA_DATA, SCHEDULE_DATA } from './constants';
+import { GPA_DATA } from './constants';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { useApi } from '../../hooks/useApi';
@@ -398,7 +398,7 @@ function StudentDashboardContent() {
 
                     {/* Right column: Schedule */}
                     <div className="col-span-12 lg:col-span-4">
-                      <DailySchedule schedules={SCHEDULE_DATA} />
+                      <TodayClassesWidget />
                     </div>
                   </div>
 
