@@ -29,6 +29,12 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/ai-attendance/, ''),
       },
+      // Local Python quiz service (run quiz-generator FastAPI on :8001).
+      '/ai-quiz': {
+        target: 'http://127.0.0.1:8001',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/ai-quiz/, ''),
+      },
     },
   },
 });

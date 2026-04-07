@@ -16,6 +16,7 @@ const AdminDashboard = lazy(() => import('./pages/admin-dashboard/AdminDashboard
 const ITAdminDashboard = lazy(() => import('./pages/it-admin-dashboard/ITAdminDashboard'));
 const TADashboard = lazy(() => import('./pages/ta-dashboard/TADashboard'));
 const AttendancePage = lazy(() => import('./pages/attendance/AttendancePage'));
+const QuizPage = lazy(() => import('./pages/quiz/QuizPage'));
 
 // Placeholder for PageTitle and PageFallback - assuming these are defined elsewhere or will be added
 // For the purpose of this edit, we'll define simple versions.
@@ -263,6 +264,16 @@ function App() {
             element={
               <PageTitle title="Attendance">
                 <AttendancePage />
+              </PageTitle>
+            }
+          />
+
+          {/* Instructor / TA quiz generation */}
+          <Route
+            path="/quiz"
+            element={
+              <PageTitle title="Quiz Generation">
+                <QuizPage />
               </PageTitle>
             }
           />
