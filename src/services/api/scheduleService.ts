@@ -408,4 +408,217 @@ export class ScheduleService {
   ): Promise<OfficeHoursAppointment> {
     return ApiClient.patch<OfficeHoursAppointment>(`/office-hours/appointments/${appointmentId}`, { status });
   }
+
+  // ========== ADMIN: Campus Events CRUD ==========
+
+  static async getCampusEventById(eventId: number): Promise<CampusEvent> {
+    return ApiClient.get<CampusEvent>(`/campus-events/${eventId}`);
+  }
+
+  static async createCampusEvent(data: {
+    title: string;
+    description?: string;
+    eventType: 'university_wide' | 'department' | 'campus' | 'program';
+    scopeId?: number;
+    startDatetime: string;
+    endDatetime: string;
+    location?: string;
+    building?: string;
+    room?: string;
+    isMandatory?: boolean;
+    registrationRequired?: boolean;
+    maxAttendees?: number;
+    color?: string;
+    status?: 'draft' | 'published' | 'cancelled' | 'completed';
+    tags?: string[];
+  }): Promise<CampusEvent> {
+    return ApiClient.post<CampusEvent>('/campus-events', data);
+  }
+
+  static async updateCampusEvent(
+    eventId: number,
+    data: Partial<{
+      title: string;
+      description: string;
+      eventType: 'university_wide' | 'department' | 'campus' | 'program';
+      scopeId: number;
+      startDatetime: string;
+      endDatetime: string;
+      location: string;
+      building: string;
+      room: string;
+      isMandatory: boolean;
+      registrationRequired: boolean;
+      maxAttendees: number;
+      color: string;
+      status: 'draft' | 'published' | 'cancelled' | 'completed';
+      tags: string[];
+    }>
+  ): Promise<CampusEvent> {
+    return ApiClient.put<CampusEvent>(`/campus-events/${eventId}`, data);
+  }
+
+  static async deleteCampusEvent(eventId: number): Promise<{ message: string }> {
+    return ApiClient.delete<{ message: string }>(`/campus-events/${eventId}`);
+  }
+
+  static async getCampusEventRegistrations(eventId: number): Promise<{
+    event: CampusEvent;
+    registrations: Array<{
+      registrationId: number;
+      userId: number;
+      user: {
+        userId: number;
+        firstName: string;
+        lastName: string;
+        email: string;
+      };
+      status: 'registered' | 'attended' | 'cancelled' | 'no_show';
+      notes: string | null;
+      registeredAt: string;
+      updatedAt: string;
+    }>;
+    summary: {
+      total: number;
+      registered: number;
+      attended: number;
+      cancelled: number;
+      noShow: number;
+    };
+  }> {
+    return ApiClient.get(`/campus-events/${eventId}/registrations`);
+  }
+
+  // ========== ADMIN: Schedule Templates CRUD ==========
+
+  static async getScheduleTemplateById(templateId: number): Promise<ScheduleTemplate> {
+    return ApiClient.get<ScheduleTemplate>(`/schedule-templates/${templateId}`);
+  }
+
+  static async createScheduleTemplate(data: {
+    name: string;
+    description?: string;
+    departmentId?: number;
+    scheduleType: 'LECTURE' | 'LAB' | 'TUTORIAL' | 'HYBRID';
+    isActive?: boolean;
+    slots: Array<{
+      dayOfWeek: string;
+      startTime: string;
+      endTime: string;
+      slotType: 'LECTURE' | 'LAB' | 'TUTORIAL' | 'EXAM';
+      building?: string;
+      room?: string;
+    }>;
+  }): Promise<ScheduleTemplate> {
+    return ApiClient.post<ScheduleTemplate>('/schedule-templates', data);
+  }
+
+  static async updateScheduleTemplate(
+    templateId: number,
+    data: Partial<{
+      name: string;
+      description: string;
+      departmentId: number;
+      scheduleType: 'LECTURE' | 'LAB' | 'TUTORIAL' | 'HYBRID';
+      isActive: boolean;
+    }>
+  ): Promise<ScheduleTemplate> {
+    return ApiClient.put<ScheduleTemplate>(`/schedule-templates/${templateId}`, data);
+  }
+
+  static async deleteScheduleTemplate(templateId: number): Promise<{ message: string }> {
+    return ApiClient.delete<{ message: string }>(`/schedule-templates/${templateId}`);
+  }
+
+  static async applyTemplateToSection(data: {
+    templateId: number;
+    sectionId: number;
+    building?: string;
+    room?: string;
+  }): Promise<{ message: string; sectionId: number; schedulesCreated: number }> {
+    return ApiClient.post('/schedule-templates/apply', data);
+  }
+
+  static async bulkApplyTemplate(data: {
+    templateId: number;
+    sectionIds: number[];
+    building?: string;
+    room?: string;
+  }): Promise<{
+    message: string;
+    successful: number;
+    failed: number;
+    results: Array<{ sectionId: number; status: 'success' }>;
+    errors: Array<{ sectionId: number; status: 'error'; message: string }>;
+  }> {
+    return ApiClient.post('/schedule-templates/apply/bulk', data);
+  }
+
+  // ============== Office Hours API ==============
+
+  static async getOfficeHours(params?: {
+    instructorId?: number;
+    departmentId?: number;
+    dayOfWeek?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<PaginatedResponse<OfficeHoursSlot>> {
+    return ApiClient.get('/office-hours', { params });
+  }
+
+  static async getOfficeHourById(id: number): Promise<OfficeHoursSlot> {
+    return ApiClient.get(`/office-hours/${id}`);
+  }
+
+  static async createOfficeHour(data: {
+    instructorId: number;
+    dayOfWeek: string;
+    startTime: string;
+    endTime: string;
+    location: string;
+    building?: string;
+    room?: string;
+    mode: 'in_person' | 'online' | 'hybrid';
+    maxAppointments?: number;
+    isRecurring?: boolean;
+    effectiveFrom?: string;
+    effectiveUntil?: string;
+    notes?: string;
+  }): Promise<OfficeHoursSlot> {
+    return ApiClient.post('/office-hours', data);
+  }
+
+  static async updateOfficeHour(id: number, data: Partial<{
+    dayOfWeek: string;
+    startTime: string;
+    endTime: string;
+    location: string;
+    building?: string;
+    room?: string;
+    mode: 'in_person' | 'online' | 'hybrid';
+    maxAppointments?: number;
+    isRecurring?: boolean;
+    effectiveFrom?: string;
+    effectiveUntil?: string;
+    notes?: string;
+    isActive?: boolean;
+  }>): Promise<OfficeHoursSlot> {
+    return ApiClient.put(`/office-hours/${id}`, data);
+  }
+
+  static async deleteOfficeHour(id: number): Promise<void> {
+    return ApiClient.delete(`/office-hours/${id}`);
+  }
+
+  static async getOfficeHourSuggestions(params?: OfficeHoursSuggestionQuery): Promise<OfficeHoursSuggestionsResponse> {
+    return ApiClient.get('/office-hours/slots/suggest', { params });
+  }
+
+  static async getOfficeHourAppointments(officeHourId: number, params?: {
+    status?: 'pending' | 'confirmed' | 'cancelled';
+    page?: number;
+    limit?: number;
+  }): Promise<PaginatedResponse<OfficeHoursAppointment>> {
+    return ApiClient.get(`/office-hours/${officeHourId}/appointments`, { params });
+  }
 }

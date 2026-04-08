@@ -13,10 +13,24 @@ import {
   BookOpen,
   Pencil,
   X,
+  Calendar,
+  Layers,
+  UserCheck,
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { CleanSelect, Tooltip } from '../../../components/shared';
+import CampusEventsManagementPage from './CampusEventsManagementPage';
+import ScheduleTemplatesPage from './ScheduleTemplatesPage';
+import OfficeHoursManagementPage from './OfficeHoursManagementPage';
+
+type SubTabKey = 'periods' | 'events' | 'templates' | 'office-hours';
+
+interface SubTab {
+  key: SubTabKey;
+  label: string;
+  icon: React.ElementType;
+}
 
 interface EnrollmentPeriod {
   id: number;
@@ -57,8 +71,19 @@ export function EnrollmentPeriodPage({
 }: EnrollmentPeriodPageProps) {
   const { isDark, primaryHex } = useTheme() as any;
   const accentColor = primaryHex || '#3b82f6';
-  const { t } = useLanguage();
+  const { t, isRTL } = useLanguage();
 
+  // Sub-tab state
+  const [activeSubTab, setActiveSubTab] = useState<SubTabKey>('periods');
+
+  const SUB_TABS: SubTab[] = [
+    { key: 'periods', label: t('enrollmentPeriods'), icon: CalendarDays },
+    { key: 'events', label: t('campusEvents'), icon: Calendar },
+    { key: 'templates', label: t('scheduleTemplates'), icon: Layers },
+    { key: 'office-hours', label: t('officeHours') || 'Office Hours', icon: UserCheck },
+  ];
+
+  // Enrollment Periods state
   type ModalType = 'add-period' | 'edit-period' | 'delete-period';
   const [activeModal, setActiveModal] = useState<ModalType | null>(null);
   const [selectedPeriod, setSelectedPeriod] = useState<EnrollmentPeriod | null>(null);
@@ -168,8 +193,131 @@ export function EnrollmentPeriodPage({
     }
   };
 
+  // Sub-tab rendering for Campus Events and Schedule Templates
+  if (activeSubTab === 'events') {
+    return (
+      <div className="space-y-6">
+        {/* Sub-tabs Navigation */}
+        <div className={`flex gap-1 p-1 rounded-xl w-fit ${isDark ? 'bg-slate-800/60' : 'bg-slate-100'}`}>
+          {SUB_TABS.map((tab) => {
+            const isActive = activeSubTab === tab.key;
+            const TabIcon = tab.icon;
+            return (
+              <button
+                key={tab.key}
+                onClick={() => setActiveSubTab(tab.key)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                  isActive
+                    ? 'text-white shadow-md'
+                    : isDark
+                      ? 'text-slate-400 hover:text-white hover:bg-slate-700'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+                }`}
+                style={isActive ? { backgroundColor: accentColor } : {}}
+              >
+                <TabIcon className="w-4 h-4" />
+                {tab.label}
+              </button>
+            );
+          })}
+        </div>
+        <CampusEventsManagementPage />
+      </div>
+    );
+  }
+
+  if (activeSubTab === 'templates') {
+    return (
+      <div className="space-y-6">
+        {/* Sub-tabs Navigation */}
+        <div className={`flex gap-1 p-1 rounded-xl w-fit ${isDark ? 'bg-slate-800/60' : 'bg-slate-100'}`}>
+          {SUB_TABS.map((tab) => {
+            const isActive = activeSubTab === tab.key;
+            const TabIcon = tab.icon;
+            return (
+              <button
+                key={tab.key}
+                onClick={() => setActiveSubTab(tab.key)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                  isActive
+                    ? 'text-white shadow-md'
+                    : isDark
+                      ? 'text-slate-400 hover:text-white hover:bg-slate-700'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+                }`}
+                style={isActive ? { backgroundColor: accentColor } : {}}
+              >
+                <TabIcon className="w-4 h-4" />
+                {tab.label}
+              </button>
+            );
+          })}
+        </div>
+        <ScheduleTemplatesPage />
+      </div>
+    );
+  }
+
+  if (activeSubTab === 'office-hours') {
+    return (
+      <div className="space-y-6">
+        {/* Sub-tabs Navigation */}
+        <div className={`flex gap-1 p-1 rounded-xl w-fit ${isDark ? 'bg-slate-800/60' : 'bg-slate-100'}`}>
+          {SUB_TABS.map((tab) => {
+            const isActive = activeSubTab === tab.key;
+            const TabIcon = tab.icon;
+            return (
+              <button
+                key={tab.key}
+                onClick={() => setActiveSubTab(tab.key)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                  isActive
+                    ? 'text-white shadow-md'
+                    : isDark
+                      ? 'text-slate-400 hover:text-white hover:bg-slate-700'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+                }`}
+                style={isActive ? { backgroundColor: accentColor } : {}}
+              >
+                <TabIcon className="w-4 h-4" />
+                {tab.label}
+              </button>
+            );
+          })}
+        </div>
+        <OfficeHoursManagementPage />
+      </div>
+    );
+  }
+
+  // Default: Enrollment Periods sub-tab
   return (
     <div className="space-y-6">
+      {/* Sub-tabs Navigation */}
+      <div className={`flex gap-1 p-1 rounded-xl w-fit ${isDark ? 'bg-slate-800/60' : 'bg-slate-100'}`}>
+        {SUB_TABS.map((tab) => {
+          const isActive = activeSubTab === tab.key;
+          const TabIcon = tab.icon;
+          return (
+            <button
+              key={tab.key}
+              onClick={() => setActiveSubTab(tab.key)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                isActive
+                  ? 'text-white shadow-md'
+                  : isDark
+                    ? 'text-slate-400 hover:text-white hover:bg-slate-700'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+              }`}
+              style={isActive ? { backgroundColor: accentColor } : {}}
+            >
+              <TabIcon className="w-4 h-4" />
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
