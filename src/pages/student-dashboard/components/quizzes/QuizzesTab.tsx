@@ -110,8 +110,6 @@ const QuizzesTab = () => {
       try {
         // 1. Fetch full quiz with questions
         const fullQuiz = await QuizService.getById(quizId);
-        console.log('[QuizzesTab] Full quiz data:', fullQuiz);
-        console.log('[QuizzesTab] Questions from quiz:', fullQuiz.questions);
 
         // 2. Check for existing in-progress attempt
         const existingAttempt = await QuizService.getInProgressAttempt(quizId);
@@ -135,14 +133,10 @@ const QuizzesTab = () => {
         } else {
           // Start new attempt
           attempt = await QuizService.startAttempt(quizId);
-          console.log('[QuizzesTab] New attempt started:', attempt);
-          console.log('[QuizzesTab] Questions from attempt:', attempt.questions);
         }
 
         // Use questions from attempt if available, otherwise from quiz
         const questions = (attempt as any).questions || fullQuiz.questions || [];
-        console.log('[QuizzesTab] Final questions array:', questions);
-        console.log('[QuizzesTab] Questions count:', questions.length);
         
         // Normalize question IDs (handle both id and questionId fields)
         const normalizedQuestions = questions.map((q: any) => ({
@@ -152,8 +146,6 @@ const QuizzesTab = () => {
           points: String(q.points || '0'),
         }));
         
-        console.log('[QuizzesTab] Normalized questions:', normalizedQuestions);
-
         // Calculate remaining time for resumed attempts
         const startTime = new Date(attempt.startedAt).getTime();
         const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);

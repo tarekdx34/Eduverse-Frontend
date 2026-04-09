@@ -115,9 +115,7 @@ export function useAssignments(courseId?: string) {
     setLoading(true);
     setError(null);
     try {
-      console.log('[useAssignments] Fetching assignments...', courseId ? { courseId } : 'all');
       const response = await StudentAssignmentService.getAll(courseId ? { courseId } : undefined);
-      console.log('[useAssignments] API Response:', response);
       
       // Handle paginated response: { data: [...], meta: {...} }
       const data = (response as any)?.data || response;
@@ -129,9 +127,6 @@ export function useAssignments(courseId?: string) {
         id: assignment.id || assignment.assignmentId || String(assignment.assignment_id || ''),
       }));
       
-      console.log('[useAssignments] Extracted data:', data);
-      console.log('[useAssignments] Is Array?', Array.isArray(assignmentsArray));
-      console.log('[useAssignments] Assignments array length:', assignmentsArray.length);
       setAssignments(assignmentsArray);
 
       // Fetch submission status for each assignment
@@ -148,7 +143,6 @@ export function useAssignments(courseId?: string) {
         })
       );
       setSubmissions(submissionMap);
-      console.log('[useAssignments] Fetch complete, total assignments:', assignmentsArray.length);
     } catch (err) {
       console.error('[useAssignments] Error:', err);
       const message = err instanceof Error ? err.message : 'Failed to load assignments';
@@ -297,11 +291,8 @@ export function useAssignment(assignmentId: string) {
     setLoading(true);
     setError(null);
     try {
-      console.log('[useAssignment] Fetching assignment:', assignmentId);
-      
       // Fetch assignment first
       const assignmentResponse = await StudentAssignmentService.getById(assignmentId);
-      console.log('[useAssignment] Assignment response:', assignmentResponse);
       
       // Handle possible paginated response for single assignment
       const assignmentData = (assignmentResponse as any)?.data || assignmentResponse;
@@ -312,16 +303,13 @@ export function useAssignment(assignmentId: string) {
         id: (assignmentData as any).id || (assignmentData as any).assignmentId || assignmentId,
       };
       
-      console.log('[useAssignment] Normalized assignment:', normalizedAssignment);
       setAssignment(normalizedAssignment as Assignment);
       
       // Fetch submission separately (don't fail if it doesn't exist)
       try {
         const submissionData = await StudentAssignmentService.getMySubmission(assignmentId);
-        console.log('[useAssignment] Submission:', submissionData);
         setSubmission(submissionData);
       } catch (submissionErr) {
-        console.log('[useAssignment] No submission found (this is OK)');
         setSubmission(null);
       }
     } catch (err) {

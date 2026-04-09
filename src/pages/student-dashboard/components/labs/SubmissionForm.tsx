@@ -24,23 +24,13 @@ export function SubmissionForm({ labId, isDark, accentColor = '#3b82f6', onSubmi
 
   const handleSubmit = async () => {
     if (!submissionText && !selectedFile) {
-      console.log('[Submission Debug] Attempted to submit with no text and no file.');
       return;
     }
 
     setSubmitting(true);
-    console.log('[Submission Debug] Submitting lab:', {
-      labId,
-      submissionTextLength: submissionText.length,
-      submissionText,
-      fileName: selectedFile?.name,
-      fileSize: selectedFile?.size,
-      fileType: selectedFile?.type
-    });
 
     try {
-      const response = await LabService.submit(labId, submissionText, selectedFile || undefined);
-      console.log('[Submission Debug] Submit response:', response);
+      await LabService.submit(labId, submissionText, selectedFile || undefined);
       toast.success('Lab submitted successfully!');
       setSubmitSuccess(true);
       setSubmissionText('');
@@ -48,7 +38,7 @@ export function SubmissionForm({ labId, isDark, accentColor = '#3b82f6', onSubmi
       onSubmitSuccess();
       setTimeout(() => setSubmitSuccess(false), 3000);
     } catch (error) {
-      console.error('[Submission Debug] Failed to submit lab:', error);
+      console.error('Failed to submit lab:', error);
       toast.error('Failed to submit lab. Please try again.');
     } finally {
       setSubmitting(false);

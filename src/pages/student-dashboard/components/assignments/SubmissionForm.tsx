@@ -87,12 +87,9 @@ export function SubmissionForm({ assignment, onSubmitSuccess, disabled = false }
         case 'file':
           // Two-step process: 1) Upload file, 2) Submit with fileId
           setUploadProgress('Uploading file...');
-          console.log('[SubmissionForm] Uploading file...');
           const { fileId } = await StudentAssignmentService.uploadSubmissionFile(assignment.id, files[0]);
-          console.log('[SubmissionForm] File uploaded, fileId:', fileId);
           
           setUploadProgress('Submitting assignment...');
-          console.log('[SubmissionForm] Submitting with fileId...');
           await StudentAssignmentService.submitWithFileId(assignment.id, fileId);
           break;
         case 'link':

@@ -25,26 +25,6 @@ export default function TodayClassesWidget() {
   }, [data, t]);
 
   const upcomingToday = useMemo(() => getUpcomingScheduleItems(todayItems, 4), [todayItems]);
-  if (import.meta.env.DEV) {
-    console.log('[today-classes-widget]', {
-      today,
-      loading: isLoading,
-      hasError: !!error,
-      apiDay: data?.date,
-      apiSchedulesCount: data?.schedules?.length || 0,
-      mappedTodayItems: todayItems.map((item) => ({
-        id: item.id,
-        title: item.title,
-        courseCode: item.courseCode,
-        subtitle: item.subtitle,
-        startTime: item.startTime,
-        endTime: item.endTime,
-        location: item.location,
-      })),
-      upcomingToday,
-    });
-  }
-
   const nowMinutes = new Date().getHours() * 60 + new Date().getMinutes();
   const currentClassId = useMemo(() => {
     const found = upcomingToday.find((item) => {

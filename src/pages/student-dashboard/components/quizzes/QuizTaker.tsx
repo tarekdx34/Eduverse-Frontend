@@ -184,14 +184,7 @@ const QuizTaker: React.FC<QuizTakerProps> = ({
 
     try {
       const answersArray = transformAnswersForApi();
-      console.log('[QuizTaker] Submitting answers:', JSON.stringify(answersArray, null, 2));
-      console.log('[QuizTaker] Number of answers:', answersArray.length);
-      console.log('[QuizTaker] Sample answer:', answersArray[0]);
-      
       const result = await QuizService.submitAttempt(quizId, attemptId, answersArray);
-      console.log('[QuizTaker] Submit result:', result);
-      console.log('[QuizTaker] Result percentage:', result.percentage);
-      console.log('[QuizTaker] Result answers:', result.answers);
       
       toast.success(t('quiz.submittedSuccessfully'));
       onSubmit(result);

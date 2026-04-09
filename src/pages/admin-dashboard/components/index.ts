@@ -25,3 +25,6 @@ export { SettingsHubPage } from './SettingsHubPage';
 export { AdminNotificationsPage } from './AdminNotificationsPage';
 export { AIInsightsPage } from './AIInsightsPage';
 export { GlobalSearchPage } from './GlobalSearchPage';
+export { default as CampusEventsManagementPage } from './CampusEventsManagementPage';
+export { default as ScheduleTemplatesPage } from './ScheduleTemplatesPage';
+export { default as OfficeHoursManagementPage } from './OfficeHoursManagementPage';
