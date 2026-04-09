@@ -189,12 +189,26 @@ export function OfficeHoursManagementPage({ isMockMode: propMockMode = false }: 
   const { data: instructorsData, isError: instructorsError } = useQuery({
     queryKey: ['instructors-tas'],
     queryFn: async () => {
-      const users = await adminService.getUsers();
-      // Filter instructors and TAs
-      return (users || []).filter((u: any) => 
-        u.role === 'instructor' || u.role === 'ta' || 
-        u.userType === 'instructor' || u.userType === 'ta'
-      );
+      const usersResponse = await adminService.getUsers();
+      const users = Array.isArray((usersResponse as any)?.data)
+        ? (usersResponse as any).data
+        : Array.isArray(usersResponse)
+          ? usersResponse
+          : [];
+
+      // Filter instructors and TAs across both role shapes:
+      // - role/userType string fields
+      // - roles[] objects containing roleName
+      return users.filter((u: any) => {
+        const directRoles = [u.role, u.userType]
+          .filter(Boolean)
+          .map((r: string) => String(r).toLowerCase());
+        const mappedRoles = Array.isArray(u.roles)
+          ? u.roles.map((r: any) => String(r?.roleName || r).toLowerCase())
+          : [];
+        const allRoles = new Set([...directRoles, ...mappedRoles]);
+        return allRoles.has('instructor') || allRoles.has('ta');
+      });
     },
     retry: 1,
   });

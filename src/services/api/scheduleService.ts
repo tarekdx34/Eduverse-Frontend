@@ -563,11 +563,11 @@ export class ScheduleService {
     page?: number;
     limit?: number;
   }): Promise<PaginatedResponse<OfficeHoursSlot>> {
-    return ApiClient.get('/office-hours', { params });
+    return ApiClient.get('/office-hours/slots', { params });
   }
 
   static async getOfficeHourById(id: number): Promise<OfficeHoursSlot> {
-    return ApiClient.get(`/office-hours/${id}`);
+    return ApiClient.get(`/office-hours/slots/${id}`);
   }
 
   static async createOfficeHour(data: {
@@ -585,7 +585,7 @@ export class ScheduleService {
     effectiveUntil?: string;
     notes?: string;
   }): Promise<OfficeHoursSlot> {
-    return ApiClient.post('/office-hours', data);
+    return ApiClient.post('/office-hours/slots', data);
   }
 
   static async updateOfficeHour(id: number, data: Partial<{
@@ -603,11 +603,11 @@ export class ScheduleService {
     notes?: string;
     isActive?: boolean;
   }>): Promise<OfficeHoursSlot> {
-    return ApiClient.put(`/office-hours/${id}`, data);
+    return ApiClient.put(`/office-hours/slots/${id}`, data);
   }
 
   static async deleteOfficeHour(id: number): Promise<void> {
-    return ApiClient.delete(`/office-hours/${id}`);
+    return ApiClient.delete(`/office-hours/slots/${id}`);
   }
 
   static async getOfficeHourSuggestions(params?: OfficeHoursSuggestionQuery): Promise<OfficeHoursSuggestionsResponse> {
@@ -619,6 +619,11 @@ export class ScheduleService {
     page?: number;
     limit?: number;
   }): Promise<PaginatedResponse<OfficeHoursAppointment>> {
-    return ApiClient.get(`/office-hours/${officeHourId}/appointments`, { params });
+    return ApiClient.get('/office-hours/appointments', {
+      params: {
+        slotId: officeHourId,
+        ...params,
+      },
+    });
   }
 }

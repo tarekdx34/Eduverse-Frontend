@@ -645,7 +645,9 @@ export function ScheduleTemplatesPage({ isMockMode: propMockMode = false }: Sche
                     </td>
                     <td className="px-4 py-4">
                       <span className={`text-sm ${labelClass}`}>
-                        {template.creator.firstName} {template.creator.lastName}
+                        {template.creator?.firstName && template.creator?.lastName
+                          ? `${template.creator.firstName} ${template.creator.lastName}`
+                          : t('unknown') || 'Unknown'}
                       </span>
                     </td>
                     <td className="px-4 py-4">
