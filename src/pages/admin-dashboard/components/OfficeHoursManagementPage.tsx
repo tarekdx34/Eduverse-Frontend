@@ -73,6 +73,57 @@ interface OfficeHourWithInstructor extends OfficeHoursSlot {
   isActive?: boolean;
 }
 
+interface AdminUserRole {
+  roleName?: string;
+}
+
+interface AdminUserRow {
+  id?: number;
+  userId?: number;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  role?: string;
+  userType?: string;
+  roles?: Array<AdminUserRole | string>;
+}
+
+const ELIGIBLE_ROLE_ALIASES = new Set([
+  'instructor',
+  'ta',
+  'teaching_assistant',
+  'teaching-assistant',
+  'teacher_assistant',
+]);
+
+const extractRoles = (user: AdminUserRow): string[] => {
+  const mappedRoles = Array.isArray(user.roles)
+    ? user.roles
+        .map((r) => (typeof r === 'string' ? r : r?.roleName))
+        .filter(Boolean)
+        .map((role) => String(role).toLowerCase())
+    : [];
+  const fallbackRoles = [user.role, user.userType]
+    .filter(Boolean)
+    .map((role) => String(role).toLowerCase());
+  return [...mappedRoles, ...fallbackRoles];
+};
+
+const normalizeRoleLabel = (roles: string[]) =>
+  roles.includes('instructor') ? 'instructor' : 'ta';
+
+const extractApiErrorMessage = (error: unknown, fallback: string) => {
+  const maybe = error as {
+    message?: string;
+    response?: { data?: { message?: string } };
+  };
+  return (
+    maybe?.response?.data?.message ||
+    maybe?.message ||
+    fallback
+  );
+};
+
 export function OfficeHoursManagementPage({ isMockMode: propMockMode = false }: OfficeHoursManagementPageProps) {
   const { isDark, primaryHex } = useTheme() as any;
   const accentColor = primaryHex || '#3b82f6';
@@ -189,35 +240,51 @@ export function OfficeHoursManagementPage({ isMockMode: propMockMode = false }: 
   const { data: instructorsData, isError: instructorsError } = useQuery({
     queryKey: ['instructors-tas'],
     queryFn: async () => {
-      const usersResponse = await adminService.getUsers();
-      const users = Array.isArray((usersResponse as any)?.data)
-        ? (usersResponse as any).data
-        : Array.isArray(usersResponse)
-          ? usersResponse
-          : [];
+      const pageSize = 500;
+      const collected: AdminUserRow[] = [];
+      let nextPage = 1;
+      let totalFromApi: number | null = null;
 
-      // Filter instructors and TAs across both role shapes:
-      // - role/userType string fields
-      // - roles[] objects containing roleName
-      return users.filter((u: any) => {
-        const directRoles = [u.role, u.userType]
-          .filter(Boolean)
-          .map((r: string) => String(r).toLowerCase());
-        const mappedRoles = Array.isArray(u.roles)
-          ? u.roles.map((r: any) => String(r?.roleName || r).toLowerCase())
-          : [];
-        const allRoles = new Set([...directRoles, ...mappedRoles]);
-        return allRoles.has('instructor') || allRoles.has('ta');
-      });
+      while (true) {
+        const usersResponse = await adminService.getUsers({ page: nextPage, size: pageSize });
+        const rows = Array.isArray(usersResponse?.data) ? usersResponse.data : [];
+
+        if (totalFromApi === null && typeof usersResponse?.total === 'number') {
+          totalFromApi = usersResponse.total;
+        }
+
+        collected.push(...rows);
+
+        const reachedTotal = totalFromApi !== null && collected.length >= totalFromApi;
+        const reachedLastPage = rows.length < pageSize;
+
+        if (reachedTotal || reachedLastPage) {
+          break;
+        }
+
+        nextPage += 1;
+      }
+
+      const eligible = collected
+        .filter((user) => {
+          const roles = extractRoles(user);
+          return roles.some((role) => ELIGIBLE_ROLE_ALIASES.has(role));
+        })
+        .map((user) => {
+          const roles = extractRoles(user);
+          return {
+            ...user,
+            role: normalizeRoleLabel(roles),
+          };
+        });
+
+      return eligible;
     },
     retry: 1,
   });
   const instructors = (instructorsError || !instructorsData || instructorsData.length === 0) 
     ? MOCK_INSTRUCTORS 
     : instructorsData;
-
-  // Debug log: instructors data
-  console.log('[OfficeHoursManagement] instructors:', { instructorsError, instructorsData, instructors });
 
   // Fetch office hours with fallback
   const { data: officeHoursData, isLoading, isError: officeHoursError } = useQuery({
@@ -271,7 +338,9 @@ export function OfficeHoursManagementPage({ isMockMode: propMockMode = false }: 
       closeModal();
     },
     onError: (error: any) => {
-      toast.error(error.message || 'Failed to create office hour');
+      const details = extractApiErrorMessage(error, 'Failed to create office hour');
+      console.error('[OfficeHoursManagement:create] API error', error);
+      toast.error(details);
     },
   });
 
@@ -284,7 +353,9 @@ export function OfficeHoursManagementPage({ isMockMode: propMockMode = false }: 
       closeModal();
     },
     onError: (error: any) => {
-      toast.error(error.message || 'Failed to update office hour');
+      const details = extractApiErrorMessage(error, 'Failed to update office hour');
+      console.error('[OfficeHoursManagement:update] API error', error);
+      toast.error(details);
     },
   });
 
@@ -296,7 +367,9 @@ export function OfficeHoursManagementPage({ isMockMode: propMockMode = false }: 
       closeModal();
     },
     onError: (error: any) => {
-      toast.error(error.message || 'Failed to delete office hour');
+      const details = extractApiErrorMessage(error, 'Failed to delete office hour');
+      console.error('[OfficeHoursManagement:delete] API error', error);
+      toast.error(details);
     },
   });
 
@@ -446,6 +519,16 @@ export function OfficeHoursManagementPage({ isMockMode: propMockMode = false }: 
 
       {/* Filters */}
       <div className={`p-4 rounded-xl border ${cardClass}`}>
+        {(instructorsError || !instructorsData || instructorsData.length === 0) && (
+          <div className={`mb-4 rounded-lg border px-3 py-2 text-sm ${isDark ? 'bg-amber-500/10 text-amber-300 border-amber-500/30' : 'bg-amber-50 text-amber-800 border-amber-200'}`}>
+            {t('warning') || 'Warning'}: using fallback instructor/TA mock list. Live user API data is unavailable.
+          </div>
+        )}
+        {(officeHoursError || !officeHoursData?.data) && (
+          <div className={`mb-4 rounded-lg border px-3 py-2 text-sm ${isDark ? 'bg-amber-500/10 text-amber-300 border-amber-500/30' : 'bg-amber-50 text-amber-800 border-amber-200'}`}>
+            {t('warning') || 'Warning'}: using fallback office-hours mock data. Live office-hours API data is unavailable.
+          </div>
+        )}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           {/* Search */}
           <div className="relative">

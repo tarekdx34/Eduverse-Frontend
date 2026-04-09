@@ -29,6 +29,39 @@ interface ScheduleTemplatesPageProps {
   isMockMode?: boolean;
 }
 
+interface DepartmentOption {
+  id: number;
+  name: string;
+}
+
+const extractApiErrorMessage = (error: unknown, fallback: string) => {
+  const maybe = error as {
+    message?: string;
+    response?: { data?: { message?: string } };
+  };
+  return maybe?.response?.data?.message || maybe?.message || fallback;
+};
+
+const normalizeDepartments = (raw: any): DepartmentOption[] => {
+  const rows = Array.isArray(raw) ? raw : [];
+  return rows
+    .map((department: any) => {
+      const id = Number(department?.id ?? department?.departmentId);
+      const name = String(department?.name ?? department?.departmentName ?? '').trim();
+      if (!Number.isFinite(id) || !name) return null;
+      return { id, name };
+    })
+    .filter(Boolean) as DepartmentOption[];
+};
+
+const getCreatorDisplayName = (creator?: Partial<{ firstName: string; lastName: string }> | null) => {
+  if (!creator) return 'Unknown';
+  const first = creator.firstName?.trim() ?? '';
+  const last = creator.lastName?.trim() ?? '';
+  const fullName = `${first} ${last}`.trim();
+  return fullName || 'Unknown';
+};
+
 const SCHEDULE_TYPES = [
   { value: 'LECTURE', label: 'Lecture' },
   { value: 'LAB', label: 'Lab' },
@@ -177,17 +210,9 @@ export function ScheduleTemplatesPage({ isMockMode: propMockMode = false }: Sche
     queryFn: () => adminService.getDepartments(),
     retry: 1,
   });
-  const departments = (deptError || !departmentsData) ? MOCK_DEPARTMENTS : departmentsData;
-
-  // Debug log: departments and schedule types
-  console.log('[ScheduleTemplates] data:', { 
-    deptError, 
-    departmentsData, 
-    departments, 
-    SCHEDULE_TYPES, 
-    DAYS_OF_WEEK,
-    TIME_SLOTS: TIME_SLOTS.length + ' slots'
-  });
+  const liveDepartments = normalizeDepartments(departmentsData);
+  const isDepartmentsFallback = deptError || liveDepartments.length === 0;
+  const departments = isDepartmentsFallback ? MOCK_DEPARTMENTS : liveDepartments;
 
   // Fetch sections for applying templates with fallback
   const { data: sectionsData, isError: sectionsError } = useQuery({
@@ -200,9 +225,6 @@ export function ScheduleTemplatesPage({ isMockMode: propMockMode = false }: Sche
     retry: 1,
   });
   const sections = (sectionsError || !sectionsData || sectionsData.length === 0) ? MOCK_SECTIONS : sectionsData;
-
-  // Debug log: sections
-  console.log('[ScheduleTemplates] sections:', { sectionsError, sectionsData, sections });
 
   // Build query params
   const queryParams: ScheduleTemplateQuery = {
@@ -255,7 +277,9 @@ export function ScheduleTemplatesPage({ isMockMode: propMockMode = false }: Sche
       closeModal();
     },
     onError: (error: any) => {
-      toast.error(error.message || 'Failed to create template');
+      const details = extractApiErrorMessage(error, 'Failed to create template');
+      console.error('[ScheduleTemplates:create] API error', error);
+      toast.error(details);
     },
   });
 
@@ -268,7 +292,9 @@ export function ScheduleTemplatesPage({ isMockMode: propMockMode = false }: Sche
       closeModal();
     },
     onError: (error: any) => {
-      toast.error(error.message || 'Failed to update template');
+      const details = extractApiErrorMessage(error, 'Failed to update template');
+      console.error('[ScheduleTemplates:update] API error', error);
+      toast.error(details);
     },
   });
 
@@ -280,7 +306,9 @@ export function ScheduleTemplatesPage({ isMockMode: propMockMode = false }: Sche
       closeModal();
     },
     onError: (error: any) => {
-      toast.error(error.message || 'Failed to delete template');
+      const details = extractApiErrorMessage(error, 'Failed to delete template');
+      console.error('[ScheduleTemplates:delete] API error', error);
+      toast.error(details);
     },
   });
 
@@ -292,7 +320,9 @@ export function ScheduleTemplatesPage({ isMockMode: propMockMode = false }: Sche
       closeModal();
     },
     onError: (error: any) => {
-      toast.error(error.message || 'Failed to apply template');
+      const details = extractApiErrorMessage(error, 'Failed to apply template');
+      console.error('[ScheduleTemplates:apply] API error', error);
+      toast.error(details);
     },
   });
 
@@ -309,7 +339,9 @@ export function ScheduleTemplatesPage({ isMockMode: propMockMode = false }: Sche
       closeModal();
     },
     onError: (error: any) => {
-      toast.error(error.message || 'Failed to bulk apply template');
+      const details = extractApiErrorMessage(error, 'Failed to bulk apply template');
+      console.error('[ScheduleTemplates:bulk-apply] API error', error);
+      toast.error(details);
     },
   });
 
@@ -532,6 +564,11 @@ export function ScheduleTemplatesPage({ isMockMode: propMockMode = false }: Sche
 
       {/* Filters */}
       <div className={`p-4 rounded-xl border ${cardClass}`}>
+        {isDepartmentsFallback && (
+          <div className={`mb-4 rounded-lg border px-3 py-2 text-sm ${isDark ? 'bg-amber-500/10 text-amber-300 border-amber-500/30' : 'bg-amber-50 text-amber-800 border-amber-200'}`}>
+            {t('warning') || 'Warning'}: using fallback department mock data because live departments API failed.
+          </div>
+        )}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Search */}
           <div className="relative">
@@ -645,9 +682,7 @@ export function ScheduleTemplatesPage({ isMockMode: propMockMode = false }: Sche
                     </td>
                     <td className="px-4 py-4">
                       <span className={`text-sm ${labelClass}`}>
-                        {template.creator?.firstName && template.creator?.lastName
-                          ? `${template.creator.firstName} ${template.creator.lastName}`
-                          : t('unknown') || 'Unknown'}
+                        {getCreatorDisplayName(template.creator) || t('unknown') || 'Unknown'}
                       </span>
                     </td>
                     <td className="px-4 py-4">

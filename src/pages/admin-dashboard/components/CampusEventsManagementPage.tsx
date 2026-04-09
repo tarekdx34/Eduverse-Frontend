@@ -29,6 +29,31 @@ interface CampusEventsManagementPageProps {
   isMockMode?: boolean;
 }
 
+interface DepartmentOption {
+  id: number;
+  name: string;
+}
+
+const extractApiErrorMessage = (error: unknown, fallback: string) => {
+  const maybe = error as {
+    message?: string;
+    response?: { data?: { message?: string } };
+  };
+  return maybe?.response?.data?.message || maybe?.message || fallback;
+};
+
+const normalizeDepartments = (raw: any): DepartmentOption[] => {
+  const rows = Array.isArray(raw) ? raw : [];
+  return rows
+    .map((department: any) => {
+      const id = Number(department?.id ?? department?.departmentId);
+      const name = String(department?.name ?? department?.departmentName ?? '').trim();
+      if (!Number.isFinite(id) || !name) return null;
+      return { id, name };
+    })
+    .filter(Boolean) as DepartmentOption[];
+};
+
 const EVENT_TYPES = [
   { value: 'university_wide', label: 'University Wide' },
   { value: 'department', label: 'Department' },
@@ -173,16 +198,9 @@ export function CampusEventsManagementPage({ isMockMode: propMockMode = false }:
     queryFn: () => adminService.getDepartments(),
     retry: 1,
   });
-  const departments = (deptError || !departmentsData) ? MOCK_DEPARTMENTS : departmentsData;
-
-  // Debug log: departments and event types
-  console.log('[CampusEventsManagement] data:', { 
-    deptError, 
-    departmentsData, 
-    departments, 
-    EVENT_TYPES, 
-    EVENT_STATUSES 
-  });
+  const liveDepartments = normalizeDepartments(departmentsData);
+  const isDepartmentsFallback = deptError || liveDepartments.length === 0;
+  const departments = isDepartmentsFallback ? MOCK_DEPARTMENTS : liveDepartments;
 
   // Build query params
   const queryParams: CampusEventQuery = {
@@ -234,7 +252,9 @@ export function CampusEventsManagementPage({ isMockMode: propMockMode = false }:
       closeModal();
     },
     onError: (error: any) => {
-      toast.error(error.message || 'Failed to create event');
+      const details = extractApiErrorMessage(error, 'Failed to create event');
+      console.error('[CampusEventsManagement:create] API error', error);
+      toast.error(details);
     },
   });
 
@@ -247,7 +267,9 @@ export function CampusEventsManagementPage({ isMockMode: propMockMode = false }:
       closeModal();
     },
     onError: (error: any) => {
-      toast.error(error.message || 'Failed to update event');
+      const details = extractApiErrorMessage(error, 'Failed to update event');
+      console.error('[CampusEventsManagement:update] API error', error);
+      toast.error(details);
     },
   });
 
@@ -259,7 +281,9 @@ export function CampusEventsManagementPage({ isMockMode: propMockMode = false }:
       closeModal();
     },
     onError: (error: any) => {
-      toast.error(error.message || 'Failed to delete event');
+      const details = extractApiErrorMessage(error, 'Failed to delete event');
+      console.error('[CampusEventsManagement:delete] API error', error);
+      toast.error(details);
     },
   });
 
@@ -411,6 +435,11 @@ export function CampusEventsManagementPage({ isMockMode: propMockMode = false }:
 
       {/* Filters */}
       <div className={`p-4 rounded-xl border ${cardClass}`}>
+        {isDepartmentsFallback && (
+          <div className={`mb-4 rounded-lg border px-3 py-2 text-sm ${isDark ? 'bg-amber-500/10 text-amber-300 border-amber-500/30' : 'bg-amber-50 text-amber-800 border-amber-200'}`}>
+            {t('warning') || 'Warning'}: using fallback department mock data because live departments API failed.
+          </div>
+        )}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           {/* Search */}
           <div className="relative">

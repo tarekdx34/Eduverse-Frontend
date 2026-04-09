@@ -574,7 +574,6 @@ export const QuizTaking = () => {
             );
           }
           isCorrect = selectedIndex >= 0 && selectedIndex === correctAnswerIndex;
-          console.log('MCQ answer check:', { questionId: q.id, userAnswer, options: q.options, selectedIndex, correctAnswerIndex, isCorrect });
         } else if (q.questionType === 'true_false') {
           const expectedAnswer = correctAnswerIndex === 0 ? 'True' : 'False';
           isCorrect = String(userAnswer).toLowerCase() === expectedAnswer.toLowerCase();
@@ -611,22 +610,8 @@ export const QuizTaking = () => {
         : calculatedPercentage;
       const passingScoreThreshold = parseFloat(String(activeQuiz.passingScore || 50));
 
-      console.log('Quiz Result Debug:', { 
-        apiResult: result, 
-        apiScore,
-        apiMaxScore,
-        apiPercentage,
-        earnedPoints, 
-        totalPoints, 
-        finalScore, 
-        finalMaxScore, 
-        finalPercentage,
-        questionsWithResults 
-      });
-
       // Calculate passed based on local percentage, don't trust API passed field
       const isPassed = finalPercentage >= passingScoreThreshold;
-      console.log('Pass calculation:', { finalPercentage, passingScoreThreshold, isPassed, apiPassed: result?.passed });
       
       setQuizResult({
         ...result,
@@ -662,17 +647,6 @@ export const QuizTaking = () => {
       // Use ?? instead of || to handle explicit 0 percentage correctly
       const pct = quizResult.percentage ?? 0;
       const passingScore = parseFloat(String(activeQuiz.passingScore || 50));
-      
-      console.log('computeResults with quizResult:', { 
-        quizResult,
-        correct, 
-        wrong, 
-        skipped, 
-        pct,
-        score: quizResult.score,
-        maxScore: quizResult.maxScore,
-        percentage: quizResult.percentage
-      });
       
       // Always calculate passed locally based on percentage vs passing score
       const isPassed = Math.round(pct) >= passingScore;

@@ -37,7 +37,6 @@ export function LabView({ labId, onBack, isDark, accentColor = '#3b82f6' }: LabV
       try {
         return await LabService.getAttendance(labId);
       } catch (err) {
-        console.log('[LabView Debug] Attendance fetch error:', err);
         return [];
       }
     }

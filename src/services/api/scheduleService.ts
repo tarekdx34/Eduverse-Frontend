@@ -180,11 +180,11 @@ export interface ScheduleTemplate {
   } | null;
   scheduleType: 'LECTURE' | 'LAB' | 'TUTORIAL' | 'HYBRID' | string;
   createdBy: number;
-  creator: {
-    userId: number;
-    firstName: string;
-    lastName: string;
-  };
+  creator?: {
+    userId?: number;
+    firstName?: string;
+    lastName?: string;
+  } | null;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -283,6 +283,16 @@ const normalizeLegacyItem = (
   type: entry.scheduleType?.toLowerCase?.() || 'class',
 });
 
+const isNotFoundError = (error: unknown) => {
+  if (!(error instanceof Error)) return false;
+  const message = error.message.toLowerCase();
+  return (
+    message.includes('cannot get') ||
+    message.includes('cannot post') ||
+    message.includes('cannot put') ||
+    message.includes('cannot delete')
+  );
+};
 export class ScheduleService {
   static async getDailyUnified(date?: string): Promise<DailyScheduleResponse> {
     return ApiClient.get<DailyScheduleResponse>(`/schedule/my/daily${toQueryString({ date })}`);
@@ -358,14 +368,34 @@ export class ScheduleService {
   static async getOfficeHoursSuggestions(
     params?: OfficeHoursSuggestionQuery
   ): Promise<OfficeHoursSuggestionsResponse> {
-    return ApiClient.get<OfficeHoursSuggestionsResponse>(
-      `/office-hours/slots/suggest${toQueryString(params)}`
-    );
+    return this.getOfficeHourSuggestions(params);
   }
 
   // Office Hours - Instructor's slots
-  static async getMyOfficeHoursSlots(): Promise<OfficeHoursSlot[]> {
-    return ApiClient.get<OfficeHoursSlot[]>('/office-hours/my-slots');
+  static async getMyOfficeHoursSlots(instructorId?: number): Promise<OfficeHoursSlot[]> {
+    if (typeof instructorId === 'number' && Number.isFinite(instructorId)) {
+      const response = await this.getOfficeHoursSlots({
+        instructorId,
+        page: 1,
+        limit: 500,
+      });
+      return response.data ?? [];
+    }
+
+    try {
+      return await ApiClient.get<OfficeHoursSlot[]>('/office-hours/my-slots');
+    } catch (error) {
+      if (!(error instanceof Error) || !error.message.toLowerCase().includes('numeric string is expected')) {
+        throw error;
+      }
+
+      const response = await this.getOfficeHoursSlots({
+        instructorId,
+        page: 1,
+        limit: 500,
+      });
+      return response.data ?? [];
+    }
   }
 
   static async createOfficeHoursSlot(data: {
@@ -376,7 +406,7 @@ export class ScheduleService {
     mode: 'in_person' | 'online' | 'hybrid';
     maxAppointments: number;
   }): Promise<OfficeHoursSlot> {
-    return ApiClient.post<OfficeHoursSlot>('/office-hours/slots', data);
+    return this.createOfficeHour(data);
   }
 
   static async updateOfficeHoursSlot(
@@ -390,11 +420,11 @@ export class ScheduleService {
       maxAppointments: number;
     }>
   ): Promise<OfficeHoursSlot> {
-    return ApiClient.patch<OfficeHoursSlot>(`/office-hours/slots/${slotId}`, data);
+    return this.updateOfficeHour(slotId, data);
   }
 
   static async deleteOfficeHoursSlot(slotId: number): Promise<void> {
-    return ApiClient.delete(`/office-hours/slots/${slotId}`);
+    return this.deleteOfficeHour(slotId);
   }
 
   // Office Hours - Appointments (for instructors)
@@ -558,7 +588,20 @@ export class ScheduleService {
 
   static async getOfficeHours(params?: {
     instructorId?: number;
-    departmentId?: number;
+    dayOfWeek?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<PaginatedResponse<OfficeHoursSlot>> {
+    try {
+      return await ApiClient.get('/office-hours', { params });
+    } catch (error) {
+      if (!isNotFoundError(error)) throw error;
+      return ApiClient.get('/office-hours/slots', { params });
+    }
+  }
+
+  static async getOfficeHoursSlots(params?: {
+    instructorId?: number;
     dayOfWeek?: string;
     page?: number;
     limit?: number;
@@ -567,11 +610,16 @@ export class ScheduleService {
   }
 
   static async getOfficeHourById(id: number): Promise<OfficeHoursSlot> {
-    return ApiClient.get(`/office-hours/slots/${id}`);
+    try {
+      return await ApiClient.get(`/office-hours/${id}`);
+    } catch (error) {
+      if (!isNotFoundError(error)) throw error;
+      return ApiClient.get(`/office-hours/slots/${id}`);
+    }
   }
 
   static async createOfficeHour(data: {
-    instructorId: number;
+    instructorId?: number;
     dayOfWeek: string;
     startTime: string;
     endTime: string;
@@ -585,7 +633,12 @@ export class ScheduleService {
     effectiveUntil?: string;
     notes?: string;
   }): Promise<OfficeHoursSlot> {
-    return ApiClient.post('/office-hours/slots', data);
+    try {
+      return await ApiClient.post('/office-hours', data);
+    } catch (error) {
+      if (!isNotFoundError(error)) throw error;
+      return ApiClient.post('/office-hours/slots', data);
+    }
   }
 
   static async updateOfficeHour(id: number, data: Partial<{
@@ -603,11 +656,21 @@ export class ScheduleService {
     notes?: string;
     isActive?: boolean;
   }>): Promise<OfficeHoursSlot> {
-    return ApiClient.put(`/office-hours/slots/${id}`, data);
+    try {
+      return await ApiClient.put(`/office-hours/${id}`, data);
+    } catch (error) {
+      if (!isNotFoundError(error)) throw error;
+      return ApiClient.put(`/office-hours/slots/${id}`, data);
+    }
   }
 
   static async deleteOfficeHour(id: number): Promise<void> {
-    return ApiClient.delete(`/office-hours/slots/${id}`);
+    try {
+      return await ApiClient.delete(`/office-hours/${id}`);
+    } catch (error) {
+      if (!isNotFoundError(error)) throw error;
+      return ApiClient.delete(`/office-hours/slots/${id}`);
+    }
   }
 
   static async getOfficeHourSuggestions(params?: OfficeHoursSuggestionQuery): Promise<OfficeHoursSuggestionsResponse> {
@@ -627,3 +690,4 @@ export class ScheduleService {
     });
   }
 }
+

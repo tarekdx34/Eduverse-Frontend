@@ -36,11 +36,18 @@ export const adminService = {
     };
   },
 
-  getUsers: async (params?: { role?: string; department?: string }) => {
-    let url = '/admin/users?size=1000';
-    if (params?.role) url += `&role=${params.role}`;
-    if (params?.department) url += `&department=${params.department}`;
-    return ApiClient.get<{ data: any[]; total: number }>(url);
+  getUsers: async (params?: {
+    role?: string;
+    department?: string;
+    page?: number;
+    size?: number;
+  }) => {
+    const query = new URLSearchParams();
+    query.set('size', String(params?.size ?? 1000));
+    if (params?.role) query.set('role', params.role);
+    if (params?.department) query.set('department', params.department);
+    if (params?.page) query.set('page', String(params.page));
+    return ApiClient.get<{ data: any[]; total: number }>(`/admin/users?${query.toString()}`);
   },
 
   // Student management

@@ -412,9 +412,9 @@ function MonthCalendarView({
                   )}
                 </div>
                 <div className="space-y-0.5">
-                  {dayItems.slice(0, 3).map((item) => (
+                  {dayItems.slice(0, 3).map((item, index) => (
                     <button
-                      key={item.id}
+                      key={`${item.id}-${index}`}
                       className="w-full text-left px-1.5 py-0.5 rounded text-[10px] font-medium truncate transition-opacity hover:opacity-80"
                       style={{
                         backgroundColor: `${getEventColor(item.kind)}20`,
@@ -535,13 +535,13 @@ function WeekCalendarView({
               ))}
 
               {/* Events */}
-              {dayItems.map((item) => {
+              {dayItems.map((item, index) => {
                 const { top, height } = getItemPosition(item);
                 const color = getEventColor(item.kind);
 
                 return (
                   <button
-                    key={item.id}
+                    key={`${item.id}-${index}`}
                     className="absolute left-0.5 right-0.5 rounded px-1 py-0.5 text-left overflow-hidden transition-opacity hover:opacity-90"
                     style={{
                       top: `${top}px`,
@@ -626,13 +626,13 @@ function DayCalendarView({
           ))}
 
           {/* Events */}
-          {dayItems.map((item) => {
+          {dayItems.map((item, index) => {
             const { top, height } = getItemPosition(item);
             const color = getEventColor(item.kind);
 
             return (
               <button
-                key={item.id}
+                key={`${item.id}-${index}`}
                 className="absolute left-1 right-1 rounded-lg px-3 py-2 text-left overflow-hidden transition-all hover:shadow-md"
                 style={{
                   top: `${top}px`,
@@ -742,10 +742,11 @@ export function SchedulePage() {
   const officeHoursQuery = useQuery({
     queryKey: ['schedule-office-hours-slots', user?.userId],
     queryFn: async () => {
-      const payload = (await ScheduleService.getMyOfficeHoursSlots()) as unknown;
+      const payload = (await ScheduleService.getMyOfficeHoursSlots(user?.userId)) as unknown;
       return normalizeOfficeHoursSlotsResponse(payload);
     },
     enabled: Boolean(user?.userId),
+    retry: false,
   });
 
   const registerMutation = useMutation({
@@ -843,12 +844,23 @@ export function SchedulePage() {
         const courseCode = course?.code || course?.courseCode || t('unknownCourse');
         const courseName = course?.name || course?.courseName || '';
         const title = courseName ? `${courseCode} - ${courseName}` : courseCode;
+        const normalizedStart = normalizeTime(entry.startTime);
+        const normalizedEnd = normalizeTime(entry.endTime);
+        const classIdentity = [
+          'class',
+          day.date,
+          entry.id ?? 'na',
+          entry.section?.sectionId ?? 'na',
+          normalizedStart,
+          normalizedEnd,
+          entry.scheduleType ?? 'na',
+        ].join('-');
         items.push({
-          id: `class-${entry.id}-${day.date}`,
+          id: classIdentity,
           kind: 'class',
           date: day.date,
-          startTime: normalizeTime(entry.startTime),
-          endTime: normalizeTime(entry.endTime),
+          startTime: normalizedStart,
+          endTime: normalizedEnd,
           title,
           subtitle: entry.scheduleType,
           location: location || t('locationTbd'),
@@ -1193,11 +1205,11 @@ export function SchedulePage() {
           <div className={`rounded-xl p-4 border shadow-sm ${cardBg}`}>
             <h3 className={`font-semibold ${headerText} mb-4`}>{t('upcomingTeachingEvents')}</h3>
             <div className="space-y-3">
-              {upcomingItems.map((item) => {
+              {upcomingItems.map((item, index) => {
                 const styles = typeStyles[item.kind];
                 return (
                   <button
-                    key={item.id}
+                    key={`${item.id}-${index}`}
                     className={`w-full text-left p-3 rounded-lg border ${styles.bg} ${styles.text} ${styles.border}`}
                     onClick={() => setSelectedItem(item)}
                   >

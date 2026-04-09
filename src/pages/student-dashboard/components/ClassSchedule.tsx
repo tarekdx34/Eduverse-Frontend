@@ -89,12 +89,6 @@ export default function ClassSchedule() {
   const { days, isLoading, error } = useStudentScheduleData(viewMode, currentDate);
   const scheduleItems = useMemo(() => buildUnifiedScheduleItems(days, t('room') || 'TBD'), [days, t]);
   const conflicts = useMemo(() => detectScheduleConflicts(scheduleItems), [scheduleItems]);
-  const debugLog = (...args: unknown[]) => {
-    if (import.meta.env.DEV) {
-      console.log('[student-class-schedule]', ...args);
-    }
-  };
-
   const weekDays = language === 'ar' ? weekDaysAr : weekDaysEn;
   const visibleWeekDays = showWeekends ? weekDays : weekDays.slice(0, 5);
 
@@ -150,24 +144,6 @@ export default function ClassSchedule() {
     [scheduleItems, t]
   );
 
-  debugLog('source-days-and-items', {
-    scheduleType,
-    viewMode,
-    currentDate: toISODate(currentDate),
-    dayCount: days.length,
-    scheduleItemsCount: scheduleItems.length,
-    classItemsCount: classItems.length,
-    sampleClassItems: classItems.slice(0, 5).map((item) => ({
-      code: item.code,
-      name: item.name,
-      day: item.day,
-      startTime: item.startTime,
-      endTime: item.endTime,
-      room: item.room,
-      kind: item.kind,
-    })),
-  });
-
   const filteredClassItems = useMemo(
     () =>
       classItems.filter((item) => {
@@ -178,20 +154,6 @@ export default function ClassSchedule() {
       }),
     [classItems, showWeekends, courseFilter, kindFilter]
   );
-
-  debugLog('filtered-class-items', {
-    showWeekends,
-    courseFilter,
-    kindFilter,
-    filteredCount: filteredClassItems.length,
-    filteredSample: filteredClassItems.slice(0, 5).map((item) => ({
-      code: item.code,
-      day: item.day,
-      startTime: item.startTime,
-      room: item.room,
-      kind: item.kind,
-    })),
-  });
 
   const upcoming = useMemo(
     () =>
@@ -206,8 +168,6 @@ export default function ClassSchedule() {
       })),
     [scheduleItems]
   );
-
-  debugLog('upcoming-items', upcoming);
 
   const courseOptions = useMemo(
     () => Array.from(new Set(classItems.map((item) => item.code))).sort((a, b) => a.localeCompare(b)),
