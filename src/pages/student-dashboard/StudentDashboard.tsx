@@ -52,6 +52,7 @@ import { useAuth } from '../../context/AuthContext';
 import { EnrollmentService } from '../../services/api/enrollmentService';
 import { GradesService } from '../../services/api/gradesService';
 import { NotificationService } from '../../services/api/notificationService';
+import PublicProfileView from './pages/PublicProfileView';
 
 const tabTranslationKeys: Record<string, string> = {
   dashboard: 'dashboard',
@@ -78,6 +79,7 @@ function StudentDashboardContent() {
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [viewingCourseId, setViewingCourseId] = useState<string | null>(null);
+  const [desktopSidebarExpanded, setDesktopSidebarExpanded] = useState(false);
   const [headerUnreadCount, setHeaderUnreadCount] = useState(0);
 
   const { isRTL, language, setLanguage, t } = useLanguage();
@@ -129,16 +131,21 @@ function StudentDashboardContent() {
   const pathSegments = location.pathname.split('/').filter(Boolean);
   // pathSegments will be like: ['studentdashboard', 'attendance'] or ['studentdashboard', 'myclass', '123']
   const activeTab = pathSegments[1] || 'dashboard';
-  const courseIdFromUrl = pathSegments[2] || null;
+  const routeParamId = pathSegments[2] || null;
+  const isCourseRoute = activeTab === 'myclass' && Boolean(routeParamId);
+  const isCourseFullscreen = activeTab === 'myclass' && Boolean(viewingCourseId);
+  const isPublicProfileView = activeTab === 'profile' && Boolean(routeParamId);
 
   // Sync viewingCourseId with URL
   useEffect(() => {
-    if (courseIdFromUrl) {
-      setViewingCourseId(courseIdFromUrl);
+    if (isCourseRoute && routeParamId) {
+      setViewingCourseId(routeParamId);
+      setDesktopSidebarExpanded(false);
     } else {
       setViewingCourseId(null);
+      setDesktopSidebarExpanded(false);
     }
-  }, [courseIdFromUrl]);
+  }, [isCourseRoute, routeParamId]);
 
   const tabs = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutGrid, group: 'Overview' },
@@ -190,6 +197,7 @@ function StudentDashboardContent() {
   // Handle tab navigation - clear course view when navigating to other tabs
   const handleTabChange = (tabId: string) => {
     setViewingCourseId(null); // Clear course view
+    setDesktopSidebarExpanded(false);
     navigate(`/studentdashboard/${tabId}`);
     // Scroll after a tick so the new content has rendered
     requestAnimationFrame(() => scrollToTop());
@@ -205,6 +213,7 @@ function StudentDashboardContent() {
   const handleBackFromCourse = () => {
     navigate(`/studentdashboard/myclass`);
     setViewingCourseId(null);
+    setDesktopSidebarExpanded(false);
   };
 
   const headerTranslations = {
@@ -308,14 +317,19 @@ function StudentDashboardContent() {
         isMobileOpen={sidebarOpen}
         onMobileClose={() => setSidebarOpen(false)}
         groupOrder={['Overview', 'Courses', 'Academic', 'Tools', 'Communication', 'Account']}
+        compactMode={isCourseFullscreen}
+        desktopExpanded={desktopSidebarExpanded}
+        onToggleDesktopExpanded={() => setDesktopSidebarExpanded((prev) => !prev)}
       />
 
       {/* Main Content */}
       <main
-        className={`flex-1 w-full transition-all duration-300 overflow-x-hidden ${isRTL ? 'lg:mr-72' : 'lg:ml-72'} ${activeTab === 'chat' ? 'p-0' : 'p-4 lg:p-10'}`}
+        className={`flex-1 w-full transition-all duration-300 overflow-x-hidden ${
+          isCourseFullscreen ? (isRTL ? 'lg:mr-20' : 'lg:ml-20') : isRTL ? 'lg:mr-72' : 'lg:ml-72'
+        } ${activeTab === 'chat' ? 'p-0' : isCourseFullscreen ? 'p-0' : 'p-4 lg:p-10'}`}
       >
         {/* Header - hide on chat for full-screen experience */}
-        {activeTab !== 'chat' && (
+        {activeTab !== 'chat' && !isCourseFullscreen && (
           <>
             <DashboardHeader
               userName={user?.fullName || 'Tarek Mohamed'}
@@ -435,7 +449,8 @@ function StudentDashboardContent() {
                 />
               )}
               {activeTab === 'settings' && <SettingsPreferences />}
-              {activeTab === 'profile' && (
+              {isPublicProfileView && <PublicProfileView />}
+              {activeTab === 'profile' && !isPublicProfileView && (
                 <DashboardProfileTab
                   isDark={isDark}
                   accentColor={primaryHex || '#3b82f6'}

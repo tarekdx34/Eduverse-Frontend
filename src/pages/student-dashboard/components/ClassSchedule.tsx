@@ -80,14 +80,21 @@ export default function ClassSchedule() {
 
   const [scheduleType, setScheduleType] = useState<ScheduleType>('weekly');
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [currentDayIndex, setCurrentDayIndex] = useState(new Date().getDay() === 0 ? 6 : new Date().getDay() - 1);
+  const [currentDayIndex, setCurrentDayIndex] = useState(
+    new Date().getDay() === 0 ? 6 : new Date().getDay() - 1
+  );
   const [showWeekends, setShowWeekends] = useState(false);
   const [courseFilter, setCourseFilter] = useState<'all' | string>('all');
   const [kindFilter, setKindFilter] = useState<ClassKindFilter>('all');
 
-  const viewMode = scheduleType === 'daily' ? 'daily' : scheduleType === 'weekly' ? 'weekly' : 'monthly';
+  const viewMode =
+    scheduleType === 'daily' ? 'daily' : scheduleType === 'weekly' ? 'weekly' : 'monthly';
   const { days, isLoading, error } = useStudentScheduleData(viewMode, currentDate);
-  const scheduleItems = useMemo(() => buildUnifiedScheduleItems(days, t('room') || 'TBD'), [days, t]);
+
+  const scheduleItems = useMemo(
+    () => buildUnifiedScheduleItems(days, t('room') || 'TBD'),
+    [days, t]
+  );
   const conflicts = useMemo(() => detectScheduleConflicts(scheduleItems), [scheduleItems]);
   const weekDays = language === 'ar' ? weekDaysAr : weekDaysEn;
   const visibleWeekDays = showWeekends ? weekDays : weekDays.slice(0, 5);
@@ -107,7 +114,9 @@ export default function ClassSchedule() {
             ? `${t('classSchedule')} ${item.classItem.section.sectionNumber}`
             : 'TBD',
           room: item.location || 'TBD',
-          kind: (item.subtitle?.toUpperCase?.() || item.classItem?.scheduleType || 'LECTURE') as ClassKindFilter,
+          kind: (item.subtitle?.toUpperCase?.() ||
+            item.classItem?.scheduleType ||
+            'LECTURE') as ClassKindFilter,
           color:
             (item.subtitle?.toUpperCase?.() || item.classItem?.scheduleType) === 'LAB'
               ? 'bg-emerald-500'
@@ -170,7 +179,8 @@ export default function ClassSchedule() {
   );
 
   const courseOptions = useMemo(
-    () => Array.from(new Set(classItems.map((item) => item.code))).sort((a, b) => a.localeCompare(b)),
+    () =>
+      Array.from(new Set(classItems.map((item) => item.code))).sort((a, b) => a.localeCompare(b)),
     [classItems]
   );
 
@@ -234,12 +244,10 @@ export default function ClassSchedule() {
           className={`rounded-xl border p-4 flex items-start gap-3 ${isDark ? 'border-amber-500/30 bg-amber-500/10 text-amber-200' : 'border-amber-300 bg-amber-50 text-amber-800'}`}
           role="alert"
         >
-          <AlertTriangle className="w-5 h-5 mt-0.5 flex-shrink-0" />
+          <AlertTriangle className="w-5 h-5 mt-0.5 shrink-0" />
           <div>
             <p className="font-semibold mb-1">{t('scheduleConflictsDetected')}</p>
-            <p className="text-sm mb-0">
-              {`${conflicts.length} ${t('overlappingSlotsFound')}`}
-            </p>
+            <p className="text-sm mb-0">{`${conflicts.length} ${t('overlappingSlotsFound')}`}</p>
           </div>
         </div>
       )}
@@ -252,11 +260,13 @@ export default function ClassSchedule() {
           >
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h2 className={`text-lg font-semibold mb-1 ${isDark ? 'text-white' : 'text-slate-800'}`}>
-                    {scheduleType === 'daily'
-                      ? isRTL
-                        ? 'الجدول اليومي'
-                        : 'Daily Schedule'
+                <h2
+                  className={`text-lg font-semibold mb-1 ${isDark ? 'text-white' : 'text-slate-800'}`}
+                >
+                  {scheduleType === 'daily'
+                    ? isRTL
+                      ? 'الجدول اليومي'
+                      : 'Daily Schedule'
                     : scheduleType === 'weekly'
                       ? t('weeklySchedule')
                       : isRTL
@@ -271,7 +281,10 @@ export default function ClassSchedule() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() =>
-                    exportScheduleToICS(scheduleItems, `student-schedule-${toISODate(new Date())}.ics`)
+                    exportScheduleToICS(
+                      scheduleItems,
+                      `student-schedule-${toISODate(new Date())}.ics`
+                    )
                   }
                   className={`px-3 py-2 text-xs font-semibold rounded-lg border flex items-center gap-2 ${isDark ? 'border-white/10 text-slate-300 hover:bg-white/5' : 'border-slate-200 text-slate-700 hover:bg-slate-50'}`}
                 >
@@ -285,7 +298,7 @@ export default function ClassSchedule() {
                       onClick={() => setScheduleType(type)}
                       className={`px-3 py-1.5 rounded-md text-sm font-medium capitalize transition-all ${
                         scheduleType === type
-                          ? 'bg-[var(--accent-color)] text-white shadow-sm'
+                          ? 'bg-(--accent-color) text-white shadow-sm'
                           : isDark
                             ? 'text-slate-400 hover:text-white'
                             : 'text-slate-600 hover:text-slate-800'
@@ -299,13 +312,17 @@ export default function ClassSchedule() {
                   onClick={handlePrevious}
                   className={`p-2 border rounded-lg transition-all ${isDark ? 'border-white/10 hover:bg-white/5' : 'border-slate-200 hover:bg-slate-50'}`}
                 >
-                  <ChevronLeft className={`w-5 h-5 ${isDark ? 'text-slate-500' : 'text-slate-600'}`} />
+                  <ChevronLeft
+                    className={`w-5 h-5 ${isDark ? 'text-slate-500' : 'text-slate-600'}`}
+                  />
                 </button>
                 <button
                   onClick={handleNext}
                   className={`p-2 border rounded-lg transition-all ${isDark ? 'border-white/10 hover:bg-white/5' : 'border-slate-200 hover:bg-slate-50'}`}
                 >
-                  <ChevronRight className={`w-5 h-5 ${isDark ? 'text-slate-500' : 'text-slate-600'}`} />
+                  <ChevronRight
+                    className={`w-5 h-5 ${isDark ? 'text-slate-500' : 'text-slate-600'}`}
+                  />
                 </button>
               </div>
             </div>
@@ -357,21 +374,27 @@ export default function ClassSchedule() {
                 <>
                   <div
                     className="grid border-b min-w-[760px]"
-                    style={{ gridTemplateColumns: `90px repeat(${visibleWeekDays.length}, minmax(120px, 1fr))` }}
+                    style={{
+                      gridTemplateColumns: `90px repeat(${visibleWeekDays.length}, minmax(120px, 1fr))`,
+                    }}
                   >
                     <div
-                      className={`p-4 border-r ${isDark ? 'border-white/5 bg-white/5' : 'border-slate-100 bg-gradient-to-b from-background-light to-white'}`}
+                      className={`p-4 border-r ${isDark ? 'border-white/5 bg-white/5' : 'border-slate-100 bg-linear-to-b from-background-light to-white'}`}
                     >
-                      <span className={`text-sm font-semibold ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
+                      <span
+                        className={`text-sm font-semibold ${isDark ? 'text-slate-500' : 'text-slate-600'}`}
+                      >
                         {t('time')}
                       </span>
                     </div>
                     {visibleWeekDays.map((day) => (
                       <div
                         key={day}
-                        className={`p-4 border-r last:border-r-0 text-center ${isDark ? 'border-white/5 bg-white/5' : 'border-slate-100 bg-gradient-to-b from-background-light to-white'}`}
+                        className={`p-4 border-r last:border-r-0 text-center ${isDark ? 'border-white/5 bg-white/5' : 'border-slate-100 bg-linear-to-b from-background-light to-white'}`}
                       >
-                        <span className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                        <span
+                          className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}
+                        >
                           {language === 'ar' ? day : day.substring(0, 3)}
                         </span>
                       </div>
@@ -383,12 +406,16 @@ export default function ClassSchedule() {
                       <div
                         key={timeLabel}
                         className="grid border-b min-w-[760px]"
-                        style={{ gridTemplateColumns: `90px repeat(${visibleWeekDays.length}, minmax(120px, 1fr))` }}
+                        style={{
+                          gridTemplateColumns: `90px repeat(${visibleWeekDays.length}, minmax(120px, 1fr))`,
+                        }}
                       >
                         <div
-                          className={`p-3 border-r ${isDark ? 'border-white/5 bg-white/[0.03]' : 'border-slate-100 bg-background-light/50'}`}
+                          className={`p-3 border-r ${isDark ? 'border-white/5 bg-white/3' : 'border-slate-100 bg-background-light/50'}`}
                         >
-                          <span className={`text-xs font-medium ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
+                          <span
+                            className={`text-xs font-medium ${isDark ? 'text-slate-500' : 'text-slate-600'}`}
+                          >
                             {timeLabel}
                           </span>
                         </div>
@@ -405,7 +432,9 @@ export default function ClassSchedule() {
                               {dayClasses.map((classItem) => (
                                 <button
                                   key={`${classItem.id}-${classItem.code}`}
-                                  onClick={() => navigate(`/studentdashboard/myclass/${classItem.code}`)}
+                                  onClick={() =>
+                                    navigate(`/studentdashboard/myclass/${classItem.code}`)
+                                  }
                                   className={`${isDark ? 'bg-white/5' : classItem.bgLight} border-l-4 ${classItem.borderColor} rounded-lg p-2.5 mb-1 hover:shadow-md transition-all cursor-pointer group w-full text-left`}
                                 >
                                   <p className={`text-xs font-bold ${classItem.textColor} mb-1`}>
@@ -416,7 +445,9 @@ export default function ClassSchedule() {
                                   >
                                     {classItem.name}
                                   </p>
-                                  <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
+                                  <p
+                                    className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-600'}`}
+                                  >
                                     {classItem.room}
                                   </p>
                                 </button>
@@ -441,8 +472,10 @@ export default function ClassSchedule() {
 
                       return (
                         <div key={timeLabel} className="flex gap-4">
-                          <div className="w-24 flex-shrink-0">
-                            <span className={`text-sm font-medium ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                          <div className="w-24 shrink-0">
+                            <span
+                              className={`text-sm font-medium ${isDark ? 'text-slate-400' : 'text-slate-600'}`}
+                            >
                               {timeLabel}
                             </span>
                           </div>
@@ -450,28 +483,39 @@ export default function ClassSchedule() {
                             {dayClasses.map((classItem) => (
                               <button
                                 key={`${classItem.id}-${classItem.code}`}
-                                onClick={() => navigate(`/studentdashboard/myclass/${classItem.code}`)}
+                                onClick={() =>
+                                  navigate(`/studentdashboard/myclass/${classItem.code}`)
+                                }
                                 className={`${isDark ? 'bg-white/5 border-white/10' : classItem.bgLight} border-l-4 ${classItem.borderColor} rounded-xl p-4 hover:shadow-lg transition-all cursor-pointer group w-full text-left`}
                               >
                                 <div className="flex items-start justify-between mb-2">
                                   <div>
-                                    <p className={`text-sm font-bold ${classItem.textColor} mb-1`}>{classItem.code}</p>
-                                    <p className={`text-base font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                                    <p className={`text-sm font-bold ${classItem.textColor} mb-1`}>
+                                      {classItem.code}
+                                    </p>
+                                    <p
+                                      className={`text-base font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}
+                                    >
                                       {classItem.name}
                                     </p>
                                   </div>
                                   <span
                                     className={`text-xs px-2 py-1 rounded ${isDark ? 'bg-white/10 text-slate-400' : 'bg-slate-100 text-slate-600'}`}
                                   >
-                                    {formatTime24To12(classItem.startTime)} - {formatTime24To12(classItem.endTime)}
+                                    {formatTime24To12(classItem.startTime)} -{' '}
+                                    {formatTime24To12(classItem.endTime)}
                                   </span>
                                 </div>
                                 <div className="flex items-center gap-4 mt-3">
-                                  <div className={`flex items-center gap-1.5 text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                                  <div
+                                    className={`flex items-center gap-1.5 text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}
+                                  >
                                     <MapPin className="w-4 h-4" />
                                     <span>{classItem.room}</span>
                                   </div>
-                                  <div className={`flex items-center gap-1.5 text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                                  <div
+                                    className={`flex items-center gap-1.5 text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}
+                                  >
                                     <User className="w-4 h-4" />
                                     <span>{classItem.instructor}</span>
                                   </div>
@@ -484,7 +528,9 @@ export default function ClassSchedule() {
                     })}
 
                     {getClassesForDay(weekDays[currentDayIndex]).length === 0 && (
-                      <div className={`text-center py-20 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                      <div
+                        className={`text-center py-20 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}
+                      >
                         <Calendar className="w-16 h-16 mx-auto mb-4 opacity-30" />
                         <p className="text-lg font-medium">
                           {isRTL ? 'لا توجد محاضرات اليوم' : 'No classes scheduled today'}
@@ -497,10 +543,14 @@ export default function ClassSchedule() {
 
               {scheduleType === 'monthly' && (
                 <div className="p-6">
-                  <div className={`grid grid-cols-7 gap-2 mb-4 border-b pb-4 ${isDark ? 'border-white/5' : 'border-slate-100'}`}>
+                  <div
+                    className={`grid grid-cols-7 gap-2 mb-4 border-b pb-4 ${isDark ? 'border-white/5' : 'border-slate-100'}`}
+                  >
                     {(showWeekends ? weekDays : weekDays.slice(0, 5)).map((day) => (
                       <div key={day} className="text-center">
-                        <span className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                        <span
+                          className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}
+                        >
                           {language === 'ar' ? day : day.substring(0, 3)}
                         </span>
                       </div>
@@ -521,23 +571,31 @@ export default function ClassSchedule() {
                       return (
                         <div
                           key={`${dayNumber}-${dayName}`}
-                          className={`min-h-[100px] p-3 rounded-lg border ${isDark ? 'border-white/5 bg-white/[0.02] hover:bg-white/5' : 'border-slate-100 bg-slate-50/50 hover:bg-slate-100'} transition-colors`}
+                          className={`min-h-[100px] p-3 rounded-lg border ${isDark ? 'border-white/5 bg-white/2 hover:bg-white/5' : 'border-slate-100 bg-slate-50/50 hover:bg-slate-100'} transition-colors`}
                         >
-                          <div className={`text-xs font-semibold mb-2 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                          <div
+                            className={`text-xs font-semibold mb-2 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}
+                          >
                             {dayNumber <= 31 ? dayNumber : ''}
                           </div>
                           <div className="space-y-1">
                             {dayClasses.slice(0, 2).map((classItem) => (
                               <button
                                 key={`${classItem.id}-${classItem.code}`}
-                                onClick={() => navigate(`/studentdashboard/myclass/${classItem.code}`)}
+                                onClick={() =>
+                                  navigate(`/studentdashboard/myclass/${classItem.code}`)
+                                }
                                 className={`text-[10px] px-1.5 py-1 rounded cursor-pointer ${isDark ? 'bg-white/5 hover:bg-white/10' : classItem.bgLight} border-l-2 ${classItem.borderColor} w-full text-left`}
                               >
-                                <p className={`font-bold ${classItem.textColor} truncate`}>{classItem.code}</p>
+                                <p className={`font-bold ${classItem.textColor} truncate`}>
+                                  {classItem.code}
+                                </p>
                               </button>
                             ))}
                             {dayClasses.length > 2 && (
-                              <div className={`text-[10px] px-1.5 py-0.5 ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
+                              <div
+                                className={`text-[10px] px-1.5 py-0.5 ${isDark ? 'text-slate-500' : 'text-slate-600'}`}
+                              >
                                 +{dayClasses.length - 2} more
                               </div>
                             )}
@@ -553,9 +611,13 @@ export default function ClassSchedule() {
         </div>
 
         <div>
-          <div className={`rounded-[2.5rem] p-6 ${isDark ? 'bg-card-dark border border-white/5' : 'glass'}`}>
+          <div
+            className={`rounded-[2.5rem] p-6 ${isDark ? 'bg-card-dark border border-white/5' : 'glass'}`}
+          >
             <div className="mb-6">
-              <h3 className={`text-lg font-semibold mb-1 ${isDark ? 'text-white' : 'text-slate-800'}`}>
+              <h3
+                className={`text-lg font-semibold mb-1 ${isDark ? 'text-white' : 'text-slate-800'}`}
+              >
                 {t('upcomingClasses') || 'Upcoming Classes'}
               </h3>
               <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
@@ -570,29 +632,41 @@ export default function ClassSchedule() {
                   className={`border-b pb-5 last:border-b-0 last:pb-0 ${isDark ? 'border-white/5' : 'border-slate-100'}`}
                 >
                   <div className="flex items-start gap-3 mb-3">
-                    <div className="w-1.5 h-20 bg-blue-500 rounded-full flex-shrink-0" />
+                    <div className="w-1.5 h-20 bg-blue-500 rounded-full shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <h4 className={`font-semibold mb-1 text-sm ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                      <h4
+                        className={`font-semibold mb-1 text-sm ${isDark ? 'text-white' : 'text-slate-800'}`}
+                      >
                         {item.name}
                       </h4>
-                      <p className={`text-xs font-medium mb-3 ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
+                      <p
+                        className={`text-xs font-medium mb-3 ${isDark ? 'text-slate-500' : 'text-slate-600'}`}
+                      >
                         {item.code}
                       </p>
                       <div className="space-y-2">
-                        <div className={`flex items-center gap-2 text-xs ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
-                          <Clock className="w-3.5 h-3.5 text-[var(--accent-color)] flex-shrink-0" />
+                        <div
+                          className={`flex items-center gap-2 text-xs ${isDark ? 'text-slate-500' : 'text-slate-600'}`}
+                        >
+                          <Clock className="w-3.5 h-3.5 text-(--accent-color) shrink-0" />
                           <span>{item.time}</span>
                         </div>
-                        <div className={`flex items-center gap-2 text-xs ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
-                          <Calendar className="w-3.5 h-3.5 text-[var(--accent-color)] flex-shrink-0" />
+                        <div
+                          className={`flex items-center gap-2 text-xs ${isDark ? 'text-slate-500' : 'text-slate-600'}`}
+                        >
+                          <Calendar className="w-3.5 h-3.5 text-(--accent-color) shrink-0" />
                           <span>{item.date}</span>
                         </div>
-                        <div className={`flex items-center gap-2 text-xs ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
-                          <MapPin className="w-3.5 h-3.5 text-[var(--accent-color)] flex-shrink-0" />
+                        <div
+                          className={`flex items-center gap-2 text-xs ${isDark ? 'text-slate-500' : 'text-slate-600'}`}
+                        >
+                          <MapPin className="w-3.5 h-3.5 text-(--accent-color) shrink-0" />
                           <span>{item.room}</span>
                         </div>
-                        <div className={`flex items-center gap-2 text-xs ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
-                          <User className="w-3.5 h-3.5 text-[var(--accent-color)] flex-shrink-0" />
+                        <div
+                          className={`flex items-center gap-2 text-xs ${isDark ? 'text-slate-500' : 'text-slate-600'}`}
+                        >
+                          <User className="w-3.5 h-3.5 text-(--accent-color) shrink-0" />
                           <span>{item.subtitle || t('classSchedule')}</span>
                         </div>
                       </div>

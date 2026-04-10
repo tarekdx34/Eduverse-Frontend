@@ -13,7 +13,7 @@ import {
   XCircle,
 } from 'lucide-react';
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 import {
   CourseMaterial,
@@ -23,7 +23,11 @@ import {
   materialService,
   structureService,
 } from '../../../services/api/courseService';
-import { enrollmentService, EnrolledCourse } from '../../../services/api/enrollmentService';
+import {
+  enrollmentService,
+  EnrolledCourse,
+  type SectionStaffMember,
+} from '../../../services/api/enrollmentService';
 import { announcementService, type Announcement } from '../../../services/api/announcementService';
 import { groupMaterialsIntoBundles, type MaterialBundle } from '../../../utils/materialBundles';
 
@@ -58,6 +62,7 @@ interface CourseViewPageProps {
 
 export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps) {
   const { enrollmentId: enrollmentIdParam, id: legacyIdParam } = useParams();
+  const navigate = useNavigate();
   const enrollmentId = enrollmentIdParam || legacyIdParam || courseId;
   const [activeTab, setActiveTab] = useState('overview');
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
@@ -84,6 +89,10 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
   const [pageError, setPageError] = useState<string | null>(null);
   const [courseAnnouncements, setCourseAnnouncements] = useState<Announcement[]>([]);
   const [expandedAnnouncementId, setExpandedAnnouncementId] = useState<string | null>(null);
+  const [sectionInstructor, setSectionInstructor] = useState<SectionStaffMember | null>(null);
+  const [sectionTAs, setSectionTAs] = useState<SectionStaffMember[]>([]);
+  const [staffLoading, setStaffLoading] = useState(false);
+  const [staffError, setStaffError] = useState<string | null>(null);
   const { isDark, primaryHex } = useTheme() as any;
   const accentColor = primaryHex || '#3b82f6';
 
@@ -213,6 +222,67 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
       mounted = false;
     };
   }, [resolvedCourseId]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const loadSectionStaff = async () => {
+      if (!enrollment?.section?.id) {
+        if (mounted) {
+          setSectionInstructor(null);
+          setSectionTAs([]);
+          setStaffError(null);
+        }
+        return;
+      }
+
+      try {
+        setStaffLoading(true);
+        setStaffError(null);
+        const [instructorResponse, tas] = await Promise.all([
+          enrollmentService.getSectionInstructor(enrollment.section.id),
+          enrollmentService.getSectionTAs(enrollment.section.id),
+        ]);
+
+        if (!mounted) return;
+
+        const instructor = instructorResponse?.instructor;
+        const instructorId = instructor?.userId ?? instructorResponse?.instructorId ?? null;
+
+        setSectionInstructor(
+          instructor && instructorId
+            ? {
+                id: instructorId,
+                fullName: instructor.fullName || 'Unknown Instructor',
+                email: instructor.email || '',
+                role: 'INSTRUCTOR',
+              }
+            : null
+        );
+
+        setSectionTAs(
+          (tas || []).map((ta) => ({
+            id: ta.userId,
+            fullName: ta.fullName || 'Unknown TA',
+            email: ta.email || '',
+            role: 'TA',
+          }))
+        );
+      } catch {
+        if (!mounted) return;
+        setSectionInstructor(null);
+        setSectionTAs([]);
+        setStaffError('Unable to load course team details right now.');
+      } finally {
+        if (mounted) setStaffLoading(false);
+      }
+    };
+
+    void loadSectionStaff();
+    return () => {
+      mounted = false;
+    };
+  }, [enrollment?.section?.id]);
 
   const courseSections: CourseSection[] = useMemo(() => {
     const byWeek = structureResponse.byWeek || {};
@@ -345,6 +415,19 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
         } as MaterialListItem;
       });
   }, [bundleByMaterialId, materialsResponse.data]);
+
+  const handleOpenStaffProfile = (staff: SectionStaffMember) => {
+    navigate(`/studentdashboard/profile/${staff.id}`, {
+      state: {
+        staff,
+        course: {
+          id: enrollment?.course?.id,
+          name: enrollment?.course?.name,
+          code: enrollment?.course?.code,
+        },
+      },
+    });
+  };
 
   if (pageLoading) {
     return (
@@ -500,7 +583,9 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
 
               {selectedBundle && (
                 <div className="h-full overflow-auto p-4 sm:p-6 space-y-4">
-                  <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  <h3
+                    className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}
+                  >
                     {selectedBundle.baseTitle}
                   </h3>
 
@@ -513,17 +598,27 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
                     />
                   )}
 
-                  <div className={`rounded-lg border p-3 ${isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
-                    <h4 className={`text-sm font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  <div
+                    className={`rounded-lg border p-3 ${isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}
+                  >
+                    <h4
+                      className={`text-sm font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}
+                    >
                       Instructions
                     </h4>
-                    <p className={`text-sm whitespace-pre-wrap ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>
+                    <p
+                      className={`text-sm whitespace-pre-wrap ${isDark ? 'text-slate-300' : 'text-gray-700'}`}
+                    >
                       {selectedBundle.instructions || 'No instructions available for this lecture.'}
                     </p>
                   </div>
 
-                  <div className={`rounded-lg border p-3 ${isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
-                    <h4 className={`text-sm font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  <div
+                    className={`rounded-lg border p-3 ${isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}
+                  >
+                    <h4
+                      className={`text-sm font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}
+                    >
                       Lecture Files
                     </h4>
                     {selectedBundle.documents.length === 0 ? (
@@ -610,7 +705,9 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
                 selectedMaterial.materialType !== 'link' &&
                 selectedMaterial.materialType !== 'other' && (
                   <div className="h-full overflow-auto p-4 sm:p-6">
-                    <h3 className={`text-lg font-semibold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    <h3
+                      className={`text-lg font-semibold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}
+                    >
                       {selectedMaterial.title}
                     </h3>
                     {selectedMaterialPreviewUrl ? (
@@ -632,7 +729,8 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
                       {selectedMaterial.description || 'No description available.'}
                     </p>
                     <p className={`mt-2 text-sm ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
-                      {selectedMaterial.materialType} • Week {selectedMaterial.weekNumber || 'General'}
+                      {selectedMaterial.materialType} • Week{' '}
+                      {selectedMaterial.weekNumber || 'General'}
                     </p>
                   </div>
                 )}
@@ -716,6 +814,70 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
                   Section {enrollment?.section?.sectionNumber || 'N/A'},{' '}
                   {enrollment?.section?.location || 'No location provided'}
                 </div>
+              </div>
+
+              <div>
+                <h3 className={`font-semibold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                  Course Team
+                </h3>
+                {staffLoading ? (
+                  <p className={`${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                    Loading staff...
+                  </p>
+                ) : staffError ? (
+                  <p className={`${isDark ? 'text-amber-300' : 'text-amber-700'}`}>{staffError}</p>
+                ) : sectionInstructor || sectionTAs.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {sectionInstructor && (
+                      <button
+                        type="button"
+                        onClick={() => handleOpenStaffProfile(sectionInstructor)}
+                        className={`text-left rounded-lg border p-4 transition-colors ${isDark ? 'bg-white/5 border-white/10 hover:bg-white/10' : 'bg-gray-50 border-gray-200 hover:bg-white'}`}
+                      >
+                        <p
+                          className={`text-xs uppercase tracking-wider mb-1 ${isDark ? 'text-slate-400' : 'text-gray-500'}`}
+                        >
+                          Instructor
+                        </p>
+                        <p className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                          {sectionInstructor.fullName || 'Unknown Instructor'}
+                        </p>
+                        <p
+                          className={`text-sm mt-1 ${isDark ? 'text-slate-300' : 'text-gray-600'}`}
+                        >
+                          {sectionInstructor.email || 'No academic email available'}
+                        </p>
+                      </button>
+                    )}
+
+                    {sectionTAs.map((ta) => (
+                      <button
+                        key={ta.id}
+                        type="button"
+                        onClick={() => handleOpenStaffProfile(ta)}
+                        className={`text-left rounded-lg border p-4 transition-colors ${isDark ? 'bg-white/5 border-white/10 hover:bg-white/10' : 'bg-gray-50 border-gray-200 hover:bg-white'}`}
+                      >
+                        <p
+                          className={`text-xs uppercase tracking-wider mb-1 ${isDark ? 'text-slate-400' : 'text-gray-500'}`}
+                        >
+                          TA
+                        </p>
+                        <p className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                          {ta.fullName || 'Unknown TA'}
+                        </p>
+                        <p
+                          className={`text-sm mt-1 ${isDark ? 'text-slate-300' : 'text-gray-600'}`}
+                        >
+                          {ta.email || 'No academic email available'}
+                        </p>
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <p className={`${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                    No instructor or TA assigned yet.
+                  </p>
+                )}
               </div>
 
               <div>

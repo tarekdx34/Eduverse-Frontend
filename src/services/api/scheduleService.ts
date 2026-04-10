@@ -217,7 +217,13 @@ export interface OfficeHoursSlot {
   location: string;
   mode: 'in_person' | 'online' | 'hybrid' | string;
   maxAppointments: number;
-  currentAppointments: number;
+  currentAppointments?: number;
+  meetingUrl?: string | null;
+  status?: 'active' | 'inactive' | string;
+}
+
+export interface OfficeHoursAvailableResponse {
+  data: OfficeHoursSlot[];
 }
 
 export interface OfficeHoursAppointment {
@@ -235,6 +241,13 @@ export interface OfficeHoursAppointment {
     email: string;
   };
   slot?: OfficeHoursSlot;
+}
+
+export interface CreateOfficeHoursAppointmentPayload {
+  slotId: number;
+  appointmentDate: string;
+  topic: string;
+  notes?: string;
 }
 
 export interface OfficeHoursSuggestion {
@@ -316,7 +329,13 @@ export class ScheduleService {
   static async getWeekly(date?: string): Promise<{
     weekStart: string;
     weekEnd: string;
-    days: Array<{ date: string; dayOfWeek: string; schedules: LegacyScheduleItem[]; events: []; exams: [] }>;
+    days: Array<{
+      date: string;
+      dayOfWeek: string;
+      schedules: LegacyScheduleItem[];
+      events: [];
+      exams: [];
+    }>;
   }> {
     const weekly = await this.getWeeklyUnified(date);
     return {
@@ -344,10 +363,15 @@ export class ScheduleService {
     page?: number;
     limit?: number;
   }): Promise<PaginatedResponse<CampusEvent>> {
-    return ApiClient.get<PaginatedResponse<CampusEvent>>(`/campus-events/my${toQueryString(params)}`);
+    return ApiClient.get<PaginatedResponse<CampusEvent>>(
+      `/campus-events/my${toQueryString(params)}`
+    );
   }
 
-  static async registerForCampusEvent(eventId: number, notes?: string): Promise<CampusEventRegistration> {
+  static async registerForCampusEvent(
+    eventId: number,
+    notes?: string
+  ): Promise<CampusEventRegistration> {
     return ApiClient.post<CampusEventRegistration>(`/campus-events/${eventId}/register`, {
       notes,
     });
@@ -385,7 +409,10 @@ export class ScheduleService {
     try {
       return await ApiClient.get<OfficeHoursSlot[]>('/office-hours/my-slots');
     } catch (error) {
-      if (!(error instanceof Error) || !error.message.toLowerCase().includes('numeric string is expected')) {
+      if (
+        !(error instanceof Error) ||
+        !error.message.toLowerCase().includes('numeric string is expected')
+      ) {
         throw error;
       }
 
@@ -432,11 +459,19 @@ export class ScheduleService {
     return ApiClient.get<OfficeHoursAppointment[]>('/office-hours/appointments');
   }
 
+  static async createOfficeHoursAppointment(
+    payload: CreateOfficeHoursAppointmentPayload
+  ): Promise<OfficeHoursAppointment> {
+    return ApiClient.post<OfficeHoursAppointment>('/office-hours/appointments', payload);
+  }
+
   static async updateAppointmentStatus(
     appointmentId: number,
     status: 'confirmed' | 'cancelled' | 'completed'
   ): Promise<OfficeHoursAppointment> {
-    return ApiClient.patch<OfficeHoursAppointment>(`/office-hours/appointments/${appointmentId}`, { status });
+    return ApiClient.patch<OfficeHoursAppointment>(`/office-hours/appointments/${appointmentId}`, {
+      status,
+    });
   }
 
   // ========== ADMIN: Campus Events CRUD ==========
@@ -609,6 +644,35 @@ export class ScheduleService {
     return ApiClient.get('/office-hours/slots', { params });
   }
 
+  static async getAvailableOfficeHours(params?: {
+    instructorId?: number;
+  }): Promise<OfficeHoursAvailableResponse> {
+    const slotResponse = await ApiClient.get<PaginatedResponse<OfficeHoursSlot>>(
+      '/office-hours/slots',
+      { params: { instructorId: params?.instructorId } }
+    );
+
+    return {
+      data: (slotResponse?.data || []).filter((slot) => !slot.status || slot.status === 'active'),
+    };
+  }
+
+  static async getMyOfficeHoursAppointments(): Promise<OfficeHoursAppointment[]> {
+    const response = await ApiClient.get<
+      OfficeHoursAppointment[] | { data?: OfficeHoursAppointment[] }
+    >('/office-hours/my-appointments');
+
+    if (Array.isArray(response)) {
+      return response;
+    }
+
+    if (response && typeof response === 'object' && Array.isArray(response.data)) {
+      return response.data;
+    }
+
+    return [];
+  }
+
   static async getOfficeHourById(id: number): Promise<OfficeHoursSlot> {
     try {
       return await ApiClient.get(`/office-hours/${id}`);
@@ -641,21 +705,24 @@ export class ScheduleService {
     }
   }
 
-  static async updateOfficeHour(id: number, data: Partial<{
-    dayOfWeek: string;
-    startTime: string;
-    endTime: string;
-    location: string;
-    building?: string;
-    room?: string;
-    mode: 'in_person' | 'online' | 'hybrid';
-    maxAppointments?: number;
-    isRecurring?: boolean;
-    effectiveFrom?: string;
-    effectiveUntil?: string;
-    notes?: string;
-    isActive?: boolean;
-  }>): Promise<OfficeHoursSlot> {
+  static async updateOfficeHour(
+    id: number,
+    data: Partial<{
+      dayOfWeek: string;
+      startTime: string;
+      endTime: string;
+      location: string;
+      building?: string;
+      room?: string;
+      mode: 'in_person' | 'online' | 'hybrid';
+      maxAppointments?: number;
+      isRecurring?: boolean;
+      effectiveFrom?: string;
+      effectiveUntil?: string;
+      notes?: string;
+      isActive?: boolean;
+    }>
+  ): Promise<OfficeHoursSlot> {
     try {
       return await ApiClient.put(`/office-hours/${id}`, data);
     } catch (error) {
@@ -673,15 +740,20 @@ export class ScheduleService {
     }
   }
 
-  static async getOfficeHourSuggestions(params?: OfficeHoursSuggestionQuery): Promise<OfficeHoursSuggestionsResponse> {
+  static async getOfficeHourSuggestions(
+    params?: OfficeHoursSuggestionQuery
+  ): Promise<OfficeHoursSuggestionsResponse> {
     return ApiClient.get('/office-hours/slots/suggest', { params });
   }
 
-  static async getOfficeHourAppointments(officeHourId: number, params?: {
-    status?: 'pending' | 'confirmed' | 'cancelled';
-    page?: number;
-    limit?: number;
-  }): Promise<PaginatedResponse<OfficeHoursAppointment>> {
+  static async getOfficeHourAppointments(
+    officeHourId: number,
+    params?: {
+      status?: 'pending' | 'confirmed' | 'cancelled';
+      page?: number;
+      limit?: number;
+    }
+  ): Promise<PaginatedResponse<OfficeHoursAppointment>> {
     return ApiClient.get('/office-hours/appointments', {
       params: {
         slotId: officeHourId,
@@ -690,4 +762,3 @@ export class ScheduleService {
     });
   }
 }
-

@@ -72,18 +72,28 @@ export interface AvailableCourse {
   sections: AvailableCourseSection[];
 }
 
-export interface SectionInstructor {
-  id: number;
-  firstName?: string;
-  lastName?: string;
-  email?: string;
+export interface SectionInstructorSummary {
+  userId: number;
+  fullName: string;
+  email: string;
 }
 
-export interface SectionTa {
+export interface SectionInstructorSummaryResponse {
+  instructorId: number | null;
+  instructor: SectionInstructorSummary | null;
+}
+
+export interface SectionTaSummary {
+  userId: number;
+  fullName: string;
+  email: string;
+}
+
+export interface SectionStaffMember {
   id: number;
-  firstName?: string;
-  lastName?: string;
-  email?: string;
+  fullName: string;
+  email: string;
+  role: 'INSTRUCTOR' | 'TA';
 }
 
 export const enrollmentService = {
@@ -121,14 +131,45 @@ export const enrollmentService = {
     return extractArray(response);
   },
 
-  getSectionInstructor: (sectionId: string | number): Promise<SectionInstructor | null> =>
-    ApiClient.get<SectionInstructor | null>(`/enrollments/section/${String(sectionId)}/instructor`),
+  getSectionInstructor: (sectionId: string | number): Promise<SectionInstructorSummaryResponse> =>
+    ApiClient.get<SectionInstructorSummaryResponse>(
+      `/enrollments/section/${String(sectionId)}/instructor`
+    ),
 
-  getSectionTAs: async (sectionId: string | number): Promise<SectionTa[]> => {
-    const response = await ApiClient.get<SectionTa[] | PaginatedResponse<SectionTa>>(
+  getSectionTAs: async (sectionId: string | number): Promise<SectionTaSummary[]> => {
+    const response = await ApiClient.get<SectionTaSummary[] | PaginatedResponse<SectionTaSummary>>(
       `/enrollments/section/${String(sectionId)}/tas`
     );
     return extractArray(response);
+  },
+
+  getSectionStaffMembers: async (sectionId: string | number): Promise<SectionStaffMember[]> => {
+    const [instructorResponse, tas] = await Promise.all([
+      enrollmentService.getSectionInstructor(sectionId),
+      enrollmentService.getSectionTAs(sectionId),
+    ]);
+
+    const members: SectionStaffMember[] = [];
+
+    if (instructorResponse?.instructor?.userId) {
+      members.push({
+        id: instructorResponse.instructor.userId,
+        fullName: instructorResponse.instructor.fullName,
+        email: instructorResponse.instructor.email,
+        role: 'INSTRUCTOR',
+      });
+    }
+
+    members.push(
+      ...(tas || []).map((ta) => ({
+        id: ta.userId,
+        fullName: ta.fullName,
+        email: ta.email,
+        role: 'TA' as const,
+      }))
+    );
+
+    return members;
   },
 
   assignInstructor: (sectionId: number, instructorId: number): Promise<unknown> =>
@@ -149,6 +190,7 @@ export class EnrollmentService {
   static getSectionWaitlist = enrollmentService.getSectionWaitlist;
   static getSectionInstructor = enrollmentService.getSectionInstructor;
   static getSectionTAs = enrollmentService.getSectionTAs;
+  static getSectionStaffMembers = enrollmentService.getSectionStaffMembers;
   static assignInstructor = enrollmentService.assignInstructor;
   static assignTA = enrollmentService.assignTA;
   static getTeachingCourses = enrollmentService.getTeachingCourses;

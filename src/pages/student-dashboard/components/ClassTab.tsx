@@ -278,6 +278,37 @@ export default function ClassTab({ courses: propCourses, onViewCourse }: ClassTa
     enrollments && enrollments.length > 0
       ? enrollments.map((e: EnrolledCourse, i: number) => {
           const color = COURSE_COLORS[i % COURSE_COLORS.length];
+          const rawEnrollment = e as unknown as Record<string, unknown>;
+          const rawGradeObject =
+            (rawEnrollment.grade && typeof rawEnrollment.grade === 'object'
+              ? (rawEnrollment.grade as Record<string, unknown>)
+              : undefined) ??
+            (rawEnrollment.gradeRecord && typeof rawEnrollment.gradeRecord === 'object'
+              ? (rawEnrollment.gradeRecord as Record<string, unknown>)
+              : undefined);
+
+          const candidateGradeValues: unknown[] = [
+            typeof e.grade === 'string' ? e.grade : undefined,
+            rawEnrollment.finalGrade,
+            rawEnrollment.letterGrade,
+            rawEnrollment.gradeValue,
+            rawEnrollment.gradeText,
+            rawEnrollment.score,
+            rawEnrollment.finalScore,
+            rawGradeObject?.letterGrade,
+            rawGradeObject?.grade,
+            rawGradeObject?.gradeValue,
+            rawGradeObject?.gradeText,
+            rawGradeObject?.score,
+            rawGradeObject?.finalScore,
+            rawGradeObject?.pointsEarned,
+          ];
+
+          const resolvedGrade =
+            candidateGradeValues.find(
+              (value) => value !== null && value !== undefined && String(value).trim() !== ''
+            ) ?? 'N/A';
+
           return {
             id: e.id,
             title: e.course.name,
@@ -285,7 +316,7 @@ export default function ClassTab({ courses: propCourses, onViewCourse }: ClassTa
             status: e.status,
             sectionNumber: e.section.sectionNumber,
             semesterName: e.semester.name,
-            grade: e.grade || 'N/A',
+            grade: String(resolvedGrade),
             instructorImage: `https://ui-avatars.com/api/?name=${encodeURIComponent(e.course.name)}&background=random`,
             schedule: `Section ${e.section.sectionNumber}`,
             nextClass: e.semester.name,
