@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { X, Save, AlertCircle } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
-import { LabSubmission } from '../../../services/api/LabService';
+import { LabSubmission } from '../../../services/api/labService';
 
 interface GradingModalProps {
   isOpen: boolean;

@@ -15,7 +15,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useApi } from '../../../hooks/useApi';
 import { useAuth } from '../../../context/AuthContext';
-import { LabService, Lab, LabSubmission } from '../../../services/api/LabService';
+import { LabService, Lab, LabSubmission } from '../../../services/api/labService';
 import { toast } from 'sonner';
 import GradingModal from './GradingModal';
 
