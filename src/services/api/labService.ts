@@ -27,6 +27,16 @@ export interface Lab {
   instructionFiles?: DriveFileLink[];
 }
 
+export interface UploadInstructionResponse {
+  instruction: LabInstruction;
+  driveFile: {
+    driveId: string;
+    fileName: string;
+    webViewLink?: string;
+    webContentLink?: string;
+  };
+}
+
 export interface LabInstruction {
   id: string;
   labId: string;
@@ -181,10 +191,19 @@ export class LabService {
   }
 
   // Upload instruction file (instructor)
-  static async uploadInstructionFile(labId: string, file: File): Promise<LabInstruction> {
+  static async uploadInstructionFile(
+    labId: string,
+    file: File,
+    options?: { title?: string; orderIndex?: number }
+  ): Promise<UploadInstructionResponse> {
     const formData = new FormData();
     formData.append('file', file);
-    return ApiClient.post<LabInstruction>('/labs/' + labId + '/instructions/upload', formData, {
+    if (options?.title) formData.append('title', options.title);
+    if (typeof options?.orderIndex === 'number') {
+      formData.append('orderIndex', String(options.orderIndex));
+    }
+
+    return ApiClient.post<UploadInstructionResponse>('/labs/' + labId + '/instructions/upload', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
   }

@@ -110,7 +110,13 @@ export const SubmissionList: React.FC<SubmissionListProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div
+      className={`fixed inset-0 z-50 flex items-center justify-center p-4 transition-colors ${
+        isDark
+          ? 'bg-slate-950/45 backdrop-blur-[2px]'
+          : 'bg-slate-900/20 backdrop-blur-sm'
+      }`}
+    >
       <div
         className={`rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col ${
           isDark ? 'bg-slate-900' : 'bg-white'
@@ -252,7 +258,7 @@ export const SubmissionList: React.FC<SubmissionListProps> = ({
                 {/* Student Info */}
                 <div className="flex items-start justify-between mb-3 gap-4">
                   <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
                       isDark ? 'bg-blue-900' : 'bg-blue-100'
                     }`}>
                       <User className="text-blue-600 dark:text-blue-400" size={20} />
@@ -266,7 +272,7 @@ export const SubmissionList: React.FC<SubmissionListProps> = ({
                       </p>
                     </div>
                   </div>
-                  <div className="flex-shrink-0">
+                  <div className="shrink-0">
                     {submission.gradedAt ? (
                       <div className="flex items-center gap-1 px-3 py-1 bg-green-500/10 rounded-full">
                         <CheckCircle size={16} className="text-green-600 dark:text-green-400" />
@@ -288,7 +294,7 @@ export const SubmissionList: React.FC<SubmissionListProps> = ({
                 {/* Submission Details */}
                 <div className="space-y-2 mb-3">
                   <div className={`flex items-center gap-2 text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-                    <Calendar size={16} className="flex-shrink-0" />
+                    <Calendar size={16} className="shrink-0" />
                     <span>
                       {new Date(submission.submittedAt).toLocaleString('en-US', {
                         month: 'short',
@@ -314,7 +320,7 @@ export const SubmissionList: React.FC<SubmissionListProps> = ({
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:underline"
                     >
-                      <FileText size={16} className="flex-shrink-0" />
+                      <FileText size={16} className="shrink-0" />
                       <span className="truncate">{submission.driveFile!.fileName}</span>
                     </a>
                   )}
@@ -327,7 +333,7 @@ export const SubmissionList: React.FC<SubmissionListProps> = ({
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:underline"
                     >
-                      <FileText size={16} className="flex-shrink-0" />
+                      <FileText size={16} className="shrink-0" />
                       <span className="truncate">
                         {submission.fileName || submission.file?.fileName || 'Download file'}
                       </span>
@@ -341,7 +347,7 @@ export const SubmissionList: React.FC<SubmissionListProps> = ({
                 }`}>
                   {submission.gradedAt && submission.score !== null ? (
                     <div className="flex items-center gap-2">
-                      <Award size={18} className="text-blue-600 dark:text-blue-400 flex-shrink-0" />
+                      <Award size={18} className="text-blue-600 dark:text-blue-400 shrink-0" />
                       <span className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
                         Score: {submission.score}
                       </span>

@@ -80,31 +80,30 @@ export function InstructionEditor({
     try {
       const nextOrderIndex = instructions.length;
 
-      // If there's a file, upload it first
-      let fileId: number | undefined;
+      let newInstruction: LabInstruction;
+
       if (selectedFile) {
         setUploadingFile(true);
         try {
-          const uploadedInstruction = await LabService.uploadInstructionFile(
-            lab.id,
-            selectedFile
-          );
-          fileId = uploadedInstruction.fileId || undefined;
-          setUploadingFile(false);
+          const uploadResponse = await LabService.uploadInstructionFile(lab.id, selectedFile, {
+            title: newInstructionText.trim() || selectedFile.name,
+            orderIndex: nextOrderIndex,
+          });
+          newInstruction = uploadResponse.instruction;
         } catch (error) {
           console.error('Error uploading file:', error);
           toast.error(t('errorUploadingFile') || 'Failed to upload file');
-          setUploadingFile(false);
           return;
+        } finally {
+          setUploadingFile(false);
         }
+      } else {
+        // Add text-only instruction
+        newInstruction = await LabService.addInstruction(lab.id, {
+          instructionText: newInstructionText.trim(),
+          orderIndex: nextOrderIndex,
+        });
       }
-
-      // Add instruction with text and/or file
-      const newInstruction = await LabService.addInstruction(lab.id, {
-        instructionText: newInstructionText.trim(),
-        orderIndex: nextOrderIndex,
-        fileId,
-      });
 
       // Update local state
       setInstructions([...instructions, newInstruction]);

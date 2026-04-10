@@ -10,10 +10,11 @@ import {
   FileText,
   Edit,
   Eye,
-  Upload,
   Users,
   Clock,
   Award,
+  ExternalLink,
+  Download,
   MoreVertical,
   CheckCircle,
   AlertCircle,
@@ -26,7 +27,6 @@ interface LabDetailProps {
   onEditClick: () => void;
   onViewSubmissions: () => void;
   onManageInstructions: () => void;
-  onUploadTaMaterials: () => void;
   onViewAttendance: () => void;
 }
 
@@ -37,7 +37,6 @@ export function LabDetail({
   onEditClick,
   onViewSubmissions,
   onManageInstructions,
-  onUploadTaMaterials,
   onViewAttendance,
 }: LabDetailProps) {
   const { isDark, primaryHex = '#3b82f6' } = useTheme() as any;
@@ -48,6 +47,9 @@ export function LabDetail({
   // Get first 3 instructions
   const displayInstructions = (lab.instructions || []).slice(0, 3);
   const instructionCount = lab.instructions?.length || 0;
+  const instructionFiles = Array.isArray((lab as any).instructionFiles)
+    ? (lab as any).instructionFiles
+    : [];
 
   // Format date to readable format
   const formatDate = (dateString: string | null | undefined) => {
@@ -67,7 +69,11 @@ export function LabDetail({
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto"
+      className={`fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto transition-colors ${
+        isDark
+          ? 'bg-slate-950/45 backdrop-blur-[2px]'
+          : 'bg-slate-900/20 backdrop-blur-sm'
+      }`}
       role="dialog"
       aria-modal="true"
       aria-labelledby="lab-detail-modal-title"
@@ -104,7 +110,7 @@ export function LabDetail({
           <button
             onClick={onClose}
             aria-label={t('close') || 'Close'}
-            className={`p-2 rounded-lg transition-colors flex-shrink-0 ${
+            className={`p-2 rounded-lg transition-colors shrink-0 ${
               isDark ? 'text-slate-400 hover:bg-white/10' : 'text-gray-500 hover:bg-gray-100'
             }`}
           >
@@ -354,6 +360,59 @@ export function LabDetail({
                 </button>
               </>
             )}
+
+            {instructionFiles.length > 0 && (
+              <div className="mt-4 space-y-2">
+                <h4 className={`text-sm font-semibold ${isDark ? 'text-slate-200' : 'text-gray-800'}`}>
+                  Attached Instruction Files ({instructionFiles.length})
+                </h4>
+                {instructionFiles.map((file: any) => (
+                  <div
+                    key={String(file.driveId || file.fileName)}
+                    className={`flex items-center justify-between gap-3 px-3 py-2 rounded-lg ${
+                      isDark ? 'bg-white/5' : 'bg-gray-50'
+                    }`}
+                  >
+                    <span
+                      className={`text-sm truncate ${isDark ? 'text-slate-200' : 'text-gray-700'}`}
+                      title={file.fileName}
+                    >
+                      {file.fileName}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      {file.webViewLink && (
+                        <a
+                          href={file.webViewLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`inline-flex items-center gap-1 px-2 py-1 text-xs rounded ${
+                            isDark
+                              ? 'text-slate-300 bg-white/10 hover:bg-white/20'
+                              : 'text-gray-700 bg-gray-100 hover:bg-gray-200'
+                          }`}
+                        >
+                          <ExternalLink className="w-3 h-3" />
+                          Open
+                        </a>
+                      )}
+                      {file.downloadUrl && (
+                        <a
+                          href={file.downloadUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded text-white hover:opacity-90"
+                          style={{ backgroundColor: primaryHex }}
+                        >
+                          <Download className="w-3 h-3" />
+                          Download
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
           </section>
 
           {/* ===== QUICK ACTIONS SECTION ===== */}
@@ -393,19 +452,6 @@ export function LabDetail({
               >
                 <Eye className="w-5 h-5" />
                 <span className="text-xs">{t('viewSubmissions') || 'View Submissions'}</span>
-              </button>
-
-              {/* Upload TA Materials */}
-              <button
-                onClick={onUploadTaMaterials}
-                className={`p-4 rounded-lg font-medium transition-all flex flex-col items-center gap-2 ${
-                  isDark
-                    ? 'bg-white/10 text-white hover:bg-white/20'
-                    : 'bg-gray-50 text-gray-900 hover:bg-gray-100'
-                }`}
-              >
-                <Upload className="w-5 h-5" />
-                <span className="text-xs">{t('uploadTaMaterials') || 'Upload TA Materials'}</span>
               </button>
 
               {/* View Attendance */}

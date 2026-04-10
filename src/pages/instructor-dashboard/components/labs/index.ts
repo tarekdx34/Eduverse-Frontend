@@ -20,7 +20,6 @@ export { LabDetail } from './LabDetail';
 export { InstructionEditor } from './InstructionEditor';
 
 // TA materials
-export { TaMaterialUpload } from './TaMaterialUpload';
 
 // Submissions and grading
 export { SubmissionList } from './SubmissionList';

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save } from 'lucide-react';
+import { X, Save, FileText, ExternalLink, Download } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { toast } from 'sonner';
@@ -15,7 +15,7 @@ interface LabEditProps {
   isOpen: boolean;
   lab: Lab | null;
   courses: Course[];
-  onSave: (data: Partial<Lab>) => Promise<void>;
+  onSave: (data: Partial<Lab>, instructionFiles?: File[]) => Promise<void>;
   onClose: () => void;
 }
 
@@ -23,6 +23,7 @@ export function LabEdit({ isOpen, lab, courses, onSave, onClose }: LabEditProps)
   const { isDark, primaryHex = '#3b82f6' } = useTheme() as any;
   const { t } = useLanguage();
   const [saving, setSaving] = useState(false);
+  const [pendingInstructionFiles, setPendingInstructionFiles] = useState<File[]>([]);
   const [formData, setFormData] = useState<LabFormData>({
     courseId: '',
     title: '',
@@ -47,6 +48,7 @@ export function LabEdit({ isOpen, lab, courses, onSave, onClose }: LabEditProps)
         weight: lab.weight || '10',
         status: lab.status || 'draft',
       });
+      setPendingInstructionFiles([]);
     }
   }, [lab, isOpen]);
 
@@ -67,7 +69,7 @@ export function LabEdit({ isOpen, lab, courses, onSave, onClose }: LabEditProps)
         ...formData,
         dueDate: formData.dueDate || null,
         availableFrom: formData.availableFrom || null,
-      });
+      }, pendingInstructionFiles);
       onClose();
     } catch (error) {
       console.error('Error saving lab:', error);
@@ -83,16 +85,46 @@ export function LabEdit({ isOpen, lab, courses, onSave, onClose }: LabEditProps)
     setFormData({ ...formData, [field]: value });
   };
 
+  const handleInstructionFilesChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = Array.from(event.target.files || []);
+    if (selected.length === 0) return;
+
+    setPendingInstructionFiles((prev) => {
+      const existingKeys = new Set(prev.map((file) => `${file.name}-${file.size}-${file.lastModified}`));
+      const next = [...prev];
+
+      for (const file of selected) {
+        const key = `${file.name}-${file.size}-${file.lastModified}`;
+        if (!existingKeys.has(key)) {
+          next.push(file);
+          existingKeys.add(key);
+        }
+      }
+
+      return next;
+    });
+
+    event.target.value = '';
+  };
+
   const currentCourse = courses.find((c) => c.id === formData.courseId);
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+      className={`fixed inset-0 z-50 flex items-center justify-center p-4 transition-colors ${
+        isDark
+          ? 'bg-slate-950/45 backdrop-blur-[2px]'
+          : 'bg-slate-900/20 backdrop-blur-sm'
+      }`}
       role="dialog"
       aria-modal="true"
       aria-labelledby="lab-edit-modal-title"
     >
-      <div className={`rounded-lg max-w-lg w-full ${isDark ? 'bg-slate-900' : 'bg-white'}`}>
+      <div
+        className={`w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-lg ${
+          isDark ? 'bg-slate-900' : 'bg-white'
+        }`}
+      >
         {/* Header */}
         <div
           className={`flex items-center justify-between p-6 border-b ${
@@ -309,6 +341,126 @@ export function LabEdit({ isOpen, lab, courses, onSave, onClose }: LabEditProps)
               <option value="published">{t('published') || 'Published'}</option>
               <option value="closed">{t('closed') || 'Closed'}</option>
             </select>
+          </div>
+
+          {/* Instruction Files (Read-only preview) */}
+          <div
+            className={`rounded-lg border p-4 ${
+              isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'
+            }`}
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <FileText className={`w-4 h-4 ${isDark ? 'text-slate-300' : 'text-gray-700'}`} />
+              <h3 className={`text-sm font-medium ${isDark ? 'text-slate-200' : 'text-gray-800'}`}>
+                {t('uploadInstructions') || 'Instruction Files'}
+              </h3>
+            </div>
+
+            {Array.isArray((lab as any).instructionFiles) && (lab as any).instructionFiles.length > 0 ? (
+              <div className="space-y-2">
+                {(lab as any).instructionFiles.map((file: any) => (
+                  <div
+                    key={String(file.driveId || file.fileName)}
+                    className={`flex items-center justify-between gap-3 px-3 py-2 rounded-lg ${
+                      isDark ? 'bg-white/5' : 'bg-white'
+                    }`}
+                  >
+                    <span
+                      className={`text-sm truncate ${isDark ? 'text-slate-200' : 'text-gray-700'}`}
+                      title={file.fileName}
+                    >
+                      {file.fileName}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      {file.webViewLink && (
+                        <a
+                          href={file.webViewLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`inline-flex items-center gap-1 px-2 py-1 text-xs rounded ${
+                            isDark
+                              ? 'text-slate-300 bg-white/10 hover:bg-white/20'
+                              : 'text-gray-700 bg-gray-100 hover:bg-gray-200'
+                          }`}
+                        >
+                          <ExternalLink className="w-3 h-3" />
+                          Open
+                        </a>
+                      )}
+                      {file.downloadUrl && (
+                        <a
+                          href={file.downloadUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded text-white hover:opacity-90"
+                          style={{ backgroundColor: primaryHex }}
+                        >
+                          <Download className="w-3 h-3" />
+                          Download
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
+                No instruction files attached to this lab yet.
+              </p>
+            )}
+
+            <div className="mt-3 pt-3 border-t border-gray-200/60 dark:border-white/10">
+              <p className={`text-xs mb-2 ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
+                Add new instruction files. They will upload after saving this lab.
+              </p>
+              <input
+                type="file"
+                multiple
+                accept=".pdf,.doc,.docx,.txt,.ppt,.pptx"
+                onChange={handleInstructionFilesChange}
+                className={`w-full text-sm file:mr-3 file:px-3 file:py-2 file:rounded-lg file:border-0 file:text-white file:cursor-pointer ${
+                  isDark
+                    ? 'text-slate-300 file:bg-slate-600'
+                    : 'text-gray-700 file:bg-indigo-600'
+                }`}
+              />
+
+              {pendingInstructionFiles.length > 0 && (
+                <div className="mt-2 space-y-2">
+                  {pendingInstructionFiles.map((file, index) => (
+                    <div
+                      key={`${file.name}-${file.size}-${file.lastModified}`}
+                      className={`flex items-center justify-between gap-3 px-3 py-2 rounded-lg ${
+                        isDark ? 'bg-white/5' : 'bg-white'
+                      }`}
+                    >
+                      <span
+                        className={`text-sm truncate ${isDark ? 'text-slate-200' : 'text-gray-700'}`}
+                        title={file.name}
+                      >
+                        {index + 1}. {file.name}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setPendingInstructionFiles((prev) =>
+                            prev.filter((_, fileIndex) => fileIndex !== index)
+                          )
+                        }
+                        className={`p-1 rounded ${
+                          isDark
+                            ? 'text-slate-400 hover:bg-white/10'
+                            : 'text-gray-500 hover:bg-gray-200'
+                        }`}
+                        aria-label={`Remove ${file.name}`}
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Footer Buttons */}

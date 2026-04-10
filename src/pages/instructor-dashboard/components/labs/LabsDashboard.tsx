@@ -5,14 +5,12 @@
 
 import React, { useState, useCallback } from 'react';
 import { toast } from 'sonner';
-import { useLanguage } from '../../contexts/LanguageContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { LabList } from './LabList';
 import { LabCreate } from './LabCreate';
 import { LabEdit } from './LabEdit';
 import { LabDetail } from './LabDetail';
 import { InstructionEditor } from './InstructionEditor';
-import { TaMaterialUpload } from './TaMaterialUpload';
 import { SubmissionList } from './SubmissionList';
 import { GradingPanel } from './GradingPanel';
 import { AttendanceSheet } from './AttendanceSheet';
@@ -22,7 +20,7 @@ import { ConfirmDialog } from '../ConfirmDialog';
 import LabService from '../../../../services/api/labService';
 
 export interface LabsDashboardProps {
-  courses?: { id?: string; courseId?: string; name?: string; courseName?: string }[];
+  courses?: { id?: string; courseId?: string; name?: string; courseName?: string; courseCode?: string }[];
 }
 
 interface CourseForModal {
@@ -32,7 +30,6 @@ interface CourseForModal {
 }
 
 export function LabsDashboard({ courses = [] }: LabsDashboardProps) {
-  const { t } = useLanguage();
   const { isDark, primaryHex = '#3b82f6' } = useTheme() as any;
 
   // Normalize course options
@@ -57,10 +54,20 @@ export function LabsDashboard({ courses = [] }: LabsDashboardProps) {
     return courses
       .map((c) => {
         const id = String(c.courseId ?? c.id ?? '');
-        const name = c.courseName || c.name || '';
-        const code = name.split(' - ')[0] || '';
-        if (!id || !name) return null;
-        return { id, name, code };
+        const rawName = (c.courseName || c.name || '').trim();
+        const explicitCode = (c.courseCode || '').trim();
+
+        if (!id || !rawName) return null;
+
+        const hasInlineCode = rawName.includes(' - ');
+        const codeFromName = hasInlineCode ? rawName.split(' - ')[0].trim() : '';
+        const displayName = hasInlineCode ? rawName.split(' - ').slice(1).join(' - ').trim() : rawName;
+
+        return {
+          id,
+          name: displayName || rawName,
+          code: explicitCode || codeFromName || 'COURSE',
+        };
       })
       .filter((item): item is CourseForModal => item !== null);
   }, [courses]);
@@ -91,7 +98,6 @@ export function LabsDashboard({ courses = [] }: LabsDashboardProps) {
   // Detail and feature modals
   const [detailLab, setDetailLab] = useState<LabUIData | null>(null);
   const [instructionLab, setInstructionLab] = useState<LabUIData | null>(null);
-  const [taMaterialLab, setTaMaterialLab] = useState<LabUIData | null>(null);
   const [submissionLab, setSubmissionLab] = useState<LabUIData | null>(null);
   const [attendanceLab, setAttendanceLab] = useState<LabUIData | null>(null);
   
@@ -104,8 +110,15 @@ export function LabsDashboard({ courses = [] }: LabsDashboardProps) {
     setShowCreate(true);
   }, []);
 
-  const handleEditClick = useCallback((lab: LabUIData) => {
+  const handleEditClick = useCallback(async (lab: LabUIData) => {
     setEditingLab(lab);
+    try {
+      const fullLab = await LabService.getById(lab.id);
+      setEditingLab(fullLab as unknown as LabUIData);
+    } catch (err) {
+      // Keep modal usable with list data if details fetch fails.
+      console.warn('Failed to load full lab details for edit modal:', err);
+    }
   }, []);
 
   const handleDeleteClick = useCallback((lab: LabUIData) => {
@@ -155,9 +168,28 @@ export function LabsDashboard({ courses = [] }: LabsDashboardProps) {
     setEditingLab(null);
   }, []);
 
-  const handleLabCreateSave = useCallback(async (data: LabFormData) => {
+  const handleLabCreateSave = useCallback(async (data: LabFormData, instructionFiles: File[] = []) => {
     try {
-      await LabService.create(data);
+      const createdLab = await LabService.create(data);
+
+      if (instructionFiles.length > 0) {
+        const failedUploads: string[] = [];
+        for (const file of instructionFiles) {
+          try {
+            await LabService.uploadInstructionFile(createdLab.id, file);
+          } catch (uploadErr) {
+            console.error('Failed to upload lab instruction file:', uploadErr);
+            failedUploads.push(file.name);
+          }
+        }
+
+        if (failedUploads.length > 0) {
+          toast.error(
+            `Lab created, but ${failedUploads.length} instruction file(s) failed to upload: ${failedUploads.join(', ')}`
+          );
+        }
+      }
+
       handleLabSaved();
     } catch (err) {
       console.error('Failed to create lab:', err);
@@ -165,10 +197,37 @@ export function LabsDashboard({ courses = [] }: LabsDashboardProps) {
     }
   }, [handleLabSaved]);
 
-  const handleLabEditSave = useCallback(async (data: Partial<LabUIData>) => {
+  const handleLabEditSave = useCallback(async (data: Partial<LabUIData>, instructionFiles: File[] = []) => {
     try {
       if (editingLab) {
         await LabService.update(editingLab.id, data);
+
+        if (instructionFiles.length > 0) {
+          const existingInstructionCount = Array.isArray((editingLab as any)?.instructions)
+            ? (editingLab as any).instructions.length
+            : 0;
+
+          const failedUploads: string[] = [];
+
+          for (let index = 0; index < instructionFiles.length; index += 1) {
+            try {
+              await LabService.uploadInstructionFile(editingLab.id, instructionFiles[index], {
+                title: instructionFiles[index].name,
+                orderIndex: existingInstructionCount + index,
+              });
+            } catch (uploadErr) {
+              console.error('Failed to upload lab instruction file:', uploadErr);
+              failedUploads.push(instructionFiles[index].name);
+            }
+          }
+
+          if (failedUploads.length > 0) {
+            toast.error(
+              `Lab updated, but ${failedUploads.length} instruction file(s) failed to upload: ${failedUploads.join(', ')}`
+            );
+          }
+        }
+
         handleLabSaved();
       }
     } catch (err) {
@@ -178,8 +237,15 @@ export function LabsDashboard({ courses = [] }: LabsDashboardProps) {
   }, [editingLab, handleLabSaved]);
 
   // Detail and feature handlers
-  const handleViewDetails = useCallback((lab: LabUIData) => {
+  const handleViewDetails = useCallback(async (lab: LabUIData) => {
     setDetailLab(lab);
+    try {
+      const fullLab = await LabService.getById(lab.id);
+      setDetailLab(fullLab as unknown as LabUIData);
+    } catch (err) {
+      // Keep modal usable with list data if details fetch fails.
+      console.warn('Failed to load full lab details for detail modal:', err);
+    }
   }, []);
 
   const handleViewSubmissions = useCallback((lab: LabUIData) => {
@@ -188,11 +254,6 @@ export function LabsDashboard({ courses = [] }: LabsDashboardProps) {
 
   const handleManageInstructions = useCallback((lab: LabUIData) => {
     setInstructionLab(lab);
-    setDetailLab(null); // Close detail modal if open
-  }, []);
-
-  const handleUploadTaMaterials = useCallback((lab: LabUIData) => {
-    setTaMaterialLab(lab);
     setDetailLab(null); // Close detail modal if open
   }, []);
 
@@ -218,10 +279,6 @@ export function LabsDashboard({ courses = [] }: LabsDashboardProps) {
   const handleInstructionsUpdated = useCallback(() => {
     refresh();
   }, [refresh]);
-
-  const handleTaMaterialUploaded = useCallback(() => {
-    toast.success(t('taMaterialUploaded') || 'TA material uploaded successfully');
-  }, [t]);
 
   return (
     <div className="space-y-6">
@@ -290,7 +347,6 @@ export function LabsDashboard({ courses = [] }: LabsDashboardProps) {
             setDetailLab(null);
           }}
           onManageInstructions={() => handleManageInstructions(detailLab)}
-          onUploadTaMaterials={() => handleUploadTaMaterials(detailLab)}
           onViewAttendance={() => handleViewAttendance(detailLab)}
         />
       )}
@@ -302,16 +358,6 @@ export function LabsDashboard({ courses = [] }: LabsDashboardProps) {
           lab={instructionLab}
           onClose={() => setInstructionLab(null)}
           onInstructionsUpdated={handleInstructionsUpdated}
-        />
-      )}
-
-      {/* TA Material Upload */}
-      {taMaterialLab && (
-        <TaMaterialUpload
-          isOpen={taMaterialLab !== null}
-          lab={taMaterialLab}
-          onClose={() => setTaMaterialLab(null)}
-          onUploadComplete={handleTaMaterialUploaded}
         />
       )}
 

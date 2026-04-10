@@ -14,7 +14,6 @@ import {
   BarChart3,
   Bell,
   Brain,
-  FolderOpen,
   HelpCircle,
 } from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -28,21 +27,13 @@ import {
   AnalyticsPage,
   NotificationsPage,
   AIAssistantPage,
-  LabResourcesPage,
 } from './components';
-import { UploadMaterialsPage as LiveUploadMaterialsPage } from '../instructor-dashboard/components/UploadMaterialsPage';
 import {
   SharedLabsPage,
   SharedQuizzesPage,
   SharedAssignmentsPage,
   SharedSchedulePage,
 } from '../shared-dashboard/components';
-import {
-  ThemeProvider as InstructorThemeProvider,
-} from '../instructor-dashboard/contexts/ThemeContext';
-import {
-  LanguageProvider as InstructorLanguageProvider,
-} from '../instructor-dashboard/contexts/LanguageContext';
 import {
   FeatureOverlay,
   LiveAnalyticsPage,
@@ -121,8 +112,7 @@ type TabKey =
   | 'profile'
   | 'analytics'
   | 'notifications'
-  | 'ai-assistant'
-  | 'lab-resources';
+  | 'ai-assistant';
 
 type DashboardCourseCard = {
   id: string;
@@ -185,7 +175,6 @@ const TABS: { key: TabKey; label: string; icon: any; group: string }[] = [
   { key: 'labs', label: 'Labs', icon: Beaker, group: 'Teaching' },
   { key: 'quizzes', label: 'Quizzes', icon: HelpCircle, group: 'Teaching' },
   { key: 'assignments', label: 'Assignments', icon: FileText, group: 'Teaching' },
-  { key: 'lab-resources', label: 'Lab Resources', icon: FolderOpen, group: 'Teaching' },
   { key: 'students', label: 'Students', icon: Users, group: 'Students' },
   { key: 'schedule', label: 'Schedule', icon: Calendar, group: 'Schedule' },
   { key: 'announcements', label: 'Announcements', icon: Megaphone, group: 'Schedule' },
@@ -1304,19 +1293,6 @@ function TADashboardContent() {
             <AIAssistantPage />
           ))}
 
-        {activeTab === 'lab-resources' && (
-          <InstructorThemeProvider>
-            <InstructorLanguageProvider>
-              <LiveUploadMaterialsPage
-                courseId={
-                  activeCourseForContent?.courseId
-                    ? String(activeCourseForContent.courseId)
-                    : undefined
-                }
-              />
-            </InstructorLanguageProvider>
-          </InstructorThemeProvider>
-        )}
       </main>
     </div>
   );
