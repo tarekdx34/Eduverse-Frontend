@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { BackendStatusBanner } from './LiveModeViews';
 import { CustomDropdown } from '../../../components/shared';
 import {
   discussionService,
@@ -28,6 +29,7 @@ import { toast } from 'sonner';
 interface DiscussionPageProps {
   userRole?: 'ta' | 'instructor';
   userName?: string;
+  disableDeleteReason?: string;
 }
 
 const getErrorMessage = (error: unknown) =>
@@ -41,7 +43,10 @@ const normalizeDiscussions = (
   return Array.isArray(payload.data) ? payload.data : [];
 };
 
-export function DiscussionPage({ userRole = 'instructor' }: DiscussionPageProps) {
+export function DiscussionPage({
+  userRole = 'instructor',
+  disableDeleteReason,
+}: DiscussionPageProps) {
   const { t } = useLanguage();
   const { isDark, primaryHex = '#4f46e5' } = useTheme() as any;
 
@@ -203,8 +208,33 @@ export function DiscussionPage({ userRole = 'instructor' }: DiscussionPageProps)
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <div className="flex-1 space-y-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          {t('discussions')}
+        </h2>
+        <div className="flex flex-wrap gap-2">
+          {userRole === 'instructor' && (
+            <button
+              onClick={() => {
+                const element = document.getElementById('new-discussion-form');
+                element?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-700"
+            >
+              {t('startDiscussion')}
+            </button>
+          )}
+        </div>
+      </div>
+
+      {disableDeleteReason && <BackendStatusBanner message={disableDeleteReason} />}
+
+      <div
+        className={`flex flex-col gap-4 rounded-xl border p-4 shadow-sm ${
+          isDark ? 'border-white/10 bg-slate-900/50' : 'border-gray-200 bg-white'
+        } sm:flex-row sm:items-center`}
+      >
         <div>
           <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
             {t('discussionForum')}
@@ -417,10 +447,15 @@ export function DiscussionPage({ userRole = 'instructor' }: DiscussionPageProps)
                         {discussion.isLocked === 1 ? 'Unlock' : 'Lock'}
                       </button>
                       <button
-                        onClick={() => handleDelete(discussion.id)}
-                        className="text-xs px-3 py-1 rounded-lg bg-red-600 text-white flex items-center gap-1"
+                        onClick={() => {
+                          if (disableDeleteReason) return;
+                          handleDelete(discussion.id);
+                        }}
+                        disabled={Boolean(disableDeleteReason)}
+                        title={disableDeleteReason || undefined}
+                        className="text-xs px-3 py-1 rounded-lg bg-red-600 text-white flex items-center gap-1 disabled:cursor-not-allowed disabled:opacity-60"
                       >
-                        <Trash2 size={12} /> Delete
+                        <Trash2 size={12} /> {t('delete') || 'Delete'}
                       </button>
                     </div>
 

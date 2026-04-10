@@ -19,7 +19,19 @@ import { LabService, Lab, LabSubmission } from '../../../services/api/LabService
 import { toast } from 'sonner';
 import GradingModal from './GradingModal';
 
-export function LabsPage() {
+type LabsPageProps = {
+  labs?: Lab[];
+  onViewLab?: (labId: string) => void;
+  disableCreateReason?: string;
+  disableViewDetailsReason?: string;
+};
+
+export function LabsPage({
+  labs: mockLabs,
+  onViewLab,
+  disableCreateReason,
+  disableViewDetailsReason,
+}: LabsPageProps = {}) {
   const { isDark } = useTheme();
   const { t } = useLanguage();
   const { user } = useAuth();
@@ -29,26 +41,34 @@ export function LabsPage() {
   const [gradingSubmissions, setGradingSubmissions] = useState<LabSubmission[]>([]);
   const [gradingModalOpen, setGradingModalOpen] = useState(false);
 
-  // Fetch labs using useApi hook - T095
-  const { data: labs = [], loading, error, refetch } = useApi(() => LabService.getAll(), [], true);
+  // Fetch labs using useApi hook if no mock labs are provided
+  const {
+    data: fetchedLabs = [],
+    loading,
+    error,
+    refetch,
+  } = useApi(() => LabService.getAll(), [], !mockLabs);
 
-  // Determine user role for permission checks - T096
+  const displayLabs = mockLabs || fetchedLabs;
+
+  // Determine user role for permission checks
   const isTA = user?.roles?.includes('teaching_assistant');
 
-  // Handle errors with toast - T098
+  // Handle errors with toast
   React.useEffect(() => {
-    if (error) {
+    if (error && !mockLabs) {
       toast.error(t('errorLoadingLabs') || 'Failed to load labs');
     }
-  }, [error, t]);
+  }, [error, t, mockLabs]);
 
-  const filteredLabs = labs.filter((lab) => {
+  const filteredLabs = displayLabs.filter((lab) => {
     const matchesFilter = filter === 'all' || lab.status === filter;
     const matchesSearch =
       lab.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       lab.course?.name?.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesFilter && matchesSearch;
   });
+
 
   const getStatusBadge = (status: string) => {
     const statusMap: Record<string, { color: string; label: string }> = {
@@ -168,6 +188,13 @@ export function LabsPage() {
             {t('manageLabSessions') || 'View and grade lab sessions'}
           </p>
         </div>
+        <button
+          disabled={Boolean(disableCreateReason)}
+          title={disableCreateReason || undefined}
+          className="w-full sm:w-auto bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {t('createNewLab') || 'Create New Lab'}
+        </button>
       </div>
 
       {/* Filters and Search */}
@@ -299,9 +326,14 @@ export function LabsPage() {
                     <div className="flex flex-wrap gap-1">
                       {/* T096: Only show View/Grade for TA, hide Create/Delete */}
                       <button
-                        onClick={() => handleViewSubmissions(lab)}
-                        className="p-1.5 sm:p-2 text-blue-600 hover:text-blue-700 text-sm font-medium transition-colors"
-                        title={t('viewSubmissions') || 'View submissions'}
+                        onClick={() => {
+                          if (disableViewDetailsReason) return;
+                          handleViewSubmissions(lab);
+                          if (onViewLab) onViewLab(lab.id);
+                        }}
+                        disabled={Boolean(disableViewDetailsReason)}
+                        title={disableViewDetailsReason || t('viewSubmissions') || 'View submissions'}
+                        className="p-1.5 sm:p-2 text-blue-600 hover:text-blue-700 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         <Eye className="w-4 h-4" />
                       </button>

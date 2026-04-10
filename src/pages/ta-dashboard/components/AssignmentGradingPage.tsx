@@ -59,18 +59,22 @@ export function AssignmentGradingPage({ courseId }: AssignmentGradingPageProps) 
 
       // Get all submissions for all assignments
       const allSubmissions: GradingSubmission[] = [];
-      for (const assignment of assignmentsData) {
-        try {
-          const subs = await AssignmentService.getSubmissions(assignment.id);
-          allSubmissions.push(
-            ...subs.map((sub) => ({
-              ...sub,
-              assignmentTitle: assignment.title,
-              assignmentMaxScore: assignment.maxScore,
-            }))
-          );
-        } catch (error) {
-          // Some assignments might have no submissions yet
+      if (Array.isArray(assignmentsData)) {
+        for (const assignment of assignmentsData) {
+          try {
+            const subs = await AssignmentService.getSubmissions(assignment.id);
+            if (Array.isArray(subs)) {
+              allSubmissions.push(
+                ...subs.map((sub) => ({
+                  ...sub,
+                  assignmentTitle: assignment.title,
+                  assignmentMaxScore: assignment.maxScore,
+                }))
+              );
+            }
+          } catch (error) {
+            // Some assignments might have no submissions yet
+          }
         }
       }
       setSubmissions(allSubmissions);
@@ -142,6 +146,24 @@ export function AssignmentGradingPage({ courseId }: AssignmentGradingPageProps) 
         />
         <p className={isDark ? 'text-slate-400' : 'text-gray-600'}>
           {t('cannotAccessAsTA') || 'Access denied'}
+        </p>
+      </div>
+    );
+  }
+
+  if (!courseId) {
+    return (
+      <div
+        className={`text-center py-12 border rounded-lg ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}
+      >
+        <FileText
+          className={`w-12 h-12 mx-auto mb-4 ${isDark ? 'text-slate-400' : 'text-gray-400'}`}
+        />
+        <h3 className={`text-lg font-medium mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          {t('noCourseSelected') || 'No Course Selected'}
+        </h3>
+        <p className={isDark ? 'text-slate-400' : 'text-gray-600'}>
+          {t('selectCourseToViewAssignments') || 'Please select a course to view and grade assignments.'}
         </p>
       </div>
     );
