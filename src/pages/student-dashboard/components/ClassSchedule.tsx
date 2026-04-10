@@ -106,6 +106,7 @@ export default function ClassSchedule() {
         .map((item, index) => ({
           id: index + 1,
           code: item.courseCode || 'N/A',
+          courseId: item.courseId || item.classItem?.section?.course?.courseId || item.classItem?.section?.course?.id || item.courseCode,
           name: item.title,
           day: normalizeDay(item.classItem?.dayOfWeek || ''),
           startTime: item.startTime,
@@ -433,7 +434,7 @@ export default function ClassSchedule() {
                                 <button
                                   key={`${classItem.id}-${classItem.code}`}
                                   onClick={() =>
-                                    navigate(`/studentdashboard/myclass/${classItem.code}`)
+                                    navigate(`/studentdashboard/myclass/${classItem.courseId}`)
                                   }
                                   className={`${isDark ? 'bg-white/5' : classItem.bgLight} border-l-4 ${classItem.borderColor} rounded-lg p-2.5 mb-1 hover:shadow-md transition-all cursor-pointer group w-full text-left`}
                                 >
@@ -484,7 +485,7 @@ export default function ClassSchedule() {
                               <button
                                 key={`${classItem.id}-${classItem.code}`}
                                 onClick={() =>
-                                  navigate(`/studentdashboard/myclass/${classItem.code}`)
+                                  navigate(`/studentdashboard/myclass/${classItem.courseId}`)
                                 }
                                 className={`${isDark ? 'bg-white/5 border-white/10' : classItem.bgLight} border-l-4 ${classItem.borderColor} rounded-xl p-4 hover:shadow-lg transition-all cursor-pointer group w-full text-left`}
                               >
@@ -583,7 +584,7 @@ export default function ClassSchedule() {
                               <button
                                 key={`${classItem.id}-${classItem.code}`}
                                 onClick={() =>
-                                  navigate(`/studentdashboard/myclass/${classItem.code}`)
+                                  navigate(`/studentdashboard/myclass/${classItem.courseId}`)
                                 }
                                 className={`text-[10px] px-1.5 py-1 rounded cursor-pointer ${isDark ? 'bg-white/5 hover:bg-white/10' : classItem.bgLight} border-l-2 ${classItem.borderColor} w-full text-left`}
                               >

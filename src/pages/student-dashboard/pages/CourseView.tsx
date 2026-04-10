@@ -120,7 +120,7 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
       try {
         const enrollments = await enrollmentService.getMyCourses();
         const matchedEnrollment =
-          enrollments.find((item) => String(item.id) === String(enrollmentId)) || null;
+          enrollments.find((item) => String(item.id) === String(enrollmentId) || String(item.course?.courseCode) === String(enrollmentId) || String(item.course?.code) === String(enrollmentId) || String(item.course?.id) === String(enrollmentId)) || null;
 
         if (!mounted) return;
         if (!matchedEnrollment) {
