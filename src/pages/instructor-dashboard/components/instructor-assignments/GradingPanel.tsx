@@ -12,6 +12,20 @@ interface GradingPanelProps {
   onSave: (submissionId: string, score: number, feedback: string) => Promise<void>;
 }
 
+const canEmbedInIframe = (url?: string | null): boolean => {
+  if (!url) return false;
+
+  try {
+    const host = new URL(url).hostname.toLowerCase();
+    if (host.includes('drive.google.com') || host.includes('docs.google.com')) {
+      return false;
+    }
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 export function GradingPanel({
   submission,
   maxScore,
@@ -103,6 +117,7 @@ export function GradingPanel({
 
   const adjustedScoreData = calculateAdjustedScore();
   const isLate = submission.isLate === 1 || submission.isLate === true;
+  const canEmbedDrivePreview = canEmbedInIframe(submission.driveFile?.iframeUrl);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-end bg-black/50">
@@ -271,11 +286,23 @@ export function GradingPanel({
                   >
                     {submission.driveFile ? (
                       <div className="space-y-3">
-                        <iframe
-                          src={submission.driveFile.iframeUrl}
-                          className="w-full h-[400px] rounded-t border-b border-gray-200 dark:border-white/10"
-                          title="Submission Preview"
-                        />
+                        {canEmbedDrivePreview ? (
+                          <iframe
+                            src={submission.driveFile.iframeUrl}
+                            className="w-full h-[400px] rounded-t border-b border-gray-200 dark:border-white/10"
+                            title="Submission Preview"
+                          />
+                        ) : (
+                          <div
+                            className={`mx-3 mt-3 p-3 rounded border text-sm ${
+                              isDark
+                                ? 'bg-white/5 border-white/10 text-slate-300'
+                                : 'bg-white border-gray-200 text-gray-700'
+                            }`}
+                          >
+                            Preview is unavailable due to Google Drive embedding policy. Open the file in Drive to view it.
+                          </div>
+                        )}
                         <div className="flex items-center gap-4 p-3">
                           <a
                             href={submission.driveFile.webViewLink}

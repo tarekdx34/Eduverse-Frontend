@@ -22,20 +22,21 @@ import { toast } from 'sonner';
 import {
   ModernDashboard,
   CoursesPage,
-  LabsPage,
-  GradingPage,
   StudentPerformancePage,
-  SchedulePage,
   AnnouncementsPage,
   DiscussionPage,
   AnalyticsPage,
   NotificationsPage,
   AIAssistantPage,
   LabResourcesPage,
-  AssignmentGradingPage,
 } from './components';
-import { QuizzesPage } from './components/QuizzesPage';
 import { UploadMaterialsPage as LiveUploadMaterialsPage } from '../instructor-dashboard/components/UploadMaterialsPage';
+import {
+  SharedLabsPage,
+  SharedQuizzesPage,
+  SharedAssignmentsPage,
+  SharedSchedulePage,
+} from '../shared-dashboard/components';
 import {
   ThemeProvider as InstructorThemeProvider,
 } from '../instructor-dashboard/contexts/ThemeContext';
@@ -112,7 +113,6 @@ type TabKey =
   | 'labs'
   | 'quizzes'
   | 'assignments'
-  | 'grading'
   | 'students'
   | 'schedule'
   | 'announcements'
@@ -186,7 +186,6 @@ const TABS: { key: TabKey; label: string; icon: any; group: string }[] = [
   { key: 'quizzes', label: 'Quizzes', icon: HelpCircle, group: 'Teaching' },
   { key: 'assignments', label: 'Assignments', icon: FileText, group: 'Teaching' },
   { key: 'lab-resources', label: 'Lab Resources', icon: FolderOpen, group: 'Teaching' },
-  { key: 'grading', label: 'Grading', icon: FileText, group: 'Teaching' },
   { key: 'students', label: 'Students', icon: Users, group: 'Students' },
   { key: 'schedule', label: 'Schedule', icon: Calendar, group: 'Schedule' },
   { key: 'announcements', label: 'Announcements', icon: Megaphone, group: 'Schedule' },
@@ -233,18 +232,12 @@ const OVERLAY_COPY: Record<
   },
 };
 
-const GRADING_AI_DISABLED_REASON =
-  'AI grading is not implemented yet.';
 const DISCUSSION_DELETE_DISABLED_REASON =
   'Deleting discussions is not available for TA live mode.';
 const ANNOUNCEMENT_PIN_DISABLED_REASON =
   'Pinning announcements is not connected to the backend yet.';
 const MATERIAL_DOWNLOAD_DISABLED_REASON =
   'Material downloads are not connected to the backend yet.';
-const QUIZ_AI_DISABLED_REASON = 'AI quiz generation is not connected to the backend yet.';
-const QUIZ_ANALYTICS_DISABLED_REASON =
-  'Detailed quiz analytics are not connected in the TA live flow yet.';
-
 const MOCK_PROFILE_DATA = {
   fullName: 'Ahmed Hassan',
   role: 'Teaching Assistant',
@@ -1201,87 +1194,11 @@ function TADashboardContent() {
             />
           ))}
 
-        {activeTab === 'labs' &&
-          (isMockMode ? (
-            <LabsPage
-              labs={selectedCourseId ? LABS.filter((lab) => lab.courseId === selectedCourseId) : LABS}
-              onViewLab={handleViewLab}
-            />
-          ) : (
-            <LiveLabsPage
-              labs={liveLabs}
-              courseOptions={analyticsCourseOptions}
-              selectedCourseId={selectedLabsCourseId}
-              onCourseChange={setSelectedLabsCourseId}
-              selectedLabId={selectedLabId}
-              onViewLab={setSelectedLabId}
-              labDetails={selectedLiveLabDetails}
-              labSubmissions={selectedLabId ? labSubmissionsByLabId[selectedLabId] || [] : []}
-              loading={labsLoading}
-              detailsLoading={selectedLiveLabDetailsLoading || submissionsLoading}
-              onCreateLab={(payload) => createLabMutation.mutateAsync(payload)}
-            />
-          ))}
+        {activeTab === 'labs' && <SharedLabsPage role="TA" />}
 
-        {activeTab === 'quizzes' &&
-          (isMockMode ? (
-            <QuizzesPage />
-          ) : (
-            <LiveQuizzesPage
-              quizzes={liveQuizzes}
-              attempts={liveQuizAttempts.filter((attempt) =>
-                liveQuizzes.some((quiz) => String(quiz.id) === String(attempt.quizId))
-              )}
-              loading={quizzesLoading || quizAttemptsLoading}
-              courseOptions={analyticsCourseOptions}
-              aiDisabledReason={QUIZ_AI_DISABLED_REASON}
-              analyticsDisabledReason={QUIZ_ANALYTICS_DISABLED_REASON}
-              onCreateQuiz={(payload) => createQuizMutation.mutateAsync(payload)}
-              onLoadQuizDetails={(quizId) => QuizService.getById(quizId)}
-              onUpdateQuiz={(quizId, payload) =>
-                updateQuizMutation.mutateAsync({ quizId, payload })
-              }
-              onDeleteQuiz={(quizId) => deleteQuizMutation.mutateAsync(quizId)}
-            />
-          ))}
+        {activeTab === 'quizzes' && <SharedQuizzesPage role="TA" />}
 
-        {/* Assignments Tab (Merged from 001-wire-dashboard-modules) */}
-        {activeTab === 'assignments' && (
-          <AssignmentGradingPage
-            courseId={
-              activeCourseForContent?.courseId ? String(activeCourseForContent.courseId) : undefined
-            }
-          />
-        )}
-
-        {activeTab === 'grading' &&
-          (isMockMode ? (
-            <GradingPage submissions={Object.values(SUBMISSIONS).flat() as any} />
-          ) : (
-            <GradingPage
-              submissions={liveSubmissions}
-              onGradeStatusChange={async (submissionId, status) => {
-                const submission = liveSubmissions.find((item) => item.id === submissionId);
-                if (!submission) {
-                  throw new Error('Submission not found.');
-                }
-                await gradeSubmissionMutation.mutateAsync({
-                  labId: submission.labId,
-                  submissionId,
-                  status,
-                });
-              }}
-              onDownloadFile={(fileId, fileName) => LabService.downloadFile(fileId, fileName)}
-              gradingSubmissionId={
-                gradeSubmissionMutation.isPending
-                  ? gradeSubmissionMutation.variables?.submissionId || null
-                  : null
-              }
-              disabledActions={{
-                aiGrade: GRADING_AI_DISABLED_REASON,
-              }}
-            />
-          ))}
+        {activeTab === 'assignments' && <SharedAssignmentsPage role="TA" />}
 
         {activeTab === 'students' &&
           (isMockMode ? (
@@ -1294,16 +1211,7 @@ function TADashboardContent() {
             <LiveStudentsPage students={liveStudentRows} loading={studentsLoading || teachingCoursesLoading} />
           ))}
 
-        {activeTab === 'schedule' &&
-          (isMockMode ? (
-            <SchedulePage />
-          ) : (
-            <LiveSchedulePage
-              dailySchedule={liveDailySchedule}
-              academicEvents={liveAcademicEvents}
-              loading={dailyScheduleLoading || academicEventsLoading}
-            />
-          ))}
+        {activeTab === 'schedule' && <SharedSchedulePage role="TA" />}
 
         {activeTab === 'announcements' &&
           (isMockMode ? (

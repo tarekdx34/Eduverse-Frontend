@@ -15,6 +15,20 @@ interface GradingPanelProps {
   onGraded: () => void;
 }
 
+const canEmbedInIframe = (url?: string | null): boolean => {
+  if (!url) return false;
+
+  try {
+    const host = new URL(url).hostname.toLowerCase();
+    if (host.includes('drive.google.com') || host.includes('docs.google.com')) {
+      return false;
+    }
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 export function GradingPanel({
   isOpen,
   lab,
@@ -43,9 +57,6 @@ export function GradingPanel({
 
   if (!isOpen || !submission) return null;
 
-  // Debug log to verify new version is loaded
-  console.log('🎨 NEW GradingPanel UI loaded - v2.0');
-
   const maxScore = parseInt(lab.maxScore, 10);
   const studentName = submission.user
     ? `${submission.user.firstName} ${submission.user.lastName}`
@@ -54,6 +65,7 @@ export function GradingPanel({
   const isLate = submission.isLate === true;
   const isGraded = submission.score !== null && submission.score !== undefined;
   const scorePercent = formData.score ? Math.round((formData.score / maxScore) * 100) : 0;
+  const canEmbedDrivePreview = canEmbedInIframe(submission.driveFile?.iframeUrl);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -98,7 +110,7 @@ export function GradingPanel({
     >
       <div className={`w-full max-w-2xl h-full flex flex-col shadow-2xl ${isDark ? 'bg-slate-900' : 'bg-white'}`}>
         {/* Header */}
-        <div className={`flex-shrink-0 flex items-center justify-between p-6 border-b ${isDark ? 'bg-slate-900 border-white/10' : 'bg-white border-gray-200'}`}>
+        <div className={`shrink-0 flex items-center justify-between p-6 border-b ${isDark ? 'bg-slate-900 border-white/10' : 'bg-white border-gray-200'}`}>
           <div>
             <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
               Grade Submission ✨
@@ -191,13 +203,25 @@ export function GradingPanel({
                     </span>
                   </div>
                   
-                  {submission.driveFile?.iframeUrl && (
+                  {submission.driveFile && (
                     <>
-                      <iframe
-                        src={submission.driveFile.iframeUrl}
-                        className="w-full h-[400px] rounded border border-gray-200 dark:border-white/10 mb-3"
-                        title="File Preview"
-                      />
+                      {canEmbedDrivePreview ? (
+                        <iframe
+                          src={submission.driveFile.iframeUrl}
+                          className="w-full h-[400px] rounded border border-gray-200 dark:border-white/10 mb-3"
+                          title="File Preview"
+                        />
+                      ) : (
+                        <div
+                          className={`p-3 rounded border mb-3 text-sm ${
+                            isDark
+                              ? 'bg-white/5 border-white/10 text-slate-300'
+                              : 'bg-white border-gray-200 text-gray-700'
+                          }`}
+                        >
+                          Preview is unavailable due to Google Drive embedding policy. Open the file in Drive to view it.
+                        </div>
+                      )}
                       <div className="flex items-center gap-4">
                         <a
                           href={submission.driveFile.webViewLink}
