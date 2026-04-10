@@ -1,93 +1,152 @@
-# React + Vite
+# EduVerse Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+EduVerse is a role-based education platform delivered as SaaS (Software as a Service). This repository contains the web application used by students, instructors, teaching assistants, administrators, and IT admins.
 
-Currently, two official plugins are available:
+The frontend is built with React + Vite and connects to the EduVerse backend API for authentication, courses, schedules, labs, assignments, quizzes, attendance, grades, notifications, and analytics.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## What EduVerse Solves
 
-## React Compiler
+EduVerse helps educational organizations run day-to-day academic operations in one platform:
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- Learning delivery through courses, assignments, labs, and quizzes
+- Academic operations through scheduling, attendance, and grading
+- Communication through chat and announcements
+- Oversight through role-based dashboards and analytics
 
-## Expanding the ESLint configuration
+## Core Features
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- Authentication and role-aware access control
+- Student dashboard for course activity, submissions, and progress
+- Instructor dashboard for course management, grading, and reports
+- Teaching assistant dashboard for labs, submissions, and grading workflows
+- Admin and IT admin dashboards for platform operations and oversight
+- Course enrollment and learning content flows
+- Assignment and quiz workflows
+- Lab instruction and submission workflows
+- Attendance tracking and schedule management
+- Announcement, notification, and messaging integrations
+- Multi-language support with i18next
+- Theme-aware UI patterns and reusable component architecture
 
-## MCP Server
+## How This SaaS Works
 
-This project includes a Model Context Protocol (MCP) server for EduVerse application integration. The MCP server provides tools for:
+EduVerse follows a typical multi-role SaaS lifecycle:
 
-- Getting course information
-- Listing available courses
-- Enrolling students in courses
-- Tracking student progress
+1. Organization Setup
+Admins and IT admins configure users, courses, and operational settings for the institution.
 
-### Running the MCP Server
+2. User Access
+Users sign in and are routed to role-specific dashboards with only the permissions and tools relevant to their role.
 
-```bash
-node mcp-server.js
-```
+3. Academic Delivery
+Instructors and TAs publish course content, assignments, quizzes, and labs. Students interact with these modules and submit work.
 
-### Available Tools
+4. Operations and Monitoring
+Attendance, schedules, notifications, and grading run continuously across the semester.
 
-1. **get_course_info** - Retrieve detailed information about a specific course
-2. **list_courses** - List all available courses with optional category filtering
-3. **enroll_student** - Enroll a student in a course
-4. **get_student_progress** - Get a student's progress in a specific course
+5. Evaluation and Insights
+Grades and analytics help instructors and admins monitor performance, identify bottlenecks, and improve outcomes.
 
-### Configuration
+Because it is SaaS, users access EduVerse through the web app without installing desktop software, and updates are delivered centrally through deployments.
 
-The MCP server configuration is defined in `mcp-config.json`. You can add this to your MCP client configuration to connect to the server.
+## Tech Stack
 
-### Customization
+- React 19
+- Vite (rolldown-vite)
+- React Router
+- React Query
+- Axios and Fetch API client wrappers
+- Tailwind CSS
+- Vitest and Testing Library
+- ESLint + Prettier
 
-The current implementation uses mock data. Replace the mock implementations in `mcp-server.js` with actual API calls or database queries to connect to your backend.
+## Project Structure
 
-## Figma MCP Server Integration
+Main app code lives in src with feature areas such as:
 
-This project is configured to work with the Figma MCP server, allowing AI assistants to interact with Figma designs.
+- src/pages/student-dashboard
+- src/pages/instructor-dashboard
+- src/pages/ta-dashboard
+- src/pages/admin-dashboard
+- src/pages/it-admin-dashboard
+- src/services/api
+- src/components
+- src/context
 
-### Setup
+## Getting Started
 
-1. The Figma API key is stored in `.env` file (not committed to git)
-2. Configuration is in `mcp-config.json`
+Prerequisites:
 
-### Usage with GitHub Copilot CLI
+- Node.js 18+
+- npm
+- EduVerse backend running locally or in a reachable environment
 
-To use the Figma MCP server with GitHub Copilot CLI Agent, copy the `mcp-config.json` configuration to your GitHub Copilot settings:
+Install dependencies:
 
-**Windows**: `%APPDATA%\Code\User\globalStorage\github.copilot-chat\mcp-config.json`
-
-Or configure it in your Copilot settings manually.
-
-### Available Figma Tools
-
-The Figma MCP server provides tools to:
-
-- Get file information from Figma
-- Access design components
-- Retrieve design tokens
-- Export assets
-
-**⚠️ Security Note**: Never commit your `.env` file or share your Figma API key publicly. If exposed, revoke it immediately from Figma settings and generate a new one.
-
-## Instructor Dashboard (Demo Data)
-
-A rich instructor dashboard is available with expanded demo datasets (~300 students across sections and numerous quizzes).
-
-- Route: `/instructordashboard` (tabs: overview, sections, roster, waitlist, grades, assignments, reports, attendance, messages, profile)
-- Data source: `src/pages/instructor-dashboard/constants.ts`
-- Sections: three subjects with 100 enrolled students each (total ≈ 300)
-- Assignments: multiple quizzes and homework items per section
-
-### Quick Start
-
-```bash
 npm install
-npm run dev
-# open http://localhost:5173/instructordashboard (or the port shown)
-```
 
-To adjust cohort sizes or quiz counts, edit `SECTIONS`, `ROSTERS`, and `ASSIGNMENTS` in `constants.ts`.
+Start development server:
+
+npm run dev
+
+Build for production:
+
+npm run build
+
+Preview production build:
+
+npm run preview
+
+Run tests:
+
+npm run test
+
+## API and Environment Notes
+
+- Development API requests are proxied from /api to http://localhost:8081 via Vite config.
+- The API client uses src/services/api/config.ts and src/services/api/client.ts.
+- In development mode, API_BASE_URL is /api.
+- In production mode, default API_BASE_URL falls back to http://localhost:8081/api unless overridden in your deployment setup.
+
+For production deployments, configure the backend API endpoint to your live backend domain.
+
+## Available Scripts
+
+- npm run dev: Start Vite dev server
+- npm run build: Build production assets
+- npm run preview: Preview built assets
+- npm run test: Run tests
+- npm run test:ui: Run tests with UI
+- npm run test:coverage: Run coverage report
+- npm run lint: Lint codebase
+- npm run lint:fix: Auto-fix lint issues
+- npm run format: Format project with Prettier
+- npm run format:check: Check formatting
+- npm run mcp: Run local MCP server script
+
+## MCP Integration
+
+This repository also includes MCP-related tooling for integration and experimentation.
+
+- Entry script: mcp-server.js
+- Project MCP config: mcp-config.json
+
+If you use external API keys for MCP integrations, store them in environment files and do not commit secrets.
+
+## Deployment
+
+EduVerse frontend can be deployed to platforms such as Vercel. Recommended flow:
+
+1. Configure production API URL and required environment variables.
+2. Run npm run build locally to validate the artifact.
+3. Deploy from main branch.
+
+If build fails in Linux CI or Vercel, verify import path casing matches actual filenames exactly.
+
+## Related Repository
+
+Backend service for EduVerse is in the companion repository under eduverse-backend.
+
+## License
+
+This project is developed as part of the EduVerse platform. Add your preferred license policy here.
