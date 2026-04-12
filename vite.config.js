@@ -11,6 +11,15 @@ export default defineConfig({
         target: 'http://localhost:8081',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, '/api'),
+        configure(proxy) {
+          proxy.on('error', (err, req) => {
+            console.error(
+              '[vite proxy /api] Cannot reach Nest at http://localhost:8081 —',
+              req?.url,
+              err?.message || err
+            );
+          });
+        },
       },
       // Backend attendance API lives under /attendance/*. Do not proxy the SPA route /attendance exactly.
       '/attendance': {

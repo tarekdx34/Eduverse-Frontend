@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Bot, FileQuestion, Plus, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '../../context/AuthContext';
@@ -105,6 +105,8 @@ export default function QuizPage() {
   const [quizTitle, setQuizTitle] = useState('');
   const [quizDescription, setQuizDescription] = useState('');
   const [publishing, setPublishing] = useState(false);
+  /** Avoid re-fetching forever when the API returns an empty list or errors (teaching stays []). */
+  const teachingFetchOnceRef = useRef(false);
 
   const loadTeaching = useCallback(async () => {
     setLoadingTeaching(true);
@@ -120,10 +122,15 @@ export default function QuizPage() {
   }, []);
 
   useEffect(() => {
-    if (isAuthenticated && teaching.length === 0 && !loadingTeaching) {
-      void loadTeaching();
+    if (!isAuthenticated) {
+      teachingFetchOnceRef.current = false;
+      setTeaching([]);
+      return;
     }
-  }, [isAuthenticated, teaching.length, loadingTeaching, loadTeaching]);
+    if (teachingFetchOnceRef.current) return;
+    teachingFetchOnceRef.current = true;
+    void loadTeaching();
+  }, [isAuthenticated, loadTeaching]);
 
   const needsReview = useMemo(
     () =>
@@ -276,7 +283,17 @@ export default function QuizPage() {
                 <h1 className="text-xl font-semibold tracking-tight">Quiz generation</h1>
                 <p className="text-sm text-slate-400">Choose your section (instructor/TA).</p>
               </div>
-              <button type="button" onClick={() => void logout()} className="rounded-lg border border-slate-700 px-3 py-1.5 text-sm text-slate-300 hover:bg-slate-900">Sign out</button>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  disabled={loadingTeaching}
+                  onClick={() => void loadTeaching()}
+                  className="rounded-lg border border-slate-600 px-3 py-1.5 text-sm text-slate-300 hover:bg-slate-900 disabled:opacity-50"
+                >
+                  {loadingTeaching ? 'Loading…' : 'Refresh sections'}
+                </button>
+                <button type="button" onClick={() => void logout()} className="rounded-lg border border-slate-700 px-3 py-1.5 text-sm text-slate-300 hover:bg-slate-900">Sign out</button>
+              </div>
             </div>
             {loadingTeaching ? (
               <p className="text-sm text-slate-500">Loading sections...</p>
