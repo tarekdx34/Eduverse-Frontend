@@ -132,8 +132,8 @@ const STATUS_TOGGLE_META: Record<
     label: 'Excused',
     Icon: CircleHelp,
     selected:
-      'border border-violet-500/70 bg-violet-950/80 text-violet-100 shadow-md shadow-violet-900/40 ring-1 ring-violet-400/30',
-    idle: 'border border-transparent text-violet-500/70 hover:border-violet-500/30 hover:bg-violet-950/40 hover:text-violet-300',
+      'border border-sky-500/70 bg-sky-950/80 text-sky-100 shadow-md shadow-sky-900/40 ring-1 ring-sky-400/30',
+    idle: 'border border-transparent text-sky-500/70 hover:border-sky-500/30 hover:bg-sky-950/40 hover:text-sky-300',
   },
 };
 
@@ -243,8 +243,6 @@ export function LectureAttendanceFlow({ embedded = true }: LectureAttendanceFlow
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
   const [aiResult, setAiResult] = useState<AiAttendanceResponse | null>(null);
-  const [aiReviewStatus, setAiReviewStatus] = useState<Record<number, AttendanceStatus>>({});
-  const [rosterTab, setRosterTab] = useState<'ai' | 'manual'>('ai');
   const [aiFaceThumbs, setAiFaceThumbs] = useState<Record<number, string>>({});
   const [aiUnknownCount, setAiUnknownCount] = useState(0);
 
@@ -252,8 +250,6 @@ export function LectureAttendanceFlow({ embedded = true }: LectureAttendanceFlow
     setAiFile(null);
     setAiError(null);
     setAiResult(null);
-    setAiReviewStatus({});
-    setRosterTab('ai');
     setAiUnknownCount(0);
     if (Object.keys(aiFaceThumbs).length > 0) {
       Object.values(aiFaceThumbs).forEach((u) => URL.revokeObjectURL(u));
@@ -491,34 +487,6 @@ export function LectureAttendanceFlow({ embedded = true }: LectureAttendanceFlow
     }
   };
 
-  const applyAiMarkedIdsToRoster = () => {
-    if (rosterReadOnly) {
-      toast.error('Session is closed — open an active session to apply.');
-      return;
-    }
-    const ids = aiResult?.marked_ids ?? [];
-    if (ids.length === 0) {
-      toast.error('No marked_ids to apply. Check your dataset folder and photo.');
-      return;
-    }
-    const idSet = new Set(ids.map((s) => String(s).trim()).filter(Boolean));
-    let changed = 0;
-    const next = rosterRows.map((r) => {
-      if (idSet.has(String(r.userId))) {
-        if (r.status !== 'present') changed += 1;
-        return { ...r, status: 'present' as const };
-      }
-      return r;
-    });
-    setRosterRows(next);
-    if (changed > 0) setRosterDirty(true);
-    toast.success(
-      changed > 0
-        ? `Marked ${changed} student(s) present (IDs matched roster). Save when ready.`
-        : 'No roster userIds matched marked_ids — name dataset files as {userId}.jpg',
-    );
-  };
-
   const aiReviewRows = useMemo<AiReviewRow[]>(() => {
     if (!aiResult) return [];
     const markedSet = new Set((aiResult.marked_ids ?? []).map((x) => String(x).trim()));
@@ -550,21 +518,28 @@ export function LectureAttendanceFlow({ embedded = true }: LectureAttendanceFlow
       });
   }, [aiReviewRows]);
 
-  const aiOkayRows = useMemo(() => {
-    return [...aiReviewRows]
-      .filter((row) => !aiNeedsReviewRows.some((x) => x.userId === row.userId))
-      .sort((a, b) => (b.confidence ?? -1) - (a.confidence ?? -1));
-  }, [aiNeedsReviewRows, aiReviewRows]);
-
-  useEffect(() => {
-    if (!aiReviewRows.length) {
-      setAiReviewStatus({});
-      return;
-    }
-    const seeded: Record<number, AttendanceStatus> = {};
-    for (const row of aiReviewRows) seeded[row.userId] = row.suggested;
-    setAiReviewStatus(seeded);
+  const aiReviewByUserId = useMemo(() => {
+    const m = new Map<number, AiReviewRow>();
+    for (const row of aiReviewRows) m.set(row.userId, row);
+    return m;
   }, [aiReviewRows]);
+
+  const needsReviewIdSet = useMemo(
+    () => new Set(aiNeedsReviewRows.map((r) => r.userId)),
+    [aiNeedsReviewRows],
+  );
+
+  /** Flagged-for-review rows first after AI runs; otherwise preserve roster order. */
+  const sortedRosterRows = useMemo(() => {
+    const rows = [...rosterRows];
+    if (!aiResult || needsReviewIdSet.size === 0) return rows;
+    return rows.sort((a, b) => {
+      const aFlag = needsReviewIdSet.has(a.userId) ? 0 : 1;
+      const bFlag = needsReviewIdSet.has(b.userId) ? 0 : 1;
+      if (aFlag !== bFlag) return aFlag - bFlag;
+      return a.name.localeCompare(b.name);
+    });
+  }, [rosterRows, aiResult, needsReviewIdSet]);
 
   const applyAiReviewToRoster = () => {
     if (rosterReadOnly) {
@@ -577,27 +552,19 @@ export function LectureAttendanceFlow({ embedded = true }: LectureAttendanceFlow
     }
     let changed = 0;
     const next = rosterRows.map((r) => {
-      const reviewed = aiReviewStatus[r.userId];
-      if (!reviewed) return r;
-      if (r.status !== reviewed) changed += 1;
-      return { ...r, status: reviewed };
+      const ai = aiReviewByUserId.get(r.userId);
+      if (!ai) return r;
+      if (r.status !== ai.suggested) changed += 1;
+      return { ...r, status: ai.suggested };
     });
     setRosterRows(next);
     if (changed > 0) setRosterDirty(true);
     toast.success(
       changed > 0
-        ? `Applied reviewed AI decisions to ${changed} student(s). Save when ready.`
-        : 'No changes from reviewed AI decisions.',
+        ? `Applied AI suggestions to ${changed} student(s). Adjust any row below, then Save.`
+        : 'Roster already matches AI suggestions. Adjust statuses if needed, then Save.',
     );
   };
-
-  const getInitials = (name: string) =>
-    name
-      .split(' ')
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((s) => s[0]?.toUpperCase() ?? '')
-      .join('') || '?';
 
   const buildAiFaceThumbs = async (
     file: File,
@@ -741,7 +708,9 @@ export function LectureAttendanceFlow({ embedded = true }: LectureAttendanceFlow
     <div
       className={`${embedded ? '' : 'min-h-screen px-4 py-8'} ${isDark ? 'text-slate-100' : 'text-gray-900'}`}
     >
-      <div className="mx-auto max-w-3xl">
+      <div
+        className={embedded ? 'w-full' : 'mx-auto w-full max-w-3xl'}
+      >
         {view === 'classes' && (
           <>
             <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
@@ -956,281 +925,235 @@ export function LectureAttendanceFlow({ embedded = true }: LectureAttendanceFlow
                 </button>
               </div>
 
+              {!rosterReadOnly && (
+                <p className={`mb-4 text-sm ${muted}`}>
+                  Use a class photo to run AI and see suggestions in the roster below. Click{' '}
+                  <strong className={textMain}>Apply AI suggestions</strong> to copy them into attendance, or set
+                  statuses manually at any time. Save when done.
+                </p>
+              )}
+
               <div
-                className={`mb-4 flex items-center gap-2 rounded-xl border p-1.5 ${
-                  isDark ? 'border-slate-700 bg-slate-950/60' : 'border-gray-200 bg-gray-100'
+                className={`mb-4 rounded-xl border p-5 ${
+                  isDark ? 'border-slate-600/80 bg-slate-900/60' : 'border-gray-200 bg-gray-50'
                 }`}
               >
-                <button
-                  type="button"
-                  onClick={() => setRosterTab('ai')}
-                  className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
-                    rosterTab === 'ai'
-                      ? 'bg-violet-600 text-white'
-                      : isDark
-                        ? 'text-slate-300 hover:bg-slate-800'
-                        : 'text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  AI Review
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setRosterTab('manual')}
-                  className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
-                    rosterTab === 'manual'
-                      ? 'text-white'
-                      : isDark
-                        ? 'text-slate-300 hover:bg-slate-800'
-                        : 'text-gray-700 hover:bg-gray-200'
-                  }`}
-                  style={
-                    rosterTab === 'manual' ? { backgroundColor: primaryHex } : { backgroundColor: undefined }
-                  }
-                >
-                  Manual
-                </button>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <Camera className="size-5 shrink-0" style={{ color: primaryHex }} aria-hidden />
+                    <h3 className={`text-lg font-semibold ${textMain}`}>AI from class photo</h3>
+                  </div>
+                  <div className={`text-sm ${muted}`}>
+                    Last column fills in after you run AI on a photo
+                  </div>
+                </div>
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    disabled={aiLoading || rosterReadOnly}
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (Object.keys(aiFaceThumbs).length > 0) {
+                        Object.values(aiFaceThumbs).forEach((u) => URL.revokeObjectURL(u));
+                        setAiFaceThumbs({});
+                      }
+                      setAiFile(f ?? null);
+                      setAiError(null);
+                      setAiResult(null);
+                      setAiUnknownCount(0);
+                    }}
+                    className={`max-w-full text-sm file:mr-2 file:rounded-lg file:border-0 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white ${
+                      isDark
+                        ? 'text-slate-300 file:bg-slate-600 file:hover:file:bg-slate-500'
+                        : 'text-gray-800 file:bg-gray-700 file:hover:file:bg-gray-600'
+                    }`}
+                  />
+                  <button
+                    type="button"
+                    disabled={aiLoading || !aiFile || rosterReadOnly}
+                    onClick={() => void runLocalAiAttendance()}
+                    className="rounded-lg px-4 py-2 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-40"
+                    style={{ backgroundColor: primaryHex }}
+                  >
+                    {aiLoading ? 'Running...' : 'Run AI'}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={rosterReadOnly || !aiReviewRows.length}
+                    onClick={applyAiReviewToRoster}
+                    className={`rounded-lg border px-4 py-2 text-sm font-semibold transition disabled:opacity-40 ${
+                      isDark
+                        ? 'border-slate-500 text-slate-100 hover:bg-slate-800'
+                        : 'border-gray-300 text-gray-800 hover:bg-gray-100'
+                    }`}
+                  >
+                    Apply AI suggestions
+                  </button>
+                </div>
+                {aiError && (
+                  <p
+                    className={`mt-2 text-sm ${isDark ? 'text-red-300' : 'text-red-600'}`}
+                    role="alert"
+                  >
+                    {aiError}
+                  </p>
+                )}
               </div>
 
-              {rosterTab === 'ai' ? (
-                <>
-                  <div className="mb-4 rounded-xl border border-violet-700/50 bg-violet-950/20 p-5">
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <div className="flex items-center gap-2">
-                        <Camera className="size-5 text-violet-300" aria-hidden />
-                        <h3 className="text-lg font-semibold text-violet-100">AI Attendance Review</h3>
-                      </div>
-                      <div className="text-sm text-violet-200/80">
-                        Upload photo - review AI decisions - apply to roster
-                      </div>
+              {aiResult ? (
+                <div className="mb-4 grid gap-3 sm:grid-cols-3">
+                  <div
+                    className={`rounded-lg border p-4 ${
+                      isDark ? 'border-slate-700 bg-slate-950/60' : 'border-gray-200 bg-white'
+                    }`}
+                  >
+                    <div className={`text-2xl font-bold ${isDark ? 'text-slate-100' : 'text-gray-900'}`}>
+                      {aiReviewRows.length}
                     </div>
-                    <div className="mt-3 flex flex-wrap items-center gap-2">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        disabled={aiLoading}
-                        onChange={(e) => {
-                          const f = e.target.files?.[0];
-                          if (Object.keys(aiFaceThumbs).length > 0) {
-                            Object.values(aiFaceThumbs).forEach((u) => URL.revokeObjectURL(u));
-                            setAiFaceThumbs({});
-                          }
-                          setAiFile(f ?? null);
-                          setAiError(null);
-                          setAiResult(null);
-                          setAiUnknownCount(0);
-                        }}
-                        className={`max-w-full text-sm file:mr-2 file:rounded-lg file:border-0 file:bg-violet-700 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-violet-600 ${isDark ? 'text-slate-300' : 'text-gray-700'}`}
-                      />
-                      <button
-                        type="button"
-                        disabled={aiLoading || !aiFile}
-                        onClick={() => void runLocalAiAttendance()}
-                        className="rounded-lg bg-violet-600 px-4 py-2 text-sm font-semibold text-white hover:bg-violet-500 disabled:opacity-40"
-                      >
-                        {aiLoading ? 'Running...' : 'Run AI'}
-                      </button>
-                      <button
-                        type="button"
-                        disabled={rosterReadOnly || !aiReviewRows.length}
-                        onClick={applyAiReviewToRoster}
-                        className="rounded-lg border border-violet-500/60 px-4 py-2 text-sm font-semibold text-violet-100 hover:bg-violet-950/60 disabled:opacity-40"
-                      >
-                        Apply reviewed statuses
-                      </button>
+                    <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                      On roster
                     </div>
-                    {aiError && (
-                      <p className="mt-2 text-sm text-red-300" role="alert">
-                        {aiError}
-                      </p>
-                    )}
                   </div>
+                  <div
+                    className={`rounded-lg border p-4 ${
+                      isDark ? 'border-amber-800/60 bg-amber-950/25' : 'border-amber-200 bg-amber-50'
+                    }`}
+                  >
+                    <div
+                      className={`text-2xl font-bold ${isDark ? 'text-amber-200' : 'text-amber-900'}`}
+                    >
+                      {aiNeedsReviewRows.length}
+                    </div>
+                    <div
+                      className={`text-sm ${isDark ? 'text-amber-100/80' : 'text-amber-800'}`}
+                    >
+                      Flagged for review
+                    </div>
+                  </div>
+                  <div
+                    className={`rounded-lg border p-4 ${
+                      isDark ? 'border-slate-700 bg-slate-950/60' : 'border-gray-200 bg-white'
+                    }`}
+                  >
+                    <div className={`text-2xl font-bold ${isDark ? 'text-slate-100' : 'text-gray-900'}`}>
+                      {aiUnknownCount}
+                    </div>
+                    <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                      Unknown faces
+                    </div>
+                  </div>
+                </div>
+              ) : null}
 
-                  {aiResult ? (
-                    <>
-                      <div className="mb-4 grid gap-3 sm:grid-cols-3">
-                        <div className="rounded-lg border border-slate-700 bg-slate-950/60 p-4">
-                          <div className="text-2xl font-bold text-violet-100">{aiReviewRows.length}</div>
-                          <div className="text-sm text-slate-400">Students reviewed</div>
-                        </div>
-                        <div className="rounded-lg border border-amber-700/50 bg-amber-950/25 p-4">
-                          <div className="text-2xl font-bold text-amber-200">{aiNeedsReviewRows.length}</div>
-                          <div className="text-sm text-amber-100/80">Needs review</div>
-                        </div>
-                        <div className="rounded-lg border border-slate-700 bg-slate-950/60 p-4">
-                          <div className="text-2xl font-bold text-slate-100">{aiUnknownCount}</div>
-                          <div className="text-sm text-slate-400">Unknown faces detected</div>
-                        </div>
-                      </div>
+              {rosterReadOnly ? (
+                <p
+                  className={`mb-3 text-sm ${isDark ? 'text-amber-200/90' : 'text-amber-800'}`}
+                >
+                  This session is closed (view only). Open another session from the section screen to edit.
+                </p>
+              ) : null}
 
-                      <div className="space-y-4">
-                        <div className="rounded-xl border border-amber-700/60 bg-amber-950/20 p-4">
-                          <h4 className="mb-3 text-base font-semibold text-amber-100">
-                            Needs Review First ({aiNeedsReviewRows.length})
-                          </h4>
-                          <div className="space-y-2">
-                            {aiNeedsReviewRows.map((row) => {
-                              const decision = aiReviewStatus[row.userId] ?? row.suggested;
-                              return (
-                                <div
-                                  key={`need-${row.userId}`}
-                                  className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-900/60 bg-slate-950/70 p-3"
-                                >
-                                  <div className="flex items-center gap-3">
-                                    <div className="size-14 overflow-hidden rounded-full border border-slate-700 bg-slate-800">
-                                      {aiFaceThumbs[row.userId] ? (
-                                        <img src={aiFaceThumbs[row.userId]} alt={row.name} className="size-full object-cover" />
-                                      ) : (
-                                        <div className="flex size-full items-center justify-center text-sm font-bold text-slate-300">
-                                          {getInitials(row.name)}
-                                        </div>
-                                      )}
-                                    </div>
-                                    <div>
-                                      <p className="text-sm font-semibold text-slate-100">{row.name}</p>
-                                      <p className="text-xs text-slate-400">
-                                        #{row.userId} - AI: {row.suggested} -{' '}
-                                        {typeof row.confidence === 'number' ? `${row.confidence.toFixed(1)}%` : 'not detected'}
-                                      </p>
-                                    </div>
-                                  </div>
-                                  <div className="flex flex-wrap gap-1.5">
-                                    {(['present', 'absent', 'late', 'excused'] as AttendanceStatus[]).map((status) => (
-                                      <button
-                                        key={status}
-                                        type="button"
-                                        disabled={rosterReadOnly}
-                                        onClick={() => setAiReviewStatus((prev) => ({ ...prev, [row.userId]: status }))}
-                                        className={`rounded-md px-2.5 py-1.5 text-xs font-semibold transition ${
-                                          decision === status
-                                            ? 'bg-violet-600 text-white'
-                                            : 'bg-slate-800 text-slate-200 hover:bg-slate-700'
-                                        } disabled:opacity-40`}
+              <div className={`overflow-x-auto rounded-lg border ${borderInner}`}>
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr
+                      className={`border-b text-left text-[0.7rem] font-semibold uppercase tracking-wide ${isDark ? 'border-slate-800' : 'border-gray-200'} ${subMuted}`}
+                    >
+                      <th className="px-3 py-2">Student</th>
+                      <th className="px-3 py-2">Email</th>
+                      <th className="min-w-[16.5rem] px-3 py-2 sm:min-w-[17.5rem]">Status</th>
+                      <th className="min-w-[9rem] px-3 py-2">AI</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rosterRows.length === 0 ? (
+                      <tr>
+                        <td colSpan={4} className={`px-3 py-6 text-center ${subMuted}`}>
+                          No enrolled students (no attendance rows).
+                        </td>
+                      </tr>
+                    ) : (
+                      sortedRosterRows.map((row) => {
+                        const ai = aiResult ? aiReviewByUserId.get(row.userId) : undefined;
+                        const needsHighlight = Boolean(aiResult && needsReviewIdSet.has(row.userId));
+                        return (
+                          <tr
+                            key={row.userId}
+                            className={`border-b ${borderInner} ${
+                              needsHighlight
+                                ? isDark
+                                  ? 'bg-amber-950/25'
+                                  : 'bg-amber-50/90'
+                                : ''
+                            }`}
+                          >
+                            <td className={`px-3 py-2 ${isDark ? 'text-slate-200' : 'text-gray-900'}`}>
+                              <div className="flex items-center gap-2">
+                                {aiFaceThumbs[row.userId] ? (
+                                  <img
+                                    src={aiFaceThumbs[row.userId]}
+                                    alt=""
+                                    className={`size-9 shrink-0 rounded-full object-cover ${
+                                      isDark ? 'border border-slate-600' : 'border border-gray-200'
+                                    }`}
+                                  />
+                                ) : null}
+                                <div>
+                                  <div className="flex flex-wrap items-center gap-2 font-medium">
+                                    <span>{row.name}</span>
+                                    {needsHighlight ? (
+                                      <span
+                                        className={`rounded px-1.5 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide ${
+                                          isDark
+                                            ? 'bg-amber-950/80 text-amber-200'
+                                            : 'bg-amber-100 text-amber-900'
+                                        }`}
                                       >
-                                        {status}
-                                      </button>
-                                    ))}
-                                  </div>
-                                </div>
-                              );
-                            })}
-                            {aiNeedsReviewRows.length === 0 && (
-                              <p className="text-sm text-emerald-300">No critical items. Great detection quality.</p>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="rounded-xl border border-slate-700 bg-slate-950/50 p-4">
-                          <h4 className="mb-3 text-base font-semibold text-slate-100">
-                            High Confidence ({aiOkayRows.length})
-                          </h4>
-                          <div className="space-y-2">
-                            {aiOkayRows.map((row) => {
-                              const decision = aiReviewStatus[row.userId] ?? row.suggested;
-                              return (
-                                <div
-                                  key={`ok-${row.userId}`}
-                                  className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-800 bg-slate-950/80 p-3"
-                                >
-                                  <div className="flex items-center gap-3">
-                                    <div className="size-12 overflow-hidden rounded-full border border-slate-700 bg-slate-800">
-                                      {aiFaceThumbs[row.userId] ? (
-                                        <img src={aiFaceThumbs[row.userId]} alt={row.name} className="size-full object-cover" />
-                                      ) : (
-                                        <div className="flex size-full items-center justify-center text-xs font-bold text-slate-300">
-                                          {getInitials(row.name)}
-                                        </div>
-                                      )}
-                                    </div>
-                                    <p className="text-sm text-slate-100">
-                                      {row.name}{' '}
-                                      <span className="text-slate-500">
-                                        #{row.userId} - {row.confidence?.toFixed(1)}%
+                                        Review
                                       </span>
-                                    </p>
-                                  </div>
-                                  <div className="flex flex-wrap gap-1.5">
-                                    {(['present', 'absent', 'late', 'excused'] as AttendanceStatus[]).map((status) => (
-                                      <button
-                                        key={status}
-                                        type="button"
-                                        disabled={rosterReadOnly}
-                                        onClick={() => setAiReviewStatus((prev) => ({ ...prev, [row.userId]: status }))}
-                                        className={`rounded-md px-2.5 py-1 text-xs font-semibold transition ${
-                                          decision === status
-                                            ? 'bg-violet-600 text-white'
-                                            : 'bg-slate-800 text-slate-200 hover:bg-slate-700'
-                                        } disabled:opacity-40`}
-                                      >
-                                        {status}
-                                      </button>
-                                    ))}
+                                    ) : null}
                                   </div>
                                 </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      </div>
-                    </>
-                  ) : (
-                    <p className={`text-sm ${muted}`}>
-                      Upload a class image and run AI to start the review flow.
-                    </p>
-                  )}
-                </>
-              ) : (
-                <>
-                  {rosterReadOnly ? (
-                    <p className="mb-3 text-sm text-amber-200/90">
-                      This session is closed. View only. Open another session from the section screen.
-                    </p>
-                  ) : (
-                    <p className={`mb-3 text-sm ${muted}`}>
-                      Manual mode is secondary: update individual statuses directly if needed.
-                    </p>
-                  )}
-                  <div className={`overflow-x-auto rounded-lg border ${borderInner}`}>
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr
-                          className={`border-b text-left text-[0.7rem] font-semibold uppercase tracking-wide ${isDark ? 'border-slate-800' : 'border-gray-200'} ${subMuted}`}
-                        >
-                          <th className="px-3 py-2">Student</th>
-                          <th className="px-3 py-2">Email</th>
-                          <th className="min-w-[16.5rem] px-3 py-2 sm:min-w-[17.5rem]">Status</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {rosterRows.length === 0 ? (
-                          <tr>
-                            <td colSpan={3} className={`px-3 py-6 text-center ${subMuted}`}>
-                              No enrolled students (no attendance rows).
+                              </div>
+                            </td>
+                            <td className={`px-3 py-2 text-xs ${subMuted}`}>{row.email}</td>
+                            <td className="px-3 py-2 align-middle">
+                              <StatusFourToggle
+                                value={row.status}
+                                disabled={rosterReadOnly}
+                                isDark={isDark}
+                                onChange={(v) => applyStatus(row.userId, v)}
+                              />
+                            </td>
+                            <td className={`px-3 py-2 align-top ${muted}`}>
+                              {aiLoading ? (
+                                <span className={`text-xs italic ${subMuted}`}>Running…</span>
+                              ) : !aiResult ? (
+                                <span className={`text-xs leading-snug ${subMuted}`}>
+                                  Not run yet. Choose a photo and click <strong className={textMain}>Run AI</strong>{' '}
+                                  above.
+                                </span>
+                              ) : ai ? (
+                                <div className="flex flex-col gap-0.5">
+                                  <span className={`font-medium capitalize ${textMain}`}>{ai.suggested}</span>
+                                  {typeof ai.confidence === 'number' ? (
+                                    <span className="text-xs">{ai.confidence.toFixed(0)}% confidence</span>
+                                  ) : (
+                                    <span className="text-xs italic">No confidence</span>
+                                  )}
+                                </div>
+                              ) : (
+                                <span className="text-xs">—</span>
+                              )}
                             </td>
                           </tr>
-                        ) : (
-                          rosterRows.map((row) => (
-                            <tr key={row.userId} className={`border-b ${borderInner}`}>
-                              <td className={`px-3 py-2 ${isDark ? 'text-slate-200' : 'text-gray-900'}`}>
-                                {row.name}
-                              </td>
-                              <td className={`px-3 py-2 text-xs ${subMuted}`}>{row.email}</td>
-                              <td className="px-3 py-2 align-middle">
-                                <StatusFourToggle
-                                  value={row.status}
-                                  disabled={rosterReadOnly}
-                                  isDark={isDark}
-                                  onChange={(v) => applyStatus(row.userId, v)}
-                                />
-                              </td>
-                            </tr>
-                          ))
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                </>
-              )}
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </>
         )}
