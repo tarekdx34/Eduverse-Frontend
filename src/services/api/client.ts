@@ -104,13 +104,28 @@ export class ApiClient {
           }
         }
 
-        const errorMessage =
-          typeof data === 'object' && data !== null && 'message' in data
-            ? (data as Record<string, unknown>).message
-            : 'API request failed';
+        let errorMessage: string;
+        if (typeof data === 'object' && data !== null && 'message' in data) {
+          errorMessage = String((data as Record<string, unknown>).message);
+        } else if (typeof data === 'string' && data.trim()) {
+          errorMessage = data.trim().slice(0, 300);
+        } else {
+          errorMessage = 'API request failed';
+        }
+
+        if (response.status >= 500 && response.status < 600) {
+          const generic =
+            !errorMessage ||
+            errorMessage === 'API request failed' ||
+            errorMessage.toLowerCase().includes('internal server error');
+          if (generic) {
+            errorMessage =
+              'Cannot reach the Nest API (or it returned a server error). Start EduVerse-Backend with npm run start:dev in that project; Vite proxies /api to http://localhost:8081.';
+          }
+        }
 
         console.error('[API Error]', errorMessage);
-        throw new Error(String(errorMessage) || `HTTP ${response.status}`);
+        throw new Error(errorMessage || `HTTP ${response.status}`);
       }
 
       return data as T;
