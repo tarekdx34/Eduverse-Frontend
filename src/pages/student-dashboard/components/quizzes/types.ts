@@ -12,7 +12,7 @@ export interface Quiz {
   passingScore: string | null;
   randomizeQuestions: number;
   showCorrectAnswers: number;
-  showAnswersAfter: 'immediately' | 'after_due' | 'never';
+  showAnswersAfter: 'immediate' | 'after_due' | 'never';
   availableFrom: string | null;
   availableUntil: string | null;
   weight: string;

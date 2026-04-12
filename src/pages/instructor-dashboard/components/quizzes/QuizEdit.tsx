@@ -96,7 +96,10 @@ export function QuizEdit({
           randomizeQuestions: !!fullQuiz.randomizeQuestions,
           randomizeOptions: false,
           showCorrectAnswers: !!fullQuiz.showCorrectAnswers,
-          showAnswersAfter: fullQuiz.showAnswersAfter || 'immediately',
+          showAnswersAfter:
+            fullQuiz.showAnswersAfter === 'immediately'
+              ? 'immediate'
+              : fullQuiz.showAnswersAfter || 'immediate',
           availableFrom: fullQuiz.availableFrom ? fullQuiz.availableFrom.slice(0, 16) : '',
           availableUntil: fullQuiz.availableUntil ? fullQuiz.availableUntil.slice(0, 16) : '',
         });

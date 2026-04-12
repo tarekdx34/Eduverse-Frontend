@@ -45,10 +45,13 @@ export interface QuizFormData {
   randomizeQuestions: boolean;
   randomizeOptions: boolean;
   showCorrectAnswers: boolean;
-  showAnswersAfter: 'immediately' | 'after_due' | 'never';
+  showAnswersAfter: 'immediate' | 'after_due' | 'never';
   availableFrom: string;
   availableUntil: string;
 }
+
+/** manual: user-created; ai: from AI generator; ai_edited: AI then changed by user */
+export type QuestionProvenance = 'manual' | 'ai' | 'ai_edited';
 
 // UI representation of a question for editing
 export interface QuestionFormData {
@@ -62,6 +65,8 @@ export interface QuestionFormData {
   points: number;
   explanation: string;
   orderIndex: number;
+  /** Omitted or manual = user-built; ai / ai_edited shown as badges in the editor */
+  questionProvenance?: QuestionProvenance;
 }
 
 // Attempt with UI-friendly fields
@@ -127,7 +132,7 @@ export const DEFAULT_QUIZ_FORM: QuizFormData = {
   randomizeQuestions: false,
   randomizeOptions: false,
   showCorrectAnswers: true,
-  showAnswersAfter: 'immediately',
+  showAnswersAfter: 'immediate',
   availableFrom: '',
   availableUntil: '',
 };

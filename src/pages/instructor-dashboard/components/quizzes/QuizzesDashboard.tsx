@@ -4,7 +4,9 @@
  */
 
 import React, { useState, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
+import { useAuth } from '../../../../context/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { QuizList } from './QuizList';
@@ -26,6 +28,9 @@ type ActivePanel = 'none' | 'attempts' | 'grading' | 'statistics';
 export function QuizzesDashboard({ courses = [] }: QuizzesDashboardProps) {
   const { t } = useLanguage();
   const { isDark, primaryHex = '#3b82f6' } = useTheme() as any;
+  const location = useLocation();
+  const { isAuthenticated } = useAuth();
+  const isMockMode = !isAuthenticated || Boolean(location.state?.isMock);
 
   // Normalize course options
   const courseOptions = React.useMemo(() => {
@@ -172,6 +177,17 @@ export function QuizzesDashboard({ courses = [] }: QuizzesDashboardProps) {
 
   return (
     <div className="space-y-6">
+      {isMockMode && (
+        <div
+          className={`rounded-xl border p-4 ${isDark ? 'border-white/10 bg-card-dark' : 'border-gray-200 bg-white'}`}
+        >
+          <p className={`text-sm ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>
+            AI question generation is available inside <strong>Create New Quiz</strong> → Questions tab in{' '}
+            <strong>Live mode</strong> (sign in without mock preview).
+          </p>
+        </div>
+      )}
+
       {/* Quiz List with integrated actions */}
       <QuizList
         quizzes={filteredQuizzes}
@@ -204,6 +220,7 @@ export function QuizzesDashboard({ courses = [] }: QuizzesDashboardProps) {
           courseOptions={courseOptions}
           onSuccess={handleCreateSuccess}
           onCancel={handleCreateCancel}
+          isMockMode={isMockMode}
         />
       )}
 

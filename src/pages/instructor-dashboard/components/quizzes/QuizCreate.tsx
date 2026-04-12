@@ -3,13 +3,14 @@
  */
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { X, Loader2, Plus, Calendar, Clock, Users, CheckSquare, Shuffle, Eye } from 'lucide-react';
+import { X, Loader2, Plus, Calendar, Clock, CheckSquare, Shuffle, Eye, Bot, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useTheme } from '../../contexts/ThemeContext';
-import { CleanSelect } from '../../../../components/shared';
+import { CleanSelect, CustomDropdown } from '../../../../components/shared';
 import { QuestionEditor } from './QuestionEditor';
 import QuizService from '../../../../services/api/quizService';
+import { generateQuestionsFromAiService } from './quizAiGeneration';
 import {
   QuizFormData,
   QuestionFormData,
@@ -17,13 +18,29 @@ import {
   DEFAULT_QUESTION_FORM,
 } from './types';
 
+type AiGeneratorQType = 'MCQ' | 'FillBlank' | 'Explain';
+
+const AI_GEN_TYPE_OPTIONS: { value: AiGeneratorQType; label: string }[] = [
+  { value: 'MCQ', label: 'MCQ' },
+  { value: 'FillBlank', label: 'Fill in the blank' },
+  { value: 'Explain', label: 'Explain' },
+];
+
+const AI_DIFFICULTY_OPTIONS = [
+  { value: 'easy', label: 'Easy' },
+  { value: 'medium', label: 'Medium' },
+  { value: 'hard', label: 'Hard' },
+];
+
 interface QuizCreateProps {
   courseOptions: { value: string; label: string }[];
   onSuccess: () => void;
   onCancel: () => void;
+  /** When true, AI generation UI is hidden (use Live mode + real account). */
+  isMockMode?: boolean;
 }
 
-export function QuizCreate({ courseOptions, onSuccess, onCancel }: QuizCreateProps) {
+export function QuizCreate({ courseOptions, onSuccess, onCancel, isMockMode = false }: QuizCreateProps) {
   const { t, isRTL } = useLanguage();
   const { isDark, primaryHex = '#3b82f6' } = useTheme() as any;
 
@@ -32,12 +49,16 @@ export function QuizCreate({ courseOptions, onSuccess, onCancel }: QuizCreatePro
 
   // Form state
   const [formData, setFormData] = useState<QuizFormData>(DEFAULT_QUIZ_FORM);
-  const [questions, setQuestions] = useState<QuestionFormData[]>([
-    { ...DEFAULT_QUESTION_FORM, tempId: Date.now() },
-  ]);
+  const [questions, setQuestions] = useState<QuestionFormData[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'settings' | 'questions'>('settings');
+
+  const [aiFile, setAiFile] = useState<File | null>(null);
+  const [aiNumQuestions, setAiNumQuestions] = useState(8);
+  const [aiQuestionType, setAiQuestionType] = useState<AiGeneratorQType>('MCQ');
+  const [aiDifficulty, setAiDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
+  const [aiLoading, setAiLoading] = useState(false);
 
   // Focus management
   useEffect(() => {
@@ -63,26 +84,61 @@ export function QuizCreate({ courseOptions, onSuccess, onCancel }: QuizCreatePro
     setFormError(null);
   };
 
-  // Add question
   const addQuestion = () => {
     setQuestions((prev) => [
       ...prev,
-      { ...DEFAULT_QUESTION_FORM, tempId: Date.now(), orderIndex: prev.length },
+      {
+        ...DEFAULT_QUESTION_FORM,
+        tempId: Date.now(),
+        orderIndex: prev.length,
+        questionProvenance: 'manual',
+      },
     ]);
   };
 
-  // Update question
   const updateQuestion = (index: number, updatedQuestion: QuestionFormData) => {
     setQuestions((prev) => prev.map((q, i) => (i === index ? updatedQuestion : q)));
   };
 
-  // Remove question
   const removeQuestion = (index: number) => {
-    if (questions.length <= 1) {
-      toast.error('Quiz must have at least one question');
+    setQuestions((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const appendAiQuestions = async () => {
+    if (!aiFile) {
+      toast.error('Choose a source file first.');
       return;
     }
-    setQuestions((prev) => prev.filter((_, i) => i !== index));
+    if (!formData.courseId) {
+      toast.error('Select a course in Quiz Settings first.');
+      setActiveTab('settings');
+      return;
+    }
+    setAiLoading(true);
+    try {
+      const generated = await generateQuestionsFromAiService({
+        file: aiFile,
+        numQuestions: aiNumQuestions,
+        questionType: aiQuestionType,
+        difficulty: aiDifficulty,
+      });
+      setQuestions((prev) => {
+        const start = prev.length;
+        return [
+          ...prev,
+          ...generated.map((q, i) => ({
+            ...q,
+            orderIndex: start + i,
+            tempId: Date.now() + i + Math.floor(Math.random() * 10000),
+          })),
+        ];
+      });
+      toast.success(`Added ${generated.length} AI-generated question(s). You can edit them below.`);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'AI generation failed');
+    } finally {
+      setAiLoading(false);
+    }
   };
 
   // Validate form
@@ -95,6 +151,12 @@ export function QuizCreate({ courseOptions, onSuccess, onCancel }: QuizCreatePro
     if (!formData.courseId) {
       setFormError('Please select a course');
       setActiveTab('settings');
+      return false;
+    }
+
+    if (questions.length === 0) {
+      setFormError('Add at least one question (manually or with AI generation)');
+      setActiveTab('questions');
       return false;
     }
 
@@ -431,7 +493,7 @@ export function QuizCreate({ courseOptions, onSuccess, onCancel }: QuizCreatePro
                     onChange={(e) => updateField('showAnswersAfter', e.target.value)}
                     className={`w-full sm:w-64 px-4 py-2 border rounded-lg focus:outline-none ${inputCls}`}
                   >
-                    <option value="immediately">Immediately after submission</option>
+                    <option value="immediate">Immediately after submission</option>
                     <option value="after_due">After due date</option>
                     <option value="never">Never</option>
                   </CleanSelect>
@@ -444,6 +506,105 @@ export function QuizCreate({ courseOptions, onSuccess, onCancel }: QuizCreatePro
         {/* Questions Tab */}
         {activeTab === 'questions' && (
           <div className="space-y-4">
+            {/* AI generation — appended to the list below */}
+            <div
+              className={`rounded-xl border p-4 ${isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-50'}`}
+              style={{ borderLeftWidth: 4, borderLeftColor: primaryHex }}
+            >
+              <div className="flex flex-wrap items-center gap-2 mb-2">
+                <Bot size={18} style={{ color: primaryHex }} aria-hidden />
+                <h3 className={`text-sm font-semibold ${headingCls}`}>Generate questions with AI</h3>
+              </div>
+              <p className={`text-sm mb-3 ${subCls}`}>
+                Upload a file. New questions are added to the list below and labeled as AI-generated. You can mix
+                them with manually added questions (any type: MCQ, True/False, etc.).
+              </p>
+              {isMockMode ? (
+                <p className={`text-sm ${subCls}`}>
+                  AI generation is available in Live mode after signing in (not in mock preview).
+                </p>
+              ) : !formData.courseId ? (
+                <p className={`text-sm font-medium ${isDark ? 'text-amber-200' : 'text-amber-800'}`}>
+                  Select a course under Quiz Settings first — the AI service needs your course context.
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <label className="cursor-pointer">
+                      <span
+                        className="inline-flex rounded-lg px-3 py-2 text-sm font-semibold text-white"
+                        style={{ backgroundColor: primaryHex }}
+                      >
+                        Choose file
+                      </span>
+                      <input
+                        type="file"
+                        accept=".pdf,.docx,.txt"
+                        className="sr-only"
+                        onChange={(e) => setAiFile(e.target.files?.[0] ?? null)}
+                      />
+                    </label>
+                    {aiFile ? (
+                      <span className={`text-sm font-medium truncate max-w-[min(100%,20rem)] ${headingCls}`}>
+                        {aiFile.name}
+                      </span>
+                    ) : (
+                      <span className={`text-sm ${subCls}`}>No file selected</span>
+                    )}
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                    <div>
+                      <label className={`block text-xs font-medium mb-1 ${subCls}`}>Number of questions</label>
+                      <input
+                        type="number"
+                        min={1}
+                        max={20}
+                        value={aiNumQuestions}
+                        onChange={(e) => setAiNumQuestions(Number(e.target.value || 1))}
+                        className={`w-full px-3 py-2 text-sm border rounded-lg ${inputCls}`}
+                      />
+                    </div>
+                    <CustomDropdown
+                      label="AI question style"
+                      options={AI_GEN_TYPE_OPTIONS}
+                      value={aiQuestionType}
+                      onChange={(v) => setAiQuestionType(v as AiGeneratorQType)}
+                      isDark={isDark}
+                      accentColor={primaryHex}
+                    />
+                    <CustomDropdown
+                      label="Difficulty"
+                      options={AI_DIFFICULTY_OPTIONS}
+                      value={aiDifficulty}
+                      onChange={(v) => setAiDifficulty(v as 'easy' | 'medium' | 'hard')}
+                      isDark={isDark}
+                      accentColor={primaryHex}
+                    />
+                    <div className="flex flex-col justify-end">
+                      <button
+                        type="button"
+                        disabled={aiLoading || !aiFile}
+                        onClick={() => void appendAiQuestions()}
+                        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-white rounded-lg disabled:opacity-40"
+                        style={{ backgroundColor: primaryHex }}
+                      >
+                        {aiLoading ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
+                        {aiLoading ? 'Generating…' : 'Generate & add'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {questions.length === 0 && (
+              <div
+                className={`text-center py-8 rounded-lg border border-dashed ${isDark ? 'border-white/15 text-slate-400' : 'border-gray-300 text-gray-600'}`}
+              >
+                No questions yet. Use AI above or add a question manually (all types available).
+              </div>
+            )}
+
             {questions.map((question, index) => (
               <QuestionEditor
                 key={question.tempId || question.id || index}
@@ -451,10 +612,11 @@ export function QuizCreate({ courseOptions, onSuccess, onCancel }: QuizCreatePro
                 index={index}
                 onUpdate={(updated) => updateQuestion(index, updated)}
                 onRemove={() => removeQuestion(index)}
-                canRemove={questions.length > 1}
+                canRemove={questions.length >= 1}
               />
             ))}
             <button
+              type="button"
               onClick={addQuestion}
               className="flex items-center gap-2 px-4 py-3 w-full justify-center text-sm border border-dashed rounded-lg transition-colors"
               style={{
@@ -463,7 +625,7 @@ export function QuizCreate({ courseOptions, onSuccess, onCancel }: QuizCreatePro
               }}
             >
               <Plus size={18} />
-              Add Question
+              Add question
             </button>
           </div>
         )}
