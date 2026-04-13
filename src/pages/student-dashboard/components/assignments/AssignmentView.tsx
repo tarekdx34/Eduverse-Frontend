@@ -34,7 +34,9 @@ export function AssignmentView({ assignmentId, onBack }: AssignmentViewProps) {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <Loader2 className="w-12 h-12 text-[var(--accent-color)] mx-auto mb-4 animate-spin" />
-          <p className={isDark ? 'text-slate-400' : 'text-slate-600'}>Loading assignment...</p>
+          <p className={isDark ? 'text-slate-400' : 'text-slate-600'}>
+            {t('loadingAssignment') || 'Loading assignment...'}
+          </p>
         </div>
       </div>
     );
@@ -48,15 +50,15 @@ export function AssignmentView({ assignmentId, onBack }: AssignmentViewProps) {
           className={`flex items-center gap-2 mb-4 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}
         >
           <ArrowLeft className="w-5 h-5" />
-          {t('assignments.backToAssignments') || 'Back'}
+          {t('backToAssignments') || 'Back'}
         </button>
         <div className={`p-8 rounded-2xl text-center ${isDark ? 'bg-card-dark' : 'bg-white'}`}>
           <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
           <h2 className={`font-semibold mb-2 ${isDark ? 'text-white' : 'text-slate-800'}`}>
-            Assignment not found
+            {t('assignmentNotFound') || 'Assignment not found'}
           </h2>
           <p className={isDark ? 'text-slate-400' : 'text-slate-600'}>
-            The assignment you're looking for doesn't exist or you don't have access to it.
+            {t('assignmentNotFoundDescription') || "The assignment you're looking for doesn't exist or you don't have access to it."}
           </p>
         </div>
       </div>
@@ -80,7 +82,7 @@ export function AssignmentView({ assignmentId, onBack }: AssignmentViewProps) {
           }`}
         >
           <ArrowLeft className="w-5 h-5" />
-          {t('assignments.backToAssignments') || 'Back to Assignments'}
+          {t('backToAssignments') || 'Back to Assignments'}
         </button>
 
         <div className="flex items-center gap-3 mb-2">

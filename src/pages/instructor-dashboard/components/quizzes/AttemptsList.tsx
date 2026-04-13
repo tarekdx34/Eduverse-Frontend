@@ -30,18 +30,32 @@ export function AttemptsList({ attempts, loading, onGradeClick }: AttemptsListPr
   };
 
   // Get score display
-  const getScoreDisplay = (attempt: QuizAttempt): { text: string; color: string } => {
-    const score = attempt.score ? parseFloat(attempt.score) : null;
-    if (score === null) {
-      return { text: '-', color: subCls };
+  const getScoreDisplay = (
+    attempt: QuizAttempt
+  ): { text: string; color: string; pointsText: string | null } => {
+    const points = Number((attempt as any).score ?? 0);
+    const maxScore = Number((attempt as any).maxScore ?? (attempt as any).totalScore ?? 0);
+
+    const percentageRaw = Number(
+      (attempt as any).scorePercentage ??
+      (attempt as any).score_percentage ??
+      (maxScore > 0 ? (points / maxScore) * 100 : NaN)
+    );
+
+    if (!Number.isFinite(percentageRaw)) {
+      return { text: '-', color: subCls, pointsText: null };
     }
-    if (score >= 90) {
-      return { text: `${score.toFixed(1)}%`, color: 'text-green-500' };
+
+    const percentage = Math.max(0, Math.min(100, percentageRaw));
+    const pointsText = maxScore > 0 ? `${points.toFixed(1)} / ${maxScore.toFixed(1)}` : null;
+
+    if (percentage >= 90) {
+      return { text: `${percentage.toFixed(1)}%`, color: 'text-green-500', pointsText };
     }
-    if (score >= 70) {
-      return { text: `${score.toFixed(1)}%`, color: 'text-yellow-500' };
+    if (percentage >= 70) {
+      return { text: `${percentage.toFixed(1)}%`, color: 'text-yellow-500', pointsText };
     }
-    return { text: `${score.toFixed(1)}%`, color: 'text-red-500' };
+    return { text: `${percentage.toFixed(1)}%`, color: 'text-red-500', pointsText };
   };
 
   // Get status badge
@@ -153,7 +167,8 @@ export function AttemptsList({ attempts, loading, onGradeClick }: AttemptsListPr
                       </span>
                     </td>
                     <td className={`py-3 font-medium ${score.color}`}>
-                      {score.text}
+                      <div>{score.text}</div>
+                      {score.pointsText && <div className={`text-xs ${subCls}`}>{score.pointsText}</div>}
                     </td>
                     <td className={`py-3 ${subCls}`}>
                       {getTimeTaken(attempt)}

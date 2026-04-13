@@ -112,8 +112,9 @@ export const QuizList: React.FC<QuizListProps> = ({ onStartQuiz, loadingQuizId }
             const maxAttempts = quiz.maxAttempts || 1;
             const remaining = Math.max(0, maxAttempts - attemptCount);
 
-            // Handle both questions array and totalQuestions count
-            const questionsCount = quiz.totalQuestions ?? quiz.questions?.length ?? 0;
+            // Prefer backend aggregate metadata for list endpoints, then fallback to embedded arrays
+            const questionsCount =
+              quiz.questionCount ?? quiz.totalQuestions ?? quiz.questions?.length ?? 0;
 
             return {
               id: quizId,

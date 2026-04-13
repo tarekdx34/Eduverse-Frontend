@@ -124,10 +124,13 @@ export const AttemptHistory: React.FC<AttemptHistoryProps> = ({ onViewResults, l
           const quizTitle = attempt.quiz?.title || (attempt as any).quiz_title || 'Quiz';
           const courseName = attempt.quiz?.course?.name || (attempt as any).course_name || 'Course';
           
-          // Calculate percentage from score data
-          const scoreObtained = parseFloat((attempt as any).score_obtained || attempt.score || '0');
-          const totalScore = parseFloat((attempt as any).total_score || (attempt as any).maxScore || '100');
-          const percentage = (attempt as any).score_percentage || (totalScore > 0 ? (scoreObtained / totalScore) * 100 : 0);
+          // Use backend-computed totals when available, with safe numeric fallbacks
+          const scoreObtained = Number((attempt as any).score_obtained ?? attempt.score ?? 0);
+          const totalScore = Number((attempt as any).total_score ?? (attempt as any).maxScore ?? 0);
+          const percentage = Number(
+            (attempt as any).score_percentage ??
+              (totalScore > 0 ? (scoreObtained / totalScore) * 100 : 0)
+          );
           const submittedAt = attempt.submittedAt || (attempt as any).submitted_at;
           
           const grade = getLetterGrade(percentage);

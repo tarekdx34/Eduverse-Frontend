@@ -109,7 +109,7 @@ export function TextSubmission({
           value={value}
           onChange={handleChange}
           disabled={disabled}
-          placeholder={placeholder || t('assignments.writeResponse') || 'Write your response here...'}
+          placeholder={placeholder || t('writeYourResponse') || 'Write your response here...'}
           rows={8}
           className={`w-full p-4 rounded-xl border-2 resize-none transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 ${
             isDark

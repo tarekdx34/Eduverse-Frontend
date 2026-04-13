@@ -138,12 +138,17 @@ export function SubmissionForm({ assignment, onSubmitSuccess, disabled = false }
       {/* Header */}
       <div className={`p-5 border-b ${isDark ? 'border-white/5' : 'border-slate-100'}`}>
         <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>
-          {t('assignments.submitYourWork') || 'Submit Your Work'}
+          {t('submitYourWork') || 'Submit Your Work'}
         </h3>
         <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
           {assignment.submissionType === 'any'
-            ? 'Choose how you want to submit your work'
-            : `Submit your ${assignment.submissionType} submission`}
+            ? t('chooseHowToSubmit') || 'Choose how you want to submit your work'
+            : (() => {
+                const template = t('submitYourType');
+                return template && template !== 'submitYourType'
+                  ? template.replace('{{type}}', assignment.submissionType)
+                  : `Submit your ${assignment.submissionType} submission`;
+              })()}
         </p>
       </div>
 
@@ -230,12 +235,12 @@ export function SubmissionForm({ assignment, onSubmitSuccess, disabled = false }
           {submitting ? (
             <>
               <Loader2 className="w-5 h-5 animate-spin" />
-              <span>Submitting...</span>
+              <span>{t('submitting') || 'Submitting...'}</span>
             </>
           ) : (
             <>
               <Send className="w-5 h-5" />
-              <span>{t('assignments.submitButton') || 'Submit Assignment'}</span>
+              <span>{t('submitAssignment') || 'Submit Assignment'}</span>
             </>
           )}
         </button>
@@ -243,10 +248,10 @@ export function SubmissionForm({ assignment, onSubmitSuccess, disabled = false }
         {!isValid() && !disabled && (
           <p className={`text-center text-sm flex items-center justify-center gap-2 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
             <AlertCircle className="w-4 h-4" />
-            {activeTab === 'text' && 'Enter your response to submit'}
-            {activeTab === 'file' && 'Attach a file to submit'}
-            {activeTab === 'link' && 'Enter a valid URL to submit'}
-            {activeTab === 'drive' && 'Select a file from Google Drive'}
+            {activeTab === 'text' && (t('enterResponseToSubmit') || 'Enter your response to submit')}
+            {activeTab === 'file' && (t('attachFileToSubmit') || 'Attach a file to submit')}
+            {activeTab === 'link' && (t('enterValidUrlToSubmit') || 'Enter a valid URL to submit')}
+            {activeTab === 'drive' && (t('selectDriveFileToSubmit') || 'Select a file from Google Drive')}
           </p>
         )}
       </div>
@@ -264,10 +269,10 @@ export function SubmissionForm({ assignment, onSubmitSuccess, disabled = false }
                 <Send className="w-8 h-8 text-[var(--accent-color)]" />
               </div>
               <h3 className={`text-lg font-semibold text-center mb-2 ${isDark ? 'text-white' : 'text-slate-800'}`}>
-                {t('assignments.confirmSubmit') || 'Confirm Submission'}
+                {t('confirmSubmission') || 'Confirm Submission'}
               </h3>
               <p className={`text-center mb-6 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-                {t('assignments.confirmSubmitMessage') || 'Are you sure you want to submit this assignment?'}
+                {t('confirmSubmissionMessage') || 'Are you sure you want to submit this assignment?'}
               </p>
 
               {isLate && (
@@ -276,10 +281,10 @@ export function SubmissionForm({ assignment, onSubmitSuccess, disabled = false }
                     <AlertCircle className={`w-5 h-5 flex-shrink-0 ${isDark ? 'text-amber-400' : 'text-amber-600'}`} />
                     <div>
                       <p className={`font-medium ${isDark ? 'text-amber-400' : 'text-amber-800'}`}>
-                        Late Submission
+                        {t('lateSubmission') || 'Late Submission'}
                       </p>
                       <p className={`text-sm ${isDark ? 'text-amber-400/80' : 'text-amber-700'}`}>
-                        This submission will be marked as late.
+                        {t('lateSubmissionMarked') || 'This submission will be marked as late.'}
                         {assignment.latePenalty && ` A ${assignment.latePenalty}% penalty may apply.`}
                       </p>
                     </div>
@@ -297,7 +302,7 @@ export function SubmissionForm({ assignment, onSubmitSuccess, disabled = false }
                       : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                   } ${submitting ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
-                  {t('assignments.cancel') || 'Cancel'}
+                  {t('cancel') || 'Cancel'}
                 </button>
                 <button
                   onClick={handleSubmit}
@@ -309,10 +314,10 @@ export function SubmissionForm({ assignment, onSubmitSuccess, disabled = false }
                   {submitting ? (
                     <span className="flex items-center justify-center gap-2">
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      Submitting...
+                      {t('submitting') || 'Submitting...'}
                     </span>
                   ) : (
-                    t('assignments.confirm') || 'Submit'
+                    t('confirm') || 'Submit'
                   )}
                 </button>
               </div>

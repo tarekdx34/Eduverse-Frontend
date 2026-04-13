@@ -89,7 +89,7 @@ export class AssignmentService {
         '/assignments/' + assignmentId + '/submissions/my'
       );
     } catch (error: any) {
-      if (error.message?.includes('404') || error.response?.status === 404) {
+      if (error.message?.includes('404') || error.message?.toLowerCase().includes('not found') || error.response?.status === 404) {
         return null; // Not submitted yet
       }
       throw error;
@@ -197,3 +197,4 @@ export class AssignmentService {
 }
 
 export default AssignmentService;
+

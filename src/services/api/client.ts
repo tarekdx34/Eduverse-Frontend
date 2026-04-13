@@ -42,6 +42,16 @@ export class ApiClient {
   private static baseURL = API_BASE_URL;
   private static rawBaseURL = API_BASE_URL.replace(/\/api\/?$/, '');
 
+  private static isExpectedNotFound(endpoint: string, status: number, errorMessage: string): boolean {
+    if (status !== 404) {
+      return false;
+    }
+
+    const isSubmissionLookup = /\/submissions\/my$/i.test(endpoint);
+    const isNotFoundMessage = /submission not found|not found/i.test(errorMessage);
+    return isSubmissionLookup && isNotFoundMessage;
+  }
+
   static async request<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
     const isAbsoluteUrl = /^https?:\/\//i.test(endpoint);
     const isRawPath = endpoint.startsWith('~/');
@@ -124,16 +134,22 @@ export class ApiClient {
           }
         }
 
-        console.error('[API Error]', errorMessage);
+        const expectedNotFound = this.isExpectedNotFound(endpoint, response.status, errorMessage);
+        if (!expectedNotFound) {
+          console.error('[API Error]', errorMessage);
+        }
         throw new Error(errorMessage || `HTTP ${response.status}`);
       }
 
       return data as T;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Network error';
-      console.error('[API Fetch Error]', errorMessage);
+      const expectedNotFound = this.isExpectedNotFound(endpoint, 404, errorMessage);
+      if (!expectedNotFound) {
+        console.error('[API Fetch Error]', errorMessage);
+      }
 
-      if (errorMessage.includes('Failed to fetch')) {
+      if (!expectedNotFound && errorMessage.includes('Failed to fetch')) {
         console.error(
           '⚠️ CORS or Network Error. Possible causes:\n' +
             '1. Backend server not running on http://localhost:8081\n' +

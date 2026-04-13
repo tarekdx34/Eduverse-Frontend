@@ -274,7 +274,7 @@ export function MySubmission({
             }`}
           >
             <h4 className={`font-semibold mb-3 ${isDark ? 'text-white' : 'text-slate-800'}`}>
-              {t('assignments.feedback') || 'Feedback'}
+              {t('feedback') || 'Feedback'}
             </h4>
             <p className={`whitespace-pre-wrap ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
               {submission.feedback}

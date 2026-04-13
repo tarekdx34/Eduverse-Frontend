@@ -73,18 +73,29 @@ export interface AttemptAnswer {
 }
 
 export interface AttemptResult {
-  totalScore: number;
+  attemptId: number;
+  quizId: number;
+  quizTitle: string;
+  userId: number;
+  attemptNumber: number;
+  score: number;
   maxScore: number;
   percentage: number;
   passed: boolean;
-  timeSpent: number;
-  answers: {
+  timeTakenMinutes: number;
+  correctCount?: number;
+  wrongCount?: number;
+  skippedCount?: number;
+  questions?: {
     questionId: number;
+    questionText: string;
+    questionType: string;
+    studentAnswer: string;
     isCorrect: boolean;
     pointsEarned: number;
     correctAnswer?: string;
-    selectedAnswer?: string;
-    questionText?: string;
+    maxPoints?: number;
+    explanation?: string;
   }[];
 }
 

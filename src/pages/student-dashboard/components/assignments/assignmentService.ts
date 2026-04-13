@@ -42,8 +42,7 @@ export const StudentAssignmentService = {
       // 404 means no submission exists
       if (
         error instanceof Error &&
-        (error.message?.includes('404') ||
-          (error as { response?: { status?: number } }).response?.status === 404)
+        (error.message?.includes('404') || error.message?.toLowerCase().includes('not found') || (error as { response?: { status?: number } }).response?.status === 404)
       ) {
         return null;
       }
@@ -121,3 +120,4 @@ export const StudentAssignmentService = {
 };
 
 export default StudentAssignmentService;
+

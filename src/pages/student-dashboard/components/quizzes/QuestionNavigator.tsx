@@ -5,7 +5,7 @@ import { useLanguage } from '../../contexts/LanguageContext';
 
 interface QuestionNavigatorProps {
   questions: Array<{ id: string }>;
-  currentIndex: number;
+  currentQuestionIndex: number;
   answers: Record<string, any>;
   skippedQuestions: Set<string>;
   onSelectQuestion: (index: number) => void;
@@ -14,18 +14,18 @@ interface QuestionNavigatorProps {
 
 const QuestionNavigator: React.FC<QuestionNavigatorProps> = ({
   questions,
-  currentIndex,
+  currentQuestionIndex,
   answers,
   skippedQuestions,
   onSelectQuestion,
   onClose,
 }) => {
   const { isDark } = useTheme();
-  const { isRTL } = useLanguage();
+  const { isRTL, t } = useLanguage();
 
   // Determine status for each question
   const getQuestionStatus = (index: number): 'answered' | 'skipped' | 'current' | 'unanswered' => {
-    if (index === currentIndex) {
+    if (index === currentQuestionIndex) {
       return 'current';
     }
 
@@ -64,10 +64,10 @@ const QuestionNavigator: React.FC<QuestionNavigatorProps> = ({
   };
 
   const legendItems = [
-    { color: '#10B981', label: 'Answered', status: 'answered' as const },
-    { color: '#F59E0B', label: 'Skipped', status: 'skipped' as const },
-    { color: 'var(--accent-color)', label: 'Current', status: 'current' as const },
-    { color: isDark ? 'rgba(255,255,255,0.1)' : '#E2E8F0', label: 'Unanswered', status: 'unanswered' as const },
+    { color: '#10B981', label: t('answered'), status: 'answered' as const },
+    { color: '#F59E0B', label: t('skipped'), status: 'skipped' as const },
+    { color: 'var(--accent-color)', label: t('current'), status: 'current' as const },
+    { color: isDark ? 'rgba(255,255,255,0.1)' : '#E2E8F0', label: t('unanswered'), status: 'unanswered' as const },
   ];
 
   return (
@@ -76,7 +76,7 @@ const QuestionNavigator: React.FC<QuestionNavigatorProps> = ({
       onClick={onClose}
       role="dialog"
       aria-modal="true"
-      aria-label="Question Navigator"
+      aria-label={t('questionNavigator')}
     >
       {/* Modal Content */}
       <div
@@ -87,7 +87,7 @@ const QuestionNavigator: React.FC<QuestionNavigatorProps> = ({
       >
         {/* Header */}
         <div className={`sticky top-0 flex items-center justify-between p-6 border-b ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
-          <h2 className="text-2xl font-bold">Question Navigator</h2>
+          <h2 className="text-2xl font-bold">{t('questionNavigator')}</h2>
           <button
             onClick={onClose}
             className={`p-2 rounded-lg transition-colors ${
@@ -95,7 +95,7 @@ const QuestionNavigator: React.FC<QuestionNavigatorProps> = ({
                 ? 'hover:bg-slate-800 text-slate-400 hover:text-white'
                 : 'hover:bg-slate-100 text-slate-600 hover:text-slate-900'
             }`}
-            aria-label="Close navigator"
+            aria-label={t('close')}
           >
             <X size={24} />
           </button>
@@ -105,7 +105,7 @@ const QuestionNavigator: React.FC<QuestionNavigatorProps> = ({
         <div className="p-6 space-y-6">
           {/* Question Grid */}
           <div className="space-y-4">
-            <h3 className="text-sm font-semibold uppercase tracking-wide opacity-75">Questions</h3>
+            <h3 className="text-sm font-semibold uppercase tracking-wide opacity-75">{t('questions')}</h3>
             <div className="grid grid-cols-5 gap-2">
               {questions.map((question, index) => {
                 const status = getQuestionStatus(index);
@@ -118,7 +118,7 @@ const QuestionNavigator: React.FC<QuestionNavigatorProps> = ({
                     }}
                     className={getButtonStyle(status)}
                     aria-label={`Question ${index + 1}, ${status}`}
-                    aria-current={index === currentIndex ? 'true' : undefined}
+                    aria-current={index === currentQuestionIndex ? 'true' : undefined}
                   >
                     {index + 1}
                   </button>
@@ -129,7 +129,7 @@ const QuestionNavigator: React.FC<QuestionNavigatorProps> = ({
 
           {/* Legend */}
           <div className="space-y-3 pt-4 border-t border-opacity-20" style={{ borderColor: isDark ? 'white' : 'black' }}>
-            <h3 className="text-sm font-semibold uppercase tracking-wide opacity-75">Legend</h3>
+            <h3 className="text-sm font-semibold uppercase tracking-wide opacity-75">{t('legend')}</h3>
             <div className={`flex flex-wrap gap-4 ${isRTL ? 'flex-row-reverse' : ''}`}>
               {legendItems.map((item) => (
                 <div
@@ -138,7 +138,7 @@ const QuestionNavigator: React.FC<QuestionNavigatorProps> = ({
                   style={{ flexDirection: isRTL ? 'row-reverse' : 'row' }}
                 >
                   <div
-                    className="w-5 h-5 rounded-lg flex-shrink-0 border border-opacity-20"
+                    className="w-5 h-5 rounded-lg shrink-0 border border-opacity-20"
                     style={{
                       backgroundColor: item.color,
                       borderColor: isDark ? 'white' : 'black',
@@ -153,25 +153,25 @@ const QuestionNavigator: React.FC<QuestionNavigatorProps> = ({
           {/* Summary Stats */}
           <div className={`grid grid-cols-4 gap-3 pt-4 border-t border-opacity-20 ${isRTL ? 'text-right' : 'text-left'}`} style={{ borderColor: isDark ? 'white' : 'black' }}>
             <div className={`p-3 rounded-lg ${isDark ? 'bg-slate-800' : 'bg-slate-50'}`}>
-              <div className="text-xs opacity-75 mb-1">Answered</div>
+              <div className="text-xs opacity-75 mb-1">{t('answered')}</div>
               <div className="text-lg font-bold">
                 {Object.keys(answers).length}
               </div>
             </div>
             <div className={`p-3 rounded-lg ${isDark ? 'bg-slate-800' : 'bg-slate-50'}`}>
-              <div className="text-xs opacity-75 mb-1">Skipped</div>
+              <div className="text-xs opacity-75 mb-1">{t('skipped')}</div>
               <div className="text-lg font-bold">
                 {skippedQuestions.size}
               </div>
             </div>
             <div className={`p-3 rounded-lg ${isDark ? 'bg-slate-800' : 'bg-slate-50'}`}>
-              <div className="text-xs opacity-75 mb-1">Unanswered</div>
+              <div className="text-xs opacity-75 mb-1">{t('unanswered')}</div>
               <div className="text-lg font-bold">
                 {questions.length - Object.keys(answers).length - skippedQuestions.size}
               </div>
             </div>
             <div className={`p-3 rounded-lg ${isDark ? 'bg-slate-800' : 'bg-slate-50'}`}>
-              <div className="text-xs opacity-75 mb-1">Total</div>
+              <div className="text-xs opacity-75 mb-1">{t('total')}</div>
               <div className="text-lg font-bold">
                 {questions.length}
               </div>

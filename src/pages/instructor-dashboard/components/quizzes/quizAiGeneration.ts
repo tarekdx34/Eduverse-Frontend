@@ -108,7 +108,7 @@ export function mapAiRowsToQuestionForms(rows: NormalizedAiRow[], startOrderInde
         options,
         correctAnswer: guessMcqAnswerIndex(row.answer, options),
         explanation: row.reference || '',
-        points: 10,
+        points: base.points,
       };
     }
 
@@ -120,7 +120,7 @@ export function mapAiRowsToQuestionForms(rows: NormalizedAiRow[], startOrderInde
         options: [],
         correctAnswer: row.answer,
         explanation: row.reference || '',
-        points: 10,
+        points: base.points,
       };
     }
 
@@ -131,7 +131,7 @@ export function mapAiRowsToQuestionForms(rows: NormalizedAiRow[], startOrderInde
       options: [],
       correctAnswer: '',
       explanation: row.reference || row.answer || '',
-      points: 10,
+      points: base.points,
     };
   });
 }

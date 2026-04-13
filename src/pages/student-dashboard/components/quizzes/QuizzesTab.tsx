@@ -78,20 +78,37 @@ const QuizzesTab = () => {
       );
       if (!question) return;
 
-      if (
-        question.questionType === 'mcq' &&
-        question.options &&
-        ans.selectedOption
-      ) {
-        const idx = parseInt(ans.selectedOption, 10);
+      if (question.questionType === 'mcq' && question.options && ans.selectedOption) {
+        const selected = Array.isArray(ans.selectedOption)
+          ? ans.selectedOption[0]
+          : ans.selectedOption;
+        const idx = parseInt(selected, 10);
         if (!isNaN(idx) && question.options[idx]) {
           result[ans.questionId] = question.options[idx];
+        } else if (selected) {
+          result[ans.questionId] = selected;
         }
       } else if (
         question.questionType === 'true_false' &&
         ans.selectedOption
       ) {
-        result[ans.questionId] = ans.selectedOption === '0' ? 'True' : 'False';
+        const selected = Array.isArray(ans.selectedOption)
+          ? ans.selectedOption[0]
+          : ans.selectedOption;
+        if (selected === '0' || selected === 'false') {
+          result[ans.questionId] = 'false';
+        } else if (selected === '1' || selected === 'true') {
+          result[ans.questionId] = 'true';
+        }
+      } else if (question.questionType === 'matching' && ans.answerText) {
+        try {
+          const parsed = JSON.parse(ans.answerText);
+          if (Array.isArray(parsed)) {
+            result[ans.questionId] = parsed;
+          }
+        } catch {
+          result[ans.questionId] = [];
+        }
       } else if (ans.answerText) {
         result[ans.questionId] = ans.answerText;
       }
@@ -99,6 +116,31 @@ const QuizzesTab = () => {
 
     return result;
   };
+
+  const mapAttemptResultToQuizResult = useCallback((result: AttemptResult, passingScore: number): QuizResultData => {
+    const questionResults = result.questions || [];
+
+    return {
+      score: result.score,
+      maxScore: result.maxScore,
+      percentage: result.percentage,
+      passed: result.passed ?? result.percentage >= passingScore,
+      grade: getLetterGrade(result.percentage),
+      correct: result.correctCount ?? 0,
+      wrong: result.wrongCount ?? 0,
+      skipped: result.skippedCount ?? 0,
+      questions: questionResults.map((q) => ({
+        questionId: String(q.questionId),
+        questionText: q.questionText || '',
+        questionType: (q.questionType as any) || 'mcq',
+        isCorrect: q.isCorrect,
+        userAnswer: q.studentAnswer || null,
+        correctAnswer: q.correctAnswer || null,
+        points: Number(q.maxPoints || 0),
+        pointsEarned: q.pointsEarned,
+      })),
+    };
+  }, []);
 
   /**
    * Handle starting a quiz
@@ -201,46 +243,44 @@ const QuizzesTab = () => {
    * Transform AttemptResult to QuizResultData and display results
    */
   const handleQuizSubmit = useCallback((result: AttemptResult) => {
-    const questions = activeQuiz?.questions || [];
     const passingScore = activeQuiz?.passingScore || 50;
-    
-    // Defensive: Handle case where answers array might be undefined
-    const answers = result.answers || [];
 
-    const resultData: QuizResultData = {
-      score: result.totalScore,
-      maxScore: result.maxScore,
-      percentage: result.percentage,
-      passed: result.percentage >= passingScore,
-      grade: getLetterGrade(result.percentage),
-      correct: answers.filter((a) => a.isCorrect).length,
-      wrong: answers.filter(
-        (a) => !a.isCorrect && a.selectedAnswer
-      ).length,
-      skipped: answers.filter((a) => !a.selectedAnswer).length,
-      questions: answers.map((a) => ({
-        questionId: String(a.questionId),
-        questionText: a.questionText || '',
-        questionType: 'mcq', // Default, could be improved
-        isCorrect: a.isCorrect,
-        userAnswer: a.selectedAnswer || null,
-        correctAnswer: a.correctAnswer || null,
-        points: 0,
-        pointsEarned: a.pointsEarned,
-      })),
-    };
-
-    setQuizResult(resultData);
+    setQuizResult(mapAttemptResultToQuizResult(result, passingScore));
     setView('results');
-  }, [activeQuiz]);
+  }, [activeQuiz, mapAttemptResultToQuizResult]);
 
   /**
    * Handle viewing a previous attempt result
    */
-  const handleViewAttempt = useCallback((attemptId: string) => {
-    // TODO: Implement viewing previous attempt
-    toast.info('View attempt: ' + attemptId);
-  }, []);
+  const handleViewAttempt = useCallback(async (attemptId: string, quizId: string) => {
+    try {
+      const fullQuiz = await QuizService.getById(quizId);
+      const result = await QuizService.getAttemptResult(attemptId);
+
+      setActiveQuiz((prev) => ({
+        quizId,
+        attemptId,
+        questions: prev?.questions || [],
+        timeLimitSeconds: 0,
+        quizTitle: fullQuiz.title,
+        courseCode: fullQuiz.course?.code || 'Course',
+        courseColor: '#3B82F6',
+        savedAnswers: {},
+        showCorrectAnswers: !!fullQuiz.showCorrectAnswers,
+        maxAttempts: fullQuiz.maxAttempts,
+        remainingAttempts: 0,
+        passingScore: parseFloat(fullQuiz.passingScore || '50'),
+      }));
+
+      setQuizResult(
+        mapAttemptResultToQuizResult(result, parseFloat(fullQuiz.passingScore || '50')),
+      );
+      setView('results');
+    } catch (error) {
+      console.error('[QuizzesTab] Failed to view attempt results:', error);
+      toast.error('Failed to load attempt results');
+    }
+  }, [mapAttemptResultToQuizResult]);
 
   /**
    * Render appropriate view based on current state
@@ -282,7 +322,7 @@ const QuizzesTab = () => {
             result={quizResult}
             quizTitle={activeQuiz.quizTitle}
             showCorrectAnswers={activeQuiz.showCorrectAnswers}
-            canRetake={activeQuiz.remainingAttempts > 1}
+            canRetake={activeQuiz.remainingAttempts >= 1}
             onRetake={() => handleStartQuiz(activeQuiz.quizId)}
             onBackToList={() => {
               setView('list');

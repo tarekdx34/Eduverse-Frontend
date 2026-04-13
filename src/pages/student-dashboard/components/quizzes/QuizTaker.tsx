@@ -40,6 +40,19 @@ const QuizTaker: React.FC<QuizTakerProps> = ({
   const { language, t } = useLanguage();
   const isRTL = language === 'ar';
 
+  const tr = useCallback(
+    (key: string, vars?: Record<string, string | number>) => {
+      let text = t(key);
+      if (vars) {
+        Object.entries(vars).forEach(([varKey, value]) => {
+          text = text.replace(new RegExp(`{{\\s*${varKey}\\s*}}`, 'g'), String(value));
+        });
+      }
+      return text;
+    },
+    [t],
+  );
+
   // State Management
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<AnswersState>(savedAnswers || {});
@@ -49,6 +62,7 @@ const QuizTaker: React.FC<QuizTakerProps> = ({
   const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout>();
+  const autoSaveErrorLoggedRef = useRef(false);
 
   const currentQuestion = questions[currentQuestionIndex];
   const answeredCount = Object.keys(answers).length;
@@ -61,55 +75,79 @@ const QuizTaker: React.FC<QuizTakerProps> = ({
 
       if (!answer) {
         return {
-          questionId: question.id,
+          questionId: Number(question.id),
           answerText: '',
         };
       }
 
-      let answerText = '';
+      const basePayload = {
+        questionId: Number(question.id),
+      };
 
       switch (question.type || question.questionType) {
         case 'mcq': {
-          // For MCQ, send the selected option text
-          answerText = answer.selectedOption || answer || '';
-          break;
+          const selected = String(answer?.selectedOption || answer || '').trim();
+          const selectedIndex =
+            Array.isArray(question.options) && selected
+              ? question.options.findIndex((opt) => String(opt) === selected)
+              : -1;
+          const normalizedSelected =
+            selectedIndex >= 0
+              ? String(selectedIndex)
+              : selected;
+          return {
+            ...basePayload,
+            selectedOption: normalizedSelected ? [normalizedSelected] : [],
+          };
         }
 
         case 'true_false': {
-          // For true/false, send 'true' or 'false'
-          answerText = String(answer.selectedOption || answer || 'false');
-          break;
+          const selected = String(answer?.selectedOption || answer || '').trim();
+          return {
+            ...basePayload,
+            selectedOption: selected ? [selected] : [],
+            answerText: selected || undefined,
+          };
         }
 
         case 'short_answer':
         case 'essay': {
-          // For text answers, send the text directly
-          answerText = answer.answerText || answer || '';
-          break;
+          const answerText = String(answer?.answerText || answer || '').trim();
+          return {
+            ...basePayload,
+            answerText,
+          };
         }
 
         case 'matching': {
-          // For matching, serialize the pairs as JSON string
-          const pairs = answer.matchingPairs || [];
-          answerText = JSON.stringify(pairs);
-          break;
+          const pairs = answer?.matchingPairs || [];
+          return {
+            ...basePayload,
+            answerText: JSON.stringify(pairs),
+          };
         }
 
         case 'multiple_select': {
-          // For multiple select, serialize selected options as JSON
-          const selected = answer.selectedOptions || [];
-          answerText = JSON.stringify(selected);
-          break;
+          const selected = Array.isArray(answer?.selectedOptions) ? answer.selectedOptions : [];
+          const normalizedSelected = selected.map((value: string) => {
+            const selectedIndex =
+              Array.isArray(question.options)
+                ? question.options.findIndex((opt) => String(opt) === String(value))
+                : -1;
+            return selectedIndex >= 0 ? String(selectedIndex) : String(value);
+          });
+          return {
+            ...basePayload,
+            selectedOption: normalizedSelected,
+          };
         }
 
         default:
-          answerText = typeof answer === 'string' ? answer : JSON.stringify(answer);
+          return {
+            ...basePayload,
+            answerText: typeof answer === 'string' ? answer : JSON.stringify(answer),
+          };
       }
-
-      return {
-        questionId: question.id,
-        answerText,
-      };
     });
 
     return answersArray;
@@ -120,8 +158,12 @@ const QuizTaker: React.FC<QuizTakerProps> = ({
     try {
       const answersArray = transformAnswersForApi();
       await QuizService.saveProgress(quizId, attemptId, answersArray);
+      autoSaveErrorLoggedRef.current = false;
     } catch (error) {
-      console.error('Auto-save failed:', error);
+      if (!autoSaveErrorLoggedRef.current) {
+        console.error('Auto-save failed:', error);
+        autoSaveErrorLoggedRef.current = true;
+      }
     }
   }, [quizId, attemptId, transformAnswersForApi]);
 
@@ -129,7 +171,7 @@ const QuizTaker: React.FC<QuizTakerProps> = ({
   const { timeRemaining, isAutoSaving, timeRemainingFormatted } = useQuizTimer({
     timeLimit: timeLimitSeconds,
     onTimeExpired: () => {
-      toast.info(t('quiz.timeExpired'));
+      toast.info(tr('quizTimeExpired'));
       handleSubmit();
     },
     onAutoSave: handleAutoSave,
@@ -186,11 +228,11 @@ const QuizTaker: React.FC<QuizTakerProps> = ({
       const answersArray = transformAnswersForApi();
       const result = await QuizService.submitAttempt(quizId, attemptId, answersArray);
       
-      toast.success(t('quiz.submittedSuccessfully'));
+      toast.success(tr('quizSubmittedSuccessfully'));
       onSubmit(result);
     } catch (error) {
       console.error('Submit error:', error);
-      toast.error(t('quiz.submitFailed'));
+      toast.error(tr('quizSubmitFailed'));
     } finally {
       setSubmitting(false);
     }
@@ -221,7 +263,7 @@ const QuizTaker: React.FC<QuizTakerProps> = ({
       <div className={`flex items-center justify-center h-screen ${isDark ? 'bg-slate-950' : 'bg-white'}`}>
         <div className="text-center">
           <p className={isDark ? 'text-slate-400' : 'text-slate-600'}>
-            {t('quiz.noQuestionsAvailable')}
+            {tr('noQuestionsAvailable')}
           </p>
         </div>
       </div>
@@ -251,7 +293,7 @@ const QuizTaker: React.FC<QuizTakerProps> = ({
                   ? 'hover:bg-slate-800 text-slate-400 hover:text-slate-200'
                   : 'hover:bg-slate-100 text-slate-600 hover:text-slate-900'
               }`}
-              title={t('common.back')}
+              title={tr('back')}
             >
               <ChevronLeft size={24} />
             </button>
@@ -284,7 +326,7 @@ const QuizTaker: React.FC<QuizTakerProps> = ({
                     ? 'hover:bg-slate-800 text-slate-400 hover:text-slate-200'
                     : 'hover:bg-slate-100 text-slate-600 hover:text-slate-900'
                 }`}
-                title={t('quiz.navigatorButton')}
+                title={tr('questionNavigator')}
               >
                 <Grid3X3 size={24} />
               </button>
@@ -309,15 +351,15 @@ const QuizTaker: React.FC<QuizTakerProps> = ({
           >
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-emerald-500" />
-              {t('quiz.answered')}: {answeredCount}
+              {tr('answered')}: {answeredCount}
             </div>
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-amber-500" />
-              {t('quiz.skipped')}: {skippedCount}
+              {tr('skipped')}: {skippedCount}
             </div>
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-slate-400" />
-              {t('quiz.unanswered')}: {reviewCount}
+              {tr('unanswered')}: {reviewCount}
             </div>
           </div>
         </div>
@@ -359,7 +401,7 @@ const QuizTaker: React.FC<QuizTakerProps> = ({
             }`}
           >
             {!isRTL && <ChevronLeft size={20} />}
-            {t('common.previous')}
+            {tr('previous')}
             {isRTL && <ChevronLeft size={20} />}
           </button>
 
@@ -372,7 +414,7 @@ const QuizTaker: React.FC<QuizTakerProps> = ({
             }`}
           >
             <SkipForward size={20} />
-            {t('quiz.skip')}
+            {tr('skip')}
           </button>
 
           {currentQuestionIndex === totalQuestions - 1 ? (
@@ -390,7 +432,7 @@ const QuizTaker: React.FC<QuizTakerProps> = ({
               }`}
             >
               <Send size={20} />
-              {submitting ? t('common.submitting') : t('quiz.submit')}
+              {submitting ? tr('submitting') : tr('submitAnswers')}
             </button>
           ) : (
             <button
@@ -406,7 +448,7 @@ const QuizTaker: React.FC<QuizTakerProps> = ({
                     : 'bg-slate-200 text-slate-900 hover:bg-slate-300'
               }`}
             >
-              {t('common.next')}
+              {tr('next')}
               {!isRTL && <ChevronRight size={20} />}
               {isRTL && <ChevronRight size={20} />}
             </button>
@@ -441,10 +483,10 @@ const QuizTaker: React.FC<QuizTakerProps> = ({
               </div>
               <div className="flex-1">
                 <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                  {t('quiz.exitConfirmTitle')}
+                  {tr('exitConfirmTitle')}
                 </h3>
                 <p className={`text-sm mt-2 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-                  {t('quiz.exitConfirmMessage')}
+                  {tr('exitConfirmMessage')}
                 </p>
               </div>
               <button
@@ -468,13 +510,13 @@ const QuizTaker: React.FC<QuizTakerProps> = ({
                     : 'bg-slate-200 text-slate-900 hover:bg-slate-300'
                 }`}
               >
-                {t('common.cancel')}
+                {tr('cancel')}
               </button>
               <button
                 onClick={handleExit}
                 className="px-6 py-2 rounded-full font-medium bg-red-600 text-white hover:bg-red-700 transition-colors"
               >
-                {t('quiz.exitQuiz')}
+                {tr('exitQuiz')}
               </button>
             </div>
           </div>
@@ -495,14 +537,14 @@ const QuizTaker: React.FC<QuizTakerProps> = ({
               </div>
               <div className="flex-1">
                 <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                  {t('quiz.submitConfirmTitle')}
+                  {tr('submitConfirmTitle')}
                 </h3>
                 <p className={`text-sm mt-2 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-                  {t('quiz.submitConfirmMessage')}
+                  {tr('submitConfirmMessage')}
                 </p>
                 {unansweredCount > 0 && (
                   <p className={`text-sm mt-2 font-medium ${isDark ? 'text-amber-400' : 'text-amber-600'}`}>
-                    {t('quiz.unansweredWarning', { count: unansweredCount })}
+                    {tr('unansweredWarning', { count: unansweredCount })}
                   </p>
                 )}
               </div>
@@ -527,7 +569,7 @@ const QuizTaker: React.FC<QuizTakerProps> = ({
                     : 'bg-slate-200 text-slate-900 hover:bg-slate-300'
                 }`}
               >
-                {t('common.cancel')}
+                {tr('cancel')}
               </button>
               <button
                 onClick={handleSubmit}
@@ -540,7 +582,7 @@ const QuizTaker: React.FC<QuizTakerProps> = ({
                     : 'bg-emerald-600 text-white hover:bg-emerald-700'
                 }`}
               >
-                {submitting ? t('common.submitting') : t('quiz.confirmSubmit')}
+                {submitting ? tr('submitting') : tr('confirmSubmit')}
               </button>
             </div>
           </div>

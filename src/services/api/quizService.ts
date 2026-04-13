@@ -24,6 +24,8 @@ export interface Quiz {
   course?: { id: string; name: string; code: string; departmentId?: string };
   creator?: { userId: number; firstName: string; lastName: string; email: string };
   questions?: QuizQuestion[];
+  questionCount?: number;
+  maxScore?: number;
 }
 
 export interface QuizQuestion {
@@ -57,6 +59,14 @@ export interface QuizAttempt {
   questions?: QuizQuestion[];
   quiz?: Quiz;
   user?: { userId: number; firstName: string; lastName: string; email: string };
+  questionCount?: number;
+  maxScore?: number;
+  totalScore?: number;
+  scoreObtained?: number;
+  scorePercentage?: number;
+  score_obtained?: number;
+  total_score?: number;
+  score_percentage?: number;
 }
 
 export interface AttemptAnswer {
@@ -70,22 +80,38 @@ export interface AttemptAnswer {
 }
 
 export interface AttemptResult {
-  totalScore: number;
+  attemptId: number;
+  quizId: number;
+  quizTitle: string;
+  userId: number;
+  attemptNumber: number;
+  score: number;
   maxScore: number;
   percentage: number;
   passed: boolean;
-  timeSpent: number;
-  answers: {
+  timeTakenMinutes: number;
+  correctCount?: number;
+  wrongCount?: number;
+  skippedCount?: number;
+  questions?: {
     questionId: number;
+    questionText: string;
+    questionType: string;
+    studentAnswer: string;
     isCorrect: boolean;
     pointsEarned: number;
     correctAnswer?: string;
-    selectedAnswer?: string;
-    questionText?: string;
+    maxPoints?: number;
+    explanation?: string;
   }[];
 }
 
 export interface MyAttemptsResponse {
+  data: QuizAttempt[];
+  total: number;
+}
+
+export interface AttemptsListResponse {
   data: QuizAttempt[];
   total: number;
 }
@@ -205,6 +231,11 @@ export class QuizService {
     return ApiClient.get<QuizAttempt>('/quizzes/attempts/' + attemptId);
   }
 
+  // Get attempt result details - GET /quizzes/attempts/:attemptId
+  static async getAttemptResult(attemptId: string): Promise<AttemptResult> {
+    return ApiClient.get<AttemptResult>('/quizzes/attempts/' + attemptId);
+  }
+
   // Save progress (auto-save) - PATCH /quizzes/:quizId/attempts/:attemptId/progress
 
   // Get my attempts - GET /quizzes/my-attempts
@@ -235,7 +266,8 @@ export class QuizService {
 
   // Get all attempts - GET /quizzes/attempts
   static async getAllAttempts(params?: { quizId?: string }): Promise<QuizAttempt[]> {
-    return ApiClient.get<QuizAttempt[]>('/quizzes/attempts', { params });
+    const response = await ApiClient.get<AttemptsListResponse | QuizAttempt[]>('/quizzes/attempts', { params });
+    return Array.isArray(response) ? response : response.data;
   }
 
   // Alias for backward compatibility

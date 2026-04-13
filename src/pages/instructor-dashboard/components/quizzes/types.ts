@@ -179,7 +179,7 @@ export function mapQuizToUI(quiz: Quiz): QuizUIData {
     courseName: quiz.course?.name || 'Unknown Course',
     status,
     statusColor: statusStyle.color,
-    questionCount: quiz.questions?.length || 0,
+    questionCount: Number((quiz as any).questionCount ?? quiz.questions?.length ?? 0),
     attemptCount: 0, // Will be populated separately if needed
     timeLimitMinutes: quiz.timeLimitMinutes,
     maxAttempts: quiz.maxAttempts,
@@ -197,6 +197,13 @@ export function mapQuizToUI(quiz: Quiz): QuizUIData {
 // Map backend QuizAttempt to UI representation
 export function mapAttemptToUI(attempt: QuizAttempt): AttemptUIData {
   const score = attempt.score ? parseFloat(attempt.score) : null;
+  const maxScore = Number((attempt as any).maxScore ?? (attempt as any).totalScore ?? 0) || null;
+  const percentageRaw = Number(
+    (attempt as any).scorePercentage ??
+    (attempt as any).score_percentage ??
+    (score !== null && maxScore ? (score / maxScore) * 100 : NaN)
+  );
+  const percentage = Number.isFinite(percentageRaw) ? percentageRaw : null;
   let timeTaken: number | null = null;
   
   if (attempt.startedAt && attempt.submittedAt) {
@@ -218,8 +225,8 @@ export function mapAttemptToUI(attempt: QuizAttempt): AttemptUIData {
     startedAt: attempt.startedAt,
     submittedAt: attempt.submittedAt,
     score,
-    maxScore: null, // Will be computed from quiz
-    percentage: score, // Backend may return percentage directly
+    maxScore,
+    percentage,
     timeTakenMinutes: timeTaken,
     hasPendingGrading: attempt.status === 'submitted',
     raw: attempt,

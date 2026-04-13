@@ -55,7 +55,7 @@ export const QuizResults: React.FC<QuizResultsProps> = ({
 
   const scoreColor = getScoreColor(result.percentage);
   const gradeLetter = getGradeLetter(result.percentage);
-  const passed = result.percentage >= 60;
+  const passed = result.passed;
   const congratulationsMessage = getMessage(result.percentage, passed);
 
   // SVG Circle calculations
@@ -112,7 +112,7 @@ export const QuizResults: React.FC<QuizResultsProps> = ({
                   {result.percentage}%
                 </div>
                 <div className={`text-sm ${mutedText}`}>
-                  {result.score}/{result.totalQuestions}
+                  {result.score}/{result.maxScore}
                 </div>
               </div>
             </div>
@@ -162,7 +162,7 @@ export const QuizResults: React.FC<QuizResultsProps> = ({
                 className="text-green-500 mx-auto mb-2"
               />
               <div className={`text-2xl font-bold ${textColor}`}>
-                {result.correctAnswers}
+                {result.correct}
               </div>
               <div className={`text-sm ${mutedText}`}>Correct</div>
             </div>
@@ -173,7 +173,7 @@ export const QuizResults: React.FC<QuizResultsProps> = ({
             >
               <XCircle size={24} className="text-red-500 mx-auto mb-2" />
               <div className={`text-2xl font-bold ${textColor}`}>
-                {result.wrongAnswers}
+                {result.wrong}
               </div>
               <div className={`text-sm ${mutedText}`}>Wrong</div>
             </div>
@@ -184,7 +184,7 @@ export const QuizResults: React.FC<QuizResultsProps> = ({
             >
               <Minus size={24} className="text-amber-500 mx-auto mb-2" />
               <div className={`text-2xl font-bold ${textColor}`}>
-                {result.skippedQuestions}
+                {result.skipped}
               </div>
               <div className={`text-sm ${mutedText}`}>Skipped</div>
             </div>
