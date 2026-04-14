@@ -335,6 +335,68 @@ export function LabCreate({ isOpen, courses, onSave, onClose }: LabCreateProps) 
             </select>
           </div>
 
+          {/* File Restrictions */}
+          <div
+            className={`rounded-lg border p-4 ${
+              isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'
+            }`}
+          >
+            <h3
+              className={`text-sm font-medium mb-3 ${
+                isDark ? 'text-slate-200' : 'text-gray-800'
+              }`}
+            >
+              {t('submissionRestrictions') || 'Submission Restrictions'}
+            </h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label
+                  htmlFor="lab-allowed-file-types"
+                  className={`block text-xs font-medium mb-1 ${
+                    isDark ? 'text-slate-300' : 'text-gray-700'
+                  }`}
+                >
+                  {t('allowedFileTypes') || 'Allowed File Types'}
+                </label>
+                <input
+                  id="lab-allowed-file-types"
+                  type="text"
+                  value={formData.allowedFileTypes || ''}
+                  onChange={(e) => handleChange('allowedFileTypes', e.target.value)}
+                  placeholder=".pdf,.docx,.zip"
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors text-sm ${
+                    isDark
+                      ? 'bg-white/5 border-white/10 text-white placeholder-white/40'
+                      : 'border-gray-300 bg-white text-gray-900 placeholder-gray-500'
+                  }`}
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="lab-max-file-size"
+                  className={`block text-xs font-medium mb-1 ${
+                    isDark ? 'text-slate-300' : 'text-gray-700'
+                  }`}
+                >
+                  {t('maxFileSize') || 'Max File Size (MB)'}
+                </label>
+                <input
+                  id="lab-max-file-size"
+                  type="number"
+                  min="1"
+                  value={formData.maxFileSizeMb || ''}
+                  onChange={(e) => handleChange('maxFileSizeMb', e.target.value)}
+                  placeholder="10"
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors text-sm ${
+                    isDark
+                      ? 'bg-white/5 border-white/10 text-white placeholder-white/40'
+                      : 'border-gray-300 bg-white text-gray-900 placeholder-gray-500'
+                  }`}
+                />
+              </div>
+            </div>
+          </div>
+
           {/* Instruction Files */}
           <div
             className={`rounded-lg border p-4 ${

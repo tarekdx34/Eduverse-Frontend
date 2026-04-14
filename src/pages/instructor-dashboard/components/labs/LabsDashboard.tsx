@@ -197,11 +197,39 @@ export function LabsDashboard({ courses = [] }: LabsDashboardProps) {
     }
   }, [handleLabSaved]);
 
-  const handleLabEditSave = useCallback(async (data: Partial<LabUIData>, instructionFiles: File[] = []) => {
+  const handleLabEditSave = useCallback(async (data: Partial<LabUIData>, instructionFiles: File[] = [], instructionsToDelete?: string[]) => {
     try {
       if (editingLab) {
         await LabService.update(editingLab.id, data);
 
+        // Delete marked instructions
+        if (instructionsToDelete && instructionsToDelete.length > 0) {
+          console.log('[LabsDashboard] Deleting instructions:', instructionsToDelete);
+          console.log('[LabsDashboard] Editing lab ID:', editingLab.id);
+          const failedDeletions: string[] = [];
+
+          for (const instructionId of instructionsToDelete) {
+            try {
+              console.log('[LabsDashboard] Calling deleteInstruction API:', { labId: editingLab.id, instructionId });
+              await LabService.deleteInstruction(editingLab.id, instructionId);
+              console.log('[LabsDashboard] deleteInstruction succeeded');
+            } catch (deleteErr) {
+              console.error('[LabsDashboard] Failed to delete instruction:', deleteErr);
+              console.error('[LabsDashboard] Error details:', JSON.stringify(deleteErr, null, 2));
+              failedDeletions.push(instructionId);
+            }
+          }
+
+          if (failedDeletions.length > 0) {
+            toast.error(
+              `Lab updated, but ${failedDeletions.length} instruction(s) failed to delete`
+            );
+          } else {
+            toast.success(`${instructionsToDelete.length} instruction(s) deleted`);
+          }
+        }
+
+        // Upload new instruction files
         if (instructionFiles.length > 0) {
           const existingInstructionCount = Array.isArray((editingLab as any)?.instructions)
             ? (editingLab as any).instructions.length

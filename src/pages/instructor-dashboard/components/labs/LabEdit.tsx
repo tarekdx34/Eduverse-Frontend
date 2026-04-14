@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, FileText, ExternalLink, Download } from 'lucide-react';
+import { X, Save, FileText, ExternalLink, Download, Trash2 } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { toast } from 'sonner';
@@ -15,7 +15,7 @@ interface LabEditProps {
   isOpen: boolean;
   lab: Lab | null;
   courses: Course[];
-  onSave: (data: Partial<Lab>, instructionFiles?: File[]) => Promise<void>;
+  onSave: (data: Partial<Lab>, instructionFiles?: File[], instructionsToDelete?: string[]) => Promise<void>;
   onClose: () => void;
 }
 
@@ -24,6 +24,7 @@ export function LabEdit({ isOpen, lab, courses, onSave, onClose }: LabEditProps)
   const { t } = useLanguage();
   const [saving, setSaving] = useState(false);
   const [pendingInstructionFiles, setPendingInstructionFiles] = useState<File[]>([]);
+  const [instructionsToDelete, setInstructionsToDelete] = useState<string[]>([]);
   const [formData, setFormData] = useState<LabFormData>({
     courseId: '',
     title: '',
@@ -47,8 +48,11 @@ export function LabEdit({ isOpen, lab, courses, onSave, onClose }: LabEditProps)
         maxScore: lab.maxScore || '100',
         weight: lab.weight || '10',
         status: lab.status || 'draft',
+        allowedFileTypes: lab.allowedFileTypes || '',
+        maxFileSizeMb: lab.maxFileSizeMb ? String(lab.maxFileSizeMb) : '',
       });
       setPendingInstructionFiles([]);
+      setInstructionsToDelete([]);
     }
   }, [lab, isOpen]);
 
@@ -69,7 +73,7 @@ export function LabEdit({ isOpen, lab, courses, onSave, onClose }: LabEditProps)
         ...formData,
         dueDate: formData.dueDate || null,
         availableFrom: formData.availableFrom || null,
-      }, pendingInstructionFiles);
+      }, pendingInstructionFiles, instructionsToDelete.length > 0 ? instructionsToDelete : undefined);
       onClose();
     } catch (error) {
       console.error('Error saving lab:', error);
@@ -105,6 +109,12 @@ export function LabEdit({ isOpen, lab, courses, onSave, onClose }: LabEditProps)
     });
 
     event.target.value = '';
+  };
+
+  const handleDeleteInstruction = (instructionId: string, fileName: string) => {
+    console.log('[LabEdit] Marking instruction for deletion:', { instructionId, fileName });
+    setInstructionsToDelete((prev) => [...prev, instructionId]);
+    toast.success(t('instructionMarkedForDeletion') || `Instruction "${fileName}" will be deleted when you save`);
   };
 
   const currentCourse = courses.find((c) => c.id === formData.courseId);
@@ -343,6 +353,68 @@ export function LabEdit({ isOpen, lab, courses, onSave, onClose }: LabEditProps)
             </select>
           </div>
 
+          {/* File Restrictions */}
+          <div
+            className={`rounded-lg border p-4 ${
+              isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'
+            }`}
+          >
+            <h3
+              className={`text-sm font-medium mb-3 ${
+                isDark ? 'text-slate-200' : 'text-gray-800'
+              }`}
+            >
+              {t('submissionRestrictions') || 'Submission Restrictions'}
+            </h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label
+                  htmlFor="lab-allowed-file-types"
+                  className={`block text-xs font-medium mb-1 ${
+                    isDark ? 'text-slate-300' : 'text-gray-700'
+                  }`}
+                >
+                  {t('allowedFileTypes') || 'Allowed File Types'}
+                </label>
+                <input
+                  id="lab-allowed-file-types"
+                  type="text"
+                  value={formData.allowedFileTypes || ''}
+                  onChange={(e) => handleChange('allowedFileTypes', e.target.value)}
+                  placeholder=".pdf,.docx,.zip"
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors text-sm ${
+                    isDark
+                      ? 'bg-white/5 border-white/10 text-white placeholder-white/40'
+                      : 'border-gray-300 bg-white text-gray-900 placeholder-gray-500'
+                  }`}
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="lab-max-file-size"
+                  className={`block text-xs font-medium mb-1 ${
+                    isDark ? 'text-slate-300' : 'text-gray-700'
+                  }`}
+                >
+                  {t('maxFileSize') || 'Max File Size (MB)'}
+                </label>
+                <input
+                  id="lab-max-file-size"
+                  type="number"
+                  min="1"
+                  value={formData.maxFileSizeMb || ''}
+                  onChange={(e) => handleChange('maxFileSizeMb', e.target.value)}
+                  placeholder="10"
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors text-sm ${
+                    isDark
+                      ? 'bg-white/5 border-white/10 text-white placeholder-white/40'
+                      : 'border-gray-300 bg-white text-gray-900 placeholder-gray-500'
+                  }`}
+                />
+              </div>
+            </div>
+          </div>
+
           {/* Instruction Files (Read-only preview) */}
           <div
             className={`rounded-lg border p-4 ${
@@ -356,52 +428,74 @@ export function LabEdit({ isOpen, lab, courses, onSave, onClose }: LabEditProps)
               </h3>
             </div>
 
-            {Array.isArray((lab as any).instructionFiles) && (lab as any).instructionFiles.length > 0 ? (
+            {Array.isArray((lab as any).instructions) && (lab as any).instructions.length > 0 ? (
               <div className="space-y-2">
-                {(lab as any).instructionFiles.map((file: any) => (
-                  <div
-                    key={String(file.driveId || file.fileName)}
-                    className={`flex items-center justify-between gap-3 px-3 py-2 rounded-lg ${
-                      isDark ? 'bg-white/5' : 'bg-white'
-                    }`}
-                  >
-                    <span
-                      className={`text-sm truncate ${isDark ? 'text-slate-200' : 'text-gray-700'}`}
-                      title={file.fileName}
-                    >
-                      {file.fileName}
-                    </span>
-                    <div className="flex items-center gap-2">
-                      {file.webViewLink && (
-                        <a
-                          href={file.webViewLink}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className={`inline-flex items-center gap-1 px-2 py-1 text-xs rounded ${
-                            isDark
-                              ? 'text-slate-300 bg-white/10 hover:bg-white/20'
-                              : 'text-gray-700 bg-gray-100 hover:bg-gray-200'
-                          }`}
+                {(lab as any).instructions
+                  .filter((instruction: any) => !instructionsToDelete.includes(String(instruction.id)))
+                  .map((instruction: any) => {
+                    const instructionId = String(instruction.id);
+                    const file = instruction.file || (lab as any).instructionFiles?.find(
+                      (f: any) => Number(f.driveFileId) === Number(instruction.fileId)
+                    );
+
+                    return (
+                      <div
+                        key={instructionId}
+                        className={`flex items-center justify-between gap-3 px-3 py-2 rounded-lg ${
+                          isDark ? 'bg-white/5' : 'bg-white'
+                        }`}
+                      >
+                        <span
+                          className={`text-sm truncate ${isDark ? 'text-slate-200' : 'text-gray-700'}`}
+                          title={file?.fileName || instruction.instructionText || 'Untitled'}
                         >
-                          <ExternalLink className="w-3 h-3" />
-                          Open
-                        </a>
-                      )}
-                      {file.downloadUrl && (
-                        <a
-                          href={file.downloadUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded text-white hover:opacity-90"
-                          style={{ backgroundColor: primaryHex }}
-                        >
-                          <Download className="w-3 h-3" />
-                          Download
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                ))}
+                          {file?.fileName || instruction.instructionText || 'Untitled'}
+                        </span>
+                        <div className="flex items-center gap-2">
+                          {file?.webViewLink && (
+                            <a
+                              href={file.webViewLink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className={`inline-flex items-center gap-1 px-2 py-1 text-xs rounded ${
+                                isDark
+                                  ? 'text-slate-300 bg-white/10 hover:bg-white/20'
+                                  : 'text-gray-700 bg-gray-100 hover:bg-gray-200'
+                              }`}
+                            >
+                              <ExternalLink className="w-3 h-3" />
+                              Open
+                            </a>
+                          )}
+                          {file?.downloadUrl && (
+                            <a
+                              href={file.downloadUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded text-white hover:opacity-90"
+                              style={{ backgroundColor: primaryHex }}
+                            >
+                              <Download className="w-3 h-3" />
+                              Download
+                            </a>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteInstruction(instructionId, file?.fileName || instruction.instructionText || 'Untitled')}
+                            className={`inline-flex items-center gap-1 px-2 py-1 text-xs rounded transition-colors ${
+                              isDark
+                                ? 'text-red-400 bg-red-500/10 hover:bg-red-500/20'
+                                : 'text-red-600 bg-red-50 hover:bg-red-100'
+                            }`}
+                            title="Delete instruction"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
               </div>
             ) : (
               <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>

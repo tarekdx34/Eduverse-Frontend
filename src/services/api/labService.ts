@@ -23,6 +23,8 @@ export interface Lab {
   createdBy: string;
   createdAt?: string;
   updatedAt?: string;
+  allowedFileTypes?: string | null;
+  maxFileSizeMb?: number | null;
   course?: { id: string; name: string; code: string };
   instructionFiles?: DriveFileLink[];
 }
@@ -44,6 +46,12 @@ export interface LabInstruction {
   instructionText: string;
   orderIndex: number;
   createdAt: string;
+}
+
+export interface UpdateInstructionDto {
+  instructionText?: string;
+  orderIndex?: number;
+  fileId?: number;
 }
 
 export interface LabWithInstructions extends Lab {
@@ -231,9 +239,9 @@ export class LabService {
   static async updateInstruction(
     labId: string,
     instructionId: string,
-    data: { instructionText?: string; orderIndex?: number }
+    data: UpdateInstructionDto
   ): Promise<LabInstruction> {
-    return ApiClient.put<LabInstruction>(
+    return ApiClient.patch<LabInstruction>(
       '/labs/' + labId + '/instructions/' + instructionId,
       data
     );

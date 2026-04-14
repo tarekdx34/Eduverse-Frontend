@@ -23,6 +23,8 @@ export interface Lab {
   createdBy: string;
   createdAt?: string;
   updatedAt?: string;
+  allowedFileTypes?: string | null;
+  maxFileSizeMb?: number | null;
   course?: { id: string; name: string; code: string };
   instructions?: LabInstruction[];
 }
@@ -117,6 +119,8 @@ export interface LabFormData {
   maxScore: string;
   weight: string;
   status: LabStatus;
+  allowedFileTypes?: string;
+  maxFileSizeMb?: string;
 }
 
 export interface InstructionFormData {
@@ -153,6 +157,8 @@ export const DEFAULT_LAB_FORM: LabFormData = {
   maxScore: '100',
   weight: '10',
   status: 'draft',
+  allowedFileTypes: '',
+  maxFileSizeMb: '',
 };
 
 export const DEFAULT_INSTRUCTION_FORM: InstructionFormData = {

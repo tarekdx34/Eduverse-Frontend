@@ -219,11 +219,13 @@ export function LabView({ labId, onBack, isDark, accentColor = '#3b82f6' }: LabV
                 isDark={isDark} 
               />
             ) : (
-              <SubmissionForm 
-                labId={labId} 
-                isDark={isDark} 
-                accentColor={accentColor} 
-                onSubmitSuccess={() => refetchSubmission()} 
+              <SubmissionForm
+                labId={labId}
+                isDark={isDark}
+                accentColor={accentColor}
+                onSubmitSuccess={() => refetchSubmission()}
+                allowedFileTypes={lab.allowedFileTypes}
+                maxFileSizeMb={lab.maxFileSizeMb}
               />
             )}
           </div>
