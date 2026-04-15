@@ -101,20 +101,19 @@ export function DashboardSidebar({
           onTabChange(tab.id);
           handleClose();
         }}
-        className={`w-full flex items-center ${compactMode && !desktopExpanded ? 'justify-center gap-0 px-2' : 'gap-3 px-3'} py-2.5 rounded-lg transition-all text-sm ${
-          isActive
+        className={`w-full flex items-center ${compactMode && !desktopExpanded ? 'justify-center gap-0 px-2' : 'gap-3 px-3'} py-2.5 rounded-lg transition-all text-sm ${isActive
             ? 'font-semibold shadow-sm'
             : isDark
               ? 'text-slate-400 hover:bg-white/5 hover:text-slate-200'
               : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
-        }`}
+          }`}
         style={
           isActive
             ? {
-                backgroundColor: `${accentColor}18`,
-                color: accentColor,
-                borderLeft: `3px solid ${accentColor}`,
-              }
+              backgroundColor: `${accentColor}18`,
+              color: accentColor,
+              borderLeft: `3px solid ${accentColor}`,
+            }
             : { borderLeft: '3px solid transparent' }
         }
         title={tab.label}
@@ -174,11 +173,10 @@ export function DashboardSidebar({
               {group.label && (
                 <button
                   onClick={() => toggleGroup(group.label)}
-                  className={`w-full flex items-center justify-between px-2 pb-2 rounded transition-colors ${
-                    isDark
+                  className={`w-full flex items-center justify-between px-2 pb-2 rounded transition-colors ${isDark
                       ? 'text-slate-400 hover:text-slate-200'
                       : 'text-slate-500 hover:text-slate-700'
-                  }`}
+                    }`}
                 >
                   <span className="text-xs font-bold uppercase tracking-wider">{group.label}</span>
                   <ChevronDown
@@ -218,23 +216,12 @@ export function DashboardSidebar({
     <>
       {/* Desktop: always visible, fixed */}
       <div
-        className={`hidden lg:block fixed ${isRTL ? 'right-0' : 'left-0'} top-0 z-50 h-screen ${
-          compactMode && desktopExpanded ? 'opacity-0 pointer-events-none' : ''
-        }`}
+        className={`hidden lg:block fixed ${isRTL ? 'right-0' : 'left-0'} top-0 z-50 h-screen ${compactMode && desktopExpanded ? 'opacity-0 pointer-events-none' : ''
+          }`}
       >
         {sidebarContent}
       </div>
 
-      {compactMode && !desktopExpanded && (
-        <button
-          onClick={onToggleDesktopExpanded}
-          className={`hidden lg:flex fixed z-55 ${isRTL ? 'right-24' : 'left-24'} top-4 w-10 h-10 rounded-lg items-center justify-center border transition-all ${isDark ? 'bg-slate-900 border-white/10 text-slate-200 hover:bg-slate-800' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'}`}
-          aria-label="Open full sidebar drawer"
-          title="Open full sidebar drawer"
-        >
-          <ChevronDown className={`w-4 h-4 ${isRTL ? '-rotate-90' : 'rotate-90'}`} />
-        </button>
-      )}
 
       {compactMode && desktopExpanded && (
         <div

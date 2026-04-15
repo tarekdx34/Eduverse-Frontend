@@ -7,6 +7,8 @@ import { enrollmentService, EnrolledCourse } from '../../../services/api/enrollm
 export type RosterEntry = {
   id: string;
   userId: number;
+  studentName?: string;
+  studentEmail?: string;
   enrollmentDate: string;
   status: string;
   grade: string;
@@ -50,6 +52,8 @@ export function RosterTable({ sectionId, data = [] }: RosterTableProps) {
       const fallbackRows = data.map((student) => ({
         id: String(student.id),
         userId: student.id,
+        studentName: student.name || undefined,
+        studentEmail: student.email || undefined,
         enrollmentDate: new Date().toISOString(),
         status: student.status,
         grade: student.grades?.total || 'N/A',
@@ -67,6 +71,8 @@ export function RosterTable({ sectionId, data = [] }: RosterTableProps) {
         const mapped = enrollments.map((enrollment: EnrolledCourse) => ({
           id: enrollment.id,
           userId: enrollment.userId,
+          studentName: enrollment.studentName || enrollment.fullName || enrollment.userName || undefined,
+          studentEmail: enrollment.studentEmail || enrollment.email || undefined,
           enrollmentDate: enrollment.enrollmentDate,
           status: enrollment.status,
           grade: enrollment.grade || 'N/A',
@@ -79,7 +85,13 @@ export function RosterTable({ sectionId, data = [] }: RosterTableProps) {
       } catch (err) {
         console.error('Failed to fetch section students', err);
         const message = err instanceof Error ? err.message : 'Failed to load section students';
-        setError(message);
+        
+        // Check if it's a permission error
+        if (message.includes('permission') || message.includes('403')) {
+          setError('You do not have permission to view students in this section. Please verify that you are assigned as an instructor for this course section.');
+        } else {
+          setError(message);
+        }
       } finally {
         setLoading(false);
       }
@@ -124,6 +136,8 @@ export function RosterTable({ sectionId, data = [] }: RosterTableProps) {
           const searchLower = searchTerm.toLowerCase();
           return (
             String(student.userId).toLowerCase().includes(searchLower) ||
+            (student.studentName && student.studentName.toLowerCase().includes(searchLower)) ||
+            (student.studentEmail && student.studentEmail.toLowerCase().includes(searchLower)) ||
             student.status.toLowerCase().includes(searchLower)
           );
         })
@@ -160,8 +174,49 @@ export function RosterTable({ sectionId, data = [] }: RosterTableProps) {
       )}
 
       {error && (
-        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-          {error}
+        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-4">
+          <div className="flex items-start gap-3">
+            <div className="flex-1">
+              <p className="text-sm font-medium text-red-800">Unable to Load Students</p>
+              <p className="text-sm text-red-700 mt-1">{error}</p>
+            </div>
+            <button
+              onClick={() => {
+                setError(null);
+                if (sectionId) {
+                  setLoading(true);
+                  enrollmentService.getSectionStudents(sectionId)
+                    .then((enrollments) => {
+                      const mapped = enrollments.map((enrollment: EnrolledCourse) => ({
+                        id: enrollment.id,
+                        userId: enrollment.userId,
+                        studentName: enrollment.studentName || enrollment.fullName || enrollment.userName || undefined,
+                        studentEmail: enrollment.studentEmail || enrollment.email || undefined,
+                        enrollmentDate: enrollment.enrollmentDate,
+                        status: enrollment.status,
+                        grade: enrollment.grade || 'N/A',
+                        finalScore:
+                          enrollment.finalScore === null || enrollment.finalScore === undefined
+                            ? 'N/A'
+                            : String(enrollment.finalScore),
+                      }));
+                      setRows(mapped);
+                      setError(null);
+                    })
+                    .catch((err) => {
+                      const message = err instanceof Error ? err.message : 'Failed to load section students';
+                      setError(message.includes('permission') || message.includes('403') 
+                        ? 'You do not have permission to view students in this section. Please verify that you are assigned as an instructor for this course section.'
+                        : message);
+                    })
+                    .finally(() => setLoading(false));
+                }
+              }}
+              className="px-3 py-1.5 text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 rounded-md transition-colors"
+            >
+              Retry
+            </button>
+          </div>
         </div>
       )}
 
@@ -196,6 +251,8 @@ export function RosterTable({ sectionId, data = [] }: RosterTableProps) {
                   <ArrowUpDown size={14} />
                 </button>
               </th>
+              <th className="p-3 text-left">Student Name</th>
+              <th className="p-3 text-left">Student Email</th>
               <th className="p-3 text-left">
                 <button
                   onClick={() => handleSort('enrollmentDate')}
@@ -229,6 +286,11 @@ export function RosterTable({ sectionId, data = [] }: RosterTableProps) {
                   <div className={`font-medium ${isDark ? 'text-slate-200' : 'text-gray-900'}`}>
                     {student.userId}
                   </div>
+                </td>
+                <td className="p-3">
+                  <div className={`font-medium ${isDark ? 'text-slate-200' : 'text-gray-900'}`}>
+                    {student.studentName || 'N/A'}
+                  </div>
                   {notes[student.id] && (
                     <div
                       className={`text-xs mt-1 italic ${isDark ? 'text-slate-400' : 'text-gray-500'}`}
@@ -236,6 +298,11 @@ export function RosterTable({ sectionId, data = [] }: RosterTableProps) {
                       Note: {notes[student.id]}
                     </div>
                   )}
+                </td>
+                <td className="p-3">
+                  <div className={`${isDark ? 'text-slate-300' : 'text-gray-700'}`}>
+                    {student.studentEmail || 'N/A'}
+                  </div>
                 </td>
                 <td className="p-3">
                   <div
@@ -287,7 +354,7 @@ export function RosterTable({ sectionId, data = [] }: RosterTableProps) {
               <tr>
                 <td
                   className={`p-6 text-center ${isDark ? 'text-slate-500' : 'text-gray-500'}`}
-                  colSpan={6}
+                  colSpan={8}
                 >
                   {searchTerm ? t('noStudentsMatch') : t('noStudentsEnrolled')}
                 </td>

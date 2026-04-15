@@ -22,6 +22,12 @@ export interface EnrolledCourse {
   enrollmentDate: string;
   canDrop: boolean;
   dropDeadline: string | null;
+  // Student information (if included by backend)
+  studentName?: string;
+  studentEmail?: string;
+  fullName?: string;
+  email?: string;
+  userName?: string;
   course: {
     id: string;
     name: string;
