@@ -24,6 +24,27 @@ export interface StudentAttendance {
   details?: Record<number, AttendanceDailyRecord[]>;
 }
 
+export interface StudentFaceReference {
+  id: number;
+  userId: number;
+  storagePath: string;
+  mimeType: string;
+  fileSize: number;
+  isPrimary: boolean;
+  createdAt: string;
+  signedUrl?: string | null;
+}
+
+export interface AiProcessingResult {
+  processingId: number;
+  status: string;
+  detectedFacesCount?: number;
+  matchedStudentsCount?: number;
+  unmatchedFacesCount?: number;
+  errorMessage?: string;
+  processingTimeMs?: number;
+}
+
 export class AttendanceService {
   static async getMyAttendance(): Promise<StudentAttendance | AttendanceRecord[]> {
     const response = await ApiClient.get<
@@ -78,5 +99,32 @@ export class AttendanceService {
 
   static async getSectionSummary(sectionId: number): Promise<any> {
     return ApiClient.get(`~/attendance/summary/${sectionId}`);
+  }
+
+  /** Student: upload a face reference for AI attendance (multipart field `image`). */
+  static async uploadMyFaceReference(file: File): Promise<StudentFaceReference> {
+    const fd = new FormData();
+    fd.append('image', file);
+    return ApiClient.post('~/attendance/face-references/me', fd);
+  }
+
+  static async listMyFaceReferences(): Promise<StudentFaceReference[]> {
+    return ApiClient.get('~/attendance/face-references/me');
+  }
+
+  static async deleteMyFaceReference(referenceId: number): Promise<{ success: boolean }> {
+    return ApiClient.delete(`~/attendance/face-references/me/${referenceId}`);
+  }
+
+  /** Instructor/TA: class photo for AI; returns `processingId` to poll. */
+  static async uploadAiAttendancePhoto(sessionId: number, photo: File): Promise<AiProcessingResult> {
+    const fd = new FormData();
+    fd.append('photo', photo);
+    fd.append('sessionId', String(sessionId));
+    return ApiClient.post('~/attendance/ai-photo', fd);
+  }
+
+  static async getAiProcessingResult(processingId: number): Promise<AiProcessingResult> {
+    return ApiClient.get(`~/attendance/ai-photo/${processingId}`);
   }
 }

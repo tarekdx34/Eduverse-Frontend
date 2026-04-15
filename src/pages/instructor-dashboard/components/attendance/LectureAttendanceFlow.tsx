@@ -4,7 +4,7 @@ import { Camera, CheckCircle2, CircleHelp, Clock, XCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../../../context/AuthContext';
 import { ApiClient } from '../../../../services/api/client';
-import { AI_ATTENDANCE_BASE_URL } from '../../../../services/api/config';
+import { AttendanceService } from '../../../../services/api/attendanceService';
 import { toast } from 'sonner';
 import { CustomDropdown } from '../../../../components/shared/CustomDropdown';
 import { ConfirmDialog } from '../ConfirmDialog';
@@ -45,6 +45,8 @@ type AttUser = {
 type AttRecord = {
   userId: number;
   attendanceStatus?: string;
+  markedBy?: string;
+  confidenceScore?: number | null;
   user?: AttUser;
 };
 
@@ -440,44 +442,71 @@ export function LectureAttendanceFlow({ embedded = true }: LectureAttendanceFlow
     }
   };
 
+  const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+
+  const buildAiResultFromSession = (session: SessionDetail): AiAttendanceResponse => {
+    const records = session.records ?? [];
+    const aiPresent = records.filter(
+      (r) => normalizeStatus(r.attendanceStatus) === 'present' && r.markedBy === 'ai',
+    );
+    const marked_ids = aiPresent.map((r) => String(r.userId));
+    const recognized_faces: AiFaceResult[] = aiPresent.map((r) => {
+      const c = r.confidenceScore;
+      const confidence =
+        typeof c === 'number' && c > 0 && c <= 1 ? c * 100 : typeof c === 'number' ? c : 90;
+      return { name: String(r.userId), confidence };
+    });
+    return { marked_ids, recognized_faces };
+  };
+
   const runLocalAiAttendance = async () => {
     if (!aiFile) {
       toast.error('Choose a class photo first.');
       return;
     }
+    if (!activeSession) {
+      toast.error('Open an attendance session first.');
+      return;
+    }
     setAiLoading(true);
     setAiError(null);
     setAiResult(null);
+    if (Object.keys(aiFaceThumbs).length > 0) {
+      Object.values(aiFaceThumbs).forEach((u) => URL.revokeObjectURL(u));
+      setAiFaceThumbs({});
+    }
+    setAiUnknownCount(0);
     try {
-      const fd = new FormData();
-      fd.append('image', aiFile);
-      const res = await fetch(`${AI_ATTENDANCE_BASE_URL}/attendance`, {
-        method: 'POST',
-        body: fd,
-      });
-      const text = await res.text();
-      let data: AiAttendanceResponse;
-      try {
-        data = JSON.parse(text) as AiAttendanceResponse;
-      } catch {
-        throw new Error(text.slice(0, 200) || `HTTP ${res.status}`);
+      const start = await AttendanceService.uploadAiAttendancePhoto(activeSession.id, aiFile);
+      const processingId = start.processingId;
+      if (processingId == null || Number.isNaN(Number(processingId))) {
+        throw new Error('Server did not return a processing ID.');
       }
-      if (!res.ok) {
-        throw new Error(
-          typeof data === 'object' && data && 'detail' in data
-            ? String((data as { detail: unknown }).detail)
-            : text.slice(0, 200) || `HTTP ${res.status}`,
-        );
+
+      const deadline = Date.now() + 120_000;
+      let last = start;
+      while (Date.now() < deadline) {
+        const st = (last.status || '').toLowerCase();
+        if (st === 'completed' || st === 'failed' || st === 'manual_review') break;
+        await sleep(2500);
+        last = await AttendanceService.getAiProcessingResult(processingId);
       }
-      const recognizedFaces = data.recognized_faces ?? [];
-      const nextThumbs = aiFile ? await buildAiFaceThumbs(aiFile, recognizedFaces) : { thumbs: {}, unknownCount: 0 };
-      if (Object.keys(aiFaceThumbs).length > 0) {
-        Object.values(aiFaceThumbs).forEach((u) => URL.revokeObjectURL(u));
+
+      const finalStatus = (last.status || '').toLowerCase();
+      if (finalStatus === 'failed') {
+        throw new Error(last.errorMessage || 'AI processing failed.');
       }
-      setAiFaceThumbs(nextThumbs.thumbs);
-      setAiUnknownCount(nextThumbs.unknownCount);
-      setAiResult(data);
-      toast.success('AI response received.');
+      if (finalStatus !== 'completed' && finalStatus !== 'manual_review') {
+        throw new Error('AI processing timed out. Try again or check the backend logs.');
+      }
+
+      setAiUnknownCount(typeof last.unmatchedFacesCount === 'number' ? last.unmatchedFacesCount : 0);
+
+      await loadRosterData(activeSession.id, rosterReadOnly);
+      const session = await ApiClient.get<SessionDetail>(`~/attendance/sessions/${activeSession.id}`);
+      setAiResult(buildAiResultFromSession(session));
+      setRosterDirty(false);
+      toast.success('AI attendance applied on the server. Review the roster if needed.');
     } catch (e) {
       const msg = errMessage(e);
       setAiError(msg);
@@ -564,68 +593,6 @@ export function LectureAttendanceFlow({ embedded = true }: LectureAttendanceFlow
         ? `Applied AI suggestions to ${changed} student(s). Adjust any row below, then Save.`
         : 'Roster already matches AI suggestions. Adjust statuses if needed, then Save.',
     );
-  };
-
-  const buildAiFaceThumbs = async (
-    file: File,
-    recognizedFaces: AiFaceResult[],
-  ): Promise<{ thumbs: Record<number, string>; unknownCount: number }> => {
-    const faceByUser = new Map<number, AiFaceResult>();
-    let unknownCount = 0;
-    for (const face of recognizedFaces) {
-      const rawName = String(face.name ?? '').trim();
-      if (rawName === 'Unknown') {
-        unknownCount += 1;
-        continue;
-      }
-      if (!/^\d+$/.test(rawName) || !Array.isArray(face.location) || face.location.length < 4) continue;
-      const uid = Number(rawName);
-      const conf = typeof face.confidence === 'number' ? face.confidence : 0;
-      const prev = faceByUser.get(uid);
-      const prevConf = typeof prev?.confidence === 'number' ? prev.confidence : -1;
-      if (!prev || conf > prevConf) faceByUser.set(uid, face);
-    }
-
-    if (faceByUser.size === 0) return { thumbs: {}, unknownCount };
-
-    const imgUrl = URL.createObjectURL(file);
-    try {
-      const img = await new Promise<HTMLImageElement>((resolve, reject) => {
-        const el = new Image();
-        el.onload = () => resolve(el);
-        el.onerror = () => reject(new Error('Failed to load uploaded image for face previews.'));
-        el.src = imgUrl;
-      });
-
-      const thumbs: Record<number, string> = {};
-      faceByUser.forEach((face, uid) => {
-        const loc = face.location ?? [];
-        const [topRaw, rightRaw, bottomRaw, leftRaw] = loc as number[];
-        const top = Math.max(0, Math.floor(topRaw));
-        const left = Math.max(0, Math.floor(leftRaw));
-        const width = Math.max(1, Math.floor(rightRaw - leftRaw));
-        const height = Math.max(1, Math.floor(bottomRaw - topRaw));
-        const padX = Math.floor(width * 0.25);
-        const padY = Math.floor(height * 0.25);
-        const sx = Math.max(0, left - padX);
-        const sy = Math.max(0, top - padY);
-        const sw = Math.min(img.width - sx, width + padX * 2);
-        const sh = Math.min(img.height - sy, height + padY * 2);
-        if (sw <= 0 || sh <= 0) return;
-
-        const canvas = document.createElement('canvas');
-        const size = 88;
-        canvas.width = size;
-        canvas.height = size;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
-        ctx.drawImage(img, sx, sy, sw, sh, 0, 0, size, size);
-        thumbs[uid] = canvas.toDataURL('image/jpeg', 0.9);
-      });
-      return { thumbs, unknownCount };
-    } finally {
-      URL.revokeObjectURL(imgUrl);
-    }
   };
 
   const createSession = async () => {
@@ -927,9 +894,8 @@ export function LectureAttendanceFlow({ embedded = true }: LectureAttendanceFlow
 
               {!rosterReadOnly && (
                 <p className={`mb-4 text-sm ${muted}`}>
-                  Use a class photo to run AI and see suggestions in the roster below. Click{' '}
-                  <strong className={textMain}>Apply AI suggestions</strong> to copy them into attendance, or set
-                  statuses manually at any time. Save when done.
+                  Upload a class photo and run AI: the server matches enrolled students who registered a face photo
+                  and updates attendance. Review the roster below; adjust if needed, then Save.
                 </p>
               )}
 
@@ -944,7 +910,7 @@ export function LectureAttendanceFlow({ embedded = true }: LectureAttendanceFlow
                     <h3 className={`text-lg font-semibold ${textMain}`}>AI from class photo</h3>
                   </div>
                   <div className={`text-sm ${muted}`}>
-                    Last column fills in after you run AI on a photo
+                    Uses the app server and students&apos; registered face photos
                   </div>
                 </div>
                 <div className="mt-3 flex flex-wrap items-center gap-2">

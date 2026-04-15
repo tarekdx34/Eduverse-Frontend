@@ -16,6 +16,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useApi } from '../../../hooks/useApi';
 import { AttendanceService } from '../../../services/api/attendanceService';
 import { useAuth } from '../../../context/AuthContext';
+import { StudentFaceSetup } from './StudentFaceSetup';
 
 const defaultAttendanceData = [
   {
@@ -461,6 +462,8 @@ export function AttendanceOverview() {
           </p>
         </div>
       </div>
+
+      <StudentFaceSetup />
 
       {/* Overall Percentage Card */}
       <div className={`glass rounded-[2.5rem] p-8 shadow-sm`}>

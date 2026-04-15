@@ -21,6 +21,7 @@ import {
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../../context/AuthContext';
 import { EnrollmentService } from '../../services/api/enrollmentService';
+import { AttendanceService } from '../../services/api/attendanceService';
 import {
   AssignmentService,
   type AssignmentStatus as ApiAssignmentStatus,
@@ -35,6 +36,8 @@ import {
   StatsCard,
   GradesTable,
   RosterTable,
+  AttendanceTable,
+  AttendanceModal,
   GradeModal,
   StudentEditModal,
   MessageModal,
@@ -48,8 +51,10 @@ import {
   NotificationsPage,
   AnnouncementsManager,
   SelectedSectionSummary,
+  AIAttendanceModal,
   UploadMaterialsPage,
   LabsPage,
+  LectureAttendanceFlow,
 } from './components';
 import {
   AssignmentListPage,
@@ -75,6 +80,7 @@ import {
   DASHBOARD_STATS,
   GRADES,
   ASSIGNMENTS,
+  ATTENDANCE,
   ANALYTICS,
   INSTRUCTOR_PROFILE,
   UPCOMING_CLASSES,
@@ -82,10 +88,11 @@ import {
   RECENT_ACTIVITY,
 } from './constants';
 import type { GradeEntry } from './components/GradesTable';
+import type { AttendanceSession } from './components/AttendanceTable';
 import type { GradeFormData } from './components/GradeModal';
+import type { AttendanceFormData } from './components/AttendanceModal';
 import type { MessageFormData } from './components/MessageModal';
 import type { Assignment } from '../../services/api/assignmentService';
-import { LectureAttendanceFlow } from './components/attendance/LectureAttendanceFlow';
 
 type TabKey =
   | 'dashboard'
@@ -178,6 +185,9 @@ function InstructorDashboardContent() {
   const [rosterSubTab, setRosterSubTab] = useState<'overview' | 'grades'>('overview');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
+  const [isAIAttendanceModalOpen, setIsAIAttendanceModalOpen] = useState(false);
+  /** Attendance tab: main lecture/roster flow vs. legacy session summary table. */
+  const [attendanceUiMode, setAttendanceUiMode] = useState<'lecture' | 'sessions'>('lecture');
   const { isDark, toggleTheme, primaryHex, primaryColor, setPrimaryColor } = useTheme() as any;
   const { language, setLanguage, isRTL, t } = useLanguage();
   const { isAuthenticated, user } = useAuth();
@@ -388,6 +398,12 @@ function InstructorDashboardContent() {
     return mappedTasks.length > 0 ? mappedTasks : PENDING_TASKS.slice(0, 1);
   }, [isMockMode, allAssignmentsLive]);
 
+  const { data: attendanceSessionsLive } = useQuery({
+    queryKey: ['attendance-sessions', activeSectionId],
+    queryFn: () => AttendanceService.getSessions({ sectionId: Number(activeSectionId) }),
+    enabled: !isMockMode && !!activeSectionId && activeTab === 'attendance',
+  });
+
   const { data: analyticsLive } = useQuery({
     queryKey: ['analytics-dashboard'],
     queryFn: () => AnalyticsService.getDashboard(),
@@ -514,6 +530,12 @@ function InstructorDashboardContent() {
   const [isGradeModalOpen, setIsGradeModalOpen] = useState(false);
   const [gradeToDelete, setGradeToDelete] = useState<number | null>(null);
 
+  // State for attendance
+  const [attendanceData, setAttendanceData] =
+    useState<Record<string, AttendanceSession[]>>(ATTENDANCE);
+  const [editingAttendance, setEditingAttendance] = useState<AttendanceFormData | null>(null);
+  const [isAttendanceModalOpen, setIsAttendanceModalOpen] = useState(false);
+  const [attendanceToDelete, setAttendanceToDelete] = useState<number | null>(null);
   // State for messages (dummy state since replaced by Announcements/Chat)
   const [editingMessage, setEditingMessage] = useState<MessageFormData | null>(null);
   const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
@@ -580,7 +602,7 @@ function InstructorDashboardContent() {
 
   // Set default section on mount and when entering section-dependent tabs
   useEffect(() => {
-    if (activeSectionId || !['roster', 'assignments'].includes(activeTab)) return;
+    if (activeSectionId || !['roster', 'assignments', 'attendance'].includes(activeTab)) return;
     const firstLive =
       !isMockMode && teachingCoursesLive?.length
         ? String(teachingCoursesLive[0].sectionId ?? teachingCoursesLive[0].id)
@@ -613,7 +635,7 @@ function InstructorDashboardContent() {
   // Navigate on tab change
   const handleTabChange = (key: TabKey) => {
     setActiveTab(key);
-    if (!['roster'].includes(key)) {
+    if (!['roster', 'attendance'].includes(key)) {
       setActiveSectionId(null);
     }
     navigate(`/instructordashboard/${key}`);
@@ -646,6 +668,24 @@ function InstructorDashboardContent() {
       setCoursesData(mappedCourses);
     }
   }, [teachingCoursesLive, isMockMode]);
+
+  useEffect(() => {
+    if (attendanceSessionsLive && !isMockMode && activeSectionId) {
+      setAttendanceData((prev) => ({
+        ...prev,
+        [activeSectionId]: (attendanceSessionsLive.data || attendanceSessionsLive).map(
+          (s: any) => ({
+            id: Number(s.id),
+            date: s.sessionDate,
+            present: Number(s.presentCount || 0),
+            absent: Number(s.absentCount || 0),
+            type: s.sessionType,
+            status: s.status,
+          })
+        ),
+      }));
+    }
+  }, [attendanceSessionsLive, isMockMode, activeSectionId]);
 
   useEffect(() => {
     setSelectedAssignmentForSubmissions(null);
@@ -765,18 +805,12 @@ function InstructorDashboardContent() {
     setSelectedAssignmentForSubmissions(assignment);
   };
 
-  const handleEditAssignment = async (assignment: Assignment) => {
+  const handleEditAssignment = (assignment: Assignment) => {
     setEditingAssignment(assignment);
     setIsAssignmentModalOpen(true);
-    try {
-      const fullAssignment = await AssignmentService.getById(assignment.id);
-      setEditingAssignment(fullAssignment);
-    } catch {
-      // Keep modal usable with list data if fetching details fails.
-    }
   };
 
-  const handleSaveAssignment = async (data: AssignmentFormData): Promise<Assignment | void> => {
+  const handleSaveAssignment = async (data: AssignmentFormData) => {
     if (!activeSectionId) return;
 
     const resolvedCourseId = Number(selectedCourseId ?? activeSectionId);
@@ -795,21 +829,16 @@ function InstructorDashboardContent() {
 
     try {
       if (data.id) {
-        const updatedAssignment = await AssignmentService.update(data.id, payload as any);
+        await AssignmentService.update(data.id, payload as any);
         toast.success('Assignment updated successfully');
-        queryClient.invalidateQueries({ queryKey: ['course-assignments', activeSectionId] });
-        setIsAssignmentModalOpen(false);
-        return updatedAssignment;
       } else {
-        const createdAssignment = await AssignmentService.create(payload as any);
+        await AssignmentService.create(payload as any);
         toast.success('Assignment created successfully');
-        queryClient.invalidateQueries({ queryKey: ['course-assignments', activeSectionId] });
-        setIsAssignmentModalOpen(false);
-        return createdAssignment;
       }
+      queryClient.invalidateQueries({ queryKey: ['course-assignments', activeSectionId] });
+      setIsAssignmentModalOpen(false);
     } catch (err: any) {
       toast.error(err?.message || 'Failed to save assignment');
-      throw err;
     }
   };
 
@@ -926,6 +955,87 @@ function InstructorDashboardContent() {
     const updated = sectionGrades.filter((g) => g.id !== gradeToDelete);
     setGradesData({ ...gradesData, [activeSectionId]: updated });
     setGradeToDelete(null);
+  };
+
+  // Attendance handlers
+  const handleCreateAttendance = () => {
+    setEditingAttendance(null);
+    setIsAttendanceModalOpen(true);
+  };
+
+  const handleEditAttendance = (session: AttendanceSession) => {
+    setEditingAttendance(session);
+    setIsAttendanceModalOpen(true);
+  };
+
+  const handleSaveAttendance = async (data: AttendanceFormData) => {
+    if (!activeSectionId) return;
+
+    if (!isMockMode) {
+      try {
+        if (data.id) {
+          await AttendanceService.updateSession(data.id, {
+            sessionDate: data.date,
+            sessionType: data.type,
+          });
+          toast.success('Attendance session updated');
+        } else {
+          await AttendanceService.createSession({
+            sectionId: Number(activeSectionId),
+            sessionDate: data.date,
+            sessionType: data.type as any,
+          });
+          toast.success('Attendance session created');
+        }
+        queryClient.invalidateQueries({ queryKey: ['attendance-sessions', activeSectionId] });
+      } catch (err) {
+        toast.error('Failed to save attendance session');
+        return;
+      }
+    } else {
+      const sectionAttendance = attendanceData[activeSectionId] || [];
+
+      if (data.id) {
+        // Edit existing
+        const updated = sectionAttendance.map((a) =>
+          a.id === data.id ? { ...data, id: data.id } : a
+        );
+        setAttendanceData({ ...attendanceData, [activeSectionId]: updated });
+      } else {
+        // Create new
+        const newId = Math.max(...sectionAttendance.map((a) => a.id), 0) + 1;
+        const newSession: AttendanceSession = { ...data, id: newId };
+        setAttendanceData({
+          ...attendanceData,
+          [activeSectionId]: [...sectionAttendance, newSession],
+        });
+      }
+    }
+
+    setIsAttendanceModalOpen(false);
+  };
+
+  const handleDeleteAttendance = (id: number) => {
+    setAttendanceToDelete(id);
+  };
+
+  const confirmDeleteAttendance = async () => {
+    if (!activeSectionId || !attendanceToDelete) return;
+
+    if (!isMockMode) {
+      try {
+        await AttendanceService.deleteSession(attendanceToDelete);
+        toast.success('Attendance session deleted');
+        queryClient.invalidateQueries({ queryKey: ['attendance-sessions', activeSectionId] });
+      } catch (err) {
+        toast.error('Failed to delete attendance session');
+      }
+    } else {
+      const sectionAttendance = attendanceData[activeSectionId] || [];
+      const updated = sectionAttendance.filter((a) => a.id !== attendanceToDelete);
+      setAttendanceData({ ...attendanceData, [activeSectionId]: updated });
+    }
+    setAttendanceToDelete(null);
   };
 
   // Message handlers (dummy handlers to fix undefined references)
@@ -1258,31 +1368,95 @@ function InstructorDashboardContent() {
             </div>
           )}
 
-          {/* Attendance — lecture flow + AI (live only) */}
+          {/* Attendance */}
           {activeTab === 'attendance' && (
             <div className="space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                    {t('attendance') || 'Attendance'}
+                    Attendance
                   </h2>
                   <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-                    Open sessions, take roll, and use AI photo review (live account).
+                    {attendanceUiMode === 'lecture'
+                      ? 'Pick a section, open or create a session, then take roll or run AI from a class photo.'
+                      : 'Track and manage attendance records for your class sessions (previous layout).'}
                   </p>
+                </div>
+                <div
+                  className={`inline-flex shrink-0 rounded-lg border p-1 ${
+                    isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-50'
+                  }`}
+                  role="group"
+                  aria-label="Attendance view"
+                >
+                  <button
+                    type="button"
+                    onClick={() => setAttendanceUiMode('lecture')}
+                    className={`rounded-md px-3 py-2 text-sm font-semibold transition-colors ${
+                      attendanceUiMode === 'lecture'
+                        ? 'text-white shadow-sm'
+                        : isDark
+                          ? 'text-slate-300 hover:bg-white/10'
+                          : 'text-gray-700 hover:bg-white'
+                    }`}
+                    style={
+                      attendanceUiMode === 'lecture' ? { backgroundColor: primaryHex } : undefined
+                    }
+                  >
+                    Lecture attendance
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAttendanceUiMode('sessions')}
+                    className={`rounded-md px-3 py-2 text-sm font-semibold transition-colors ${
+                      attendanceUiMode === 'sessions'
+                        ? 'text-white shadow-sm'
+                        : isDark
+                          ? 'text-slate-300 hover:bg-white/10'
+                          : 'text-gray-700 hover:bg-white'
+                    }`}
+                    style={
+                      attendanceUiMode === 'sessions' ? { backgroundColor: primaryHex } : undefined
+                    }
+                  >
+                    Session table
+                  </button>
                 </div>
               </div>
-              {isMockMode ? (
-                <div
-                  className={`rounded-xl border p-6 ${isDark ? 'border-white/10 bg-card-dark' : 'border-gray-200 bg-white'}`}
-                >
-                  <p className={`text-sm ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>
-                    Lecture attendance with sessions and AI review is available in{' '}
-                    <strong>Live mode</strong> after you sign in with a real account (not mock preview
-                    navigation).
-                  </p>
-                </div>
-              ) : (
+
+              {attendanceUiMode === 'lecture' ? (
                 <LectureAttendanceFlow embedded />
+              ) : (
+                <>
+                  <div className="max-w-xs">
+                    <CustomDropdown
+                      label="Select Section"
+                      options={sectionOptions}
+                      value={activeSectionId || sectionOptions[0]?.value || ''}
+                      onChange={setActiveSectionId}
+                      isDark={isDark}
+                      accentColor={primaryHex}
+                    />
+                  </div>
+                  <SelectedSectionSummary section={selectedSection as any} />
+
+                  <div
+                    className={`rounded-xl border shadow-sm p-6 ${isDark ? 'bg-card-dark border-white/10' : 'bg-white border-gray-200'}`}
+                  >
+                    <h3
+                      className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}
+                    >
+                      {t('attendanceRecords') || 'Attendance Records'}
+                    </h3>
+                    <AttendanceTable
+                      sessions={activeSectionId ? attendanceData[activeSectionId] || [] : []}
+                      onCreate={handleCreateAttendance}
+                      onEdit={handleEditAttendance}
+                      onDelete={handleDeleteAttendance}
+                      onSwitchToAI={() => setIsAIAttendanceModalOpen(true)}
+                    />
+                  </div>
+                </>
               )}
             </div>
           )}
@@ -1361,7 +1535,7 @@ function InstructorDashboardContent() {
         courseId={String(activeSectionId || '')}
         onClose={() => setIsAssignmentModalOpen(false)}
         onSave={handleSaveAssignment}
-        onUploadInstructions={handleUploadInstructions}
+        onUploadInstructions={editingAssignment ? handleUploadInstructions : undefined}
       />
 
       <GradingPanel
@@ -1381,6 +1555,13 @@ function InstructorDashboardContent() {
         gradeData={editingGrade}
         onClose={() => setIsGradeModalOpen(false)}
         onSave={handleSaveGrade}
+      />
+
+      <AttendanceModal
+        open={isAttendanceModalOpen}
+        attendanceData={editingAttendance}
+        onClose={() => setIsAttendanceModalOpen(false)}
+        onSave={handleSaveAttendance}
       />
 
       <MessageModal
@@ -1412,6 +1593,16 @@ function InstructorDashboardContent() {
       />
 
       <ConfirmDialog
+        open={attendanceToDelete !== null}
+        title="Delete Attendance Record"
+        message="Are you sure you want to delete this attendance record? This action cannot be undone."
+        onConfirm={confirmDeleteAttendance}
+        onCancel={() => setAttendanceToDelete(null)}
+        confirmText="Delete"
+        variant="danger"
+      />
+
+      <ConfirmDialog
         open={messageToDelete !== null}
         title="Delete Message"
         message="Are you sure you want to delete this message? This action cannot be undone."
@@ -1421,6 +1612,11 @@ function InstructorDashboardContent() {
         variant="danger"
       />
 
+      <AIAttendanceModal
+        open={isAIAttendanceModalOpen}
+        onClose={() => setIsAIAttendanceModalOpen(false)}
+        courseSection={selectedSection?.courseCode || 'Unknown Section'}
+      />
     </div>
   );
 }
