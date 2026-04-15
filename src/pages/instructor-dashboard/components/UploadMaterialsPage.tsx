@@ -217,6 +217,14 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
   const [courseOptions, setCourseOptions] = useState<Array<{ value: string; label: string }>>([]);
   const [selectedCourseId, setSelectedCourseId] = useState<string>(courseId || routeId || '');
 
+  // Sync selectedCourseId when courseId prop or routeId changes
+  useEffect(() => {
+    const newCourseId = courseId || routeId || '';
+    if (newCourseId && selectedCourseId !== newCourseId) {
+      setSelectedCourseId(newCourseId);
+    }
+  }, [courseId, routeId]);
+
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const [weekFilter, setWeekFilter] = useState('all');
@@ -792,13 +800,12 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
               {bundle.documents.map((doc) => (
                 <div
                   key={doc.materialId}
-                  className={`flex flex-wrap items-center justify-between gap-2 p-2 rounded border ${
-                    selectedDocument?.materialId === doc.materialId
-                      ? 'border-indigo-300 bg-indigo-50'
-                      : isDark
-                        ? 'border-white/10 bg-white/5'
-                        : 'border-slate-200 bg-white'
-                  }`}
+                  className={`flex flex-wrap items-center justify-between gap-2 p-2 rounded border ${selectedDocument?.materialId === doc.materialId
+                    ? 'border-indigo-300 bg-indigo-50'
+                    : isDark
+                      ? 'border-white/10 bg-white/5'
+                      : 'border-slate-200 bg-white'
+                    }`}
                 >
                   <button
                     type="button"
@@ -1313,10 +1320,10 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
                   showCreateModal
                     ? closeCreateModal
                     : () => {
-                        setEditingBundle(null);
-                        setSelectedBundleDocumentId(null);
-                        setShowEditModal(false);
-                      }
+                      setEditingBundle(null);
+                      setSelectedBundleDocumentId(null);
+                      setShowEditModal(false);
+                    }
                 }
                 disabled={mutating}
                 className={`p-2 rounded-lg disabled:opacity-40 ${isDark ? 'hover:bg-white/10 text-slate-300' : 'hover:bg-slate-100 text-slate-600'}`}
@@ -1355,13 +1362,12 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
                       setBundleUploadStatus('idle');
                       setBundleUploadStep('');
                     }}
-                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg text-xs font-medium border transition-all disabled:opacity-40 ${
-                      uploadType === type
-                        ? 'text-white border-transparent'
-                        : isDark
-                          ? 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10'
-                          : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
-                    }`}
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg text-xs font-medium border transition-all disabled:opacity-40 ${uploadType === type
+                      ? 'text-white border-transparent'
+                      : isDark
+                        ? 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10'
+                        : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                      }`}
                     style={
                       uploadType === type
                         ? { backgroundColor: primaryHex, borderColor: primaryHex }
@@ -1391,8 +1397,10 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
                       onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))}
                       placeholder="Title *"
                       disabled={mutating}
-                      className={`w-full px-3 py-2 border rounded-lg disabled:opacity-60 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500' : 'bg-white border-slate-300'}`}
-                    />
+                      className={`w-full px-3 py-2 border rounded-lg disabled:opacity-60 ${isDark
+                        ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-400'
+                        : 'bg-white border-slate-300 text-black placeholder:text-slate-500'
+                        }`} />
 
                     {/* Material type dropdown — hide for video mode (type fixed to 'video') */}
                     {!isVideoMode && (
@@ -1425,8 +1433,10 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
                       onChange={(e) => setForm((prev) => ({ ...prev, weekNumber: e.target.value }))}
                       placeholder="Week Number (optional)"
                       disabled={mutating}
-                      className={`w-full px-3 py-2 border rounded-lg disabled:opacity-60 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500' : 'bg-white border-slate-300'}`}
-                    />
+                      className={`w-full px-3 py-2 border rounded-lg disabled:opacity-60 ${isDark
+                        ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-400'
+                        : 'bg-white border-slate-300 text-black placeholder:text-slate-500'
+                        }`} />
 
                     {/* Description */}
                     <textarea
@@ -1437,8 +1447,10 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
                       }
                       placeholder="Description (optional)"
                       disabled={mutating}
-                      className={`w-full px-3 py-2 border rounded-lg resize-none disabled:opacity-60 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500' : 'bg-white border-slate-300'}`}
-                    />
+                      className={`w-full px-3 py-2 border rounded-lg disabled:opacity-60 ${isDark
+                          ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-400'
+                          : 'bg-white border-slate-300 text-black placeholder:text-slate-500'
+                        }`} />
 
                     {/* Publish toggle */}
                     <label
@@ -1466,13 +1478,12 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
                       {/* File dropzone */}
                       <div
                         onClick={() => !mutating && fileInputRef.current?.click()}
-                        className={`mt-1 border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors ${
-                          mutating
-                            ? 'opacity-50 cursor-not-allowed'
-                            : isDark
-                              ? 'border-white/20 hover:border-white/40 text-slate-400'
-                              : 'border-slate-300 hover:border-slate-400 text-slate-500'
-                        }`}
+                        className={`mt-1 border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors ${mutating
+                          ? 'opacity-50 cursor-not-allowed'
+                          : isDark
+                            ? 'border-white/20 hover:border-white/40 text-slate-400'
+                            : 'border-slate-300 hover:border-slate-400 text-slate-500'
+                          }`}
                       >
                         <FolderOpen size={28} className="mx-auto mb-2 opacity-60" />
                         {selectedFile ? (
@@ -1558,13 +1569,12 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
                       {/* Video dropzone */}
                       <div
                         onClick={() => !mutating && videoInputRef.current?.click()}
-                        className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors ${
-                          mutating
-                            ? 'opacity-50 cursor-not-allowed'
-                            : isDark
-                              ? 'border-white/20 hover:border-white/40 text-slate-400'
-                              : 'border-slate-300 hover:border-slate-400 text-slate-500'
-                        }`}
+                        className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors ${mutating
+                          ? 'opacity-50 cursor-not-allowed'
+                          : isDark
+                            ? 'border-white/20 hover:border-white/40 text-slate-400'
+                            : 'border-slate-300 hover:border-slate-400 text-slate-500'
+                          }`}
                       >
                         <Film size={28} className="mx-auto mb-2 opacity-60" />
                         {selectedFile ? (
@@ -1649,13 +1659,12 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
 
                       <div
                         onClick={() => !mutating && bundleVideoInputRef.current?.click()}
-                        className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-colors ${
-                          mutating
-                            ? 'opacity-50 cursor-not-allowed'
-                            : isDark
-                              ? 'border-white/20 hover:border-white/40 text-slate-400'
-                              : 'border-slate-300 hover:border-slate-400 text-slate-500'
-                        }`}
+                        className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-colors ${mutating
+                          ? 'opacity-50 cursor-not-allowed'
+                          : isDark
+                            ? 'border-white/20 hover:border-white/40 text-slate-400'
+                            : 'border-slate-300 hover:border-slate-400 text-slate-500'
+                          }`}
                       >
                         <Film size={24} className="mx-auto mb-2 opacity-60" />
                         {bundleVideo ? (
@@ -1681,13 +1690,12 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
 
                       <div
                         onClick={() => !mutating && bundleDocInputRef.current?.click()}
-                        className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-colors ${
-                          mutating
-                            ? 'opacity-50 cursor-not-allowed'
-                            : isDark
-                              ? 'border-white/20 hover:border-white/40 text-slate-400'
-                              : 'border-slate-300 hover:border-slate-400 text-slate-500'
-                        }`}
+                        className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-colors ${mutating
+                          ? 'opacity-50 cursor-not-allowed'
+                          : isDark
+                            ? 'border-white/20 hover:border-white/40 text-slate-400'
+                            : 'border-slate-300 hover:border-slate-400 text-slate-500'
+                          }`}
                       >
                         <FolderOpen size={24} className="mx-auto mb-2 opacity-60" />
                         <p className="text-sm font-medium">Select lecture files (multiple)</p>
@@ -1817,10 +1825,10 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
                   showCreateModal
                     ? closeCreateModal
                     : () => {
-                        setEditingBundle(null);
-                        setSelectedBundleDocumentId(null);
-                        setShowEditModal(false);
-                      }
+                      setEditingBundle(null);
+                      setSelectedBundleDocumentId(null);
+                      setShowEditModal(false);
+                    }
                 }
                 className={`px-4 py-2 rounded-lg disabled:opacity-40 ${isDark ? 'text-slate-300 hover:bg-white/10' : 'text-slate-700 hover:bg-slate-100'}`}
               >

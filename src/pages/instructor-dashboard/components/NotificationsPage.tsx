@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   Bell,
   Search,
@@ -18,9 +18,12 @@ import {
   EyeOff,
   X,
   Inbox,
+  Loader2,
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { NotificationService, Notification as ApiNotification } from '../../../services/api/notificationService';
+import { toast } from 'sonner';
 
 interface Notification {
   id: number;
@@ -33,6 +36,46 @@ interface Notification {
   course: string | null;
   icon: string;
 }
+
+interface NotificationsPageProps {
+  notifications?: ApiNotification[];
+  loading?: boolean;
+}
+
+const mapApiNotificationToNotification = (api: ApiNotification): Notification => {
+  const typeMap: Record<string, Notification['type']> = {
+    assignment: 'submission',
+    grade: 'grading',
+    announcement: 'message',
+    system: 'system',
+    enrollment: 'deadline',
+  };
+
+  const iconMap: Record<string, string> = {
+    assignment: 'FileText',
+    grade: 'CheckSquare',
+    announcement: 'MessageCircle',
+    system: 'Settings',
+    enrollment: 'Calendar',
+  };
+
+  return {
+    id: api.notificationId || Number(api.id) || 0,
+    title: api.title,
+    message: api.message || api.body,
+    type: typeMap[api.type] || 'system',
+    timestamp: new Date(api.createdAt).toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    }),
+    read: api.read || api.isRead === 1,
+    student: null,
+    course: null,
+    icon: iconMap[api.type] || 'Bell',
+  };
+};
 
 const initialNotifications: Notification[] = [
   {
@@ -205,15 +248,44 @@ const categoryFilters = [
 
 type Tab = 'all' | 'unread' | 'read';
 
-export function NotificationsPage() {
+export function NotificationsPage({ notifications: propNotifications, loading: propLoading = false }: NotificationsPageProps = {}) {
   const { isDark, primaryHex = '#3b82f6' } = useTheme() as any;
   const { isRTL } = useLanguage();
 
-  const [notifications, setNotifications] = useState<Notification[]>(initialNotifications);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [localLoading, setLocalLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<Tab>('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearch, setShowSearch] = useState(false);
+
+  const loadNotifications = useCallback(async () => {
+    try {
+      setLocalLoading(true);
+      const apiNotifications = await NotificationService.getAll({ limit: 100 });
+      const mapped = apiNotifications.map(mapApiNotificationToNotification);
+      setNotifications(mapped);
+    } catch (error) {
+      toast.error('Failed to load notifications');
+      // Fallback to initialNotifications on error
+      setNotifications(initialNotifications);
+    } finally {
+      setLocalLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    // If prop notifications are provided, use them; otherwise fetch from API
+    if (propNotifications !== undefined) {
+      const mapped = propNotifications.map(mapApiNotificationToNotification);
+      setNotifications(mapped);
+      setLocalLoading(false);
+    } else {
+      loadNotifications();
+    }
+  }, [propNotifications, loadNotifications]);
+
+  const loading = propLoading !== undefined ? propLoading : localLoading;
 
   const unreadCount = useMemo(() => notifications.filter((n) => !n.read).length, [notifications]);
 
@@ -257,16 +329,39 @@ export function NotificationsPage() {
     [notifications]
   );
 
-  const handleMarkAllRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+  const handleMarkAllRead = async () => {
+    try {
+      await NotificationService.markAllAsRead();
+      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+      toast.success('All notifications marked as read');
+    } catch (error) {
+      toast.error('Failed to mark all notifications as read');
+    }
   };
 
-  const handleToggleRead = (id: number) => {
-    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: !n.read } : n)));
+  const handleToggleRead = async (id: number) => {
+    try {
+      const notification = notifications.find((n) => n.id === id);
+      if (!notification) return;
+
+      if (!notification.read) {
+        // Mark as read
+        await NotificationService.markAsRead(id);
+      }
+      setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: !n.read } : n)));
+    } catch (error) {
+      toast.error('Failed to update notification');
+    }
   };
 
-  const handleDelete = (id: number) => {
-    setNotifications((prev) => prev.filter((n) => n.id !== id));
+  const handleDelete = async (id: number) => {
+    try {
+      await NotificationService.deleteNotification(id);
+      setNotifications((prev) => prev.filter((n) => n.id !== id));
+      toast.success('Notification deleted');
+    } catch (error) {
+      toast.error('Failed to delete notification');
+    }
   };
 
   const renderIcon = (iconName: string, className?: string) => {
@@ -473,8 +568,13 @@ export function NotificationsPage() {
         ))}
       </div>
 
-      {/* Notifications List */}
-      {filteredNotifications.length === 0 ? (
+      {/* Loading State */}
+      {loading ? (
+        <div className={`flex items-center justify-center py-16 rounded-xl border ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200 shadow-sm'}`}>
+          <Loader2 className="w-8 h-8 animate-spin" style={{ color: primaryHex }} />
+          <span className={`ml-3 text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Loading notifications...</span>
+        </div>
+      ) : filteredNotifications.length === 0 ? (
         renderEmptyState()
       ) : (
         <div className="space-y-3">

@@ -548,13 +548,15 @@ function InstructorDashboardContent() {
     params.tab === 'courses' && params.id ? Number(params.id) : null;
 
   const materialsCourseId = useMemo(() => {
+    // If navigating from courses tab with specific course ID
+    if (params.tab === 'materials' && params.id) return String(params.id);
     if (selectedLiveSection?.courseId) return String(selectedLiveSection.courseId);
     if (!isMockMode && Array.isArray(teachingCoursesLive) && teachingCoursesLive.length > 0) {
       const first = teachingCoursesLive[0];
       return String(first.courseId ?? first.id ?? '');
     }
     return activeSectionId || '';
-  }, [selectedLiveSection, isMockMode, teachingCoursesLive, activeSectionId]);
+  }, [selectedLiveSection, isMockMode, teachingCoursesLive, activeSectionId, params.tab, params.id]);
 
   const { data: assignmentSubmissions = [], isLoading: isLoadingAssignmentSubmissions } = useQuery({
     queryKey: ['assignment-submissions', selectedAssignmentForSubmissions?.id],
@@ -1198,7 +1200,7 @@ function InstructorDashboardContent() {
               onDeleteCourse={handleDeleteCourse}
               onDuplicateCourse={handleDuplicateCourse}
               onViewCourse={(id) => {
-                navigate(`/instructordashboard/courses/${id}`);
+                navigate(`/instructordashboard/materials/${id}`);
               }}
               selectedCourseId={selectedCourseIdFromRoute}
               isMockMode={isMockMode}

@@ -209,6 +209,39 @@
 .anim-panel-right { animation: panelInRight 0.8s ease-out 0.3s both; }
 
 /* ============================================================================
+   TOGGLE BUTTONS (Language + Theme)
+   ============================================================================ */
+
+.login-toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: #cbd5e1;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.login-toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(79, 142, 247, 0.4);
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(79, 142, 247, 0.2);
+}
+
+.login-toggle-btn:active {
+  transform: translateY(0);
+}
+
+/* ============================================================================
    LEFT PANEL - FORM STYLES
    ============================================================================ */
 
@@ -220,6 +253,10 @@
 /* Logo */
 .login-logo {
   font-family: 'Syne', sans-serif;
+  background: linear-gradient(135deg, #ffffff 0%, #a5b4fc 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .login-logo-icon {
@@ -634,6 +671,162 @@
 }
 
 /* ============================================================================
+   LIGHT THEME SUPPORT
+   ============================================================================ */
+
+:root:not(.dark) .login-page-wrapper {
+  background: linear-gradient(135deg, #f0f4ff 0%, #e8eeff 100%);
+}
+
+:root:not(.dark) .login-page-wrapper::before {
+  background-image:
+    linear-gradient(rgba(79, 142, 247, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(79, 142, 247, 0.06) 1px, transparent 1px);
+}
+
+:root:not(.dark) .login-orb {
+  opacity: 0.2;
+}
+
+:root:not(.dark) .login-particle {
+  background: rgba(79, 142, 247, 0.4);
+}
+
+:root:not(.dark) .login-left-panel {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+}
+
+:root:not(.dark) .login-heading {
+  background: linear-gradient(135deg, #0f172a 0%, #1e40af 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+:root:not(.dark) .login-subtitle {
+  color: #64748b;
+}
+
+:root:not(.dark) .login-label {
+  color: #475569;
+}
+
+:root:not(.dark) .login-glass-input {
+  background: rgba(0, 0, 0, 0.03) !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  color: #0f172a !important;
+}
+
+:root:not(.dark) .login-glass-input::placeholder {
+  color: #94a3b8 !important;
+}
+
+:root:not(.dark) .login-glass-input:focus {
+  background: rgba(79, 142, 247, 0.05) !important;
+  border-color: rgba(79, 142, 247, 0.5) !important;
+  box-shadow:
+    0 0 0 3px rgba(79, 142, 247, 0.1),
+    0 0 20px rgba(79, 142, 247, 0.1) !important;
+}
+
+:root:not(.dark) .login-input-icon {
+  color: #94a3b8;
+}
+
+:root:not(.dark) .login-input-group:focus-within .login-input-icon {
+  color: #4F8EF7;
+}
+
+:root:not(.dark) .login-forgot-link {
+  color: #4F8EF7;
+}
+
+:root:not(.dark) .login-error-box {
+  background: rgba(239, 68, 68, 0.05);
+  border: 1px solid rgba(239, 68, 68, 0.15);
+  color: #dc2626;
+}
+
+:root:not(.dark) .login-divider-text {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  color: #94a3b8;
+}
+
+:root:not(.dark) .login-dev-divider {
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+:root:not(.dark) .login-dev-label {
+  color: #94a3b8;
+}
+
+:root:not(.dark) .login-chip {
+  background: rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  color: #64748b;
+}
+
+:root:not(.dark) .login-chip:hover {
+  border-color: rgba(79, 142, 247, 0.4);
+  color: #ffffff;
+  background: rgba(0, 0, 0, 0.03);
+}
+
+:root:not(.dark) .login-chip::before {
+  background: linear-gradient(135deg, rgba(79, 142, 247, 0.8), rgba(24, 95, 165, 0.8));
+}
+
+:root:not(.dark) .login-footer-text {
+  color: #64748b;
+}
+
+:root:not(.dark) .login-outlook-btn {
+  background: rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+:root:not(.dark) .login-outlook-btn:hover {
+  background: rgba(79, 142, 247, 0.05);
+  border-color: rgba(79, 142, 247, 0.3);
+}
+
+:root:not(.dark) .login-outlook-btn span {
+  color: #334155;
+}
+
+:root:not(.dark) .login-toggle-btn {
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  color: #64748b;
+}
+
+:root:not(.dark) .login-toggle-btn:hover {
+  background: rgba(79, 142, 247, 0.1);
+  border-color: rgba(79, 142, 247, 0.3);
+  color: #1e40af;
+}
+
+:root:not(.dark) .login-logo {
+  background: linear-gradient(135deg, #0f172a 0%, #1e40af 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Light theme right panel */
+:root:not(.dark) .login-right-panel {
+  background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%);
+}
+
+:root:not(.dark) .login-hero-overlay {
+  background: linear-gradient(135deg, rgba(30, 58, 138, 0.95) 0%, rgba(15, 23, 42, 0.9) 100%);
+}
+
+:root:not(.dark) .login-hero-image {
+  opacity: 0.4;
+}
+
+/* ============================================================================
    RTL SUPPORT
    ============================================================================ */
 
@@ -644,4 +837,9 @@
 [dir='rtl'] .login-heading,
 [dir='rtl'] .login-logo {
   font-family: 'Cairo', 'Syne', sans-serif;
+}
+
+/* RTL toggle buttons */
+[dir='rtl'] .login-toggle-btn {
+  direction: rtl;
 }

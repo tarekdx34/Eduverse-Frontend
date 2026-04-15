@@ -141,7 +141,7 @@ export function LabCreate({ isOpen, courses, onSave, onClose }: LabCreateProps) 
                 isDark ? 'text-slate-300' : 'text-gray-700'
               }`}
             >
-              {t('course') || 'Course'} *
+              Course *
             </label>
             <select
               id="lab-course"
@@ -155,7 +155,7 @@ export function LabCreate({ isOpen, courses, onSave, onClose }: LabCreateProps) 
                   : 'border-gray-300 bg-white text-gray-900 placeholder-gray-500'
               }`}
             >
-              <option value="">{t('selectCourse') || 'Select a course...'}</option>
+              <option value="">Choose a course for this lab...</option>
               {courses.map((course) => (
                 <option key={course.id} value={course.id}>
                   {course.code} - {course.name}
@@ -172,7 +172,7 @@ export function LabCreate({ isOpen, courses, onSave, onClose }: LabCreateProps) 
                 isDark ? 'text-slate-300' : 'text-gray-700'
               }`}
             >
-              {t('title') || 'Title'} *
+              Lab Title *
             </label>
             <input
               id="lab-title"
@@ -181,7 +181,7 @@ export function LabCreate({ isOpen, courses, onSave, onClose }: LabCreateProps) 
               onChange={(e) => handleChange('title', e.target.value)}
               required
               aria-required="true"
-              placeholder={t('enterLabTitle') || 'Enter lab title'}
+              placeholder="Enter a descriptive title for the lab"
               className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${
                 isDark
                   ? 'bg-white/5 border-white/10 text-white placeholder-white/40'
@@ -198,14 +198,14 @@ export function LabCreate({ isOpen, courses, onSave, onClose }: LabCreateProps) 
                 isDark ? 'text-slate-300' : 'text-gray-700'
               }`}
             >
-              {t('description') || 'Description'}
+              Description
             </label>
             <textarea
               id="lab-description"
               value={formData.description}
               onChange={(e) => handleChange('description', e.target.value)}
               rows={3}
-              placeholder={t('enterLabDescription') || 'Enter lab description...'}
+              placeholder="Provide a brief description of the lab objectives and requirements"
               className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors resize-none ${
                 isDark
                   ? 'bg-white/5 border-white/10 text-white placeholder-white/40'
@@ -223,7 +223,7 @@ export function LabCreate({ isOpen, courses, onSave, onClose }: LabCreateProps) 
                   isDark ? 'text-slate-300' : 'text-gray-700'
                 }`}
               >
-                {t('availableFrom') || 'Available From'}
+                Available From
               </label>
               <input
                 id="lab-available-from"
@@ -244,7 +244,7 @@ export function LabCreate({ isOpen, courses, onSave, onClose }: LabCreateProps) 
                   isDark ? 'text-slate-300' : 'text-gray-700'
                 }`}
               >
-                {t('dueDate') || 'Due Date'}
+                Due Date
               </label>
               <input
                 id="lab-due-date"
@@ -269,7 +269,7 @@ export function LabCreate({ isOpen, courses, onSave, onClose }: LabCreateProps) 
                   isDark ? 'text-slate-300' : 'text-gray-700'
                 }`}
               >
-                {t('maxScore') || 'Max Score'}
+                Maximum Score
               </label>
               <input
                 id="lab-max-score"
@@ -291,7 +291,7 @@ export function LabCreate({ isOpen, courses, onSave, onClose }: LabCreateProps) 
                   isDark ? 'text-slate-300' : 'text-gray-700'
                 }`}
               >
-                {t('weight') || 'Weight'}
+                Weight (%)
               </label>
               <input
                 id="lab-weight"
@@ -316,22 +316,22 @@ export function LabCreate({ isOpen, courses, onSave, onClose }: LabCreateProps) 
                 isDark ? 'text-slate-300' : 'text-gray-700'
               }`}
             >
-              {t('status') || 'Status'}
+              Lab Status
             </label>
             <select
               id="lab-status"
               value={formData.status}
               onChange={(e) => handleChange('status', e.target.value as LabStatus)}
-              aria-label={t('status') || 'Status'}
+              aria-label="Lab Status"
               className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${
                 isDark
                   ? 'bg-white/5 border-white/10 text-white'
                   : 'border-gray-300 bg-white text-gray-900'
               }`}
             >
-              <option value="draft">{t('draft') || 'Draft'}</option>
-              <option value="published">{t('published') || 'Published'}</option>
-              <option value="closed">{t('closed') || 'Closed'}</option>
+              <option value="draft">Draft (Not visible to students)</option>
+              <option value="published">Published (Visible to students)</option>
+              <option value="closed">Closed (No submissions accepted)</option>
             </select>
           </div>
 
@@ -346,7 +346,7 @@ export function LabCreate({ isOpen, courses, onSave, onClose }: LabCreateProps) 
                 isDark ? 'text-slate-200' : 'text-gray-800'
               }`}
             >
-              {t('submissionRestrictions') || 'Submission Restrictions'}
+              Submission File Restrictions
             </h3>
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -356,7 +356,7 @@ export function LabCreate({ isOpen, courses, onSave, onClose }: LabCreateProps) 
                     isDark ? 'text-slate-300' : 'text-gray-700'
                   }`}
                 >
-                  {t('allowedFileTypes') || 'Allowed File Types'}
+                  Allowed File Types
                 </label>
                 <input
                   id="lab-allowed-file-types"
@@ -378,7 +378,7 @@ export function LabCreate({ isOpen, courses, onSave, onClose }: LabCreateProps) 
                     isDark ? 'text-slate-300' : 'text-gray-700'
                   }`}
                 >
-                  {t('maxFileSize') || 'Max File Size (MB)'}
+                  Max File Size (MB)
                 </label>
                 <input
                   id="lab-max-file-size"

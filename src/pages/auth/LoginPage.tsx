@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, LogIn } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Mail, Lock, Eye, EyeOff, Globe, Sun, Moon } from 'lucide-react';
 import { Input } from '../../components/ui/input';
 import { Button } from '../../components/ui/button';
 import { useLanguage } from '../home/contexts/LanguageContext';
+import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
 import { AuthService } from '../../services/api/authService';
 import backgroundImage from '../../assets/images/pexels-mart-production-8471990.jpg';
@@ -16,9 +17,14 @@ const login = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { language } = useLanguage();
+  const { language, setLanguage } = useLanguage();
+  const { theme, toggleTheme } = useTheme();
   const isArabic = language === 'ar';
   const { login: authLogin, logout: authLogout } = useAuth();
+
+  const toggleLanguage = () => {
+    setLanguage(language === 'en' ? 'ar' : 'en');
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,6 +69,27 @@ const login = () => {
 
       {/* Main Layout */}
       <div className="min-h-screen flex text-white">
+        {/* Top-Right Toggle Buttons */}
+        <div className={`fixed top-6 z-50 flex items-center gap-2 anim-logo ${isArabic ? 'left-6' : 'right-6'}`}>
+          {/* Language Toggle */}
+          <button
+            onClick={toggleLanguage}
+            className="login-toggle-btn"
+            title={isArabic ? 'Switch to English' : 'التبديل إلى العربية'}
+          >
+            <Globe className="w-4 h-4" />
+            <span className="text-xs font-bold">{isArabic ? 'EN' : 'AR'}</span>
+          </button>
+          {/* Theme Toggle */}
+          <button
+            onClick={toggleTheme}
+            className="login-toggle-btn"
+            title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          </button>
+        </div>
+
         {/* Left Side - Form Container */}
         <div className="w-full lg:w-1/2 flex items-center justify-center p-8 sm:p-12 lg:p-16 login-left-panel anim-panel-left">
           <div className="w-full max-w-md space-y-8">
@@ -72,7 +99,7 @@ const login = () => {
                 className="flex items-center space-x-3 cursor-pointer group"
                 onClick={handleLogo}
               >
-                <span className="text-5xl font-bold tracking-tight text-white group-hover:opacity-80 transition-opacity login-logo">
+                <span className="text-5xl font-bold tracking-tight group-hover:opacity-80 transition-opacity login-logo">
                   {isArabic ? 'إيدوفيرس' : 'Eduverse'}
                 </span>
               </button>

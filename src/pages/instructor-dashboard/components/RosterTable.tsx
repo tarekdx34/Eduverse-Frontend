@@ -186,11 +186,11 @@ export function RosterTable({ sectionId, data = [] }: RosterTableProps) {
       <div className="overflow-x-auto">
         <table className="min-w-full text-sm">
           <thead>
-            <tr className={isDark ? 'bg-white/5 text-slate-300' : 'bg-gray-100 text-gray-700'}>
+            <tr className={isDark ? 'bg-white/5 text-slate-200' : 'bg-gray-100 text-gray-900'}>
               <th className="p-3 text-left">
                 <button
                   onClick={() => handleSort('userId')}
-                  className="flex items-center gap-1 hover:text-indigo-600 font-semibold"
+                  className={`flex items-center gap-1 font-semibold transition-colors ${isDark ? 'hover:text-indigo-400' : 'hover:text-indigo-600'}`}
                 >
                   Student ID
                   <ArrowUpDown size={14} />
@@ -199,7 +199,7 @@ export function RosterTable({ sectionId, data = [] }: RosterTableProps) {
               <th className="p-3 text-left">
                 <button
                   onClick={() => handleSort('enrollmentDate')}
-                  className="flex items-center gap-1 hover:text-indigo-600 font-semibold"
+                  className={`flex items-center gap-1 font-semibold transition-colors ${isDark ? 'hover:text-indigo-400' : 'hover:text-indigo-600'}`}
                 >
                   Enrollment Date
                   <ArrowUpDown size={14} />
@@ -208,15 +208,15 @@ export function RosterTable({ sectionId, data = [] }: RosterTableProps) {
               <th className="p-3 text-left">
                 <button
                   onClick={() => handleSort('status')}
-                  className="flex items-center gap-1 hover:text-indigo-600 font-semibold"
+                  className={`flex items-center gap-1 font-semibold transition-colors ${isDark ? 'hover:text-indigo-400' : 'hover:text-indigo-600'}`}
                 >
                   Status
                   <ArrowUpDown size={14} />
                 </button>
               </th>
-              <th className="p-3 text-left font-semibold">Grade</th>
-              <th className="p-3 text-left font-semibold">Final Score</th>
-              <th className="p-3 text-right font-semibold">Notes</th>
+              <th className={`p-3 text-left font-semibold ${isDark ? 'text-slate-200' : 'text-gray-900'}`}>Grade</th>
+              <th className={`p-3 text-left font-semibold ${isDark ? 'text-slate-200' : 'text-gray-900'}`}>Final Score</th>
+              <th className={`p-3 text-right font-semibold ${isDark ? 'text-slate-200' : 'text-gray-900'}`}>Notes</th>
             </tr>
           </thead>
           <tbody>
@@ -246,7 +246,13 @@ export function RosterTable({ sectionId, data = [] }: RosterTableProps) {
                   </div>
                 </td>
                 <td className="p-3">
-                  <span className="px-3 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700 capitalize">
+                  <span
+                    className={`px-3 py-1 rounded-full text-xs font-medium ${
+                      isDark
+                        ? 'bg-indigo-500/20 text-indigo-300'
+                        : 'bg-indigo-100 text-indigo-700'
+                    }`}
+                  >
                     {student.status}
                   </span>
                 </td>

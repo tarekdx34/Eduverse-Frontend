@@ -73,11 +73,10 @@ export function GradesTable({ data, onEdit, onDelete }: GradesTableProps) {
           placeholder={t('searchGradesPlaceholder')}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className={`w-full pl-10 pr-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-            isDark
-              ? 'bg-white/5 border-white/10 text-slate-200 placeholder:text-slate-500'
-              : 'bg-white border-gray-300 text-gray-900'
-          }`}
+          className={`w-full pl-10 pr-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isDark
+            ? 'bg-white/5 border-white/10 text-slate-200 placeholder:text-slate-500'
+            : 'bg-white border-gray-300 text-gray-900'
+            }`}
         />
       </div>
 
@@ -124,18 +123,33 @@ export function GradesTable({ data, onEdit, onDelete }: GradesTableProps) {
               return (
                 <tr
                   key={g.id}
-                  className={`border-t ${isDark ? 'border-white/5 hover:bg-white/5' : 'hover:bg-gray-50'}`}
+                  className={`border-t ${isDark
+                    ? 'border-white/10 hover:bg-white/10'
+                    : 'border-gray-200 hover:bg-gray-50'
+                    }`}
                 >
-                  <td className={`p-2 ${isDark ? 'text-slate-200' : ''}`}>{g.student}</td>
-                  <td className={`p-2 text-xs ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                  <td className={`p-2 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                    {g.student}
+                  </td>
+
+                  <td className={`p-2 text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                     {g.email}
                   </td>
-                  <td className={`p-2 ${isDark ? 'text-slate-200' : ''}`}>{g.assignment}</td>
-                  <td className={`p-2 font-medium ${isDark ? 'text-slate-200' : ''}`}>
+
+                  <td className={`p-2 ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>
+                    {g.assignment}
+                  </td>
+
+                  <td className={`p-2 font-medium ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>
                     {!isNaN(scoreNum) ? scoreNum.toFixed(2) : 'N/A'}
                   </td>
                   <td className="p-2">
-                    <span className="px-2 py-1 rounded bg-indigo-100 text-indigo-700 text-xs font-medium">
+                    <span
+                      className={`px-2 py-1 rounded text-xs font-medium ${isDark
+                        ? 'bg-indigo-500/20 text-indigo-300'
+                        : 'bg-indigo-100 text-indigo-700'
+                        }`}
+                    >
                       {g.grade}
                     </span>
                   </td>
@@ -143,8 +157,10 @@ export function GradesTable({ data, onEdit, onDelete }: GradesTableProps) {
                     <div className="flex gap-2">
                       <button
                         onClick={() => onEdit(g)}
-                        className="p-1 text-indigo-600 hover:bg-indigo-50 rounded transition-colors"
-                        title="Edit"
+                        className={`p-1 rounded transition-colors ${isDark
+                            ? 'text-indigo-400 hover:bg-white/10'
+                            : 'text-indigo-600 hover:bg-indigo-50'
+                          }`}
                       >
                         <Edit2 size={16} />
                       </button>
