@@ -32,11 +32,20 @@ export default defineConfig({
           }
         },
       },
-      // Local Python face service (npm run attendance in EduVerse-Backend). POST /ai-attendance/attendance
+      // Local Python face service — MUST run: cd EduVerse-Backend && npm run attendance (port 8000)
       '/ai-attendance': {
         target: 'http://127.0.0.1:8000',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/ai-attendance/, ''),
+        configure(proxy) {
+          proxy.on('error', (err) => {
+            if (err.code === 'ECONNREFUSED') {
+              console.error(
+                '\n[vite] AI attendance: nothing on :8000. Start Python: cd EduVerse-Backend && npm run attendance\n',
+              );
+            }
+          });
+        },
       },
       // Local Python quiz service (run quiz-generator FastAPI on :8001).
       '/ai-quiz': {
