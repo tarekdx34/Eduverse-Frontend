@@ -68,19 +68,31 @@ export function RosterTable({ sectionId, data = [] }: RosterTableProps) {
         setLoading(true);
         setError(null);
         const enrollments = await enrollmentService.getSectionStudents(sectionId);
-        const mapped = enrollments.map((enrollment: EnrolledCourse) => ({
-          id: enrollment.id,
-          userId: enrollment.userId,
-          studentName: enrollment.studentName || enrollment.fullName || enrollment.userName || undefined,
-          studentEmail: enrollment.studentEmail || enrollment.email || undefined,
-          enrollmentDate: enrollment.enrollmentDate,
-          status: enrollment.status,
-          grade: enrollment.grade || 'N/A',
-          finalScore:
-            enrollment.finalScore === null || enrollment.finalScore === undefined
-              ? 'N/A'
-              : String(enrollment.finalScore),
-        }));
+        const mapped = enrollments.map((enrollment: EnrolledCourse) => {
+          const u = enrollment.user;
+          const fullName =
+            u?.fullName ||
+            (u?.firstName && u?.lastName ? `${u.firstName} ${u.lastName}`.trim() : undefined) ||
+            enrollment.studentName ||
+            enrollment.fullName ||
+            enrollment.userName ||
+            undefined;
+          const email =
+            u?.email || enrollment.studentEmail || enrollment.email || undefined;
+          return {
+            id: enrollment.id,
+            userId: u?.userId ?? enrollment.userId,
+            studentName: fullName,
+            studentEmail: email,
+            enrollmentDate: enrollment.enrollmentDate,
+            status: enrollment.status,
+            grade: enrollment.grade || 'N/A',
+            finalScore:
+              enrollment.finalScore === null || enrollment.finalScore === undefined
+                ? 'N/A'
+                : String(enrollment.finalScore),
+          };
+        });
         setRows(mapped);
       } catch (err) {
         console.error('Failed to fetch section students', err);
@@ -187,19 +199,31 @@ export function RosterTable({ sectionId, data = [] }: RosterTableProps) {
                   setLoading(true);
                   enrollmentService.getSectionStudents(sectionId)
                     .then((enrollments) => {
-                      const mapped = enrollments.map((enrollment: EnrolledCourse) => ({
-                        id: enrollment.id,
-                        userId: enrollment.userId,
-                        studentName: enrollment.studentName || enrollment.fullName || enrollment.userName || undefined,
-                        studentEmail: enrollment.studentEmail || enrollment.email || undefined,
-                        enrollmentDate: enrollment.enrollmentDate,
-                        status: enrollment.status,
-                        grade: enrollment.grade || 'N/A',
-                        finalScore:
-                          enrollment.finalScore === null || enrollment.finalScore === undefined
-                            ? 'N/A'
-                            : String(enrollment.finalScore),
-                      }));
+                      const mapped = enrollments.map((enrollment: EnrolledCourse) => {
+                        const u = enrollment.user;
+                        const fullName =
+                          u?.fullName ||
+                          (u?.firstName && u?.lastName ? `${u.firstName} ${u.lastName}`.trim() : undefined) ||
+                          enrollment.studentName ||
+                          enrollment.fullName ||
+                          enrollment.userName ||
+                          undefined;
+                        const email =
+                          u?.email || enrollment.studentEmail || enrollment.email || undefined;
+                        return {
+                          id: enrollment.id,
+                          userId: u?.userId ?? enrollment.userId,
+                          studentName: fullName,
+                          studentEmail: email,
+                          enrollmentDate: enrollment.enrollmentDate,
+                          status: enrollment.status,
+                          grade: enrollment.grade || 'N/A',
+                          finalScore:
+                            enrollment.finalScore === null || enrollment.finalScore === undefined
+                              ? 'N/A'
+                              : String(enrollment.finalScore),
+                        };
+                      });
                       setRows(mapped);
                       setError(null);
                     })

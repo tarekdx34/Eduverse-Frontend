@@ -312,7 +312,12 @@ export function NotificationCenter() {
   };
 
   const clearAllRead = () => {
+    const prevList = notificationList;
     setNotificationList(notificationList.filter((n) => !n.read));
+    NotificationService.clearRead().catch((error) => {
+      toast.error(error instanceof Error ? error.message : 'Failed to clear read notifications');
+      setNotificationList(prevList);
+    });
   };
 
   const filteredNotifications =

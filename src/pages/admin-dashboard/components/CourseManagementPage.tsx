@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Search,
   Plus,
@@ -14,6 +14,7 @@ import {
   Pencil,
   AlertCircle,
   X,
+  Tag,
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -38,6 +39,7 @@ interface Course {
   level: string;
   prerequisites: string[];
   sectionId?: number | null;
+  skills?: string[];
 }
 
 interface CourseManagementPageProps {
@@ -54,6 +56,80 @@ interface SemesterOption {
   id: number;
   name: string;
 }
+
+// ── Inline chip/tag input for course skills ──────────────────────
+function SkillTagInput({
+  tags,
+  onChange,
+  isDark,
+  accentColor,
+  inputClass,
+}: {
+  tags: string[];
+  onChange: (tags: string[]) => void;
+  isDark: boolean;
+  accentColor: string;
+  inputClass: string;
+}) {
+  const [inputValue, setInputValue] = React.useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const addTag = (val: string) => {
+    const t = val.trim();
+    if (t && !tags.includes(t)) onChange([...tags, t]);
+    setInputValue('');
+  };
+
+  const removeTag = (idx: number) => onChange(tags.filter((_, i) => i !== idx));
+
+  const handleKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      addTag(inputValue);
+    } else if (e.key === 'Backspace' && !inputValue && tags.length > 0) {
+      removeTag(tags.length - 1);
+    }
+  };
+
+  return (
+    <div
+      className={`flex flex-wrap gap-1.5 min-h-[42px] px-3 py-2 rounded-xl border cursor-text transition-all ${
+        isDark ? 'bg-slate-800/50 border-slate-700' : 'bg-white border-slate-300'
+      } focus-within:outline-none`}
+      style={{ ['--focus-ring' as any]: accentColor }}
+      onClick={() => inputRef.current?.focus()}
+    >
+      {tags.map((tag, idx) => (
+        <span
+          key={idx}
+          className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-xs font-medium text-white"
+          style={{ backgroundColor: accentColor + 'cc' }}
+        >
+          {tag}
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); removeTag(idx); }}
+            className="hover:opacity-70 transition-opacity"
+          >
+            <X size={10} />
+          </button>
+        </span>
+      ))}
+      <input
+        ref={inputRef}
+        value={inputValue}
+        onChange={(e) => setInputValue(e.target.value)}
+        onKeyDown={handleKey}
+        onBlur={() => { if (inputValue.trim()) addTag(inputValue); }}
+        placeholder={tags.length === 0 ? 'e.g. Python, Neural Networks… (press Enter to add)' : ''}
+        className={`flex-1 min-w-[160px] outline-none bg-transparent text-sm ${
+          isDark ? 'text-white placeholder-slate-500' : 'text-slate-900 placeholder-slate-400'
+        }`}
+      />
+    </div>
+  );
+}
+// ─────────────────────────────────────────────────────────────────
 
 export function CourseManagementPage({
   courses,
@@ -96,6 +172,7 @@ export function CourseManagementPage({
     instructorId: 0,
     instructor: '',
     taIds: [] as number[],
+    skills: [] as string[],
   });
   const [addStep, setAddStep] = useState<1 | 2 | 3>(1);
   const [addCourseId, setAddCourseId] = useState<number | null>(null);
@@ -371,6 +448,7 @@ export function CourseManagementPage({
         credits: Number(formData.credits),
         status: (formData.status || 'ACTIVE').toUpperCase(),
         level: (formData.level || 'FRESHMAN').toUpperCase(),
+        skills: formData.skills,
       });
 
       const sectionId = await ensureSectionWithSchedule(
@@ -404,6 +482,7 @@ export function CourseManagementPage({
         instructorId: course.instructorId || 0,
         instructor: course.instructor,
         taIds: course.taIds || [],
+        skills: (course as any).skills || [],
       });
       if (type === 'staff-assign') {
         console.log('[CourseManagementPage] Staff modal users:', users);
@@ -430,6 +509,7 @@ export function CourseManagementPage({
         instructorId: 0,
         instructor: '',
         taIds: [],
+        skills: [],
       });
     }
 
@@ -595,6 +675,7 @@ export function CourseManagementPage({
         credits: Number(formData.credits),
         level: formData.level,
         departmentId: 1,
+        skills: formData.skills,
       });
       const createdCourseId = Number(courseRes?.id || courseRes?.courseId || courseRes?.data?.id);
       if (!createdCourseId) {
@@ -1334,6 +1415,26 @@ export function CourseManagementPage({
                         </div>
                       </div>
 
+                      {/* Skills Tag Input */}
+                      <div>
+                        <label
+                          className={`block text-xs font-semibold uppercase tracking-wider mb-1 flex items-center gap-1.5 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                        >
+                          <Tag size={12} />
+                          Course Skills
+                          <span className={`ml-1 text-[10px] font-normal normal-case tracking-normal ${isDark ? 'text-slate-600' : 'text-slate-400'}`}>
+                            (auto-awarded to passing students)
+                          </span>
+                        </label>
+                        <SkillTagInput
+                          tags={formData.skills}
+                          onChange={(skills) => setFormData({ ...formData, skills })}
+                          isDark={isDark}
+                          accentColor={accentColor}
+                          inputClass={inputClass}
+                        />
+                      </div>
+
                       <div className="flex justify-end gap-3 mt-6">
                         <button
                           type="button"
@@ -1754,6 +1855,26 @@ export function CourseManagementPage({
                             <option value="GRADUATE">Graduate</option>
                           </CleanSelect>
                         </div>
+                      </div>
+
+                      {/* Skills Tag Input – Edit Mode */}
+                      <div>
+                        <label
+                          className={`block text-xs font-semibold uppercase tracking-wider mb-1 flex items-center gap-1.5 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                        >
+                          <Tag size={12} />
+                          Course Skills
+                          <span className={`ml-1 text-[10px] font-normal normal-case tracking-normal ${isDark ? 'text-slate-600' : 'text-slate-400'}`}>
+                            (auto-awarded to passing students)
+                          </span>
+                        </label>
+                        <SkillTagInput
+                          tags={formData.skills}
+                          onChange={(skills) => setFormData({ ...formData, skills })}
+                          isDark={isDark}
+                          accentColor={accentColor}
+                          inputClass={inputClass}
+                        />
                       </div>
                     </div>
                   )}

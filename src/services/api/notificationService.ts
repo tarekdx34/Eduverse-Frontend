@@ -96,6 +96,10 @@ export class NotificationService {
     await ApiClient.delete('/notifications/clear-all');
   }
 
+  static async clearRead(): Promise<{ affected: number }> {
+    return ApiClient.request<{ affected: number }>('/notifications/clear-read', { method: 'DELETE' });
+  }
+
   static async getPreferences(): Promise<NotificationPreferences> {
     return ApiClient.get('/notifications/preferences');
   }

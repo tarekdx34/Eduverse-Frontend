@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   Mail,
   Phone,
@@ -14,6 +14,9 @@ import {
   Download,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { UserService, type UserProfile } from '../../services/api/userService';
+import { Loader2, Plus } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface ProfileData {
   fullName: string;
@@ -46,6 +49,93 @@ interface DashboardProfileTabProps {
   profileData: ProfileData;
 }
 
+// ──────────────────────────────────────────────────────────────
+// TagInput: used for interests and skills editing
+// ──────────────────────────────────────────────────────────────
+function TagInput({
+  tags,
+  onChange,
+  placeholder,
+  accentColor,
+  isDark,
+}: {
+  tags: string[];
+  onChange: (tags: string[]) => void;
+  placeholder?: string;
+  accentColor: string;
+  isDark: boolean;
+}) {
+  const [inputValue, setInputValue] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const addTag = (value: string) => {
+    const trimmed = value.trim();
+    if (trimmed && !tags.includes(trimmed)) {
+      onChange([...tags, trimmed]);
+    }
+    setInputValue('');
+  };
+
+  const removeTag = (index: number) => {
+    onChange(tags.filter((_, i) => i !== index));
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      addTag(inputValue);
+    } else if (e.key === 'Backspace' && !inputValue && tags.length > 0) {
+      removeTag(tags.length - 1);
+    }
+  };
+
+  return (
+    <div
+      className={`flex flex-wrap gap-2 p-3 border rounded-xl min-h-[48px] cursor-text transition-all ${
+        isDark ? 'bg-white/5 border-white/10' : 'bg-white border-slate-200'
+      } focus-within:ring-2`}
+      style={{ '--tw-ring-color': `${accentColor}40` } as any}
+      onClick={() => inputRef.current?.focus()}
+    >
+      {tags.map((tag, idx) => (
+        <span
+          key={idx}
+          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-bold border transition-all hover:scale-105`}
+          style={{
+            backgroundColor: `${accentColor}10`,
+            color: accentColor,
+            borderColor: `${accentColor}30`,
+          }}
+        >
+          {tag}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              removeTag(idx);
+            }}
+            className="hover:text-red-500 transition-colors"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </span>
+      ))}
+      <input
+        ref={inputRef}
+        value={inputValue}
+        onChange={(e) => setInputValue(e.target.value)}
+        onKeyDown={handleKeyDown}
+        onBlur={() => {
+          if (inputValue.trim()) addTag(inputValue);
+        }}
+        placeholder={tags.length === 0 ? placeholder : ''}
+        className="flex-1 min-w-[140px] outline-none text-sm bg-transparent"
+        style={{ color: isDark ? 'white' : '#1e293b' }}
+      />
+    </div>
+  );
+}
+
 export function DashboardProfileTab({
   isDark,
   accentColor = '#3b82f6',
@@ -66,8 +156,58 @@ export function DashboardProfileTab({
   };
   const [isEditing, setIsEditing] = useState(false);
   const [data, setData] = useState(mergedProfileData);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
 
-  const handleSave = () => setIsEditing(false);
+  // Sync with backend on mount
+  useEffect(() => {
+    let mounted = true;
+    UserService.getProfile()
+      .then((profile) => {
+        if (mounted) {
+          setData((prev) => ({
+            ...prev,
+            fullName: profile.fullName || `${profile.firstName} ${profile.lastName}`,
+            email: profile.email,
+            bio: profile.bio || prev.bio,
+            interests: profile.academicInterests || prev.interests,
+            skills: profile.skills || prev.skills,
+          }));
+        }
+      })
+      .catch((err) => console.error('Failed to fetch profile:', err))
+      .finally(() => {
+        if (mounted) setIsLoading(false);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      // Split name back if changed
+      const [firstName, ...rest] = data.fullName.split(' ');
+      const lastName = rest.join(' ');
+
+      await UserService.updateProfile({
+        firstName,
+        lastName,
+        bio: data.bio,
+        academicInterests: Array.isArray(data.interests) ? data.interests : [],
+        skills: Array.isArray(data.skills) ? data.skills : [],
+      });
+      setIsEditing(false);
+      toast.success('Profile updated successfully');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to update profile');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const handleCancel = () => {
     setData(mergedProfileData);
     setIsEditing(false);
@@ -137,14 +277,16 @@ export function DashboardProfileTab({
               <div className="flex gap-2">
                 <button
                   onClick={handleSave}
-                  className="px-4 py-2 bg-emerald-500 text-white font-medium rounded-lg transition-colors flex items-center gap-2 text-sm"
+                  disabled={isSaving}
+                  className="px-4 py-2 bg-emerald-500 text-white font-medium rounded-lg transition-colors flex items-center gap-2 text-sm disabled:opacity-50"
                 >
-                  <Save className="w-4 h-4" />
-                  Save
+                  {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                  {isSaving ? 'Saving...' : 'Save'}
                 </button>
                 <button
                   onClick={handleCancel}
-                  className={`px-4 py-2 font-medium rounded-lg transition-colors flex items-center gap-2 text-sm ${isDark ? 'bg-white/10 text-white' : 'bg-gray-100 text-gray-700'}`}
+                  disabled={isSaving}
+                  className={`px-4 py-2 font-medium rounded-lg transition-colors flex items-center gap-2 text-sm disabled:opacity-50 ${isDark ? 'bg-white/10 text-white' : 'bg-gray-100 text-gray-700'}`}
                 >
                   <X className="w-4 h-4" />
                   Cancel
@@ -154,6 +296,13 @@ export function DashboardProfileTab({
           </div>
         </div>
       </div>
+
+      {isLoading && (
+        <div className="flex flex-col items-center justify-center py-12 gap-3">
+          <Loader2 className="w-8 h-8 animate-spin" style={{ color: accentColor }} />
+          <p className={labelClass}>Syncing profile...</p>
+        </div>
+      )}
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -374,49 +523,67 @@ export function DashboardProfileTab({
                 </span>
                 {data.specialization ? 'Specialization' : 'Academic Interests'}
               </h3>
-              <div className="flex flex-wrap gap-2">
-                {(data.specialization || data.interests || []).map((item, idx) => {
-                  const colors = [
-                    { bg: `${accentColor}15`, text: accentColor, border: `${accentColor}30` },
-                    { bg: '#3B82F615', text: '#3B82F6', border: '#3B82F630' },
-                    { bg: '#10B98115', text: '#10B981', border: '#10B98130' },
-                    { bg: '#EC489915', text: '#EC4899', border: '#EC489930' },
-                    { bg: '#F59E0B15', text: '#F59E0B', border: '#F59E0B30' },
-                    { bg: '#6366F115', text: '#6366F1', border: '#6366F130' },
-                  ];
-                  const c = colors[idx % colors.length];
-                  return (
-                    <span
-                      key={idx}
-                      className="px-4 py-2 rounded-xl font-bold text-sm border"
-                      style={{
-                        backgroundColor: c.bg,
-                        color: c.text,
-                        borderColor: c.border,
-                      }}
-                    >
-                      {item}
-                    </span>
-                  );
-                })}
-              </div>
+              {isEditing ? (
+                <TagInput
+                  tags={data.interests || []}
+                  onChange={(tags) => setData({ ...data, interests: tags })}
+                  placeholder="Type an interest and press Enter..."
+                  accentColor={accentColor}
+                  isDark={isDark}
+                />
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {(data.specialization || data.interests || []).map((item, idx) => {
+                    const colors = [
+                      { bg: `${accentColor}15`, text: accentColor, border: `${accentColor}30` },
+                      { bg: '#3B82F615', text: '#3B82F6', border: '#3B82F630' },
+                      { bg: '#10B98115', text: '#10B981', border: '#10B98130' },
+                      { bg: '#EC489915', text: '#EC4899', border: '#EC489930' },
+                      { bg: '#F59E0B15', text: '#F59E0B', border: '#F59E0B30' },
+                      { bg: '#6366F115', text: '#6366F1', border: '#6366F130' },
+                    ];
+                    const c = colors[idx % colors.length];
+                    return (
+                      <span
+                        key={idx}
+                        className="px-4 py-2 rounded-xl font-bold text-sm border"
+                        style={{
+                          backgroundColor: c.bg,
+                          color: c.text,
+                          borderColor: c.border,
+                        }}
+                      >
+                        {item}
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
 
           {/* Skills */}
-          {data.skills && data.skills.length > 0 && (
-            <div className={`${cardClass} p-8 rounded-2xl`}>
-              <h3 className={`text-2xl font-bold mb-6 flex items-center gap-3 ${valueClass}`}>
-                <span className="material-symbols-rounded" style={{ color: accentColor }}>
-                  code
-                </span>
-                Skills
-              </h3>
+          <div className={`${cardClass} p-8 rounded-2xl`}>
+            <h3 className={`text-2xl font-bold mb-6 flex items-center gap-3 ${valueClass}`}>
+              <span className="material-symbols-rounded" style={{ color: accentColor }}>
+                code
+              </span>
+              Skills
+            </h3>
+            {isEditing ? (
+              <TagInput
+                tags={data.skills || []}
+                onChange={(tags) => setData({ ...data, skills: tags })}
+                placeholder="Type a skill and press Enter..."
+                accentColor={accentColor}
+                isDark={isDark}
+              />
+            ) : (
               <div className="flex flex-wrap gap-2">
-                {data.skills.map((skill, idx) => (
+                {(data.skills || []).map((skill, idx) => (
                   <span
                     key={idx}
-                    className={`px-4 py-2 rounded-xl font-medium text-sm border ${
+                    className={`px-4 py-2 rounded-xl font-bold text-sm border ${
                       isDark
                         ? 'bg-white/5 border-white/10 text-slate-300'
                         : 'bg-indigo-50 border-indigo-100 text-indigo-700'
@@ -425,9 +592,12 @@ export function DashboardProfileTab({
                     {skill}
                   </span>
                 ))}
+                {(!data.skills || data.skills.length === 0) && (
+                  <p className={`text-sm ${labelClass}`}>No skills listed yet.</p>
+                )}
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </div>

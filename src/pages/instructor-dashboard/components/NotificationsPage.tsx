@@ -24,6 +24,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { NotificationService, Notification as ApiNotification } from '../../../services/api/notificationService';
 import { toast } from 'sonner';
+import { Trash2 as ClearIcon } from 'lucide-react';
 
 interface Notification {
   id: number;
@@ -339,6 +340,20 @@ export function NotificationsPage({ notifications: propNotifications, loading: p
     }
   };
 
+  const handleClearRead = async () => {
+    const prev = notifications;
+    setNotifications((all) => all.filter((n) => !n.read));
+    try {
+      const result = await NotificationService.clearRead();
+      if (result.affected > 0) {
+        toast.success(`Cleared ${result.affected} read notification${result.affected !== 1 ? 's' : ''}`);
+      }
+    } catch (error) {
+      toast.error('Failed to clear read notifications');
+      setNotifications(prev);
+    }
+  };
+
   const handleToggleRead = async (id: number) => {
     try {
       const notification = notifications.find((n) => n.id === id);
@@ -472,6 +487,17 @@ export function NotificationsPage({ notifications: propNotifications, loading: p
           >
             <CheckCheck className="w-4 h-4" />
             Mark All Read
+          </button>
+          <button
+            onClick={handleClearRead}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium transition-colors ${
+              isDark
+                ? 'border-white/10 text-slate-300 hover:bg-red-500/10 hover:border-red-500/30 hover:text-red-400'
+                : 'border-gray-200 text-gray-600 hover:bg-red-50 hover:border-red-200 hover:text-red-600'
+            }`}
+          >
+            <ClearIcon className="w-4 h-4" />
+            Clear Read
           </button>
         </div>
       </div>

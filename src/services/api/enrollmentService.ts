@@ -22,7 +22,16 @@ export interface EnrolledCourse {
   enrollmentDate: string;
   canDrop: boolean;
   dropDeadline: string | null;
-  // Student information (if included by backend)
+  // Nested user object returned by the backend (backend update)
+  user?: {
+    userId: number;
+    firstName?: string;
+    lastName?: string;
+    fullName?: string;
+    email?: string;
+    profilePictureUrl?: string | null;
+  } | null;
+  // Legacy flat fields kept for backward compatibility
   studentName?: string;
   studentEmail?: string;
   fullName?: string;
@@ -185,6 +194,9 @@ export const enrollmentService = {
     ApiClient.post('/enrollments/assign-ta', { sectionId, userId }),
 
   getTeachingCourses: (): Promise<unknown[]> => ApiClient.get('/enrollments/teaching'),
+
+  updateStatus: (enrollmentId: string | number, status: string): Promise<EnrolledCourse> =>
+    ApiClient.post<EnrolledCourse>(`/enrollments/${String(enrollmentId)}/status`, { status }),
 };
 
 export class EnrollmentService {

@@ -16,6 +16,8 @@ import {
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { NotificationService } from '../../../services/api/notificationService';
+import { toast } from 'sonner';
 
 type NotificationType =
   | 'question'
@@ -189,8 +191,29 @@ export function NotificationsPage() {
     return matchesFilter && matchesSearch;
   });
 
-  const handleMarkAllRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+  const handleMarkAllRead = async () => {
+    const prev = notifications;
+    setNotifications((p) => p.map((n) => ({ ...n, read: true })));
+    try {
+      await NotificationService.markAllAsRead();
+    } catch {
+      toast.error('Failed to mark all as read');
+      setNotifications(prev);
+    }
+  };
+
+  const handleClearRead = async () => {
+    const prev = notifications;
+    setNotifications((p) => p.filter((n) => !n.read));
+    try {
+      const result = await NotificationService.clearRead();
+      if (result.affected > 0) {
+        toast.success(`Cleared ${result.affected} read notification${result.affected !== 1 ? 's' : ''}`);
+      }
+    } catch {
+      toast.error('Failed to clear read notifications');
+      setNotifications(prev);
+    }
   };
 
   const handleToggleSelect = (id: string) => {
@@ -232,17 +255,30 @@ export function NotificationsPage() {
             {unreadCount} unread notification{unreadCount !== 1 ? 's' : ''}
           </p>
         </div>
-        <button
-          onClick={handleMarkAllRead}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            isDark
-              ? 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30'
-              : 'bg-blue-50 text-blue-600 hover:bg-blue-100'
-          }`}
-        >
-          <Check className="w-4 h-4 inline-block mr-1.5 -mt-0.5" />
-          Mark All Read
-        </button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            onClick={handleMarkAllRead}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              isDark
+                ? 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30'
+                : 'bg-blue-50 text-blue-600 hover:bg-blue-100'
+            }`}
+          >
+            <Check className="w-4 h-4 inline-block mr-1.5 -mt-0.5" />
+            Mark All Read
+          </button>
+          <button
+            onClick={handleClearRead}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              isDark
+                ? 'bg-red-500/10 text-red-400 hover:bg-red-500/20'
+                : 'bg-red-50 text-red-600 hover:bg-red-100'
+            }`}
+          >
+            <Trash2 className="w-4 h-4 inline-block mr-1.5 -mt-0.5" />
+            Clear Read
+          </button>
+        </div>
       </div>
 
       {/* Search */}

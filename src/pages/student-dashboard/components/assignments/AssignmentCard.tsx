@@ -25,7 +25,7 @@ export function AssignmentCard({ assignment, onClick }: AssignmentCardProps) {
   const getActionText = () => {
     if (submissionStatus === 'graded') return t('viewGrade') || 'View Grade';
     if (submissionStatus === 'submitted') return t('viewSubmission') || 'View Submission';
-    return t('submitWork') || 'Submit Work';
+    return t('Submit Work') || 'Submit Work';
   };
 
   return (
@@ -139,16 +139,16 @@ export function AssignmentCard({ assignment, onClick }: AssignmentCardProps) {
 
       {/* Score display if graded */}
       {assignment.submission?.score && (
-        <div
-          className={`p-3 rounded-lg mb-4 ${
-            isDark ? 'bg-emerald-900/20' : 'bg-emerald-50'
-          }`}
-        >
+        <div className={`p-3 rounded-lg mb-4 ${isDark ? 'bg-emerald-900/20' : 'bg-emerald-50'}`}>
           <div className="flex items-center justify-between">
-            <span className={`text-sm font-medium ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`}>
+            <span
+              className={`text-sm font-medium ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`}
+            >
               Score
             </span>
-            <span className={`text-lg font-bold ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`}>
+            <span
+              className={`text-lg font-bold ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`}
+            >
               {assignment.submission.score} / {assignment.maxScore}
             </span>
           </div>

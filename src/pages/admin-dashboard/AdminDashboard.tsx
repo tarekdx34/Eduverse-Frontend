@@ -167,6 +167,7 @@ function AdminDashboardContent() {
             level: (c.level || 'FRESHMAN').toUpperCase(),
             prerequisites: [],
             sectionId: null as number | null,
+            skills: c.skills || [],
           };
 
           try {
@@ -376,6 +377,7 @@ function AdminDashboardContent() {
       description: course.description || `Course for ${course.semester}`,
       credits: Number(course.credits),
       level: (course.level || 'FRESHMAN').toUpperCase(),
+      skills: course.skills,
     };
     addCourseMutation.mutate(dto);
   };
@@ -395,6 +397,7 @@ function AdminDashboardContent() {
       level: (course.level || 'FRESHMAN').toUpperCase(),
       instructorId: course.instructorId,
       taIds: course.taIds,
+      skills: course.skills,
     };
     updateCourseMutation.mutate({ id, data: dto });
   };
