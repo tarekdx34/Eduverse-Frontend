@@ -31,6 +31,14 @@ import {
 import { announcementService, type Announcement } from '../../../services/api/announcementService';
 import { groupMaterialsIntoBundles, type MaterialBundle } from '../../../utils/materialBundles';
 
+const normalizeAnnouncements = (
+  payload: Announcement[] | { data?: Announcement[] } | undefined
+): Announcement[] => {
+  if (!payload) return [];
+  if (Array.isArray(payload)) return payload;
+  return Array.isArray(payload.data) ? payload.data : [];
+};
+
 interface Lesson {
   id: string;
   title: string;
@@ -200,7 +208,19 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
           courseId: String(resolvedCourseId),
         });
         if (!mounted) return;
-        const sorted = (Array.isArray(response) ? response : []).slice().sort((a, b) => {
+        const normalized = normalizeAnnouncements(
+          response as Announcement[] | { data?: Announcement[] }
+        );
+        // Some backends ignore `courseId` param and return all announcements.
+        // Keep only this course's announcements when possible.
+        const courseFiltered = normalized.filter((announcement) => {
+          const announcementCourseId = String(
+            announcement.courseId ?? announcement.course?.id ?? ''
+          );
+          return announcementCourseId === String(resolvedCourseId);
+        });
+        const source = courseFiltered.length > 0 ? courseFiltered : normalized;
+        const sorted = source.slice().sort((a, b) => {
           if ((a.isPinned ?? 0) === 1 && (b.isPinned ?? 0) !== 1) return -1;
           if ((a.isPinned ?? 0) !== 1 && (b.isPinned ?? 0) === 1) return 1;
           return (

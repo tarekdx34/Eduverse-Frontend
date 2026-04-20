@@ -72,6 +72,7 @@ const tabTranslationKeys: Record<string, string> = {
   payments: 'payments',
   chat: 'chat',
   settings: 'settings',
+  profile: 'profile',
 };
 
 function StudentDashboardContent() {
@@ -148,25 +149,40 @@ function StudentDashboardContent() {
   }, [isCourseRoute, routeParamId]);
 
   const tabs = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutGrid, group: 'Overview' },
-    { id: 'myclass', label: 'My Class', icon: BookOpen, group: 'Courses' },
-    { id: 'registration', label: 'Registration', icon: GraduationCap, group: 'Courses' },
-    { id: 'schedule', label: 'Schedule', icon: Calendar, group: 'Courses' },
-    { id: 'assignments', label: 'Assignments', icon: CheckSquare, group: 'Academic' },
-    { id: 'labs', label: 'Lab Sessions', icon: Beaker, group: 'Academic' },
-    { id: 'grades', label: 'Grades', icon: FileText, group: 'Academic' },
-    { id: 'attendance', label: 'Attendance', icon: BarChart3, group: 'Academic' },
-    { id: 'quizzes', label: 'Quiz Center', icon: ClipboardCheck, group: 'Academic' },
-    { id: 'todo', label: 'Todo List', icon: ListChecks, group: 'Tools' },
-    { id: 'ai', label: 'AI Features', icon: Sparkles, group: 'Tools' },
-    { id: 'gamification', label: 'Achievements', icon: Trophy, group: 'Tools' },
-    { id: 'community', label: 'Community', icon: Users, group: 'Communication' },
-    { id: 'notifications', label: 'Notifications', icon: Bell, group: 'Communication' },
-    { id: 'chat', label: 'Chat', icon: MessageCircle, group: 'Communication' },
-    { id: 'payments', label: 'Payments', icon: CreditCard, group: 'Account' },
-    { id: 'settings', label: 'Settings', icon: Settings, group: 'Account' },
-    { id: 'profile', label: 'Profile', icon: User, group: 'Account' },
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutGrid, group: 'groupOverview' },
+    { id: 'myclass', label: 'My Class', icon: BookOpen, group: 'groupCourses' },
+    { id: 'registration', label: 'Registration', icon: GraduationCap, group: 'groupCourses' },
+    { id: 'schedule', label: 'Schedule', icon: Calendar, group: 'groupCourses' },
+    { id: 'assignments', label: 'Assignments', icon: CheckSquare, group: 'groupAcademic' },
+    { id: 'labs', label: 'Lab Sessions', icon: Beaker, group: 'groupAcademic' },
+    { id: 'grades', label: 'Grades', icon: FileText, group: 'groupAcademic' },
+    { id: 'attendance', label: 'Attendance', icon: BarChart3, group: 'groupAcademic' },
+    { id: 'quizzes', label: 'Quiz Center', icon: ClipboardCheck, group: 'groupAcademic' },
+    { id: 'todo', label: 'Todo List', icon: ListChecks, group: 'groupTools' },
+    { id: 'ai', label: 'AI Features', icon: Sparkles, group: 'groupTools' },
+    { id: 'gamification', label: 'Achievements', icon: Trophy, group: 'groupTools' },
+    { id: 'community', label: 'Community', icon: Users, group: 'groupCommunication' },
+    { id: 'notifications', label: 'Notifications', icon: Bell, group: 'groupCommunication' },
+    { id: 'chat', label: 'Chat', icon: MessageCircle, group: 'groupCommunication' },
+    { id: 'payments', label: 'Payments', icon: CreditCard, group: 'groupAccount' },
+    { id: 'settings', label: 'Settings', icon: Settings, group: 'groupAccount' },
+    { id: 'profile', label: 'Profile', icon: User, group: 'groupAccount' },
   ];
+
+  const localizedTabs = tabs.map((tab) => ({
+    ...tab,
+    label: t(tabTranslationKeys[tab.id] || tab.id) || tab.label,
+    group: t(tab.group) || tab.group,
+  }));
+
+  const localizedGroupOrder = [
+    'groupOverview',
+    'groupCourses',
+    'groupAcademic',
+    'groupTools',
+    'groupCommunication',
+    'groupAccount',
+  ].map((groupKey) => t(groupKey) || groupKey);
 
   // Disable browser's native scroll restoration
   useEffect(() => {
@@ -304,10 +320,7 @@ function StudentDashboardContent() {
     >
       {/* Sidebar */}
       <DashboardSidebar
-        tabs={tabs.map((tab) => ({
-          ...tab,
-          label: t(tabTranslationKeys[tab.id] || tab.id) || tab.label,
-        }))}
+        tabs={localizedTabs}
         activeTab={activeTab}
         onTabChange={handleTabChange}
         onLogout={() => navigate('/login')}
@@ -316,7 +329,7 @@ function StudentDashboardContent() {
         accentColor={primaryHex || '#3b82f6'}
         isMobileOpen={sidebarOpen}
         onMobileClose={() => setSidebarOpen(false)}
-        groupOrder={['Overview', 'Courses', 'Academic', 'Tools', 'Communication', 'Account']}
+        groupOrder={localizedGroupOrder}
         compactMode={isCourseFullscreen}
         desktopExpanded={desktopSidebarExpanded}
         onToggleDesktopExpanded={() => setDesktopSidebarExpanded((prev) => !prev)}

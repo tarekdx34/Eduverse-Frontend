@@ -40,6 +40,14 @@ const translations: Record<Language, Record<string, string>> = {
     payments: 'Payments',
     chat: 'Chat',
     settings: 'Settings',
+    profile: 'Profile',
+    quizzes: 'Quiz Center',
+    groupOverview: 'Overview',
+    groupCourses: 'Courses',
+    groupAcademic: 'Academic',
+    groupTools: 'Tools',
+    groupCommunication: 'Communication',
+    groupAccount: 'Account',
 
     // Dashboard
     welcomeBack: 'Welcome back',
@@ -630,6 +638,14 @@ const translations: Record<Language, Record<string, string>> = {
     payments: 'المدفوعات',
     chat: 'المحادثة',
     settings: 'الإعدادات',
+    profile: 'الملف الشخصي',
+    quizzes: 'الاختبارات',
+    groupOverview: 'نظرة عامة',
+    groupCourses: 'المقررات',
+    groupAcademic: 'أكاديمي',
+    groupTools: 'الأدوات',
+    groupCommunication: 'التواصل',
+    groupAccount: 'الحساب',
 
     // Dashboard
     welcomeBack: 'مرحباً بعودتك',

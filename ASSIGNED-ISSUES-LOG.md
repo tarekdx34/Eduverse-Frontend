@@ -32,4 +32,48 @@ Use this file to record what was done for GitHub issues you own, without relying
 
 ---
 
+## #9 — Student: Announcement in Course section needs to be wired
+
+**Status:** Done (local changes, pending your review)
+
+**GitHub:** [Issue #9](https://github.com/tarekdx34/Eduverse-Frontend/issues/9)
+
+**Summary**
+
+- Hardened course announcements loading on student course page:
+  - Handles API payloads returned as either `Announcement[]` or `{ data: Announcement[] }`.
+  - Applies a course-level filter fallback in case backend ignores `courseId` query.
+- Fixed student sidebar localization issues:
+  - Added missing `profile` and `quizzes` translation keys.
+  - Localized sidebar group headers (`Overview`, `Courses`, `Academic`, etc.) for Arabic and English.
+  - Updated tab-to-translation mapping to include `profile`.
+
+**Files touched**
+
+- `src/pages/student-dashboard/pages/CourseView.tsx`
+- `src/pages/student-dashboard/StudentDashboard.tsx`
+- `src/pages/student-dashboard/contexts/LanguageContext.tsx`
+
+---
+
+## #25 — Instructor: Announcement needs to be debugged (modal/form)
+
+**Status:** In progress (modal UX + course targeting fixed)
+
+**GitHub:** [Issue #25](https://github.com/tarekdx34/Eduverse-Frontend/issues/25)
+
+**Summary (current slice)**
+
+- Improved **New Announcement** modal usability:
+  - Added placeholders for title and content.
+  - Tightened form spacing/alignment between labels, fields, and checkbox.
+- Fixed course dropdown source:
+  - It now loads options from `EnrollmentService.getTeachingCourses()` (real instructor teaching courses),
+  - with fallback to known course IDs from existing announcements.
+- This removes dependency on existing announcements for course choices, so dropdown is not stuck on only **Campus-wide**.
+
+**Files touched**
+
+- `src/pages/instructor-dashboard/components/AnnouncementsManager.tsx`
+
 <!-- Add new issues below this line -->

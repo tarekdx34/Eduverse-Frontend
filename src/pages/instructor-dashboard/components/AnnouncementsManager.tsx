@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { CleanSelect } from '../../../components/shared';
 import { announcementService, type Announcement } from '../../../services/api/announcementService';
+import { EnrollmentService } from '../../../services/api/enrollmentService';
 import { toast } from 'sonner';
 import {
   Megaphone,
@@ -48,6 +49,29 @@ const normalizeAnnouncements = (
   return Array.isArray(payload.data) ? payload.data : [];
 };
 
+type TeachingCourseLike = {
+  courseId?: string | number;
+  courseName?: string;
+  courseCode?: string;
+  course?: {
+    id?: string | number;
+    name?: string;
+    code?: string;
+  };
+};
+
+const normalizeTeachingCourses = (payload: unknown): TeachingCourseLike[] => {
+  if (Array.isArray(payload)) return payload as TeachingCourseLike[];
+  if (
+    payload &&
+    typeof payload === 'object' &&
+    Array.isArray((payload as { data?: unknown[] }).data)
+  ) {
+    return (payload as { data: TeachingCourseLike[] }).data;
+  }
+  return [];
+};
+
 const getCourseLabel = (announcement: Announcement) => {
   if (announcement.course?.name || announcement.course?.code) {
     return `${announcement.course.name ?? ''}${announcement.course?.code ? ` (${announcement.course.code})` : ''}`.trim();
@@ -64,6 +88,33 @@ const getAuthorLabel = (announcement: Announcement) => {
     announcement.author.email ||
     'System'
   );
+};
+
+const getPublishedBadgeClass = (isDark: boolean) =>
+  isDark
+    ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-400/25'
+    : 'bg-emerald-50 text-emerald-700 border border-emerald-200';
+
+const getPriorityBadgeClass = (priority: string | undefined, isDark: boolean) => {
+  const normalized = String(priority || 'low').trim().toLowerCase();
+  if (normalized === 'urgent') {
+    return isDark
+      ? 'bg-red-500/15 text-red-300 border border-red-400/25'
+      : 'bg-red-50 text-red-700 border border-red-200';
+  }
+  if (normalized === 'high') {
+    return isDark
+      ? 'bg-orange-500/15 text-orange-300 border border-orange-400/25'
+      : 'bg-orange-50 text-orange-700 border border-orange-200';
+  }
+  if (normalized === 'medium') {
+    return isDark
+      ? 'bg-amber-500/15 text-amber-300 border border-amber-400/25'
+      : 'bg-amber-50 text-amber-700 border border-amber-200';
+  }
+  return isDark
+    ? 'bg-slate-500/15 text-slate-300 border border-slate-400/25'
+    : 'bg-slate-100 text-slate-700 border border-slate-200';
 };
 
 const formatDisplayDate = (value?: string) =>
@@ -85,6 +136,7 @@ export function AnnouncementsManager() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deletingAnnouncement, setDeletingAnnouncement] = useState<Announcement | null>(null);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [teachingCourses, setTeachingCourses] = useState<TeachingCourseLike[]>([]);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState<AnnouncementFormState>(emptyForm);
 
@@ -103,6 +155,24 @@ export function AnnouncementsManager() {
   useEffect(() => {
     loadAnnouncements();
   }, [loadAnnouncements]);
+
+  useEffect(() => {
+    let mounted = true;
+    const loadTeachingCourses = async () => {
+      try {
+        const payload = await EnrollmentService.getTeachingCourses();
+        if (!mounted) return;
+        setTeachingCourses(normalizeTeachingCourses(payload));
+      } catch {
+        if (!mounted) return;
+        setTeachingCourses([]);
+      }
+    };
+    void loadTeachingCourses();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const counts = useMemo(
     () => ({
@@ -127,10 +197,20 @@ export function AnnouncementsManager() {
 
   const courseOptions = useMemo(() => {
     const map = new Map<string, string>();
-    announcements.forEach((a) => {
-      const id = a.course?.id;
+
+    teachingCourses.forEach((item) => {
+      const id = String(item.courseId ?? item.course?.id ?? '');
+      if (!id) return;
+      const code = item.course?.code || item.courseCode || 'COURSE';
+      const name = item.course?.name || item.courseName || 'Untitled Course';
+      map.set(id, `${code} - ${name}`);
+    });
+
+    // Fallback to known courses from existing announcements
+    announcements.forEach((item) => {
+      const id = item.course?.id;
       if (id !== undefined) {
-        map.set(String(id), getCourseLabel(a));
+        map.set(String(id), getCourseLabel(item));
       }
     });
 
@@ -255,7 +335,11 @@ export function AnnouncementsManager() {
 
   const badge = (isPublished: number) =>
     isPublished === 1 ? (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400">
+      <span
+        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${getPublishedBadgeClass(
+          isDark
+        )}`}
+      >
         <CheckCircle size={12} /> Published
       </span>
     ) : (
@@ -399,15 +483,10 @@ export function AnnouncementsManager() {
                         'course'}
                     </span>
                     <span
-                      className={`px-2 py-0.5 rounded text-xs font-medium ${
-                        a.priority === 'urgent'
-                          ? 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300'
-                          : a.priority === 'high'
-                            ? 'bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-300'
-                            : a.priority === 'medium'
-                              ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-500/20 dark:text-yellow-300'
-                              : 'bg-gray-100 text-gray-700 dark:bg-white/10 dark:text-gray-300'
-                      }`}
+                      className={`px-2 py-0.5 rounded text-xs font-medium ${getPriorityBadgeClass(
+                        a.priority,
+                        isDark
+                      )}`}
                     >
                       {a.priority ?? 'low'}
                     </span>
@@ -500,30 +579,32 @@ export function AnnouncementsManager() {
               </button>
             </div>
 
-            <div className="p-6 space-y-5">
+            <div className="px-6 pt-4 pb-6 space-y-5">
               <div>
-                <label className={`block text-sm font-medium mb-1.5 ${textPrimary}`}>Title</label>
+                <label className={`block text-sm font-medium mb-2 ${textPrimary}`}>Title</label>
                 <input
                   type="text"
                   value={form.title}
                   onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
                   className={inputClass}
+                  placeholder="e.g. Midterm review session moved to 2:00 PM"
                 />
               </div>
 
               <div>
-                <label className={`block text-sm font-medium mb-1.5 ${textPrimary}`}>Content</label>
+                <label className={`block text-sm font-medium mb-2 ${textPrimary}`}>Content</label>
                 <textarea
                   rows={6}
                   value={form.content}
                   onChange={(e) => setForm((f) => ({ ...f, content: e.target.value }))}
                   className={`${inputClass} resize-none`}
+                  placeholder="Write a clear update for students. Include date/time, location or link, and any action required."
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
-                  <label className={`block text-sm font-medium mb-1.5 ${textPrimary}`}>
+                  <label className={`block text-sm font-medium mb-2 ${textPrimary}`}>
                     Course
                   </label>
                   <CleanSelect
@@ -539,7 +620,7 @@ export function AnnouncementsManager() {
                   </CleanSelect>
                 </div>
                 <div>
-                  <label className={`block text-sm font-medium mb-1.5 ${textPrimary}`}>
+                  <label className={`block text-sm font-medium mb-2 ${textPrimary}`}>
                     Priority
                   </label>
                   <CleanSelect
@@ -555,14 +636,16 @@ export function AnnouncementsManager() {
                 </div>
               </div>
 
-              <label className={`flex items-center gap-2 text-sm ${textPrimary}`}>
-                <input
-                  type="checkbox"
-                  checked={form.publishNow}
-                  onChange={(e) => setForm((f) => ({ ...f, publishNow: e.target.checked }))}
-                />
-                Publish immediately
-              </label>
+              <div className={`pt-1 ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
+                <label className={`flex items-center gap-2 text-sm ${textPrimary}`}>
+                  <input
+                    type="checkbox"
+                    checked={form.publishNow}
+                    onChange={(e) => setForm((f) => ({ ...f, publishNow: e.target.checked }))}
+                  />
+                  Publish immediately
+                </label>
+              </div>
             </div>
 
             <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 dark:border-white/10">
