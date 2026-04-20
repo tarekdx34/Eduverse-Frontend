@@ -166,6 +166,26 @@ const translations: Record<Language, Record<string, string>> = {
     warning: 'Warning',
     attendanceWarning: 'Your attendance is below the required minimum',
     overallAttendance: 'Overall Attendance',
+    facePhotoReminderTitle: 'Add your attendance photo',
+    facePhotoReminderBody:
+      'Upload a clear front-facing photo so AI attendance can recognize you. You can do this anytime in Attendance.',
+    facePhotoReminderGoToAttendance: 'Open Attendance',
+    facePhotoReminderDismiss: 'Dismiss',
+    facePhotoGoodExampleLabel: 'Example of a good photo',
+    facePhotoGoodExampleCaption: 'Front-facing, well-lit, plain background',
+    facePhotoSectionTitle: 'Your recognition photo',
+    facePhotoSectionSubtitle:
+      'Upload one clear front-facing portrait. We use it to match you when instructors run AI attendance from a class photo.',
+    facePhotoSectionHint:
+      'Use a recent picture that looks like you in the classroom—same hair, glasses, and general appearance. Only one reference photo is kept; you can delete and replace it whenever you need to.',
+    facePhotoDropzoneTitle: 'Add your photo',
+    facePhotoDropzoneHint: 'JPG, PNG, or WebP · tap to choose a file',
+    facePhotoViewExample: 'View example',
+    facePhotoExampleInPopover: 'Reference style (sample)',
+    facePhotoTipLighting: 'Good light',
+    facePhotoTipFraming: 'Centered face',
+    facePhotoTipFilters: 'No filters',
+    facePhotoSampleBadge: 'Sample only',
 
     // Schedule
     weeklySchedule: 'Weekly Schedule',
@@ -764,6 +784,26 @@ const translations: Record<Language, Record<string, string>> = {
     warning: 'تحذير',
     attendanceWarning: 'نسبة حضورك أقل من الحد الأدنى المطلوب',
     overallAttendance: 'الحضور الإجمالي',
+    facePhotoReminderTitle: 'أضف صورة حضورك',
+    facePhotoReminderBody:
+      'ارفع صورة واضحة لوجهك أمام الكاميرا حتى يتعرّف نظام الحضور بالذكاء الاصطناعي عليك. يمكنك ذلك من تبويب الحضور في أي وقت.',
+    facePhotoReminderGoToAttendance: 'فتح الحضور',
+    facePhotoReminderDismiss: 'إغلاق',
+    facePhotoGoodExampleLabel: 'مثال على صورة مناسبة',
+    facePhotoGoodExampleCaption: 'وجه للأمام، إضاءة جيدة، خلفية بسيطة',
+    facePhotoSectionTitle: 'صورة التعرّف للحضور',
+    facePhotoSectionSubtitle:
+      'ارفع صورة بورتريه واضحة لوجهك مرة واحدة. نستخدمها لمطابقتك عندما يشغّل المحاضر الحضور بالذكاء الاصطناعي من صورة الفصل.',
+    facePhotoSectionHint:
+      'استخدم صورة حديثة تشبه مظهرك في المحاضرة—نفس الشعر والنظارة إن وجدت. تُخزَّن صورة مرجعية واحدة فقط ويمكنك حذفها واستبدالها متى شئت.',
+    facePhotoDropzoneTitle: 'أضف صورتك',
+    facePhotoDropzoneHint: 'JPG أو PNG أو WebP · اضغط لاختيار ملف',
+    facePhotoViewExample: 'عرض المثال',
+    facePhotoExampleInPopover: 'أسلوب مرجعي (مثال)',
+    facePhotoTipLighting: 'إضاءة جيدة',
+    facePhotoTipFraming: 'وجه بالوسط',
+    facePhotoTipFilters: 'بدون فلاتر',
+    facePhotoSampleBadge: 'مثال فقط',
 
     // Schedule
     weeklySchedule: 'الجدول الأسبوعي',
