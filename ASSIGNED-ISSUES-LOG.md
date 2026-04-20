@@ -76,4 +76,45 @@ Use this file to record what was done for GitHub issues you own, without relying
 
 - `src/pages/instructor-dashboard/components/AnnouncementsManager.tsx`
 
+## #7 — Student: Course Progress tracking
+
+**Status:** In progress (backend + frontend wired, DB migration/script added)
+
+**GitHub:** [Issue #7](https://github.com/tarekdx34/Eduverse-Frontend/issues/7)
+
+**Summary (current slice)**
+
+- Added per-student material tracking in backend:
+  - New `student_material_views` table/entity records unique `(user, material)` views and counts repeated opens.
+  - `trackView` now deduplicates completion tracking while still incrementing global material `viewCount`.
+- Wired progress persistence:
+  - On each view, backend recomputes `materialsViewed`, `totalMaterials`, and `completionPercentage` for the student/course.
+  - Upserts `student_progress` for the active enrollment and updates `last_activity_at`.
+- Exposed progress to frontend via `/enrollments/my-courses`:
+  - Adds `materialsViewed`, `totalMaterials`, `progressPercentage` to enrollment response.
+- Replaced frontend hardcoded progress:
+  - `ClassTab` cards now display real `progressPercentage`.
+  - `CourseView` sidebar progress card now shows real viewed/total + dynamic progress bar.
+- Added DB rollout support:
+  - TypeORM migration: `CreateStudentMaterialViewsTable1767000000000`.
+  - SQL script: `DB_CHANGES_STUDENT_PROGRESS_TRACKING.sql`.
+  - Runner script + npm command: `npm run db:student-progress`.
+
+**Files touched**
+
+- `EduVerse-Backend/src/modules/course-materials/entities/student-material-view.entity.ts`
+- `EduVerse-Backend/src/modules/course-materials/entities/index.ts`
+- `EduVerse-Backend/src/modules/course-materials/course-materials.module.ts`
+- `EduVerse-Backend/src/modules/course-materials/services/materials.service.ts`
+- `EduVerse-Backend/src/modules/enrollments/dto/enrollment-response.dto.ts`
+- `EduVerse-Backend/src/modules/enrollments/enrollments.module.ts`
+- `EduVerse-Backend/src/modules/enrollments/services/enrollments.service.ts`
+- `EduVerse-Backend/src/database/migrations/1767000000000-CreateStudentMaterialViewsTable.ts`
+- `EduVerse-Backend/DB_CHANGES_STUDENT_PROGRESS_TRACKING.sql`
+- `EduVerse-Backend/scripts/run-student-progress-sql.cjs`
+- `EduVerse-Backend/package.json`
+- `src/services/api/enrollmentService.ts`
+- `src/pages/student-dashboard/components/ClassTab.tsx`
+- `src/pages/student-dashboard/pages/CourseView.tsx`
+
 <!-- Add new issues below this line -->

@@ -11,6 +11,11 @@ import {
   BookOpen,
   CheckCircle2,
   XCircle,
+  AlertCircle,
+  PlayCircle,
+  FileText,
+  FileSpreadsheet,
+  Link as LinkIcon,
 } from 'lucide-react';
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -97,12 +102,26 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
   const [pageError, setPageError] = useState<string | null>(null);
   const [courseAnnouncements, setCourseAnnouncements] = useState<Announcement[]>([]);
   const [expandedAnnouncementId, setExpandedAnnouncementId] = useState<string | null>(null);
+  const [previewErrors, setPreviewErrors] = useState<Record<string, boolean>>({});
   const [sectionInstructor, setSectionInstructor] = useState<SectionStaffMember | null>(null);
   const [sectionTAs, setSectionTAs] = useState<SectionStaffMember[]>([]);
   const [staffLoading, setStaffLoading] = useState(false);
   const [staffError, setStaffError] = useState<string | null>(null);
   const { isDark, primaryHex } = useTheme() as any;
   const accentColor = primaryHex || '#3b82f6';
+
+  const markPreviewError = (key: string) => {
+    setPreviewErrors((prev) => ({ ...prev, [key]: true }));
+  };
+
+  const clearPreviewError = (key: string) => {
+    setPreviewErrors((prev) => {
+      if (!prev[key]) return prev;
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
+  };
 
   const formatDate = (value?: string | null) => {
     if (!value) return 'N/A';
@@ -354,7 +373,54 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
     if (organizationType === 'lab') return <FlaskConical size={18} />;
     if (organizationType === 'tutorial') return <User size={18} />;
     if (organizationType === 'section') return <Users size={18} />;
+    if (organizationType === 'video') return <PlayCircle size={18} />;
+    if (organizationType === 'document' || organizationType === 'reading')
+      return <FileText size={18} />;
+    if (organizationType === 'slide') return <FileSpreadsheet size={18} />;
+    if (organizationType === 'link') return <LinkIcon size={18} />;
     return <File size={18} />;
+  };
+
+  const getMaterialTypePresentation = (rawType?: string) => {
+    const normalized = String(rawType || 'other').trim().toLowerCase();
+    if (normalized === 'video' || normalized === 'lecture') {
+      return {
+        label: normalized === 'lecture' ? 'Lecture' : 'Video',
+        className: isDark
+          ? 'bg-blue-500/15 text-blue-300 border border-blue-400/25'
+          : 'bg-blue-50 text-blue-700 border border-blue-200',
+      };
+    }
+    if (normalized === 'document' || normalized === 'reading') {
+      return {
+        label: normalized === 'reading' ? 'Reading' : 'Document',
+        className: isDark
+          ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-400/25'
+          : 'bg-emerald-50 text-emerald-700 border border-emerald-200',
+      };
+    }
+    if (normalized === 'slide') {
+      return {
+        label: 'Slide',
+        className: isDark
+          ? 'bg-violet-500/15 text-violet-300 border border-violet-400/25'
+          : 'bg-violet-50 text-violet-700 border border-violet-200',
+      };
+    }
+    if (normalized === 'link') {
+      return {
+        label: 'Link',
+        className: isDark
+          ? 'bg-cyan-500/15 text-cyan-300 border border-cyan-400/25'
+          : 'bg-cyan-50 text-cyan-700 border border-cyan-200',
+      };
+    }
+    return {
+      label: 'Other',
+      className: isDark
+        ? 'bg-slate-500/15 text-slate-300 border border-slate-400/25'
+        : 'bg-slate-100 text-slate-700 border border-slate-200',
+    };
   };
 
   const handleMaterialClick = (materialId: string) => {
@@ -386,6 +452,20 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
   };
 
   const materialsCount = materialsResponse.meta?.total || materialsResponse.data?.length || 0;
+  const materialsViewed = Math.max(0, Number(enrollment?.materialsViewed ?? 0));
+  const backendTotalMaterials = Math.max(0, Number(enrollment?.totalMaterials ?? 0));
+  const progressTotalMaterials = backendTotalMaterials > 0 ? backendTotalMaterials : materialsCount;
+  const progressPercentageRaw =
+    typeof enrollment?.progressPercentage === 'number'
+      ? enrollment.progressPercentage
+      : progressTotalMaterials > 0
+        ? (materialsViewed / progressTotalMaterials) * 100
+        : 0;
+  const progressPercentage = Math.max(0, Math.min(100, Number(progressPercentageRaw) || 0));
+  const progressLabelViewed = Math.min(
+    Math.max(0, Math.round(materialsViewed)),
+    progressTotalMaterials || Math.round(materialsViewed)
+  );
   const hasMaterials = (materialsResponse.data?.length || 0) > 0;
   const hasStructure = Object.keys(structureResponse.byWeek || {}).length > 0;
   const selectedMaterialPreviewUrl = useMemo(
@@ -405,6 +485,16 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
     () => (selectedBundleDocument ? getCourseMaterialPreviewUrl(selectedBundleDocument) : null),
     [selectedBundleDocument]
   );
+  const selectedBundleVideoPreviewUrl = useMemo(
+    () => (selectedBundle?.video ? getCourseMaterialPreviewUrl(selectedBundle.video) : null),
+    [selectedBundle]
+  );
+  const selectedMaterialPreviewKey = selectedMaterial ? `material:${selectedMaterial.materialId}` : null;
+  const selectedBundleVideoPreviewKey =
+    selectedBundle?.video?.materialId ? `bundle-video:${selectedBundle.video.materialId}` : null;
+  const selectedBundleDocumentPreviewKey = selectedBundleDocument
+    ? `bundle-doc:${selectedBundleDocument.materialId}`
+    : null;
   const hasLargePreviewViewer = Boolean(
     selectedBundle ||
       (selectedMaterial &&
@@ -572,7 +662,7 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
         <div className="flex-1">
           {/* Course Preview Video */}
           <div
-            className={`border rounded-lg overflow-hidden mb-6 ${hasLargePreviewViewer ? 'h-[70vh] min-h-[520px] xl:h-[76vh]' : 'h-64 sm:h-80 xl:h-96'} ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}
+            className={`border rounded-lg overflow-hidden mb-6 ${hasLargePreviewViewer ? 'h-[56vh] min-h-[380px] xl:h-[60vh]' : 'h-64 sm:h-80 xl:h-96'} ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}
           >
             <div className="relative h-full">
               <button
@@ -609,14 +699,62 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
                     {selectedBundle.baseTitle}
                   </h3>
 
-                  {selectedBundle.video?.externalUrl && (
-                    <iframe
-                      src={selectedBundle.video.externalUrl}
-                      allowFullScreen
-                      title={selectedBundle.baseTitle}
-                      className="w-full h-[44vh] min-h-[340px] rounded-lg border-0"
-                    />
-                  )}
+                  {selectedBundle.video &&
+                    selectedBundleVideoPreviewUrl &&
+                    selectedBundleVideoPreviewKey &&
+                    !previewErrors[selectedBundleVideoPreviewKey] && (
+                      <iframe
+                        src={selectedBundleVideoPreviewUrl}
+                        allowFullScreen
+                        title={selectedBundle.baseTitle}
+                        className="w-full h-[44vh] min-h-[340px] rounded-lg border-0"
+                        onLoad={() => clearPreviewError(selectedBundleVideoPreviewKey)}
+                        onError={() => markPreviewError(selectedBundleVideoPreviewKey)}
+                      />
+                    )}
+
+                  {selectedBundle.video &&
+                    (!selectedBundleVideoPreviewUrl ||
+                      (selectedBundleVideoPreviewKey &&
+                        previewErrors[selectedBundleVideoPreviewKey])) && (
+                      <div
+                        className={`h-[44vh] min-h-[340px] rounded-lg border p-6 flex items-center justify-center ${isDark ? 'bg-white/5 border-white/10' : 'bg-amber-50 border-amber-200'}`}
+                      >
+                        <div className="text-center">
+                          <div className="flex justify-center mb-3">
+                            <AlertCircle
+                              size={28}
+                              className={isDark ? 'text-amber-300' : 'text-amber-600'}
+                            />
+                          </div>
+                          <p
+                            className={`text-sm font-medium ${isDark ? 'text-white' : 'text-amber-900'}`}
+                          >
+                            This lecture video cannot be previewed.
+                          </p>
+                          <p
+                            className={`text-xs mt-1 ${isDark ? 'text-slate-300' : 'text-amber-800'}`}
+                          >
+                            The video link is missing or not embeddable.
+                          </p>
+                          {selectedBundle.video.externalUrl && (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                window.open(
+                                  selectedBundle.video?.externalUrl || '',
+                                  '_blank',
+                                  'noopener,noreferrer'
+                                )
+                              }
+                              className="mt-3 text-xs px-2 py-1 rounded bg-indigo-600 text-white hover:bg-indigo-700"
+                            >
+                              Open Video in new tab
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    )}
 
                   <div
                     className={`rounded-lg border p-3 ${isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}
@@ -687,35 +825,95 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
                     )}
                   </div>
 
-                  {selectedBundleDocumentPreviewUrl && (
-                    <iframe
-                      src={selectedBundleDocumentPreviewUrl}
-                      title={selectedBundleDocument?.title || selectedBundle.baseTitle}
-                      className="w-full h-[44vh] min-h-[340px] rounded-lg border-0"
-                    />
-                  )}
+                  {selectedBundleDocumentPreviewUrl &&
+                    selectedBundleDocumentPreviewKey &&
+                    !previewErrors[selectedBundleDocumentPreviewKey] && (
+                      <iframe
+                        src={selectedBundleDocumentPreviewUrl}
+                        title={selectedBundleDocument?.title || selectedBundle.baseTitle}
+                        className="w-full h-[44vh] min-h-[340px] rounded-lg border-0"
+                        onLoad={() => clearPreviewError(selectedBundleDocumentPreviewKey)}
+                        onError={() => markPreviewError(selectedBundleDocumentPreviewKey)}
+                      />
+                    )}
+
+                  {selectedBundleDocument &&
+                    (!selectedBundleDocumentPreviewUrl ||
+                      (selectedBundleDocumentPreviewKey &&
+                        previewErrors[selectedBundleDocumentPreviewKey])) && (
+                      <div
+                        className={`rounded-lg border p-4 ${isDark ? 'bg-white/5 border-white/10' : 'bg-amber-50 border-amber-200'}`}
+                      >
+                        <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-amber-900'}`}>
+                          File preview is unavailable.
+                        </p>
+                        <p className={`text-xs mt-1 ${isDark ? 'text-slate-300' : 'text-amber-800'}`}>
+                          You can still open the file in a new tab using the button above.
+                        </p>
+                      </div>
+                    )}
                 </div>
               )}
 
               {selectedMaterial &&
                 !selectedBundle &&
-                selectedMaterial.materialType === 'video' &&
-                selectedMaterial.externalUrl && (
-                  <div className="h-full overflow-auto p-4 sm:p-6">
+                selectedMaterial.materialType === 'video' && (
+                  <div className="h-full p-4 sm:p-6 flex flex-col">
                     <h3
                       className={`text-lg font-semibold mb-3 ${isDark ? 'text-white' : 'text-gray-900'}`}
                     >
                       {selectedMaterial.title}
                     </h3>
-                    <iframe
-                      src={selectedMaterial.externalUrl}
-                      allowFullScreen
-                      title={selectedMaterial.title}
-                      className="w-full h-[52vh] min-h-[420px] rounded-lg border-0"
-                    />
-                    <p className={`mt-3 ${isDark ? 'text-slate-300' : 'text-gray-600'}`}>
-                      {selectedMaterial.description || 'No description available.'}
-                    </p>
+                    {selectedMaterialPreviewUrl &&
+                      selectedMaterialPreviewKey &&
+                      !previewErrors[selectedMaterialPreviewKey] && (
+                        <iframe
+                          src={selectedMaterialPreviewUrl}
+                          allowFullScreen
+                          title={selectedMaterial.title}
+                          className="w-full flex-1 min-h-0 rounded-lg border-0"
+                          onLoad={() => clearPreviewError(selectedMaterialPreviewKey)}
+                          onError={() => markPreviewError(selectedMaterialPreviewKey)}
+                        />
+                      )}
+                    {(!selectedMaterialPreviewUrl ||
+                      (selectedMaterialPreviewKey &&
+                        previewErrors[selectedMaterialPreviewKey])) && (
+                      <div
+                        className={`w-full flex-1 min-h-0 rounded-lg p-6 border flex items-center justify-center ${isDark ? 'bg-slate-800 border-white/10 text-white' : 'bg-amber-50 border-amber-200 text-amber-900'}`}
+                      >
+                        <div className="text-center max-w-xl">
+                          <div className="flex justify-center mb-3">
+                            <AlertCircle
+                              size={32}
+                              className={isDark ? 'text-amber-300' : 'text-amber-600'}
+                            />
+                          </div>
+                          <p className="font-medium">Video preview is unavailable.</p>
+                          <p
+                            className={`mt-1 text-sm ${isDark ? 'text-slate-300' : 'text-amber-800'}`}
+                          >
+                            This material is marked as a video, but the embed URL is missing or
+                            blocked.
+                          </p>
+                          {selectedMaterial.externalUrl && (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                window.open(
+                                  selectedMaterial.externalUrl || '',
+                                  '_blank',
+                                  'noopener,noreferrer'
+                                )
+                              }
+                              className="mt-3 px-3 py-1.5 rounded-md bg-blue-600 text-white hover:bg-blue-700 text-sm"
+                            >
+                              Open Video Link
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -745,9 +943,6 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
                         </p>
                       </div>
                     )}
-                    <p className={`mt-3 ${isDark ? 'text-slate-300' : 'text-gray-600'}`}>
-                      {selectedMaterial.description || 'No description available.'}
-                    </p>
                     <p className={`mt-2 text-sm ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
                       {selectedMaterial.materialType} • Week{' '}
                       {selectedMaterial.weekNumber || 'General'}
@@ -1051,13 +1246,13 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
               <div className="flex justify-between items-center mb-2">
                 <span className="text-sm text-gray-700">Progress</span>
                 <span className="bg-white border border-indigo-200 rounded-full px-3 py-1 text-sm text-indigo-600 font-semibold">
-                  0 / {materialsCount} materials
+                  {progressLabelViewed} / {progressTotalMaterials} materials
                 </span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div
                   className="h-2 rounded-full bg-linear-to-r from-blue-600 to-blue-600"
-                  style={{ width: '0%' }}
+                  style={{ width: `${progressPercentage}%` }}
                 />
               </div>
             </div>
@@ -1200,6 +1395,9 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
                 {fallbackMaterialItems.map((material) => {
                   const bundle = bundleByMaterialId[material.materialId];
                   const rowKey = bundle ? `bundle:${bundle.key}` : material.materialId;
+                  const typeDisplay = getMaterialTypePresentation(
+                    bundle ? 'lecture' : material.materialType
+                  );
                   return (
                     <button
                       key={material.materialId}
@@ -1223,8 +1421,12 @@ export default function CourseViewPage({ courseId, onBack }: CourseViewPageProps
                         </span>
                       </div>
                       <div className="shrink-0 text-right">
-                        <p className={`text-xs ${isDark ? 'text-slate-300' : 'text-gray-600'}`}>
-                          {bundle ? 'bundle' : material.materialType}
+                        <p className="text-xs">
+                          <span
+                            className={`inline-flex items-center leading-none px-2 py-0.5 rounded-md text-xs font-medium ${typeDisplay.className}`}
+                          >
+                            {typeDisplay.label}
+                          </span>
                         </p>
                         {material.weekNumber ? (
                           <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
