@@ -18,6 +18,25 @@ import { GradesService, GradeRecord as ApiGradeRecord } from '../../../services/
 import { useAuth } from '../../../context/AuthContext';
 import { client } from '../../../services/api/client';
 
+/** Theme primary as `rgba()` for soft gradients (profile color picker). */
+function primaryAlpha(hex: string, a: number): string {
+  let h = hex.replace('#', '').trim();
+  if (h.length === 3) {
+    h = h
+      .split('')
+      .map((c) => c + c)
+      .join('');
+  }
+  const n = parseInt(h, 16);
+  if (Number.isNaN(n) || h.length !== 6) {
+    return `rgba(59, 130, 246, ${a})`;
+  }
+  const r = (n >> 16) & 255;
+  const g = (n >> 8) & 255;
+  const b = n & 255;
+  return `rgba(${r},${g},${b},${a})`;
+}
+
 interface GradeRecord {
   code: string;
   name: string;
@@ -574,7 +593,7 @@ export default function GradesTranscript({
   semesters: propSemesters = defaultSemesters,
 }: GradesTranscriptProps) {
   const { t, isRTL } = useLanguage();
-  const { isDark } = useTheme();
+  const { isDark, primaryHex } = useTheme();
   const { user } = useAuth();
   const [activeView, setActiveView] = useState<'grades' | 'analysis'>('grades');
   const [rawGrades, setRawGrades] = useState<ApiGradeResponse[]>([]);
@@ -841,23 +860,89 @@ export default function GradesTranscript({
               {Object.entries(gradesByCourse).map(([courseId, courseData]) => (
                 <div
                   key={courseId}
-                  className={`rounded-[2.5rem] overflow-hidden ${isDark ? 'bg-card-dark border border-white/5' : 'glass'}`}
+                  className={`rounded-[2.5rem] overflow-hidden border shadow-sm ${
+                    isDark
+                      ? 'bg-card-dark border-white/15 shadow-black/25'
+                      : 'glass !border-slate-300/95 shadow-slate-900/[0.06]'
+                  }`}
                 >
-                  {/* Course Header */}
-                  <div className={`border-b p-6 ${isDark ? 'border-white/5' : 'border-slate-100'}`}>
-                    <h3
-                      className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}
-                    >
-                      {courseData.courseName}{' '}
-                      <span
-                        className={`text-sm font-normal ${isDark ? 'text-slate-400' : 'text-slate-600'}`}
+                  {/* Course Header — soft gradient from profile theme color */}
+                  <div
+                    className="relative overflow-hidden border-b px-5 py-5 md:px-6 md:py-6"
+                    style={{
+                      borderBottomColor: primaryAlpha(primaryHex, isDark ? 0.2 : 0.16),
+                      background: isDark
+                        ? `radial-gradient(ellipse 95% 80% at 100% -15%, ${primaryAlpha(primaryHex, 0.14)}, transparent 52%),
+                           linear-gradient(155deg, ${primaryAlpha(primaryHex, 0.18)} 0%, ${primaryAlpha(primaryHex, 0.06)} 42%, rgba(15, 23, 42, 0.94) 100%)`
+                        : `radial-gradient(ellipse 95% 75% at 100% -10%, ${primaryAlpha(primaryHex, 0.11)}, transparent 50%),
+                           linear-gradient(155deg, ${primaryAlpha(primaryHex, 0.13)} 0%, ${primaryAlpha(primaryHex, 0.04)} 38%, rgba(255, 255, 255, 0.98) 100%)`,
+                    }}
+                  >
+                    <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="flex min-w-0 items-center gap-4">
+                        <div
+                          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border shadow-sm"
+                          style={{
+                            borderColor: primaryAlpha(primaryHex, isDark ? 0.22 : 0.2),
+                            backgroundColor: primaryAlpha(primaryHex, isDark ? 0.12 : 0.08),
+                            color: primaryHex,
+                          }}
+                        >
+                          <GraduationCap className="h-5 w-5" strokeWidth={1.5} />
+                        </div>
+                        <div className="min-w-0">
+                          <span
+                            className={`inline-block font-mono text-[10px] font-medium uppercase tracking-wider ${
+                              isDark ? 'text-slate-400' : 'text-slate-500'
+                            }`}
+                          >
+                            {courseData.courseCode}
+                          </span>
+                          <h3
+                            className={`mt-1 text-lg font-semibold leading-snug tracking-tight md:text-xl ${
+                              isDark ? 'text-white' : 'text-slate-900'
+                            }`}
+                          >
+                            {courseData.courseName}
+                          </h3>
+                          <p
+                            className={`mt-0.5 text-sm font-normal ${isDark ? 'text-slate-500' : 'text-slate-600'}`}
+                          >
+                            {courseData.grades.length} graded assessment
+                            {courseData.grades.length !== 1 ? 's' : ''}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div
+                        className="flex shrink-0 items-center sm:border-l sm:pl-5"
+                        style={{ borderLeftColor: primaryAlpha(primaryHex, isDark ? 0.22 : 0.18) }}
                       >
-                        ({courseData.courseCode})
-                      </span>
-                    </h3>
-                    <p className={`text-sm mt-2 ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
-                      {courseData.grades.length} grade{courseData.grades.length !== 1 ? 's' : ''}
-                    </p>
+                        <div className="text-left sm:text-right">
+                          <p
+                            className={`text-[10px] font-medium uppercase tracking-wide ${isDark ? 'text-slate-500' : 'text-slate-500'}`}
+                          >
+                            Course average
+                          </p>
+                          <div className="mt-0.5 flex items-baseline gap-0.5 sm:justify-end tabular-nums">
+                            <span
+                              className={`text-2xl font-semibold ${isDark ? 'text-slate-100' : 'text-slate-800'}`}
+                              style={{ color: primaryHex }}
+                            >
+                              {(
+                                courseData.grades.reduce((acc, g) => acc + Number(g.percentage), 0) /
+                                  courseData.grades.length || 0
+                              ).toFixed(0)}
+                            </span>
+                            <span
+                              className={`text-sm font-normal ${isDark ? 'text-slate-500' : 'text-slate-500'}`}
+                            >
+                              %
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
                   {/* Grades List */}
@@ -868,28 +953,28 @@ export default function GradesTranscript({
                     {courseData.grades.map((grade) => (
                       <div
                         key={String(grade.id)}
-                        className={`p-6 transition-colors ${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50'}`}
+                        className={`px-4 py-3 transition-colors md:px-5 md:py-3.5 ${isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50/80'}`}
                       >
-                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between md:gap-4">
                           {/* Left: Item Info */}
-                          <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-2">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex flex-wrap items-center gap-2">
                               <span
-                                className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                                className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${
                                   getGradeTypeBadge(grade.gradeType, isDark).bg
                                 } ${getGradeTypeBadge(grade.gradeType, isDark).text}`}
                               >
                                 {grade.gradeType.charAt(0).toUpperCase() + grade.gradeType.slice(1)}
                               </span>
+                              <h4
+                                className={`text-sm font-medium leading-snug ${isDark ? 'text-white' : 'text-slate-800'}`}
+                              >
+                                {getItemTitle(grade)}
+                              </h4>
                             </div>
-                            <h4
-                              className={`text-base font-medium ${isDark ? 'text-white' : 'text-slate-800'}`}
-                            >
-                              {getItemTitle(grade)}
-                            </h4>
                             {grade.feedback && (
                               <p
-                                className={`text-sm mt-2 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}
+                                className={`mt-1 line-clamp-2 text-xs leading-relaxed ${isDark ? 'text-slate-400' : 'text-slate-600'}`}
                               >
                                 {grade.feedback}
                               </p>
@@ -897,52 +982,52 @@ export default function GradesTranscript({
                           </div>
 
                           {/* Right: Grade Info */}
-                          <div className="flex items-center gap-6 md:justify-end">
-                            <div className="text-center">
+                          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 md:justify-end md:gap-x-5">
+                            <div>
                               <p
-                                className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}
+                                className={`text-[10px] font-medium uppercase tracking-wide ${isDark ? 'text-slate-500' : 'text-slate-500'}`}
                               >
                                 Score
                               </p>
                               <p
-                                className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}
+                                className={`text-sm font-medium tabular-nums ${isDark ? 'text-white' : 'text-slate-800'}`}
                               >
                                 {Number(grade.score)}/{Number(grade.maxScore)}
                               </p>
                             </div>
-                            <div className="text-center">
+                            <div>
                               <p
-                                className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}
+                                className={`text-[10px] font-medium uppercase tracking-wide ${isDark ? 'text-slate-500' : 'text-slate-500'}`}
                               >
-                                Percentage
+                                %
                               </p>
                               <p
-                                className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}
+                                className={`text-sm font-medium tabular-nums ${isDark ? 'text-white' : 'text-slate-800'}`}
                               >
                                 {Number(grade.percentage).toFixed(1)}%
                               </p>
                             </div>
-                            <div className="text-center">
+                            <div>
                               <p
-                                className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}
+                                className={`text-[10px] font-medium uppercase tracking-wide ${isDark ? 'text-slate-500' : 'text-slate-500'}`}
                               >
                                 Grade
                               </p>
                               <div
-                                className={`inline-block px-3 py-1 rounded mt-1 ${getGradeColor(grade.letterGrade, isDark).bg} ${getGradeColor(grade.letterGrade, isDark).text} text-sm font-semibold border ${getGradeColor(grade.letterGrade, isDark).border}`}
+                                className={`mt-0.5 inline-block rounded px-2 py-0.5 text-xs font-medium border ${getGradeColor(grade.letterGrade, isDark).bg} ${getGradeColor(grade.letterGrade, isDark).text} ${getGradeColor(grade.letterGrade, isDark).border}`}
                               >
                                 {grade.letterGrade}
                               </div>
                             </div>
                             {grade.isPublished ? (
                               <div
-                                className={`px-3 py-1 rounded text-sm font-medium ${isDark ? 'bg-green-900/50 text-green-400' : 'bg-green-50 text-green-700'}`}
+                                className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${isDark ? 'bg-green-900/50 text-green-400' : 'bg-green-50 text-green-700'}`}
                               >
                                 Published
                               </div>
                             ) : (
                               <div
-                                className={`px-3 py-1 rounded text-sm font-medium ${isDark ? 'bg-yellow-900/50 text-yellow-400' : 'bg-yellow-50 text-yellow-700'}`}
+                                className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${isDark ? 'bg-yellow-900/50 text-yellow-400' : 'bg-yellow-50 text-yellow-700'}`}
                               >
                                 Draft
                               </div>

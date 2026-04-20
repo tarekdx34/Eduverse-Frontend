@@ -1,5 +1,5 @@
 import { Routes, Route, useParams, useNavigate, useLocation } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   LayoutGrid,
   BookOpen,
@@ -19,6 +19,8 @@ import {
   Settings,
   User,
   ClipboardCheck,
+  Camera,
+  X,
 } from 'lucide-react';
 import {
   StatsCard,
@@ -52,6 +54,7 @@ import { useAuth } from '../../context/AuthContext';
 import { EnrollmentService } from '../../services/api/enrollmentService';
 import { GradesService } from '../../services/api/gradesService';
 import { NotificationService } from '../../services/api/notificationService';
+import { AttendanceService } from '../../services/api/attendanceService';
 import PublicProfileView from './pages/PublicProfileView';
 
 const tabTranslationKeys: Record<string, string> = {
@@ -72,6 +75,7 @@ const tabTranslationKeys: Record<string, string> = {
   payments: 'payments',
   chat: 'chat',
   settings: 'settings',
+  profile: 'profile',
 };
 
 function StudentDashboardContent() {
@@ -81,6 +85,7 @@ function StudentDashboardContent() {
   const [viewingCourseId, setViewingCourseId] = useState<string | null>(null);
   const [desktopSidebarExpanded, setDesktopSidebarExpanded] = useState(false);
   const [headerUnreadCount, setHeaderUnreadCount] = useState(0);
+  const [showFacePhotoReminder, setShowFacePhotoReminder] = useState(false);
 
   const { isRTL, language, setLanguage, t } = useLanguage();
   const { isDark, toggleTheme, primaryHex, primaryColor, setPrimaryColor } = useTheme() as any;
@@ -99,6 +104,41 @@ function StudentDashboardContent() {
   const totalCredits = enrollments?.reduce((sum, e) => sum + (e.course?.credits ?? 0), 0) ?? 0;
   const activeClasses = enrollments?.filter((e) => e.status === 'enrolled').length ?? 0;
   const gpaValue = gpaSummary?.cumulativeGpa ?? 0;
+
+  const dismissFacePhotoReminder = useCallback(() => {
+    setShowFacePhotoReminder(false);
+  }, []);
+
+  useEffect(() => {
+    if (!user?.userId) return;
+
+    let cancelled = false;
+    void (async () => {
+      try {
+        const list = await AttendanceService.listMyFaceReferences();
+        if (cancelled) return;
+        if (Array.isArray(list) && list.length === 0) {
+          setShowFacePhotoReminder(true);
+        } else {
+          setShowFacePhotoReminder(false);
+        }
+      } catch {
+        /* ignore — avoid nagging when API is unavailable */
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.userId]);
+
+  useEffect(() => {
+    if (!showFacePhotoReminder) return;
+    const id = window.setTimeout(() => {
+      dismissFacePhotoReminder();
+    }, 14000);
+    return () => window.clearTimeout(id);
+  }, [showFacePhotoReminder, dismissFacePhotoReminder]);
 
   useEffect(() => {
     let mounted = true;
@@ -148,25 +188,40 @@ function StudentDashboardContent() {
   }, [isCourseRoute, routeParamId]);
 
   const tabs = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutGrid, group: 'Overview' },
-    { id: 'myclass', label: 'My Class', icon: BookOpen, group: 'Courses' },
-    { id: 'registration', label: 'Registration', icon: GraduationCap, group: 'Courses' },
-    { id: 'schedule', label: 'Schedule', icon: Calendar, group: 'Courses' },
-    { id: 'assignments', label: 'Assignments', icon: CheckSquare, group: 'Academic' },
-    { id: 'labs', label: 'Lab Sessions', icon: Beaker, group: 'Academic' },
-    { id: 'grades', label: 'Grades', icon: FileText, group: 'Academic' },
-    { id: 'attendance', label: 'Attendance', icon: BarChart3, group: 'Academic' },
-    { id: 'quizzes', label: 'Quiz Center', icon: ClipboardCheck, group: 'Academic' },
-    { id: 'todo', label: 'Todo List', icon: ListChecks, group: 'Tools' },
-    { id: 'ai', label: 'AI Features', icon: Sparkles, group: 'Tools' },
-    { id: 'gamification', label: 'Achievements', icon: Trophy, group: 'Tools' },
-    { id: 'community', label: 'Community', icon: Users, group: 'Communication' },
-    { id: 'notifications', label: 'Notifications', icon: Bell, group: 'Communication' },
-    { id: 'chat', label: 'Chat', icon: MessageCircle, group: 'Communication' },
-    { id: 'payments', label: 'Payments', icon: CreditCard, group: 'Account' },
-    { id: 'settings', label: 'Settings', icon: Settings, group: 'Account' },
-    { id: 'profile', label: 'Profile', icon: User, group: 'Account' },
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutGrid, group: 'groupOverview' },
+    { id: 'myclass', label: 'My Class', icon: BookOpen, group: 'groupCourses' },
+    { id: 'registration', label: 'Registration', icon: GraduationCap, group: 'groupCourses' },
+    { id: 'schedule', label: 'Schedule', icon: Calendar, group: 'groupCourses' },
+    { id: 'assignments', label: 'Assignments', icon: CheckSquare, group: 'groupAcademic' },
+    { id: 'labs', label: 'Lab Sessions', icon: Beaker, group: 'groupAcademic' },
+    { id: 'grades', label: 'Grades', icon: FileText, group: 'groupAcademic' },
+    { id: 'attendance', label: 'Attendance', icon: BarChart3, group: 'groupAcademic' },
+    { id: 'quizzes', label: 'Quiz Center', icon: ClipboardCheck, group: 'groupAcademic' },
+    { id: 'todo', label: 'Todo List', icon: ListChecks, group: 'groupTools' },
+    { id: 'ai', label: 'AI Features', icon: Sparkles, group: 'groupTools' },
+    { id: 'gamification', label: 'Achievements', icon: Trophy, group: 'groupTools' },
+    { id: 'community', label: 'Community', icon: Users, group: 'groupCommunication' },
+    { id: 'notifications', label: 'Notifications', icon: Bell, group: 'groupCommunication' },
+    { id: 'chat', label: 'Chat', icon: MessageCircle, group: 'groupCommunication' },
+    { id: 'payments', label: 'Payments', icon: CreditCard, group: 'groupAccount' },
+    { id: 'settings', label: 'Settings', icon: Settings, group: 'groupAccount' },
+    { id: 'profile', label: 'Profile', icon: User, group: 'groupAccount' },
   ];
+
+  const localizedTabs = tabs.map((tab) => ({
+    ...tab,
+    label: t(tabTranslationKeys[tab.id] || tab.id) || tab.label,
+    group: t(tab.group) || tab.group,
+  }));
+
+  const localizedGroupOrder = [
+    'groupOverview',
+    'groupCourses',
+    'groupAcademic',
+    'groupTools',
+    'groupCommunication',
+    'groupAccount',
+  ].map((groupKey) => t(groupKey) || groupKey);
 
   // Disable browser's native scroll restoration
   useEffect(() => {
@@ -304,10 +359,7 @@ function StudentDashboardContent() {
     >
       {/* Sidebar */}
       <DashboardSidebar
-        tabs={tabs.map((tab) => ({
-          ...tab,
-          label: t(tabTranslationKeys[tab.id] || tab.id) || tab.label,
-        }))}
+        tabs={localizedTabs}
         activeTab={activeTab}
         onTabChange={handleTabChange}
         onLogout={() => navigate('/login')}
@@ -316,7 +368,7 @@ function StudentDashboardContent() {
         accentColor={primaryHex || '#3b82f6'}
         isMobileOpen={sidebarOpen}
         onMobileClose={() => setSidebarOpen(false)}
-        groupOrder={['Overview', 'Courses', 'Academic', 'Tools', 'Communication', 'Account']}
+        groupOrder={localizedGroupOrder}
         compactMode={isCourseFullscreen}
         desktopExpanded={desktopSidebarExpanded}
         onToggleDesktopExpanded={() => setDesktopSidebarExpanded((prev) => !prev)}
@@ -548,6 +600,65 @@ function StudentDashboardContent() {
           )}
         </div>
       </main>
+
+      {showFacePhotoReminder && (
+        <div
+          role="status"
+          aria-live="polite"
+          className={`fixed bottom-4 z-[100] w-[min(calc(100vw-2rem),28rem)] border shadow-2xl backdrop-blur-md rounded-2xl p-4 flex gap-3 ${
+            isDark
+              ? 'bg-slate-900/95 border-slate-600/90 text-slate-100'
+              : 'bg-white/95 border-slate-200/90 text-slate-800'
+          } ${isRTL ? 'right-4' : 'left-4'}`}
+        >
+          <div
+            className="rounded-xl p-2.5 h-fit shrink-0"
+            style={{ backgroundColor: `${accentColor}22` }}
+          >
+            <Camera className="size-6" style={{ color: accentColor }} aria-hidden />
+          </div>
+          <div className="min-w-0 flex-1 pt-0.5">
+            <p className="font-semibold text-sm leading-snug">{t('facePhotoReminderTitle')}</p>
+            <p className={`text-xs mt-1.5 leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+              {t('facePhotoReminderBody')}
+            </p>
+            <div className={`mt-3 flex flex-wrap gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
+              <button
+                type="button"
+                className="text-xs font-semibold rounded-lg px-3 py-2 text-white hover:opacity-90"
+                style={{ backgroundColor: accentColor }}
+                onClick={() => {
+                  dismissFacePhotoReminder();
+                  handleTabChange('attendance');
+                }}
+              >
+                {t('facePhotoReminderGoToAttendance')}
+              </button>
+              <button
+                type="button"
+                className={`text-xs font-medium rounded-lg px-3 py-2 border ${
+                  isDark
+                    ? 'border-slate-500 text-slate-200 hover:bg-slate-800'
+                    : 'border-slate-200 text-slate-700 hover:bg-slate-50'
+                }`}
+                onClick={dismissFacePhotoReminder}
+              >
+                {t('facePhotoReminderDismiss')}
+              </button>
+            </div>
+          </div>
+          <button
+            type="button"
+            className={`shrink-0 rounded-lg p-1.5 h-fit -m-1 ${
+              isDark ? 'text-slate-400 hover:bg-slate-800' : 'text-slate-500 hover:bg-slate-100'
+            }`}
+            aria-label={t('facePhotoReminderDismiss')}
+            onClick={dismissFacePhotoReminder}
+          >
+            <X className="size-4" />
+          </button>
+        </div>
+      )}
     </div>
   );
 }

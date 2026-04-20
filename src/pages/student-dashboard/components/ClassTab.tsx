@@ -308,6 +308,10 @@ export default function ClassTab({ courses: propCourses, onViewCourse }: ClassTa
             candidateGradeValues.find(
               (value) => value !== null && value !== undefined && String(value).trim() !== ''
             ) ?? 'N/A';
+          const parsedProgress = Number(e.progressPercentage ?? 0);
+          const safeProgress = Number.isFinite(parsedProgress)
+            ? Math.max(0, Math.min(100, Math.round(parsedProgress)))
+            : 0;
 
           return {
             id: e.id,
@@ -323,7 +327,7 @@ export default function ClassTab({ courses: propCourses, onViewCourse }: ClassTa
             room: e.section.location || 'TBD',
             students: e.section.currentEnrollment,
             credits: e.course.credits,
-            progress: 0,
+            progress: safeProgress,
             color: color.bg,
             progressColor: color.accent,
           };

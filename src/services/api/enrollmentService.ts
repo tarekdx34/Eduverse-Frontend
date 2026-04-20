@@ -22,6 +22,9 @@ export interface EnrolledCourse {
   enrollmentDate: string;
   canDrop: boolean;
   dropDeadline: string | null;
+  materialsViewed?: number;
+  totalMaterials?: number;
+  progressPercentage?: number;
   // Nested user object returned by the backend (backend update)
   user?: {
     userId: number;

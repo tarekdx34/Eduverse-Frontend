@@ -235,10 +235,29 @@ const extractGoogleDriveId = (url: string): string | null => {
   return fromQuery || null;
 };
 
+const extractYouTubeVideoId = (url: string): string | null => {
+  const trimmed = url.trim();
+  if (!trimmed) return null;
+
+  const watchMatch = trimmed.match(/[?&]v=([a-zA-Z0-9_-]{6,})/i)?.[1];
+  if (watchMatch) return watchMatch;
+
+  const shortMatch = trimmed.match(/youtu\.be\/([a-zA-Z0-9_-]{6,})/i)?.[1];
+  if (shortMatch) return shortMatch;
+
+  const embedMatch = trimmed.match(/youtube\.com\/embed\/([a-zA-Z0-9_-]{6,})/i)?.[1];
+  if (embedMatch) return embedMatch;
+
+  return null;
+};
+
 const toPreviewUrl = (url: string): string => {
   const trimmed = url.trim();
   if (!trimmed) return '';
-  if (trimmed.includes('youtube.com') || trimmed.includes('youtu.be')) return trimmed;
+  if (trimmed.includes('youtube.com') || trimmed.includes('youtu.be')) {
+    const videoId = extractYouTubeVideoId(trimmed);
+    return videoId ? `https://www.youtube.com/embed/${videoId}` : trimmed;
+  }
   if (!trimmed.includes('drive.google.com')) return trimmed;
   if (trimmed.includes('/preview')) return trimmed;
 

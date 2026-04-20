@@ -71,17 +71,22 @@ const QuizTaker: React.FC<QuizTakerProps> = ({
   // Transform answers to API format
   const transformAnswersForApi = useCallback(() => {
     const answersArray = questions.map((question) => {
+      const questionId = Number(question.id);
+      if (!Number.isFinite(questionId)) {
+        return null;
+      }
+
       const answer = answers[question.id];
 
       if (!answer) {
         return {
-          questionId: Number(question.id),
+          questionId,
           answerText: '',
         };
       }
 
       const basePayload = {
-        questionId: Number(question.id),
+        questionId,
       };
 
       switch (question.type || question.questionType) {
@@ -103,9 +108,22 @@ const QuizTaker: React.FC<QuizTakerProps> = ({
 
         case 'true_false': {
           const selected = String(answer?.selectedOption || answer || '').trim();
+          const normalizedSelected = (() => {
+            if (!selected) return '';
+            const normalized = selected.toLowerCase();
+            if (Array.isArray(question.options) && question.options.length > 0) {
+              const matchedIndex = question.options.findIndex(
+                (opt) => String(opt).trim().toLowerCase() === normalized
+              );
+              if (matchedIndex >= 0) return String(matchedIndex);
+            }
+            if (normalized === 'true') return '0';
+            if (normalized === 'false') return '1';
+            return normalized;
+          })();
           return {
             ...basePayload,
-            selectedOption: selected ? [selected] : [],
+            selectedOption: normalizedSelected ? [normalizedSelected] : [],
             answerText: selected || undefined,
           };
         }
@@ -150,7 +168,12 @@ const QuizTaker: React.FC<QuizTakerProps> = ({
       }
     });
 
-    return answersArray;
+    return answersArray.filter(
+      (
+        answer
+      ): answer is { questionId: number; selectedOption?: string[]; answerText?: string } =>
+        answer !== null
+    );
   }, [answers, questions]);
 
   // Auto-save handler
