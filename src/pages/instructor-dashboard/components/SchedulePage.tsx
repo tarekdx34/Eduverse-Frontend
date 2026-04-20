@@ -776,9 +776,26 @@ export function SchedulePage() {
   });
 
   const suggestionMutation = useMutation({
-    mutationFn: async () => ({
-      suggestions: buildLocalOfficeHoursSuggestions(officeHoursQuery.data || []),
-    }),
+    mutationFn: async () => {
+      try {
+        const remote = await ScheduleService.getOfficeHoursSuggestions({
+          instructorId: user?.userId,
+          fromDate: startDate,
+          toDate: endDate,
+        });
+        const suggestions = Array.isArray(remote?.suggestions) ? remote.suggestions : [];
+        if (suggestions.length > 0) {
+          return { suggestions, source: 'api' as const };
+        }
+      } catch {
+        // Fallback to local ranking if API endpoint fails or returns empty.
+      }
+
+      return {
+        suggestions: buildLocalOfficeHoursSuggestions(officeHoursQuery.data || []),
+        source: 'local' as const,
+      };
+    },
     onSuccess: (data) => {
       const suggestions = data.suggestions || [];
       setLatestSuggestions(suggestions);
@@ -788,7 +805,8 @@ export function SchedulePage() {
       }
       const top = suggestions[0];
       if (top) {
-        toast.success(`${t('suggestionsFound')}: ${suggestions.length}`);
+        const sourceNote = data.source === 'api' ? 'API' : 'local fallback';
+        toast.success(`${t('suggestionsFound')}: ${suggestions.length} (${sourceNote})`);
       }
     },
     onError: (error: Error) => {
@@ -1264,6 +1282,52 @@ export function SchedulePage() {
                 {t('optimizeSchedule')}
               </button>
             </div>
+            {!!latestSuggestions.length && (
+              <div
+                className={`mt-3 pt-3 border-t space-y-2 text-xs ${
+                  isDark ? 'border-white/10 text-slate-300' : 'border-gray-200 text-gray-700'
+                }`}
+              >
+                {latestSuggestions.slice(0, 3).map((suggestion, index) => {
+                  const conflictCount = suggestion.conflicts?.length || 0;
+                  const recommendation =
+                    suggestion.recommendation === 'best'
+                      ? 'Best'
+                      : suggestion.recommendation === 'has_conflicts'
+                        ? 'Needs review'
+                        : 'Good';
+                  return (
+                    <div
+                      key={`${suggestion.slot.slotId}-${index}`}
+                      className={`rounded-lg border px-3 py-2 ${
+                        isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-50'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-medium">
+                          {suggestion.slot.dayOfWeek} {formatTime24To12(suggestion.slot.startTime)} -{' '}
+                          {formatTime24To12(suggestion.slot.endTime)}
+                        </span>
+                        <span
+                          className={`rounded-full px-2 py-0.5 text-[11px] ${
+                            suggestion.recommendation === 'best'
+                              ? 'bg-emerald-100 text-emerald-700'
+                              : suggestion.recommendation === 'has_conflicts'
+                                ? 'bg-amber-100 text-amber-700'
+                                : 'bg-blue-100 text-blue-700'
+                          }`}
+                        >
+                          {recommendation}
+                        </span>
+                      </div>
+                      <div className={isDark ? 'text-slate-400 mt-1' : 'text-gray-500 mt-1'}>
+                        Score: {suggestion.score} • Conflicts: {conflictCount}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           <div className={`rounded-xl p-4 border shadow-sm ${cardBg}`}>
