@@ -564,83 +564,9 @@ export function CourseManagementPage({
     return getTANames(course.taIds);
   };
 
-  const mockScheduleData = [
-    {
-      id: 1,
-      courseCode: deptCourses[0]?.code || 'CS101',
-      courseName: deptCourses[0]?.name || 'Intro to CS',
-      day: 'Monday',
-      time: '09:00 - 10:30',
-      room: 'Hall A-201',
-      instructor: deptCourses[0]?.instructor || 'TBA',
-    },
-    {
-      id: 2,
-      courseCode: deptCourses[1]?.code || 'CS201',
-      courseName: deptCourses[1]?.name || 'Data Structures',
-      day: 'Tuesday',
-      time: '11:00 - 12:30',
-      room: 'Hall B-105',
-      instructor: deptCourses[1]?.instructor || 'TBA',
-    },
-    {
-      id: 3,
-      courseCode: deptCourses[0]?.code || 'CS101',
-      courseName: deptCourses[0]?.name || 'Intro to CS',
-      day: 'Wednesday',
-      time: '09:00 - 10:30',
-      room: 'Hall A-201',
-      instructor: deptCourses[0]?.instructor || 'TBA',
-    },
-    {
-      id: 4,
-      courseCode: deptCourses[2]?.code || 'CS301',
-      courseName: deptCourses[2]?.name || 'Algorithms',
-      day: 'Thursday',
-      time: '14:00 - 15:30',
-      room: 'Lab C-302',
-      instructor: deptCourses[2]?.instructor || 'TBA',
-    },
-  ];
+  const mockScheduleData: any[] = [];
 
-  const mockExamData = [
-    {
-      id: 1,
-      courseCode: deptCourses[0]?.code || 'CS101',
-      courseName: deptCourses[0]?.name || 'Intro to CS',
-      date: '2025-03-15',
-      time: '09:00 - 11:00',
-      room: 'Exam Hall 1',
-      type: 'Midterm' as const,
-    },
-    {
-      id: 2,
-      courseCode: deptCourses[1]?.code || 'CS201',
-      courseName: deptCourses[1]?.name || 'Data Structures',
-      date: '2025-03-16',
-      time: '13:00 - 15:00',
-      room: 'Exam Hall 2',
-      type: 'Midterm' as const,
-    },
-    {
-      id: 3,
-      courseCode: deptCourses[0]?.code || 'CS101',
-      courseName: deptCourses[0]?.name || 'Intro to CS',
-      date: '2025-06-10',
-      time: '09:00 - 12:00',
-      room: 'Exam Hall 1',
-      type: 'Final' as const,
-    },
-    {
-      id: 4,
-      courseCode: deptCourses[2]?.code || 'CS301',
-      courseName: deptCourses[2]?.name || 'Algorithms',
-      date: '2025-06-12',
-      time: '14:00 - 17:00',
-      room: 'Exam Hall 3',
-      type: 'Final' as const,
-    },
-  ];
+  const mockExamData: any[] = [];
 
   const toggleStaffTA = (taId: number) => {
     setStaffFormData((prev) => ({

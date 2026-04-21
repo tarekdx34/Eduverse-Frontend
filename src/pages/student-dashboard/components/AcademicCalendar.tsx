@@ -36,96 +36,16 @@ interface AcademicCalendarProps {
 }
 
 const defaultStats = {
-  totalEvents: 10,
-  exams: 2,
-  assignments: 3,
-  events: 3,
-  deadlines: 1,
+  totalEvents: 0,
+  exams: 0,
+  assignments: 0,
+  events: 0,
+  deadlines: 0,
 };
 
-const defaultEvents: CalendarEvent[] = [
-  { id: '1', date: 1, title: '', type: 'exam', color: 'bg-blue-100' },
-  { id: '2', date: 2, title: '', type: 'exam', color: 'bg-blue-100' },
-  { id: '3', date: 3, title: '', type: 'exam', color: 'bg-blue-100' },
-  {
-    id: '4',
-    date: 4,
-    title: 'Study Group - Data Structures',
-    type: 'event',
-    color: 'bg-green-100',
-  },
-  { id: '5', date: 5, title: 'Final Exam - Database Systems', type: 'exam', color: 'bg-red-100' },
-  { id: '6', date: 6, title: 'Midterm Exam - Web Development', type: 'exam', color: 'bg-red-100' },
-  {
-    id: '6b',
-    date: 6,
-    title: 'Algorithm Analysis Report Due',
-    type: 'assignment',
-    color: 'bg-yellow-100',
-  },
-  {
-    id: '8',
-    date: 8,
-    title: 'Mobile App Prototype Due',
-    type: 'assignment',
-    color: 'bg-yellow-100',
-  },
-  {
-    id: '10',
-    date: 10,
-    title: 'Database Design Project Due',
-    type: 'assignment',
-    color: 'bg-yellow-100',
-  },
-  { id: '12', date: 12, title: 'CS Department Seminar', type: 'event', color: 'bg-green-100' },
-  {
-    id: '15',
-    date: 15,
-    title: 'Registration Deadline - Spring 2026',
-    type: 'deadline',
-    color: 'bg-blue-100',
-  },
-  { id: '18', date: 18, title: 'Career Fair', type: 'event', color: 'bg-green-100' },
-  { id: '20', date: 20, title: 'Winter Break Begins', type: 'holiday', color: 'bg-orange-100' },
-];
+const defaultEvents: CalendarEvent[] = [];
 
-const defaultUpcomingEvents: UpcomingEvent[] = [
-  {
-    id: '1',
-    title: 'Study Group - Data Structures',
-    type: 'Event',
-    description: 'Exam preparation study session',
-    date: 'Thu, Dec 4, 2025',
-    time: '06:00 PM - 08:00 PM',
-    location: 'Library Room 3',
-  },
-  {
-    id: '2',
-    title: 'Final Exam - Database Systems',
-    type: 'Exam',
-    description: 'Comprehensive final examination',
-    date: 'Fri, Dec 5, 2025',
-    time: '09:00 AM - 11:00 AM',
-    location: 'Room D-102',
-  },
-  {
-    id: '3',
-    title: 'Midterm Exam - Web Development',
-    type: 'Exam',
-    description: 'Midterm examination',
-    date: 'Sat, Dec 6, 2025',
-    time: '01:00 PM - 03:00 PM',
-    location: 'Lab C-301',
-  },
-  {
-    id: '4',
-    title: 'Algorithm Analysis Report Due',
-    type: 'Assignment',
-    description: 'Submit complexity analysis report',
-    date: 'Sat, Dec 6, 2025',
-    time: '11:59 PM',
-  },
-];
+const defaultUpcomingEvents: UpcomingEvent[] = [];
 
 const getEventBadgeColor = (type: string) => {
   switch (type) {
@@ -452,9 +372,18 @@ export default function AcademicCalendar({
 
           {/* Upcoming events list */}
           <div className="space-y-3 max-h-96 overflow-y-auto">
-            {upcomingEvents.map((event) => (
-              <UpcomingEventCard key={event.id} event={event} isDark={isDark} />
-            ))}
+            {upcomingEvents.length === 0 ? (
+              <div className="text-center py-10">
+                <Calendar className={`w-10 h-10 mx-auto mb-2 ${isDark ? 'text-slate-600' : 'text-slate-300'}`} />
+                <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-600'}`}>
+                  No upcoming events
+                </p>
+              </div>
+            ) : (
+              upcomingEvents.map((event) => (
+                <UpcomingEventCard key={event.id} event={event} isDark={isDark} />
+              ))
+            )}
           </div>
         </div>
       </div>

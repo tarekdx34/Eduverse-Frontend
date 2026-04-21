@@ -16,41 +16,9 @@ const cardClass = (isDark: boolean) =>
 
 const headingClass = (isDark: boolean) => `${isDark ? 'text-white' : 'text-slate-900'}`;
 
-const enrollmentData = [
-  { course: 'CS101', enrolled: 45, capacity: 50 },
-  { course: 'CS201', enrolled: 38, capacity: 40 },
-  { course: 'CS301', enrolled: 29, capacity: 35 },
-  { course: 'CS401', enrolled: 52, capacity: 60 },
-  { course: 'CS102', enrolled: 41, capacity: 45 },
-  { course: 'CS202', enrolled: 22, capacity: 30 },
-];
+const enrollmentData: any[] = [];
 
-const upcomingSchedule = [
-  {
-    course: 'CS101 – Intro to Programming',
-    time: 'Sun, 9:00 AM',
-    room: 'Hall A-201',
-    instructor: 'Dr. Ahmed Hassan',
-  },
-  {
-    course: 'CS201 – Data Structures',
-    time: 'Sun, 11:00 AM',
-    room: 'Lab B-105',
-    instructor: 'Dr. Sara Mostafa',
-  },
-  {
-    course: 'CS301 – Operating Systems',
-    time: 'Mon, 10:00 AM',
-    room: 'Hall C-302',
-    instructor: 'Dr. Mohamed Ali',
-  },
-  {
-    course: 'CS401 – Machine Learning',
-    time: 'Mon, 1:00 PM',
-    room: 'Lab D-110',
-    instructor: 'Dr. Nour El-Din',
-  },
-];
+const upcomingSchedule: any[] = [];
 
 export function DashboardOverview({ stats, recentActivity }: DashboardOverviewProps) {
   const { isDark, primaryHex } = useTheme() as any;
@@ -59,8 +27,8 @@ export function DashboardOverview({ stats, recentActivity }: DashboardOverviewPr
   const topStats = [
     {
       label: t('totalCourses'),
-      value: stats.totalCourses ?? 24,
-      sub: `${stats.activeCourses ?? 18} ${t('activeCourses')}`,
+      value: stats.totalCourses ?? 0,
+      sub: `${stats.activeCourses ?? 0} ${t('activeCourses')}`,
       icon: BookOpen,
       iconBg: isDark ? `${primaryHex}20` : `${primaryHex}10`,
       iconColor: primaryHex,
@@ -68,8 +36,8 @@ export function DashboardOverview({ stats, recentActivity }: DashboardOverviewPr
     },
     {
       label: 'Enrolled Students',
-      value: 342,
-      sub: '+26 this semester',
+      value: 0,
+      sub: '0 this semester',
       icon: GraduationCap,
       iconBg: isDark ? `${primaryHex}20` : `${primaryHex}10`,
       iconColor: primaryHex,
@@ -77,8 +45,8 @@ export function DashboardOverview({ stats, recentActivity }: DashboardOverviewPr
     },
     {
       label: 'Enrollment Period',
-      value: 'Spring 2025',
-      sub: 'Ends Apr 15',
+      value: 'N/A',
+      sub: 'No period active',
       icon: Calendar,
       iconBg: isDark ? `${primaryHex}20` : `${primaryHex}10`,
       iconColor: primaryHex,
@@ -86,8 +54,8 @@ export function DashboardOverview({ stats, recentActivity }: DashboardOverviewPr
     },
     {
       label: 'Pending Requests',
-      value: 8,
-      sub: '3 course overrides',
+      value: 0,
+      sub: '0 course overrides',
       icon: Clock,
       iconBg: isDark ? `${primaryHex}20` : `${primaryHex}10`,
       iconColor: primaryHex,
@@ -164,18 +132,18 @@ export function DashboardOverview({ stats, recentActivity }: DashboardOverviewPr
               <h3
                 className={`text-2xl font-bold tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}
               >
-                Computer Science and Engineering
+                Department Name
               </h3>
             </div>
             <p className={`text-sm mb-8 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-              Spring 2025 Semester — Week 8 of 16
+              Semester Details — Week 0 of 0
             </p>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
-                { label: 'Instructors', value: 12 },
-                { label: 'Teaching Assistants', value: 24 },
-                { label: 'Active Courses', value: stats.activeCourses ?? 18 },
-                { label: 'Avg. Enrollment', value: '38/course' },
+                { label: 'Instructors', value: 0 },
+                { label: 'Teaching Assistants', value: 0 },
+                { label: 'Active Courses', value: stats.activeCourses ?? 0 },
+                { label: 'Avg. Enrollment', value: '0/course' },
               ].map((item) => (
                 <div
                   key={item.label}

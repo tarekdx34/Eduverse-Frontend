@@ -81,78 +81,9 @@ export function CampusEventsManagementPage({ isMockMode: propMockMode = false }:
   const queryClient = useQueryClient();
 
   // Mock data for when API is unavailable
-  const MOCK_DEPARTMENTS = [
-    { id: 1, name: 'Computer Science' },
-    { id: 2, name: 'Engineering' },
-    { id: 3, name: 'Mathematics' },
-    { id: 4, name: 'Physics' },
-  ];
+  const MOCK_DEPARTMENTS: DepartmentOption[] = [];
 
-  const MOCK_EVENTS: CampusEvent[] = [
-    {
-      id: 1,
-      title: 'Fall Semester Orientation',
-      description: 'Welcome event for new students',
-      eventType: 'university_wide',
-      scopeId: undefined,
-      startDatetime: '2026-09-01T09:00:00Z',
-      endDatetime: '2026-09-01T12:00:00Z',
-      location: 'Main Auditorium',
-      building: 'Administration Building',
-      room: 'A101',
-      isMandatory: true,
-      registrationRequired: true,
-      maxAttendees: 500,
-      currentAttendees: 342,
-      color: '#10B981',
-      status: 'published',
-      tags: ['orientation', 'welcome'],
-      createdAt: '2026-08-01T10:00:00Z',
-      updatedAt: '2026-08-15T14:30:00Z',
-    },
-    {
-      id: 2,
-      title: 'CS Department Workshop',
-      description: 'Introduction to Machine Learning workshop',
-      eventType: 'department',
-      scopeId: 1,
-      startDatetime: '2026-09-15T14:00:00Z',
-      endDatetime: '2026-09-15T17:00:00Z',
-      location: 'Lab 302',
-      building: 'Engineering Building',
-      room: '302',
-      isMandatory: false,
-      registrationRequired: true,
-      maxAttendees: 50,
-      currentAttendees: 28,
-      color: '#3B82F6',
-      status: 'published',
-      tags: ['workshop', 'ML', 'AI'],
-      createdAt: '2026-08-20T10:00:00Z',
-      updatedAt: '2026-08-20T10:00:00Z',
-    },
-    {
-      id: 3,
-      title: 'Research Symposium',
-      description: 'Annual research presentation event',
-      eventType: 'campus',
-      scopeId: undefined,
-      startDatetime: '2026-10-10T10:00:00Z',
-      endDatetime: '2026-10-10T18:00:00Z',
-      location: 'Conference Center',
-      building: 'Conference Center',
-      room: 'Main Hall',
-      isMandatory: false,
-      registrationRequired: false,
-      maxAttendees: undefined,
-      currentAttendees: 0,
-      color: '#F59E0B',
-      status: 'draft',
-      tags: ['research', 'symposium'],
-      createdAt: '2026-08-25T10:00:00Z',
-      updatedAt: '2026-08-25T10:00:00Z',
-    },
-  ];
+  const MOCK_EVENTS: CampusEvent[] = [];
 
   // Determine mock mode - if no auth or prop indicates mock
   const isMockMode = propMockMode;

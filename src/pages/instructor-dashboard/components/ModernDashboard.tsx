@@ -103,12 +103,7 @@ export function ModernDashboard({
     { course: 'Logic', value: 88, engagement: 80 },
   ];
 
-  const defaultEngagementData = [
-    { week: 'Week 1', value: 68 },
-    { week: 'Week 2', value: 75 },
-    { week: 'Week 3', value: 70 },
-    { week: 'Week 4', value: 78 },
-  ];
+  const defaultEngagementData: any[] = [];
 
   const chartPerformanceData = useMemo(() => {
     const data = performanceData && performanceData.length > 0 ? performanceData : defaultPerformanceData;

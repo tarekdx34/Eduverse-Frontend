@@ -634,21 +634,15 @@ function AdminDashboardContent() {
             accentColor={primaryHex || '#3b82f6'}
             bannerGradient="from-[#3b82f6] to-[#06b6d4]"
             profileData={{
-              fullName: 'Dr. Ahmad Khalil',
-              role: 'Department Head',
-              department: ADMIN_DEPARTMENT,
-              email: 'a.khalil@university.edu',
-              phone: '+1 (555) 100-0001',
-              address: 'Faculty Building, Office 312',
-              dateOfBirth: '1975-03-20',
-              bio: 'Department Head for Computer Science and Engineering. Responsible for managing department courses, faculty assignments, student enrollment, and academic scheduling.',
-              specialization: [
-                'Academic Administration',
-                'Course Management',
-                'Student Affairs',
-                'Faculty Coordination',
-                'Enrollment Management',
-              ],
+              fullName: 'Admin Name',
+              role: 'Administrator',
+              department: 'Department',
+              email: 'admin@eduverse.edu',
+              phone: '',
+              address: '',
+              dateOfBirth: '',
+              bio: '',
+              specialization: [],
             }}
           />
         )}

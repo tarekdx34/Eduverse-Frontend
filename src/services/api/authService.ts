@@ -83,6 +83,13 @@ export class AuthService {
     return localStorage.getItem(TOKEN_KEYS.REFRESH_TOKEN);
   }
 
+  static setStoredUser(user: User): void {
+    localStorage.setItem(TOKEN_KEYS.USER, JSON.stringify(user));
+    // Set a dummy token so isAuthenticated() returns true
+    localStorage.setItem(TOKEN_KEYS.ACCESS_TOKEN, 'mock-dev-token');
+    localStorage.setItem(TOKEN_KEYS.REFRESH_TOKEN, 'mock-dev-token');
+  }
+
   /** Clear only local storage (use serverLogout() for full logout including server-side session) */
   static clearLocalAuth(): void {
     localStorage.removeItem(TOKEN_KEYS.ACCESS_TOKEN);

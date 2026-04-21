@@ -37,6 +37,14 @@ export interface ScheduleConflict {
 }
 
 const pad = (value: number) => String(value).padStart(2, '0');
+const scheduleDebug = (..._args: unknown[]) => {
+  // Silent in all modes as per user request to clean up console
+  /*
+  if (import.meta.env.DEV) {
+    console.log('[schedule-debug]', ..._args);
+  }
+  */
+};
 
 const pickString = (...values: unknown[]) => {
   for (const value of values) {

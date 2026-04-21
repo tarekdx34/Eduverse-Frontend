@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, Globe, Sun, Moon } from 'lucide-react';
 import { Input } from '../../components/ui/input';
@@ -8,31 +8,52 @@ import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
 import { AuthService } from '../../services/api/authService';
 import backgroundImage from '../../assets/images/pexels-mart-production-8471990.jpg';
+import QuickLoginModal from '../../components/dev/QuickLoginModal';
 import './LoginPage.css';
 
-const login = () => {
+const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isQuickLoginOpen, setIsQuickLoginOpen] = useState(false);
   const navigate = useNavigate();
   const { language, setLanguage } = useLanguage();
   const { theme, toggleTheme } = useTheme();
   const isArabic = language === 'ar';
-  const { login: authLogin, logout: authLogout } = useAuth();
+  const { login: authLogin, loginMock } = useAuth();
+
+  // Handle keyboard shortcut for Quick Login (Ctrl + Shift + Q)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.shiftKey && e.key === 'Q') {
+        e.preventDefault();
+        setIsQuickLoginOpen(prev => !prev);
+      }
+      if (e.key === 'Escape') {
+        setIsQuickLoginOpen(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const toggleLanguage = () => {
     setLanguage(language === 'en' ? 'ar' : 'en');
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent, directEmail?: string, directPassword?: string) => {
+    if (e) e.preventDefault();
     setError('');
     setLoading(true);
 
+    const loginEmail = directEmail || email;
+    const loginPassword = directPassword || password;
+
     try {
-      const user = await authLogin(email, password);
+      const user = await authLogin(loginEmail, loginPassword);
       // Use the returned user directly — avoids stale React state closure
       navigate(AuthService.getDashboardPath(user));
     } catch (err) {
@@ -40,6 +61,14 @@ const login = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleQuickLoginSelect = (selectedEmail: string, selectedPassword: string) => {
+    setEmail(selectedEmail);
+    setPassword(selectedPassword);
+    setIsQuickLoginOpen(false);
+    // Trigger login immediately
+    handleSubmit(undefined, selectedEmail, selectedPassword);
   };
 
   const handleOutlookSignIn = () => {
@@ -52,6 +81,13 @@ const login = () => {
 
   return (
     <div className="login-page-wrapper">
+      {/* Quick Login Modal */}
+      <QuickLoginModal 
+        isOpen={isQuickLoginOpen} 
+        onClose={() => setIsQuickLoginOpen(false)} 
+        onSelect={handleQuickLoginSelect}
+      />
+
       {/* Animated Background Elements */}
       <div className="login-orb login-orb-1" />
       <div className="login-orb login-orb-2" />
@@ -236,45 +272,45 @@ const login = () => {
               </p>
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
                 <button
-                  onClick={async () => {
-                    await authLogout();
-                    navigate('/studentdashboard', { state: { isMock: true } });
+                  onClick={() => {
+                    loginMock('student');
+                    navigate('/studentdashboard');
                   }}
                   className="flex items-center justify-center px-3 py-2.5 rounded-full login-chip"
                 >
                   <span>Student</span>
                 </button>
                 <button
-                  onClick={async () => {
-                    await authLogout();
-                    navigate('/instructordashboard', { state: { isMock: true } });
+                  onClick={() => {
+                    loginMock('instructor');
+                    navigate('/instructordashboard');
                   }}
                   className="flex items-center justify-center px-3 py-2.5 rounded-full login-chip"
                 >
                   <span>Instructor</span>
                 </button>
                 <button
-                  onClick={async () => {
-                    await authLogout();
-                    navigate('/admindashboard', { state: { isMock: true } });
+                  onClick={() => {
+                    loginMock('admin');
+                    navigate('/admindashboard');
                   }}
                   className="flex items-center justify-center px-3 py-2.5 rounded-full login-chip"
                 >
                   <span>Admin</span>
                 </button>
                 <button
-                  onClick={async () => {
-                    await authLogout();
-                    navigate('/itadmindashboard', { state: { isMock: true } });
+                  onClick={() => {
+                    loginMock('it_admin');
+                    navigate('/itadmindashboard');
                   }}
                   className="flex items-center justify-center px-3 py-2.5 rounded-full login-chip"
                 >
                   <span>IT Admin</span>
                 </button>
                 <button
-                  onClick={async () => {
-                    await authLogout();
-                    navigate('/tadashboard', { state: { isMock: true } });
+                  onClick={() => {
+                    loginMock('teaching_assistant');
+                    navigate('/tadashboard');
                   }}
                   className="col-span-2 lg:col-span-4 flex items-center justify-center px-3 py-2.5 rounded-full login-chip"
                 >
@@ -350,4 +386,4 @@ const login = () => {
   );
 };
 
-export default login;
+export default LoginPage;

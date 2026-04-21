@@ -34,116 +34,13 @@ interface Student {
   status: 'active' | 'on-hold' | 'graduated';
 }
 
-const mockStudents: Student[] = [
-  {
-    id: 1,
-    studentId: 'STU-2024-001',
-    name: 'Sara Mohamed',
-    email: 'sara.m@university.edu',
-    year: '2nd',
-    enrolledCourses: ['CS201', 'CS203', 'MATH201'],
-    status: 'active',
-  },
-  {
-    id: 2,
-    studentId: 'STU-2024-002',
-    name: 'Omar Ali',
-    email: 'omar.a@university.edu',
-    year: '3rd',
-    enrolledCourses: ['CS301', 'CS303'],
-    status: 'active',
-  },
-  {
-    id: 3,
-    studentId: 'STU-2024-003',
-    name: 'Fatima Nour',
-    email: 'fatima.n@university.edu',
-    year: '1st',
-    enrolledCourses: ['CS101', 'CS103', 'MATH101', 'PHY101'],
-    status: 'active',
-  },
-  {
-    id: 4,
-    studentId: 'STU-2024-004',
-    name: 'Hassan Youssef',
-    email: 'hassan.y@university.edu',
-    year: '4th',
-    enrolledCourses: ['CS401', 'CS403'],
-    status: 'active',
-  },
-  {
-    id: 5,
-    studentId: 'STU-2024-005',
-    name: 'Layla Ibrahim',
-    email: 'layla.i@university.edu',
-    year: '2nd',
-    enrolledCourses: ['CS201'],
-    status: 'on-hold',
-  },
-  {
-    id: 6,
-    studentId: 'STU-2024-006',
-    name: 'Khaled Mansour',
-    email: 'khaled.m@university.edu',
-    year: '3rd',
-    enrolledCourses: ['CS301', 'CS305', 'CS307'],
-    status: 'active',
-  },
-  {
-    id: 7,
-    studentId: 'STU-2024-007',
-    name: 'Nadia Samir',
-    email: 'nadia.s@university.edu',
-    year: '1st',
-    enrolledCourses: ['CS101', 'CS103'],
-    status: 'active',
-  },
-  {
-    id: 8,
-    studentId: 'STU-2024-008',
-    name: 'Tariq Hassan',
-    email: 'tariq.h@university.edu',
-    year: '4th',
-    enrolledCourses: [],
-    status: 'graduated',
-  },
-];
-
-const availableCourses = [
-  'CS101',
-  'CS103',
-  'CS201',
-  'CS203',
-  'CS301',
-  'CS303',
-  'CS305',
-  'CS307',
-  'CS401',
-  'CS403',
-  'MATH101',
-  'MATH201',
-  'PHY101',
-];
-
+const mockStudents: Student[] = [];
+const mockExamData: any[] = [];
+const availableCourses: string[] = [];
 const enrollmentConflicts: Record<
   string,
   { course: string; conflict: string; resolution: string }[]
-> = {
-  'STU-2024-001': [
-    {
-      course: 'CS203',
-      conflict: 'Schedule overlaps with MATH201 (Mon 10-12)',
-      resolution: 'Move to section B (Mon 14-16)',
-    },
-  ],
-  'STU-2024-003': [
-    {
-      course: 'PHY101',
-      conflict: 'Exceeds max credit hours (20/18)',
-      resolution: 'Drop PHY101 or request overload approval',
-    },
-  ],
-};
+> = {};
 
 type ModalType =
   | 'add-course'
