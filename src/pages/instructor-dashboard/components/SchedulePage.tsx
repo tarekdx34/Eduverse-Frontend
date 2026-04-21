@@ -32,6 +32,13 @@ import { Skeleton } from '../../../components/ui/skeleton';
 type ViewMode = 'month' | 'week' | 'day';
 type ItemKind = 'class' | 'exam' | 'event' | 'campus_event' | 'office_hours';
 type CampusSource = 'all' | 'my';
+type ScheduleCourseOption = {
+  id?: string | number;
+  courseId?: string | number;
+  name?: string;
+  courseName?: string;
+  courseCode?: string;
+};
 
 type UnifiedScheduleItem = {
   id: string;
@@ -685,7 +692,13 @@ function DayCalendarView({
   );
 }
 
-export function SchedulePage() {
+export function SchedulePage({
+  isMockMode = false,
+  courses = [],
+}: {
+  isMockMode?: boolean;
+  courses?: ScheduleCourseOption[];
+}) {
   const { t, language } = useLanguage();
   const { isDark, primaryHex = '#3b82f6' } = useTheme() as { isDark: boolean; primaryHex: string };
   const { user } = useAuth();
@@ -710,17 +723,19 @@ export function SchedulePage() {
   const dailyQuery = useQuery({
     queryKey: ['schedule-daily-unified', dayDate],
     queryFn: () => ScheduleService.getDailyUnified(dayDate),
+    enabled: !isMockMode,
   });
 
   const weeklyQuery = useQuery({
     queryKey: ['schedule-weekly-unified', weekStart],
     queryFn: () => ScheduleService.getWeeklyUnified(weekStart),
+    enabled: !isMockMode,
   });
 
   const monthQuery = useQuery({
     queryKey: ['schedule-month-unified', currentDate.getFullYear(), currentDate.getMonth()],
     queryFn: () => getMonthDays(currentDate),
-    enabled: viewMode === 'month',
+    enabled: !isMockMode && viewMode === 'month',
   });
 
   const campusEventsQuery = useQuery({
@@ -738,6 +753,7 @@ export function SchedulePage() {
       };
       return ScheduleService.getCampusEvents(params);
     },
+    enabled: !isMockMode,
   });
 
   const officeHoursQuery = useQuery({
@@ -746,9 +762,67 @@ export function SchedulePage() {
       const payload = (await ScheduleService.getMyOfficeHoursSlots(user?.userId)) as unknown;
       return normalizeOfficeHoursSlotsResponse(payload);
     },
-    enabled: Boolean(user?.userId),
+    enabled: !isMockMode && Boolean(user?.userId),
     retry: false,
   });
+  const mockUnifiedItems = useMemo<UnifiedScheduleItem[]>(() => {
+    const today = new Date();
+    const codeAndName = (idx: number) => {
+      const source = courses[idx] || courses[0] || {};
+      const code = source.courseCode || `CS30${idx + 1}`;
+      const name = source.courseName || source.name || `Course ${idx + 1}`;
+      return { code, name, id: String(source.courseId ?? source.id ?? idx + 1) };
+    };
+    const c1 = codeAndName(0);
+    const c2 = codeAndName(1);
+    return [
+      {
+        id: 'mock-class-1',
+        kind: 'class',
+        date: toISODate(addDays(today, 1)),
+        startTime: '10:00',
+        endTime: '11:30',
+        title: `${c1.code} - ${c1.name}`,
+        subtitle: 'lecture',
+        location: 'B-204',
+        color: '#3b82f6',
+      },
+      {
+        id: 'mock-lab-1',
+        kind: 'class',
+        date: toISODate(addDays(today, 2)),
+        startTime: '12:00',
+        endTime: '13:30',
+        title: `${c2.code} - ${c2.name}`,
+        subtitle: 'lab',
+        location: 'Lab 3',
+        color: '#3b82f6',
+      },
+      {
+        id: 'mock-exam-1',
+        kind: 'exam',
+        date: toISODate(addDays(today, 5)),
+        startTime: '09:00',
+        endTime: '11:00',
+        title: `${c1.code} Midterm`,
+        subtitle: 'Midterm',
+        location: 'Hall A',
+        color: '#ef4444',
+      },
+      {
+        id: 'mock-office-hours-1',
+        kind: 'office_hours',
+        date: toISODate(addDays(today, 3)),
+        startTime: '14:00',
+        endTime: '15:00',
+        title: t('officeHours'),
+        subtitle: t('officeHoursInPerson'),
+        location: 'Office 2-11',
+        color: '#f59e0b',
+      },
+    ];
+  }, [courses, t]);
+
 
   const registerMutation = useMutation({
     mutationFn: (eventId: number) => ScheduleService.registerForCampusEvent(eventId),
@@ -853,6 +927,7 @@ export function SchedulePage() {
   }, [officeHoursQuery.data, startDate, endDate, t]);
 
   const unifiedItems = useMemo<UnifiedScheduleItem[]>(() => {
+    if (isMockMode) return mockUnifiedItems;
     const items: UnifiedScheduleItem[] = [];
 
     allScheduleDays.forEach((day) => {
@@ -951,7 +1026,7 @@ export function SchedulePage() {
       if (timeCmp !== 0) return timeCmp;
       return a.id.localeCompare(b.id);
     });
-  }, [allScheduleDays, campusEventsQuery.data, officeHoursItems, t]);
+  }, [allScheduleDays, campusEventsQuery.data, officeHoursItems, t, isMockMode, mockUnifiedItems]);
 
   const courseOptions = useMemo(() => {
     const set = new Set<string>();
@@ -1018,13 +1093,14 @@ export function SchedulePage() {
   }, [filteredItems, latestSuggestions]);
 
   const isLoading =
-    dailyQuery.isLoading ||
-    weeklyQuery.isLoading ||
-    (viewMode === 'month' && monthQuery.isLoading) ||
-    campusEventsQuery.isLoading ||
-    officeHoursQuery.isLoading;
+    !isMockMode &&
+    (dailyQuery.isLoading ||
+      weeklyQuery.isLoading ||
+      (viewMode === 'month' && monthQuery.isLoading) ||
+      campusEventsQuery.isLoading ||
+      officeHoursQuery.isLoading);
   const hasError =
-    dailyQuery.error || weeklyQuery.error || monthQuery.error || campusEventsQuery.error;
+    !isMockMode && (dailyQuery.error || weeklyQuery.error || monthQuery.error || campusEventsQuery.error);
 
   const headerLabel = useMemo(() => {
     if (viewMode === 'day') return formatDateHeader(toISODate(currentDate), language);

@@ -97,6 +97,26 @@ export function QuizList({
     ? 'bg-white/5 border-white/10 text-white placeholder-slate-500'
     : 'bg-white border-gray-300 text-gray-900 placeholder-slate-400';
   const btnSecCls = isDark ? 'text-slate-300 hover:bg-white/10' : 'text-gray-700 hover:bg-gray-50';
+  const getStatusBadgeClass = (status: QuizStatus) => {
+    if (status === 'published') {
+      return isDark
+        ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/30'
+        : 'bg-emerald-50 text-emerald-700 border border-emerald-200';
+    }
+    if (status === 'draft') {
+      return isDark
+        ? 'bg-amber-500/20 text-amber-300 border border-amber-400/30'
+        : 'bg-amber-50 text-amber-700 border border-amber-200';
+    }
+    if (status === 'closed') {
+      return isDark
+        ? 'bg-slate-500/20 text-slate-200 border border-slate-400/30'
+        : 'bg-slate-100 text-slate-700 border border-slate-200';
+    }
+    return isDark
+      ? 'bg-rose-500/20 text-rose-300 border border-rose-400/30'
+      : 'bg-rose-50 text-rose-700 border border-rose-200';
+  };
 
   // Handle viewing attempts with data loading
   const handleViewAttempts = async (quiz: QuizUIData) => {
@@ -275,7 +295,13 @@ export function QuizList({
                     <h3 className={`text-lg font-semibold truncate ${headingCls}`}>
                       {quiz.title}
                     </h3>
-                    <span className="px-2 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400">
+                    <span
+                      className="px-2 py-1 rounded-full text-xs font-medium"
+                      style={{
+                        backgroundColor: isDark ? `${primaryHex}2E` : `${primaryHex}1A`,
+                        color: primaryHex,
+                      }}
+                    >
                       {quiz.courseName}
                     </span>
                   </div>
@@ -314,7 +340,11 @@ export function QuizList({
                     )}
                   </div>
                 </div>
-                <span className={`px-3 py-1 rounded-full text-xs font-medium self-start ${quiz.statusColor}`}>
+                <span
+                  className={`px-3 py-1 rounded-full text-xs font-medium self-start ${getStatusBadgeClass(
+                    quiz.status
+                  )}`}
+                >
                   {STATUS_STYLES[quiz.status].label}
                 </span>
               </div>

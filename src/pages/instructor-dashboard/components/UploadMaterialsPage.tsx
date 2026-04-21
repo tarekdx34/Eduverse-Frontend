@@ -45,6 +45,8 @@ import {
 
 type UploadMaterialsPageProps = {
   courseId?: string;
+  isMockMode?: boolean;
+  courses?: Array<{ id?: string | number; courseId?: string | number; name?: string; courseName?: string; courseCode?: string }>;
 };
 
 type UploadType = 'text' | 'file' | 'video' | 'bundle';
@@ -175,7 +177,7 @@ const uploaderName = (material: CourseMaterial): string => {
   return 'Unknown';
 };
 
-export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
+export function UploadMaterialsPage({ courseId, isMockMode = false, courses = [] }: UploadMaterialsPageProps) {
   const { id: routeId } = useParams();
   const { isDark, primaryHex = '#3b82f6' } = useTheme() as any;
   const { isRTL } = useLanguage();
@@ -284,7 +286,50 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
     );
   }, []);
 
+  const createMockMaterial = useCallback(
+    (overrides: Partial<CourseMaterial> = {}): CourseMaterial => ({
+      materialId: overrides.materialId || `mock-material-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      courseId: overrides.courseId || activeCourseId || '101',
+      materialType: overrides.materialType || 'document',
+      title: overrides.title || 'Mock Material',
+      description: overrides.description ?? '',
+      externalUrl: overrides.externalUrl ?? null,
+      driveViewUrl: overrides.driveViewUrl ?? null,
+      driveDownloadUrl: overrides.driveDownloadUrl ?? null,
+      fileName: overrides.fileName ?? null,
+      youtubeVideoId: overrides.youtubeVideoId ?? null,
+      orderIndex: overrides.orderIndex ?? 0,
+      weekNumber: overrides.weekNumber ?? null,
+      viewCount: overrides.viewCount ?? 0,
+      downloadCount: overrides.downloadCount ?? 0,
+      uploader: overrides.uploader ?? {
+        userId: 1,
+        firstName: 'Instructor',
+        lastName: 'Mock',
+        email: 'instructor.mock@eduverse.local',
+      },
+      isPublished: overrides.isPublished ?? 1,
+      createdAt: overrides.createdAt || new Date().toISOString(),
+      updatedAt: overrides.updatedAt || new Date().toISOString(),
+    }),
+    [activeCourseId]
+  );
+
   const loadCourseOptions = useCallback(async () => {
+    if (isMockMode) {
+      const mapped = courses
+        .map((c) => {
+          const value = String(c.courseId ?? c.id ?? '');
+          const name = c.courseName || c.name || 'Course';
+          const code = c.courseCode || '';
+          return value ? { value, label: code ? `${code} - ${name}` : name } : null;
+        })
+        .filter(Boolean) as Array<{ value: string; label: string }>;
+      setCourseOptions(mapped);
+      if (!selectedCourseId && mapped.length > 0) setSelectedCourseId(mapped[0].value);
+      return;
+    }
+
     try {
       const teaching = await EnrollmentService.getTeachingCourses();
       const mapped = (Array.isArray(teaching) ? teaching : [])
@@ -303,7 +348,7 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
     } catch {
       setCourseOptions([]);
     }
-  }, [selectedCourseId]);
+  }, [selectedCourseId, isMockMode, courses]);
 
   const loadStructure = useCallback(async (targetCourseId: string) => {
     const response = await structureService.getStructure(targetCourseId);
@@ -334,6 +379,7 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
   );
 
   const refetchAll = useCallback(async () => {
+    if (isMockMode) return;
     if (!activeCourseId) return;
     setLoading(true);
     try {
@@ -344,7 +390,7 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
     } finally {
       setLoading(false);
     }
-  }, [activeCourseId, loadMaterials, loadStructure]);
+  }, [activeCourseId, loadMaterials, loadStructure, isMockMode]);
 
   useEffect(() => {
     loadCourseOptions();
@@ -353,6 +399,62 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
   useEffect(() => {
     refetchAll();
   }, [refetchAll]);
+
+  useEffect(() => {
+    if (!isMockMode || !activeCourseId) return;
+    const now = new Date();
+    const seed = [
+      createMockMaterial({
+        materialId: `mock-${activeCourseId}-mat-1`,
+        courseId: activeCourseId,
+        title: 'Week 1 Lecture Slides',
+        materialType: 'slide',
+        weekNumber: 1,
+        isPublished: 1,
+        createdAt: now.toISOString(),
+      }),
+      createMockMaterial({
+        materialId: `mock-${activeCourseId}-mat-2`,
+        courseId: activeCourseId,
+        title: 'Week 2 Lab Instructions',
+        materialType: 'document',
+        weekNumber: 2,
+        isPublished: 1,
+        createdAt: now.toISOString(),
+      }),
+      createMockMaterial({
+        materialId: `mock-${activeCourseId}-mat-3`,
+        courseId: activeCourseId,
+        title: 'Course Orientation Video',
+        materialType: 'video',
+        weekNumber: 1,
+        isPublished: 0,
+        externalUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+      }),
+    ];
+    setMaterialsResponse({ data: seed, meta: { total: seed.length, page: 1, limit: 100, totalPages: 1 } });
+  }, [isMockMode, activeCourseId, createMockMaterial]);
+
+  useEffect(() => {
+    if (!isMockMode) return;
+    const byWeek: Record<string, any[]> = {};
+    (materialsResponse.data || []).forEach((item) => {
+      if (item.weekNumber == null) return;
+      const key = String(item.weekNumber);
+      if (!byWeek[key]) byWeek[key] = [];
+      byWeek[key].push({
+        organizationId: `mock-org-${item.materialId}`,
+        courseId: item.courseId,
+        materialId: item.materialId,
+        material: item,
+        organizationType: 'lecture',
+        title: item.title,
+        weekNumber: item.weekNumber,
+        orderIndex: item.orderIndex || 0,
+      });
+    });
+    setStructureResponse({ data: Object.values(byWeek).flat(), byWeek });
+  }, [isMockMode, materialsResponse.data]);
 
   const weekOptions = useMemo(() => {
     const dynamic = Object.keys(structureResponse.byWeek || {})
@@ -434,6 +536,66 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
 
   const onCreateMaterial = async () => {
     if (!activeCourseId || !createForm.title.trim()) return;
+
+    if (isMockMode) {
+      const weekNumber = parseWeekNumber(createForm.weekNumber) ?? null;
+      const basePayload = {
+        courseId: activeCourseId,
+        title: createForm.title.trim(),
+        description: createForm.description || '',
+        weekNumber,
+        isPublished: createForm.isPublished ? 1 : 0,
+      } as Partial<CourseMaterial>;
+
+      if (uploadType === 'bundle') {
+        const items: CourseMaterial[] = [];
+        if (bundleVideo) {
+          items.push(
+            createMockMaterial({
+              ...basePayload,
+              title: `${createForm.title.trim()} - Video`,
+              materialType: 'video',
+              fileName: bundleVideo.name,
+              externalUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+            })
+          );
+        }
+        bundleDocuments.forEach((file, index) => {
+          items.push(
+            createMockMaterial({
+              ...basePayload,
+              title: `${createForm.title.trim()} - ${file.name.replace(/\.[^.]+$/, '')}`,
+              materialType: createForm.materialType,
+              fileName: file.name,
+              orderIndex: index + 1,
+            })
+          );
+        });
+        if (items.length === 0) {
+          setUploadError('Please add a video or at least one document.');
+          return;
+        }
+        setMaterialsResponse((prev) => ({ ...prev, data: [...items, ...(prev.data || [])] }));
+      } else {
+        const one = createMockMaterial({
+          ...basePayload,
+          materialType: uploadType === 'video' ? 'video' : createForm.materialType,
+          fileName: selectedFile?.name || null,
+          externalUrl: uploadType === 'video' ? 'https://www.youtube.com/embed/dQw4w9WgXcQ' : null,
+        });
+        setMaterialsResponse((prev) => ({ ...prev, data: [one, ...(prev.data || [])] }));
+      }
+
+      addActivity(`Created: ${createForm.title}`, 'completed');
+      toast.success('Mock material created');
+      setShowCreateModal(false);
+      setSelectedFile(null);
+      setBundleVideo(null);
+      setBundleDocuments([]);
+      setUploadProgress(0);
+      setUploadError('');
+      return;
+    }
 
     // --- Lecture Bundle Upload ---
     if (uploadType === 'bundle') {
@@ -651,6 +813,46 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
 
   const onUpdateMaterial = async () => {
     if (!activeCourseId) return;
+    if (isMockMode) {
+      if (editingBundle && editingBundle.items.length > 0) {
+        const ids = new Set(editingBundle.items.map((i) => i.materialId));
+        setMaterialsResponse((prev) => ({
+          ...prev,
+          data: (prev.data || []).map((item) =>
+            ids.has(item.materialId)
+              ? {
+                  ...item,
+                  title: `${editForm.title.trim()} - ${getBundleSuffix(item, editingBundle.baseTitle)}`,
+                  description: editForm.description || '',
+                  weekNumber: parseWeekNumber(editForm.weekNumber) ?? null,
+                  isPublished: editForm.isPublished ? 1 : 0,
+                  updatedAt: new Date().toISOString(),
+                }
+              : item
+          ),
+        }));
+      } else if (selectedMaterial) {
+        setMaterialsResponse((prev) => ({
+          ...prev,
+          data: (prev.data || []).map((item) =>
+            item.materialId === selectedMaterial.materialId
+              ? {
+                  ...item,
+                  title: editForm.title.trim(),
+                  description: editForm.description || '',
+                  weekNumber: parseWeekNumber(editForm.weekNumber) ?? null,
+                  isPublished: editForm.isPublished ? 1 : 0,
+                  updatedAt: new Date().toISOString(),
+                }
+              : item
+          ),
+        }));
+      }
+      toast.success('Mock material updated');
+      setShowEditModal(false);
+      setEditingBundle(null);
+      return;
+    }
     setMutating(true);
     try {
       if (editingBundle && editingBundle.items.length > 0) {
@@ -694,6 +896,26 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
 
   const onDeleteMaterial = async () => {
     if (!activeCourseId) return;
+    if (isMockMode) {
+      if (deletingBundle && deletingBundle.items.length > 0) {
+        const ids = new Set(deletingBundle.items.map((m) => m.materialId));
+        setMaterialsResponse((prev) => ({
+          ...prev,
+          data: (prev.data || []).filter((m) => !ids.has(m.materialId)),
+        }));
+        toast.success('Mock lecture bundle deleted');
+      } else if (selectedMaterial) {
+        setMaterialsResponse((prev) => ({
+          ...prev,
+          data: (prev.data || []).filter((m) => m.materialId !== selectedMaterial.materialId),
+        }));
+        toast.success('Mock material deleted');
+      }
+      setShowDeleteDialog(false);
+      setDeletingBundle(null);
+      setSelectedMaterial(null);
+      return;
+    }
     setMutating(true);
     try {
       if (deletingBundle && deletingBundle.items.length > 0) {
@@ -728,6 +950,15 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
 
   const onToggleVisibility = async (material: CourseMaterial) => {
     if (!activeCourseId) return;
+    if (isMockMode) {
+      setMaterialsResponse((prev) => ({
+        ...prev,
+        data: (prev.data || []).map((m) =>
+          m.materialId === material.materialId ? { ...m, isPublished: m.isPublished === 1 ? 0 : 1 } : m
+        ),
+      }));
+      return;
+    }
     try {
       await materialService.toggleVisibility(
         activeCourseId,
@@ -743,6 +974,15 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
 
   const onToggleBundleVisibility = async (bundle: MaterialBundle) => {
     if (!activeCourseId) return;
+    if (isMockMode) {
+      const ids = new Set(bundle.items.map((i) => i.materialId));
+      const nextVisibleState = bundle.items.some((item) => item.isPublished !== 1) ? 1 : 0;
+      setMaterialsResponse((prev) => ({
+        ...prev,
+        data: (prev.data || []).map((m) => (ids.has(m.materialId) ? { ...m, isPublished: nextVisibleState } : m)),
+      }));
+      return;
+    }
     const nextVisibleState = bundle.items.some((item) => item.isPublished !== 1);
     try {
       await Promise.all(
