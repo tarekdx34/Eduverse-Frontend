@@ -12,6 +12,15 @@ export interface DiscussionThread {
   replyCount: number;
   createdAt: string;
   updatedAt: string;
+  course?: {
+    courseName?: string;
+    courseCode?: string;
+  };
+  creator?: {
+    firstName?: string;
+    lastName?: string;
+    username?: string;
+  };
 }
 
 export interface DiscussionReply {
@@ -26,6 +35,11 @@ export interface DiscussionReply {
   upvoteCount?: number;
   createdAt?: string;
   updatedAt?: string;
+  user?: {
+    firstName?: string;
+    lastName?: string;
+    username?: string;
+  };
 }
 
 export interface DiscussionsParams {
@@ -92,4 +106,8 @@ export const discussionService = {
   // Lock/unlock discussion
   lockDiscussion: (id: string, isLocked: boolean) =>
     client.patch<DiscussionThread>(`/discussions/${id}/lock`, { isLocked }).then((r) => r.data),
+
+  // Toggle upvote on discussion reply
+  toggleMessageUpvote: (replyId: string) =>
+    client.post<{ action: 'added' | 'removed' }>(`/discussions/replies/${replyId}/upvote`).then((r) => r.data),
 };

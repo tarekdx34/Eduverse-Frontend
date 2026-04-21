@@ -24,6 +24,7 @@ import {
   type DiscussionReply,
   type DiscussionThread,
 } from '../../../services/api/discussionService';
+import { EnrollmentService } from '../../../services/api/enrollmentService';
 import { toast } from 'sonner';
 
 interface DiscussionPageProps {
@@ -59,6 +60,30 @@ export function DiscussionPage({
   const [newDiscussion, setNewDiscussion] = useState({ courseId: '', title: '', description: '' });
   const [creating, setCreating] = useState(false);
   const [replyTextByDiscussion, setReplyTextByDiscussion] = useState<Record<string, string>>({});
+  const [courseOptions, setCourseOptions] = useState<Array<{ value: string; label: string }>>([{ value: 'all', label: 'All Courses' }]);
+  const [teachingCourses, setTeachingCourses] = useState<any[]>([]);
+
+  useEffect(() => {
+    const loadCourses = async () => {
+      try {
+        const teaching = await EnrollmentService.getTeachingCourses();
+        setTeachingCourses(Array.isArray(teaching) ? teaching : []);
+        const mapped = (Array.isArray(teaching) ? teaching : [])
+          .map((c: any) => {
+            const value = String(c.courseId || c.id || c.sectionId || '');
+            const name = c.course?.name || c.courseName || c.name || 'Course';
+            const code = c.course?.code || c.courseCode || '';
+            return value ? { value, label: code ? `${code} - ${name}` : name } : null;
+          })
+          .filter(Boolean) as Array<{ value: string; label: string }>;
+        
+        setCourseOptions([{ value: 'all', label: t('allCourses') }, ...mapped]);
+      } catch (e) {
+        // Fallback or ignore
+      }
+    };
+    void loadCourses();
+  }, [t]);
 
   const loadDiscussions = useCallback(async (courseId?: string) => {
     try {
@@ -77,15 +102,10 @@ export function DiscussionPage({
     void loadDiscussions(courseId);
   }, [filterCourse, loadDiscussions]);
 
-  const courseOptions = useMemo(() => {
-    const courseIds = Array.from(new Set(discussions.map((d) => d.courseId))).sort(
-      (a, b) => Number(a) - Number(b)
-    );
-    return [
-      { value: 'all', label: t('allCourses') },
-      ...courseIds.map((id) => ({ value: String(id), label: `Course #${id}` })),
-    ];
-  }, [discussions, t]);
+  useEffect(() => {
+    const courseId = filterCourse === 'all' ? undefined : filterCourse;
+    void loadDiscussions(courseId);
+  }, [filterCourse, loadDiscussions]);
 
   const filteredDiscussions = useMemo(
     () =>
@@ -202,6 +222,42 @@ export function DiscussionPage({
       setReplyTextByDiscussion((prev) => ({ ...prev, [discussionId]: '' }));
       await refreshDetail(discussionId);
       await loadDiscussions(filterCourse === 'all' ? undefined : filterCourse);
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    }
+  };
+
+  const handleUpvote = async (discussionId: string, replyId: string) => {
+    try {
+      const result = await discussionService.toggleMessageUpvote(replyId);
+      
+      setDetailsById((prev) => {
+        const details = prev[discussionId];
+        if (!details) return prev;
+        
+        const updatedReplies = details.replies.data.map(reply => {
+          if (reply.id === replyId) {
+            const currentCount = reply.upvoteCount ?? 0;
+            return {
+              ...reply,
+              upvoteCount: result.action === 'added' ? currentCount + 1 : Math.max(0, currentCount - 1),
+            };
+          }
+          return reply;
+        });
+        
+        return {
+          ...prev,
+          [discussionId]: {
+            ...details,
+            replies: {
+              ...details.replies,
+              data: updatedReplies
+            }
+          }
+        };
+      });
+      
     } catch (error) {
       toast.error(getErrorMessage(error));
     }
@@ -377,11 +433,11 @@ export function DiscussionPage({
                       >
                         <div className="flex items-center gap-1">
                           <User size={12} />
-                          <span>User #{discussion.createdBy}</span>
+                          <span>{discussion.creator ? `${discussion.creator.firstName} ${discussion.creator.lastName}` : `User #${discussion.createdBy}`}</span>
                         </div>
                         <div className="flex items-center gap-1">
                           <BookOpen size={12} />
-                          <span>Course #{discussion.courseId}</span>
+                          <span>{discussion.course?.name || `Course #${discussion.courseId}`}</span>
                         </div>
                         <span>
                           {new Date(discussion.createdAt ?? Date.now()).toLocaleDateString()}
@@ -467,18 +523,37 @@ export function DiscussionPage({
                       </div>
                     ) : (
                       <div className={`divide-y ${isDark ? 'divide-white/10' : 'divide-gray-100'}`}>
-                        {replies.map((reply: DiscussionReply) => (
+                        {[...replies]
+                          .sort((a, b) => {
+                            if ((b.upvoteCount ?? 0) !== (a.upvoteCount ?? 0)) {
+                              return (b.upvoteCount ?? 0) - (a.upvoteCount ?? 0);
+                            }
+                            return new Date(a.createdAt ?? 0).getTime() - new Date(b.createdAt ?? 0).getTime();
+                          })
+                          .map((reply: DiscussionReply) => (
                           <div
                             key={reply.id}
-                            className={`p-6 ${reply.parentMessageId ? 'ml-6 border-l-2 border-indigo-300/40' : ''}`}
+                            className={`p-6 flex gap-4 ${reply.parentMessageId ? 'ml-6 border-l-2 border-indigo-300/40' : ''}`}
                           >
-                            <div className="flex items-center gap-2 mb-2">
-                              <span
-                                className={`font-medium text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}
+                            <div className="flex flex-col items-center gap-1 pt-1 min-w-[2rem]">
+                              <button 
+                                onClick={() => handleUpvote(discussion.id, reply.id)}
+                                className={`p-1.5 rounded-lg transition-all hover:bg-indigo-500/20 text-slate-400 hover:text-indigo-500`}
                               >
-                                User #{reply.userId}
+                                <ChevronUp size={20} strokeWidth={2.5} />
+                              </button>
+                              <span className={`text-sm font-bold ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                                {reply.upvoteCount ?? 0}
                               </span>
-                              {reply.isAnswer === 1 && (
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2">
+                                <span
+                                  className={`font-medium text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}
+                                >
+                                  {reply.user ? `${reply.user.firstName} ${reply.user.lastName}` : `User #${reply.userId}`}
+                                </span>
+                                {reply.isAnswer === 1 && (
                                 <span
                                   className={`px-2 py-0.5 rounded text-xs font-medium flex items-center gap-1 ${isDark ? 'bg-green-900/30 text-green-400' : 'bg-green-100 text-green-700'}`}
                                 >
@@ -502,9 +577,9 @@ export function DiscussionPage({
                               <span>
                                 {new Date(reply.createdAt ?? Date.now()).toLocaleString()}
                               </span>
-                              <span>Upvotes: {reply.upvoteCount ?? 0}</span>
                             </div>
                           </div>
+                        </div>
                         ))}
                       </div>
                     )}

@@ -14,6 +14,7 @@ import {
   Loader2,
   CheckCircle,
   ShieldCheck,
+  ArrowUp,
 } from 'lucide-react';
 import { CustomDropdown } from '../../../components/shared/CustomDropdown';
 import {
@@ -22,6 +23,7 @@ import {
   type DiscussionReply,
   type DiscussionThread,
 } from '../../../services/api/discussionService';
+import { enrollmentService, type EnrolledCourse } from '../../../services/api/enrollmentService';
 import { toast } from 'sonner';
 
 const getErrorMessage = (error: unknown) =>
@@ -39,6 +41,7 @@ export function CourseCommunity() {
   const { isDark, primaryHex } = useTheme() as any;
   const [selectedCommunity, setSelectedCommunity] = useState<string>('all');
   const [discussions, setDiscussions] = useState<DiscussionThread[]>([]);
+  const [enrolledCourses, setEnrolledCourses] = useState<EnrolledCourse[]>([]);
   const [detailsById, setDetailsById] = useState<Record<string, DiscussionDetailResponse>>({});
   const [selectedDiscussion, setSelectedDiscussion] = useState<DiscussionThread | null>(null);
   const [newTitle, setNewTitle] = useState('');
@@ -61,24 +64,35 @@ export function CourseCommunity() {
   }, []);
 
   useEffect(() => {
-    const courseId = selectedCommunity === 'all' ? undefined : selectedCommunity;
-    void loadDiscussions(courseId);
+    const loadInitialData = async () => {
+      try {
+        setLoading(true);
+        const courses = await enrollmentService.getMyCourses();
+        setEnrolledCourses(courses);
+        
+        const courseId = selectedCommunity === 'all' ? undefined : selectedCommunity;
+        await loadDiscussions(courseId);
+      } catch (error) {
+        toast.error(getErrorMessage(error));
+      } finally {
+        setLoading(false);
+      }
+    };
+    void loadInitialData();
   }, [selectedCommunity, loadDiscussions]);
 
   const communities = useMemo(() => {
-    const ids = Array.from(new Set(discussions.map((discussion) => discussion.courseId))).sort(
-      (a, b) => Number(a) - Number(b)
-    );
-    return ids.map((id) => ({
-      id: String(id),
-      courseCode: `Course #${id}`,
+    return enrolledCourses.map((enrollment) => ({
+      id: enrollment.course.id,
+      courseCode: enrollment.course.code,
+      courseName: enrollment.course.name,
       members: 0,
-      posts: discussions.filter((d) => d.courseId === id).length,
+      posts: discussions.filter((d) => String(d.courseId) === String(enrollment.course.id)).length,
       lastActivity: 'recently',
       color: 'bg-blue-500',
       joined: true,
     }));
-  }, [discussions]);
+  }, [enrolledCourses, discussions]);
 
   const filterOptions = [
     { value: 'all', label: 'All Posts' },
@@ -168,6 +182,43 @@ export function CourseCommunity() {
     }
   };
 
+  const handleUpvote = async (replyId: string) => {
+    if (!selectedDiscussion) return;
+    try {
+      const result = await discussionService.toggleMessageUpvote(replyId);
+      
+      setDetailsById((prev) => {
+        const details = prev[selectedDiscussion.id];
+        if (!details) return prev;
+        
+        const updatedReplies = details.replies.data.map(reply => {
+          if (reply.id === replyId) {
+            const currentCount = reply.upvoteCount ?? 0;
+            return {
+              ...reply,
+              upvoteCount: result.action === 'added' ? currentCount + 1 : Math.max(0, currentCount - 1),
+            };
+          }
+          return reply;
+        });
+        
+        return {
+          ...prev,
+          [selectedDiscussion.id]: {
+            ...details,
+            replies: {
+              ...details.replies,
+              data: updatedReplies
+            }
+          }
+        };
+      });
+      
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -212,15 +263,15 @@ export function CourseCommunity() {
                   <div
                     className={`w-10 h-10 ${community.color} rounded-lg flex items-center justify-center text-white font-bold text-sm`}
                   >
-                    {community.courseCode.split('#')[1]}
+                    {community.courseCode.substring(0, 2).toUpperCase()}
                   </div>
                   <div className="flex-1 text-left">
                     <p
                       className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-800'}`}
                     >
-                      {community.courseCode}
+                      {community.courseName}
                     </p>
-                    <p className="text-xs text-slate-500">{community.posts} discussions</p>
+                    <p className="text-xs text-slate-500">{community.courseCode} • {community.posts} discussions</p>
                   </div>
                   {selectedCommunity === community.id && (
                     <ChevronRight className="w-4 h-4 text-[var(--accent-color)]" />
@@ -381,35 +432,50 @@ export function CourseCommunity() {
                   </p>
                 ) : (
                   [...detailsById[selectedDiscussion.id].replies.data]
-                    .sort(
-                      (a, b) =>
-                        new Date(a.createdAt ?? 0).getTime() - new Date(b.createdAt ?? 0).getTime()
-                    )
+                    .sort((a, b) => {
+                      if ((b.upvoteCount ?? 0) !== (a.upvoteCount ?? 0)) {
+                        return (b.upvoteCount ?? 0) - (a.upvoteCount ?? 0);
+                      }
+                      return new Date(a.createdAt ?? 0).getTime() - new Date(b.createdAt ?? 0).getTime();
+                    })
                     .map((reply: DiscussionReply) => (
                       <div
                         key={reply.id}
-                        className={`p-3 rounded-lg ${isDark ? 'bg-white/5' : 'bg-slate-50'} ${reply.parentMessageId ? 'ml-6 border-l-2 border-indigo-300/40' : ''}`}
+                        className={`p-3 rounded-xl flex gap-4 transition-all hover:shadow-sm ${isDark ? 'bg-white/5 border border-white/5 hover:bg-white/10' : 'bg-slate-50 border border-slate-100 hover:bg-white'} ${reply.parentMessageId ? 'ml-6 border-l-4 border-l-indigo-400' : ''}`}
                       >
-                        <div className="flex items-center gap-2 text-xs mb-1">
-                          <span>User #{reply.userId}</span>
-                          {reply.isAnswer === 1 && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-green-100 text-green-700">
-                              <CheckCircle size={10} />✓ Accepted Answer
-                            </span>
-                          )}
-                          {reply.isEndorsed === 1 && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-indigo-100 text-indigo-700">
-                              <ShieldCheck size={10} />
-                              Endorsed
-                            </span>
-                          )}
+                        <div className="flex flex-col items-center gap-1 pt-1 min-w-[2rem]">
+                          <button 
+                            onClick={() => handleUpvote(reply.id)}
+                            className={`p-1.5 rounded-lg transition-all hover:bg-[var(--accent-color)]/20 text-slate-400 hover:text-[var(--accent-color)]`}
+                          >
+                            <ArrowUp size={18} strokeWidth={2.5} />
+                          </button>
+                          <span className={`text-sm font-bold ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                            {reply.upvoteCount ?? 0}
+                          </span>
                         </div>
-                        <p className={`text-sm ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>
-                          {reply.messageText}
-                        </p>
-                        <div className="text-xs text-slate-500 mt-1">
-                          {reply.upvoteCount ?? 0} upvotes •{' '}
-                          {new Date(reply.createdAt ?? Date.now()).toLocaleString()}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-wrap items-center gap-2 text-xs mb-2">
+                            <span className="font-semibold text-slate-500">
+                              {reply.user?.firstName} {reply.user?.lastName}
+                            </span>
+                            <span className="text-slate-400 text-[10px]">
+                              {new Date(reply.createdAt ?? Date.now()).toLocaleString()}
+                            </span>
+                            {reply.isAnswer === 1 && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-medium ml-auto">
+                                <CheckCircle size={12} />Accepted Answer
+                              </span>
+                            )}
+                            {reply.isEndorsed === 1 && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-medium ml-auto">
+                                <ShieldCheck size={12} />Endorsed
+                              </span>
+                            )}
+                          </div>
+                          <p className={`text-[15px] leading-relaxed ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>
+                            {reply.messageText}
+                          </p>
                         </div>
                       </div>
                     ))
@@ -490,7 +556,7 @@ function PostCard({
         className={`flex items-center gap-4 pt-3 border-t ${isDark ? 'border-white/5' : 'border-slate-100'}`}
       >
         <span className="flex items-center gap-2 text-sm text-slate-500">
-          <Users className="w-4 h-4" /> User #{post.createdBy}
+          <Users className="w-4 h-4" /> {post.creator ? `${post.creator.firstName} ${post.creator.lastName}` : `User #${post.createdBy}`}
         </span>
         <span className="flex items-center gap-2 text-sm text-slate-500">
           <MessageSquare className="w-4 h-4" /> {post.replyCount ?? 0} replies
