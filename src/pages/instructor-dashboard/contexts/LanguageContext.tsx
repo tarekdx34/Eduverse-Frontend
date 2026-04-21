@@ -290,6 +290,8 @@ const translations: Record<Language, Record<string, string>> = {
     addTask: 'Add Task',
     helpDesk: 'Help Desk',
     noRecentActivity: 'No recent activity',
+    noPerformanceData: 'No performance data available',
+    noEngagementData: 'No engagement data available',
 
     // Labs
     labsManagement: 'Labs Management',
@@ -874,6 +876,8 @@ const translations: Record<Language, Record<string, string>> = {
     addTask: 'إضافة مهمة',
     helpDesk: 'مكتب المساعدة',
     noRecentActivity: 'لا يوجد نشاط حديث',
+    noPerformanceData: 'لا توجد بيانات أداء متاحة',
+    noEngagementData: 'لا توجد بيانات تفاعل متاحة',
 
     // Labs
     labsManagement: 'إدارة المعامل',
