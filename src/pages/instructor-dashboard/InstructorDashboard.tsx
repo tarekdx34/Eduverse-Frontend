@@ -1351,9 +1351,10 @@ function InstructorDashboardContent() {
                   onClick={() => setRosterSubTab('overview')}
                   className={`pb-2 px-1 text-sm font-medium transition-colors relative ${
                     rosterSubTab === 'overview'
-                      ? 'text-indigo-600'
+                      ? ''
                       : 'text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200'
                   }`}
+                  style={rosterSubTab === 'overview' ? { color: primaryHex } : undefined}
                 >
                   {t('overview') || 'Overview'}
                   {rosterSubTab === 'overview' && (
@@ -1367,9 +1368,10 @@ function InstructorDashboardContent() {
                   onClick={() => setRosterSubTab('grades')}
                   className={`pb-2 px-1 text-sm font-medium transition-colors relative ${
                     rosterSubTab === 'grades'
-                      ? 'text-indigo-600'
+                      ? ''
                       : 'text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200'
                   }`}
+                  style={rosterSubTab === 'grades' ? { color: primaryHex } : undefined}
                 >
                   {t('detailedGrades') || 'Detailed Grades'}
                   {rosterSubTab === 'grades' && (

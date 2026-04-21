@@ -91,9 +91,11 @@ export function QuizList({
   const cardCls = isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200';
   const headingCls = isDark ? 'text-white' : 'text-gray-900';
   const subCls = isDark ? 'text-slate-400' : 'text-gray-600';
+  const emptyHeadingCls = isDark ? 'text-slate-200' : 'text-slate-800';
+  const emptySubCls = isDark ? 'text-slate-400' : 'text-slate-500';
   const inputCls = isDark
-    ? 'bg-white/5 border-white/10 text-white placeholder-slate-500 focus:ring-indigo-500'
-    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-indigo-500';
+    ? 'bg-white/5 border-white/10 text-white placeholder-slate-500'
+    : 'bg-white border-gray-300 text-gray-900 placeholder-slate-400';
   const btnSecCls = isDark ? 'text-slate-300 hover:bg-white/10' : 'text-gray-700 hover:bg-gray-50';
 
   // Handle viewing attempts with data loading
@@ -194,6 +196,26 @@ export function QuizList({
 
       {/* Filters */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div className="w-full flex flex-col gap-1.5 sm:col-span-2 lg:col-span-1">
+          <span className={`text-sm font-medium whitespace-nowrap ${subCls}`}>
+            Search
+          </span>
+          <div className="relative w-full">
+            <Search
+              className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}
+              size={18}
+            />
+            <input
+              type="text"
+              placeholder="Search quizzes..."
+              value={searchQuery}
+              onChange={(e) => onSearchChange(e.target.value)}
+              className={`w-full h-10 pl-10 pr-4 border rounded-lg text-sm focus:outline-none focus:ring-2 ${inputCls}`}
+              style={{ '--tw-ring-color': `${primaryHex}80` } as React.CSSProperties}
+            />
+          </div>
+        </div>
+
         <CustomDropdown
           label="Course"
           value={selectedCourse}
@@ -219,24 +241,6 @@ export function QuizList({
           stackLabel
           fullWidth
         />
-        <div className="w-full flex flex-col gap-1.5 sm:col-span-2 lg:col-span-1">
-          <span className={`text-sm font-medium whitespace-nowrap ${subCls}`}>
-            Search
-          </span>
-          <div className="relative w-full">
-            <Search
-              className={`absolute ${isRTL ? 'right-3' : 'left-3'} top-1/2 transform -translate-y-1/2 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}
-              size={18}
-            />
-            <input
-              type="text"
-              placeholder="Search quizzes..."
-              value={searchQuery}
-              onChange={(e) => onSearchChange(e.target.value)}
-              className={`w-full ${isRTL ? 'pr-10 pl-4' : 'pl-10 pr-4'} py-2 border rounded-lg focus:outline-none focus:ring-2 ${inputCls}`}
-            />
-          </div>
-        </div>
       </div>
 
       {/* Quiz Cards */}
@@ -249,9 +253,9 @@ export function QuizList({
           </div>
         ) : quizzes.length === 0 ? (
           <div className={`p-8 text-center rounded-lg border ${cardCls}`}>
-            <ClipboardList className={`mx-auto mb-4 ${subCls}`} size={48} />
-            <h3 className={`text-lg font-semibold ${headingCls} mb-2`}>No quizzes found</h3>
-            <p className={`${subCls} mb-4`}>Get started by creating your first quiz.</p>
+            <ClipboardList className={`mx-auto mb-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`} size={48} />
+            <h3 className={`text-lg font-semibold ${emptyHeadingCls} mb-2`}>No quizzes found</h3>
+            <p className={`${emptySubCls} mb-4`}>Get started by creating your first quiz.</p>
             <button
               onClick={onCreateClick}
               className="inline-flex items-center gap-2 px-4 py-2 text-white rounded-lg transition-colors"
