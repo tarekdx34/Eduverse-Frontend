@@ -295,6 +295,7 @@ export const materialService = {
       description?: string;
       weekNumber?: number;
       isPublished?: boolean;
+      externalUrl?: string;
     }
   ) => ApiClient.post<CourseMaterial>(`/courses/${courseId}/materials`, data),
 

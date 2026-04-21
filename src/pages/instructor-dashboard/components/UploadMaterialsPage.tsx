@@ -24,6 +24,7 @@ import {
   Youtube,
   AlertTriangle,
   Package,
+  Database,
 } from 'lucide-react';
 import { EnrollmentService } from '../../../services/api/enrollmentService';
 import {
@@ -53,6 +54,7 @@ type MaterialFormState = {
   description: string;
   weekNumber: string;
   isPublished: boolean;
+  externalUrl: string;
 };
 
 type ActivityItem = {
@@ -72,6 +74,7 @@ const defaultFormState: MaterialFormState = {
   description: '',
   weekNumber: '',
   isPublished: false,
+  externalUrl: '',
 };
 
 const materialBadgeClasses: Record<string, string> = {
@@ -198,6 +201,42 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
 
+  // Smart URL detection
+  useEffect(() => {
+    if (showCreateModal && uploadType === 'text' && createForm.externalUrl) {
+      const url = createForm.externalUrl.trim();
+      
+      // YouTube detection
+      const youtubeId = url.match(/[?&]v=([a-zA-Z0-9_-]{11})/i)?.[1] || 
+                        url.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/i)?.[1];
+      
+      if (youtubeId) {
+        setCreateForm(prev => ({ 
+          ...prev, 
+          materialType: 'video' 
+        }));
+        return;
+      }
+
+      // Google Drive detection
+      if (url.includes('drive.google.com')) {
+        setCreateForm(prev => ({ 
+          ...prev, 
+          materialType: 'document' 
+        }));
+        return;
+      }
+
+      // Default to link if URL present but not recognized as video/drive
+      if (url.startsWith('http')) {
+        setCreateForm(prev => ({ 
+          ...prev, 
+          materialType: 'link' 
+        }));
+      }
+    }
+  }, [createForm.externalUrl, showCreateModal, uploadType]);
+
   // Bundle upload state
   const [bundleVideo, setBundleVideo] = useState<File | null>(null);
   const [bundleDocuments, setBundleDocuments] = useState<File[]>([]);
@@ -226,6 +265,7 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
   }, [courseId, routeId]);
 
   const [searchQuery, setSearchQuery] = useState('');
+  const [courseSearchQuery, setCourseSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const [weekFilter, setWeekFilter] = useState('all');
 
@@ -594,6 +634,7 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
         description: createForm.description || undefined,
         weekNumber: parseWeekNumber(createForm.weekNumber),
         isPublished: createForm.isPublished,
+        externalUrl: createForm.externalUrl || undefined,
       });
       toast.success('Material created');
       addActivity(`Created: ${createForm.title}`, 'completed');
@@ -632,6 +673,7 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
           description: editForm.description || undefined,
           weekNumber: parseWeekNumber(editForm.weekNumber),
           isPublished: editForm.isPublished,
+          externalUrl: editForm.externalUrl || undefined,
         });
         toast.success('Material updated');
       } else {
@@ -844,16 +886,20 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
 
   const renderMaterialCard = (material: CourseMaterial) => {
     const badgeClass = materialBadgeClasses[material.materialType] || materialBadgeClasses.document;
-    const videoSrc = embedUrls[material.materialId] || material.externalUrl || '';
+    const videoIdFromUrl = material.externalUrl ? 
+      (material.externalUrl.match(/[?&]v=([a-zA-Z0-9_-]{11})/i)?.[1] || 
+       material.externalUrl.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/i)?.[1]) : null;
+    
+    const effectiveYoutubeId = material.youtubeVideoId || videoIdFromUrl;
+
+    const videoSrc = embedUrls[material.materialId] || 
+                    (effectiveYoutubeId ? `https://www.youtube.com/embed/${effectiveYoutubeId}` : material.externalUrl) || 
+                    '';
     const documentPreviewSrc = getCourseMaterialPreviewUrl(material);
-    const canInlinePreview =
-      (material.materialType === 'document' ||
-        material.materialType === 'lecture' ||
-        material.materialType === 'slide' ||
-        material.materialType === 'reading') &&
-      !!documentPreviewSrc;
-    const ytThumb = material.youtubeVideoId
-      ? `https://img.youtube.com/vi/${material.youtubeVideoId}/mqdefault.jpg`
+    const canInlinePreview = !!documentPreviewSrc;
+
+    const ytThumb = effectiveYoutubeId
+      ? `https://img.youtube.com/vi/${effectiveYoutubeId}/mqdefault.jpg`
       : null;
 
     return (
@@ -911,31 +957,17 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
               <span>Uploader: {uploaderName(material)}</span>
             </div>
 
-            {material.materialType === 'video' && videoSrc && (
-              <div className="mt-3 rounded-lg overflow-hidden border border-slate-200">
-                <iframe
-                  src={videoSrc}
-                  width="100%"
-                  height="315"
-                  allowFullScreen
-                  title={`video-${material.materialId}`}
-                />
-              </div>
-            )}
-
-            {canInlinePreview && (
+            {canInlinePreview ? (
               <div className="mt-3 rounded-lg overflow-hidden border border-slate-200">
                 <iframe
                   src={documentPreviewSrc || ''}
                   width="100%"
-                  height="380"
+                  height={effectiveYoutubeId ? "315" : "380"}
+                  allowFullScreen
                   title={`material-preview-${material.materialId}`}
                 />
               </div>
-            )}
-
-            {!canInlinePreview &&
-              (material.materialType === 'document' ||
+            ) : (material.materialType === 'document' ||
                 material.materialType === 'lecture' ||
                 material.materialType === 'slide' ||
                 material.materialType === 'reading') && (
@@ -987,6 +1019,18 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
             >
               <Trash2 size={16} />
             </button>
+
+            {material.externalUrl && (
+              <a
+                href={material.externalUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-white/10 text-indigo-400' : 'hover:bg-indigo-50 text-indigo-600'}`}
+                title="Open Link"
+              >
+                <LinkIcon size={16} />
+              </a>
+            )}
 
             {material.materialType !== 'video' && material.materialType !== 'link' && (
               <button
@@ -1172,19 +1216,82 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
 
         {activeTab === 'library' && (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-              <CleanSelect
-                value={activeCourseId}
-                onChange={(e) => setSelectedCourseId(e.target.value)}
-                className={`px-3 py-2 border rounded-lg text-sm ${isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-slate-300'}`}
-              >
-                {courseOptions.length === 0 && <option value="">Select Course</option>}
-                {courseOptions.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </CleanSelect>
+            {/* Course Selector Cards */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h2 className={`text-sm font-semibold ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                  Select Course
+                </h2>
+                {courseOptions.length > 5 && (
+                  <div className="relative w-48">
+                    <Search
+                      className={`absolute left-2 top-1/2 -translate-y-1/2 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                      size={14}
+                    />
+                    <input
+                      type="text"
+                      value={courseSearchQuery}
+                      onChange={(e) => setCourseSearchQuery(e.target.value)}
+                      placeholder="Filter courses..."
+                      className={`w-full pl-8 pr-2 py-1 text-xs border rounded-lg ${isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500' : 'bg-white border-slate-300'}`}
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+                {courseOptions
+                  .filter((opt) =>
+                    opt.label.toLowerCase().includes(courseSearchQuery.toLowerCase())
+                  )
+                  .map((opt) => {
+                    const isActive = activeCourseId === opt.value;
+                    const [code, ...nameParts] = opt.label.split(' - ');
+                    const name = nameParts.join(' - ');
+
+                    return (
+                      <button
+                        key={opt.value}
+                        onClick={() => setSelectedCourseId(opt.value)}
+                        className={`flex-shrink-0 w-48 p-4 rounded-xl border text-left transition-all ${
+                          isActive
+                            ? 'ring-2 ring-indigo-500 border-transparent shadow-lg scale-[1.02]'
+                            : isDark
+                              ? 'bg-white/5 border-white/10 hover:border-white/20'
+                              : 'bg-white border-slate-200 hover:border-slate-300'
+                        }`}
+                        style={isActive ? { backgroundColor: `${primaryHex}10` } : {}}
+                      >
+                        <div
+                          className={`text-lg font-bold mb-1 ${isActive ? '' : isDark ? 'text-white' : 'text-slate-900'}`}
+                          style={isActive ? { color: primaryHex } : {}}
+                        >
+                          {code}
+                        </div>
+                        <div
+                          className={`text-xs truncate ${isActive ? 'text-indigo-600 dark:text-indigo-400' : isDark ? 'text-slate-400' : 'text-slate-500'}`}
+                          title={name}
+                        >
+                          {name}
+                        </div>
+                        {isActive && (
+                          <div
+                            className="mt-2 h-1 w-8 rounded-full"
+                            style={{ backgroundColor: primaryHex }}
+                          />
+                        )}
+                      </button>
+                    );
+                  })}
+                {courseOptions.length === 0 && (
+                  <div className={`p-4 rounded-xl border border-dashed ${isDark ? 'border-white/10 text-slate-500' : 'border-slate-300 text-slate-400'}`}>
+                    No courses available
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
 
               <CleanSelect
                 value={typeFilter}
@@ -1451,6 +1558,60 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
                           ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-400'
                           : 'bg-white border-slate-300 text-black placeholder:text-slate-500'
                         }`} />
+
+                    {/* External URL (For Text/Link mode) */}
+                    {uploadType === 'text' && (
+                      <div className="space-y-2">
+                        <div className="relative">
+                          <LinkIcon
+                            size={16}
+                            className={`absolute left-3 top-1/2 -translate-y-1/2 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}
+                          />
+                          <input
+                            type="url"
+                            value={form.externalUrl}
+                            onChange={(e) =>
+                              setForm((prev) => ({ ...prev, externalUrl: e.target.value }))
+                            }
+                            placeholder="External Link (YouTube, Drive, Web...)"
+                            disabled={mutating}
+                            className={`w-full pl-10 pr-3 py-2 border rounded-lg disabled:opacity-60 ${isDark
+                              ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-400'
+                              : 'bg-white border-slate-300 text-black placeholder:text-slate-500'
+                              }`}
+                          />
+                        </div>
+                        {form.externalUrl && (
+                          <div className={`p-3 rounded-xl border text-xs flex items-center gap-3 ${isDark ? 'bg-white/5 border-white/10 text-slate-300' : 'bg-slate-50 border-slate-200 text-slate-600'}`}>
+                            {form.materialType === 'video' ? (
+                              <>
+                                <Youtube size={24} className="text-red-500" />
+                                <div>
+                                  <p className="font-bold">YouTube Video Detected</p>
+                                  <p className="opacity-70">Will be embedded in the platform</p>
+                                </div>
+                              </>
+                            ) : form.externalUrl.includes('drive.google.com') ? (
+                              <>
+                                <Database size={24} className="text-blue-500" />
+                                <div>
+                                  <p className="font-bold">Google Drive Detected</p>
+                                  <p className="opacity-70">Will be shown as an interactive preview</p>
+                                </div>
+                              </>
+                            ) : (
+                              <>
+                                <LinkIcon size={24} className="text-indigo-500" />
+                                <div>
+                                  <p className="font-bold">Web Link Detected</p>
+                                  <p className="opacity-70">{new URL(form.externalUrl).hostname}</p>
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                     {/* Publish toggle */}
                     <label

@@ -201,6 +201,36 @@ function InstructorDashboardContent() {
     enabled: !isAuthenticated && !isMockMode ? false : !isMockMode, // Ensure auth before query
   });
 
+  const { data: upcomingClassesLive } = useQuery({
+    queryKey: ['upcoming-classes-weekly'],
+    queryFn: () => ScheduleService.getWeeklyUnified(), // Get the full week
+    enabled: !isMockMode,
+  });
+
+  const { data: notificationsLive } = useQuery({
+    queryKey: ['notifications-live'],
+    queryFn: () => NotificationService.getAll({ limit: 5 }),
+    enabled: !isMockMode,
+  });
+
+  const { data: allAssignmentsLive } = useQuery({
+    queryKey: ['all-assignments-live'],
+    queryFn: () => AssignmentService.getAll({ status: 'published', limit: 100 }), // Get a wide range to find pending ones
+    enabled: !isMockMode,
+  });
+
+  const { data: analyticsLive } = useQuery({
+    queryKey: ['analytics-dashboard'],
+    queryFn: () => AnalyticsService.getDashboard(),
+    enabled: !isMockMode,
+  });
+
+  const { data: attendanceSessionsLive } = useQuery({
+    queryKey: ['attendance-sessions', activeSectionId],
+    queryFn: () => AttendanceService.getSessions({ sectionId: Number(activeSectionId) }),
+    enabled: !isMockMode && !!activeSectionId && activeTab === 'attendance',
+  });
+
   const liveStats = useMemo(() => {
     if (isMockMode) return DASHBOARD_STATS;
     if (!teachingCoursesLive)
@@ -240,10 +270,21 @@ function InstructorDashboardContent() {
       ];
 
     const totalStudents = teachingCoursesLive.reduce(
-      (acc: number, s: any) => acc + (s.enrolledCount || 0),
+      (acc: number, s: any) => acc + (s.enrolledCount || s.section?.currentEnrollment || 0),
       0
     );
     const activeSections = teachingCoursesLive.length;
+    
+    // Calculate pending grades count
+    const assignmentsArray = Array.isArray(allAssignmentsLive)
+      ? allAssignmentsLive
+      : (allAssignmentsLive as any)?.data || [];
+    
+    const pendingCount = assignmentsArray.filter((a: any) => {
+      // Logic for "pending": published assignments with submissions that aren't graded yet
+      // This is a heuristic since we don't have a direct "pendingGradingCount" in the list API
+      return a.status === 'published';
+    }).length;
 
     return [
       {
@@ -264,60 +305,56 @@ function InstructorDashboardContent() {
       },
       {
         label: t('avgAttendance'),
-        value: '94%', // Placeholder from backend logic
-        change: '+2%',
-        trend: 'up',
+        value: analyticsLive?.averageAttendance ? `${Math.round(Number(analyticsLive.averageAttendance))}%` : '0%',
+        change: '--',
+        trend: 'neutral',
         icon: CheckSquare,
         color: primaryColor,
       },
       {
         label: t('pendingGrades'),
-        value: '12',
+        value: String(analyticsLive?.pendingGrades || pendingCount),
         change: t('awaitingReview'),
         trend: 'down',
         icon: FileText,
         color: primaryColor,
       },
     ];
-  }, [isMockMode, teachingCoursesLive, primaryColor, t]);
-
-  const { data: upcomingClassesLive } = useQuery({
-    queryKey: ['upcoming-classes'],
-    queryFn: () => ScheduleService.getDaily(),
-    enabled: !isMockMode,
-  });
+  }, [isMockMode, teachingCoursesLive, allAssignmentsLive, analyticsLive, primaryColor, t]);
 
   const liveUpcomingClasses = useMemo(() => {
     if (isMockMode || !upcomingClassesLive) return UPCOMING_CLASSES;
 
-    // Map backend schedule items to the format expected by the frontend component
-    return upcomingClassesLive.map((item, index) => {
-      // Create a date object for today with the item's start time
-      const today = new Date();
-      const [hours, minutes] = item.startTime.split(':');
-      let dateString = '';
+    // Flatten weekly schedule into a single list of upcoming items
+    const allItems: any[] = [];
+    
+    if (upcomingClassesLive && upcomingClassesLive.days) {
+      upcomingClassesLive.days.forEach((day: any) => {
+        if (day.schedules) {
+          day.schedules.forEach((item: any) => {
+            // Precise mapping based on backend JSON structure
+            const course = item.section?.course || item.course || {};
+            
+            // Try specific backend fields found in logs
+            const code = course.code || item.courseCode || item.code || 'CODE';
+            const name = course.name || item.courseName || item.name || 'UNNAMED';
+            
+            allItems.push({
+              id: item.id || item.scheduleId || Math.random().toString(36).substr(2, 9),
+              title: `${code} - ${name}`,
+              time: `${item.startTime || '??:??'} - ${item.endTime || '??:??'}`,
+              location: [item.building, item.room].filter(Boolean).join(', ') || item.location || item.room || 'TBD',
+              type: String(item.scheduleType || item.type || '').toUpperCase() === 'LECTURE' ? 'Lecture' : 'Lab',
+              date: day.date,
+              dayOfWeek: day.dayOfWeek
+            });
+          });
+        }
+      });
+    }
 
-      if (hours && minutes) {
-        today.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
-        dateString = today.toISOString();
-      }
-
-      return {
-        id: item.scheduleId ? String(item.scheduleId) : `class-${index}`,
-        title: `${item.courseCode} - ${item.courseName}`,
-        time: `${item.startTime} - ${item.endTime}`,
-        location: item.room,
-        type: item.type === 'lecture' ? 'Lecture' : item.type === 'lab' ? 'Lab' : 'Session',
-        date: dateString,
-      };
-    });
+    return allItems.slice(0, 10);
   }, [isMockMode, upcomingClassesLive]);
-
-  const { data: notificationsLive } = useQuery({
-    queryKey: ['notifications-live'],
-    queryFn: () => NotificationService.getAll({ limit: 5 }),
-    enabled: !isMockMode,
-  });
 
   const liveRecentActivity = useMemo(() => {
     if (isMockMode || !notificationsLive) return RECENT_ACTIVITY;
@@ -344,13 +381,15 @@ function InstructorDashboardContent() {
         title: item.title,
         description: item.message,
         time: timeString,
-        icon: item.type === 'assignment' ? FileText : item.type === 'system' ? Bell : Users,
+        icon: item.type === 'assignment' ? FileText : item.type === 'material' ? Upload : item.type === 'system' ? Bell : Users,
         color:
           item.type === 'system'
             ? 'text-amber-500'
             : item.type === 'assignment'
               ? 'text-blue-500'
-              : 'text-emerald-500',
+              : item.type === 'material'
+                ? 'text-emerald-500'
+                : 'text-indigo-500',
         bgColor:
           item.type === 'system'
             ? 'bg-amber-100 dark:bg-amber-500/20'
@@ -361,19 +400,13 @@ function InstructorDashboardContent() {
     });
   }, [isMockMode, notificationsLive]);
 
-  const { data: allAssignmentsLive } = useQuery({
-    queryKey: ['all-assignments-live'],
-    queryFn: () => AssignmentService.getAll({ status: 'published', limit: 100 }), // Get a wide range to find pending ones
-    enabled: !isMockMode,
-  });
-
   const livePendingTasks = useMemo(() => {
     if (isMockMode || !allAssignmentsLive) return PENDING_TASKS;
 
     // Safety check if data is an array or object with data property
     const assignmentsArray = Array.isArray(allAssignmentsLive)
       ? allAssignmentsLive
-      : (allAssignmentsLive as any).data || [];
+      : (allAssignmentsLive as any)?.data || [];
 
     // Map backend assignments to "pending tasks" expected by frontend
     const mappedTasks = assignmentsArray
@@ -398,18 +431,6 @@ function InstructorDashboardContent() {
     return mappedTasks.length > 0 ? mappedTasks : PENDING_TASKS.slice(0, 1);
   }, [isMockMode, allAssignmentsLive]);
 
-  const { data: attendanceSessionsLive } = useQuery({
-    queryKey: ['attendance-sessions', activeSectionId],
-    queryFn: () => AttendanceService.getSessions({ sectionId: Number(activeSectionId) }),
-    enabled: !isMockMode && !!activeSectionId && activeTab === 'attendance',
-  });
-
-  const { data: analyticsLive } = useQuery({
-    queryKey: ['analytics-dashboard'],
-    queryFn: () => AnalyticsService.getDashboard(),
-    enabled: !isMockMode,
-  });
-
   const { performanceData, engagementData } = useMemo(() => {
     if (isMockMode || !analyticsLive)
       return { performanceData: undefined, engagementData: undefined };
@@ -421,23 +442,23 @@ function InstructorDashboardContent() {
 
     // Determine performanceData from the courseBreakdown
     const calculatedPerformance = analyticsLive.courseBreakdown.slice(0, 5).map((course) => ({
-      course:
-        course.courseId || course.analyticsId || course.id
-          ? `Course ${course.courseId || course.id || course.analyticsId}`
-          : 'Unknown',
-      value: course.averageGrade ? Number(course.averageGrade) : 0,
+      course: course.courseCode || (course.courseId ? `Course ${course.courseId}` : 'Unknown'),
+      value: course.averageGrade ? Math.round(Number(course.averageGrade)) : 0,
+      id: course.courseId
     }));
 
     // If teachingCoursesLive is available, let's map the names perfectly
-    if (teachingCoursesLive) {
+    if (teachingCoursesLive && Array.isArray(teachingCoursesLive)) {
       calculatedPerformance.forEach((perf) => {
         const matchingCourse = teachingCoursesLive.find(
           (c: any) =>
-            String(c.id) === perf.course.replace('Course ', '') ||
-            String(c.courseId) === perf.course.replace('Course ', '')
+            String(c.courseId) === String(perf.id) || 
+            String(c.course?.id) === String(perf.id) ||
+            String(c.section?.courseId) === String(perf.id)
         );
         if (matchingCourse) {
-          perf.course = matchingCourse.courseCode || matchingCourse.name || perf.course;
+          const courseInfo = matchingCourse.course || matchingCourse.section?.course || matchingCourse;
+          perf.course = courseInfo.name || courseInfo.courseName || courseInfo.code || perf.course;
         }
       });
     }
@@ -675,7 +696,7 @@ function InstructorDashboardContent() {
     if (attendanceSessionsLive && !isMockMode && activeSectionId) {
       setAttendanceData((prev) => ({
         ...prev,
-        [activeSectionId]: (attendanceSessionsLive.data || attendanceSessionsLive).map(
+        [activeSectionId]: ((attendanceSessionsLive as any)?.data || attendanceSessionsLive || []).map(
           (s: any) => ({
             id: Number(s.id),
             date: s.sessionDate,
@@ -713,7 +734,7 @@ function InstructorDashboardContent() {
     const list = Array.isArray(sectionGradesLive)
       ? sectionGradesLive
       : Array.isArray((sectionGradesLive as any)?.data)
-        ? (sectionGradesLive as any).data
+        ? (sectionGradesLive as any)?.data
         : [];
 
     setGradesData((prev) => ({
@@ -1139,8 +1160,8 @@ function InstructorDashboardContent() {
       >
         {activeTab !== 'chat' && (
           <DashboardHeader
-            userName="Prof. Sarah Martinez"
-            userRole="Instructor"
+            userName={user?.fullName || 'Instructor'}
+            userRole={user?.role || 'Instructor'}
             isDark={isDark}
             isRTL={isRTL}
             accentColor={primaryHex || '#4F46E5'}
@@ -1494,21 +1515,16 @@ function InstructorDashboardContent() {
               accentColor={primaryHex || '#4F46E5'}
               bannerGradient="from-[#3b82f6] to-[#06b6d4]"
               profileData={{
-                fullName: 'Prof. Sarah Martinez',
-                role: 'Instructor',
-                department: 'Computer Science',
-                email: 'sarah.martinez@university.edu',
-                phone: '+20 100 987 6543',
-                address: 'Cairo, Egypt',
-                dateOfBirth: '1985-03-22',
-                bio: 'Associate Professor of Computer Science with 12+ years of teaching experience. Specializes in software engineering, algorithms, and distributed systems.',
-                interests: [
-                  'Software Engineering',
-                  'Distributed Systems',
-                  'Machine Learning',
-                  'Higher Education',
-                ],
-                skills: ['Java', 'Python', 'C++', 'Research', 'Curriculum Design'],
+                fullName: user?.fullName || 'Instructor',
+                role: user?.role || 'Instructor',
+                department: (user as any)?.department || 'Academic Department',
+                email: user?.email || '',
+                phone: (user as any)?.phoneNumber || '+20 100 000 0000',
+                address: 'University Campus',
+                dateOfBirth: '1985-01-01',
+                bio: 'Academic staff member at EduVerse platform.',
+                interests: ['Higher Education', 'Research'],
+                skills: ['Teaching'],
               }}
             />
           )}

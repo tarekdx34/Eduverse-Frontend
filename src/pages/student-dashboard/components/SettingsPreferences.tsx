@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Settings,
   Moon,
@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { toast } from 'sonner';
 
 interface SettingsState {
   theme: 'light' | 'dark' | 'system';
@@ -252,6 +253,77 @@ export function SettingsPreferences() {
       storageLimit: 2048,
     },
   });
+
+  // Load settings on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('eduverse_user_settings');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        setSettings((prev) => ({ ...prev, ...parsed }));
+      } catch (e) {
+        console.error('Failed to parse saved settings', e);
+      }
+    }
+  }, []);
+
+  const handleSave = () => {
+    localStorage.setItem('eduverse_user_settings', JSON.stringify(settings));
+    
+    // Sync theme
+    if (settings.theme === 'dark' && !isDark) toggleTheme();
+    else if (settings.theme === 'light' && isDark) toggleTheme();
+    
+    // Sync language
+    if (settings.language !== globalLanguage) {
+      setGlobalLanguage(settings.language);
+    }
+    
+    toast.success(settings.language === 'ar' ? 'تم حفظ الإعدادات بنجاح' : 'Settings saved successfully');
+  };
+
+  const handleCancel = () => {
+    const saved = localStorage.getItem('eduverse_user_settings');
+    if (saved) {
+      setSettings(JSON.parse(saved));
+    } else {
+      // Reset to defaults
+      setSettings({
+        theme: 'light',
+        language: 'en',
+        notifications: {
+          email: true,
+          push: true,
+          sound: false,
+          deadlines: true,
+          grades: true,
+          announcements: true,
+          messages: true,
+        },
+        privacy: {
+          showOnline: true,
+          showActivity: true,
+          showProgress: false,
+        },
+        accessibility: {
+          fontSize: 'medium',
+          highContrast: false,
+          reduceMotion: false,
+        },
+        twoFactor: {
+          enabled: false,
+          method: 'authenticator',
+        },
+        offline: {
+          autoDownload: true,
+          downloadOnWifi: true,
+          storageUsed: 593,
+          storageLimit: 2048,
+        },
+      });
+    }
+    toast.info(settings.language === 'ar' ? 'تم إلغاء التغييرات' : 'Changes cancelled');
+  };
 
   const [activeSection, setActiveSection] = useState<string>('appearance');
   const [show2FAModal, setShow2FAModal] = useState(false);
@@ -983,6 +1055,7 @@ export function SettingsPreferences() {
           {/* Save Button */}
           <div className="flex justify-end gap-3">
             <button
+              onClick={handleCancel}
               className={`px-6 py-3 border-2 rounded-xl font-medium transition-all ${
                 isDark
                   ? 'border-white/10 text-slate-400 hover:bg-white/5'
@@ -991,7 +1064,10 @@ export function SettingsPreferences() {
             >
               {t.cancel}
             </button>
-            <button className="px-6 py-3 bg-[var(--accent-color)] text-white rounded-xl font-medium hover:opacity-90 transition-all">
+            <button
+              onClick={handleSave}
+              className="px-6 py-3 bg-[var(--accent-color)] text-white rounded-xl font-medium hover:opacity-90 transition-all"
+            >
               {t.saveChanges}
             </button>
           </div>
