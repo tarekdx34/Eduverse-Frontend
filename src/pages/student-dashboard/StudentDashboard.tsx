@@ -16,6 +16,7 @@ import {
   Bell,
   Users,
   Beaker,
+  Megaphone,
   Settings,
   User,
   ClipboardCheck,
@@ -41,6 +42,7 @@ import {
   LabInstructions,
   SettingsPreferences,
   QuizzesTab,
+  Announcements,
 } from './components';
 import TodayClassesWidget from './components/TodayClassesWidget';
 import { DashboardHeader, DashboardSidebar, MessagingChat } from '../../components/shared';
@@ -74,6 +76,7 @@ const tabTranslationKeys: Record<string, string> = {
   notifications: 'notifications',
   payments: 'payments',
   chat: 'chat',
+  announcements: 'announcements',
   settings: 'settings',
   profile: 'profile',
 };
@@ -201,6 +204,7 @@ function StudentDashboardContent() {
     { id: 'ai', label: 'AI Features', icon: Sparkles, group: 'groupTools' },
     { id: 'gamification', label: 'Achievements', icon: Trophy, group: 'groupTools' },
     { id: 'community', label: 'Community', icon: Users, group: 'groupCommunication' },
+    { id: 'announcements', label: 'Announcements', icon: Megaphone, group: 'groupCommunication' },
     { id: 'notifications', label: 'Notifications', icon: Bell, group: 'groupCommunication' },
     { id: 'chat', label: 'Chat', icon: MessageCircle, group: 'groupCommunication' },
     { id: 'payments', label: 'Payments', icon: CreditCard, group: 'groupAccount' },
@@ -487,8 +491,9 @@ function StudentDashboardContent() {
               {activeTab === 'grades' && <GradesTranscript />}
               {activeTab === 'attendance' && <AttendanceOverview />}
               {activeTab === 'todo' && <SmartTodoReminder />}
-              {activeTab === 'gamification' && <Gamification />}
-              {activeTab === 'notifications' && <NotificationCenter />}
+              { activeTab === 'gamification' && <Gamification /> }
+              { activeTab === 'announcements' && <Announcements /> }
+              { activeTab === 'notifications' && <NotificationCenter /> }
               {activeTab === 'payments' && <PaymentHistory />}
               {activeTab === 'chat' && (
                 <MessagingChat

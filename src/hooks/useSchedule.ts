@@ -37,11 +37,6 @@ export interface ScheduleConflict {
 }
 
 const pad = (value: number) => String(value).padStart(2, '0');
-const scheduleDebug = (...args: unknown[]) => {
-  if (import.meta.env.DEV) {
-    console.log('[schedule-debug]', ...args);
-  }
-};
 
 const pickString = (...values: unknown[]) => {
   for (const value of values) {
@@ -183,28 +178,6 @@ export function useStudentScheduleData(viewMode: StudentScheduleViewMode, curren
 
   const error = dailyQuery.error || weeklyQuery.error || monthQuery.error;
 
-  scheduleDebug('useStudentScheduleData', {
-    viewMode,
-    currentDate: toISODate(currentDate),
-    dayDate,
-    weekStart,
-    dailyStatus: {
-      isLoading: dailyQuery.isLoading,
-      hasData: !!dailyQuery.data,
-      hasError: !!dailyQuery.error,
-    },
-    weeklyStatus: {
-      isLoading: weeklyQuery.isLoading,
-      dayCount: weeklyQuery.data?.days?.length || 0,
-      hasError: !!weeklyQuery.error,
-    },
-    monthStatus: {
-      isLoading: monthQuery.isLoading,
-      dayCount: monthQuery.data?.length || 0,
-      hasError: !!monthQuery.error,
-    },
-    resolvedDayCount: days.length,
-  });
 
   return {
     days,
@@ -273,16 +246,6 @@ export const buildUnifiedScheduleItems = (
       const courseId = Number.isFinite(courseIdRaw) && courseIdRaw > 0 ? courseIdRaw : undefined;
       const title = resolvedCourseName ? `${resolvedCourseCode} - ${resolvedCourseName}` : resolvedCourseCode;
 
-      scheduleDebug('class-entry-mapping', {
-        day: day.date,
-        entryId: entry.id,
-        scheduleType: normalizedScheduleType,
-        rawCourse: entry.section?.course,
-        rawEntry: normalizedEntry,
-        mappedCourseCode: resolvedCourseCode,
-        mappedCourseName: resolvedCourseName,
-        location,
-      });
 
       items.push({
         id: `class-${safeEntryId}-${day.date}`,
@@ -366,25 +329,6 @@ export const buildUnifiedScheduleItems = (
     return toMinutes(a.startTime) - toMinutes(b.startTime);
   });
 
-  scheduleDebug('buildUnifiedScheduleItems-summary', {
-    dayCount: days.length,
-    itemCount: sorted.length,
-    classCount: sorted.filter((item) => item.kind === 'class').length,
-    examCount: sorted.filter((item) => item.kind === 'exam').length,
-    eventCount: sorted.filter((item) => item.kind === 'event').length,
-    campusEventCount: sorted.filter((item) => item.kind === 'campus_event').length,
-    sample: sorted.slice(0, 5).map((item) => ({
-      id: item.id,
-      kind: item.kind,
-      date: item.date,
-      startTime: item.startTime,
-      title: item.title,
-      subtitle: item.subtitle,
-      location: item.location,
-      courseCode: item.courseCode,
-    })),
-  });
-
   return sorted;
 };
 
@@ -429,25 +373,6 @@ export const getUpcomingScheduleItems = (
       return toMinutes(item.endTime) >= nowMinutes;
     })
     .slice(0, limit);
-
-  scheduleDebug('getUpcomingScheduleItems', {
-    inputCount: items.length,
-    limit,
-    nowDate,
-    nowMinutes,
-    outputCount: upcoming.length,
-    output: upcoming.map((item) => ({
-      id: item.id,
-      kind: item.kind,
-      title: item.title,
-      courseCode: item.courseCode,
-      subtitle: item.subtitle,
-      date: item.date,
-      startTime: item.startTime,
-      endTime: item.endTime,
-      location: item.location,
-    })),
-  });
 
   return upcoming;
 };

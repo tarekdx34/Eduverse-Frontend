@@ -119,72 +119,26 @@ export function AnnouncementsPage() {
     setAnnouncements(announcements.map((a) => (a.id === id ? { ...a, pinned: !a.pinned } : a)));
   };
 
-  const commTabs = [
-    { id: 'announcements' as const, label: 'Announcements', icon: Megaphone },
-    { id: 'courseChats' as const, label: 'Course Chats', icon: Users },
-    { id: 'directMessages' as const, label: 'Direct Messages', icon: MessageSquare },
-  ];
-
   return (
     <div className="space-y-6">
-      {/* Communication Hub Tabs */}
-      <div
-        className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} border rounded-lg p-2 overflow-x-auto`}
-      >
-        <div className="flex gap-2 min-w-max sm:min-w-0 sm:flex-wrap">
-          {commTabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveCommTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
-                activeCommTab === tab.id
-                  ? 'bg-blue-600 text-white'
-                  : isDark
-                    ? 'text-slate-400 hover:bg-white/10 hover:text-white'
-                    : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              <tab.icon className="w-4 h-4" />
-              {tab.label}
-            </button>
-          ))}
+      {/* Announcements Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+            {t('announcements')}
+          </h2>
+          <p className={`mt-1 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+            {t('postAndManageAnnouncements')}
+          </p>
         </div>
+        <button
+          onClick={() => setShowForm(!showForm)}
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500 transition-colors text-sm font-medium flex items-center gap-2"
+        >
+          <Plus className="w-4 h-4" />
+          {t('newAnnouncement')}
+        </button>
       </div>
-
-      {/* Course Chats Tab */}
-      {activeCommTab === 'courseChats' && (
-        <div className="h-[calc(100vh-220px)]">
-          <MessagingChat isDark={isDark} />
-        </div>
-      )}
-
-      {/* Direct Messages Tab */}
-      {activeCommTab === 'directMessages' && (
-        <div className="h-[calc(100vh-220px)]">
-          <MessagingChat isDark={isDark} />
-        </div>
-      )}
-
-      {/* Announcements Tab */}
-      {activeCommTab === 'announcements' && (
-        <>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-              <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                {t('announcements')}
-              </h2>
-              <p className={`mt-1 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-                {t('postAndManageAnnouncements')}
-              </p>
-            </div>
-            <button
-              onClick={() => setShowForm(!showForm)}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500 transition-colors text-sm font-medium flex items-center gap-2"
-            >
-              <Plus className="w-4 h-4" />
-              {t('newAnnouncement')}
-            </button>
-          </div>
 
           {/* New Announcement Modal */}
           {showForm && (
@@ -449,8 +403,6 @@ export function AnnouncementsPage() {
               </p>
             </div>
           )}
-        </>
-      )}
     </div>
   );
 }

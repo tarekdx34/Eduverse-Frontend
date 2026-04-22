@@ -12,19 +12,25 @@ import {
   Clock3,
   Download,
   Edit2,
+  Edit3,
   Eye,
   FileText,
+  FileEdit,
   Lightbulb,
   Link,
+  Loader2,
   Megaphone,
+  MoreVertical,
   Pin,
   Plus,
+  Search,
   Sparkles,
   Send,
   Trash2,
   User,
   Users,
   X,
+  CheckCircle,
 } from 'lucide-react';
 import {
   Bar,
@@ -255,9 +261,11 @@ type LiveAnnouncementsPageProps = {
   loading?: boolean;
   courseOptions: { value: string; label: string }[];
   onCreate: (value: AnnouncementFormValue) => Promise<unknown> | void;
+  onUpdate: (id: string, data: any) => Promise<unknown> | void;
   onDelete: (id: string) => Promise<unknown> | void;
   onPublish: (id: string) => Promise<unknown> | void;
-  pinDisabledReason: string;
+  onPin: (id: string, isPinned: boolean) => Promise<unknown> | void;
+  pinDisabledReason: string | null;
 };
 
 export function LiveAnnouncementsPage({
@@ -265,8 +273,10 @@ export function LiveAnnouncementsPage({
   loading = false,
   courseOptions,
   onCreate,
+  onUpdate,
   onDelete,
   onPublish,
+  onPin,
   pinDisabledReason,
 }: LiveAnnouncementsPageProps) {
   const { isDark } = useTheme();
@@ -274,94 +284,424 @@ export function LiveAnnouncementsPage({
   const [showForm, setShowForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [filterCourse, setFilterCourse] = useState('all');
+  const [filterStatus, setFilterStatus] = useState<'all' | 'published' | 'draft'>('all');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [editingAnnouncement, setEditingAnnouncement] = useState<Announcement | null>(null);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deletingAnnouncement, setDeletingAnnouncement] = useState<Announcement | null>(null);
+
   const [formValue, setFormValue] = useState<AnnouncementFormValue>({
     title: '',
     content: '',
     courseId: courseOptions[0]?.value || '',
   });
 
+  const counts = useMemo(
+    () => ({
+      all: announcements.length,
+      published: announcements.filter((a) => a.isPublished === 1).length,
+      draft: announcements.filter((a) => a.isPublished !== 1).length,
+    }),
+    [announcements]
+  );
+
   const visibleAnnouncements = useMemo(
     () =>
-      announcements.filter((announcement) =>
-        filterCourse === 'all' ? true : String(announcement.courseId ?? '') === filterCourse
-      ),
-    [announcements, filterCourse]
+      announcements.filter((a) => {
+        const matchesCourse = filterCourse === 'all' || String(a.courseId) === filterCourse;
+        const status = a.isPublished === 1 ? 'published' : 'draft';
+        const matchesStatus = filterStatus === 'all' || status === filterStatus;
+        const target = `${a.title} ${a.content}`.toLowerCase();
+        const matchesSearch = !searchTerm || target.includes(searchTerm.toLowerCase());
+        return matchesCourse && matchesStatus && matchesSearch;
+      }),
+    [announcements, filterCourse, filterStatus, searchTerm]
   );
+
+  const openCreate = () => {
+    setEditingAnnouncement(null);
+    setFormValue({
+      title: '',
+      content: '',
+      courseId: courseOptions[0]?.value || '',
+    });
+    setShowForm(true);
+  };
+
+  const openEdit = (announcement: Announcement) => {
+    setEditingAnnouncement(announcement);
+    setFormValue({
+      title: announcement.title,
+      content: announcement.content,
+      courseId: String(announcement.courseId || courseOptions[0]?.value || ''),
+    });
+    setShowForm(true);
+    setOpenMenuId(null);
+  };
 
   const submit = async () => {
     if (!formValue.title.trim() || !formValue.content.trim() || !formValue.courseId) return;
     setIsSubmitting(true);
     try {
-      await onCreate(formValue);
+      if (editingAnnouncement) {
+        await onUpdate(editingAnnouncement.id, {
+          title: formValue.title.trim(),
+          content: formValue.content.trim(),
+        });
+      } else {
+        await onCreate(formValue);
+      }
+      setShowForm(false);
+      setEditingAnnouncement(null);
       setFormValue({
         title: '',
         content: '',
         courseId: courseOptions[0]?.value || '',
       });
-      setShowForm(false);
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const confirmDelete = (announcement: Announcement) => {
+    setDeletingAnnouncement(announcement);
+    setShowDeleteConfirm(true);
+    setOpenMenuId(null);
+  };
+
+  const handleDelete = async () => {
+    if (!deletingAnnouncement) return;
+    try {
+      await onDelete(deletingAnnouncement.id);
+    } finally {
+      setShowDeleteConfirm(false);
+      setDeletingAnnouncement(null);
+    }
+  };
+
+  const badge = (isPublished: boolean) =>
+    isPublished ? (
+      <span
+        className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
+          isDark
+            ? 'bg-emerald-500/15 border border-emerald-400/25 text-emerald-300'
+            : 'bg-emerald-50 border border-emerald-200 text-emerald-700'
+        }`}
+      >
+        <CheckCircle size={12} /> Published
+      </span>
+    ) : (
+      <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-white/10 dark:text-gray-400">
+        <FileEdit size={12} /> Draft
+      </span>
+    );
+
+  const cardClass = `rounded-xl p-5 border ${
+    isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200 shadow-sm'
+  }`;
+  const textPrimary = isDark ? 'text-white' : 'text-gray-900';
+  const textSecondary = isDark ? 'text-slate-400' : 'text-gray-600';
+  const inputClass = `w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${
+    isDark
+      ? 'bg-white/5 border-white/10 text-white placeholder-slate-500'
+      : 'border-gray-300 bg-white text-gray-900 placeholder-gray-400'
+  }`;
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <h2 className={`text-2xl font-bold ${textPrimary}`}>
             {t('announcements')}
           </h2>
-          <p className={`mt-1 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-            Live announcements connected to the backend.
+          <p className={`mt-1 text-sm ${textSecondary}`}>
+            Manage and post announcements for your assigned courses.
           </p>
         </div>
         <button
-          onClick={() => setShowForm(true)}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+          onClick={openCreate}
+          className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-all hover:bg-blue-700 shadow-lg shadow-blue-500/20 active:scale-95"
         >
+          <Plus className="h-4 w-4" />
           New Announcement
         </button>
       </div>
 
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+        {[
+          { label: 'Total Announcements', value: counts.all },
+          { label: 'Published', value: counts.published },
+          { label: 'Drafts', value: counts.draft },
+        ].map((stat) => (
+          <div key={stat.label} className={cardClass}>
+            <p className={`text-sm ${textSecondary}`}>{stat.label}</p>
+            <p className={`text-2xl font-bold mt-1 ${textPrimary}`}>{stat.value}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex-1 relative">
+          <Search
+            size={18}
+            className={`absolute left-3 top-1/2 -translate-y-1/2 ${textSecondary}`}
+          />
+          <input
+            type="text"
+            placeholder="Search announcements..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className={`${inputClass} pl-10`}
+          />
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {(
+            [
+              { key: 'all', label: 'All Status' },
+              { key: 'published', label: 'Published' },
+              { key: 'draft', label: 'Drafts' },
+            ] as const
+          ).map((f) => (
+            <button
+              key={f.key}
+              onClick={() => setFilterStatus(f.key)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                filterStatus === f.key
+                  ? 'bg-blue-600 text-white'
+                  : isDark
+                    ? 'bg-white/5 text-slate-300 hover:bg-white/10'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div
+        className={`${cardClass} overflow-x-auto`}
+      >
+        <div className="flex gap-2 min-w-max">
+          <button
+            onClick={() => setFilterCourse('all')}
+            className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+              filterCourse === 'all'
+                ? 'bg-blue-600 text-white shadow-md'
+                : isDark
+                  ? 'bg-white/5 text-slate-300 hover:bg-white/10'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            All Courses
+          </button>
+          {courseOptions.map((option) => (
+            <button
+              key={option.value}
+              onClick={() => setFilterCourse(option.value)}
+              className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                filterCourse === option.value
+                  ? 'bg-blue-600 text-white shadow-md'
+                  : isDark
+                    ? 'bg-white/5 text-slate-300 hover:bg-white/10'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {pinDisabledReason && <BackendStatusBanner message={pinDisabledReason} />}
 
+      {loading ? (
+        <div className={`${cardClass} flex items-center justify-center py-20`}>
+          <div className="flex flex-col items-center gap-3">
+            <Loader2 className="h-10 w-10 animate-spin text-blue-500" />
+            <p className={textSecondary}>Loading announcements...</p>
+          </div>
+        </div>
+      ) : visibleAnnouncements.length === 0 ? (
+        <div className={`${cardClass} py-20 text-center`}>
+          <Megaphone size={48} className={`mx-auto mb-4 ${textSecondary} opacity-20`} />
+          <h3 className={`text-lg font-semibold ${textPrimary}`}>No announcements found</h3>
+          <p className={`mt-1 ${textSecondary}`}>Try adjusting your search or filters</p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {visibleAnnouncements.map((a) => {
+            const isPublished = a.isPublished === 1;
+            const isPinned = a.isPinned === 1;
+            const courseLabel = a.course?.code
+              ? `${a.course.code} - ${a.course?.name || ''}`
+              : 'General';
+
+            return (
+              <div
+                key={a.id}
+                className={`${cardClass} relative group transition-all hover:border-blue-500/50 ${
+                  isPinned ? (isDark ? 'border-amber-500/30 bg-amber-500/5' : 'border-amber-200 bg-amber-50/30') : ''
+                }`}
+              >
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2 mb-2">
+                      {badge(isPublished)}
+                      {isPinned && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-500/20 dark:text-amber-300">
+                          <Pin size={12} className="fill-current" /> Pinned
+                        </span>
+                      )}
+                      <span
+                        className={`rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                          a.priority === 'urgent'
+                            ? 'bg-red-500 text-white'
+                            : a.priority === 'high'
+                              ? 'bg-orange-500 text-white'
+                              : a.priority === 'medium'
+                                ? 'bg-amber-500 text-white'
+                                : 'bg-slate-400 text-white'
+                        }`}
+                      >
+                        {a.priority || 'low'}
+                      </span>
+                    </div>
+
+                    <h3 className={`text-lg font-bold leading-tight ${textPrimary}`}>
+                      {a.title}
+                    </h3>
+                    
+                    <div
+                      className={`mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs font-medium ${textSecondary}`}
+                    >
+                      <div className="flex items-center gap-1">
+                        <BookOpen size={14} />
+                        <span>{courseLabel}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Calendar size={14} />
+                        <span>{new Date(a.publishedAt || a.createdAt).toLocaleString()}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Eye size={14} />
+                        <span>{a.viewCount ?? 0} views</span>
+                      </div>
+                    </div>
+
+                    <p className={`mt-4 text-sm leading-relaxed ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>
+                      {a.content}
+                    </p>
+                  </div>
+
+                  <div className="relative flex-shrink-0">
+                    <button
+                      onClick={() => setOpenMenuId(openMenuId === a.id ? null : a.id)}
+                      className={`p-2 rounded-lg transition-colors ${
+                        isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'
+                      }`}
+                    >
+                      <MoreVertical size={20} className={textSecondary} />
+                    </button>
+                    {openMenuId === a.id && (
+                      <div
+                        className={`absolute right-0 top-10 z-20 w-48 rounded-xl border shadow-xl py-2 ${
+                          isDark ? 'bg-[#1e293b] border-white/10' : 'bg-white border-gray-200'
+                        }`}
+                      >
+                        <button
+                          onClick={() => openEdit(a)}
+                          className={`w-full flex items-center gap-2 px-4 py-2 text-sm font-medium ${
+                            isDark
+                              ? 'hover:bg-white/5 text-slate-300'
+                              : 'hover:bg-gray-50 text-gray-700'
+                          }`}
+                        >
+                          <Edit3 size={16} /> Edit
+                        </button>
+                        {!isPublished && (
+                          <button
+                            onClick={() => void onPublish(a.id)}
+                            className={`w-full flex items-center gap-2 px-4 py-2 text-sm font-medium ${
+                              isDark
+                                ? 'hover:bg-white/5 text-slate-300'
+                                : 'hover:bg-gray-50 text-gray-700'
+                            }`}
+                          >
+                            <Send size={16} /> Publish
+                          </button>
+                        )}
+                        <button
+                          onClick={() => void onPin(a.id, !isPinned)}
+                          className={`w-full flex items-center gap-2 px-4 py-2 text-sm font-medium ${
+                            isDark
+                              ? 'hover:bg-white/5 text-slate-300'
+                              : 'hover:bg-gray-50 text-gray-700'
+                          }`}
+                        >
+                          <Pin size={16} /> {isPinned ? 'Unpin' : 'Pin'}
+                        </button>
+                        <div className="my-1 border-t border-inherit" />
+                        <button
+                          onClick={() => confirmDelete(a)}
+                          className="w-full flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10"
+                        >
+                          <Trash2 size={16} /> Delete
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
       {showForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 px-4" onClick={() => {
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4" onClick={() => {
           if (isSubmitting) return;
           setShowForm(false);
+          setEditingAnnouncement(null);
         }}>
           <div
-            className={`w-full max-w-2xl rounded-2xl border shadow-2xl ${
+            className={`w-full max-w-2xl rounded-2xl border shadow-2xl overflow-hidden animate-in zoom-in duration-200 ${
               isDark ? 'border-white/10 bg-slate-900 text-white' : 'border-gray-200 bg-white text-gray-900'
             }`}
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="flex items-center justify-between border-b border-inherit px-6 py-4">
+            <div className="flex items-center justify-between border-b border-inherit px-6 py-4 bg-slate-50/50 dark:bg-white/2">
               <div>
-                <h3 className="text-xl font-semibold">New Announcement</h3>
-                <p className={`mt-1 text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-                  Create a draft announcement for one of your assigned courses.
+                <h3 className="text-xl font-bold">
+                  {editingAnnouncement ? 'Edit Announcement' : 'New Announcement'}
+                </h3>
+                <p className={`mt-1 text-sm ${textSecondary}`}>
+                  {editingAnnouncement 
+                    ? 'Update the announcement details for your students.' 
+                    : 'Create a draft announcement for one of your assigned courses.'}
                 </p>
               </div>
               <button
                 onClick={() => {
                   if (isSubmitting) return;
                   setShowForm(false);
+                  setEditingAnnouncement(null);
                 }}
                 disabled={isSubmitting}
                 className={`rounded-full p-2 transition-colors ${
-                  isDark ? 'text-slate-400 hover:bg-white/5' : 'text-gray-500 hover:bg-gray-100'
+                  isDark ? 'text-slate-400 hover:bg-white/10' : 'text-gray-500 hover:bg-gray-100'
                 } disabled:cursor-not-allowed disabled:opacity-60`}
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
-            <div className="grid gap-4 px-6 py-5">
+            <div className="grid gap-5 px-6 py-6">
               <div>
                 <label
                   htmlFor="ta-announcement-title"
-                  className={`mb-2 block text-sm font-medium ${isDark ? 'text-slate-200' : 'text-gray-800'}`}
+                  className={`mb-2 block text-sm font-bold ${textPrimary}`}
                 >
                   Title
                 </label>
@@ -372,219 +712,120 @@ export function LiveAnnouncementsPage({
                   onChange={(event) =>
                     setFormValue((current) => ({ ...current, title: event.target.value }))
                   }
-                  placeholder="Enter an announcement title"
-                  className={`w-full rounded-lg border px-4 py-3 text-sm ${
-                    isDark
-                      ? 'border-white/10 bg-white/5 text-white placeholder-slate-400'
-                      : 'border-gray-300 bg-white text-gray-900 placeholder-gray-500'
-                  }`}
+                  placeholder="e.g., Important: Lab 3 Rescheduled"
+                  className={inputClass}
                 />
               </div>
 
-              <div>
-                <label
-                  htmlFor="ta-announcement-course"
-                  className={`mb-2 block text-sm font-medium ${isDark ? 'text-slate-200' : 'text-gray-800'}`}
-                >
-                  Course
-                </label>
-                <CleanSelect
-                  value={formValue.courseId}
-                  onChange={(event) =>
-                    setFormValue((current) => ({ ...current, courseId: event.target.value }))
-                  }
-                  id="ta-announcement-course"
-                  className={`w-full rounded-lg border px-4 py-3 text-sm ${
-                    isDark
-                      ? 'border-white/10 bg-white/5 text-white'
-                      : 'border-gray-300 bg-white text-gray-900'
-                  }`}
-                >
-                  {courseOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </CleanSelect>
-              </div>
+              {!editingAnnouncement && (
+                <div>
+                  <label
+                    htmlFor="ta-announcement-course"
+                    className={`mb-2 block text-sm font-bold ${textPrimary}`}
+                  >
+                    Course
+                  </label>
+                  <CleanSelect
+                    value={formValue.courseId}
+                    onChange={(event) =>
+                      setFormValue((current) => ({ ...current, courseId: event.target.value }))
+                    }
+                    id="ta-announcement-course"
+                    className={inputClass}
+                  >
+                    {courseOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </CleanSelect>
+                </div>
+              )}
 
               <div>
                 <label
                   htmlFor="ta-announcement-content"
-                  className={`mb-2 block text-sm font-medium ${isDark ? 'text-slate-200' : 'text-gray-800'}`}
+                  className={`mb-2 block text-sm font-bold ${textPrimary}`}
                 >
                   Message
                 </label>
                 <textarea
                   id="ta-announcement-content"
-                  rows={6}
+                  rows={8}
                   value={formValue.content}
                   onChange={(event) =>
                     setFormValue((current) => ({ ...current, content: event.target.value }))
                   }
-                  placeholder="Write the announcement message you want students to see"
-                  className={`w-full rounded-lg border px-4 py-3 text-sm ${
-                    isDark
-                      ? 'border-white/10 bg-white/5 text-white placeholder-slate-400'
-                      : 'border-gray-300 bg-white text-gray-900 placeholder-gray-500'
-                  }`}
+                  placeholder="Provide clear details for your students..."
+                  className={`${inputClass} resize-none`}
                 />
               </div>
+            </div>
 
-              <div className="flex justify-end gap-3">
-                <button
-                  onClick={() => setShowForm(false)}
-                  disabled={isSubmitting}
-                  className={`rounded-lg px-4 py-2 text-sm font-medium ${
-                    isDark ? 'text-slate-300 hover:bg-white/5' : 'text-gray-700 hover:bg-gray-100'
-                  } disabled:cursor-not-allowed disabled:opacity-60`}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => void submit()}
-                  disabled={isSubmitting}
-                  className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
-                >
+            <div className="flex justify-end items-center gap-3 px-6 py-4 border-t border-inherit bg-slate-50/50 dark:bg-white/2">
+              <button
+                onClick={() => {
+                  setShowForm(false);
+                  setEditingAnnouncement(null);
+                }}
+                disabled={isSubmitting}
+                className={`rounded-xl px-6 py-2.5 text-sm font-bold transition-colors ${
+                  isDark ? 'text-slate-300 hover:bg-white/10' : 'text-gray-700 hover:bg-gray-100'
+                } disabled:cursor-not-allowed disabled:opacity-60`}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => void submit()}
+                disabled={isSubmitting || !formValue.title.trim() || !formValue.content.trim()}
+                className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-8 py-2.5 text-sm font-bold text-white transition-all hover:bg-blue-700 shadow-lg shadow-blue-500/20 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isSubmitting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : editingAnnouncement ? (
+                  <Edit2 className="h-4 w-4" />
+                ) : (
                   <Send className="h-4 w-4" />
-                  {isSubmitting ? 'Creating...' : 'Create Draft'}
-                </button>
-              </div>
+                )}
+                {isSubmitting ? 'Processing...' : editingAnnouncement ? 'Update Announcement' : 'Create Draft'}
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      <div
-        className={`rounded-xl border p-4 ${
-          isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white'
-        }`}
-      >
-        <div className="flex flex-wrap gap-2">
-          <button
-            onClick={() => setFilterCourse('all')}
-            className={`rounded-lg px-4 py-2 text-sm font-medium ${
-              filterCourse === 'all'
-                ? 'bg-blue-600 text-white'
-                : isDark
-                  ? 'bg-white/10 text-slate-300'
-                  : 'bg-gray-100 text-gray-700'
+      {showDeleteConfirm && deletingAnnouncement && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4" onClick={() => setShowDeleteConfirm(false)}>
+          <div
+            className={`w-full max-w-sm rounded-2xl border shadow-2xl p-6 animate-in fade-in zoom-in duration-200 ${
+              isDark ? 'border-white/10 bg-slate-900 text-white' : 'border-gray-200 bg-white text-gray-900'
             }`}
+            onClick={(event) => event.stopPropagation()}
           >
-            All Courses
-          </button>
-          {courseOptions.map((option) => (
-            <button
-              key={option.value}
-              onClick={() => setFilterCourse(option.value)}
-              className={`rounded-lg px-4 py-2 text-sm font-medium ${
-                filterCourse === option.value
-                  ? 'bg-blue-600 text-white'
-                  : isDark
-                    ? 'bg-white/10 text-slate-300'
-                    : 'bg-gray-100 text-gray-700'
-              }`}
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {loading ? (
-        <div
-          className={`rounded-xl border p-10 text-center ${
-            isDark ? 'border-white/10 bg-white/5 text-slate-300' : 'border-gray-200 bg-white text-gray-700'
-          }`}
-        >
-          Loading announcements...
-        </div>
-      ) : visibleAnnouncements.length === 0 ? (
-        <div
-          className={`rounded-xl border p-10 text-center ${
-            isDark ? 'border-white/10 bg-white/5 text-slate-300' : 'border-gray-200 bg-white text-gray-700'
-          }`}
-        >
-          <Megaphone className="mx-auto mb-3 h-10 w-10 text-blue-500" />
-          No announcements available for this filter.
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {visibleAnnouncements.map((announcement) => {
-            const isPublished = announcement.isPublished === 1;
-            const courseLabel = announcement.course?.code
-              ? `${announcement.course.code} - ${announcement.course?.name || ''}`
-              : 'General';
-
-            return (
-              <div
-                key={announcement.id}
-                className={`rounded-xl border p-6 ${
-                  isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white'
+            <div className="mx-auto w-14 h-14 rounded-full bg-red-100 dark:bg-red-500/20 flex items-center justify-center mb-4">
+              <AlertTriangle size={28} className="text-red-500" />
+            </div>
+            <h3 className="text-xl font-bold text-center mb-2">Delete Announcement?</h3>
+            <p className={`text-sm text-center mb-6 ${textSecondary}`}>
+              Are you sure you want to delete <span className="font-bold text-red-500">"{deletingAnnouncement.title}"</span>? This action cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className={`flex-1 rounded-xl px-4 py-2.5 text-sm font-bold transition-colors ${
+                  isDark ? 'bg-white/5 text-slate-300 hover:bg-white/10' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                  <div className="flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                        {announcement.title}
-                      </h3>
-                      <span
-                        className={`rounded-full px-2 py-1 text-xs font-medium ${
-                          isPublished
-                            ? isDark
-                              ? 'bg-emerald-500/20 text-emerald-300'
-                              : 'bg-emerald-100 text-emerald-700'
-                            : isDark
-                              ? 'bg-amber-500/20 text-amber-300'
-                              : 'bg-amber-100 text-amber-700'
-                        }`}
-                      >
-                        {isPublished ? 'Published' : 'Draft'}
-                      </span>
-                    </div>
-                    <div
-                      className={`mt-2 flex flex-wrap items-center gap-3 text-xs ${
-                        isDark ? 'text-slate-400' : 'text-gray-500'
-                      }`}
-                    >
-                      <span>{courseLabel}</span>
-                      <span>{new Date(announcement.createdAt || Date.now()).toLocaleString()}</span>
-                      <span>{announcement.viewCount ?? 0} views</span>
-                    </div>
-                    <p className={`mt-3 text-sm leading-6 ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>
-                      {announcement.content}
-                    </p>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {!isPublished && (
-                      <button
-                        onClick={() => void onPublish(announcement.id)}
-                        className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
-                      >
-                        Publish
-                      </button>
-                    )}
-                    <button
-                      disabled
-                      title={pinDisabledReason}
-                      className="inline-flex cursor-not-allowed items-center gap-2 rounded-lg bg-slate-500/20 px-3 py-2 text-sm font-medium text-slate-400"
-                    >
-                      <Pin className="h-4 w-4" />
-                      Pin
-                    </button>
-                    <button
-                      onClick={() => void onDelete(announcement.id)}
-                      className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+                Cancel
+              </button>
+              <button
+                onClick={() => void handleDelete()}
+                className="flex-1 rounded-xl bg-red-600 px-4 py-2.5 text-sm font-bold text-white transition-all hover:bg-red-700 shadow-lg shadow-red-500/20 active:scale-95"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

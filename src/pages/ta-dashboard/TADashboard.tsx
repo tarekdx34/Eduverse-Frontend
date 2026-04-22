@@ -225,8 +225,7 @@ const OVERLAY_COPY: Record<
 
 const DISCUSSION_DELETE_DISABLED_REASON =
   'Deleting discussions is not available for TA live mode.';
-const ANNOUNCEMENT_PIN_DISABLED_REASON =
-  'Pinning announcements is not connected to the backend yet.';
+const ANNOUNCEMENT_PIN_DISABLED_REASON = null;
 const MATERIAL_DOWNLOAD_DISABLED_REASON =
   'Material downloads are not connected to the backend yet.';
 const MOCK_PROFILE_DATA = {
@@ -851,6 +850,30 @@ function TADashboardContent() {
     },
   });
 
+  const updateAnnouncementMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) =>
+      announcementService.updateAnnouncement(id, data),
+    onSuccess: async () => {
+      toast.success('Announcement updated.');
+      await queryClient.invalidateQueries({ queryKey: ['ta-announcements'] });
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Failed to update announcement.');
+    },
+  });
+
+  const pinAnnouncementMutation = useMutation({
+    mutationFn: ({ id, isPinned }: { id: string; isPinned: boolean }) =>
+      announcementService.pinAnnouncement(id, isPinned),
+    onSuccess: async () => {
+      toast.success('Announcement pin status updated.');
+      await queryClient.invalidateQueries({ queryKey: ['ta-announcements'] });
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Failed to update pin status.');
+    },
+  });
+
   const deleteAnnouncementMutation = useMutation({
     mutationFn: (id: string) => announcementService.deleteAnnouncement(id),
     onSuccess: async () => {
@@ -899,7 +922,7 @@ function TADashboardContent() {
       return {
         id: lab.id,
         courseId: String(lab.courseId),
-        courseName: lab.course?.name || courseNameById.get(Number(lab.courseId)) || 'Course',
+        courseName: lab.lab?.name || courseNameById.get(Number(lab.courseId)) || 'Course',
         labNumber: lab.labNumber || 0,
         title: lab.title,
         date: formatDate(lab.dueDate || lab.availableFrom),
@@ -1248,9 +1271,10 @@ function TADashboardContent() {
               loading={announcementsLoading}
               courseOptions={announcementCourseOptions}
               onCreate={(value) => createAnnouncementMutation.mutateAsync(value)}
+              onUpdate={(id, data) => updateAnnouncementMutation.mutateAsync({ id, data })}
               onDelete={(id) => deleteAnnouncementMutation.mutateAsync(id)}
               onPublish={(id) => publishAnnouncementMutation.mutateAsync(id)}
-              pinDisabledReason={ANNOUNCEMENT_PIN_DISABLED_REASON}
+              onPin={(id, isPinned) => pinAnnouncementMutation.mutateAsync({ id, isPinned })}
             />
           ))}
 

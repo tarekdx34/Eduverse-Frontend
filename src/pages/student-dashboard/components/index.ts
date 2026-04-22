@@ -27,3 +27,4 @@ export { AINotes } from './AINotes';
 export { QuizTaking } from './QuizTaking';
 export { QuizzesTab } from './quizzes';
 export { GradeAnalysis } from './GradeAnalysis';
+export { Announcements } from './Announcements';

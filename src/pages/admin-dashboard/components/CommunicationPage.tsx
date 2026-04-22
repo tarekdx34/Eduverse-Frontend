@@ -243,26 +243,24 @@ export function CommunicationPage({
         <div className="flex gap-2">
           <button
             onClick={() => setActiveTab('broadcast')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              activeTab === 'broadcast'
-                ? 'bg-red-600 text-white'
-                : isDark
-                  ? 'text-gray-300 hover:bg-gray-700'
-                  : 'text-gray-700 hover:bg-gray-100'
-            }`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === 'broadcast'
+              ? 'bg-red-600 text-white'
+              : isDark
+                ? 'text-gray-300 hover:bg-gray-700'
+                : 'text-gray-700 hover:bg-gray-100'
+              }`}
           >
             <Megaphone size={18} />
             {t('broadcastNotification')}
           </button>
           <button
             onClick={() => setActiveTab('templates')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              activeTab === 'templates'
-                ? 'bg-red-600 text-white'
-                : isDark
-                  ? 'text-gray-300 hover:bg-gray-700'
-                  : 'text-gray-700 hover:bg-gray-100'
-            }`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === 'templates'
+              ? 'bg-red-600 text-white'
+              : isDark
+                ? 'text-gray-300 hover:bg-gray-700'
+                : 'text-gray-700 hover:bg-gray-100'
+              }`}
           >
             <FileText size={18} />
             {t('notificationTemplates')}
@@ -291,7 +289,10 @@ export function CommunicationPage({
                   value={broadcastData.title}
                   onChange={(e) => setBroadcastData({ ...broadcastData, title: e.target.value })}
                   placeholder="Enter notification title..."
-                  className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}
+                  className={`w-full px-4 py-2 rounded-lg border ${isDark
+                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-300'
+                    : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'
+                    }`}
                 />
               </div>
 
@@ -306,7 +307,10 @@ export function CommunicationPage({
                   onChange={(e) => setBroadcastData({ ...broadcastData, message: e.target.value })}
                   placeholder="Enter your message..."
                   rows={5}
-                  className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200'}`}
+                  className={`w-full px-4 py-2 rounded-lg border ${isDark
+                      ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-300'
+                      : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400'
+                    }`}
                 />
               </div>
 
@@ -376,15 +380,14 @@ export function CommunicationPage({
                     <button
                       key={option.value}
                       onClick={() => setBroadcastData({ ...broadcastData, audience: option.value })}
-                      className={`p-3 rounded-lg border text-left transition-colors ${
-                        broadcastData.audience === option.value
-                          ? isDark
-                            ? 'bg-red-900/50 border-red-600'
-                            : 'bg-red-50 border-red-200'
-                          : isDark
-                            ? 'bg-gray-700 border-gray-600 hover:bg-gray-600'
-                            : 'bg-white border-gray-200 hover:bg-gray-50'
-                      }`}
+                      className={`p-3 rounded-lg border text-left transition-colors ${broadcastData.audience === option.value
+                        ? isDark
+                          ? 'bg-red-900/50 border-red-600'
+                          : 'bg-red-50 border-red-200'
+                        : isDark
+                          ? 'bg-gray-700 border-gray-600 hover:bg-gray-600'
+                          : 'bg-white border-gray-200 hover:bg-gray-50'
+                        }`}
                     >
                       <div className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
                         {option.label}
@@ -412,15 +415,14 @@ export function CommunicationPage({
                     <button
                       key={channel.id}
                       onClick={() => handleChannelToggle(channel.id)}
-                      className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors ${
-                        broadcastData.channels.includes(channel.id)
-                          ? isDark
-                            ? 'bg-red-900/50 border-red-600 text-red-300'
-                            : 'bg-red-50 border-red-200 text-red-700'
-                          : isDark
-                            ? 'bg-gray-700 border-gray-600 text-gray-300'
-                            : 'bg-white border-gray-200 text-gray-700'
-                      }`}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors ${broadcastData.channels.includes(channel.id)
+                        ? isDark
+                          ? 'bg-red-900/50 border-red-600 text-red-300'
+                          : 'bg-red-50 border-red-200 text-red-700'
+                        : isDark
+                          ? 'bg-gray-700 border-gray-600 text-gray-300'
+                          : 'bg-white border-gray-200 text-gray-700'
+                        }`}
                     >
                       <channel.icon size={16} />
                       {channel.label}
