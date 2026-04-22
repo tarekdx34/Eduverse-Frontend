@@ -973,6 +973,9 @@ export function LiveStudentsPage({ students, loading = false }: LiveStudentsPage
                     Student
                   </th>
                   <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                    Email
+                  </th>
+                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
                     Course
                   </th>
                   <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
@@ -998,8 +1001,11 @@ export function LiveStudentsPage({ students, loading = false }: LiveStudentsPage
                     <td className={`px-5 py-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
                       <div className="flex items-center gap-2">
                         <User className="h-4 w-4 text-blue-500" />
-                        Student #{student.userId}
+                        {student.studentName || `Student #${student.userId}`}
                       </div>
+                    </td>
+                    <td className={`px-5 py-4 ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>
+                      {student.studentEmail || '—'}
                     </td>
                     <td className={`px-5 py-4 ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>
                       {student.courseCode} - {student.courseName}

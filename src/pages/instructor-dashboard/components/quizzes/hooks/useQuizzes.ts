@@ -10,6 +10,7 @@ import { QuizUIData, mapQuizToUI, QuizStatus } from '../types';
 export interface UseQuizzesOptions {
   courseId?: string;
   initialStatus?: 'all' | QuizStatus;
+  limitToCourseIds?: string[]; // Optional: limit results to these courses if 'all' is selected
 }
 
 export interface UseQuizzesReturn {
@@ -41,7 +42,7 @@ export interface UseQuizzesReturn {
 }
 
 export function useQuizzes(options: UseQuizzesOptions = {}): UseQuizzesReturn {
-  const { courseId: initialCourseId, initialStatus = 'all' } = options;
+  const { courseId: initialCourseId, initialStatus = 'all', limitToCourseIds } = options;
 
   // State
   const [quizzes, setQuizzes] = useState<QuizUIData[]>([]);
@@ -104,9 +105,15 @@ export function useQuizzes(options: UseQuizzesOptions = {}): UseQuizzesReturn {
         selectedStatus === 'all' || 
         quiz.status === selectedStatus;
 
-      return matchesSearch && matchesStatus;
+      // Course access filter
+      const isAllowedCourse = 
+        !limitToCourseIds || 
+        limitToCourseIds.length === 0 || 
+        limitToCourseIds.includes(String(quiz.courseId));
+
+      return matchesSearch && matchesStatus && isAllowedCourse;
     });
-  }, [quizzes, searchQuery, selectedStatus]);
+  }, [quizzes, searchQuery, selectedStatus, limitToCourseIds]);
 
   // Refresh function
   const refresh = useCallback(() => {

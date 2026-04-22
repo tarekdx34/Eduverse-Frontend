@@ -86,7 +86,9 @@ export function LabsDashboard({ courses = [] }: LabsDashboardProps) {
     refresh,
     deleteLab,
     changeStatus,
-  } = useLabs();
+  } = useLabs({ 
+    limitToCourseIds: courseOptions.map(c => c.value) 
+  });
 
   // Modal states
   const [showCreate, setShowCreate] = useState(false);

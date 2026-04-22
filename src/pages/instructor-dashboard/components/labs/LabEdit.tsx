@@ -39,8 +39,11 @@ export function LabEdit({ isOpen, lab, courses, onSave, onClose }: LabEditProps)
   // Update form data when lab changes
   useEffect(() => {
     if (lab && isOpen) {
+      const normalizedCourseId = String(lab.courseId || '');
+      console.debug('[LabEdit] Setting form — lab.courseId:', lab.courseId, '(type:', typeof lab.courseId, ') → normalized:', normalizedCourseId);
+      console.debug('[LabEdit] Available courses:', courses.map(c => ({ id: c.id, name: c.name })));
       setFormData({
-        courseId: lab.courseId || '',
+        courseId: normalizedCourseId,
         title: lab.title || '',
         description: lab.description || '',
         dueDate: lab.dueDate ? lab.dueDate.slice(0, 16) : '',
@@ -54,7 +57,7 @@ export function LabEdit({ isOpen, lab, courses, onSave, onClose }: LabEditProps)
       setPendingInstructionFiles([]);
       setInstructionsToDelete([]);
     }
-  }, [lab, isOpen]);
+  }, [lab, isOpen, courses]);
 
   if (!isOpen || !lab) return null;
 
@@ -117,7 +120,8 @@ export function LabEdit({ isOpen, lab, courses, onSave, onClose }: LabEditProps)
     toast.success(t('instructionMarkedForDeletion') || `Instruction "${fileName}" will be deleted when you save`);
   };
 
-  const currentCourse = courses.find((c) => c.id === formData.courseId);
+  const currentCourse = courses.find((c) => String(c.id) === String(formData.courseId));
+  console.debug('[LabEdit] Course lookup — formData.courseId:', formData.courseId, '→ match:', currentCourse?.name || 'NONE');
 
   return (
     <div

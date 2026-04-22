@@ -66,7 +66,9 @@ export function QuizzesDashboard({ courses = [] }: QuizzesDashboardProps) {
     fetchQuizDetails,
     fetchAttempts,
     fetchStatistics,
-  } = useQuizzes();
+  } = useQuizzes({ 
+    limitToCourseIds: courseOptions.map(c => c.value) 
+  });
 
   // Modal states
   const [showCreate, setShowCreate] = useState(false);

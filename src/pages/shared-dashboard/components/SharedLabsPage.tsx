@@ -54,37 +54,13 @@ function SharedLabsPageContent({ role = 'INSTRUCTOR' }: SharedLabsPageProps) {
       });
     });
 
-    return Array.from(unique.values());
-  }, [teachingCourses]);
+    const result = Array.from(unique.values());
+    console.debug('[SharedLabs] Role:', role, 'Mapped courses count:', result.length, 'Results:', result);
+    return result;
+  }, [teachingCourses, role]);
 
   return (
     <div data-role={role}>
-      {role === 'TA' && (
-        <details className="mb-4 rounded-lg border border-amber-200 bg-amber-50/70 p-3 text-xs text-amber-900">
-          <summary className="cursor-pointer font-medium">Debug: TA labs course API shape</summary>
-          <div className="mt-2 space-y-2">
-            <div>
-              loading: {String(isLoading)} | error: {error ? String((error as Error).message || error) : 'none'}
-            </div>
-            <div>
-              rawCount: {Array.isArray(teachingCoursesRaw) ? teachingCoursesRaw.length : 'non-array'} | normalizedCount:{' '}
-              {teachingCourses.length} | mappedCount: {mappedCourses.length}
-            </div>
-            <pre className="max-h-56 overflow-auto rounded bg-white/70 p-2 text-[11px] leading-4">
-{JSON.stringify(
-  {
-    rawSample: Array.isArray(teachingCoursesRaw) ? teachingCoursesRaw.slice(0, 2) : teachingCoursesRaw,
-    normalizedSample: teachingCourses.slice(0, 3),
-    mappedSample: mappedCourses.slice(0, 3),
-  },
-  null,
-  2
-)}
-            </pre>
-          </div>
-        </details>
-      )}
-
       <LabsPage courses={role === 'TA' ? mappedCourses : []} />
     </div>
   );

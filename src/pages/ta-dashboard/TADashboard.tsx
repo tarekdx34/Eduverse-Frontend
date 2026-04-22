@@ -159,6 +159,8 @@ type DashboardSubmission = {
 type LiveStudentRow = {
   id: string;
   userId: number;
+  studentName: string;
+  studentEmail: string;
   courseCode: string;
   courseName: string;
   sectionNumber: string;
@@ -696,17 +698,29 @@ function TADashboardContent() {
       const sections = await Promise.all(
         teachingCoursesLive.map(async (course) => {
           const rows = await EnrollmentService.getSectionStudents(course.sectionId);
-          return rows.map((row) => ({
-            id: `${course.sectionId}-${row.userId}`,
-            userId: Number(row.userId),
-            courseCode: course.course.code,
-            courseName: course.course.name,
-            sectionNumber: course.section.sectionNumber,
-            status: row.status,
-            grade: row.grade,
-            finalScore: row.finalScore,
-            enrollmentDate: row.enrollmentDate,
-          }));
+          console.debug('[TA-Students] Section', course.sectionId, 'raw rows:', rows.slice(0, 2));
+          return rows.map((row) => {
+            // Extract student name from nested user object or legacy flat fields
+            const firstName = row.user?.firstName || '';
+            const lastName = row.user?.lastName || '';
+            const fullName = row.user?.fullName || row.fullName || row.studentName || row.userName || '';
+            const studentName = fullName || `${firstName} ${lastName}`.trim() || `Student #${row.userId}`;
+            const studentEmail = row.user?.email || row.email || row.studentEmail || '';
+            console.debug('[TA-Students] Mapped student:', { userId: row.userId, studentName, studentEmail, rawUser: row.user });
+            return {
+              id: `${course.sectionId}-${row.userId}`,
+              userId: Number(row.userId),
+              studentName,
+              studentEmail,
+              courseCode: course.course.code,
+              courseName: course.course.name,
+              sectionNumber: course.section.sectionNumber,
+              status: row.status,
+              grade: row.grade,
+              finalScore: row.finalScore,
+              enrollmentDate: row.enrollmentDate,
+            };
+          });
         })
       );
       return sections.flat();

@@ -109,12 +109,18 @@ function SharedAssignmentsPageContent({ role = 'INSTRUCTOR' }: SharedAssignments
     data: assignmentsLive,
     isLoading: isLoadingAssignments,
   } = useQuery<unknown>({
-    queryKey: ['shared-course-assignments', activeSectionId],
+    queryKey: ['shared-course-assignments', selectedCourseId],
     queryFn: async () => {
-      if (!activeSectionId) return [];
-      return AssignmentService.getAll({ courseId: activeSectionId });
+      if (!selectedCourseId) {
+        console.debug('[SharedAssignments] No selectedCourseId yet, returning empty');
+        return [];
+      }
+      console.debug('[SharedAssignments] Fetching assignments for courseId:', selectedCourseId, '(activeSectionId:', activeSectionId, ')');
+      const result = await AssignmentService.getAll({ courseId: selectedCourseId });
+      console.debug('[SharedAssignments] Fetch result count:', Array.isArray(result) ? result.length : 'unknown');
+      return result;
     },
-    enabled: !!activeSectionId,
+    enabled: !!selectedCourseId,
   });
 
   const assignmentsList = useMemo(() => normalizeAssignments(assignmentsLive), [assignmentsLive]);
@@ -149,7 +155,7 @@ function SharedAssignmentsPageContent({ role = 'INSTRUCTOR' }: SharedAssignments
     },
     onSuccess: async () => {
       toast.success('Assignment saved successfully');
-      await queryClient.invalidateQueries({ queryKey: ['shared-course-assignments', activeSectionId] });
+      await queryClient.invalidateQueries({ queryKey: ['shared-course-assignments', selectedCourseId] });
       setIsAssignmentModalOpen(false);
       setEditingAssignment(null);
     },
@@ -200,7 +206,7 @@ function SharedAssignmentsPageContent({ role = 'INSTRUCTOR' }: SharedAssignments
     try {
       await AssignmentService.delete(assignmentToDelete);
       toast.success('Assignment deleted successfully');
-      await queryClient.invalidateQueries({ queryKey: ['shared-course-assignments', activeSectionId] });
+      await queryClient.invalidateQueries({ queryKey: ['shared-course-assignments', selectedCourseId] });
     } catch (error: any) {
       toast.error(error?.message || 'Failed to delete assignment');
     }
@@ -211,7 +217,7 @@ function SharedAssignmentsPageContent({ role = 'INSTRUCTOR' }: SharedAssignments
     try {
       await AssignmentService.changeStatus(id, newStatus);
       toast.success(`Assignment ${newStatus} successfully`);
-      await queryClient.invalidateQueries({ queryKey: ['shared-course-assignments', activeSectionId] });
+      await queryClient.invalidateQueries({ queryKey: ['shared-course-assignments', selectedCourseId] });
     } catch (error: any) {
       toast.error(error?.message || 'Failed to update assignment status');
     }

@@ -10,6 +10,7 @@ import { LabUIData, LabStatus } from '../types';
 export interface UseLabsOptions {
   courseId?: string;
   initialStatus?: 'all' | LabStatus;
+  limitToCourseIds?: string[]; // Optional: limit results to these courses if 'all' is selected
 }
 
 export interface UseLabsReturn {
@@ -42,7 +43,7 @@ export interface UseLabsReturn {
 }
 
 export function useLabs(options: UseLabsOptions = {}): UseLabsReturn {
-  const { courseId: initialCourseId, initialStatus = 'all' } = options;
+  const { courseId: initialCourseId, initialStatus = 'all', limitToCourseIds } = options;
 
   // State
   const [labs, setLabs] = useState<LabUIData[]>([]);
@@ -105,9 +106,15 @@ export function useLabs(options: UseLabsOptions = {}): UseLabsReturn {
         selectedStatus === 'all' || 
         lab.status === selectedStatus;
 
-      return matchesSearch && matchesStatus;
+      // Course access filter (for TA/Instructor limiting)
+      const isAllowedCourse = 
+        !limitToCourseIds || 
+        limitToCourseIds.length === 0 || 
+        limitToCourseIds.includes(String(lab.courseId));
+
+      return matchesSearch && matchesStatus && isAllowedCourse;
     });
-  }, [labs, searchQuery, selectedStatus]);
+  }, [labs, searchQuery, selectedStatus, limitToCourseIds]);
 
   // Refresh function
   const refresh = useCallback(() => {
