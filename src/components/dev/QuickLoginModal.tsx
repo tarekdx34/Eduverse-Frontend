@@ -28,7 +28,7 @@ const QuickLoginModal: React.FC<QuickLoginModalProps> = ({ isOpen, onClose, onSe
   const devPassword =
     (import.meta as any).env?.VITE_DEV_QUICK_LOGIN_PASSWORD ||
     (import.meta as any).env?.VITE_DEV_SEED_PASSWORD ||
-    'Pass@123';
+    'password123';
 
   useEffect(() => {
     if (!isOpen) return;
@@ -59,8 +59,6 @@ const QuickLoginModal: React.FC<QuickLoginModalProps> = ({ isOpen, onClose, onSe
     };
   }, [isOpen]);
 
-  if (!isOpen) return null;
-
   const roles = [
     { id: 'student' as const, label: 'Students', icon: GraduationCap },
     { id: 'ta' as const, label: 'TAs', icon: UserSquare2 },
@@ -83,6 +81,8 @@ const QuickLoginModal: React.FC<QuickLoginModalProps> = ({ isOpen, onClose, onSe
   const filteredTas = useMemo(() => tas.filter(matches), [tas, searchTerm]);
   const filteredInstructors = useMemo(() => instructors.filter(matches), [instructors, searchTerm]);
   const filteredStaff = useMemo(() => others.filter(matches), [others, searchTerm]);
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
