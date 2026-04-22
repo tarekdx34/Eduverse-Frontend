@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host",
+    "dev:export-quick-login-seeds": "node ..\\EduVerse-Backend\\scripts\\export-quick-login-seeds.cjs",
     "build": "vite build",
     "test": "vitest",
     "test:ui": "vitest --ui",

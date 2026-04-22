@@ -23,9 +23,11 @@ const LoginPage = () => {
   const { theme, toggleTheme } = useTheme();
   const isArabic = language === 'ar';
   const { login: authLogin, loginMock } = useAuth();
+  const enableDevQuickLogin = import.meta.env.DEV;
 
   // Handle keyboard shortcut for Quick Login (Ctrl + Shift + Q)
   useEffect(() => {
+    if (!enableDevQuickLogin) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.shiftKey && e.key === 'Q') {
         e.preventDefault();
@@ -38,7 +40,7 @@ const LoginPage = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [enableDevQuickLogin]);
 
   const toggleLanguage = () => {
     setLanguage(language === 'en' ? 'ar' : 'en');
@@ -82,11 +84,13 @@ const LoginPage = () => {
   return (
     <div className="login-page-wrapper">
       {/* Quick Login Modal */}
-      <QuickLoginModal 
-        isOpen={isQuickLoginOpen} 
-        onClose={() => setIsQuickLoginOpen(false)} 
-        onSelect={handleQuickLoginSelect}
-      />
+      {enableDevQuickLogin && (
+        <QuickLoginModal
+          isOpen={isQuickLoginOpen}
+          onClose={() => setIsQuickLoginOpen(false)}
+          onSelect={handleQuickLoginSelect}
+        />
+      )}
 
       {/* Animated Background Elements */}
       <div className="login-orb login-orb-1" />

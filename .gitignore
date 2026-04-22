@@ -17,6 +17,9 @@ dist-ssr
 .env.local
 .env.*.local
 
+# Local dev-only generated data (emails) — regenerate via: npm run dev:export-quick-login-seeds
+public/quickLoginSeeds.json
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
