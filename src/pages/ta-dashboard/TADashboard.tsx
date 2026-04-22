@@ -389,14 +389,19 @@ function TADashboardContent() {
     [teachingCoursesLive]
   );
 
-  const { data: rawLabsLive = [], isLoading: labsLoading } = useQuery<Lab[]>({
+  const { data: rawLabsResponse = [], isLoading: labsLoading } = useQuery<any>({
     queryKey: ['ta-labs', liveCourseIds],
     queryFn: async () => {
-      const labs = await LabService.getAll();
-      return labs.filter((lab) => liveCourseIds.includes(Number(lab.courseId)));
+      const res = await LabService.getAll();
+      return res;
     },
     enabled: !isMockMode && liveCourseIds.length > 0,
   });
+
+  const rawLabsLive = useMemo<Lab[]>(() => {
+    const data = Array.isArray(rawLabsResponse) ? rawLabsResponse : (rawLabsResponse as any)?.data || [];
+    return data.filter((lab: any) => liveCourseIds.includes(Number(lab.courseId)));
+  }, [rawLabsResponse, liveCourseIds]);
 
   const {
     data: labSubmissionsByLabId = {},
@@ -654,22 +659,38 @@ function TADashboardContent() {
   });
 
   const {
-    data: liveAnnouncements = [],
+    data: rawAnnouncementsLive = [],
     isLoading: announcementsLoading,
-  } = useQuery<Announcement[]>({
+  } = useQuery<any>({
     queryKey: ['ta-announcements'],
     queryFn: () => announcementService.getAnnouncements({ limit: 100 }),
     enabled: !isMockMode,
   });
 
+  const liveAnnouncements = useMemo<Announcement[]>(() => {
+    if (Array.isArray(rawAnnouncementsLive)) return rawAnnouncementsLive;
+    if (rawAnnouncementsLive && typeof rawAnnouncementsLive === 'object' && Array.isArray(rawAnnouncementsLive.data)) {
+      return rawAnnouncementsLive.data;
+    }
+    return [];
+  }, [rawAnnouncementsLive]);
+
   const {
-    data: liveNotifications = [],
+    data: rawNotificationsLive = [],
     isLoading: notificationsLoading,
-  } = useQuery<Notification[]>({
+  } = useQuery<any>({
     queryKey: ['ta-notifications'],
     queryFn: () => NotificationService.getAll({ limit: 50 }),
     enabled: !isMockMode,
   });
+
+  const liveNotifications = useMemo<Notification[]>(() => {
+    if (Array.isArray(rawNotificationsLive)) return rawNotificationsLive;
+    if (rawNotificationsLive && typeof rawNotificationsLive === 'object' && Array.isArray(rawNotificationsLive.data)) {
+      return rawNotificationsLive.data;
+    }
+    return [];
+  }, [rawNotificationsLive]);
 
   const {
     data: liveDailySchedule = [],
@@ -1037,6 +1058,8 @@ function TADashboardContent() {
     }
   }, [isMockMode, teachingCoursesLive, selectedCourseId]);
 
+  // Remove local announcementsList memo as we now have liveAnnouncements correctly normalized above
+
   const profileData = useMemo(() => {
     if (isMockMode) return MOCK_PROFILE_DATA;
 
@@ -1176,11 +1199,11 @@ function TADashboardContent() {
               labs={liveLabs.filter(
                 (lab) => Number(lab.courseId) === Number(selectedLiveTeachingCourse.courseId)
               )}
-              announcements={liveAnnouncements.filter(
+              announcements={(liveAnnouncements || []).filter(
                 (announcement) =>
                   Number(announcement.courseId) === Number(selectedLiveTeachingCourse.courseId)
               )}
-              students={liveStudentRows.filter(
+              students={(liveStudentRows || []).filter(
                 (student) =>
                   student.courseCode === selectedLiveTeachingCourse.course.code &&
                   student.sectionNumber === selectedLiveTeachingCourse.section.sectionNumber

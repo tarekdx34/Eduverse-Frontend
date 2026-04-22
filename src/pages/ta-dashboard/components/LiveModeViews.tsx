@@ -831,6 +831,8 @@ export function LiveSchedulePage({
 type LiveStudentRow = {
   id: string;
   userId: number;
+  studentName?: string;
+  studentEmail?: string;
   courseCode: string;
   courseName: string;
   sectionNumber: string;
@@ -2512,32 +2514,54 @@ export function LiveCourseDetailsPage({
             isDark={isDark}
           />
         ) : (
+        <div
+          className={`overflow-hidden rounded-xl border ${
+            isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white'
+          }`}
+        >
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className={isDark ? 'text-slate-400' : 'text-gray-600'}>
-                  <th className="py-2 pr-4 text-left">Student</th>
-                  <th className="py-2 pr-4 text-left">Status</th>
-                  <th className="py-2 pr-4 text-left">Final Score</th>
-                  <th className="py-2 text-left">Enrolled</th>
+            <table className="w-full">
+              <thead className={isDark ? 'bg-white/5' : 'bg-gray-50'}>
+                <tr>
+                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                    Student
+                  </th>
+                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                    Email
+                  </th>
+                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                    Status
+                  </th>
+                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                    Score
+                  </th>
+                  <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                    Enrolled
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                {students.slice(0, 12).map((student) => (
+                {students.slice(0, 20).map((student) => (
                   <tr
                     key={student.id}
-                    className={`border-t ${isDark ? 'border-white/10' : 'border-gray-200'}`}
+                    className={isDark ? 'border-t border-white/10' : 'border-t border-gray-100'}
                   >
-                    <td className={`py-3 pr-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                      Student #{student.userId}
+                    <td className={`px-5 py-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                      <div className="flex items-center gap-2">
+                        <User className="h-4 w-4 text-blue-500" />
+                        {student.studentName || `Student #${student.userId}`}
+                      </div>
                     </td>
-                    <td className={`py-3 pr-4 ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>
+                    <td className={`px-5 py-4 ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>
+                      {student.studentEmail || '—'}
+                    </td>
+                    <td className={`px-5 py-4 ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>
                       {student.status}
                     </td>
-                    <td className={`py-3 pr-4 ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>
-                      {student.finalScore !== null ? `${Math.round(student.finalScore)}%` : 'N/A'}
+                    <td className={`px-5 py-4 ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>
+                      {student.finalScore !== null ? `${Math.round(student.finalScore)}%` : student.grade || 'N/A'}
                     </td>
-                    <td className={`py-3 ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
+                    <td className={`px-5 py-4 ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
                       {new Date(student.enrollmentDate).toLocaleDateString()}
                     </td>
                   </tr>
@@ -2545,6 +2569,7 @@ export function LiveCourseDetailsPage({
               </tbody>
             </table>
           </div>
+        </div>
         )}
       </div>
     </div>
