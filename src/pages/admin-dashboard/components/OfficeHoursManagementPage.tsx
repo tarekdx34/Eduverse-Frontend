@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
@@ -22,11 +22,17 @@ import {
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { CleanSelect } from '../../../components/shared';
-import { ScheduleService, OfficeHoursSlot, OfficeHoursAppointment } from '../../../services/api/scheduleService';
+import {
+  ScheduleService,
+  OfficeHoursSlot,
+  OfficeHoursAppointment,
+} from '../../../services/api/scheduleService';
 import { adminService } from '../../../services/adminService';
 
 interface OfficeHoursManagementPageProps {
   isMockMode?: boolean;
+  /** Real signed-in session: never use mock instructors / office hours when API fails. */
+  useLiveApi?: boolean;
 }
 
 const DAYS_OF_WEEK = [
@@ -51,6 +57,85 @@ const TIME_SLOTS = Array.from({ length: 27 }, (_, i) => {
   const time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}:00`;
   return { value: time, label: time.slice(0, 5) };
 });
+
+const DAY_NAME_TO_VALUE: Record<string, string> = {
+  monday: 'MONDAY',
+  tuesday: 'TUESDAY',
+  wednesday: 'WEDNESDAY',
+  thursday: 'THURSDAY',
+  friday: 'FRIDAY',
+  saturday: 'SATURDAY',
+  sunday: 'SUNDAY',
+};
+
+function normalizeDayOfWeekForForm(day: string | undefined): string {
+  if (!day) return 'MONDAY';
+  const upper = String(day).toUpperCase();
+  if (DAYS_OF_WEEK.some((d) => d.value === upper)) return upper;
+  return DAY_NAME_TO_VALUE[String(day).toLowerCase()] || 'MONDAY';
+}
+
+function normalizeTimeToHms(time: string | undefined): string {
+  if (!time) return '09:00:00';
+  const parts = time.trim().split(':');
+  if (parts.length < 2) return '09:00:00';
+  const h = parts[0].padStart(2, '0');
+  const m = (parts[1] || '00').padStart(2, '0');
+  const sec = (parts[2] || '00').replace(/\..*$/, '').padStart(2, '0');
+  return `${h}:${m}:${sec}`;
+}
+
+function mergeTimeOptions(
+  base: { value: string; label: string }[],
+  needed: (string | undefined)[],
+) {
+  const out = new Map<string, { value: string; label: string }>();
+  base.forEach((s) => out.set(s.value, s));
+  needed.forEach((t) => {
+    const n = normalizeTimeToHms(t);
+    if (!out.has(n)) {
+      out.set(n, { value: n, label: n.slice(0, 5) });
+    }
+  });
+  return Array.from(out.values()).sort((a, b) => a.value.localeCompare(b.value));
+}
+
+function toDateInputValue(v: string | Date | null | undefined): string {
+  if (v == null) return '';
+  if (v instanceof Date) {
+    if (Number.isNaN(v.getTime())) return '';
+    return v.toISOString().slice(0, 10);
+  }
+  const s = String(v);
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+  if (s.includes('T')) {
+    return s.split('T')[0] || '';
+  }
+  return s.slice(0, 10);
+}
+
+function buildFormFromSlot(
+  slot: OfficeHoursSlot & { building?: string; room?: string; isRecurring?: boolean },
+) {
+  const s = slot as OfficeHoursSlot & { meetingUrl?: string | null };
+  const locationValue =
+    s.mode === 'online' ? s.meetingUrl || s.location || '' : s.location || '';
+  return {
+    instructorId: slot.instructorId,
+    dayOfWeek: normalizeDayOfWeekForForm(slot.dayOfWeek),
+    startTime: normalizeTimeToHms(slot.startTime),
+    endTime: normalizeTimeToHms(slot.endTime),
+    location: locationValue,
+    building: slot.building || '',
+    room: slot.room || '',
+    mode: (slot.mode as 'in_person' | 'online' | 'hybrid') || 'in_person',
+    maxAppointments: slot.maxAppointments ?? 5,
+    isRecurring: slot.isRecurring ?? true,
+    effectiveFrom: toDateInputValue(s.effectiveFrom as string | Date | null | undefined),
+    effectiveUntil: toDateInputValue(s.effectiveUntil as string | Date | null | undefined),
+    notes: s.notes != null && s.notes !== undefined ? String(s.notes) : '',
+  };
+}
 
 type ModalType = 'create' | 'edit' | 'delete' | null;
 
@@ -124,7 +209,10 @@ const extractApiErrorMessage = (error: unknown, fallback: string) => {
   );
 };
 
-export function OfficeHoursManagementPage({ isMockMode: propMockMode = false }: OfficeHoursManagementPageProps) {
+export function OfficeHoursManagementPage({
+  isMockMode: propMockMode = false,
+  useLiveApi = false,
+}: OfficeHoursManagementPageProps) {
   const { isDark, primaryHex } = useTheme() as any;
   const accentColor = primaryHex || '#3b82f6';
   const { t, isRTL } = useLanguage();
@@ -282,9 +370,11 @@ export function OfficeHoursManagementPage({ isMockMode: propMockMode = false }: 
     },
     retry: 1,
   });
-  const instructors = (instructorsError || !instructorsData || instructorsData.length === 0) 
-    ? MOCK_INSTRUCTORS 
-    : instructorsData;
+  const instructors = useLiveApi
+    ? instructorsData ?? []
+    : instructorsError || !instructorsData || instructorsData.length === 0
+      ? MOCK_INSTRUCTORS
+      : instructorsData;
 
   // Fetch office hours with fallback
   const { data: officeHoursData, isLoading, isError: officeHoursError } = useQuery({
@@ -323,9 +413,13 @@ export function OfficeHoursManagementPage({ isMockMode: propMockMode = false }: 
     return filtered;
   };
 
-  const officeHours = officeHoursError || !officeHoursData?.data 
-    ? getFilteredMockData() 
-    : officeHoursData.data;
+  const officeHours = useLiveApi
+    ? officeHoursError || !officeHoursData?.data
+      ? []
+      : officeHoursData.data
+    : officeHoursError || !officeHoursData?.data
+      ? getFilteredMockData()
+      : officeHoursData.data;
   const totalPages = officeHoursError || !officeHoursData?.meta ? 1 : officeHoursData.meta.totalPages || 1;
 
   // Mutations
@@ -381,29 +475,34 @@ export function OfficeHoursManagementPage({ isMockMode: propMockMode = false }: 
     retry: 1,
   });
 
+  const editSlotId = activeModal === 'edit' && selectedSlot ? selectedSlot.slotId : null;
+  const { data: slotDetail, isLoading: isSlotDetailLoading } = useQuery({
+    queryKey: ['office-hour-slot', editSlotId],
+    queryFn: () => ScheduleService.getOfficeHourById(editSlotId!),
+    enabled: editSlotId != null,
+  });
+
+  useEffect(() => {
+    if (activeModal !== 'edit' || !selectedSlot) return;
+    const detailForSlot =
+      slotDetail && slotDetail.slotId === selectedSlot.slotId ? slotDetail : undefined;
+    const merged = { ...selectedSlot, ...(detailForSlot || {}) } as OfficeHoursSlot &
+      OfficeHourWithInstructor;
+    setFormData(buildFormFromSlot(merged));
+  }, [activeModal, selectedSlot, slotDetail]);
+
+  const timeSelectOptions = useMemo(
+    () => mergeTimeOptions(TIME_SLOTS, [formData.startTime, formData.endTime]),
+    [formData.startTime, formData.endTime],
+  );
+
   // Modal handlers
   const openModal = (type: ModalType, slot?: OfficeHourWithInstructor) => {
     setActiveModal(type);
     if (slot) {
       setSelectedSlot(slot);
-      if (type === 'edit') {
-        setFormData({
-          instructorId: slot.instructorId,
-          dayOfWeek: slot.dayOfWeek,
-          startTime: slot.startTime,
-          endTime: slot.endTime,
-          location: slot.location,
-          building: slot.building || '',
-          room: slot.room || '',
-          mode: slot.mode as 'in_person' | 'online' | 'hybrid',
-          maxAppointments: slot.maxAppointments,
-          isRecurring: slot.isRecurring ?? true,
-          effectiveFrom: slot.effectiveFrom || '',
-          effectiveUntil: slot.effectiveUntil || '',
-          notes: slot.notes || '',
-        });
-      }
     } else {
+      setSelectedSlot(null);
       setFormData({
         instructorId: undefined,
         dayOfWeek: 'MONDAY',
@@ -439,7 +538,7 @@ export function OfficeHoursManagementPage({ isMockMode: propMockMode = false }: 
 
     const payload = {
       instructorId: formData.instructorId,
-      dayOfWeek: formData.dayOfWeek,
+      dayOfWeek: formData.dayOfWeek.toLowerCase(),
       startTime: formData.startTime,
       endTime: formData.endTime,
       location: formData.location,
@@ -519,14 +618,24 @@ export function OfficeHoursManagementPage({ isMockMode: propMockMode = false }: 
 
       {/* Filters */}
       <div className={`p-4 rounded-xl border ${cardClass}`}>
-        {(instructorsError || !instructorsData || instructorsData.length === 0) && (
+        {!useLiveApi && (instructorsError || !instructorsData || instructorsData.length === 0) && (
           <div className={`mb-4 rounded-lg border px-3 py-2 text-sm ${isDark ? 'bg-amber-500/10 text-amber-300 border-amber-500/30' : 'bg-amber-50 text-amber-800 border-amber-200'}`}>
             {t('warning') || 'Warning'}: using fallback instructor/TA mock list. Live user API data is unavailable.
           </div>
         )}
-        {(officeHoursError || !officeHoursData?.data) && (
+        {!useLiveApi && (officeHoursError || !officeHoursData?.data) && (
           <div className={`mb-4 rounded-lg border px-3 py-2 text-sm ${isDark ? 'bg-amber-500/10 text-amber-300 border-amber-500/30' : 'bg-amber-50 text-amber-800 border-amber-200'}`}>
             {t('warning') || 'Warning'}: using fallback office-hours mock data. Live office-hours API data is unavailable.
+          </div>
+        )}
+        {useLiveApi && instructorsError && (
+          <div className={`mb-4 rounded-lg border px-3 py-2 text-sm ${isDark ? 'bg-red-500/10 text-red-300 border-red-500/30' : 'bg-red-50 text-red-800 border-red-200'}`}>
+            {t('warning') || 'Warning'}: could not load instructors/TAs from the server.
+          </div>
+        )}
+        {useLiveApi && officeHoursError && (
+          <div className={`mb-4 rounded-lg border px-3 py-2 text-sm ${isDark ? 'bg-red-500/10 text-red-300 border-red-500/30' : 'bg-red-50 text-red-800 border-red-200'}`}>
+            {t('warning') || 'Warning'}: could not load office hours from the server.
           </div>
         )}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -838,7 +947,14 @@ export function OfficeHoursManagementPage({ isMockMode: propMockMode = false }: 
               </button>
             </div>
 
-            <div className="p-6 space-y-6">
+            <div
+              className={`p-6 space-y-6 relative ${isSlotDetailLoading && activeModal === 'edit' ? 'opacity-60 pointer-events-none' : ''}`}
+            >
+              {isSlotDetailLoading && activeModal === 'edit' && (
+                <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/5 rounded-2xl">
+                  <Loader2 className="w-7 h-7 animate-spin" style={{ color: accentColor }} />
+                </div>
+              )}
               {/* Instructor Selection */}
               <div>
                 <label className={`block text-sm font-medium mb-2 ${labelClass}`}>
@@ -850,11 +966,18 @@ export function OfficeHoursManagementPage({ isMockMode: propMockMode = false }: 
                   className={`w-full ${inputClass}`}
                 >
                   <option value="">{t('selectInstructor') || 'Select instructor or TA'}</option>
-                  {instructors.map((i: any) => (
-                    <option key={i.id || i.userId} value={String(i.id || i.userId)}>
-                      {i.firstName} {i.lastName} ({i.role === 'ta' ? 'TA' : 'Instructor'})
-                    </option>
-                  ))}
+                  {instructors.map((i: any) => {
+                    const uid = i.id ?? i.userId;
+                    const name =
+                      [i.firstName, i.lastName].filter(Boolean).join(' ').trim() ||
+                      i.email ||
+                      (uid != null ? `User ${uid}` : 'Unknown');
+                    return (
+                      <option key={uid} value={String(uid ?? '')}>
+                        {name} ({i.role === 'ta' ? 'TA' : 'Instructor'})
+                      </option>
+                    );
+                  })}
                 </CleanSelect>
               </div>
 
@@ -883,8 +1006,10 @@ export function OfficeHoursManagementPage({ isMockMode: propMockMode = false }: 
                     onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
                     className={`w-full ${inputClass}`}
                   >
-                    {TIME_SLOTS.map((t) => (
-                      <option key={t.value} value={t.value}>{t.label}</option>
+                    {timeSelectOptions.map((timeOpt) => (
+                      <option key={timeOpt.value} value={timeOpt.value}>
+                        {timeOpt.label}
+                      </option>
                     ))}
                   </CleanSelect>
                 </div>
@@ -897,8 +1022,10 @@ export function OfficeHoursManagementPage({ isMockMode: propMockMode = false }: 
                     onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
                     className={`w-full ${inputClass}`}
                   >
-                    {TIME_SLOTS.map((t) => (
-                      <option key={t.value} value={t.value}>{t.label}</option>
+                    {timeSelectOptions.map((timeOpt) => (
+                      <option key={`end-${timeOpt.value}`} value={timeOpt.value}>
+                        {timeOpt.label}
+                      </option>
                     ))}
                   </CleanSelect>
                 </div>

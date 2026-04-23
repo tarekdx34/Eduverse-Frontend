@@ -25,6 +25,18 @@ export const DASHBOARD_STATS = {
   pendingRequests: 0,
   storageUsed: '0 GB',
   aiRequestsToday: 0,
+  enrolledSeatsThisSemester: 0,
+  semesterLabel: '',
+  registrationStatus: 'unknown',
+  registrationSub: '',
+  pendingRequestsSub: '',
+  instructorCount: 0,
+  taCount: 0,
+  avgEnrollmentLabel: '—',
+  semesterWeekLabel: '—',
+  sectionFillRate: 0,
+  enrollmentChart: [],
+  upcomingSchedule: [],
 };
 
 export const CALENDAR_EVENTS: any[] = [];

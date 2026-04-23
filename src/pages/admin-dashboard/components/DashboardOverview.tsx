@@ -1,6 +1,16 @@
 import React from 'react';
 import { BookOpen, GraduationCap, Calendar, Clock, Users, TrendingUp } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import {
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  XAxis,
+  YAxis,
+} from 'recharts';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 
@@ -16,13 +26,35 @@ const cardClass = (isDark: boolean) =>
 
 const headingClass = (isDark: boolean) => `${isDark ? 'text-white' : 'text-slate-900'}`;
 
-const enrollmentData: any[] = [];
-
-const upcomingSchedule: any[] = [];
-
-export function DashboardOverview({ stats, recentActivity }: DashboardOverviewProps) {
+export function DashboardOverview({ stats, analytics, recentActivity }: DashboardOverviewProps) {
   const { isDark, primaryHex } = useTheme() as any;
   const { t } = useLanguage();
+
+  const enrollmentData: { course: string; enrolled: number; capacity: number }[] = Array.isArray(
+    stats.enrollmentChart,
+  )
+    ? stats.enrollmentChart
+    : [];
+
+  const upcomingSchedule: {
+    time: string;
+    course: string;
+    instructor: string;
+    room: string;
+  }[] = Array.isArray(stats.upcomingSchedule) ? stats.upcomingSchedule : [];
+
+  const registrationLabel = (() => {
+    switch (stats.registrationStatus) {
+      case 'open':
+        return t('open');
+      case 'closed':
+        return t('closed');
+      case 'upcoming':
+        return t('upcoming');
+      default:
+        return '—';
+    }
+  })();
 
   const topStats = [
     {
@@ -35,27 +67,27 @@ export function DashboardOverview({ stats, recentActivity }: DashboardOverviewPr
       subColor: primaryHex,
     },
     {
-      label: 'Enrolled Students',
-      value: 0,
-      sub: '0 this semester',
+      label: `${t('enrolled')} (${t('semester')})`,
+      value: stats.enrolledSeatsThisSemester ?? 0,
+      sub: stats.semesterLabel || stats.currentSemester || '—',
       icon: GraduationCap,
       iconBg: isDark ? `${primaryHex}20` : `${primaryHex}10`,
       iconColor: primaryHex,
       subColor: primaryHex,
     },
     {
-      label: 'Enrollment Period',
-      value: 'N/A',
-      sub: 'No period active',
+      label: t('registrationPeriod'),
+      value: registrationLabel,
+      sub: stats.registrationSub || '—',
       icon: Calendar,
       iconBg: isDark ? `${primaryHex}20` : `${primaryHex}10`,
       iconColor: primaryHex,
       subColor: primaryHex,
     },
     {
-      label: 'Pending Requests',
-      value: 0,
-      sub: '0 course overrides',
+      label: t('pendingRequests'),
+      value: stats.pendingRequests ?? 0,
+      sub: stats.pendingRequestsSub || '—',
       icon: Clock,
       iconBg: isDark ? `${primaryHex}20` : `${primaryHex}10`,
       iconColor: primaryHex,
@@ -98,9 +130,12 @@ export function DashboardOverview({ stats, recentActivity }: DashboardOverviewPr
               {stat.label}
             </div>
             <div
-              className="text-xs font-semibold"
-              style={{ color: stat.subColor.startsWith('text-') ? undefined : stat.subColor }}
-              className={stat.subColor.startsWith('text-') ? stat.subColor : ''}
+              className={`text-xs font-semibold ${
+                stat.subColor.startsWith('text-') ? stat.subColor : ''
+              }`}
+              style={
+                stat.subColor.startsWith('text-') ? undefined : { color: stat.subColor as string }
+              }
             >
               {stat.sub}
             </div>
@@ -132,18 +167,18 @@ export function DashboardOverview({ stats, recentActivity }: DashboardOverviewPr
               <h3
                 className={`text-2xl font-bold tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}
               >
-                Department Name
+                {t('department')}
               </h3>
             </div>
             <p className={`text-sm mb-8 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-              Semester Details — Week 0 of 0
+              {stats.semesterWeekLabel || '—'}
             </p>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
-                { label: 'Instructors', value: 0 },
-                { label: 'Teaching Assistants', value: 0 },
-                { label: 'Active Courses', value: stats.activeCourses ?? 0 },
-                { label: 'Avg. Enrollment', value: '0/course' },
+                { label: t('instructors'), value: stats.instructorCount ?? 0 },
+                { label: t('teachingAssistants'), value: stats.taCount ?? 0 },
+                { label: t('activeCourses'), value: stats.activeCourses ?? 0 },
+                { label: t('avgEnrollment'), value: stats.avgEnrollmentLabel || '—' },
               ].map((item) => (
                 <div
                   key={item.label}
@@ -168,6 +203,87 @@ export function DashboardOverview({ stats, recentActivity }: DashboardOverviewPr
         </div>
       </div>
 
+      {(Array.isArray(analytics?.userGrowth) && analytics.userGrowth.length > 0) ||
+      (Array.isArray(analytics?.courseEngagement) &&
+        analytics.courseEngagement.some((c: any) => Number(c.activeStudents) > 0)) ? (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {Array.isArray(analytics?.userGrowth) && analytics.userGrowth.length > 0 && (
+            <div className={cardClass(isDark)}>
+              <h3 className={`text-lg font-bold mb-4 ${headingClass(isDark)}`}>
+                {t('userGrowthTrend')}
+              </h3>
+              <ResponsiveContainer width="100%" height={260}>
+                <AreaChart data={analytics.userGrowth}>
+                  <defs>
+                    <linearGradient id="adminUserGrowth" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor={primaryHex} stopOpacity={0.35} />
+                      <stop offset="95%" stopColor={primaryHex} stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#ffffff12' : '#f1f5f9'} />
+                  <XAxis dataKey="month" tick={{ fill: isDark ? '#94a3b8' : '#64748b', fontSize: 11 }} />
+                  <YAxis tick={{ fill: isDark ? '#94a3b8' : '#64748b', fontSize: 11 }} allowDecimals={false} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: isDark ? '#1e293b' : '#ffffff',
+                      border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid #e2e8f0',
+                      borderRadius: 12,
+                    }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="students"
+                    name="Students"
+                    stroke={primaryHex}
+                    strokeWidth={2}
+                    fill="url(#adminUserGrowth)"
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="instructors"
+                    name="Instructors"
+                    stroke="#10b981"
+                    strokeWidth={2}
+                    fillOpacity={0}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+          {Array.isArray(analytics?.courseEngagement) &&
+            analytics.courseEngagement.some((c: any) => Number(c.activeStudents) > 0) && (
+              <div className={cardClass(isDark)}>
+                <h3 className={`text-lg font-bold mb-4 ${headingClass(isDark)}`}>
+                  {t('engagementByCourse')}
+                </h3>
+                <ResponsiveContainer width="100%" height={260}>
+                  <BarChart
+                    data={analytics.courseEngagement.filter((c: any) => Number(c.activeStudents) > 0)}
+                    layout="vertical"
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#ffffff12' : '#f1f5f9'} />
+                    <XAxis type="number" tick={{ fill: isDark ? '#94a3b8' : '#64748b', fontSize: 11 }} />
+                    <YAxis
+                      type="category"
+                      dataKey="course"
+                      width={100}
+                      tick={{ fill: isDark ? '#94a3b8' : '#64748b', fontSize: 10 }}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: isDark ? '#1e293b' : '#ffffff',
+                        border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid #e2e8f0',
+                        borderRadius: 12,
+                      }}
+                    />
+                    <Bar dataKey="activeStudents" name={t('students')} fill={primaryHex} radius={[0, 6, 6, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+        </div>
+      ) : null}
+
       {/* Main Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column - 2/3 */}
@@ -187,10 +303,16 @@ export function DashboardOverview({ stats, recentActivity }: DashboardOverviewPr
                   className="text-xs font-bold uppercase tracking-wider"
                   style={{ color: primaryHex }}
                 >
-                  87% avg. fill rate
+                  {typeof stats.sectionFillRate === 'number' ? `${stats.sectionFillRate}%` : '—'} fill (
+                  {t('semester')})
                 </span>
               </div>
             </div>
+            {enrollmentData.length === 0 ? (
+              <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                No section enrollment data for this view yet.
+              </p>
+            ) : (
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={enrollmentData} barGap={8}>
                 <CartesianGrid
@@ -247,6 +369,7 @@ export function DashboardOverview({ stats, recentActivity }: DashboardOverviewPr
                 />
               </BarChart>
             </ResponsiveContainer>
+            )}
           </div>
 
           {/* Upcoming Schedule */}
@@ -311,11 +434,14 @@ export function DashboardOverview({ stats, recentActivity }: DashboardOverviewPr
               {t('recentActivity')}
             </h3>
             <div className="space-y-6">
-              {recentActivity
-                .filter((a) => a.type === 'course' || a.type === 'user')
-                .slice(0, 5)
-                .map((activity, index) => (
-                  <div key={index} className="flex items-start gap-4 relative">
+              {(!Array.isArray(recentActivity) || recentActivity.length === 0) && (
+                <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                  No audit log entries yet. Actions across the system will appear here as they are
+                  recorded.
+                </p>
+              )}
+              {(recentActivity ?? []).slice(0, 5).map((activity, index) => (
+                <div key={index} className="flex items-start gap-4 relative">
                     {index < 4 && (
                       <div
                         className={`absolute left-[17px] top-10 bottom-[-24px] w-0.5 ${isDark ? 'bg-slate-700' : 'bg-slate-100'}`}
@@ -352,26 +478,9 @@ export function DashboardOverview({ stats, recentActivity }: DashboardOverviewPr
                         {activity.description}
                       </p>
                     </div>
-                  </div>
-                ))}
+                </div>
+              ))}
             </div>
-            <button
-              className="w-full mt-8 py-4 rounded-2xl text-[10px] font-extrabold uppercase tracking-[0.2em] transition-all duration-300 border bg-transparent"
-              style={{
-                color: primaryHex,
-                borderColor: `${primaryHex}30`,
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = `${primaryHex}08`;
-                e.currentTarget.style.borderColor = `${primaryHex}50`;
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'transparent';
-                e.currentTarget.style.borderColor = `${primaryHex}30`;
-              }}
-            >
-              View All Activity
-            </button>
           </div>
         </div>
       </div>

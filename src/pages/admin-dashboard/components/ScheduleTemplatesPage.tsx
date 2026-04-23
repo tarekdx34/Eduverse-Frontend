@@ -27,6 +27,7 @@ import { ApiClient } from '../../../services/api/client';
 
 interface ScheduleTemplatesPageProps {
   isMockMode?: boolean;
+  useLiveApi?: boolean;
 }
 
 interface DepartmentOption {
@@ -105,7 +106,10 @@ interface TemplateSlotInput {
 type ModalType = 'create' | 'edit' | 'delete' | 'apply' | 'bulk-apply' | null;
 type WizardStep = 1 | 2 | 3;
 
-export function ScheduleTemplatesPage({ isMockMode: propMockMode = false }: ScheduleTemplatesPageProps) {
+export function ScheduleTemplatesPage({
+  isMockMode: propMockMode = false,
+  useLiveApi = false,
+}: ScheduleTemplatesPageProps) {
   const { isDark, primaryHex } = useTheme() as any;
   const accentColor = primaryHex || '#3b82f6';
   const { t, isRTL } = useLanguage();
@@ -212,7 +216,8 @@ export function ScheduleTemplatesPage({ isMockMode: propMockMode = false }: Sche
   });
   const liveDepartments = normalizeDepartments(departmentsData);
   const isDepartmentsFallback = deptError || liveDepartments.length === 0;
-  const departments = isDepartmentsFallback ? MOCK_DEPARTMENTS : liveDepartments;
+  const departments =
+    useLiveApi ? liveDepartments : isDepartmentsFallback ? MOCK_DEPARTMENTS : liveDepartments;
 
   // Fetch sections for applying templates with fallback
   const { data: sectionsData, isError: sectionsError } = useQuery({
@@ -224,7 +229,13 @@ export function ScheduleTemplatesPage({ isMockMode: propMockMode = false }: Sche
     enabled: activeModal === 'apply' || activeModal === 'bulk-apply',
     retry: 1,
   });
-  const sections = (sectionsError || !sectionsData || sectionsData.length === 0) ? MOCK_SECTIONS : sectionsData;
+  const sections = useLiveApi
+    ? Array.isArray(sectionsData)
+      ? sectionsData
+      : []
+    : sectionsError || !sectionsData || sectionsData.length === 0
+      ? MOCK_SECTIONS
+      : sectionsData;
 
   // Build query params
   const queryParams: ScheduleTemplateQuery = {
@@ -264,7 +275,13 @@ export function ScheduleTemplatesPage({ isMockMode: propMockMode = false }: Sche
     return filtered;
   };
 
-  const templates = templatesError || !templatesData?.data ? getFilteredMockTemplates() : templatesData.data;
+  const templates = useLiveApi
+    ? templatesError || !templatesData?.data
+      ? []
+      : templatesData.data
+    : templatesError || !templatesData?.data
+      ? getFilteredMockTemplates()
+      : templatesData.data;
   const totalPages = templatesError || !templatesData?.meta ? 1 : templatesData.meta.totalPages || 1;
 
   // Mutations
@@ -564,9 +581,14 @@ export function ScheduleTemplatesPage({ isMockMode: propMockMode = false }: Sche
 
       {/* Filters */}
       <div className={`p-4 rounded-xl border ${cardClass}`}>
-        {isDepartmentsFallback && (
+        {!useLiveApi && isDepartmentsFallback && (
           <div className={`mb-4 rounded-lg border px-3 py-2 text-sm ${isDark ? 'bg-amber-500/10 text-amber-300 border-amber-500/30' : 'bg-amber-50 text-amber-800 border-amber-200'}`}>
             {t('warning') || 'Warning'}: using fallback department mock data because live departments API failed.
+          </div>
+        )}
+        {useLiveApi && deptError && (
+          <div className={`mb-4 rounded-lg border px-3 py-2 text-sm ${isDark ? 'bg-red-500/10 text-red-300 border-red-500/30' : 'bg-red-50 text-red-800 border-red-200'}`}>
+            {t('warning') || 'Warning'}: could not load departments from the server.
           </div>
         )}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

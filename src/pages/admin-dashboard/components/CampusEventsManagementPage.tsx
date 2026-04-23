@@ -27,6 +27,7 @@ import { adminService } from '../../../services/adminService';
 
 interface CampusEventsManagementPageProps {
   isMockMode?: boolean;
+  useLiveApi?: boolean;
 }
 
 interface DepartmentOption {
@@ -74,7 +75,10 @@ const DEFAULT_COLORS = [
 
 type ModalType = 'create' | 'edit' | 'delete' | 'registrations' | null;
 
-export function CampusEventsManagementPage({ isMockMode: propMockMode = false }: CampusEventsManagementPageProps) {
+export function CampusEventsManagementPage({
+  isMockMode: propMockMode = false,
+  useLiveApi = false,
+}: CampusEventsManagementPageProps) {
   const { isDark, primaryHex } = useTheme() as any;
   const accentColor = primaryHex || '#3b82f6';
   const { t, isRTL } = useLanguage();
@@ -131,7 +135,8 @@ export function CampusEventsManagementPage({ isMockMode: propMockMode = false }:
   });
   const liveDepartments = normalizeDepartments(departmentsData);
   const isDepartmentsFallback = deptError || liveDepartments.length === 0;
-  const departments = isDepartmentsFallback ? MOCK_DEPARTMENTS : liveDepartments;
+  const departments =
+    useLiveApi ? liveDepartments : isDepartmentsFallback ? MOCK_DEPARTMENTS : liveDepartments;
 
   // Build query params
   const queryParams: CampusEventQuery = {
@@ -170,7 +175,13 @@ export function CampusEventsManagementPage({ isMockMode: propMockMode = false }:
     return filtered;
   };
 
-  const events = eventsError || !eventsData?.data ? getFilteredMockEvents() : eventsData.data;
+  const events = useLiveApi
+    ? eventsError || !eventsData?.data
+      ? []
+      : eventsData.data
+    : eventsError || !eventsData?.data
+      ? getFilteredMockEvents()
+      : eventsData.data;
   const totalPages = eventsError || !eventsData?.meta ? 1 : eventsData.meta.totalPages || 1;
 
   // Mutations
@@ -366,9 +377,14 @@ export function CampusEventsManagementPage({ isMockMode: propMockMode = false }:
 
       {/* Filters */}
       <div className={`p-4 rounded-xl border ${cardClass}`}>
-        {isDepartmentsFallback && (
+        {!useLiveApi && isDepartmentsFallback && (
           <div className={`mb-4 rounded-lg border px-3 py-2 text-sm ${isDark ? 'bg-amber-500/10 text-amber-300 border-amber-500/30' : 'bg-amber-50 text-amber-800 border-amber-200'}`}>
             {t('warning') || 'Warning'}: using fallback department mock data because live departments API failed.
+          </div>
+        )}
+        {useLiveApi && deptError && (
+          <div className={`mb-4 rounded-lg border px-3 py-2 text-sm ${isDark ? 'bg-red-500/10 text-red-300 border-red-500/30' : 'bg-red-50 text-red-800 border-red-200'}`}>
+            {t('warning') || 'Warning'}: could not load departments from the server.
           </div>
         )}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">

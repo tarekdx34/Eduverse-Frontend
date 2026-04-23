@@ -34,23 +34,36 @@ interface SubTab {
 
 interface EnrollmentPeriod {
   id: number;
+  /** Same as semester row id when loaded from API */
+  semesterId?: number;
   department: string;
   semester: string;
+  semesterCode?: string;
   startDate: string;
   endDate: string;
+  registrationStart?: string;
+  registrationEnd?: string;
+  semesterStart?: string;
+  semesterEnd?: string;
   totalStudents: number;
   registeredStudents: number;
+  /** Distinct courses with OPEN/FULL sections in this semester (dept-scoped when API filtered) */
+  coursesAvailable?: number;
   status: 'active' | 'closed' | 'upcoming';
   description: string;
 }
 
 interface EnrollmentPeriodPageProps {
+  /** When true, nested scheduling pages never substitute mock data on API failure. */
+  useLiveApi?: boolean;
   enrollmentPeriods: EnrollmentPeriod[];
   courses: {
     id: number;
     code: string;
     name: string;
     department: string;
+    semester?: string;
+    offeringSemesterIds?: number[];
     enrolled: number;
     capacity: number;
     prerequisites: string[];
@@ -62,6 +75,7 @@ interface EnrollmentPeriodPageProps {
 }
 
 export function EnrollmentPeriodPage({
+  useLiveApi = false,
   enrollmentPeriods,
   courses,
   adminDepartment,
@@ -92,8 +106,11 @@ export function EnrollmentPeriodPage({
 
   const [formData, setFormData] = useState({
     semester: 'Spring 2026',
+    semesterCode: '',
     startDate: '',
     endDate: '',
+    semesterStartDate: '',
+    semesterEndDate: '',
     description: '',
   });
 
@@ -101,8 +118,30 @@ export function EnrollmentPeriodPage({
   const labelClass = `${isDark ? 'text-slate-300' : 'text-slate-600'}`;
   const inputClass = `${isDark ? 'bg-slate-800/50 border-slate-700 text-white placeholder-slate-500' : 'bg-white border-slate-300 text-slate-900 placeholder-slate-400'} border rounded-lg px-3 py-2 text-sm focus:outline-none transition-all duration-200`;
 
-  const deptPeriods = enrollmentPeriods.filter((p) => p.department === adminDepartment);
-  const deptCourses = courses.filter((c) => c.department === adminDepartment);
+  const deptPeriods = enrollmentPeriods.filter(
+    (p) => !p.department || p.department === adminDepartment,
+  );
+  const deptCourses =
+    !adminDepartment || adminDepartment === 'Department'
+      ? courses
+      : courses.filter((c) => c.department === adminDepartment);
+
+  const deptCoursesForPeriod = (period: EnrollmentPeriod) => {
+    const sid = period.semesterId ?? period.id;
+    return deptCourses.filter((c) => {
+      if (c.offeringSemesterIds?.length && sid) {
+        return c.offeringSemesterIds.includes(sid);
+      }
+      return !!(period.semester && c.semester === period.semester);
+    });
+  };
+
+  const displayedCoursesAvailable = (period: EnrollmentPeriod) => {
+    if (typeof period.coursesAvailable === 'number') {
+      return period.coursesAvailable;
+    }
+    return deptCoursesForPeriod(period).length;
+  };
 
   const filteredPeriods = deptPeriods.filter(
     (p) => statusFilter === 'all' || p.status === statusFilter
@@ -111,6 +150,9 @@ export function EnrollmentPeriodPage({
   const totalRegistered = deptPeriods
     .filter((p) => p.status === 'active')
     .reduce((s, p) => s + p.registeredStudents, 0);
+  const totalSeatCapacityActive = deptPeriods
+    .filter((p) => p.status === 'active')
+    .reduce((s, p) => s + (Number(p.totalStudents) || 0), 0);
 
   const statusConfig: Record<
     string,
@@ -149,16 +191,22 @@ export function EnrollmentPeriodPage({
       setSelectedPeriod(period);
       setFormData({
         semester: period.semester,
-        startDate: period.startDate,
-        endDate: period.endDate,
+        semesterCode: period.semesterCode || '',
+        startDate: period.registrationStart || period.startDate,
+        endDate: period.registrationEnd || period.endDate,
+        semesterStartDate: period.semesterStart || '',
+        semesterEndDate: period.semesterEnd || '',
         description: period.description,
       });
     } else {
       setSelectedPeriod(null);
       setFormData({
         semester: 'Spring 2026',
+        semesterCode: '',
         startDate: '',
         endDate: '',
+        semesterStartDate: '',
+        semesterEndDate: '',
         description: '',
       });
     }
@@ -181,7 +229,6 @@ export function EnrollmentPeriodPage({
       ...formData,
       department: adminDepartment,
       status,
-      totalStudents: 150,
       registeredStudents: selectedPeriod?.registeredStudents || 0,
     };
     if (activeModal === 'edit-period' && selectedPeriod) {
@@ -221,7 +268,7 @@ export function EnrollmentPeriodPage({
             );
           })}
         </div>
-        <CampusEventsManagementPage />
+        <CampusEventsManagementPage useLiveApi={useLiveApi} />
       </div>
     );
   }
@@ -253,7 +300,7 @@ export function EnrollmentPeriodPage({
             );
           })}
         </div>
-        <ScheduleTemplatesPage />
+        <ScheduleTemplatesPage useLiveApi={useLiveApi} />
       </div>
     );
   }
@@ -285,7 +332,7 @@ export function EnrollmentPeriodPage({
             );
           })}
         </div>
-        <OfficeHoursManagementPage />
+        <OfficeHoursManagementPage useLiveApi={useLiveApi} />
       </div>
     );
   }
@@ -368,7 +415,10 @@ export function EnrollmentPeriodPage({
           },
           {
             label: t('students'),
-            value: `${totalRegistered}/150`,
+            value:
+              totalSeatCapacityActive > 0
+                ? `${totalRegistered}/${totalSeatCapacityActive}`
+                : String(totalRegistered),
             icon: Users,
             color: 'text-blue-500',
           },
@@ -427,7 +477,10 @@ export function EnrollmentPeriodPage({
         {filteredPeriods.map((period) => {
           const regPercent =
             period.totalStudents > 0
-              ? Math.round((period.registeredStudents / period.totalStudents) * 100)
+              ? Math.min(
+                  100,
+                  Math.round((period.registeredStudents / period.totalStudents) * 100),
+                )
               : 0;
           const cfg = statusConfig[period.status] || statusConfig.closed;
           return (
@@ -509,13 +562,22 @@ export function EnrollmentPeriodPage({
                   <div className="flex items-center gap-2 text-sm">
                     <Users size={14} className={isDark ? 'text-gray-400' : 'text-gray-500'} />
                     <span className={isDark ? 'text-gray-300' : 'text-gray-700'}>
-                      {period.registeredStudents}/{period.totalStudents} {t('students')} registered
+                      {period.totalStudents > 0
+                        ? `${period.registeredStudents}/${period.totalStudents}`
+                        : `${period.registeredStudents}`}{' '}
+                      {t('students')} registered
+                      {period.totalStudents === 0 && (
+                        <span className={isDark ? 'text-gray-500' : 'text-gray-500'}>
+                          {' '}
+                          (no section capacity yet)
+                        </span>
+                      )}
                     </span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <BookOpen size={14} className={isDark ? 'text-gray-400' : 'text-gray-500'} />
                     <span className={isDark ? 'text-gray-300' : 'text-gray-700'}>
-                      {deptCourses.length} courses available
+                      {displayedCoursesAvailable(period)} courses available
                     </span>
                   </div>
                 </div>
@@ -547,7 +609,7 @@ export function EnrollmentPeriodPage({
                       Available Courses (prerequisites enforced)
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-                      {deptCourses.map((course) => (
+                      {deptCoursesForPeriod(period).map((course) => (
                         <div
                           key={course.id}
                           className={`flex items-center justify-between p-2 rounded-lg ${isDark ? 'bg-gray-800' : 'bg-white'} border ${isDark ? 'border-gray-600' : 'border-gray-200'}`}
@@ -643,12 +705,43 @@ export function EnrollmentPeriodPage({
                       <option value="Fall 2026">Fall 2026</option>
                     </CleanSelect>
                   </div>
+                  <div>
+                    <label
+                      className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                    >
+                      Semester code (API)
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.semesterCode}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          semesterCode: e.target.value
+                            .toUpperCase()
+                            .replace(/[^A-Z0-9]/g, '')
+                            .slice(0, 20),
+                        })
+                      }
+                      placeholder="e.g. SPRING2026 — optional; derived from name if empty"
+                      maxLength={20}
+                      className={`w-full px-4 py-2 rounded-xl border focus:ring-0 outline-none transition-all ${isDark ? 'bg-slate-800 border-slate-700 text-white placeholder-slate-500' : 'bg-white border-slate-200 text-slate-900 placeholder-slate-400'}`}
+                      onFocus={(e) => (e.target.style.borderColor = accentColor)}
+                      onBlur={(e) =>
+                        (e.target.style.borderColor = isDark ? '#334155' : '#e2e8f0')
+                      }
+                    />
+                    <p className={`text-xs mt-1 ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>
+                      2–20 uppercase letters or digits (server requirement). Leave blank to auto-build
+                      from the semester name.
+                    </p>
+                  </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label
                         className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
                       >
-                        {t('startDate')}
+                        Registration start
                       </label>
                       <input
                         type="date"
@@ -666,7 +759,7 @@ export function EnrollmentPeriodPage({
                       <label
                         className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
                       >
-                        {t('endDate')}
+                        Registration end
                       </label>
                       <input
                         type="date"
@@ -681,6 +774,50 @@ export function EnrollmentPeriodPage({
                       />
                     </div>
                   </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label
+                        className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                      >
+                        Semester start (classes)
+                      </label>
+                      <input
+                        type="date"
+                        value={formData.semesterStartDate}
+                        onChange={(e) =>
+                          setFormData({ ...formData, semesterStartDate: e.target.value })
+                        }
+                        className={`w-full px-4 py-2 rounded-xl border focus:ring-0 outline-none transition-all ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200 text-slate-900'}`}
+                        onFocus={(e) => (e.target.style.borderColor = accentColor)}
+                        onBlur={(e) =>
+                          (e.target.style.borderColor = isDark ? '#334155' : '#e2e8f0')
+                        }
+                      />
+                    </div>
+                    <div>
+                      <label
+                        className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                      >
+                        Semester end (classes)
+                      </label>
+                      <input
+                        type="date"
+                        value={formData.semesterEndDate}
+                        onChange={(e) =>
+                          setFormData({ ...formData, semesterEndDate: e.target.value })
+                        }
+                        className={`w-full px-4 py-2 rounded-xl border focus:ring-0 outline-none transition-all ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200 text-slate-900'}`}
+                        onFocus={(e) => (e.target.style.borderColor = accentColor)}
+                        onBlur={(e) =>
+                          (e.target.style.borderColor = isDark ? '#334155' : '#e2e8f0')
+                        }
+                      />
+                    </div>
+                  </div>
+                  <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>
+                    If semester dates are empty, the server uses the day after registration ends as
+                    semester start and adds 119 days for semester end (you can override here).
+                  </p>
                   <div>
                     <label
                       className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}

@@ -462,9 +462,10 @@ export function MessagingChat({
   isDark = false,
 }: MessagingChatProps) {
   const token = localStorage.getItem(TOKEN_KEYS.ACCESS_TOKEN) || '';
+  const isMockToken = token === 'mock-dev-token';
 
   const resolvedUserId = useMemo(() => {
-    if (currentUserId !== 'current-user') return String(currentUserId);
+    if (currentUserId && currentUserId !== 'current-user') return String(currentUserId);
     if (!token || token.split('.').length < 2) return '';
 
     try {
@@ -475,9 +476,11 @@ export function MessagingChat({
     }
   }, [currentUserId, token]);
 
-  const [localConversations, setLocalConversations] = useState<Conversation[]>(conversations);
-  const [selectedConversation, setSelectedConversation] = useState<string>(
-    token ? '' : conversations[0]?.id || ''
+  const [localConversations, setLocalConversations] = useState<Conversation[]>(() =>
+    token && !isMockToken ? [] : conversations,
+  );
+  const [selectedConversation, setSelectedConversation] = useState<string>(() =>
+    token && !isMockToken ? '' : conversations[0]?.id || '',
   );
   const [messageInput, setMessageInput] = useState('');
   const [messages, setMessages] = useState<Message[]>(initialMessages);
@@ -525,7 +528,7 @@ export function MessagingChat({
   }, [messages]);
 
   useEffect(() => {
-    if (!token) return;
+    if (!token || isMockToken) return;
 
     let mounted = true;
     setIsLoadingConversations(true);
@@ -533,20 +536,33 @@ export function MessagingChat({
 
     ChatService.listConversations()
       .then((list) => {
-        if (!mounted || !list.length) return;
-        const fromConversations = buildDirectoryFromConversations(list);
-        const mergedDirectory = mergeDirectory(userDirectory, fromConversations);
+        if (!mounted) return;
+        const safeList = Array.isArray(list) ? list : [];
+
+        if (safeList.length === 0) {
+          setLocalConversations([]);
+          setSelectedConversation('');
+          setMessages([]);
+          return;
+        }
+
+        const fromConversations = buildDirectoryFromConversations(safeList);
         setUserDirectory((prev) => mergeDirectory(prev, fromConversations));
 
-        const mapped = list.map((conversation) =>
-          mapConversation(conversation, resolvedUserId, mergedDirectory)
+        const mapped = safeList.map((conversation) =>
+          mapConversation(conversation, resolvedUserId, mergeDirectory({}, fromConversations)),
         );
         setLocalConversations(mapped);
-        setSelectedConversation((prev) => prev || mapped[0]?.id || '');
+        setSelectedConversation((prev) => {
+          if (prev && mapped.some((c) => c.id === prev)) return prev;
+          return mapped[0]?.id || '';
+        });
       })
       .catch((error) => {
         if (!mounted) return;
         setChatError(error instanceof Error ? error.message : 'Failed to load conversations.');
+        setLocalConversations([]);
+        setSelectedConversation('');
       })
       .finally(() => {
         if (mounted) setIsLoadingConversations(false);
@@ -555,10 +571,10 @@ export function MessagingChat({
     return () => {
       mounted = false;
     };
-  }, [token, resolvedUserId]);
+  }, [token, resolvedUserId, isMockToken]);
 
   useEffect(() => {
-    if (!token) return;
+    if (!token || isMockToken) return;
 
     chatSocketClient.connect('/messaging', token);
 
@@ -694,10 +710,10 @@ export function MessagingChat({
       chatSocketClient.off('message_deleted', handleMessageDeleted);
       chatSocketClient.off('delete_confirmed', handleMessageDeleted);
     };
-  }, [token, selectedConversation, resolvedUserId, currentUserName]);
+  }, [token, selectedConversation, resolvedUserId, currentUserName, isMockToken]);
 
   useEffect(() => {
-    if (!token || !selectedConversation) return;
+    if (!token || isMockToken || !selectedConversation) return;
 
     const conversationId = Number(selectedConversation);
     if (Number.isNaN(conversationId)) return;
@@ -737,11 +753,11 @@ export function MessagingChat({
     return () => {
       mounted = false;
     };
-  }, [selectedConversation, token, resolvedUserId, currentUserName]);
+  }, [selectedConversation, token, resolvedUserId, currentUserName, isMockToken]);
 
   useEffect(() => {
     const conversationId = Number(selectedConversation);
-    if (!token || Number.isNaN(conversationId)) return;
+    if (!token || isMockToken || Number.isNaN(conversationId)) return;
 
     if (typingEmitTimer.current) {
       window.clearTimeout(typingEmitTimer.current);
@@ -762,7 +778,7 @@ export function MessagingChat({
         window.clearTimeout(typingEmitTimer.current);
       }
     };
-  }, [messageInput, selectedConversation, token]);
+  }, [messageInput, selectedConversation, token, isMockToken]);
 
   const handleConversationSelect = (id: string) => {
     setSelectedConversation(id);
@@ -1135,6 +1151,20 @@ export function MessagingChat({
         </div>
 
         <div className="flex-1 overflow-y-auto">
+          {!isLoadingConversations &&
+            !chatError &&
+            filteredConversations.length === 0 && (
+              <div
+                className={`px-4 py-8 text-center text-sm ${isDark ? 'text-slate-400' : 'text-gray-500'}`}
+              >
+                <p className={`font-medium ${isDark ? 'text-slate-200' : 'text-gray-800'}`}>
+                  No conversations yet
+                </p>
+                <p className="mt-1 text-xs">
+                  Use New chat to start a conversation, or check back when someone messages you.
+                </p>
+              </div>
+            )}
           {filteredConversations.map((conversation) => (
             <button
               key={conversation.id}

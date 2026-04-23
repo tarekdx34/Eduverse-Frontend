@@ -52,6 +52,72 @@ interface CourseManagementPageProps {
   onRefreshCourses: () => Promise<void> | void;
 }
 
+/** One course section + schedule + staff (supports multiple sections & instructors per course). */
+type SectionRow = {
+  key: string;
+  sectionId: number | null;
+  sectionNumber: string;
+  maxCapacity: number;
+  location: string;
+  semesterId: number;
+  scheduleDay: string;
+  startTime: string;
+  endTime: string;
+  /** First = primary instructor, rest = co-instructors (API roles). */
+  instructorIds: number[];
+  taIds: number[];
+};
+
+function newRowKey() {
+  return globalThis.crypto?.randomUUID?.() ?? `sec-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+}
+
+function createSectionRow(semesterId: number): SectionRow {
+  return {
+    key: newRowKey(),
+    sectionId: null,
+    sectionNumber: '1',
+    maxCapacity: 30,
+    location: 'Room A-101',
+    semesterId,
+    scheduleDay: 'Monday',
+    startTime: '09:00',
+    endTime: '10:30',
+    instructorIds: [],
+    taIds: [],
+  };
+}
+
+function parseSectionNumberForApi(sectionNumber: string): number | undefined {
+  const n = parseInt(String(sectionNumber).trim(), 10);
+  if (Number.isFinite(n) && n >= 1) return n;
+  return undefined;
+}
+
+const WEEKDAY_OPTIONS = [
+  'Monday',
+  'Tuesday',
+  'Wednesday',
+  'Thursday',
+  'Friday',
+  'Saturday',
+  'Sunday',
+] as const;
+
+/** Placeholder / hint copy for course wizard inputs (steps 1–3) */
+const WIZARD_PH = {
+  courseCode: 'e.g. CS301',
+  courseCredits: 'e.g. 3',
+  courseName: 'e.g. Introduction to Machine Learning',
+  sectionNumber: 'e.g. 1, 2, or A',
+  maxCapacity: 'e.g. 40',
+  location: 'e.g. Building A, Room 101',
+  step3StaffHint:
+    'Optional: tap names to assign staff. First instructor selected is primary; additional taps add co-instructors.',
+  step3StaffLocked:
+    'Use Next on step 2 to save sections first; then you can assign instructors and TAs here.',
+} as const;
+
 interface SemesterOption {
   id: number;
   name: string;
@@ -156,8 +222,6 @@ export function CourseManagementPage({
   );
   const [staffFormData, setStaffFormData] = useState({
     courseId: 0,
-    instructorId: 0,
-    taIds: [] as number[],
   });
 
   const [formData, setFormData] = useState({
@@ -176,22 +240,9 @@ export function CourseManagementPage({
   });
   const [addStep, setAddStep] = useState<1 | 2 | 3>(1);
   const [addCourseId, setAddCourseId] = useState<number | null>(null);
-  const [addSectionId, setAddSectionId] = useState<number | null>(null);
   const [isAddSubmitting, setIsAddSubmitting] = useState(false);
   const [semesters, setSemesters] = useState<SemesterOption[]>([]);
-  const [sectionFormData, setSectionFormData] = useState({
-    sectionNumber: '01',
-    maxCapacity: 30,
-    location: 'Room A-101',
-    semesterId: 4,
-    scheduleDay: 'Monday',
-    startTime: '09:00',
-    endTime: '10:30',
-  });
-  const [addStaffFormData, setAddStaffFormData] = useState({
-    instructorId: 0,
-    taIds: [] as number[],
-  });
+  const [sectionRows, setSectionRows] = useState<SectionRow[]>(() => [createSectionRow(4)]);
   const [editStep, setEditStep] = useState<1 | 2 | 3>(1);
   const [isEditSubmitting, setIsEditSubmitting] = useState(false);
   const [isStaffSubmitting, setIsStaffSubmitting] = useState(false);
@@ -246,11 +297,16 @@ export function CourseManagementPage({
         }));
         setSemesters(mappedSemesters);
 
-        const activeSemester = mappedSemesters.find((s: SemesterOption) => s.id === 4);
-        setSectionFormData((prev) => ({
-          ...prev,
-          semesterId: activeSemester?.id || mappedSemesters[0]?.id || prev.semesterId,
-        }));
+        const defaultSemId = mappedSemesters[0]?.id ?? 4;
+        setSectionRows((prev) =>
+          prev.map((r) => ({
+            ...r,
+            semesterId:
+              mappedSemesters.some((s: SemesterOption) => s.id === r.semesterId) ?
+                r.semesterId
+              : defaultSemId,
+          })),
+        );
       } catch (error: any) {
         toast.error(getApiErrorMessage(error));
       }
@@ -259,102 +315,100 @@ export function CourseManagementPage({
     fetchSemesters();
   }, [activeModal]);
 
-  const resetSectionForm = () => {
-    setSectionFormData((prev) => ({
-      ...prev,
-      sectionNumber: '01',
-      maxCapacity: 30,
-      location: 'Room A-101',
-      scheduleDay: 'Monday',
-      startTime: '09:00',
-      endTime: '10:30',
-    }));
+  const resetSectionRowsForAdd = () => {
+    const semId = semesters[0]?.id ?? 4;
+    setSectionRows([createSectionRow(semId)]);
   };
 
   const loadCourseSectionDetails = async (course: Course) => {
-    resetSectionForm();
-    setAddStaffFormData({
-      instructorId: course.instructorId || 0,
-      taIds: course.taIds || [],
-    });
-    setStaffFormData({
-      courseId: course.id,
-      instructorId: course.instructorId || 0,
-      taIds: course.taIds || [],
-    });
-
-    const sectionId = course.sectionId;
-    if (!sectionId) {
-      return;
-    }
+    const fallbackSem = semesters[0]?.id ?? 4;
+    setStaffFormData({ courseId: course.id });
 
     try {
-      const [sectionRes, schedulesRes, instructorsRes, tasRes] = await Promise.all([
-        api.get<any>(`/sections/${sectionId}`),
-        api.get<any>(`/schedules/section/${sectionId}`),
-        api.get<any>(`/enrollments/sections/${sectionId}/instructors`).catch(() => []),
-        api.get<any>(`/enrollments/sections/${sectionId}/tas`).catch(() => []),
-      ]);
-
-      const section = sectionRes?.data ?? sectionRes;
-      const schedules = Array.isArray(schedulesRes?.data)
-        ? schedulesRes.data
-        : Array.isArray(schedulesRes)
-          ? schedulesRes
+      const sectionsRes = await api.get<any>(`/sections/course/${course.id}`);
+      const sections = Array.isArray(sectionsRes?.data)
+        ? sectionsRes.data
+        : Array.isArray(sectionsRes)
+          ? sectionsRes
           : [];
-      const instructors = Array.isArray(instructorsRes?.data)
-        ? instructorsRes.data
-        : Array.isArray(instructorsRes)
-          ? instructorsRes
-          : [];
-      const tas = Array.isArray(tasRes?.data) ? tasRes.data : Array.isArray(tasRes) ? tasRes : [];
-      const firstSchedule = schedules[0];
-      const firstInstructor = instructors[0];
 
-      setSectionFormData((prev) => ({
-        ...prev,
-        sectionNumber: String(section?.sectionNumber || '01'),
-        maxCapacity: Number(section?.maxCapacity || 30),
-        location: section?.location || firstSchedule?.room || 'Room A-101',
-        semesterId: Number(section?.semesterId || section?.semester?.id || prev.semesterId),
-        scheduleDay: firstSchedule?.dayOfWeek
-          ? firstSchedule.dayOfWeek.charAt(0).toUpperCase() +
-            firstSchedule.dayOfWeek.slice(1).toLowerCase()
-          : prev.scheduleDay,
-        startTime: firstSchedule?.startTime?.slice(0, 5) || prev.startTime,
-        endTime: firstSchedule?.endTime?.slice(0, 5) || prev.endTime,
-      }));
+      if (sections.length === 0) {
+        setSectionRows([createSectionRow(fallbackSem)]);
+        return;
+      }
 
-      const taIds = tas.map((ta: any) => Number(ta.userId));
-      const instructorId = Number(firstInstructor?.userId || course.instructorId || 0);
-      setAddStaffFormData({ instructorId, taIds });
-      setStaffFormData({ courseId: course.id, instructorId, taIds });
+      const rows: SectionRow[] = [];
+      for (const sec of sections) {
+        const sid = Number(sec.id);
+        const [schedulesRes, instructorsRes, tasRes] = await Promise.all([
+          api.get<any>(`/schedules/section/${sid}`).catch(() => []),
+          api.get<any>(`/enrollments/sections/${sid}/instructors`).catch(() => []),
+          api.get<any>(`/enrollments/sections/${sid}/tas`).catch(() => []),
+        ]);
+        const schedules = Array.isArray(schedulesRes?.data)
+          ? schedulesRes.data
+          : Array.isArray(schedulesRes)
+            ? schedulesRes
+            : [];
+        const instructors = Array.isArray(instructorsRes?.data)
+          ? instructorsRes.data
+          : Array.isArray(instructorsRes)
+            ? instructorsRes
+            : [];
+        const tas = Array.isArray(tasRes?.data) ? tasRes.data : Array.isArray(tasRes) ? tasRes : [];
+        const firstSchedule = schedules[0];
+        const instructorIds = instructors
+          .map((x: any) => Number(x.userId))
+          .filter((n: number) => Number.isFinite(n) && n > 0);
+        const taIds = tas.map((ta: any) => Number(ta.userId)).filter((n: number) => n > 0);
+        const semId = Number(sec.semesterId || sec.semester?.id || fallbackSem);
+        rows.push({
+          key: `existing-${sid}`,
+          sectionId: sid,
+          sectionNumber: String(sec.sectionNumber ?? '1'),
+          maxCapacity: Number(sec.maxCapacity || 30),
+          location: sec.location || firstSchedule?.room || 'Room A-101',
+          semesterId: semId,
+          scheduleDay: firstSchedule?.dayOfWeek
+            ? firstSchedule.dayOfWeek.charAt(0).toUpperCase() +
+              firstSchedule.dayOfWeek.slice(1).toLowerCase()
+            : 'Monday',
+          startTime: firstSchedule?.startTime?.slice(0, 5) || '09:00',
+          endTime: firstSchedule?.endTime?.slice(0, 5) || '10:30',
+          instructorIds,
+          taIds,
+        });
+      }
+      setSectionRows(rows);
     } catch (error: any) {
       console.warn('[CourseManagementPage] Failed to load section details:', error);
+      setSectionRows([createSectionRow(fallbackSem)]);
     }
   };
 
-  const ensureSectionWithSchedule = async (courseId: number, existingSectionId?: number | null) => {
-    let sectionId = existingSectionId || null;
+  const upsertSectionSchedule = async (row: SectionRow, courseId: number): Promise<number> => {
+    let sectionId = row.sectionId;
+    const sectionNum = parseSectionNumberForApi(row.sectionNumber);
 
     if (!sectionId) {
-      const sectionRes = await api.post<any>('/sections', {
+      const body: Record<string, unknown> = {
         courseId,
-        semesterId: Number(sectionFormData.semesterId),
-        sectionNumber: Number(sectionFormData.sectionNumber),
-        maxCapacity: Number(sectionFormData.maxCapacity),
-        location: sectionFormData.location,
-      });
+        semesterId: Number(row.semesterId),
+        maxCapacity: Number(row.maxCapacity),
+        location: row.location,
+      };
+      if (sectionNum !== undefined) body.sectionNumber = sectionNum;
+      const sectionRes = await api.post<any>('/sections', body);
       sectionId = Number(
         sectionRes?.id ||
           sectionRes?.sectionId ||
           sectionRes?.data?.id ||
-          sectionRes?.data?.sectionId
+          sectionRes?.data?.sectionId,
       );
     } else {
       await api.patch(`/sections/${sectionId}`, {
-        maxCapacity: Number(sectionFormData.maxCapacity),
-        location: sectionFormData.location,
+        maxCapacity: Number(row.maxCapacity),
+        location: row.location,
       });
     }
 
@@ -371,22 +425,26 @@ export function CourseManagementPage({
 
     if (existingSchedules.length > 0) {
       await Promise.all(
-        existingSchedules.map((schedule: any) => api.delete(`/schedules/${schedule.id}`))
+        existingSchedules.map((schedule: any) => api.delete(`/schedules/${schedule.id}`)),
       );
     }
 
     await api.post(`/schedules/section/${sectionId}`, {
-      dayOfWeek: sectionFormData.scheduleDay.toUpperCase(),
-      startTime: sectionFormData.startTime,
-      endTime: sectionFormData.endTime,
-      room: sectionFormData.location,
+      dayOfWeek: row.scheduleDay.toUpperCase(),
+      startTime: row.startTime,
+      endTime: row.endTime,
+      room: row.location,
       scheduleType: 'LECTURE',
     });
 
     return Number(sectionId);
   };
 
-  const syncStaffAssignments = async (sectionId: number, instructorId: number, taIds: number[]) => {
+  const syncStaffAssignments = async (
+    sectionId: number,
+    instructorIds: number[],
+    taIds: number[],
+  ) => {
     const [currentInstructorsRes, currentTAsRes] = await Promise.all([
       api.get<any>(`/enrollments/sections/${sectionId}/instructors`).catch(() => []),
       api.get<any>(`/enrollments/sections/${sectionId}/tas`).catch(() => []),
@@ -402,32 +460,30 @@ export function CourseManagementPage({
         ? currentTAsRes
         : [];
 
+    const wantInst = instructorIds.map(Number).filter((id) => id > 0);
     await Promise.all(
-      currentInstructors
-        .filter((assignment: any) => Number(assignment.userId) !== Number(instructorId))
-        .map((assignment: any) =>
-          api.delete(`/enrollments/sections/${sectionId}/instructors/${assignment.id}`)
-        )
+      currentInstructors.map((assignment: any) =>
+        api.delete(`/enrollments/sections/${sectionId}/instructors/${assignment.id}`),
+      ),
     );
-
-    const existingInstructor = currentInstructors.find(
-      (assignment: any) => Number(assignment.userId) === Number(instructorId)
-    );
-    if (instructorId > 0 && !existingInstructor) {
-      await api.post(`/enrollments/sections/${sectionId}/instructors`, { userId: instructorId });
+    for (let i = 0; i < wantInst.length; i++) {
+      await api.post(`/enrollments/sections/${sectionId}/instructors`, {
+        userId: wantInst[i],
+        role: i === 0 ? 'primary' : 'co_instructor',
+      });
     }
 
     await Promise.all(
       currentTAs
         .filter((assignment: any) => !taIds.includes(Number(assignment.userId)))
         .map((assignment: any) =>
-          api.delete(`/enrollments/sections/${sectionId}/tas/${assignment.id}`)
-        )
+          api.delete(`/enrollments/sections/${sectionId}/tas/${assignment.id}`),
+        ),
     );
 
     for (const taId of taIds) {
       const exists = currentTAs.some(
-        (assignment: any) => Number(assignment.userId) === Number(taId)
+        (assignment: any) => Number(assignment.userId) === Number(taId),
       );
       if (!exists) {
         await api.post(`/enrollments/sections/${sectionId}/tas`, { userId: taId });
@@ -451,11 +507,10 @@ export function CourseManagementPage({
         skills: formData.skills,
       });
 
-      const sectionId = await ensureSectionWithSchedule(
-        selectedCourse.id,
-        selectedCourse.sectionId
-      );
-      await syncStaffAssignments(sectionId, addStaffFormData.instructorId, addStaffFormData.taIds);
+      for (const row of sectionRows) {
+        const sectionId = await upsertSectionSchedule(row, selectedCourse.id);
+        await syncStaffAssignments(sectionId, row.instructorIds, row.taIds);
+      }
 
       await onRefreshCourses();
       toast.success('Course updated successfully');
@@ -485,11 +540,8 @@ export function CourseManagementPage({
         skills: (course as any).skills || [],
       });
       if (type === 'staff-assign') {
-        console.log('[CourseManagementPage] Staff modal users:', users);
         setStaffFormData({
           courseId: course.id,
-          instructorId: course.instructorId || 0,
-          taIds: course.taIds || [],
         });
       }
       if (type === 'edit-course' || type === 'staff-assign') {
@@ -516,9 +568,7 @@ export function CourseManagementPage({
     if (type === 'add-course') {
       setAddStep(1);
       setAddCourseId(null);
-      setAddSectionId(null);
-      resetSectionForm();
-      setAddStaffFormData({ instructorId: 0, taIds: [] });
+      resetSectionRowsForAdd();
     }
 
     if (type === 'edit-course') {
@@ -568,22 +618,47 @@ export function CourseManagementPage({
 
   const mockExamData: any[] = [];
 
-  const toggleStaffTA = (taId: number) => {
-    setStaffFormData((prev) => ({
-      ...prev,
-      taIds: prev.taIds.includes(taId)
-        ? prev.taIds.filter((id) => id !== taId)
-        : [...prev.taIds, taId],
-    }));
+  const toggleRowInstructor = (rowKey: string, instructorId: number) => {
+    setSectionRows((rows) =>
+      rows.map((r) =>
+        r.key === rowKey ?
+          {
+            ...r,
+            instructorIds:
+              r.instructorIds.includes(instructorId) ?
+                r.instructorIds.filter((id) => id !== instructorId)
+              : [...r.instructorIds, instructorId],
+          }
+        : r,
+      ),
+    );
   };
 
-  const toggleAddStaffTA = (taId: number) => {
-    setAddStaffFormData((prev) => ({
-      ...prev,
-      taIds: prev.taIds.includes(taId)
-        ? prev.taIds.filter((id) => id !== taId)
-        : [...prev.taIds, taId],
-    }));
+  const toggleRowTA = (rowKey: string, taId: number) => {
+    setSectionRows((rows) =>
+      rows.map((r) =>
+        r.key === rowKey ?
+          {
+            ...r,
+            taIds:
+              r.taIds.includes(taId) ? r.taIds.filter((id) => id !== taId) : [...r.taIds, taId],
+          }
+        : r,
+      ),
+    );
+  };
+
+  const updateSectionRow = (rowKey: string, partial: Partial<SectionRow>) => {
+    setSectionRows((rows) => rows.map((r) => (r.key === rowKey ? { ...r, ...partial } : r)));
+  };
+
+  const addEmptySectionRow = () => {
+    const semId = sectionRows[0]?.semesterId ?? semesters[0]?.id ?? 4;
+    setSectionRows((rows) => [...rows, createSectionRow(semId)]);
+  };
+
+  const removeSectionRow = (rowKey: string) => {
+    setSectionRows((rows) => (rows.length <= 1 ? rows : rows.filter((r) => r.key !== rowKey)));
   };
 
   const handleAddCourseStep1Next = async () => {
@@ -623,39 +698,23 @@ export function CourseManagementPage({
       return;
     }
 
-    if (addSectionId) {
+    if (sectionRows.every((r) => r.sectionId)) {
       setAddStep(3);
       return;
     }
 
     try {
       setIsAddSubmitting(true);
-      const sectionRes = await api.post<any>('/sections', {
-        courseId: addCourseId,
-        semesterId: Number(sectionFormData.semesterId),
-        sectionNumber: Number(sectionFormData.sectionNumber),
-        maxCapacity: Number(sectionFormData.maxCapacity),
-        location: sectionFormData.location,
-      });
-      const createdSectionId = Number(
-        sectionRes?.sectionId ||
-          sectionRes?.id ||
-          sectionRes?.data?.sectionId ||
-          sectionRes?.data?.id
-      );
-      if (!createdSectionId) {
-        throw new Error('Section created but no sectionId returned');
+      const updated: SectionRow[] = [];
+      for (const row of sectionRows) {
+        if (row.sectionId) {
+          updated.push(row);
+          continue;
+        }
+        const sid = await upsertSectionSchedule(row, addCourseId);
+        updated.push({ ...row, sectionId: sid });
       }
-
-      await api.post(`/schedules/section/${createdSectionId}`, {
-        dayOfWeek: sectionFormData.scheduleDay.toUpperCase(),
-        startTime: sectionFormData.startTime,
-        endTime: sectionFormData.endTime,
-        room: sectionFormData.location,
-        scheduleType: 'LECTURE',
-      });
-
-      setAddSectionId(createdSectionId);
+      setSectionRows(updated);
       setAddStep(3);
     } catch (error: any) {
       toast.error(getApiErrorMessage(error));
@@ -674,25 +733,9 @@ export function CourseManagementPage({
     try {
       setIsAddSubmitting(true);
 
-      if (
-        (addStaffFormData.instructorId > 0 || addStaffFormData.taIds.length > 0) &&
-        !addSectionId
-      ) {
-        throw new Error('Section is required before assigning instructor or TAs.');
-      }
-
-      if (addSectionId && addStaffFormData.instructorId > 0) {
-        await api.post(`/enrollments/sections/${addSectionId}/instructors`, {
-          userId: addStaffFormData.instructorId,
-        });
-      }
-
-      if (addSectionId && addStaffFormData.taIds.length > 0) {
-        for (const taId of addStaffFormData.taIds) {
-          await api.post(`/enrollments/sections/${addSectionId}/tas`, {
-            userId: taId,
-          });
-        }
+      for (const row of sectionRows) {
+        if (!row.sectionId) continue;
+        await syncStaffAssignments(row.sectionId, row.instructorIds, row.taIds);
       }
 
       await onRefreshCourses();
@@ -713,12 +756,19 @@ export function CourseManagementPage({
 
     try {
       setIsStaffSubmitting(true);
-      let sectionId = selectedCourse?.sectionId || null;
-      if (!sectionId) {
-        sectionId = await ensureSectionWithSchedule(courseId, null);
+      const rows = [...sectionRows];
+      if (rows.length === 0) {
+        throw new Error('No sections to assign staff to.');
       }
-
-      await syncStaffAssignments(sectionId, staffFormData.instructorId, staffFormData.taIds);
+      for (let i = 0; i < rows.length; i++) {
+        let sectionId = rows[i].sectionId;
+        if (!sectionId) {
+          sectionId = await upsertSectionSchedule(rows[i], courseId);
+          rows[i] = { ...rows[i], sectionId };
+        }
+        await syncStaffAssignments(sectionId, rows[i].instructorIds, rows[i].taIds);
+      }
+      setSectionRows(rows);
 
       await onRefreshCourses();
       toast.success('Staff assigned successfully');
@@ -1254,7 +1304,8 @@ export function CourseManagementPage({
                             type="text"
                             value={formData.code}
                             onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-                            className={`w-full px-4 py-2 rounded-xl border focus:ring-0 outline-none transition-all ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200 text-slate-900'}`}
+                            placeholder={WIZARD_PH.courseCode}
+                            className={`w-full px-4 py-2 rounded-xl border focus:ring-0 outline-none transition-all ${isDark ? 'bg-slate-800 border-slate-700 text-white placeholder:text-slate-500' : 'bg-white border-slate-200 text-slate-900 placeholder:text-slate-400'}`}
                             onFocus={(e) => (e.target.style.borderColor = accentColor)}
                             onBlur={(e) =>
                               (e.target.style.borderColor = isDark ? '#334155' : '#e2e8f0')
@@ -1274,7 +1325,8 @@ export function CourseManagementPage({
                             onChange={(e) =>
                               setFormData({ ...formData, credits: Number(e.target.value) })
                             }
-                            className={`w-full px-4 py-2 rounded-xl border focus:ring-0 outline-none transition-all ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200 text-slate-900'}`}
+                            placeholder={WIZARD_PH.courseCredits}
+                            className={`w-full px-4 py-2 rounded-xl border focus:ring-0 outline-none transition-all ${isDark ? 'bg-slate-800 border-slate-700 text-white placeholder:text-slate-500' : 'bg-white border-slate-200 text-slate-900 placeholder:text-slate-400'}`}
                             onFocus={(e) => (e.target.style.borderColor = accentColor)}
                             onBlur={(e) =>
                               (e.target.style.borderColor = isDark ? '#334155' : '#e2e8f0')
@@ -1293,7 +1345,8 @@ export function CourseManagementPage({
                           type="text"
                           value={formData.name}
                           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                          className={`w-full px-4 py-2 rounded-xl border focus:ring-0 outline-none transition-all ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200 text-slate-900'}`}
+                          placeholder={WIZARD_PH.courseName}
+                          className={`w-full px-4 py-2 rounded-xl border focus:ring-0 outline-none transition-all ${isDark ? 'bg-slate-800 border-slate-700 text-white placeholder:text-slate-500' : 'bg-white border-slate-200 text-slate-900 placeholder:text-slate-400'}`}
                           onFocus={(e) => (e.target.style.borderColor = accentColor)}
                           onBlur={(e) =>
                             (e.target.style.borderColor = isDark ? '#334155' : '#e2e8f0')
@@ -1385,139 +1438,172 @@ export function CourseManagementPage({
 
                   {addStep === 2 && (
                     <div className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label
-                            className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
-                          >
-                            Section Number
-                          </label>
-                          <input
-                            type="text"
-                            value={sectionFormData.sectionNumber}
-                            onChange={(e) =>
-                              setSectionFormData({
-                                ...sectionFormData,
-                                sectionNumber: e.target.value,
-                              })
-                            }
-                            className={`${inputClass} w-full`}
-                          />
-                        </div>
-                        <div>
-                          <label
-                            className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
-                          >
-                            Max Capacity
-                          </label>
-                          <input
-                            type="number"
-                            value={sectionFormData.maxCapacity}
-                            onChange={(e) =>
-                              setSectionFormData({
-                                ...sectionFormData,
-                                maxCapacity: Number(e.target.value),
-                              })
-                            }
-                            className={`${inputClass} w-full`}
-                          />
-                        </div>
-                      </div>
-                      <div>
-                        <label
-                          className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                      <p className={`text-sm ${labelClass}`}>
+                        Add one or more sections. Use numeric section numbers (1, 2, 3…) when
+                        possible so the API can register them; each section can have its own
+                        schedule.
+                      </p>
+                      {sectionRows.map((row, idx) => (
+                        <div
+                          key={row.key}
+                          className={`p-4 rounded-2xl border space-y-4 ${isDark ? 'bg-slate-800/40 border-slate-700' : 'bg-slate-50 border-slate-200'}`}
                         >
-                          Location
-                        </label>
-                        <input
-                          type="text"
-                          value={sectionFormData.location}
-                          onChange={(e) =>
-                            setSectionFormData({ ...sectionFormData, location: e.target.value })
-                          }
-                          className={`${inputClass} w-full`}
-                        />
-                      </div>
-                      <div>
-                        <label
-                          className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
-                        >
-                          Semester
-                        </label>
-                        <CleanSelect
-                          value={sectionFormData.semesterId}
-                          onChange={(e) =>
-                            setSectionFormData({
-                              ...sectionFormData,
-                              semesterId: Number(e.target.value),
-                            })
-                          }
-                          className={`${inputClass} w-full`}
-                        >
-                          {semesters.map((semester) => (
-                            <option key={semester.id} value={semester.id}>
-                              {semester.name}
-                            </option>
-                          ))}
-                        </CleanSelect>
-                      </div>
-                      <div className="grid grid-cols-3 gap-4">
-                        <div>
-                          <label
-                            className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
-                          >
-                            Day
-                          </label>
-                          <CleanSelect
-                            value={sectionFormData.scheduleDay}
-                            onChange={(e) =>
-                              setSectionFormData({
-                                ...sectionFormData,
-                                scheduleDay: e.target.value,
-                              })
-                            }
-                            className={`${inputClass} w-full`}
-                          >
-                            <option value="Monday">Monday</option>
-                            <option value="Tuesday">Tuesday</option>
-                            <option value="Wednesday">Wednesday</option>
-                            <option value="Thursday">Thursday</option>
-                            <option value="Friday">Friday</option>
-                            <option value="Saturday">Saturday</option>
-                            <option value="Sunday">Sunday</option>
-                          </CleanSelect>
+                          <div className="flex items-center justify-between gap-2">
+                            <span className={`text-sm font-bold ${headingClass}`}>
+                              Section {idx + 1}
+                              {row.sectionId ?
+                                <span className={`ml-2 text-xs font-normal ${labelClass}`}>
+                                  (saved id {row.sectionId})
+                                </span>
+                              : null}
+                            </span>
+                            {sectionRows.length > 1 ?
+                              <button
+                                type="button"
+                                onClick={() => removeSectionRow(row.key)}
+                                className={`text-xs font-semibold px-2 py-1 rounded-lg ${isDark ? 'text-red-400 hover:bg-red-500/10' : 'text-red-600 hover:bg-red-50'}`}
+                              >
+                                Remove
+                              </button>
+                            : null}
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label
+                                className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                              >
+                                Section number
+                              </label>
+                              <input
+                                type="text"
+                                value={row.sectionNumber}
+                                onChange={(e) =>
+                                  updateSectionRow(row.key, { sectionNumber: e.target.value })
+                                }
+                                placeholder={WIZARD_PH.sectionNumber}
+                                className={`${inputClass} w-full`}
+                              />
+                            </div>
+                            <div>
+                              <label
+                                className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                              >
+                                Max capacity
+                              </label>
+                              <input
+                                type="number"
+                                value={row.maxCapacity}
+                                onChange={(e) =>
+                                  updateSectionRow(row.key, {
+                                    maxCapacity: Number(e.target.value),
+                                  })
+                                }
+                                placeholder={WIZARD_PH.maxCapacity}
+                                className={`${inputClass} w-full`}
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            <label
+                              className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                            >
+                              Location
+                            </label>
+                            <input
+                              type="text"
+                              value={row.location}
+                              onChange={(e) =>
+                                updateSectionRow(row.key, { location: e.target.value })
+                              }
+                              placeholder={WIZARD_PH.location}
+                              className={`${inputClass} w-full`}
+                            />
+                          </div>
+                          <div>
+                            <label
+                              className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                            >
+                              Semester
+                            </label>
+                            <CleanSelect
+                              value={row.semesterId}
+                              onChange={(e) =>
+                                updateSectionRow(row.key, {
+                                  semesterId: Number(e.target.value),
+                                })
+                              }
+                              className={`${inputClass} w-full`}
+                            >
+                              {semesters.map((semester) => (
+                                <option key={semester.id} value={semester.id}>
+                                  {semester.name}
+                                </option>
+                              ))}
+                            </CleanSelect>
+                          </div>
+                          <div className="grid grid-cols-3 gap-4">
+                            <div>
+                              <label
+                                className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                              >
+                                Day
+                              </label>
+                              <CleanSelect
+                                value={row.scheduleDay}
+                                onChange={(e) =>
+                                  updateSectionRow(row.key, { scheduleDay: e.target.value })
+                                }
+                                className={`${inputClass} w-full`}
+                              >
+                                {WEEKDAY_OPTIONS.map((d) => (
+                                  <option key={d} value={d}>
+                                    {d}
+                                  </option>
+                                ))}
+                              </CleanSelect>
+                            </div>
+                            <div>
+                              <label
+                                className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                              >
+                                Start
+                              </label>
+                              <input
+                                type="time"
+                                value={row.startTime}
+                                onChange={(e) =>
+                                  updateSectionRow(row.key, { startTime: e.target.value })
+                                }
+                                title="Class start time"
+                                className={`${inputClass} w-full`}
+                              />
+                            </div>
+                            <div>
+                              <label
+                                className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                              >
+                                End
+                              </label>
+                              <input
+                                type="time"
+                                value={row.endTime}
+                                onChange={(e) =>
+                                  updateSectionRow(row.key, { endTime: e.target.value })
+                                }
+                                title="Class end time"
+                                className={`${inputClass} w-full`}
+                              />
+                            </div>
+                          </div>
                         </div>
-                        <div>
-                          <label
-                            className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
-                          >
-                            Start Time
-                          </label>
-                          <input
-                            type="time"
-                            value={sectionFormData.startTime}
-                            onChange={(e) =>
-                              setSectionFormData({ ...sectionFormData, startTime: e.target.value })
-                            }
-                            className={`${inputClass} w-full`}
-                          />
-                        </div>
-                        <div>
-                          <label
-                            className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
-                          >
-                            End Time
-                          </label>
-                          <input
-                            type="time"
-                            value={sectionFormData.endTime}
-                            onChange={(e) =>
-                              setSectionFormData({ ...sectionFormData, endTime: e.target.value })
-                            }
-                            className={`${inputClass} w-full`}
-                          />
-                        </div>
-                      </div>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={addEmptySectionRow}
+                        className={`w-full py-2 rounded-xl text-sm font-semibold border border-dashed ${isDark ? 'border-slate-600 text-slate-300 hover:bg-slate-800' : 'border-slate-300 text-slate-600 hover:bg-slate-100'}`}
+                      >
+                        + Add another section
+                      </button>
 
                       <div className="flex justify-between gap-3 mt-6">
                         <div className="flex gap-3">
@@ -1531,10 +1617,7 @@ export function CourseManagementPage({
                           </button>
                           <button
                             type="button"
-                            onClick={() => {
-                              setAddSectionId(null);
-                              setAddStep(3);
-                            }}
+                            onClick={() => setAddStep(3)}
                             className={`px-4 py-2 rounded-xl font-semibold transition-all border ${isDark ? 'border-slate-700 text-slate-300 hover:bg-slate-800' : 'border-slate-200 text-slate-600 hover:bg-slate-100'}`}
                             disabled={isAddSubmitting}
                           >
@@ -1556,84 +1639,117 @@ export function CourseManagementPage({
 
                   {addStep === 3 && (
                     <div className="space-y-4">
-                      {!addSectionId && (
+                      {!sectionRows.some((r) => r.sectionId) && (
                         <div
                           className={`p-3 rounded-xl border text-sm ${isDark ? 'bg-amber-500/10 text-amber-300 border-amber-500/20' : 'bg-amber-50 text-amber-700 border-amber-200'}`}
                         >
-                          Section setup was skipped. You can still create the course now, but staff
-                          assignment requires a section.
+                          No sections were created yet. Go back to step 2 or finish to save the
+                          course only.
                         </div>
                       )}
+                      {sectionRows.some((r) => !r.sectionId) && (
+                        <p
+                          className={`text-sm italic ${isDark ? 'text-slate-500' : 'text-slate-500'}`}
+                        >
+                          {WIZARD_PH.step3StaffLocked}
+                        </p>
+                      )}
+                      <p
+                        className={`text-sm italic ${isDark ? 'text-slate-500' : 'text-slate-500'}`}
+                      >
+                        {WIZARD_PH.step3StaffHint}
+                      </p>
 
-                      <div>
-                        <label
-                          className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
-                        >
-                          Instructor
-                        </label>
-                        <CleanSelect
-                          value={addStaffFormData.instructorId}
-                          onChange={(e) =>
-                            setAddStaffFormData({
-                              ...addStaffFormData,
-                              instructorId: Number(e.target.value),
-                            })
-                          }
-                          className={`${inputClass} w-full`}
-                          disabled={!addSectionId}
-                        >
-                          <option value={0}>Select Instructor</option>
-                          {deptInstructors.map((inst) => (
-                            <option key={inst.id} value={inst.id}>
-                              {inst.name}
-                            </option>
-                          ))}
-                        </CleanSelect>
-                      </div>
-
-                      <div>
-                        <label
-                          className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
-                        >
-                          Teaching Assistants
-                        </label>
+                      {sectionRows.map((row) => (
                         <div
-                          className={`p-4 rounded-xl border ${isDark ? 'bg-slate-800/50 border-slate-700' : 'bg-slate-50 border-slate-100'}`}
+                          key={row.key}
+                          className={`p-4 rounded-2xl border space-y-3 ${isDark ? 'bg-slate-800/40 border-slate-700' : 'bg-slate-50 border-slate-200'}`}
                         >
-                          {deptTAs.length === 0 ? (
-                            <p
-                              className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                          <p className={`text-sm font-bold ${headingClass}`}>
+                            Section {row.sectionNumber} — staff
+                          </p>
+                          <p className={`text-xs ${labelClass}`}>
+                            First instructor selected is primary; additional instructors are
+                            co-instructors.
+                          </p>
+                          <div>
+                            <label
+                              className={`block text-xs font-semibold uppercase tracking-wider mb-2 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
                             >
-                              No TAs available
-                            </p>
-                          ) : (
-                            <div className="flex flex-wrap gap-2">
-                              {deptTAs.map((ta) => (
-                                <button
-                                  key={ta.id}
-                                  type="button"
-                                  onClick={() => toggleAddStaffTA(ta.id)}
-                                  disabled={!addSectionId}
-                                  className={`px-3 py-1 rounded-full text-sm font-medium transition-all ${
-                                    addStaffFormData.taIds.includes(ta.id)
-                                      ? 'text-white'
-                                      : isDark
-                                        ? 'bg-slate-700 text-slate-400 hover:bg-slate-600'
+                              Instructors
+                            </label>
+                            <div
+                              className={`p-3 rounded-xl border ${isDark ? 'bg-slate-900/40 border-slate-700' : 'bg-white border-slate-200'}`}
+                            >
+                              {deptInstructors.length === 0 ?
+                                <p className={`text-sm ${labelClass}`}>No instructors available</p>
+                              : <div className="flex flex-wrap gap-2">
+                                  {deptInstructors.map((inst) => (
+                                    <button
+                                      key={`${row.key}-inst-${inst.id}`}
+                                      type="button"
+                                      disabled={!row.sectionId}
+                                      onClick={() => toggleRowInstructor(row.key, inst.id)}
+                                      className={`px-3 py-1 rounded-full text-sm font-medium transition-all ${
+                                        row.instructorIds.includes(inst.id) ?
+                                          'text-white'
+                                        : isDark ?
+                                          'bg-slate-700 text-slate-400 hover:bg-slate-600'
                                         : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
-                                  } disabled:opacity-60`}
-                                  style={
-                                    addStaffFormData.taIds.includes(ta.id)
-                                      ? { backgroundColor: accentColor }
-                                      : {}
-                                  }
-                                >
-                                  {ta.name}
-                                </button>
-                              ))}
+                                      } disabled:opacity-50`}
+                                      style={
+                                        row.instructorIds.includes(inst.id) ?
+                                          { backgroundColor: accentColor }
+                                        : {}
+                                      }
+                                    >
+                                      {inst.name}
+                                    </button>
+                                  ))}
+                                </div>
+                              }
                             </div>
-                          )}
+                          </div>
+                          <div>
+                            <label
+                              className={`block text-xs font-semibold uppercase tracking-wider mb-2 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                            >
+                              Teaching assistants
+                            </label>
+                            <div
+                              className={`p-3 rounded-xl border ${isDark ? 'bg-slate-900/40 border-slate-700' : 'bg-white border-slate-200'}`}
+                            >
+                              {deptTAs.length === 0 ?
+                                <p className={`text-sm ${labelClass}`}>No TAs available</p>
+                              : <div className="flex flex-wrap gap-2">
+                                  {deptTAs.map((ta) => (
+                                    <button
+                                      key={`${row.key}-ta-${ta.id}`}
+                                      type="button"
+                                      disabled={!row.sectionId}
+                                      onClick={() => toggleRowTA(row.key, ta.id)}
+                                      className={`px-3 py-1 rounded-full text-sm font-medium transition-all ${
+                                        row.taIds.includes(ta.id) ?
+                                          'text-white'
+                                        : isDark ?
+                                          'bg-slate-700 text-slate-400 hover:bg-slate-600'
+                                        : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                                      } disabled:opacity-50`}
+                                      style={
+                                        row.taIds.includes(ta.id) ?
+                                          { backgroundColor: accentColor }
+                                        : {}
+                                      }
+                                    >
+                                      {ta.name}
+                                    </button>
+                                  ))}
+                                </div>
+                              }
+                            </div>
+                          </div>
                         </div>
-                      </div>
+                      ))}
 
                       <div className="flex justify-between gap-3 mt-6">
                         <div className="flex gap-3">
@@ -1647,10 +1763,7 @@ export function CourseManagementPage({
                           </button>
                           <button
                             type="button"
-                            onClick={() => {
-                              setAddStaffFormData({ instructorId: 0, taIds: [] });
-                              handleCreateCourseFlow();
-                            }}
+                            onClick={() => handleCreateCourseFlow()}
                             className={`px-4 py-2 rounded-xl font-semibold transition-all border ${isDark ? 'border-slate-700 text-slate-300 hover:bg-slate-800' : 'border-slate-200 text-slate-600 hover:bg-slate-100'}`}
                             disabled={isAddSubmitting}
                           >
@@ -1714,6 +1827,7 @@ export function CourseManagementPage({
                             type="text"
                             value={formData.code}
                             onChange={(e) => setFormData({ ...formData, code: e.target.value })}
+                            placeholder={WIZARD_PH.courseCode}
                             className={`${inputClass} w-full`}
                           />
                         </div>
@@ -1729,6 +1843,7 @@ export function CourseManagementPage({
                             onChange={(e) =>
                               setFormData({ ...formData, credits: Number(e.target.value) })
                             }
+                            placeholder={WIZARD_PH.courseCredits}
                             className={`${inputClass} w-full`}
                           />
                         </div>
@@ -1743,6 +1858,7 @@ export function CourseManagementPage({
                           type="text"
                           value={formData.name}
                           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                          placeholder={WIZARD_PH.courseName}
                           className={`${inputClass} w-full`}
                         />
                       </div>
@@ -1806,227 +1922,265 @@ export function CourseManagementPage({
                   )}
 
                   {editStep === 2 && (
-                    <div
-                      className={`p-4 rounded-2xl border ${isDark ? 'bg-slate-800/40 border-slate-700' : 'bg-slate-50 border-slate-200'}`}
-                    >
-                      <p
-                        className={`text-xs font-semibold uppercase tracking-wider mb-3 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
-                      >
-                        Section & Schedule
+                    <div className="space-y-4">
+                      <p className={`text-sm ${labelClass}`}>
+                        Manage all sections for this course. New rows are created on save.
                       </p>
-                      {!selectedCourse?.sectionId && (
+                      {sectionRows.map((row, idx) => (
                         <div
-                          className={`mb-3 p-3 rounded-xl border text-sm ${isDark ? 'bg-amber-500/10 text-amber-300 border-amber-500/20' : 'bg-amber-50 text-amber-700 border-amber-200'}`}
+                          key={row.key}
+                          className={`p-4 rounded-2xl border space-y-4 ${isDark ? 'bg-slate-800/40 border-slate-700' : 'bg-slate-50 border-slate-200'}`}
                         >
-                          This course has no section yet. Saving will create the first section and
-                          schedule.
+                          <div className="flex items-center justify-between gap-2">
+                            <span className={`text-sm font-bold ${headingClass}`}>
+                              Section {idx + 1}
+                              {row.sectionId ?
+                                <span className={`ml-2 text-xs font-normal ${labelClass}`}>
+                                  (id {row.sectionId})
+                                </span>
+                              : <span className={`ml-2 text-xs font-normal ${labelClass}`}>
+                                  (new)
+                                </span>}
+                            </span>
+                            {sectionRows.length > 1 ?
+                              <button
+                                type="button"
+                                onClick={() => removeSectionRow(row.key)}
+                                className={`text-xs font-semibold px-2 py-1 rounded-lg ${isDark ? 'text-red-400 hover:bg-red-500/10' : 'text-red-600 hover:bg-red-50'}`}
+                              >
+                                Remove
+                              </button>
+                            : null}
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                              <label
+                                className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                              >
+                                Section number
+                              </label>
+                              <input
+                                type="text"
+                                value={row.sectionNumber}
+                                onChange={(e) =>
+                                  updateSectionRow(row.key, { sectionNumber: e.target.value })
+                                }
+                                placeholder={WIZARD_PH.sectionNumber}
+                                className={`${inputClass} w-full`}
+                              />
+                            </div>
+                            <div>
+                              <label
+                                className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                              >
+                                Max capacity
+                              </label>
+                              <input
+                                type="number"
+                                value={row.maxCapacity}
+                                onChange={(e) =>
+                                  updateSectionRow(row.key, {
+                                    maxCapacity: Number(e.target.value),
+                                  })
+                                }
+                                placeholder={WIZARD_PH.maxCapacity}
+                                className={`${inputClass} w-full`}
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            <label
+                              className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                            >
+                              Location
+                            </label>
+                            <input
+                              type="text"
+                              value={row.location}
+                              onChange={(e) =>
+                                updateSectionRow(row.key, { location: e.target.value })
+                              }
+                              placeholder={WIZARD_PH.location}
+                              className={`${inputClass} w-full`}
+                            />
+                          </div>
+                          <div>
+                            <label
+                              className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                            >
+                              Semester
+                            </label>
+                            <CleanSelect
+                              value={row.semesterId}
+                              onChange={(e) =>
+                                updateSectionRow(row.key, {
+                                  semesterId: Number(e.target.value),
+                                })
+                              }
+                              className={`${inputClass} w-full`}
+                            >
+                              {semesters.map((semester) => (
+                                <option key={semester.id} value={semester.id}>
+                                  {semester.name}
+                                </option>
+                              ))}
+                            </CleanSelect>
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div>
+                              <label
+                                className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                              >
+                                Day
+                              </label>
+                              <CleanSelect
+                                value={row.scheduleDay}
+                                onChange={(e) =>
+                                  updateSectionRow(row.key, { scheduleDay: e.target.value })
+                                }
+                                className={`${inputClass} w-full`}
+                              >
+                                {WEEKDAY_OPTIONS.map((d) => (
+                                  <option key={d} value={d}>
+                                    {d}
+                                  </option>
+                                ))}
+                              </CleanSelect>
+                            </div>
+                            <div>
+                              <label
+                                className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                              >
+                                Start time
+                              </label>
+                              <input
+                                type="time"
+                                value={row.startTime}
+                                onChange={(e) =>
+                                  updateSectionRow(row.key, { startTime: e.target.value })
+                                }
+                                title="Class start time"
+                                className={`${inputClass} w-full`}
+                              />
+                            </div>
+                            <div>
+                              <label
+                                className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                              >
+                                End time
+                              </label>
+                              <input
+                                type="time"
+                                value={row.endTime}
+                                onChange={(e) =>
+                                  updateSectionRow(row.key, { endTime: e.target.value })
+                                }
+                                title="Class end time"
+                                className={`${inputClass} w-full`}
+                              />
+                            </div>
+                          </div>
                         </div>
-                      )}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                          <label
-                            className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
-                          >
-                            Section Number
-                          </label>
-                          <input
-                            type="text"
-                            value={sectionFormData.sectionNumber}
-                            onChange={(e) =>
-                              setSectionFormData({
-                                ...sectionFormData,
-                                sectionNumber: e.target.value,
-                              })
-                            }
-                            className={`${inputClass} w-full`}
-                          />
-                        </div>
-                        <div>
-                          <label
-                            className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
-                          >
-                            Max Capacity
-                          </label>
-                          <input
-                            type="number"
-                            value={sectionFormData.maxCapacity}
-                            onChange={(e) =>
-                              setSectionFormData({
-                                ...sectionFormData,
-                                maxCapacity: Number(e.target.value),
-                              })
-                            }
-                            className={`${inputClass} w-full`}
-                          />
-                        </div>
-                      </div>
-                      <div className="mt-4">
-                        <label
-                          className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
-                        >
-                          Location
-                        </label>
-                        <input
-                          type="text"
-                          value={sectionFormData.location}
-                          onChange={(e) =>
-                            setSectionFormData({ ...sectionFormData, location: e.target.value })
-                          }
-                          className={`${inputClass} w-full`}
-                        />
-                      </div>
-                      <div className="mt-4">
-                        <label
-                          className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
-                        >
-                          Semester
-                        </label>
-                        <CleanSelect
-                          value={sectionFormData.semesterId}
-                          onChange={(e) =>
-                            setSectionFormData({
-                              ...sectionFormData,
-                              semesterId: Number(e.target.value),
-                            })
-                          }
-                          className={`${inputClass} w-full`}
-                        >
-                          {semesters.map((semester) => (
-                            <option key={semester.id} value={semester.id}>
-                              {semester.name}
-                            </option>
-                          ))}
-                        </CleanSelect>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
-                        <div>
-                          <label
-                            className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
-                          >
-                            Day
-                          </label>
-                          <CleanSelect
-                            value={sectionFormData.scheduleDay}
-                            onChange={(e) =>
-                              setSectionFormData({
-                                ...sectionFormData,
-                                scheduleDay: e.target.value,
-                              })
-                            }
-                            className={`${inputClass} w-full`}
-                          >
-                            <option value="Monday">Monday</option>
-                            <option value="Tuesday">Tuesday</option>
-                            <option value="Wednesday">Wednesday</option>
-                            <option value="Thursday">Thursday</option>
-                            <option value="Friday">Friday</option>
-                            <option value="Saturday">Saturday</option>
-                            <option value="Sunday">Sunday</option>
-                          </CleanSelect>
-                        </div>
-                        <div>
-                          <label
-                            className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
-                          >
-                            Start Time
-                          </label>
-                          <input
-                            type="time"
-                            value={sectionFormData.startTime}
-                            onChange={(e) =>
-                              setSectionFormData({ ...sectionFormData, startTime: e.target.value })
-                            }
-                            className={`${inputClass} w-full`}
-                          />
-                        </div>
-                        <div>
-                          <label
-                            className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
-                          >
-                            End Time
-                          </label>
-                          <input
-                            type="time"
-                            value={sectionFormData.endTime}
-                            onChange={(e) =>
-                              setSectionFormData({ ...sectionFormData, endTime: e.target.value })
-                            }
-                            className={`${inputClass} w-full`}
-                          />
-                        </div>
-                      </div>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={addEmptySectionRow}
+                        className={`w-full py-2 rounded-xl text-sm font-semibold border border-dashed ${isDark ? 'border-slate-600 text-slate-300 hover:bg-slate-800' : 'border-slate-300 text-slate-600 hover:bg-slate-100'}`}
+                      >
+                        + Add section
+                      </button>
                     </div>
                   )}
 
                   {editStep === 3 && (
-                    <div
-                      className={`p-4 rounded-2xl border ${isDark ? 'bg-slate-800/40 border-slate-700' : 'bg-slate-50 border-slate-200'}`}
-                    >
-                      <p
-                        className={`text-xs font-semibold uppercase tracking-wider mb-3 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
-                      >
-                        Staff Assignment
+                    <div className="space-y-4">
+                      <p className={`text-sm italic ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>
+                        {WIZARD_PH.step3StaffHint}
                       </p>
-                      <div>
-                        <label
-                          className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
-                        >
-                          Instructor
-                        </label>
-                        <CleanSelect
-                          value={addStaffFormData.instructorId}
-                          onChange={(e) =>
-                            setAddStaffFormData({
-                              ...addStaffFormData,
-                              instructorId: Number(e.target.value),
-                            })
-                          }
-                          className={`${inputClass} w-full`}
-                        >
-                          <option value={0}>Select Instructor</option>
-                          {deptInstructors.map((inst) => (
-                            <option key={inst.id} value={inst.id}>
-                              {inst.name}
-                            </option>
-                          ))}
-                        </CleanSelect>
-                      </div>
-                      <div className="mt-4">
-                        <label
-                          className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
-                        >
-                          Teaching Assistants
-                        </label>
+                      {sectionRows.map((row) => (
                         <div
-                          className={`p-4 rounded-xl border ${isDark ? 'bg-slate-900/40 border-slate-700' : 'bg-white border-slate-200'}`}
+                          key={row.key}
+                          className={`p-4 rounded-2xl border space-y-3 ${isDark ? 'bg-slate-800/40 border-slate-700' : 'bg-slate-50 border-slate-200'}`}
                         >
-                          {deptTAs.length === 0 ? (
-                            <p
-                              className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                          <p className={`text-sm font-bold ${headingClass}`}>
+                            Section {row.sectionNumber} — staff
+                          </p>
+                          <div>
+                            <label
+                              className={`block text-xs font-semibold uppercase tracking-wider mb-2 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
                             >
-                              No TAs available
-                            </p>
-                          ) : (
-                            <div className="flex flex-wrap gap-2">
-                              {deptTAs.map((ta) => (
-                                <button
-                                  key={ta.id}
-                                  type="button"
-                                  onClick={() => toggleAddStaffTA(ta.id)}
-                                  className={`px-3 py-1 rounded-full text-sm font-medium transition-all ${addStaffFormData.taIds.includes(ta.id) ? 'text-white' : isDark ? 'bg-slate-700 text-slate-400 hover:bg-slate-600' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'}`}
-                                  style={
-                                    addStaffFormData.taIds.includes(ta.id)
-                                      ? { backgroundColor: accentColor }
-                                      : {}
-                                  }
-                                >
-                                  {ta.name}
-                                </button>
-                              ))}
+                              Instructors
+                            </label>
+                            <div
+                              className={`p-3 rounded-xl border ${isDark ? 'bg-slate-900/40 border-slate-700' : 'bg-white border-slate-200'}`}
+                            >
+                              {deptInstructors.length === 0 ?
+                                <p className={`text-sm ${labelClass}`}>No instructors available</p>
+                              : <div className="flex flex-wrap gap-2">
+                                  {deptInstructors.map((inst) => (
+                                    <button
+                                      key={`edit-${row.key}-inst-${inst.id}`}
+                                      type="button"
+                                      onClick={() => toggleRowInstructor(row.key, inst.id)}
+                                      className={`px-3 py-1 rounded-full text-sm font-medium transition-all ${
+                                        row.instructorIds.includes(inst.id) ?
+                                          'text-white'
+                                        : isDark ?
+                                          'bg-slate-700 text-slate-400 hover:bg-slate-600'
+                                        : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                                      }`}
+                                      style={
+                                        row.instructorIds.includes(inst.id) ?
+                                          { backgroundColor: accentColor }
+                                        : {}
+                                      }
+                                    >
+                                      {inst.name}
+                                    </button>
+                                  ))}
+                                </div>
+                              }
                             </div>
-                          )}
+                          </div>
+                          <div>
+                            <label
+                              className={`block text-xs font-semibold uppercase tracking-wider mb-2 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                            >
+                              Teaching assistants
+                            </label>
+                            <div
+                              className={`p-3 rounded-xl border ${isDark ? 'bg-slate-900/40 border-slate-700' : 'bg-white border-slate-200'}`}
+                            >
+                              {deptTAs.length === 0 ?
+                                <p className={`text-sm ${labelClass}`}>No TAs available</p>
+                              : <div className="flex flex-wrap gap-2">
+                                  {deptTAs.map((ta) => (
+                                    <button
+                                      key={`edit-${row.key}-ta-${ta.id}`}
+                                      type="button"
+                                      onClick={() => toggleRowTA(row.key, ta.id)}
+                                      className={`px-3 py-1 rounded-full text-sm font-medium transition-all ${
+                                        row.taIds.includes(ta.id) ?
+                                          'text-white'
+                                        : isDark ?
+                                          'bg-slate-700 text-slate-400 hover:bg-slate-600'
+                                        : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                                      }`}
+                                      style={
+                                        row.taIds.includes(ta.id) ?
+                                          { backgroundColor: accentColor }
+                                        : {}
+                                      }
+                                    >
+                                      {ta.name}
+                                    </button>
+                                  ))}
+                                </div>
+                              }
+                            </div>
+                          </div>
                         </div>
-                      </div>
+                      ))}
                     </div>
                   )}
 
@@ -2078,32 +2232,37 @@ export function CourseManagementPage({
 
               {/* Staff Assign Content */}
               {activeModal === 'staff-assign' && (
-                <div className="space-y-4">
-                  {selectedCourse ? (
+                <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
+                  {selectedCourse ?
                     <div
                       className={`p-4 rounded-2xl ${isDark ? 'bg-slate-800/50' : 'bg-slate-50'} border ${isDark ? 'border-slate-800' : 'border-slate-100'}`}
                     >
                       <p
                         className={`text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
                       >
-                        Assigning Staff For
+                        Assigning staff for
                       </p>
                       <p className={`font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
                         {selectedCourse.code}: {selectedCourse.name}
                       </p>
                     </div>
-                  ) : (
-                    <div>
+                  : <div>
                       <label
                         className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
                       >
-                        Select Course
+                        Select course
                       </label>
                       <CleanSelect
                         value={staffFormData.courseId}
-                        onChange={(e) =>
-                          setStaffFormData({ ...staffFormData, courseId: Number(e.target.value) })
-                        }
+                        onChange={(e) => {
+                          const id = Number(e.target.value);
+                          setStaffFormData({ courseId: id });
+                          const c = deptCourses.find((x) => x.id === id);
+                          if (c) {
+                            setSelectedCourse(c);
+                            void loadCourseSectionDetails(c);
+                          }
+                        }}
                         className={`w-full px-4 py-2 rounded-xl border focus:ring-0 outline-none transition-all ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200 text-slate-900'}`}
                         onFocus={(e) => (e.target.style.borderColor = accentColor)}
                         onBlur={(e) =>
@@ -2118,32 +2277,55 @@ export function CourseManagementPage({
                         ))}
                       </CleanSelect>
                     </div>
-                  )}
-                  {!selectedCourse?.sectionId && (
+                  }
+
+                  <p className={`text-xs ${labelClass}`}>
+                    Edit sections and schedules below. Saving creates any new sections, then
+                    applies staff. First instructor per section is primary; others are
+                    co-instructors.
+                  </p>
+                  <p className={`text-sm italic ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>
+                    {WIZARD_PH.step3StaffHint}
+                  </p>
+
+                  {sectionRows.map((row, idx) => (
                     <div
-                      className={`p-4 rounded-2xl border ${isDark ? 'bg-amber-500/10 border-amber-500/20' : 'bg-amber-50 border-amber-200'}`}
+                      key={row.key}
+                      className={`p-4 rounded-2xl border space-y-4 ${isDark ? 'bg-slate-800/40 border-slate-700' : 'bg-slate-50 border-slate-200'}`}
                     >
-                      <p
-                        className={`text-xs font-semibold uppercase tracking-wider mb-3 ${isDark ? 'text-amber-300' : 'text-amber-700'}`}
-                      >
-                        Add Section First
-                      </p>
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className={`text-sm font-bold ${headingClass}`}>
+                          Section {idx + 1}
+                          {row.sectionId ?
+                            <span className={`ml-2 text-xs font-normal ${labelClass}`}>
+                              (id {row.sectionId})
+                            </span>
+                          : <span className={`ml-2 text-xs font-normal ${labelClass}`}>(new)</span>}
+                        </span>
+                        {sectionRows.length > 1 ?
+                          <button
+                            type="button"
+                            onClick={() => removeSectionRow(row.key)}
+                            className={`text-xs font-semibold px-2 py-1 rounded-lg ${isDark ? 'text-red-400 hover:bg-red-500/10' : 'text-red-600 hover:bg-red-50'}`}
+                          >
+                            Remove
+                          </button>
+                        : null}
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                           <label
                             className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
                           >
-                            Section Number
+                            Section number
                           </label>
                           <input
                             type="text"
-                            value={sectionFormData.sectionNumber}
+                            value={row.sectionNumber}
                             onChange={(e) =>
-                              setSectionFormData({
-                                ...sectionFormData,
-                                sectionNumber: e.target.value,
-                              })
+                              updateSectionRow(row.key, { sectionNumber: e.target.value })
                             }
+                            placeholder={WIZARD_PH.sectionNumber}
                             className={`${inputClass} w-full`}
                           />
                         </div>
@@ -2151,22 +2333,20 @@ export function CourseManagementPage({
                           <label
                             className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
                           >
-                            Max Capacity
+                            Max capacity
                           </label>
                           <input
                             type="number"
-                            value={sectionFormData.maxCapacity}
+                            value={row.maxCapacity}
                             onChange={(e) =>
-                              setSectionFormData({
-                                ...sectionFormData,
-                                maxCapacity: Number(e.target.value),
-                              })
+                              updateSectionRow(row.key, { maxCapacity: Number(e.target.value) })
                             }
+                            placeholder={WIZARD_PH.maxCapacity}
                             className={`${inputClass} w-full`}
                           />
                         </div>
                       </div>
-                      <div className="mt-4">
+                      <div>
                         <label
                           className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
                         >
@@ -2174,26 +2354,22 @@ export function CourseManagementPage({
                         </label>
                         <input
                           type="text"
-                          value={sectionFormData.location}
-                          onChange={(e) =>
-                            setSectionFormData({ ...sectionFormData, location: e.target.value })
-                          }
+                          value={row.location}
+                          onChange={(e) => updateSectionRow(row.key, { location: e.target.value })}
+                          placeholder={WIZARD_PH.location}
                           className={`${inputClass} w-full`}
                         />
                       </div>
-                      <div className="mt-4">
+                      <div>
                         <label
                           className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
                         >
                           Semester
                         </label>
                         <CleanSelect
-                          value={sectionFormData.semesterId}
+                          value={row.semesterId}
                           onChange={(e) =>
-                            setSectionFormData({
-                              ...sectionFormData,
-                              semesterId: Number(e.target.value),
-                            })
+                            updateSectionRow(row.key, { semesterId: Number(e.target.value) })
                           }
                           className={`${inputClass} w-full`}
                         >
@@ -2204,7 +2380,7 @@ export function CourseManagementPage({
                           ))}
                         </CleanSelect>
                       </div>
-                      <div className="grid grid-cols-3 gap-4 mt-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <div>
                           <label
                             className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
@@ -2212,36 +2388,32 @@ export function CourseManagementPage({
                             Day
                           </label>
                           <CleanSelect
-                            value={sectionFormData.scheduleDay}
+                            value={row.scheduleDay}
                             onChange={(e) =>
-                              setSectionFormData({
-                                ...sectionFormData,
-                                scheduleDay: e.target.value,
-                              })
+                              updateSectionRow(row.key, { scheduleDay: e.target.value })
                             }
                             className={`${inputClass} w-full`}
                           >
-                            <option value="Monday">Monday</option>
-                            <option value="Tuesday">Tuesday</option>
-                            <option value="Wednesday">Wednesday</option>
-                            <option value="Thursday">Thursday</option>
-                            <option value="Friday">Friday</option>
-                            <option value="Saturday">Saturday</option>
-                            <option value="Sunday">Sunday</option>
+                            {WEEKDAY_OPTIONS.map((d) => (
+                              <option key={d} value={d}>
+                                {d}
+                              </option>
+                            ))}
                           </CleanSelect>
                         </div>
                         <div>
                           <label
                             className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
                           >
-                            Start Time
+                            Start time
                           </label>
                           <input
                             type="time"
-                            value={sectionFormData.startTime}
+                            value={row.startTime}
                             onChange={(e) =>
-                              setSectionFormData({ ...sectionFormData, startTime: e.target.value })
+                              updateSectionRow(row.key, { startTime: e.target.value })
                             }
+                            title="Class start time"
                             className={`${inputClass} w-full`}
                           />
                         </div>
@@ -2249,83 +2421,102 @@ export function CourseManagementPage({
                           <label
                             className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
                           >
-                            End Time
+                            End time
                           </label>
                           <input
                             type="time"
-                            value={sectionFormData.endTime}
-                            onChange={(e) =>
-                              setSectionFormData({ ...sectionFormData, endTime: e.target.value })
-                            }
+                            value={row.endTime}
+                            onChange={(e) => updateSectionRow(row.key, { endTime: e.target.value })}
+                            title="Class end time"
                             className={`${inputClass} w-full`}
                           />
                         </div>
                       </div>
-                    </div>
-                  )}
-                  <div>
-                    <label
-                      className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
-                    >
-                      Instructor
-                    </label>
-                    <CleanSelect
-                      value={staffFormData.instructorId}
-                      onChange={(e) =>
-                        setStaffFormData({ ...staffFormData, instructorId: Number(e.target.value) })
-                      }
-                      className={`w-full px-4 py-2 rounded-xl border focus:ring-0 outline-none transition-all ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-white border-slate-200 text-slate-900'}`}
-                      onFocus={(e) => (e.target.style.borderColor = accentColor)}
-                      onBlur={(e) => (e.target.style.borderColor = isDark ? '#334155' : '#e2e8f0')}
-                    >
-                      <option value={0}>Select Instructor</option>
-                      {deptInstructors.map((inst) => (
-                        <option key={inst.id} value={inst.id}>
-                          {inst.name}
-                        </option>
-                      ))}
-                    </CleanSelect>
-                  </div>
-                  <div>
-                    <label
-                      className={`block text-xs font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
-                    >
-                      Teaching Assistants
-                    </label>
-                    <div
-                      className={`p-4 rounded-xl border ${isDark ? 'bg-slate-800/50 border-slate-700' : 'bg-slate-50 border-slate-100'}`}
-                    >
-                      {deptTAs.length === 0 ? (
-                        <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
-                          No TAs available
-                        </p>
-                      ) : (
-                        <div className="flex flex-wrap gap-2">
-                          {deptTAs.map((ta) => (
-                            <button
-                              key={ta.id}
-                              type="button"
-                              onClick={() => toggleStaffTA(ta.id)}
-                              className={`px-3 py-1 rounded-full text-sm font-medium transition-all ${
-                                staffFormData.taIds.includes(ta.id)
-                                  ? 'text-white'
-                                  : isDark
-                                    ? 'bg-slate-700 text-slate-400 hover:bg-slate-600'
+                      <div>
+                        <label
+                          className={`block text-xs font-semibold uppercase tracking-wider mb-2 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                        >
+                          Instructors
+                        </label>
+                        <div
+                          className={`p-3 rounded-xl border ${isDark ? 'bg-slate-900/40 border-slate-700' : 'bg-white border-slate-200'}`}
+                        >
+                          {deptInstructors.length === 0 ?
+                            <p className={`text-sm ${labelClass}`}>No instructors available</p>
+                          : <div className="flex flex-wrap gap-2">
+                              {deptInstructors.map((inst) => (
+                                <button
+                                  key={`staff-${row.key}-inst-${inst.id}`}
+                                  type="button"
+                                  onClick={() => toggleRowInstructor(row.key, inst.id)}
+                                  className={`px-3 py-1 rounded-full text-sm font-medium transition-all ${
+                                    row.instructorIds.includes(inst.id) ?
+                                      'text-white'
+                                    : isDark ?
+                                      'bg-slate-700 text-slate-400 hover:bg-slate-600'
                                     : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
-                              }`}
-                              style={
-                                staffFormData.taIds.includes(ta.id)
-                                  ? { backgroundColor: accentColor }
-                                  : {}
-                              }
-                            >
-                              {ta.name}
-                            </button>
-                          ))}
+                                  }`}
+                                  style={
+                                    row.instructorIds.includes(inst.id) ?
+                                      { backgroundColor: accentColor }
+                                    : {}
+                                  }
+                                >
+                                  {inst.name}
+                                </button>
+                              ))}
+                            </div>
+                          }
                         </div>
-                      )}
+                      </div>
+                      <div>
+                        <label
+                          className={`block text-xs font-semibold uppercase tracking-wider mb-2 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                        >
+                          Teaching assistants
+                        </label>
+                        <div
+                          className={`p-3 rounded-xl border ${isDark ? 'bg-slate-900/40 border-slate-700' : 'bg-white border-slate-200'}`}
+                        >
+                          {deptTAs.length === 0 ?
+                            <p className={`text-sm ${labelClass}`}>No TAs available</p>
+                          : <div className="flex flex-wrap gap-2">
+                              {deptTAs.map((ta) => (
+                                <button
+                                  key={`staff-${row.key}-ta-${ta.id}`}
+                                  type="button"
+                                  onClick={() => toggleRowTA(row.key, ta.id)}
+                                  className={`px-3 py-1 rounded-full text-sm font-medium transition-all ${
+                                    row.taIds.includes(ta.id) ?
+                                      'text-white'
+                                    : isDark ?
+                                      'bg-slate-700 text-slate-400 hover:bg-slate-600'
+                                    : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                                  }`}
+                                  style={
+                                    row.taIds.includes(ta.id) ?
+                                      { backgroundColor: accentColor }
+                                    : {}
+                                  }
+                                >
+                                  {ta.name}
+                                </button>
+                              ))}
+                            </div>
+                          }
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  ))}
+
+                  <button
+                    type="button"
+                    onClick={addEmptySectionRow}
+                    className={`w-full py-2 rounded-xl text-sm font-semibold border border-dashed ${isDark ? 'border-slate-600 text-slate-300 hover:bg-slate-800' : 'border-slate-300 text-slate-600 hover:bg-slate-100'}`}
+                  >
+                    + Add section
+                  </button>
+
                   <div className="flex justify-end gap-3 mt-6">
                     <button
                       type="button"
@@ -2335,12 +2526,15 @@ export function CourseManagementPage({
                       Cancel
                     </button>
                     <button
+                      type="button"
                       onClick={handleStaffAssign}
                       style={{ backgroundColor: accentColor }}
-                      disabled={isStaffSubmitting}
+                      disabled={
+                        isStaffSubmitting || !(selectedCourse?.id ?? staffFormData.courseId)
+                      }
                       className="px-6 py-2 rounded-xl font-bold text-white shadow-lg shadow-blue-500/20 hover:opacity-90 active:scale-95 transition-all disabled:opacity-60"
                     >
-                      {isStaffSubmitting ? 'Saving...' : 'Assign Staff'}
+                      {isStaffSubmitting ? 'Saving...' : 'Assign staff'}
                     </button>
                   </div>
                 </div>
