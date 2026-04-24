@@ -76,7 +76,7 @@ export function CommunicationPage({
   onDeleteTemplate,
   onSendBroadcast,
 }: CommunicationPageProps) {
-  const { isDark } = useTheme();
+  const { isDark, primaryHex } = useTheme();
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<'broadcast' | 'templates'>('broadcast');
   const [showTemplateModal, setShowTemplateModal] = useState(false);
@@ -244,24 +244,28 @@ export function CommunicationPage({
         <div className="flex gap-2">
           <button
             onClick={() => setActiveTab('broadcast')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === 'broadcast'
-              ? 'bg-red-600 text-white'
-              : isDark
-                ? 'text-gray-300 hover:bg-gray-700'
-                : 'text-gray-700 hover:bg-gray-100'
-              }`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              activeTab === 'broadcast'
+                ? 'text-white'
+                : isDark
+                  ? 'text-gray-300 hover:bg-gray-700'
+                  : 'text-gray-700 hover:bg-gray-100'
+            }`}
+            style={activeTab === 'broadcast' ? { backgroundColor: primaryHex } : {}}
           >
             <Megaphone size={18} />
             {t('broadcastNotification')}
           </button>
           <button
             onClick={() => setActiveTab('templates')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === 'templates'
-              ? 'bg-red-600 text-white'
-              : isDark
-                ? 'text-gray-300 hover:bg-gray-700'
-                : 'text-gray-700 hover:bg-gray-100'
-              }`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              activeTab === 'templates'
+                ? 'text-white'
+                : isDark
+                  ? 'text-gray-300 hover:bg-gray-700'
+                  : 'text-gray-700 hover:bg-gray-100'
+            }`}
+            style={activeTab === 'templates' ? { backgroundColor: primaryHex } : {}}
           >
             <FileText size={18} />
             {t('notificationTemplates')}
@@ -381,14 +385,19 @@ export function CommunicationPage({
                     <button
                       key={option.value}
                       onClick={() => setBroadcastData({ ...broadcastData, audience: option.value })}
-                      className={`p-3 rounded-lg border text-left transition-colors ${broadcastData.audience === option.value
-                        ? isDark
-                          ? 'bg-red-900/50 border-red-600'
-                          : 'bg-red-50 border-red-200'
-                        : isDark
-                          ? 'bg-gray-700 border-gray-600 hover:bg-gray-600'
-                          : 'bg-white border-gray-200 hover:bg-gray-50'
-                        }`}
+                      className={`p-3 rounded-lg border text-left transition-colors ${
+                        broadcastData.audience === option.value
+                          ? isDark
+                            ? 'bg-opacity-20'
+                            : 'bg-opacity-10'
+                          : isDark
+                            ? 'bg-gray-700 border-gray-600 hover:bg-gray-600'
+                            : 'bg-white border-gray-200 hover:bg-gray-50'
+                      }`}
+                      style={broadcastData.audience === option.value ? {
+                        backgroundColor: primaryHex + (isDark ? '33' : '1A'),
+                        borderColor: primaryHex
+                      } : {}}
                     >
                       <div className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
                         {option.label}
@@ -416,14 +425,18 @@ export function CommunicationPage({
                     <button
                       key={channel.id}
                       onClick={() => handleChannelToggle(channel.id)}
-                      className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors ${broadcastData.channels.includes(channel.id)
-                        ? isDark
-                          ? 'bg-red-900/50 border-red-600 text-red-300'
-                          : 'bg-red-50 border-red-200 text-red-700'
-                        : isDark
-                          ? 'bg-gray-700 border-gray-600 text-gray-300'
-                          : 'bg-white border-gray-200 text-gray-700'
-                        }`}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors ${
+                        broadcastData.channels.includes(channel.id)
+                          ? ''
+                          : isDark
+                            ? 'bg-gray-700 border-gray-600 text-gray-300'
+                            : 'bg-white border-gray-200 text-gray-700'
+                      }`}
+                      style={broadcastData.channels.includes(channel.id) ? {
+                        backgroundColor: primaryHex + (isDark ? '33' : '1A'),
+                        borderColor: primaryHex,
+                        color: primaryHex
+                      } : {}}
                     >
                       <channel.icon size={16} />
                       {channel.label}
@@ -442,7 +455,8 @@ export function CommunicationPage({
                 </button>
                 <button
                   onClick={handleSendAnnouncement}
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                  style={{ backgroundColor: primaryHex }}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 text-white rounded-lg hover:opacity-90 transition-colors"
                 >
                   <Send size={18} />
                   {editingAnnouncementId ? 'Update Broadcast' : t('sendBroadcast')}
@@ -563,7 +577,8 @@ export function CommunicationPage({
           <div className="flex justify-end">
             <button
               onClick={() => setShowTemplateModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              style={{ backgroundColor: primaryHex }}
+              className="flex items-center gap-2 px-4 py-2 text-white rounded-lg hover:opacity-90 transition-colors"
             >
               <Plus size={18} />
               {t('createTemplate')}
@@ -644,7 +659,10 @@ export function CommunicationPage({
             <div className="p-6">
               <div className={`p-4 rounded-lg ${isDark ? 'bg-gray-700' : 'bg-gray-100'}`}>
                 <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-full bg-red-500 flex items-center justify-center">
+                  <div 
+                    className="w-10 h-10 rounded-full flex items-center justify-center"
+                    style={{ backgroundColor: primaryHex }}
+                  >
                     <Bell className="text-white" size={20} />
                   </div>
                   <div className="flex-1">
@@ -666,7 +684,8 @@ export function CommunicationPage({
             >
               <button
                 onClick={() => setShowPreview(false)}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                style={{ backgroundColor: primaryHex }}
+                className="px-4 py-2 text-white rounded-lg hover:opacity-90"
               >
                 {t('close')}
               </button>
@@ -747,7 +766,8 @@ export function CommunicationPage({
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                  style={{ backgroundColor: primaryHex }}
+                  className="px-4 py-2 text-white rounded-lg hover:opacity-90"
                 >
                   {editingTemplate ? t('save') : t('createTemplate')}
                 </button>

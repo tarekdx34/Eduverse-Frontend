@@ -27,6 +27,7 @@ import { adminService } from '../../../services/adminService';
 
 interface CampusEventsManagementPageProps {
   isMockMode?: boolean;
+  useLiveApi?: boolean;
 }
 
 interface DepartmentOption {
@@ -74,85 +75,19 @@ const DEFAULT_COLORS = [
 
 type ModalType = 'create' | 'edit' | 'delete' | 'registrations' | null;
 
-export function CampusEventsManagementPage({ isMockMode: propMockMode = false }: CampusEventsManagementPageProps) {
+export function CampusEventsManagementPage({
+  isMockMode: propMockMode = false,
+  useLiveApi = false,
+}: CampusEventsManagementPageProps) {
   const { isDark, primaryHex } = useTheme() as any;
   const accentColor = primaryHex || '#3b82f6';
   const { t, isRTL } = useLanguage();
   const queryClient = useQueryClient();
 
   // Mock data for when API is unavailable
-  const MOCK_DEPARTMENTS = [
-    { id: 1, name: 'Computer Science' },
-    { id: 2, name: 'Engineering' },
-    { id: 3, name: 'Mathematics' },
-    { id: 4, name: 'Physics' },
-  ];
+  const MOCK_DEPARTMENTS: DepartmentOption[] = [];
 
-  const MOCK_EVENTS: CampusEvent[] = [
-    {
-      id: 1,
-      title: 'Fall Semester Orientation',
-      description: 'Welcome event for new students',
-      eventType: 'university_wide',
-      scopeId: undefined,
-      startDatetime: '2026-09-01T09:00:00Z',
-      endDatetime: '2026-09-01T12:00:00Z',
-      location: 'Main Auditorium',
-      building: 'Administration Building',
-      room: 'A101',
-      isMandatory: true,
-      registrationRequired: true,
-      maxAttendees: 500,
-      currentAttendees: 342,
-      color: '#10B981',
-      status: 'published',
-      tags: ['orientation', 'welcome'],
-      createdAt: '2026-08-01T10:00:00Z',
-      updatedAt: '2026-08-15T14:30:00Z',
-    },
-    {
-      id: 2,
-      title: 'CS Department Workshop',
-      description: 'Introduction to Machine Learning workshop',
-      eventType: 'department',
-      scopeId: 1,
-      startDatetime: '2026-09-15T14:00:00Z',
-      endDatetime: '2026-09-15T17:00:00Z',
-      location: 'Lab 302',
-      building: 'Engineering Building',
-      room: '302',
-      isMandatory: false,
-      registrationRequired: true,
-      maxAttendees: 50,
-      currentAttendees: 28,
-      color: '#3B82F6',
-      status: 'published',
-      tags: ['workshop', 'ML', 'AI'],
-      createdAt: '2026-08-20T10:00:00Z',
-      updatedAt: '2026-08-20T10:00:00Z',
-    },
-    {
-      id: 3,
-      title: 'Research Symposium',
-      description: 'Annual research presentation event',
-      eventType: 'campus',
-      scopeId: undefined,
-      startDatetime: '2026-10-10T10:00:00Z',
-      endDatetime: '2026-10-10T18:00:00Z',
-      location: 'Conference Center',
-      building: 'Conference Center',
-      room: 'Main Hall',
-      isMandatory: false,
-      registrationRequired: false,
-      maxAttendees: undefined,
-      currentAttendees: 0,
-      color: '#F59E0B',
-      status: 'draft',
-      tags: ['research', 'symposium'],
-      createdAt: '2026-08-25T10:00:00Z',
-      updatedAt: '2026-08-25T10:00:00Z',
-    },
-  ];
+  const MOCK_EVENTS: CampusEvent[] = [];
 
   // Determine mock mode - if no auth or prop indicates mock
   const isMockMode = propMockMode;
@@ -200,7 +135,8 @@ export function CampusEventsManagementPage({ isMockMode: propMockMode = false }:
   });
   const liveDepartments = normalizeDepartments(departmentsData);
   const isDepartmentsFallback = deptError || liveDepartments.length === 0;
-  const departments = isDepartmentsFallback ? MOCK_DEPARTMENTS : liveDepartments;
+  const departments =
+    useLiveApi ? liveDepartments : isDepartmentsFallback ? MOCK_DEPARTMENTS : liveDepartments;
 
   // Build query params
   const queryParams: CampusEventQuery = {
@@ -239,7 +175,13 @@ export function CampusEventsManagementPage({ isMockMode: propMockMode = false }:
     return filtered;
   };
 
-  const events = eventsError || !eventsData?.data ? getFilteredMockEvents() : eventsData.data;
+  const events = useLiveApi
+    ? eventsError || !eventsData?.data
+      ? []
+      : eventsData.data
+    : eventsError || !eventsData?.data
+      ? getFilteredMockEvents()
+      : eventsData.data;
   const totalPages = eventsError || !eventsData?.meta ? 1 : eventsData.meta.totalPages || 1;
 
   // Mutations
@@ -435,9 +377,14 @@ export function CampusEventsManagementPage({ isMockMode: propMockMode = false }:
 
       {/* Filters */}
       <div className={`p-4 rounded-xl border ${cardClass}`}>
-        {isDepartmentsFallback && (
+        {!useLiveApi && isDepartmentsFallback && (
           <div className={`mb-4 rounded-lg border px-3 py-2 text-sm ${isDark ? 'bg-amber-500/10 text-amber-300 border-amber-500/30' : 'bg-amber-50 text-amber-800 border-amber-200'}`}>
             {t('warning') || 'Warning'}: using fallback department mock data because live departments API failed.
+          </div>
+        )}
+        {useLiveApi && deptError && (
+          <div className={`mb-4 rounded-lg border px-3 py-2 text-sm ${isDark ? 'bg-red-500/10 text-red-300 border-red-500/30' : 'bg-red-50 text-red-800 border-red-200'}`}>
+            {t('warning') || 'Warning'}: could not load departments from the server.
           </div>
         )}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">

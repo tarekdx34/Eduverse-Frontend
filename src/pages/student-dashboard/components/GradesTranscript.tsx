@@ -62,173 +62,7 @@ interface GradesTranscriptProps {
   semesters?: SemesterData[];
 }
 
-const defaultSemesters: SemesterData[] = [
-  {
-    semester: 'Spring 2025',
-    gpa: 3.63,
-    credits: 20,
-    courses: [
-      {
-        code: 'CS101',
-        name: 'Introduction to Computer Science',
-        credits: 3,
-        percentage: 95,
-        grade: 'A',
-        points: 4.0,
-        status: 'Completed',
-      },
-      {
-        code: 'CS201',
-        name: 'Data Structures & Algorithms',
-        credits: 4,
-        percentage: 87,
-        grade: 'B+',
-        points: 3.5,
-        status: 'Completed',
-      },
-      {
-        code: 'CS150',
-        name: 'Web Development Fundamentals',
-        credits: 3,
-        percentage: 92,
-        grade: 'A-',
-        points: 3.7,
-        status: 'Completed',
-      },
-      {
-        code: 'CS220',
-        name: 'Database Management Systems',
-        credits: 3,
-        percentage: 83,
-        grade: 'B',
-        points: 3.0,
-        status: 'In Progress',
-      },
-      {
-        code: 'CS305',
-        name: 'Software Engineering Principles',
-        credits: 4,
-        percentage: 96,
-        grade: 'A',
-        points: 4.0,
-        status: 'In Progress',
-      },
-      {
-        code: 'CS350',
-        name: 'Mobile Application Development',
-        credits: 3,
-        percentage: 88,
-        grade: 'B+',
-        points: 3.5,
-        status: 'In Progress',
-      },
-    ],
-  },
-  {
-    semester: 'Fall 2024',
-    gpa: 3.85,
-    credits: 18,
-    courses: [
-      {
-        code: 'CS100',
-        name: 'Programming Fundamentals',
-        credits: 3,
-        percentage: 95,
-        grade: 'A',
-        points: 4.0,
-        status: 'Completed',
-      },
-      {
-        code: 'MATH101',
-        name: 'Calculus I',
-        credits: 4,
-        percentage: 90,
-        grade: 'A-',
-        points: 3.7,
-        status: 'Completed',
-      },
-      {
-        code: 'ENG101',
-        name: 'English Composition',
-        credits: 3,
-        percentage: 88,
-        grade: 'B+',
-        points: 3.5,
-        status: 'Completed',
-      },
-      {
-        code: 'PHY101',
-        name: 'Physics I',
-        credits: 4,
-        percentage: 92,
-        grade: 'A',
-        points: 4.0,
-        status: 'Completed',
-      },
-      {
-        code: 'CS110',
-        name: 'Discrete Mathematics',
-        credits: 4,
-        percentage: 91,
-        grade: 'A-',
-        points: 3.7,
-        status: 'Completed',
-      },
-    ],
-  },
-  {
-    semester: 'Spring 2024',
-    gpa: 3.65,
-    credits: 16,
-    courses: [
-      {
-        code: 'CS120',
-        name: 'Object-Oriented Programming',
-        credits: 4,
-        percentage: 88,
-        grade: 'B+',
-        points: 3.5,
-        status: 'Completed',
-      },
-      {
-        code: 'MATH102',
-        name: 'Calculus II',
-        credits: 4,
-        percentage: 83,
-        grade: 'B',
-        points: 3.0,
-        status: 'Completed',
-      },
-      {
-        code: 'ENG102',
-        name: 'Technical Writing',
-        credits: 3,
-        percentage: 92,
-        grade: 'A',
-        points: 4.0,
-        status: 'Completed',
-      },
-      {
-        code: 'CS130',
-        name: 'Computer Architecture',
-        credits: 3,
-        percentage: 88,
-        grade: 'B+',
-        points: 3.5,
-        status: 'Completed',
-      },
-      {
-        code: 'STAT101',
-        name: 'Statistics',
-        credits: 2,
-        percentage: 91,
-        grade: 'A-',
-        points: 3.7,
-        status: 'Completed',
-      },
-    ],
-  },
-];
+const defaultSemesters: SemesterData[] = [];
 
 const getGradeColor = (grade: string, isDark: boolean) => {
   if (isDark) {
@@ -586,10 +420,10 @@ const getGradeTypeBadge = (gradeType: string, isDark: boolean) => {
 };
 
 export default function GradesTranscript({
-  cumulativeGPA: propCumulativeGPA = 3.75,
-  currentSemesterGPA: propCurrentSemesterGPA = 3.62,
-  totalCredits: propTotalCredits = 120,
-  classRank = 15,
+  cumulativeGPA: propCumulativeGPA = 0,
+  currentSemesterGPA: propCurrentSemesterGPA = 0,
+  totalCredits: propTotalCredits = 0,
+  classRank = 0,
   semesters: propSemesters = defaultSemesters,
 }: GradesTranscriptProps) {
   const { t, isRTL } = useLanguage();

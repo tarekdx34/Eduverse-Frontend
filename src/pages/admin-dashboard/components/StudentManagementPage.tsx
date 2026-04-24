@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { adminService } from '../../../services/adminService';
@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
-import { useAuth } from '../../../context/AuthContext';
+import { useLiveApiSession } from '../../../hooks/useLiveApiSession';
 import { CleanSelect } from '../../../components/shared';
 import { ADMIN_DEPARTMENT } from '../constants';
 
@@ -30,120 +30,16 @@ interface Student {
   name: string;
   email: string;
   year: string;
-  enrolledCourses: string[];
   status: 'active' | 'on-hold' | 'graduated';
 }
 
-const mockStudents: Student[] = [
-  {
-    id: 1,
-    studentId: 'STU-2024-001',
-    name: 'Sara Mohamed',
-    email: 'sara.m@university.edu',
-    year: '2nd',
-    enrolledCourses: ['CS201', 'CS203', 'MATH201'],
-    status: 'active',
-  },
-  {
-    id: 2,
-    studentId: 'STU-2024-002',
-    name: 'Omar Ali',
-    email: 'omar.a@university.edu',
-    year: '3rd',
-    enrolledCourses: ['CS301', 'CS303'],
-    status: 'active',
-  },
-  {
-    id: 3,
-    studentId: 'STU-2024-003',
-    name: 'Fatima Nour',
-    email: 'fatima.n@university.edu',
-    year: '1st',
-    enrolledCourses: ['CS101', 'CS103', 'MATH101', 'PHY101'],
-    status: 'active',
-  },
-  {
-    id: 4,
-    studentId: 'STU-2024-004',
-    name: 'Hassan Youssef',
-    email: 'hassan.y@university.edu',
-    year: '4th',
-    enrolledCourses: ['CS401', 'CS403'],
-    status: 'active',
-  },
-  {
-    id: 5,
-    studentId: 'STU-2024-005',
-    name: 'Layla Ibrahim',
-    email: 'layla.i@university.edu',
-    year: '2nd',
-    enrolledCourses: ['CS201'],
-    status: 'on-hold',
-  },
-  {
-    id: 6,
-    studentId: 'STU-2024-006',
-    name: 'Khaled Mansour',
-    email: 'khaled.m@university.edu',
-    year: '3rd',
-    enrolledCourses: ['CS301', 'CS305', 'CS307'],
-    status: 'active',
-  },
-  {
-    id: 7,
-    studentId: 'STU-2024-007',
-    name: 'Nadia Samir',
-    email: 'nadia.s@university.edu',
-    year: '1st',
-    enrolledCourses: ['CS101', 'CS103'],
-    status: 'active',
-  },
-  {
-    id: 8,
-    studentId: 'STU-2024-008',
-    name: 'Tariq Hassan',
-    email: 'tariq.h@university.edu',
-    year: '4th',
-    enrolledCourses: [],
-    status: 'graduated',
-  },
-];
-
-const availableCourses = [
-  'CS101',
-  'CS103',
-  'CS201',
-  'CS203',
-  'CS301',
-  'CS303',
-  'CS305',
-  'CS307',
-  'CS401',
-  'CS403',
-  'MATH101',
-  'MATH201',
-  'PHY101',
-];
-
+const mockStudents: Student[] = [];
+const mockExamData: any[] = [];
+const availableCourses: string[] = [];
 const enrollmentConflicts: Record<
   string,
   { course: string; conflict: string; resolution: string }[]
-> = {
-  'STU-2024-001': [
-    {
-      course: 'CS203',
-      conflict: 'Schedule overlaps with MATH201 (Mon 10-12)',
-      resolution: 'Move to section B (Mon 14-16)',
-    },
-  ],
-  'STU-2024-003': [
-    {
-      course: 'PHY101',
-      conflict: 'Exceeds max credit hours (20/18)',
-      resolution: 'Drop PHY101 or request overload approval',
-    },
-  ],
-};
+> = {};
 
 type ModalType =
   | 'add-course'
@@ -157,8 +53,8 @@ export function StudentManagementPage() {
   const { isDark, primaryHex } = useTheme() as any;
   const accentColor = primaryHex || '#3b82f6';
   const { language, setLanguage, isRTL, t } = useLanguage();
-  const { isAuthenticated } = useAuth();
-  const isMockMode = !isAuthenticated;
+  const useLiveApi = useLiveApiSession();
+  const isMockMode = !useLiveApi;
 
   const [searchTerm, setSearchTerm] = useState('');
   const [yearFilter, setYearFilter] = useState('all');
@@ -166,8 +62,6 @@ export function StudentManagementPage() {
   const [activeModal, setActiveModal] = useState<ModalType>(null);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [selectedCourse, setSelectedCourse] = useState('');
-  const [page, setPage] = useState(1);
-  const [localEnrollments, setLocalEnrollments] = useState<Record<number, string[]>>({});
   const [showAddStudentModal, setShowAddStudentModal] = useState(false);
   const [newStudent, setNewStudent] = useState({
     firstName: '',
@@ -182,9 +76,21 @@ export function StudentManagementPage() {
   const queryClient = useQueryClient();
 
   const { data: studentsData, isLoading } = useQuery({
-    queryKey: ['admin-students', page, searchTerm, statusFilter],
-    queryFn: () => adminService.getStudents(page, 10, searchTerm),
+    queryKey: ['admin-students', searchTerm, statusFilter],
+    queryFn: () => adminService.getAllStudents(searchTerm),
     enabled: !isMockMode,
+  });
+
+  const enrollmentModalOpen =
+    !!selectedStudent &&
+    (activeModal === 'edit-student' ||
+      activeModal === 'remove-course' ||
+      activeModal === 'add-course');
+
+  const { data: selectionEnrollments, isLoading: enrollmentsLoading } = useQuery({
+    queryKey: ['admin-student-enrollments', selectedStudent?.id],
+    queryFn: () => adminService.getStudentEnrollments(selectedStudent!.id),
+    enabled: !isMockMode && enrollmentModalOpen && !!selectedStudent?.id,
   });
 
   const updateStudentMutation = useMutation({
@@ -224,6 +130,20 @@ export function StudentManagementPage() {
     },
   });
 
+  const dropEnrollmentMutation = useMutation({
+    mutationFn: (enrollmentId: number) => adminService.dropStudentEnrollment(enrollmentId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-student-enrollments'] });
+      toast.success('Course removed', { description: 'Enrollment has been dropped.' });
+      closeModal();
+    },
+    onError: (error: any) => {
+      toast.error('Drop failed', {
+        description: error?.message || 'Could not remove this enrollment.',
+      });
+    },
+  });
+
   const deleteStudentMutation = useMutation({
     mutationFn: (id: number) => adminService.deleteUser(id),
     onSuccess: () => {
@@ -254,14 +174,12 @@ export function StudentManagementPage() {
     const list = studentsData.data || (Array.isArray(studentsData) ? studentsData : []);
     return list.map((user: any) => {
       const id = user.userId;
-      const baseEnrolled = user.enrolledCourses || [];
       return {
         id,
         studentId: user.studentId || `STU-2026-${id.toString().padStart(3, '0')}`,
         name: `${user.firstName} ${user.lastName}`,
         email: user.email,
         year: user.year || '4th',
-        enrolledCourses: localEnrollments[id] || baseEnrolled,
         status:
           user.status === 'active'
             ? 'active'
@@ -270,7 +188,7 @@ export function StudentManagementPage() {
               : 'on-hold',
       };
     });
-  }, [studentsData, isMockMode, localEnrollments]);
+  }, [studentsData, isMockMode]);
 
   const filteredStudents = useMemo(() => {
     return students.filter((s) => {
@@ -294,29 +212,8 @@ export function StudentManagementPage() {
 
   const handleAddCourse = () => {
     if (!selectedStudent || !selectedCourse) return;
-    setLocalEnrollments((prev) => ({
-      ...prev,
-      [selectedStudent.id]: [
-        ...(prev[selectedStudent.id] || selectedStudent.enrolledCourses),
-        selectedCourse,
-      ],
-    }));
     toast.success('Course added', {
       description: `${selectedCourse} has been added to ${selectedStudent.name}'s schedule.`,
-    });
-    closeModal();
-  };
-
-  const handleRemoveCourse = (course: string) => {
-    if (!selectedStudent) return;
-    setLocalEnrollments((prev) => ({
-      ...prev,
-      [selectedStudent.id]: (prev[selectedStudent.id] || selectedStudent.enrolledCourses).filter(
-        (c) => c !== course
-      ),
-    }));
-    toast.success('Course removed', {
-      description: `${course} has been removed from ${selectedStudent.name}'s schedule.`,
     });
     closeModal();
   };
@@ -359,8 +256,11 @@ export function StudentManagementPage() {
   const rowHoverClass = `${isDark ? 'hover:bg-blue-500/5' : 'hover:bg-slate-50'}`;
   const thClass = `px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400 border-b border-white/5' : 'text-slate-500 border-b border-slate-100'}`;
 
+  const enrolledCourseCodes = new Set(
+    (selectionEnrollments || []).map((e: any) => e.course?.code).filter(Boolean),
+  );
   const coursesNotEnrolled = selectedStudent
-    ? availableCourses.filter((c) => !selectedStudent.enrolledCourses.includes(c))
+    ? availableCourses.filter((c) => !enrolledCourseCodes.has(c))
     : [];
 
   const conflicts = selectedStudent ? enrollmentConflicts[selectedStudent.studentId] || [] : [];
@@ -457,7 +357,6 @@ export function StudentManagementPage() {
                 <th className={thClass}>Student ID</th>
                 <th className={thClass}>{t('email') || 'Email'}</th>
                 <th className={thClass}>Year</th>
-                <th className={thClass}>Enrolled Courses</th>
                 <th className={thClass}>{t('status') || 'Status'}</th>
                 <th className={thClass}>{t('actions') || 'Actions'}</th>
               </tr>
@@ -465,7 +364,7 @@ export function StudentManagementPage() {
             <tbody className={`${isDark ? 'divide-white/5' : 'divide-slate-100'} divide-y`}>
               {isLoading ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-12 text-center text-slate-500">
+                  <td colSpan={6} className="px-4 py-12 text-center text-slate-500">
                     <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2 text-blue-500" />
                     Loading students...
                   </td>
@@ -479,28 +378,6 @@ export function StudentManagementPage() {
                     </td>
                     <td className={`px-4 py-3 ${labelClass}`}>{student.email}</td>
                     <td className={`px-4 py-3 ${labelClass}`}>{student.year}</td>
-                    <td className="px-4 py-3">
-                      <div className="flex flex-wrap gap-1">
-                        {student.enrolledCourses.length > 0 ? (
-                          student.enrolledCourses.map((c) => (
-                            <span
-                              key={c}
-                              className={`px-2 py-0.5 rounded text-xs font-medium ${
-                                isDark ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-50 text-blue-600'
-                              }`}
-                            >
-                              {c}
-                            </span>
-                          ))
-                        ) : (
-                          <span
-                            className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
-                          >
-                            None
-                          </span>
-                        )}
-                      </div>
-                    </td>
                     <td className="px-4 py-3">{statusBadge(student.status)}</td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-4">
@@ -580,7 +457,7 @@ export function StudentManagementPage() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={7} className={`px-4 py-12 text-center ${labelClass}`}>
+                  <td colSpan={6} className={`px-4 py-12 text-center ${labelClass}`}>
                     {t('noData') || 'No students found'}
                   </td>
                 </tr>
@@ -593,7 +470,11 @@ export function StudentManagementPage() {
       {/* Modals */}
       {activeModal && selectedStudent && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className={`${cardClass} w-full max-w-md p-6 relative`}>
+          <div
+            className={`${cardClass} w-full p-6 relative ${
+              activeModal === 'edit-student' ? 'max-w-lg' : 'max-w-md'
+            }`}
+          >
             <button
               onClick={closeModal}
               className={`absolute top-4 right-4 p-1 rounded-lg transition-colors ${
@@ -658,23 +539,48 @@ export function StudentManagementPage() {
                   <Minus className="w-5 h-5" style={{ color: accentColor }} />
                   Remove Course — {selectedStudent.name}
                 </h2>
-                {selectedStudent.enrolledCourses.length > 0 ? (
+                {enrollmentsLoading ? (
+                  <div className="flex justify-center py-8">
+                    <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+                  </div>
+                ) : selectionEnrollments && selectionEnrollments.length > 0 ? (
                   <div className="space-y-2">
-                    <p className={`text-sm mb-3 ${labelClass}`}>Click a course to remove it</p>
-                    {selectedStudent.enrolledCourses.map((c) => (
-                      <button
-                        key={c}
-                        onClick={() => handleRemoveCourse(c)}
-                        className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                          isDark
-                            ? 'bg-slate-800/50 hover:bg-red-500/10 text-white hover:text-red-400 border border-white/5'
-                            : 'bg-slate-50 hover:bg-red-50 text-slate-700 hover:text-red-600 border border-slate-200'
-                        }`}
-                      >
-                        <span>{c}</span>
-                        <X className="w-4 h-4" />
-                      </button>
-                    ))}
+                    <p className={`text-sm mb-3 ${labelClass}`}>
+                      Drops the enrollment (admin). Only active enrollments can be removed.
+                    </p>
+                    {selectionEnrollments.map((e: any) => {
+                      const label = e.course
+                        ? `${e.course.code} — ${e.course.name}`
+                        : `Enrollment #${e.id}`;
+                      const canDrop = e.status === 'enrolled';
+                      return (
+                        <button
+                          key={e.id}
+                          type="button"
+                          disabled={!canDrop || dropEnrollmentMutation.isPending}
+                          onClick={() => dropEnrollmentMutation.mutate(e.id)}
+                          className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                            canDrop
+                              ? isDark
+                                ? 'bg-slate-800/50 hover:bg-red-500/10 text-white hover:text-red-400 border border-white/5'
+                                : 'bg-slate-50 hover:bg-red-50 text-slate-700 hover:text-red-600 border border-slate-200'
+                              : isDark
+                                ? 'bg-slate-800/30 text-slate-500 border border-white/5 cursor-not-allowed'
+                                : 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
+                          }`}
+                        >
+                          <span className="text-left">
+                            {label}
+                            {e.semester?.name ? (
+                              <span className={`block text-xs font-normal mt-0.5 ${labelClass}`}>
+                                {e.semester.name} · Section {e.section?.sectionNumber ?? '—'}
+                              </span>
+                            ) : null}
+                          </span>
+                          <X className="w-4 h-4 shrink-0" />
+                        </button>
+                      );
+                    })}
                   </div>
                 ) : (
                   <p className={`text-sm ${labelClass}`}>Student has no enrolled courses.</p>
@@ -773,6 +679,8 @@ export function StudentManagementPage() {
             {activeModal === 'edit-student' && (
               <EditStudentContent
                 student={selectedStudent}
+                enrollments={selectionEnrollments}
+                enrollmentsLoading={enrollmentsLoading}
                 onSave={(data: any) => {
                   const { email, ...updateData } = data;
                   updateStudentMutation.mutate({ id: selectedStudent.id, data: updateData });
@@ -1092,6 +1000,8 @@ function Tooltip({
 
 function EditStudentContent({
   student,
+  enrollments,
+  enrollmentsLoading,
   onSave,
   isSubmitting,
   accentColor,
@@ -1107,10 +1017,21 @@ function EditStudentContent({
     phone: student.studentId ? '' : '', // phone isn't in mock, but we'll allow editing
   });
 
+  useEffect(() => {
+    setFormData({
+      firstName: student.name.split(' ')[0] || '',
+      lastName: student.name.split(' ').slice(1).join(' ') || '',
+      email: student.email,
+      phone: '',
+    });
+  }, [student.id, student.name, student.email, student.studentId]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSave(formData);
   };
+
+  const enrollmentRows = Array.isArray(enrollments) ? enrollments : [];
 
   return (
     <>
@@ -1181,6 +1102,47 @@ function EditStudentContent({
             </div>
           </div>
         </div>
+
+        <div
+          className={`rounded-xl border p-3 ${
+            isDark ? 'border-white/10 bg-slate-800/40' : 'border-slate-200 bg-slate-50/80'
+          }`}
+        >
+          <div className="flex items-center gap-2 mb-2">
+            <BookOpen className="w-4 h-4" style={{ color: accentColor }} />
+            <span className={`text-xs font-bold uppercase tracking-wider ${labelClass}`}>
+              Enrolled courses
+            </span>
+          </div>
+          {enrollmentsLoading ? (
+            <div className="flex justify-center py-6">
+              <Loader2 className="w-6 h-6 animate-spin" style={{ color: accentColor }} />
+            </div>
+          ) : enrollmentRows.length === 0 ? (
+            <p className={`text-sm ${labelClass}`}>No active or completed enrollments found.</p>
+          ) : (
+            <ul className={`max-h-52 overflow-y-auto space-y-2 text-sm ${labelClass}`}>
+              {enrollmentRows.map((e: any) => (
+                <li
+                  key={e.id}
+                  className={`rounded-lg px-3 py-2 ${
+                    isDark ? 'bg-slate-900/50' : 'bg-white border border-slate-100'
+                  }`}
+                >
+                  <div className={`font-semibold ${headingClass}`}>
+                    {e.course ? `${e.course.code} — ${e.course.name}` : `Enrollment #${e.id}`}
+                  </div>
+                  <div className="text-xs mt-1 opacity-90">
+                    {e.semester?.name ? `${e.semester.name} · ` : ''}
+                    Section {e.section?.sectionNumber ?? '—'}
+                    {e.status ? ` · ${e.status}` : ''}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
         <button
           type="submit"
           disabled={isSubmitting}

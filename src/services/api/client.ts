@@ -16,7 +16,22 @@ export const client = axios.create({
 
 client.interceptors.request.use((config) => {
   const accessToken = localStorage.getItem(TOKEN_KEYS.ACCESS_TOKEN);
-  if (accessToken) {
+  const isMock = accessToken === 'mock-dev-token';
+  
+  if (isMock) {
+    // Override the adapter for this request to return mock data immediately
+    config.adapter = (cfg) => {
+      return Promise.resolve({
+        data: [],
+        status: 200,
+        statusText: 'OK',
+        headers: {},
+        config: cfg,
+      });
+    };
+  }
+  
+  if (accessToken && accessToken !== 'mock-dev-token') {
     config.headers.Authorization = `Bearer ${accessToken}`;
   }
   return config;
@@ -25,13 +40,25 @@ client.interceptors.request.use((config) => {
 client.interceptors.response.use(
   (response) => response,
   (error) => {
+    const accessToken = localStorage.getItem(TOKEN_KEYS.ACCESS_TOKEN);
+    const isMock = accessToken === 'mock-dev-token';
+
     if (error?.response?.status === 401) {
+      if (isMock) {
+        // In mock mode, we just return empty data to facilitate empty-state design
+        return Promise.resolve({ data: [] });
+      }
       localStorage.removeItem(TOKEN_KEYS.ACCESS_TOKEN);
       localStorage.removeItem(TOKEN_KEYS.REFRESH_TOKEN);
       localStorage.removeItem(TOKEN_KEYS.USER);
       if (window.location.pathname !== '/login') {
         window.location.href = '/login';
       }
+    }
+
+    if (isMock) {
+      // For any other error in mock mode (500, 404, etc), be silent and return empty
+      return Promise.resolve({ data: [] });
     }
 
     return Promise.reject(error);
@@ -84,6 +111,32 @@ export class ApiClient {
     }
 
     const accessToken = localStorage.getItem(TOKEN_KEYS.ACCESS_TOKEN);
+    if (accessToken === 'mock-dev-token') {
+      // Return a minimal valid response to prevent common crashes
+      // Most of our lists are arrays, but specific endpoints need object shapes
+      if (endpoint.includes('/schedule/my/daily')) {
+        return Promise.resolve({
+          date: new Date().toISOString().split('T')[0],
+          dayOfWeek: 'TODAY',
+          schedules: [],
+          events: [],
+          exams: [],
+          campusEvents: [],
+        } as unknown as T);
+      }
+      if (endpoint.includes('/schedule/my/weekly')) {
+        return Promise.resolve({
+          weekStart: '',
+          weekEnd: '',
+          days: [],
+        } as unknown as T);
+      }
+      
+      // Generic fallback: array for lists, empty object for others
+      // Most GET requests that aren't specific above are likely lists in this project
+      return Promise.resolve([] as unknown as T);
+    }
+
     if (accessToken) {
       headers['Authorization'] = `Bearer ${accessToken}`;
     }
@@ -105,6 +158,12 @@ export class ApiClient {
 
       if (!response.ok) {
         if (response.status === 401) {
+          const token = localStorage.getItem(TOKEN_KEYS.ACCESS_TOKEN);
+          if (token === 'mock-dev-token') {
+            // In mock mode, we ignore 401s silently to allow empty state design
+            return [] as unknown as T;
+          }
+
           console.warn('[API Auth] Session expired or invalid. Clearing auth and redirecting...');
           localStorage.removeItem(TOKEN_KEYS.ACCESS_TOKEN);
           localStorage.removeItem(TOKEN_KEYS.REFRESH_TOKEN);

@@ -37,7 +37,7 @@ export function AcademicCalendarPage({
   onEditEvent,
   onDeleteEvent,
 }: AcademicCalendarPageProps) {
-  const { isDark } = useTheme();
+  const { isDark, primaryHex } = useTheme();
   const { t } = useLanguage();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [showAddModal, setShowAddModal] = useState(false);
@@ -71,15 +71,22 @@ export function AcademicCalendarPage({
 
   const { firstDay, daysInMonth } = getDaysInMonth(currentDate);
 
+  const toYmd = (raw: string | null | undefined): string | null => {
+    if (raw == null || raw === '') return null;
+    const s = String(raw).split('T')[0];
+    return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : null;
+  };
+
   const getEventsForDay = (day: number) => {
     const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     return events.filter((event) => {
-      const eventDate = event.date;
-      const eventEndDate = event.endDate;
-      if (eventEndDate) {
-        return dateStr >= eventDate && dateStr <= eventEndDate;
+      const start = toYmd(event.date);
+      const end = toYmd(event.endDate ?? undefined);
+      if (!start) return false;
+      if (end) {
+        return dateStr >= start && dateStr <= end;
       }
-      return eventDate === dateStr;
+      return dateStr === start;
     });
   };
 
@@ -137,7 +144,8 @@ export function AcademicCalendarPage({
         </div>
         <button
           onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+          style={{ backgroundColor: primaryHex }}
+          className="flex items-center gap-2 px-4 py-2 text-white rounded-lg hover:opacity-90 transition-colors"
         >
           <Plus size={18} />
           {t('addEvent')}
@@ -171,13 +179,15 @@ export function AcademicCalendarPage({
           <div className="flex items-center gap-2">
             <button
               onClick={() => setViewMode('month')}
-              className={`px-3 py-1 rounded-lg text-sm ${viewMode === 'month' ? 'bg-red-600 text-white' : isDark ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-700'}`}
+              style={viewMode === 'month' ? { backgroundColor: primaryHex } : {}}
+              className={`px-3 py-1 rounded-lg text-sm ${viewMode === 'month' ? 'text-white' : isDark ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-700'}`}
             >
               {t('monthView')}
             </button>
             <button
               onClick={() => setViewMode('list')}
-              className={`px-3 py-1 rounded-lg text-sm ${viewMode === 'list' ? 'bg-red-600 text-white' : isDark ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-700'}`}
+              style={viewMode === 'list' ? { backgroundColor: primaryHex } : {}}
+              className={`px-3 py-1 rounded-lg text-sm ${viewMode === 'list' ? 'text-white' : isDark ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-700'}`}
             >
               {t('listView')}
             </button>
@@ -246,10 +256,12 @@ export function AcademicCalendarPage({
               return (
                 <div
                   key={day}
-                  className={`min-h-[100px] p-2 border-b border-r ${isDark ? 'border-gray-700' : 'border-gray-100'} ${isToday ? (isDark ? 'bg-red-900/20' : 'bg-red-50') : ''}`}
+                  className={`min-h-[100px] p-2 border-b border-r ${isDark ? 'border-gray-700' : 'border-gray-100'} ${isToday ? (isDark ? 'bg-opacity-20' : 'bg-opacity-5') : ''}`}
+                  style={isToday ? { backgroundColor: primaryHex + (isDark ? '33' : '10') } : {}}
                 >
                   <div
-                    className={`text-sm font-medium mb-1 ${isToday ? 'text-red-600' : isDark ? 'text-gray-300' : 'text-gray-700'}`}
+                    className={`text-sm font-medium mb-1 ${!isToday && (isDark ? 'text-gray-300' : 'text-gray-700')}`}
+                    style={isToday ? { color: primaryHex } : {}}
                   >
                     {day}
                   </div>
@@ -364,20 +376,22 @@ export function AcademicCalendarPage({
                     >
                       {getEventTypeLabel(event.type)}
                     </span>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => setEditingEvent(event)}
-                        className={`p-2 rounded-lg ${isDark ? 'hover:bg-gray-600' : 'hover:bg-gray-100'}`}
-                      >
-                        <Edit2 size={16} className={isDark ? 'text-gray-400' : 'text-gray-500'} />
-                      </button>
-                      <button
-                        onClick={() => onDeleteEvent(event.id)}
-                        className={`p-2 rounded-lg hover:bg-red-50 ${isDark ? 'hover:bg-red-900/20' : ''}`}
-                      >
-                        <Trash2 size={16} className="text-red-500" />
-                      </button>
-                    </div>
+                    {!event.isSystem && (
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => setEditingEvent(event)}
+                          className={`p-2 rounded-lg ${isDark ? 'hover:bg-gray-600' : 'hover:bg-gray-100'}`}
+                        >
+                          <Edit2 size={16} className={isDark ? 'text-gray-400' : 'text-gray-500'} />
+                        </button>
+                        <button
+                          onClick={() => onDeleteEvent(event.id)}
+                          className={`p-2 rounded-lg hover:bg-red-50 ${isDark ? 'hover:bg-red-900/20' : ''}`}
+                        >
+                          <Trash2 size={16} className="text-red-500" />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
@@ -392,7 +406,26 @@ export function AcademicCalendarPage({
             <h2 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
               {editingEvent ? t('editEvent') : t('addEvent')}
             </h2>
-            <form className="space-y-4">
+            <form
+              className="space-y-4"
+              onSubmit={(e) => {
+                e.preventDefault();
+                const formData = new FormData(e.currentTarget);
+                const data = {
+                  title: formData.get('title') as string,
+                  date: formData.get('date') as string,
+                  endDate: (formData.get('endDate') as string) || null,
+                  type: formData.get('type') as string,
+                };
+                if (editingEvent) {
+                  onEditEvent(editingEvent.id, data);
+                } else {
+                  onAddEvent(data);
+                }
+                setShowAddModal(false);
+                setEditingEvent(null);
+              }}
+            >
               <div>
                 <label
                   className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}
@@ -401,6 +434,8 @@ export function AcademicCalendarPage({
                 </label>
                 <input
                   type="text"
+                  name="title"
+                  required
                   defaultValue={editingEvent?.title}
                   className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
                 />
@@ -414,6 +449,8 @@ export function AcademicCalendarPage({
                   </label>
                   <input
                     type="date"
+                    name="date"
+                    required
                     defaultValue={editingEvent?.date}
                     className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
                   />
@@ -426,6 +463,7 @@ export function AcademicCalendarPage({
                   </label>
                   <input
                     type="date"
+                    name="endDate"
                     defaultValue={editingEvent?.endDate || ''}
                     className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
                   />
@@ -438,26 +476,15 @@ export function AcademicCalendarPage({
                   {t('eventType')}
                 </label>
                 <CleanSelect
-                  defaultValue={editingEvent?.type}
+                  name="type"
+                  defaultValue={editingEvent?.type || 'custom'}
                   className={`w-full px-4 py-2 rounded-lg border ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
                 >
                   <option
-                    value="semesterStart"
+                    value="academic"
                     className={isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'}
                   >
-                    {t('semesterStart')}
-                  </option>
-                  <option
-                    value="semesterEnd"
-                    className={isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'}
-                  >
-                    {t('semesterEnd')}
-                  </option>
-                  <option
-                    value="registration"
-                    className={isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'}
-                  >
-                    {t('registrationPeriod')}
+                    {t('academic')}
                   </option>
                   <option
                     value="holiday"
@@ -466,10 +493,16 @@ export function AcademicCalendarPage({
                     {t('holiday')}
                   </option>
                   <option
-                    value="examPeriod"
+                    value="exam"
                     className={isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'}
                   >
                     {t('examPeriod')}
+                  </option>
+                  <option
+                    value="custom"
+                    className={isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'}
+                  >
+                    {t('custom')}
                   </option>
                 </CleanSelect>
               </div>
@@ -486,7 +519,8 @@ export function AcademicCalendarPage({
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                  style={{ backgroundColor: primaryHex }}
+                  className="px-4 py-2 text-white rounded-lg hover:opacity-90"
                 >
                   {editingEvent ? t('save') : t('addEvent')}
                 </button>

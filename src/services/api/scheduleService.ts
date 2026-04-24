@@ -220,6 +220,19 @@ export interface OfficeHoursSlot {
   currentAppointments?: number;
   meetingUrl?: string | null;
   status?: 'active' | 'inactive' | string;
+  isRecurring?: boolean;
+  effectiveFrom?: string | null;
+  effectiveUntil?: string | null;
+  notes?: string | null;
+  building?: string;
+  room?: string;
+  instructor?: {
+    userId?: number;
+    id?: number;
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+  };
 }
 
 export interface OfficeHoursAvailableResponse {
@@ -674,12 +687,21 @@ export class ScheduleService {
   }
 
   static async getOfficeHourById(id: number): Promise<OfficeHoursSlot> {
-    try {
-      return await ApiClient.get(`/office-hours/${id}`);
-    } catch (error) {
-      if (!isNotFoundError(error)) throw error;
-      return ApiClient.get(`/office-hours/slots/${id}`);
+    const raw = (await (async () => {
+      try {
+        return await ApiClient.get<unknown>(`/office-hours/${id}`);
+      } catch (error) {
+        if (!isNotFoundError(error)) throw error;
+        return await ApiClient.get<unknown>(`/office-hours/slots/${id}`);
+      }
+    })()) as unknown;
+    if (raw && typeof raw === 'object' && 'data' in raw) {
+      const inner = (raw as { data: unknown }).data;
+      if (inner && typeof inner === 'object' && inner !== null && 'slotId' in inner) {
+        return inner as OfficeHoursSlot;
+      }
     }
+    return raw as OfficeHoursSlot;
   }
 
   static async createOfficeHour(data: {
@@ -708,6 +730,7 @@ export class ScheduleService {
   static async updateOfficeHour(
     id: number,
     data: Partial<{
+      instructorId?: number;
       dayOfWeek: string;
       startTime: string;
       endTime: string;
@@ -720,6 +743,7 @@ export class ScheduleService {
       effectiveFrom?: string;
       effectiveUntil?: string;
       notes?: string;
+      meetingUrl?: string;
       isActive?: boolean;
     }>
   ): Promise<OfficeHoursSlot> {

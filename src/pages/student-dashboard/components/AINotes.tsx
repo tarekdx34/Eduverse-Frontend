@@ -32,107 +32,7 @@ interface Note {
   color: string;
 }
 
-const initialNotes: Note[] = [
-  {
-    id: 1,
-    title: 'Data Structures Overview',
-    course: 'CS201',
-    category: 'Data Structures',
-    preview:
-      'Comprehensive notes covering arrays, linked lists, trees, and graphs with complexity analysis...',
-    date: 'Feb 20, 2026',
-    studyTime: '2.5h',
-    flashcards: 15,
-    bookmarked: true,
-    color: '#3B82F6',
-  },
-  {
-    id: 2,
-    title: 'Database Normalization',
-    course: 'CS220',
-    category: 'Databases',
-    preview:
-      'Detailed breakdown of 1NF, 2NF, 3NF, and BCNF with practical examples and exercises...',
-    date: 'Feb 18, 2026',
-    studyTime: '1.8h',
-    flashcards: 10,
-    bookmarked: false,
-    color: '#10B981',
-  },
-  {
-    id: 3,
-    title: 'Software Design Patterns',
-    course: 'CS305',
-    category: 'Software Engineering',
-    preview: 'Notes on Singleton, Factory, Observer, and Strategy patterns with code examples...',
-    date: 'Feb 15, 2026',
-    studyTime: '3.0h',
-    flashcards: 20,
-    bookmarked: true,
-    color: '#8B5CF6',
-  },
-  {
-    id: 4,
-    title: 'Machine Learning Basics',
-    course: 'CS410',
-    category: 'Machine Learning',
-    preview: 'Introduction to supervised and unsupervised learning, regression, classification...',
-    date: 'Feb 12, 2026',
-    studyTime: '4.2h',
-    flashcards: 25,
-    bookmarked: false,
-    color: '#F59E0B',
-  },
-  {
-    id: 5,
-    title: 'Operating Systems Concepts',
-    course: 'CS310',
-    category: 'Operating Systems',
-    preview: 'Process management, memory management, file systems, and I/O systems...',
-    date: 'Feb 10, 2026',
-    studyTime: '2.0h',
-    flashcards: 12,
-    bookmarked: false,
-    color: '#EF4444',
-  },
-  {
-    id: 6,
-    title: 'Web Development Frameworks',
-    course: 'CS150',
-    category: 'Web Development',
-    preview:
-      'Comparison of React, Angular, and Vue with architecture patterns and best practices...',
-    date: 'Feb 8, 2026',
-    studyTime: '1.5h',
-    flashcards: 8,
-    bookmarked: true,
-    color: '#06B6D4',
-  },
-  {
-    id: 7,
-    title: 'Network Protocols',
-    course: 'CS301',
-    category: 'Computer Networks',
-    preview: 'TCP/IP, HTTP, DNS, and other network protocols with packet analysis...',
-    date: 'Feb 5, 2026',
-    studyTime: '2.8h',
-    flashcards: 18,
-    bookmarked: false,
-    color: '#8B5CF6',
-  },
-  {
-    id: 8,
-    title: 'Algorithm Complexity',
-    course: 'CS250',
-    category: 'Algorithms',
-    preview: 'Big O notation, time and space complexity analysis for common algorithms...',
-    date: 'Feb 2, 2026',
-    studyTime: '3.5h',
-    flashcards: 22,
-    bookmarked: false,
-    color: '#EC4899',
-  },
-];
+const initialNotes: Note[] = [];
 
 const filters = [
   { key: 'all', label: 'All' },
@@ -204,9 +104,9 @@ export const AINotes = () => {
 
   const stats = [
     { label: 'Total Notes', value: notes.length, icon: FileText, color: accentColor },
-    { label: 'Study Time', value: '48h', icon: Clock, color: '#3B82F6' },
-    { label: 'Topics Covered', value: 12, icon: BookOpen, color: '#10B981' },
-    { label: 'Completion', value: '78%', icon: Target, color: '#F59E0B' },
+    { label: 'Study Time', value: '0h', icon: Clock, color: '#3B82F6' },
+    { label: 'Topics Covered', value: 0, icon: BookOpen, color: '#10B981' },
+    { label: 'Completion', value: '0%', icon: Target, color: '#F59E0B' },
   ];
 
   const sources = [
