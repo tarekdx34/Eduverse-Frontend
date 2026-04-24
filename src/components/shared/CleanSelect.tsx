@@ -5,6 +5,7 @@ import InstructorThemeContext from '../../pages/instructor-dashboard/contexts/Th
 import TaThemeContext from '../../pages/ta-dashboard/contexts/ThemeContext';
 import AdminThemeContext from '../../pages/admin-dashboard/contexts/ThemeContext';
 import ItAdminThemeContext from '../../pages/it-admin-dashboard/contexts/ThemeContext';
+import GlobalThemeContext from '../../context/ThemeContext';
 
 export interface CleanSelectProps
   extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, 'onChange' | 'value'> {
@@ -18,10 +19,20 @@ export function CleanSelect({ value, onChange, children, className }: CleanSelec
   const taTheme = useContext(TaThemeContext) as any;
   const adminTheme = useContext(AdminThemeContext) as any;
   const itAdminTheme = useContext(ItAdminThemeContext) as any;
+  const globalTheme = useContext(GlobalThemeContext) as any;
 
-  const theme = studentTheme || instructorTheme || taTheme || adminTheme || itAdminTheme || {};
-  const isDark = theme?.isDark ?? false;
-  const accentColor = theme?.primaryHex ?? '#3b82f6';
+  // Find the first theme that is actually provided (not undefined and has properties)
+  const theme = [
+    studentTheme,
+    instructorTheme,
+    taTheme,
+    adminTheme,
+    itAdminTheme,
+    globalTheme
+  ].find(t => t && (t.theme !== undefined || t.isDark !== undefined)) || {};
+
+  const isDark = theme?.isDark ?? (theme?.theme === 'dark') ?? false;
+  const accentColor = theme?.primaryHex ?? theme?.primaryColor ?? '#3b82f6';
 
   const options = React.Children.toArray(children)
     .map((child: any) => {

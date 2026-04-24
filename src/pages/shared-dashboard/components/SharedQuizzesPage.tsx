@@ -70,13 +70,28 @@ function SharedQuizzesPageContent({ role = 'INSTRUCTOR' }: SharedQuizzesPageProp
   );
 }
 
+import { useTheme as useTaTheme } from '../../ta-dashboard/contexts/ThemeContext';
+import { useLanguage as useTaLanguage } from '../../ta-dashboard/contexts/LanguageContext';
+
 export function SharedQuizzesPage({ role = 'INSTRUCTOR' }: SharedQuizzesPageProps) {
+  const taTheme = useTaTheme();
+  const taLanguage = useTaLanguage();
+
+  if (role === 'TA') {
+    return (
+      <InstructorThemeProvider
+        initialTheme={taTheme.theme as any}
+        initialPrimaryColor={taTheme.primaryColor}
+      >
+        <InstructorLanguageProvider initialLanguage={taLanguage.language as any}>
+          <SharedQuizzesPageContent role={role} />
+        </InstructorLanguageProvider>
+      </InstructorThemeProvider>
+    );
+  }
+
   return (
-    <InstructorThemeProvider>
-      <InstructorLanguageProvider>
-        <SharedQuizzesPageContent role={role} />
-      </InstructorLanguageProvider>
-    </InstructorThemeProvider>
+    <SharedQuizzesPageContent role={role} />
   );
 }
 

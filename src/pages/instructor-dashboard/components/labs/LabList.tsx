@@ -141,7 +141,7 @@ export function LabList({
   );
 
   return (
-    <div className="p-6" dir={isRTL ? 'rtl' : 'ltr'}>
+    <div dir={isRTL ? 'rtl' : 'ltr'}>
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header with create button */}
         <div className="flex items-center justify-between">

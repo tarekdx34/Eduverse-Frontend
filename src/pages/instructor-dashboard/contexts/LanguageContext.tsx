@@ -535,7 +535,21 @@ const translations: Record<Language, Record<string, string>> = {
     submissionsLabel: 'Submissions:',
     closeAction: 'Close',
     noAssignmentsMatch: 'No assignments match your search.',
-    noAssignmentsForSection: 'No assignments for this section.',
+    noAssignmentsForSection: 'No assignments yet. Create your first assignment to get started.',
+    submissionTypeLabel: 'Submission Type',
+    allTypes: 'All Types',
+    textType: 'Text',
+    fileType: 'File',
+    linkType: 'Link',
+    anyType: 'Any',
+    assignmentsTitle: 'Assignments',
+    assignmentsPageDescription: 'Create, publish, and grade assignments across teaching sections',
+    selectSection: 'Select Section',
+    errorLoadingAssignments: 'Error loading assignments',
+    maxLabel: 'Max:',
+    ptsLabel: 'pts',
+    publishAction: 'Publish',
+    archiveAction: 'Archive',
 
     // Roster extras
     enrolledStudents: 'Enrolled Students',
@@ -1092,8 +1106,23 @@ const translations: Record<Language, Record<string, string>> = {
     dueLabel: 'الموعد:',
     submissionsLabel: 'التسليمات:',
     closeAction: 'إغلاق',
-    noAssignmentsMatch: 'لا توجد واجبات مطابقة للبحث.',
-    noAssignmentsForSection: 'لا توجد واجبات لهذا القسم.',
+    noAssignmentsMatch: 'لا توجد واجبات مطابقة.',
+    noAssignmentsForSection: 'لا توجد واجبات بعد. أنشئ واجبك الأول للبدء.',
+    submissionTypeLabel: 'نوع التسليم',
+    allTypes: 'جميع الأنواع',
+    textType: 'نص',
+    fileType: 'ملف',
+    linkType: 'رابط',
+    anyType: 'أي نوع',
+    assignmentsTitle: 'الواجبات',
+    assignmentsPageDescription: 'إنشاء ونشر وتصحيح الواجبات عبر الشُعب الدراسية',
+    selectSection: 'اختر الشعبة',
+    errorLoadingAssignments: 'خطأ في تحميل الواجبات',
+    typeLabel: 'النوع:',
+    maxLabel: 'الحد الأقصى:',
+    ptsLabel: 'نقطة',
+    publishAction: 'نشر',
+    archiveAction: 'أرشفة',
 
     // Roster extras
     enrolledStudents: 'الطلاب المسجلين',
@@ -1176,8 +1205,15 @@ const translations: Record<Language, Record<string, string>> = {
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
-export function LanguageProvider({ children }: { children: ReactNode }) {
+export function LanguageProvider({ 
+  children,
+  initialLanguage 
+}: { 
+  children: ReactNode;
+  initialLanguage?: Language;
+}) {
   const [language, setLanguageState] = useState<Language>(() => {
+    if (initialLanguage) return initialLanguage;
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('eduverse-language');
       return (saved as Language) || 'en';

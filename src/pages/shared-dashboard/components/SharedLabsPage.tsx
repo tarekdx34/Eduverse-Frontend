@@ -66,13 +66,28 @@ function SharedLabsPageContent({ role = 'INSTRUCTOR' }: SharedLabsPageProps) {
   );
 }
 
+import { useTheme as useTaTheme } from '../../ta-dashboard/contexts/ThemeContext';
+import { useLanguage as useTaLanguage } from '../../ta-dashboard/contexts/LanguageContext';
+
 export function SharedLabsPage({ role = 'INSTRUCTOR' }: SharedLabsPageProps) {
+  const taTheme = useTaTheme();
+  const taLanguage = useTaLanguage();
+
+  if (role === 'TA') {
+    return (
+      <InstructorThemeProvider 
+        initialTheme={taTheme.theme as any} 
+        initialPrimaryColor={taTheme.primaryColor}
+      >
+        <InstructorLanguageProvider initialLanguage={taLanguage.language as any}>
+          <SharedLabsPageContent role={role} />
+        </InstructorLanguageProvider>
+      </InstructorThemeProvider>
+    );
+  }
+
   return (
-    <InstructorThemeProvider>
-      <InstructorLanguageProvider>
-        <SharedLabsPageContent role={role} />
-      </InstructorLanguageProvider>
-    </InstructorThemeProvider>
+    <SharedLabsPageContent role={role} />
   );
 }
 

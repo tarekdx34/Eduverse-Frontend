@@ -13,7 +13,7 @@ import {
   X,
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme } from '../../../context/ThemeContext';
 import { MessagingChat } from '../../../components/shared';
 import { CleanSelect } from '../../../components/shared';
 
@@ -66,7 +66,8 @@ const MOCK_ANNOUNCEMENTS: Announcement[] = [
 
 export function AnnouncementsPage() {
   const { t } = useLanguage();
-  const { isDark } = useTheme();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const [announcements, setAnnouncements] = useState(MOCK_ANNOUNCEMENTS);
   const [showForm, setShowForm] = useState(false);
   const [filterCourse, setFilterCourse] = useState<string>('all');

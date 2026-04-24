@@ -20,7 +20,7 @@ import {
   Eye,
   Image as ImageIcon,
 } from 'lucide-react';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme } from '../../../context/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 
 // --- Types ---
@@ -207,7 +207,8 @@ function ProcessingAnimation({
 
 // --- Main Component ---
 export function AttendancePage() {
-  const { isDark } = useTheme();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const { t } = useLanguage();
   const [view, setView] = useState<'upload' | 'processing' | 'results' | 'history'>('upload');
   const [sessions, setSessions] = useState<AttendanceSession[]>([]);

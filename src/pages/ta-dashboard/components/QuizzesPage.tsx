@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme } from '../../../context/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import {
   Plus,
@@ -138,7 +138,8 @@ function emptyQuestion(id: number): Question {
 }
 
 export function QuizzesPage() {
-  const { isDark } = useTheme();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const { t } = useLanguage();
   const { user } = useAuth();
 

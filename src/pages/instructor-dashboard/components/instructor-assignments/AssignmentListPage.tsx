@@ -109,7 +109,7 @@ export function AssignmentListPage({
       <div
         className={`rounded-xl border p-6 text-center ${isDark ? 'bg-red-500/10 border-red-500/30 text-red-300' : 'bg-red-50 border-red-200 text-red-700'}`}
       >
-        <p className="font-medium">Error loading assignments</p>
+        <p className="font-medium">{t('errorLoadingAssignments')}</p>
         <p className="text-sm mt-1 opacity-80">{error}</p>
       </div>
     );
@@ -117,10 +117,10 @@ export function AssignmentListPage({
 
   const getSubmissionTypeLabel = (type: string) => {
     const labels: Record<string, string> = {
-      text: 'Text',
-      file: 'File',
-      link: 'Link',
-      any: 'Any',
+      text: t('textType'),
+      file: t('fileType'),
+      link: t('linkType'),
+      any: t('anyType'),
     };
     return labels[type] || type;
   };
@@ -141,11 +141,11 @@ export function AssignmentListPage({
   const getStatusActionLabel = (currentStatus: AssignmentStatus): string => {
     switch (currentStatus) {
       case 'draft':
-        return 'Publish';
+        return t('publishAction');
       case 'published':
-        return 'Close';
+        return t('closeAction');
       case 'closed':
-        return 'Archive';
+        return t('archiveAction');
       default:
         return '';
     }
@@ -189,10 +189,10 @@ export function AssignmentListPage({
             value={filterStatus}
             options={[
               { value: 'all', label: t('allStatus') },
-              { value: 'draft', label: 'Draft' },
-              { value: 'published', label: 'Published' },
-              { value: 'closed', label: 'Closed' },
-              { value: 'archived', label: 'Archived' },
+              { value: 'draft', label: t('draft') },
+              { value: 'published', label: t('publish') },
+              { value: 'closed', label: t('closed') },
+              { value: 'archived', label: t('archived') },
             ]}
             onChange={(v) => setFilterStatus(v as typeof filterStatus)}
             stackLabel
@@ -201,14 +201,14 @@ export function AssignmentListPage({
 
           {/* Type Filter */}
           <CustomDropdown
-            label="Submission Type"
+            label={t('submissionTypeLabel')}
             value={filterType}
             options={[
-              { value: 'all', label: 'All Types' },
-              { value: 'text', label: 'Text' },
-              { value: 'file', label: 'File' },
-              { value: 'link', label: 'Link' },
-              { value: 'any', label: 'Any' },
+              { value: 'all', label: t('allTypes') },
+              { value: 'text', label: t('textType') },
+              { value: 'file', label: t('fileType') },
+              { value: 'link', label: t('linkType') },
+              { value: 'any', label: t('anyType') },
             ]}
             onChange={(v) => setFilterType(v as typeof filterType)}
             stackLabel
@@ -292,10 +292,10 @@ export function AssignmentListPage({
                 </div>
                 <div className="flex items-center gap-4 text-xs">
                   <span className={isDark ? 'text-slate-400' : 'text-gray-500'}>
-                    Type: <span className="font-medium">{getSubmissionTypeLabel(assignment.submissionType)}</span>
+                    {t('submissionTypeLabel')}: <span className="font-medium">{getSubmissionTypeLabel(assignment.submissionType)}</span>
                   </span>
                   <span className={isDark ? 'text-slate-400' : 'text-gray-500'}>
-                    Max: <span className="font-medium">{assignment.maxScore} pts</span>
+                    {t('maxLabel')} <span className="font-medium">{assignment.maxScore} {t('ptsLabel')}</span>
                   </span>
                 </div>
               </div>
@@ -311,7 +311,7 @@ export function AssignmentListPage({
                   }`}
                 >
                   <Eye size={14} />
-                  Submissions
+                  {t('submissions')}
                 </button>
                 {nextStatus && (
                   <button
@@ -345,8 +345,8 @@ export function AssignmentListPage({
             className={`col-span-full text-center py-12 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}
           >
             {searchTerm || filterStatus !== 'all' || filterType !== 'all'
-              ? 'No assignments match your filters'
-              : 'No assignments yet. Create your first assignment to get started.'}
+              ? t('noAssignmentsMatch')
+              : t('noAssignmentsForSection')}
           </div>
         )}
       </div>

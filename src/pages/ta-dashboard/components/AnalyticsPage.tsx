@@ -21,7 +21,7 @@ import {
   ResponsiveContainer,
   Cell,
 } from 'recharts';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme } from '../../../context/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 
 const attendanceData = [
@@ -109,13 +109,14 @@ const insightStyles = {
 };
 
 export function AnalyticsPage() {
-  const { isDark } = useTheme();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const { t } = useLanguage();
   const [dateRange, setDateRange] = useState<DateRange>('month');
 
   const statCards = [
     {
-      title: 'Attendance Rate',
+      title: t('attendanceRate'),
       value: '88%',
       trend: '+3%',
       trendUp: true,
@@ -123,7 +124,7 @@ export function AnalyticsPage() {
       color: 'green',
     },
     {
-      title: 'Submission Rate',
+      title: t('submissionRate'),
       value: '76%',
       trend: '-2%',
       trendUp: false,
@@ -131,15 +132,15 @@ export function AnalyticsPage() {
       color: 'red',
     },
     {
-      title: 'At-Risk Students',
+      title: t('atRiskStudents'),
       value: '5',
-      trend: 'Needs attention',
+      trend: t('needsAttention'),
       trendUp: null,
       icon: AlertTriangle,
       color: 'yellow',
     },
     {
-      title: 'Engagement Score',
+      title: t('engagementScore'),
       value: '82',
       trend: '+5%',
       trendUp: true,
@@ -149,9 +150,9 @@ export function AnalyticsPage() {
   ];
 
   const dateRangeButtons: { key: DateRange; label: string }[] = [
-    { key: 'week', label: 'This Week' },
-    { key: 'month', label: 'This Month' },
-    { key: 'semester', label: 'This Semester' },
+    { key: 'week', label: t('thisWeek') },
+    { key: 'month', label: t('thisMonth') },
+    { key: 'semester', label: t('thisSemester') },
   ];
 
   return (
@@ -160,10 +161,10 @@ export function AnalyticsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-            Analytics
+            {t('analytics')}
           </h1>
           <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-            Track student performance, attendance, and engagement metrics
+            {t('trackPerformance')}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -195,7 +196,7 @@ export function AnalyticsPage() {
             <div
               key={stat.title}
               className={`border rounded-lg p-6 ${
-                isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'
+                isDark ? 'bg-card-dark border-white/5' : 'bg-white border-gray-200'
               }`}
             >
               <div className="flex items-center justify-between mb-4">
@@ -244,11 +245,11 @@ export function AnalyticsPage() {
         {/* Attendance Trends */}
         <div
           className={`border rounded-lg p-6 ${
-            isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'
+            isDark ? 'bg-card-dark border-white/5' : 'bg-white border-gray-200'
           }`}
         >
           <h2 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-            Attendance Trends
+            {t('attendanceTrends')}
           </h2>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
@@ -273,7 +274,7 @@ export function AnalyticsPage() {
                     color: isDark ? '#fff' : '#111827',
                   }}
                 />
-                <Bar dataKey="value" name="Attendance %" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="value" name={t('attendancePercent')} fill="#3b82f6" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -282,11 +283,11 @@ export function AnalyticsPage() {
         {/* Submission Performance */}
         <div
           className={`border rounded-lg p-6 ${
-            isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'
+            isDark ? 'bg-card-dark border-white/5' : 'bg-white border-gray-200'
           }`}
         >
           <h2 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-            Submission Performance
+            {t('submissionPerformance')}
           </h2>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
@@ -311,7 +312,7 @@ export function AnalyticsPage() {
                     color: isDark ? '#fff' : '#111827',
                   }}
                 />
-                <Bar dataKey="value" name="Submission %" fill="#2563eb" radius={[4, 4, 0, 0]}>
+                <Bar dataKey="value" name={t('submissionPercent')} fill="#2563eb" radius={[4, 4, 0, 0]}>
                   {submissionData.map((entry, index) => (
                     <Cell
                       key={`cell-${index}`}
@@ -329,11 +330,11 @@ export function AnalyticsPage() {
         {/* Score Distribution */}
         <div
           className={`border rounded-lg p-6 lg:col-span-2 ${
-            isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'
+            isDark ? 'bg-card-dark border-white/5' : 'bg-white border-gray-200'
           }`}
         >
           <h2 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-            Score Distribution
+            {t('scoreDistribution')}
           </h2>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
@@ -361,9 +362,9 @@ export function AnalyticsPage() {
                     borderRadius: '8px',
                     color: isDark ? '#fff' : '#111827',
                   }}
-                  formatter={(value: number) => [`${value}%`, 'Students']}
+                  formatter={(value: number) => [`${value}%`, t('students')]}
                 />
-                <Bar dataKey="value" name="Students" radius={[0, 4, 4, 0]}>
+                <Bar dataKey="value" name={t('students')} radius={[0, 4, 4, 0]}>
                   {scoreDistribution.map((_, index) => (
                     <Cell key={`cell-${index}`} fill={CHART_COLORS[index]} />
                   ))}
@@ -377,13 +378,13 @@ export function AnalyticsPage() {
       {/* AI Insights Section */}
       <div
         className={`border rounded-lg p-6 ${
-          isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'
+          isDark ? 'bg-card-dark border-white/5' : 'bg-white border-gray-200'
         }`}
       >
         <div className="flex items-center gap-2 mb-4">
           <Lightbulb className={`w-5 h-5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
           <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-            AI Insights
+            {t('aiInsights')}
           </h2>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -408,7 +409,12 @@ export function AnalyticsPage() {
                               : 'text-blue-500'
                     }`}
                   />
-                  <p className="text-sm font-medium">{insight.message}</p>
+                  <p className="text-sm font-medium">
+                    {index === 0 ? t('insightAttendanceDecline') : 
+                     index === 1 ? t('insightLowestSubmission') :
+                     index === 2 ? t('insightEngagementIncrease') :
+                     t('insightScoreImprovement')}
+                  </p>
                 </div>
               </div>
             );
@@ -421,13 +427,13 @@ export function AnalyticsPage() {
         {/* Upcoming Deadlines */}
         <div
           className={`border rounded-lg p-6 ${
-            isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'
+            isDark ? 'bg-card-dark border-white/5' : 'bg-white border-gray-200'
           }`}
         >
           <div className="flex items-center gap-2 mb-4">
             <Calendar className={`w-5 h-5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
             <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              Upcoming Deadlines
+              {t('upcomingDeadlines')}
             </h2>
           </div>
           <div className="space-y-3">
@@ -441,7 +447,7 @@ export function AnalyticsPage() {
                 <div className="flex items-center gap-3">
                   <Clock className={`w-4 h-4 ${isDark ? 'text-slate-400' : 'text-gray-500'}`} />
                   <span className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                    {deadline.name}
+                    {t(deadline.name)}
                   </span>
                 </div>
                 <span
@@ -459,7 +465,7 @@ export function AnalyticsPage() {
                           : 'bg-green-50 text-green-600'
                   }`}
                 >
-                  {deadline.daysRemaining} days remaining
+                  {deadline.daysRemaining} {t('daysRemaining')}
                 </span>
               </div>
             ))}
@@ -469,13 +475,13 @@ export function AnalyticsPage() {
         {/* Comparison Metrics */}
         <div
           className={`border rounded-lg p-6 ${
-            isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'
+            isDark ? 'bg-card-dark border-white/5' : 'bg-white border-gray-200'
           }`}
         >
           <div className="flex items-center gap-2 mb-4">
             <BarChart3 className={`w-5 h-5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
             <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              Comparison Metrics
+              {t('comparisonMetrics')}
             </h2>
           </div>
           <div className="space-y-3">
@@ -484,10 +490,10 @@ export function AnalyticsPage() {
                 isDark ? 'border-white/10 text-slate-400' : 'border-gray-200 text-gray-500'
               }`}
             >
-              <span>Metric</span>
-              <span className="text-center">Current</span>
-              <span className="text-center">Previous</span>
-              <span className="text-center">Change</span>
+              <span>{t('metric')}</span>
+              <span className="text-center">{t('current')}</span>
+              <span className="text-center">{t('previous')}</span>
+              <span className="text-center">{t('change')}</span>
             </div>
             {comparisonMetrics.map((metric, index) => (
               <div
@@ -501,7 +507,9 @@ export function AnalyticsPage() {
                 }`}
               >
                 <span className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                  {metric.label}
+                  {metric.label === 'Attendance' ? t('attendance') : 
+                   metric.label === 'Submissions' ? t('submissions') : 
+                   t('avgScore')}
                 </span>
                 <span className={`text-center ${isDark ? 'text-white' : 'text-gray-900'}`}>
                   {metric.current}

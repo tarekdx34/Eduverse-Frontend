@@ -14,7 +14,7 @@ import {
   CheckSquare,
   Square,
 } from 'lucide-react';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme } from '../../../context/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { NotificationService } from '../../../services/api/notificationService';
 import { toast } from 'sonner';
@@ -170,7 +170,8 @@ function getTypeColor(type: NotificationType, isDark: boolean) {
 }
 
 export function NotificationsPage() {
-  const { isDark } = useTheme();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const { t } = useLanguage();
 
   const [notifications, setNotifications] = useState<Notification[]>(NOTIFICATIONS);

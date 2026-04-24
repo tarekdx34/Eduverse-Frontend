@@ -1200,7 +1200,7 @@ function InstructorDashboardContent() {
   return (
     <div
       className={`flex min-h-screen ${isRTL ? 'flex-row-reverse' : ''} ${isDark ? 'bg-background-dark' : 'bg-background-light'} text-slate-800 dark:text-slate-100 transition-colors duration-300`}
-      style={{ fontFamily: "'Montserrat', sans-serif" }}
+      style={{ fontFamily: "'Montserrat', 'Cairo', sans-serif" }}
       dir={isRTL ? 'rtl' : 'ltr'}
     >
       <DashboardWalkthrough 

@@ -15,7 +15,7 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme } from '../../../context/ThemeContext';
 import { BackendStatusBanner } from './LiveModeViews';
 import { CustomDropdown } from '../../../components/shared';
 import {
@@ -49,7 +49,8 @@ export function DiscussionPage({
   disableDeleteReason,
 }: DiscussionPageProps) {
   const { t } = useLanguage();
-  const { isDark, primaryHex = '#4f46e5' } = useTheme() as any;
+  const { theme, primaryHex = '#4f46e5' } = useTheme() as any;
+  const isDark = theme === 'dark';
 
   const [discussions, setDiscussions] = useState<DiscussionThread[]>([]);
   const [detailsById, setDetailsById] = useState<Record<string, DiscussionDetailResponse>>({});

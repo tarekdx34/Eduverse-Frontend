@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme } from '../../../context/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import {
   FileText,
@@ -156,7 +156,8 @@ const fileTypeConfig: Record<string, { icon: React.ElementType; color: string }>
 };
 
 export function LabResourcesPage() {
-  const { isDark } = useTheme();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');

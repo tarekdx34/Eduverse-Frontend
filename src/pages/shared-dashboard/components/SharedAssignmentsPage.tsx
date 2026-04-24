@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { ThemeProvider as InstructorThemeProvider, useTheme } from '../../instructor-dashboard/contexts/ThemeContext';
-import { LanguageProvider as InstructorLanguageProvider } from '../../instructor-dashboard/contexts/LanguageContext';
+import { LanguageProvider as InstructorLanguageProvider, useLanguage } from '../../instructor-dashboard/contexts/LanguageContext';
 import { CustomDropdown } from '../../instructor-dashboard/components/CustomDropdown';
 import { SelectedSectionSummary } from '../../instructor-dashboard/components/SelectedSectionSummary';
 import { ConfirmDialog } from '../../instructor-dashboard/components/ConfirmDialog';
@@ -43,6 +43,7 @@ const normalizeAssignments = (payload: unknown): Assignment[] => {
 function SharedAssignmentsPageContent({ role = 'INSTRUCTOR' }: SharedAssignmentsPageProps) {
   const queryClient = useQueryClient();
   const { isDark } = useTheme() as any;
+  const { t } = useLanguage();
 
   const [activeSectionId, setActiveSectionId] = useState<string>('');
   const [isAssignmentModalOpen, setIsAssignmentModalOpen] = useState(false);
@@ -232,16 +233,16 @@ function SharedAssignmentsPageContent({ role = 'INSTRUCTOR' }: SharedAssignments
     <div className="space-y-6" data-role={role}>
       <div>
         <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-          Assignments
+          {t('assignmentsTitle')}
         </h2>
         <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-          Create, publish, and grade assignments across teaching sections
+          {t('assignmentsPageDescription')}
         </p>
       </div>
 
       <div className="max-w-xs">
         <CustomDropdown
-          label="Select Section"
+          label={t('selectSection')}
           options={sectionOptions}
           value={activeSectionId || sectionOptions[0]?.value || ''}
           onChange={setActiveSectionId}
@@ -327,13 +328,28 @@ function SharedAssignmentsPageContent({ role = 'INSTRUCTOR' }: SharedAssignments
   );
 }
 
+import { useTheme as useTaTheme } from '../../ta-dashboard/contexts/ThemeContext';
+import { useLanguage as useTaLanguage } from '../../ta-dashboard/contexts/LanguageContext';
+
 export function SharedAssignmentsPage({ role = 'INSTRUCTOR' }: SharedAssignmentsPageProps) {
+  const taTheme = useTaTheme();
+  const taLanguage = useTaLanguage();
+
+  if (role === 'TA') {
+    return (
+      <InstructorThemeProvider
+        initialTheme={taTheme.theme as any}
+        initialPrimaryColor={taTheme.primaryColor}
+      >
+        <InstructorLanguageProvider initialLanguage={taLanguage.language as any}>
+          <SharedAssignmentsPageContent role={role} />
+        </InstructorLanguageProvider>
+      </InstructorThemeProvider>
+    );
+  }
+
   return (
-    <InstructorThemeProvider>
-      <InstructorLanguageProvider>
-        <SharedAssignmentsPageContent role={role} />
-      </InstructorLanguageProvider>
-    </InstructorThemeProvider>
+    <SharedAssignmentsPageContent role={role} />
   );
 }
 

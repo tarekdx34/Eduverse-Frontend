@@ -59,6 +59,7 @@ import { CleanSelect } from '../../../components/shared';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
 
+
 /** API may return `monday`, `MONDAY`, or enum-style values — normalize for display */
 function formatDayOfWeekLabel(raw: string | undefined | null): string {
   if (raw == null || String(raw).trim() === '') return '—';
@@ -135,7 +136,7 @@ function SectionPanelEmpty({
   return (
     <div
       className={`flex flex-col items-center justify-center rounded-xl border border-dashed px-4 py-10 text-center ${
-        isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-50/80'
+        isDark ? 'bg-card-dark border-white/5' : 'border-gray-200 bg-gray-50/80'
       }`}
     >
       <div
@@ -186,7 +187,8 @@ export function FeatureOverlay({
   type?: 'ai' | 'backend';
   children: ReactNode;
 }) {
-  const { isDark } = useTheme();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
 
   return (
     <div className="relative">
@@ -219,7 +221,8 @@ export function FeatureOverlay({
 }
 
 export function BackendStatusBanner({ message }: { message: string }) {
-  const { isDark } = useTheme();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   return (
     <div
       className={`flex items-center gap-3 rounded-xl border px-4 py-3 transition-all ${
@@ -235,7 +238,8 @@ export function BackendStatusBanner({ message }: { message: string }) {
 }
 
 export function AIStatusBanner({ message }: { message: string }) {
-  const { isDark } = useTheme();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   return (
     <div
       className={`flex items-center gap-3 rounded-xl border px-4 py-3 transition-all ${
@@ -279,8 +283,9 @@ export function LiveAnnouncementsPage({
   onPin,
   pinDisabledReason,
 }: LiveAnnouncementsPageProps) {
-  const { isDark } = useTheme();
-  const { t } = useLanguage();
+  const { theme, primaryHex } = useTheme();
+  const isDark = theme === 'dark';
+  const { t, isRTL } = useLanguage();
   const [showForm, setShowForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [filterCourse, setFilterCourse] = useState('all');
@@ -389,50 +394,51 @@ export function LiveAnnouncementsPage({
             : 'bg-emerald-50 border border-emerald-200 text-emerald-700'
         }`}
       >
-        <CheckCircle size={12} /> Published
+        <CheckCircle size={12} /> {t('published')}
       </span>
     ) : (
       <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-white/10 dark:text-gray-400">
-        <FileEdit size={12} /> Draft
+        <FileEdit size={12} /> {t('draft')}
       </span>
     );
 
   const cardClass = `rounded-xl p-5 border ${
-    isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200 shadow-sm'
+    isDark ? 'bg-card-dark border-white/5' : 'bg-white border-gray-200 shadow-sm'
   }`;
   const textPrimary = isDark ? 'text-white' : 'text-gray-900';
   const textSecondary = isDark ? 'text-slate-400' : 'text-gray-600';
-  const inputClass = `w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${
+  const inputClass = `w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
     isDark
       ? 'bg-white/5 border-white/10 text-white placeholder-slate-500'
       : 'border-gray-300 bg-white text-gray-900 placeholder-gray-400'
   }`;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 min-w-0 overflow-hidden" dir={isRTL ? 'rtl' : 'ltr'}>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className={`text-2xl font-bold ${textPrimary}`}>
             {t('announcements')}
           </h2>
           <p className={`mt-1 text-sm ${textSecondary}`}>
-            Manage and post announcements for your assigned courses.
+            {t('manageAnnouncements')}
           </p>
         </div>
         <button
           onClick={openCreate}
-          className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-all hover:bg-blue-700 shadow-lg shadow-blue-500/20 active:scale-95"
+          className="flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-white transition-all hover:opacity-90 active:scale-95"
+          style={{ backgroundColor: primaryHex, boxShadow: `0 4px 14px ${primaryHex}33` }}
         >
           <Plus className="h-4 w-4" />
-          New Announcement
+          {t('newAnnouncement')}
         </button>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
         {[
-          { label: 'Total Announcements', value: counts.all },
-          { label: 'Published', value: counts.published },
-          { label: 'Drafts', value: counts.draft },
+          { label: t('totalAnnouncements'), value: counts.all },
+          { label: t('published'), value: counts.published },
+          { label: t('drafts'), value: counts.draft },
         ].map((stat) => (
           <div key={stat.label} className={cardClass}>
             <p className={`text-sm ${textSecondary}`}>{stat.label}</p>
@@ -449,18 +455,18 @@ export function LiveAnnouncementsPage({
           />
           <input
             type="text"
-            placeholder="Search announcements..."
+            placeholder={t('searchAnnouncementsPlaceholder')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className={`${inputClass} pl-10`}
+            className={`${inputClass} ${isRTL ? 'pr-10' : 'pl-10'}`}
           />
         </div>
         <div className="flex flex-wrap gap-2">
           {(
             [
-              { key: 'all', label: 'All Status' },
-              { key: 'published', label: 'Published' },
-              { key: 'draft', label: 'Drafts' },
+              { key: 'all', label: t('allStatus') },
+              { key: 'published', label: t('published') },
+              { key: 'draft', label: t('drafts') },
             ] as const
           ).map((f) => (
             <button
@@ -468,11 +474,12 @@ export function LiveAnnouncementsPage({
               onClick={() => setFilterStatus(f.key)}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 filterStatus === f.key
-                  ? 'bg-blue-600 text-white'
+                  ? 'text-white'
                   : isDark
                     ? 'bg-white/5 text-slate-300 hover:bg-white/10'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
+              style={filterStatus === f.key ? { backgroundColor: primaryHex } : undefined}
             >
               {f.label}
             </button>
@@ -488,13 +495,14 @@ export function LiveAnnouncementsPage({
             onClick={() => setFilterCourse('all')}
             className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
               filterCourse === 'all'
-                ? 'bg-blue-600 text-white shadow-md'
+                ? 'text-white shadow-md'
                 : isDark
                   ? 'bg-white/5 text-slate-300 hover:bg-white/10'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
+            style={filterCourse === 'all' ? { backgroundColor: primaryHex } : undefined}
           >
-            All Courses
+            {t('allCourses')}
           </button>
           {courseOptions.map((option) => (
             <button
@@ -502,11 +510,12 @@ export function LiveAnnouncementsPage({
               onClick={() => setFilterCourse(option.value)}
               className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
                 filterCourse === option.value
-                  ? 'bg-blue-600 text-white shadow-md'
+                  ? 'text-white shadow-md'
                   : isDark
                     ? 'bg-white/5 text-slate-300 hover:bg-white/10'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
+              style={filterCourse === option.value ? { backgroundColor: primaryHex } : undefined}
             >
               {option.label}
             </button>
@@ -519,15 +528,15 @@ export function LiveAnnouncementsPage({
       {loading ? (
         <div className={`${cardClass} flex items-center justify-center py-20`}>
           <div className="flex flex-col items-center gap-3">
-            <Loader2 className="h-10 w-10 animate-spin text-blue-500" />
-            <p className={textSecondary}>Loading announcements...</p>
+            <Loader2 className="h-10 w-10 animate-spin" style={{ color: primaryHex }} />
+            <p className={textSecondary}>{t('loadingAnnouncements')}</p>
           </div>
         </div>
       ) : visibleAnnouncements.length === 0 ? (
         <div className={`${cardClass} py-20 text-center`}>
           <Megaphone size={48} className={`mx-auto mb-4 ${textSecondary} opacity-20`} />
-          <h3 className={`text-lg font-semibold ${textPrimary}`}>No announcements found</h3>
-          <p className={`mt-1 ${textSecondary}`}>Try adjusting your search or filters</p>
+          <h3 className={`text-lg font-semibold ${textPrimary}`}>{t('noAnnouncementsTitle')}</h3>
+          <p className={`mt-1 ${textSecondary}`}>{t('noAnnouncementsHint')}</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -541,7 +550,7 @@ export function LiveAnnouncementsPage({
             return (
               <div
                 key={a.id}
-                className={`${cardClass} relative group transition-all hover:border-blue-500/50 ${
+                className={`${cardClass} relative group transition-all ${
                   isPinned ? (isDark ? 'border-amber-500/30 bg-amber-500/5' : 'border-amber-200 bg-amber-50/30') : ''
                 }`}
               >
@@ -551,7 +560,7 @@ export function LiveAnnouncementsPage({
                       {badge(isPublished)}
                       {isPinned && (
                         <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-500/20 dark:text-amber-300">
-                          <Pin size={12} className="fill-current" /> Pinned
+                          <Pin size={12} className="fill-current" /> {t('pinned')}
                         </span>
                       )}
                       <span
@@ -586,7 +595,7 @@ export function LiveAnnouncementsPage({
                       </div>
                       <div className="flex items-center gap-1">
                         <Eye size={14} />
-                        <span>{a.viewCount ?? 0} views</span>
+                        <span>{a.viewCount ?? 0} {t('views')}</span>
                       </div>
                     </div>
 
@@ -618,7 +627,7 @@ export function LiveAnnouncementsPage({
                               : 'hover:bg-gray-50 text-gray-700'
                           }`}
                         >
-                          <Edit3 size={16} /> Edit
+                          <Edit3 size={16} /> {t('edit')}
                         </button>
                         {!isPublished && (
                           <button
@@ -629,7 +638,7 @@ export function LiveAnnouncementsPage({
                                 : 'hover:bg-gray-50 text-gray-700'
                             }`}
                           >
-                            <Send size={16} /> Publish
+                            <Send size={16} /> {t('publishAnnouncement')}
                           </button>
                         )}
                         <button
@@ -640,14 +649,14 @@ export function LiveAnnouncementsPage({
                               : 'hover:bg-gray-50 text-gray-700'
                           }`}
                         >
-                          <Pin size={16} /> {isPinned ? 'Unpin' : 'Pin'}
+                          <Pin size={16} /> {isPinned ? t('unpin') : t('pin')}
                         </button>
                         <div className="my-1 border-t border-inherit" />
                         <button
                           onClick={() => confirmDelete(a)}
                           className="w-full flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10"
                         >
-                          <Trash2 size={16} /> Delete
+                          <Trash2 size={16} /> {t('delete')}
                         </button>
                       </div>
                     )}
@@ -674,12 +683,12 @@ export function LiveAnnouncementsPage({
             <div className="flex items-center justify-between border-b border-inherit px-6 py-4 bg-slate-50/50 dark:bg-white/2">
               <div>
                 <h3 className="text-xl font-bold">
-                  {editingAnnouncement ? 'Edit Announcement' : 'New Announcement'}
+                  {editingAnnouncement ? t('editAnnouncementFormTitle') : t('newAnnouncementFormTitle')}
                 </h3>
                 <p className={`mt-1 text-sm ${textSecondary}`}>
                   {editingAnnouncement 
-                    ? 'Update the announcement details for your students.' 
-                    : 'Create a draft announcement for one of your assigned courses.'}
+                    ? t('editAnnouncementFormHint') 
+                    : t('newAnnouncementFormHint')}
                 </p>
               </div>
               <button
@@ -703,7 +712,7 @@ export function LiveAnnouncementsPage({
                   htmlFor="ta-announcement-title"
                   className={`mb-2 block text-sm font-bold ${textPrimary}`}
                 >
-                  Title
+                  {t('titleLabel')}
                 </label>
                 <input
                   id="ta-announcement-title"
@@ -723,7 +732,7 @@ export function LiveAnnouncementsPage({
                     htmlFor="ta-announcement-course"
                     className={`mb-2 block text-sm font-bold ${textPrimary}`}
                   >
-                    Course
+                    {t('courseLabel')}
                   </label>
                   <CleanSelect
                     value={formValue.courseId}
@@ -747,7 +756,7 @@ export function LiveAnnouncementsPage({
                   htmlFor="ta-announcement-content"
                   className={`mb-2 block text-sm font-bold ${textPrimary}`}
                 >
-                  Message
+                  {t('messageLabel')}
                 </label>
                 <textarea
                   id="ta-announcement-content"
@@ -756,7 +765,7 @@ export function LiveAnnouncementsPage({
                   onChange={(event) =>
                     setFormValue((current) => ({ ...current, content: event.target.value }))
                   }
-                  placeholder="Provide clear details for your students..."
+                  placeholder={t('messagePlaceholder')}
                   className={`${inputClass} resize-none`}
                 />
               </div>
@@ -773,12 +782,13 @@ export function LiveAnnouncementsPage({
                   isDark ? 'text-slate-300 hover:bg-white/10' : 'text-gray-700 hover:bg-gray-100'
                 } disabled:cursor-not-allowed disabled:opacity-60`}
               >
-                Cancel
+                {t('cancel')}
               </button>
               <button
                 onClick={() => void submit()}
                 disabled={isSubmitting || !formValue.title.trim() || !formValue.content.trim()}
-                className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-8 py-2.5 text-sm font-bold text-white transition-all hover:bg-blue-700 shadow-lg shadow-blue-500/20 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex items-center gap-2 rounded-xl px-8 py-2.5 text-sm font-bold text-white transition-all hover:opacity-90 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+                style={{ backgroundColor: primaryHex, boxShadow: `0 4px 14px ${primaryHex}33` }}
               >
                 {isSubmitting ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -787,7 +797,7 @@ export function LiveAnnouncementsPage({
                 ) : (
                   <Send className="h-4 w-4" />
                 )}
-                {isSubmitting ? 'Processing...' : editingAnnouncement ? 'Update Announcement' : 'Create Draft'}
+                {isSubmitting ? t('processing') : editingAnnouncement ? t('updateAnnouncement') : t('createDraft')}
               </button>
             </div>
           </div>
@@ -805,9 +815,9 @@ export function LiveAnnouncementsPage({
             <div className="mx-auto w-14 h-14 rounded-full bg-red-100 dark:bg-red-500/20 flex items-center justify-center mb-4">
               <AlertTriangle size={28} className="text-red-500" />
             </div>
-            <h3 className="text-xl font-bold text-center mb-2">Delete Announcement?</h3>
+            <h3 className="text-xl font-bold text-center mb-2">{t('deleteAnnouncementConfirm')}</h3>
             <p className={`text-sm text-center mb-6 ${textSecondary}`}>
-              Are you sure you want to delete <span className="font-bold text-red-500">"{deletingAnnouncement.title}"</span>? This action cannot be undone.
+              {t('deleteAnnouncementWarning')} <span className="font-bold text-red-500">"{deletingAnnouncement.title}"</span>? {t('cannotBeUndone')}
             </p>
             <div className="flex gap-3">
               <button
@@ -816,13 +826,13 @@ export function LiveAnnouncementsPage({
                   isDark ? 'bg-white/5 text-slate-300 hover:bg-white/10' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                Cancel
+                {t('cancel')}
               </button>
               <button
                 onClick={() => void handleDelete()}
                 className="flex-1 rounded-xl bg-red-600 px-4 py-2.5 text-sm font-bold text-white transition-all hover:bg-red-700 shadow-lg shadow-red-500/20 active:scale-95"
               >
-                Delete
+                {t('delete')}
               </button>
             </div>
           </div>
@@ -847,7 +857,8 @@ export function LiveNotificationsPage({
   onMarkAllAsRead,
   onClearAll,
 }: LiveNotificationsPageProps) {
-  const { isDark } = useTheme();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const unreadCount = notifications.filter((notification) => !notification.read).length;
 
   return (
@@ -902,7 +913,7 @@ export function LiveNotificationsPage({
             <div
               key={notification.id}
               className={`rounded-xl border p-5 ${
-                isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white'
+                isDark ? 'bg-card-dark border-white/5' : 'border-gray-200 bg-white'
               } ${!notification.read ? 'border-l-4 border-l-blue-500' : ''}`}
             >
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -951,7 +962,8 @@ export function LiveSchedulePage({
   academicEvents,
   loading = false,
 }: LiveSchedulePageProps) {
-  const { isDark } = useTheme();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
 
   return (
     <div className="space-y-6">
@@ -976,7 +988,7 @@ export function LiveSchedulePage({
         <>
           <div
             className={`rounded-xl border p-5 ${
-              isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white'
+              isDark ? 'bg-card-dark border-white/5' : 'border-gray-200 bg-white'
             }`}
           >
             <div className="mb-4 flex items-center gap-2">
@@ -995,7 +1007,7 @@ export function LiveSchedulePage({
                   <div
                     key={item.scheduleId ?? `${item.sectionId}-${index}`}
                     className={`rounded-lg border p-4 ${
-                      isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-50'
+                      isDark ? 'bg-card-dark border-white/5' : 'border-gray-200 bg-gray-50'
                     }`}
                   >
                     <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -1026,7 +1038,7 @@ export function LiveSchedulePage({
 
           <div
             className={`rounded-xl border p-5 ${
-              isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white'
+              isDark ? 'bg-card-dark border-white/5' : 'border-gray-200 bg-white'
             }`}
           >
             <div className="mb-4 flex items-center gap-2">
@@ -1045,7 +1057,7 @@ export function LiveSchedulePage({
                   <div
                     key={event.id}
                     className={`rounded-lg border p-4 ${
-                      isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-50'
+                      isDark ? 'bg-card-dark border-white/5' : 'border-gray-200 bg-gray-50'
                     }`}
                   >
                     <p className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
@@ -1089,7 +1101,9 @@ type LiveStudentsPageProps = {
 };
 
 export function LiveStudentsPage({ students, loading = false }: LiveStudentsPageProps) {
-  const { isDark } = useTheme();
+  const { t } = useLanguage();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const [filterCourse, setFilterCourse] = useState('all');
 
   const courseOptions = useMemo(
@@ -1119,29 +1133,29 @@ export function LiveStudentsPage({ students, loading = false }: LiveStudentsPage
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-            Students
+            {t('students')}
           </h2>
           <p className={`mt-1 text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-            Basic live roster data from assigned sections.
+            {t('basicLiveRoster')}
           </p>
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div
             className={`rounded-lg border px-4 py-3 ${
-              isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white'
+              isDark ? 'bg-card-dark border-white/5' : 'border-gray-200 bg-white'
             }`}
           >
-            <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>Rows</p>
+            <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>{t('rows')}</p>
             <p className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
               {students.length}
             </p>
           </div>
           <div
             className={`rounded-lg border px-4 py-3 ${
-              isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white'
+              isDark ? 'bg-card-dark border-white/5' : 'border-gray-200 bg-white'
             }`}
           >
-            <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>Avg Score</p>
+            <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>{t('avgScore')}</p>
             <p className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
               {averageScore}%
             </p>
@@ -1151,7 +1165,7 @@ export function LiveStudentsPage({ students, loading = false }: LiveStudentsPage
 
       <div
         className={`rounded-xl border p-4 ${
-          isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white'
+          isDark ? 'bg-card-dark border-white/5' : 'border-gray-200 bg-white'
         }`}
       >
         <div className="flex flex-wrap gap-2">
@@ -1165,7 +1179,7 @@ export function LiveStudentsPage({ students, loading = false }: LiveStudentsPage
                   : 'bg-gray-100 text-gray-700'
             }`}
           >
-            All Courses
+            {t('allCourses')}
           </button>
           {courseOptions.map(([courseCode, label]) => (
             <button
@@ -1191,7 +1205,7 @@ export function LiveStudentsPage({ students, loading = false }: LiveStudentsPage
             isDark ? 'border-white/10 bg-white/5 text-slate-300' : 'border-gray-200 bg-white text-gray-700'
           }`}
         >
-          Loading roster...
+          {t('loadingRoster')}
         </div>
       ) : visibleStudents.length === 0 ? (
         <div
@@ -1200,12 +1214,12 @@ export function LiveStudentsPage({ students, loading = false }: LiveStudentsPage
           }`}
         >
           <Users className="mx-auto mb-3 h-10 w-10 text-blue-500" />
-          No student rows available.
+          {t('noStudentsAvailable')}
         </div>
       ) : (
         <div
           className={`overflow-hidden rounded-xl border ${
-            isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white'
+            isDark ? 'bg-card-dark border-white/5' : 'border-gray-200 bg-white'
           }`}
         >
           <div className="overflow-x-auto">
@@ -1213,25 +1227,25 @@ export function LiveStudentsPage({ students, loading = false }: LiveStudentsPage
               <thead className={isDark ? 'bg-white/5' : 'bg-gray-50'}>
                 <tr>
                   <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                    Student
+                    {t('student')}
                   </th>
                   <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                    Email
+                    {t('email')}
                   </th>
                   <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                    Course
+                    {t('course')}
                   </th>
                   <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                    Section
+                    {t('section')}
                   </th>
                   <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                    Status
+                    {t('status')}
                   </th>
                   <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                    Score
+                    {t('score')}
                   </th>
                   <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                    Enrolled
+                    {t('enrolled')}
                   </th>
                 </tr>
               </thead>
@@ -1299,7 +1313,9 @@ export function LiveAnalyticsPage({
   onCourseChange,
   loading = false,
 }: LiveAnalyticsPageProps) {
-  const { isDark } = useTheme();
+  const { t } = useLanguage();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -1309,30 +1325,30 @@ export function LiveAnalyticsPage({
 
   const summaryCards = [
     {
-      label: 'Courses',
+      label: t('courses'),
       value: Number(summary?.totalCourses || 0),
-      helper: 'Assigned courses',
+      helper: t('assignedCourses'),
       icon: BarChart3,
       tone: 'blue',
     },
     {
-      label: 'Students',
+      label: t('students'),
       value: Number(summary?.totalStudents || 0),
-      helper: 'Across assigned courses',
+      helper: t('acrossAssignedCourses'),
       icon: Users,
       tone: 'emerald',
     },
     {
-      label: 'Avg Grade',
+      label: t('avgGrade'),
       value: `${Math.round(Number(summary?.averageGrade || 0))}%`,
-      helper: 'Latest analytics average',
+      helper: t('latestAnalyticsAverage'),
       icon: Check,
       tone: 'amber',
     },
     {
-      label: 'Attendance',
+      label: t('attendance'),
       value: `${Math.round(Number(summary?.averageAttendance || 0))}%`,
-      helper: 'Latest attendance average',
+      helper: t('latestAttendanceAverage'),
       icon: Calendar,
       tone: 'violet',
     },
@@ -1362,7 +1378,7 @@ export function LiveAnalyticsPage({
           isDark ? 'border-white/10 bg-white/5 text-slate-300' : 'border-gray-200 bg-white text-gray-700'
         }`}
       >
-        Loading analytics...
+        {t('loadingAnalytics')}
       </div>
     );
   }
@@ -1372,10 +1388,10 @@ export function LiveAnalyticsPage({
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-            Analytics
+            {t('analytics')}
           </h2>
           <p className={`mt-1 text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-            Basic live analytics from the backend for your assigned TA courses.
+            {t('liveAnalyticsSubheader')}
           </p>
         </div>
         <div className="w-full lg:w-80">
@@ -1403,7 +1419,7 @@ export function LiveAnalyticsPage({
             isDark ? 'border-white/10 bg-white/5 text-slate-300' : 'border-gray-200 bg-white text-gray-700'
           }`}
         >
-          No assigned courses were found for live analytics.
+          {t('noAssignedCourses')}
         </div>
       ) : (
         <>
@@ -1414,7 +1430,7 @@ export function LiveAnalyticsPage({
                 <div
                   key={card.label}
                   className={`rounded-2xl border p-5 ${
-                    isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white'
+                    isDark ? 'bg-card-dark border-white/5' : 'border-gray-200 bg-white'
                   }`}
                 >
                   <div className="flex items-start justify-between">
@@ -1441,18 +1457,18 @@ export function LiveAnalyticsPage({
           <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
             <div
               className={`rounded-2xl border p-6 ${
-                isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white'
+                isDark ? 'bg-card-dark border-white/5' : 'border-gray-200 bg-white'
               }`}
             >
               <div className="mb-4 flex items-center gap-2">
                 <Calendar className="h-5 w-5 text-blue-500" />
                 <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                  Attendance Trends
+                  {t('attendanceTrendsLive')}
                 </h3>
               </div>
               {attendanceTrends.length === 0 ? (
                 <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-                  No attendance trend data is available for the selected course.
+                  {t('noAttendanceData')}
                 </p>
               ) : (
                 <div className="h-72">
@@ -1498,18 +1514,18 @@ export function LiveAnalyticsPage({
 
             <div
               className={`rounded-2xl border p-6 ${
-                isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white'
+                isDark ? 'bg-card-dark border-white/5' : 'border-gray-200 bg-white'
               }`}
             >
               <div className="mb-4 flex items-center gap-2">
                 <BarChart3 className="h-5 w-5 text-blue-500" />
                 <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                  Grade Distribution
+                  {t('gradeDistribution')}
                 </h3>
               </div>
               {scoreBars.length === 0 ? (
                 <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-                  No grade distribution data is available for the selected course.
+                  {t('noGradeData')}
                 </p>
               ) : (
                 <div className="h-72">
@@ -1553,18 +1569,18 @@ export function LiveAnalyticsPage({
           <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
             <div
               className={`rounded-2xl border p-6 ${
-                isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white'
+                isDark ? 'bg-card-dark border-white/5' : 'border-gray-200 bg-white'
               }`}
             >
               <div className="mb-4 flex items-center gap-2">
                 <AlertTriangle className="h-5 w-5 text-amber-500" />
                 <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                  At-Risk Students
+                  {t('atRiskStudents')}
                 </h3>
               </div>
               {riskRows.length === 0 ? (
                 <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-                  No at-risk students were reported for the selected scope.
+                  {t('noAtRiskData')}
                 </p>
               ) : (
                 <div className="space-y-3">
@@ -1572,7 +1588,7 @@ export function LiveAnalyticsPage({
                     <div
                       key={`${student.courseId}-${student.userId}`}
                       className={`rounded-xl border p-4 ${
-                        isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-50'
+                        isDark ? 'bg-card-dark border-white/5' : 'border-gray-200 bg-gray-50'
                       }`}
                     >
                       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -1590,7 +1606,7 @@ export function LiveAnalyticsPage({
                             isDark ? 'bg-amber-500/20 text-amber-300' : 'bg-amber-100 text-amber-700'
                           }`}
                         >
-                          Needs attention
+                          {t('needsAttention')}
                         </span>
                       </div>
                     </div>
@@ -1601,13 +1617,13 @@ export function LiveAnalyticsPage({
 
             <div
               className={`rounded-2xl border p-6 ${
-                isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white'
+                isDark ? 'bg-card-dark border-white/5' : 'border-gray-200 bg-white'
               }`}
             >
               <div className="mb-4 flex items-center gap-2">
                 <Lightbulb className="h-5 w-5 text-blue-500" />
                 <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                  Insights
+                  {t('insights')}
                 </h3>
               </div>
               <div
@@ -1616,11 +1632,11 @@ export function LiveAnalyticsPage({
                 }`}
               >
                 <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                  AI insights are not connected yet.
+                  {t('aiInsightsNotConnected')}
                 </p>
                 <p className={`mt-2 text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-                  This live page currently supports backend summary metrics, attendance trends, grade
-                  distribution, and at-risk students only.
+                  {t('liveAnalyticsOnly')}
+
                 </p>
               </div>
             </div>
@@ -1721,7 +1737,8 @@ export function LiveQuizzesPage({
   onUpdateQuiz,
   onDeleteQuiz,
 }: LiveQuizzesPageProps) {
-  const { isDark } = useTheme();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const [selectedCourseId, setSelectedCourseId] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [attemptsQuizId, setAttemptsQuizId] = useState<string | null>(null);
@@ -1874,7 +1891,7 @@ export function LiveQuizzesPage({
 
       <div
         className={`rounded-xl border p-4 ${
-          isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white'
+          isDark ? 'bg-card-dark border-white/5' : 'border-gray-200 bg-white'
         }`}
       >
         <div className="flex flex-wrap gap-2">
@@ -1943,7 +1960,7 @@ export function LiveQuizzesPage({
               <div
                 key={quiz.id}
                 className={`rounded-xl border p-5 shadow-sm ${
-                  isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white'
+                  isDark ? 'bg-card-dark border-white/5' : 'border-gray-200 bg-white'
                 }`}
               >
                 <div className="mb-3 flex items-start justify-between gap-3">
@@ -2234,7 +2251,7 @@ export function LiveQuizzesPage({
                   <div
                     key={question.id}
                     className={`rounded-2xl border p-4 ${
-                      isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-50'
+                      isDark ? 'bg-card-dark border-white/5' : 'border-gray-200 bg-gray-50'
                     }`}
                   >
                     <div className="mb-3 flex items-center justify-between">
@@ -2451,7 +2468,8 @@ export function LiveCourseDetailsPage({
   mockDataBanner,
   liveDataBanner,
 }: LiveCourseDetailsPageProps) {
-  const { isDark } = useTheme();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
 
   const statCards = [
     { label: 'Students', value: students.length, icon: Users },
@@ -2503,7 +2521,7 @@ export function LiveCourseDetailsPage({
             <div
               key={card.label}
               className={`rounded-2xl border p-5 ${
-                isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white'
+                isDark ? 'bg-card-dark border-white/5' : 'border-gray-200 bg-white'
               }`}
             >
               <div className="flex items-start justify-between">
@@ -2531,7 +2549,7 @@ export function LiveCourseDetailsPage({
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
         <div
           className={`rounded-2xl border p-6 ${
-            isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white'
+            isDark ? 'bg-card-dark border-white/5' : 'border-gray-200 bg-white'
           }`}
         >
           <CourseSectionHeading icon={Calendar} isDark={isDark}>
@@ -2550,7 +2568,7 @@ export function LiveCourseDetailsPage({
                 <div
                   key={schedule.id}
                   className={`rounded-xl border p-4 ${
-                    isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-50'
+                    isDark ? 'bg-card-dark border-white/5' : 'border-gray-200 bg-gray-50'
                   }`}
                 >
                   <div className="flex gap-3">
@@ -2594,7 +2612,7 @@ export function LiveCourseDetailsPage({
 
         <div
           className={`rounded-2xl border p-6 ${
-            isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white'
+            isDark ? 'bg-card-dark border-white/5' : 'border-gray-200 bg-white'
           }`}
         >
           <CourseSectionHeading icon={FileText} isDark={isDark}>
@@ -2613,7 +2631,7 @@ export function LiveCourseDetailsPage({
                 <div
                   key={lab.id}
                   className={`rounded-xl border p-4 ${
-                    isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-50'
+                    isDark ? 'bg-card-dark border-white/5' : 'border-gray-200 bg-gray-50'
                   }`}
                 >
                   <div className="flex gap-3">
@@ -2655,7 +2673,7 @@ export function LiveCourseDetailsPage({
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
         <div
           className={`rounded-2xl border p-6 ${
-            isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white'
+            isDark ? 'bg-card-dark border-white/5' : 'border-gray-200 bg-white'
           }`}
         >
           <CourseSectionHeading icon={BookOpen} isDark={isDark}>
@@ -2674,7 +2692,7 @@ export function LiveCourseDetailsPage({
                 <div
                   key={material.materialId}
                   className={`flex flex-col gap-3 rounded-xl border p-4 sm:flex-row sm:items-center sm:justify-between ${
-                    isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-50'
+                    isDark ? 'bg-card-dark border-white/5' : 'border-gray-200 bg-gray-50'
                   }`}
                 >
                   <div>
@@ -2701,7 +2719,7 @@ export function LiveCourseDetailsPage({
 
         <div
           className={`rounded-2xl border p-6 ${
-            isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white'
+            isDark ? 'bg-card-dark border-white/5' : 'border-gray-200 bg-white'
           }`}
         >
           <CourseSectionHeading icon={Bell} isDark={isDark}>
@@ -2720,7 +2738,7 @@ export function LiveCourseDetailsPage({
                 <div
                   key={announcement.id}
                   className={`rounded-xl border p-4 ${
-                    isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-50'
+                    isDark ? 'bg-card-dark border-white/5' : 'border-gray-200 bg-gray-50'
                   }`}
                 >
                   <p className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
@@ -2741,7 +2759,7 @@ export function LiveCourseDetailsPage({
 
       <div
         className={`rounded-2xl border p-6 ${
-          isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white'
+          isDark ? 'bg-card-dark border-white/5' : 'border-gray-200 bg-white'
         }`}
       >
         <CourseSectionHeading icon={Users} isDark={isDark}>
@@ -2757,7 +2775,7 @@ export function LiveCourseDetailsPage({
         ) : (
         <div
           className={`overflow-hidden rounded-xl border ${
-            isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white'
+            isDark ? 'bg-card-dark border-white/5' : 'border-gray-200 bg-white'
           }`}
         >
           <div className="overflow-x-auto">
@@ -2867,7 +2885,8 @@ export function LiveLabsPage({
   detailsLoading = false,
   onCreateLab,
 }: LiveLabsPageProps) {
-  const { isDark } = useTheme();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [formValue, setFormValue] = useState({
     courseId: selectedCourseId || courseOptions[0]?.value || '',
@@ -2961,7 +2980,7 @@ export function LiveLabsPage({
                 <div
                   key={item.label}
                   className={`rounded-2xl border p-5 ${
-                    isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white'
+                    isDark ? 'bg-card-dark border-white/5' : 'border-gray-200 bg-white'
                   }`}
                 >
                   <p className={`text-sm font-medium ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
@@ -2977,7 +2996,7 @@ export function LiveLabsPage({
             <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
               <div
                 className={`rounded-2xl border p-6 ${
-                  isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white'
+                  isDark ? 'bg-card-dark border-white/5' : 'border-gray-200 bg-white'
                 }`}
               >
                 <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
@@ -3003,7 +3022,7 @@ export function LiveLabsPage({
 
               <div
                 className={`rounded-2xl border p-6 ${
-                  isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white'
+                  isDark ? 'bg-card-dark border-white/5' : 'border-gray-200 bg-white'
                 }`}
               >
                 <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
@@ -3019,7 +3038,7 @@ export function LiveLabsPage({
                       <div
                         key={instruction.id}
                         className={`rounded-xl border p-4 ${
-                          isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-50'
+                          isDark ? 'bg-card-dark border-white/5' : 'border-gray-200 bg-gray-50'
                         }`}
                       >
                         <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
@@ -3037,7 +3056,7 @@ export function LiveLabsPage({
 
             <div
               className={`rounded-2xl border p-6 ${
-                isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white'
+                isDark ? 'bg-card-dark border-white/5' : 'border-gray-200 bg-white'
               }`}
             >
               <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
@@ -3343,7 +3362,7 @@ export function LiveLabsPage({
 
       <div
         className={`rounded-xl border p-4 ${
-          isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white'
+          isDark ? 'bg-card-dark border-white/5' : 'border-gray-200 bg-white'
         }`}
       >
         <div className="flex flex-wrap gap-2">
@@ -3403,7 +3422,7 @@ export function LiveLabsPage({
             <div
               key={lab.id}
               className={`rounded-2xl border p-5 ${
-                isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white'
+                isDark ? 'bg-card-dark border-white/5' : 'border-gray-200 bg-white'
               }`}
             >
               <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">

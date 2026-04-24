@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { X, Save, AlertCircle } from 'lucide-react';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme } from '../../../context/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { LabSubmission } from '../../../services/api/labService';
 
@@ -19,7 +19,8 @@ export function GradingModal({
   onGrade,
   onClose,
 }: GradingModalProps) {
-  const { isDark } = useTheme();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const { t } = useLanguage();
   const [selectedSubmissionId, setSelectedSubmissionId] = useState<string | null>(
     submissions[0]?.id || null

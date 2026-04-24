@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Bell, Globe, Moon, Sun, User, LogOut } from 'lucide-react';
+import { useTheme } from '../../../context/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface HeaderProps {
   title: string;
@@ -10,10 +12,6 @@ interface HeaderProps {
 
 export function Header({ title, ta, onProfileClick }: HeaderProps) {
   const [showDropdown, setShowDropdown] = useState(false);
-  const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains('dark'));
-  const [language, setLanguageState] = useState<'en' | 'ar'>(() => {
-    return (localStorage.getItem('eduverse-ta-language') as 'en' | 'ar') || 'en';
-  });
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
@@ -27,22 +25,12 @@ export function Header({ title, ta, onProfileClick }: HeaderProps) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const toggleTheme = () => {
-    const next = !isDark;
-    setIsDark(next);
-    if (next) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-    localStorage.setItem('eduverse-ta-theme', next ? 'dark' : 'light');
-  };
+  const { t, language, setLanguage } = useLanguage();
+  const { theme, toggleTheme } = useTheme();
+  const isDark = theme === 'dark';
 
   const handleLanguageChange = (lang: 'en' | 'ar') => {
-    setLanguageState(lang);
-    localStorage.setItem('eduverse-language', lang);
-    document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
-    document.documentElement.lang = lang;
+    setLanguage(lang);
   };
 
   const handleLogout = () => {
@@ -64,9 +52,9 @@ export function Header({ title, ta, onProfileClick }: HeaderProps) {
 
   return (
     <header
-      className={`border-b p-6 flex items-center justify-between ${isDark ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'}`}
+      className={`border-b p-6 flex items-center justify-between ${isDark ? 'bg-background border-border/40' : 'bg-white border-gray-200'}`}
     >
-      <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{title}</h1>
+      <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t(title)}</h1>
 
       <div className="flex items-center gap-4">
         {/* Notification Bell */}
@@ -116,35 +104,35 @@ export function Header({ title, ta, onProfileClick }: HeaderProps) {
               <div
                 className={`px-4 py-2 border-b ${isDark ? 'border-gray-700' : 'border-gray-100'}`}
               >
-                <p className={`text-xs mb-2 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                  Language
+                <p className={`text-xs mb-2 ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
+                  {t('language')}
                 </p>
                 <div className="flex gap-2">
                   <button
                     onClick={() => handleLanguageChange('en')}
                     className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
                       language === 'en'
-                        ? 'bg-blue-100 text-blue-700 border border-blue-200'
+                        ? 'bg-primary/10 text-primary border border-primary/20'
                         : isDark
-                          ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                          ? 'bg-slate-700 text-slate-300 hover:bg-slate-600'
                           : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
                     }`}
                   >
                     <Globe className="w-4 h-4" />
-                    English
+                    {t('english')}
                   </button>
                   <button
                     onClick={() => handleLanguageChange('ar')}
                     className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
                       language === 'ar'
-                        ? 'bg-blue-100 text-blue-700 border border-blue-200'
+                        ? 'bg-primary/10 text-primary border border-primary/20'
                         : isDark
-                          ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                          ? 'bg-slate-700 text-slate-300 hover:bg-slate-600'
                           : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
                     }`}
                   >
                     <Globe className="w-4 h-4" />
-                    العربية
+                    {t('arabic')}
                   </button>
                 </div>
               </div>
@@ -165,8 +153,8 @@ export function Header({ title, ta, onProfileClick }: HeaderProps) {
                     ) : (
                       <Sun className={`w-4 h-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`} />
                     )}
-                    <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                      {isDark ? 'Dark Mode' : 'Light Mode'}
+                    <span className={`text-sm ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>
+                      {isDark ? t('darkMode') : t('lightMode')}
                     </span>
                   </div>
                   <div
@@ -190,8 +178,8 @@ export function Header({ title, ta, onProfileClick }: HeaderProps) {
                   }`}
                 >
                   <User className={`w-4 h-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`} />
-                  <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                    View Profile
+                  <span className={`text-sm ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>
+                    {t('viewProfile')}
                   </span>
                 </button>
                 <button
@@ -201,7 +189,7 @@ export function Header({ title, ta, onProfileClick }: HeaderProps) {
                   }`}
                 >
                   <LogOut className="w-4 h-4" />
-                  <span className="text-sm">Logout</span>
+                  <span className="text-sm">{t('logout')}</span>
                 </button>
               </div>
             </div>

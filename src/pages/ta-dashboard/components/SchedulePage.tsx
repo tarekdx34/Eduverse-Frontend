@@ -12,7 +12,7 @@ import {
   X,
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme } from '../../../context/ThemeContext';
 import { CleanSelect } from '../../../components/shared';
 
 type ScheduleEvent = {
@@ -119,7 +119,8 @@ const DAYS_KEYS = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday'] as co
 
 export function SchedulePage() {
   const { t } = useLanguage();
-  const { isDark } = useTheme();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const [view, setView] = useState<'month' | 'week' | 'day' | 'list'>('week');
   const [currentWeekStart] = useState('2025-02-22');
   const [selectedDay, setSelectedDay] = useState('2025-02-22');

@@ -3,14 +3,15 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 import { initReactI18next } from 'react-i18next';
 import enTranslations from './en.json';
 import arTranslations from './ar.json';
+import { translations as tsTranslations } from './translations';
 
 // Define resources
 const resources = {
   en: {
-    translation: enTranslations,
+    translation: { ...enTranslations, ...tsTranslations.en },
   },
   ar: {
-    translation: arTranslations,
+    translation: { ...arTranslations, ...tsTranslations.ar },
   },
 };
 

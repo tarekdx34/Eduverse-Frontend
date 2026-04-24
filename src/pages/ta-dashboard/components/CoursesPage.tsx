@@ -19,7 +19,7 @@ import {
   Upload,
   X,
 } from 'lucide-react';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme } from '../../../context/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { CleanSelect } from '../../../components/shared';
 
@@ -1133,7 +1133,8 @@ export function CoursesPage({
   disableRouteNavigation = false,
   listOnly = false,
 }: CoursesPageProps) {
-  const { isDark } = useTheme();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const { t } = useLanguage();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');

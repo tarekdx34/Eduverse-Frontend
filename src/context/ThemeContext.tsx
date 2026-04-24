@@ -7,7 +7,7 @@ interface ThemeContextType {
   toggleTheme: () => void;
 }
 
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+export const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   // Initialize theme from localStorage or default to light
@@ -42,3 +42,5 @@ export function useTheme() {
   }
   return context;
 }
+
+export default ThemeContext;

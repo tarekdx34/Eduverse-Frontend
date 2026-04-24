@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { FileText, Download, CheckCircle, Clock, User, Brain, Eye, X } from 'lucide-react';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme } from '../../../context/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { AIStatusBanner } from './LiveModeViews';
 
@@ -109,7 +109,8 @@ export function GradingPage({
   gradingSubmissionId,
   disabledActions,
 }: GradingPageProps) {
-  const { isDark } = useTheme();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const { t } = useLanguage();
   const [filter, setFilter] = useState<'all' | SubmissionStatus>('all');
   const [gradingSubTab, setGradingSubTab] = useState<'manual' | 'auto'>('manual');

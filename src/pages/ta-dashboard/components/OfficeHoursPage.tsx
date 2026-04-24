@@ -12,7 +12,7 @@ import {
   X,
   Settings,
 } from 'lucide-react';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme } from '../../../context/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { CleanSelect } from '../../../components/shared';
 
@@ -93,7 +93,8 @@ const MOCK_APPOINTMENTS: Appointment[] = [
 ];
 
 export function OfficeHoursPage() {
-  const { isDark } = useTheme();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const { t } = useLanguage();
 
   const [slots, setSlots] = useState(MOCK_SLOTS);

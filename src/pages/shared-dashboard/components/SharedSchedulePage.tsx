@@ -7,15 +7,32 @@ interface SharedSchedulePageProps {
   role?: 'INSTRUCTOR' | 'TA';
 }
 
+import { useTheme as useTaTheme } from '../../ta-dashboard/contexts/ThemeContext';
+import { useLanguage as useTaLanguage } from '../../ta-dashboard/contexts/LanguageContext';
+
 export function SharedSchedulePage({ role = 'INSTRUCTOR' }: SharedSchedulePageProps) {
+  const taTheme = useTaTheme();
+  const taLanguage = useTaLanguage();
+
+  if (role === 'TA') {
+    return (
+      <InstructorThemeProvider
+        initialTheme={taTheme.theme as any}
+        initialPrimaryColor={taTheme.primaryColor}
+      >
+        <InstructorLanguageProvider initialLanguage={taLanguage.language as any}>
+          <div data-role={role}>
+            <SchedulePage />
+          </div>
+        </InstructorLanguageProvider>
+      </InstructorThemeProvider>
+    );
+  }
+
   return (
-    <InstructorThemeProvider>
-      <InstructorLanguageProvider>
-        <div data-role={role}>
-          <SchedulePage />
-        </div>
-      </InstructorLanguageProvider>
-    </InstructorThemeProvider>
+    <div data-role={role}>
+      <SchedulePage />
+    </div>
   );
 }
 

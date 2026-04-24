@@ -177,8 +177,8 @@ export function QuizList({
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className={`text-2xl font-bold ${headingCls}`}>Quizzes Management</h2>
-          <p className={`${subCls} mt-1 text-sm`}>Create and manage quizzes for your courses</p>
+          <h2 className={`text-2xl font-bold ${headingCls}`}>{t('quizzesManagement')}</h2>
+          <p className={`${subCls} mt-1 text-sm`}>{t('quizzesDescription')}</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <button
@@ -187,7 +187,7 @@ export function QuizList({
             style={{ backgroundColor: primaryHex }}
           >
             <Plus size={20} />
-            Create New Quiz
+            {t('createNewQuiz')}
           </button>
         </div>
       </div>
@@ -195,10 +195,10 @@ export function QuizList({
       {/* Filters */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         <CustomDropdown
-          label="Course"
+          label={t('courseLabel')}
           value={selectedCourse}
           options={[
-            { value: 'all', label: 'All Courses' },
+            { value: 'all', label: t('allCourses') },
             ...courseOptions,
           ]}
           onChange={(val) => onCourseChange(val as string)}
@@ -206,14 +206,14 @@ export function QuizList({
           fullWidth
         />
         <CustomDropdown
-          label="Status"
+          label={t('status')}
           value={selectedStatus}
           options={[
-            { value: 'all', label: 'All' },
-            { value: 'draft', label: 'Draft' },
-            { value: 'published', label: 'Published' },
-            { value: 'closed', label: 'Closed' },
-            { value: 'archived', label: 'Archived' },
+            { value: 'all', label: t('all') },
+            { value: 'draft', label: t('draft') },
+            { value: 'published', label: t('publish') },
+            { value: 'closed', label: t('closed') },
+            { value: 'archived', label: t('archived') },
           ]}
           onChange={(val) => onStatusChange(val as string)}
           stackLabel
@@ -221,7 +221,7 @@ export function QuizList({
         />
         <div className="w-full flex flex-col gap-1.5 sm:col-span-2 lg:col-span-1">
           <span className={`text-sm font-medium whitespace-nowrap ${subCls}`}>
-            Search
+            {t('search')}
           </span>
           <div className="relative w-full">
             <Search
@@ -230,7 +230,7 @@ export function QuizList({
             />
             <input
               type="text"
-              placeholder="Search quizzes..."
+              placeholder={t('searchQuizzes')}
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
               className={`w-full ${isRTL ? 'pr-10 pl-4' : 'pl-10 pr-4'} py-2 border rounded-lg focus:outline-none focus:ring-2 ${inputCls}`}
@@ -250,15 +250,15 @@ export function QuizList({
         ) : quizzes.length === 0 ? (
           <div className={`p-8 text-center rounded-lg border ${cardCls}`}>
             <ClipboardList className={`mx-auto mb-4 ${subCls}`} size={48} />
-            <h3 className={`text-lg font-semibold ${headingCls} mb-2`}>No quizzes found</h3>
-            <p className={`${subCls} mb-4`}>Get started by creating your first quiz.</p>
+            <h3 className={`text-lg font-semibold ${headingCls} mb-2`}>{t('noData')}</h3>
+            <p className={`${subCls} mb-4`}>{t('quizzesDescription')}</p>
             <button
               onClick={onCreateClick}
               className="inline-flex items-center gap-2 px-4 py-2 text-white rounded-lg transition-colors"
               style={{ backgroundColor: primaryHex }}
             >
               <Plus size={20} />
-              Create New Quiz
+              {t('createNewQuiz')}
             </button>
           </div>
         ) : (
@@ -289,7 +289,7 @@ export function QuizList({
                     <div className="flex items-center gap-2 text-sm">
                       <ClipboardList size={16} className={isDark ? 'text-slate-500' : 'text-gray-400'} />
                       <span className={`${headingCls} font-medium`}>{quiz.questionCount}</span>
-                      <span className={subCls}>Questions</span>
+                      <span className={subCls}>{t('questions')}</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm">
                       <Clock size={16} className={isDark ? 'text-slate-500' : 'text-gray-400'} />
@@ -300,7 +300,7 @@ export function QuizList({
                     <div className="flex items-center gap-2 text-sm">
                       <Users size={16} className={isDark ? 'text-slate-500' : 'text-gray-400'} />
                       <span className={subCls}>
-                        Max {quiz.maxAttempts} attempt{quiz.maxAttempts !== 1 ? 's' : ''}
+                        {t('viewAttempts')} {quiz.maxAttempts}
                       </span>
                     </div>
                     {quiz.passingScore && (
@@ -328,14 +328,14 @@ export function QuizList({
                   ) : (
                     <Eye size={16} />
                   )}
-                  View Attempts
+                  {t('viewAttempts')}
                 </button>
                 <button
                   onClick={() => onEditClick(quiz)}
                   className={`flex items-center gap-2 px-3 py-2 text-sm ${btnSecCls} focus:outline-none focus:ring-2 focus:ring-offset-1 rounded-lg transition-colors`}
                 >
                   <Edit size={16} />
-                  Edit
+                  {t('edit')}
                 </button>
                 <button
                   onClick={() => handleViewStats(quiz)}
@@ -347,14 +347,14 @@ export function QuizList({
                   ) : (
                     <BarChart3 size={16} />
                   )}
-                  Statistics
+                  {t('analyzeResults')}
                 </button>
                 <button
                   onClick={() => onDeleteClick(quiz)}
                   className="flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-red-500 rounded-lg transition-colors"
                 >
                   <Trash2 size={16} />
-                  Delete
+                  {t('delete')}
                 </button>
 
                 {/* Status transition buttons */}
@@ -365,7 +365,7 @@ export function QuizList({
                     className="flex items-center gap-2 px-3 py-2 text-sm text-green-600 hover:bg-green-50 dark:hover:bg-green-500/10 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-green-500 rounded-lg transition-colors ml-auto"
                   >
                     <Send size={16} />
-                    Publish
+                    {t('publish')}
                   </button>
                 )}
                 {quiz.status === 'published' && (
@@ -375,7 +375,7 @@ export function QuizList({
                     className="flex items-center gap-2 px-3 py-2 text-sm text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-500/10 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-orange-500 rounded-lg transition-colors ml-auto"
                   >
                     <Lock size={16} />
-                    Close
+                    {t('close')}
                   </button>
                 )}
               </div>

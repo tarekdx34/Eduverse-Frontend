@@ -19,7 +19,7 @@ const normalizePrimaryColor = (color: string | null | undefined) =>
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>(() => {
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('eduverse-ta-theme');
+      const saved = localStorage.getItem('theme');
       return (saved as Theme) || 'light';
     }
     return 'light';
@@ -43,7 +43,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    localStorage.setItem('eduverse-ta-theme', theme);
+    localStorage.setItem('theme', theme);
     if (theme === 'dark') {
       document.documentElement.classList.add('dark');
     } else {

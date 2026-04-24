@@ -16,8 +16,17 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 const normalizePrimaryColor = (color: string | null | undefined) =>
   color === 'violet' ? 'blue' : color || 'blue';
 
-export function ThemeProvider({ children }: { children: ReactNode }) {
+export function ThemeProvider({ 
+  children,
+  initialTheme,
+  initialPrimaryColor 
+}: { 
+  children: ReactNode;
+  initialTheme?: Theme;
+  initialPrimaryColor?: string;
+}) {
   const [theme, setTheme] = useState<Theme>(() => {
+    if (initialTheme) return initialTheme;
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('eduverse-instructor-theme');
       return (saved as Theme) || 'light';
@@ -26,6 +35,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   });
 
   const [primaryColor, setPrimaryColorState] = useState<string>(() => {
+    if (initialPrimaryColor) return normalizePrimaryColor(initialPrimaryColor);
     if (typeof window !== 'undefined') {
       return normalizePrimaryColor(localStorage.getItem('eduverse-primary-color'));
     }

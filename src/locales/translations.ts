@@ -243,6 +243,25 @@ export interface Translations {
       action: string;
       actions: string;
     };
+    // TA Dashboard
+    taDashboard: {
+      title: string;
+      assignedCourses: string;
+      activeLabs: string;
+      pendingSubmissions: string;
+      avgPerformance: string;
+      upcoming: string;
+      gradePendingSubmissions: string;
+      checkMessages: string;
+      manageLabs: string;
+      submissionsTrend: string;
+      upcomingTeaching: string;
+      totalCourses: string;
+      needsGrading: string;
+      thisSemester: string;
+      noActivityYet: string;
+      activityDescription: string;
+    };
   };
   ar: {
     // Auth
@@ -488,6 +507,25 @@ export interface Translations {
       action: string;
       actions: string;
     };
+    // TA Dashboard
+    taDashboard: {
+      title: string;
+      assignedCourses: string;
+      activeLabs: string;
+      pendingSubmissions: string;
+      avgPerformance: string;
+      upcoming: string;
+      gradePendingSubmissions: string;
+      checkMessages: string;
+      manageLabs: string;
+      submissionsTrend: string;
+      upcomingTeaching: string;
+      totalCourses: string;
+      needsGrading: string;
+      thisSemester: string;
+      noActivityYet: string;
+      activityDescription: string;
+    };
   };
 }
 
@@ -725,6 +763,24 @@ export const translations: Translations = {
       action: 'Action',
       actions: 'Actions',
     },
+    taDashboard: {
+      title: 'Teaching Assistant Dashboard',
+      assignedCourses: 'Assigned Courses',
+      activeLabs: 'Active Labs',
+      pendingSubmissions: 'Pending Submissions',
+      avgPerformance: 'Avg Performance',
+      upcoming: 'Upcoming',
+      gradePendingSubmissions: 'Grade Pending Submissions',
+      checkMessages: 'Check Messages',
+      manageLabs: 'Manage Labs',
+      submissionsTrend: 'Submissions Trend',
+      upcomingTeaching: 'Upcoming Teaching',
+      totalCourses: 'Total Courses',
+      needsGrading: 'Needs Grading',
+      thisSemester: 'This Semester',
+      noActivityYet: 'No recent activity found',
+      activityDescription: 'When you or your students take action, it will appear here.',
+    },
   },
 
   ar: {
@@ -959,6 +1015,24 @@ export const translations: Translations = {
       status: 'الحالة',
       action: 'إجراء',
       actions: 'إجراءات',
+    },
+    taDashboard: {
+      title: 'لوحة تحكم مساعد التدريس',
+      assignedCourses: 'المقررات المسندة',
+      activeLabs: 'المعامل النشطة',
+      pendingSubmissions: 'التقديمات المعلقة',
+      avgPerformance: 'متوسط الأداء',
+      upcoming: 'القادمة',
+      gradePendingSubmissions: 'تصحيح التقديمات المعلقة',
+      checkMessages: 'مراجعة الرسائل',
+      manageLabs: 'إدارة المعامل',
+      submissionsTrend: 'اتجاه التقديمات',
+      upcomingTeaching: 'التدريس القادم',
+      totalCourses: 'إجمالي المقررات',
+      needsGrading: 'يحتاج تصحيح',
+      thisSemester: 'هذا الفصل الدراسي',
+      noActivityYet: 'لا يوجد نشاط أخير',
+      activityDescription: 'عندما تقوم أنت أو طلابك باتخاذ إجراء، سيظهر هنا.',
     },
   },
 };

@@ -114,7 +114,7 @@ export function CustomDropdown({
         role="listbox"
         className={`fixed z-[9999] rounded-2xl shadow-xl border overflow-y-auto py-2 animate-in fade-in zoom-in duration-150 ${
           isDark
-            ? 'bg-[#1e293b] border-slate-700 shadow-black/50'
+            ? 'bg-[#212530] border-white/5 shadow-black/50'
             : 'bg-white border-gray-200 shadow-slate-200/50'
         }`}
         style={{
@@ -203,7 +203,7 @@ export function CustomDropdown({
           }}
           className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl border transition-all text-sm font-medium ${
             isDark
-              ? 'bg-slate-800/40 border-slate-700 text-white placeholder:text-slate-500 hover:bg-slate-800/60'
+              ? 'bg-[#212530] border-white/10 text-white placeholder:text-slate-500 hover:bg-white/5'
               : 'bg-white border-gray-200 text-gray-900 hover:bg-gray-50'
           }`}
           style={{ borderColor: isOpen ? accentColor : undefined }}

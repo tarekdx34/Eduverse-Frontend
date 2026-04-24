@@ -11,7 +11,7 @@ import {
   Edit,
   Trash2,
 } from 'lucide-react';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme } from '../../../context/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useApi } from '../../../hooks/useApi';
 import { useAuth } from '../../../context/AuthContext';
@@ -32,7 +32,8 @@ export function LabsPage({
   disableCreateReason,
   disableViewDetailsReason,
 }: LabsPageProps = {}) {
-  const { isDark } = useTheme();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const { t } = useLanguage();
   const { user } = useAuth();
   const [filter, setFilter] = useState<'all' | 'active' | 'completed'>('all');

@@ -1,4 +1,6 @@
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { translations as globalTranslations } from '../../../locales/translations';
 
 type Language = 'en' | 'ar';
 
@@ -38,6 +40,7 @@ const translations: Record<Language, Record<string, string>> = {
     'ai-assistant': 'AI Assistant',
     profile: 'Profile',
     assignments: 'Assignments',
+    insights: 'Insights',
 
     // Groups
     overview: 'Overview',
@@ -80,6 +83,13 @@ const translations: Record<Language, Record<string, string>> = {
     gradePendingSubmissions: 'Grade Pending Submissions',
     checkMessages: 'Check Messages',
     manageLabs: 'Manage Labs',
+    submissionsTrend: 'Submissions Trend',
+    upcomingTeaching: 'Upcoming Teaching',
+    totalCourses: 'Total Courses',
+    needsGrading: 'Needs Grading',
+    thisSemester: 'This Semester',
+    noActivityYet: 'No recent activity found',
+    activityDescription: 'When you or your students take action, it will appear here.',
 
     // CoursesPage
     manageYourCourses: 'Manage your assigned courses and labs',
@@ -244,6 +254,35 @@ const translations: Record<Language, Record<string, string>> = {
     allCourses: 'All Courses',
     postedBy: 'Posted by',
     noAnnouncementsFound: 'No announcements found.',
+    // LiveAnnouncementsPage extras
+    manageAnnouncements: 'Manage and post announcements for your assigned courses.',
+    totalAnnouncements: 'Total Announcements',
+    published: 'Published',
+    drafts: 'Drafts',
+    draft: 'Draft',
+    searchAnnouncementsPlaceholder: 'Search announcements...',
+    loadingAnnouncements: 'Loading announcements...',
+    noAnnouncementsTitle: 'No announcements found',
+    noAnnouncementsHint: 'Try adjusting your search or filters',
+    pinned: 'Pinned',
+    editAnnouncement: 'Edit Announcement',
+    publishAnnouncement: 'Publish',
+    deleteAnnouncement: 'Delete',
+    newAnnouncementFormTitle: 'New Announcement',
+    editAnnouncementFormTitle: 'Edit Announcement',
+    newAnnouncementFormHint: 'Create a draft announcement for one of your assigned courses.',
+    editAnnouncementFormHint: 'Update the announcement details for your students.',
+    titleLabel: 'Title',
+    courseLabel: 'Course',
+    messageLabel: 'Message',
+    titlePlaceholder: 'e.g., Important: Lab 3 Rescheduled',
+    messagePlaceholder: 'Provide clear details for your students...',
+    processing: 'Processing...',
+    updateAnnouncement: 'Update Announcement',
+    createDraft: 'Create Draft',
+    deleteAnnouncementConfirm: 'Delete Announcement?',
+    deleteAnnouncementWarning: 'Are you sure you want to delete',
+    cannotBeUndone: 'This action cannot be undone.',
 
     // DiscussionPage
     discussionForum: 'Discussion Forum',
@@ -275,6 +314,68 @@ const translations: Record<Language, Record<string, string>> = {
     answer: 'Answer',
     flagForInstructor: 'Flag for Instructor',
     yourAnswer: 'Your Answer:',
+
+    // AnalyticsPage
+    trackPerformance: 'Track student performance, attendance, and engagement metrics',
+    thisWeek: 'This Week',
+    thisMonth: 'This Month',
+    attendanceRate: 'Attendance Rate',
+    submissionRate: 'Submission Rate',
+    engagementScore: 'Engagement Score',
+    needsAttention: 'Needs attention',
+    attendanceTrends: 'Attendance Trends',
+    submissionPerformance: 'Submission Performance',
+    scoreDistribution: 'Score Distribution',
+    aiInsights: 'AI Insights',
+    upcomingDeadlines: 'Upcoming Deadlines',
+    comparisonMetrics: 'Comparison Metrics',
+    metric: 'Metric',
+    current: 'Current',
+    previous: 'Previous',
+    change: 'Change',
+    daysRemaining: 'days remaining',
+    avgScore: 'Avg. Score',
+    attendancePercent: 'Attendance %',
+    submissionPercent: 'Submission %',
+    insightAttendanceDecline: '3 students showing attendance decline over last 2 weeks',
+    insightLowestSubmission: 'Lab 5 has lowest submission rate (65%)',
+    insightEngagementIncrease: 'Overall engagement increased by 5% this month',
+    insightScoreImprovement: 'Score distribution improved compared to last semester',
+    // Live Mode
+    liveAnalyticsSubheader: 'Basic live analytics from the backend for your assigned TA courses.',
+    assignedCourses: 'Assigned courses',
+    acrossAssignedCourses: 'Across assigned courses',
+    latestAnalyticsAverage: 'Latest analytics average',
+    latestAttendanceAverage: 'Latest attendance average',
+    attendanceTrendsLive: 'Attendance Trends',
+    gradeDistribution: 'Grade Distribution',
+    atRiskStudents: 'At-Risk Students',
+    noAttendanceData: 'No attendance trend data is available for the selected course.',
+    noGradeData: 'No grade distribution data is available for the selected course.',
+    noAtRiskData: 'No at-risk students were reported for the selected scope.',
+    aiInsightsNotConnected: 'AI insights are not connected yet.',
+    liveAnalyticsOnly: 'This live page currently supports backend summary metrics, attendance trends, grade distribution, and at-risk students only.',
+    noAssignedCourses: 'No assigned courses were found for live analytics.',
+    loadingAnalytics: 'Loading analytics...',
+    today: 'Today',
+    noScheduledItems: 'No scheduled items for today.',
+    academicCalendar: 'Academic Calendar',
+    noAcademicEvents: 'No academic calendar events available.',
+    room: 'Room',
+    section: 'Section',
+    basicLiveRoster: 'Basic live roster data from assigned sections.',
+    allCourses: 'All Courses',
+    loadingRoster: 'Loading roster...',
+    noStudentsAvailable: 'No student rows available.',
+    student: 'Student',
+    email: 'Email',
+    course: 'Course',
+    enrolled: 'Enrolled',
+    rows: 'Rows',
+    score: 'Score',
+    lab5Submission: 'Lab 5 Submission',
+    midtermReview: 'Midterm Review',
+    projectMilestone: 'Project Milestone',
   },
   ar: {
     // Sidebar & Header
@@ -304,6 +405,7 @@ const translations: Record<Language, Record<string, string>> = {
     'ai-assistant': 'المساعد الذكي',
     profile: 'الملف الشخصي',
     assignments: 'التكاليف',
+    insights: 'رؤى',
 
     // Groups
     overview: 'نظرة عامة',
@@ -346,6 +448,13 @@ const translations: Record<Language, Record<string, string>> = {
     gradePendingSubmissions: 'تصحيح التقديمات المعلقة',
     checkMessages: 'مراجعة الرسائل',
     manageLabs: 'إدارة المعامل',
+    submissionsTrend: 'اتجاه التقديمات',
+    upcomingTeaching: 'التدريس القادم',
+    totalCourses: 'إجمالي المقررات',
+    needsGrading: 'يحتاج تصحيح',
+    thisSemester: 'هذا الفصل الدراسي',
+    noActivityYet: 'لا يوجد نشاط أخير',
+    activityDescription: 'عندما تقوم أنت أو طلابك باتخاذ إجراء، سيظهر هنا.',
 
     // CoursesPage
     manageYourCourses: 'إدارة المقررات والمعامل المسندة إليك',
@@ -509,6 +618,35 @@ const translations: Record<Language, Record<string, string>> = {
     allCourses: 'جميع المقررات',
     postedBy: 'نشر بواسطة',
     noAnnouncementsFound: 'لا توجد إعلانات.',
+    // LiveAnnouncementsPage extras
+    manageAnnouncements: 'إدارة ونشر الإعلانات لمقرراتك المعينة.',
+    totalAnnouncements: 'إجمالي الإعلانات',
+    published: 'منشور',
+    drafts: 'مسودات',
+    draft: 'مسودة',
+    searchAnnouncementsPlaceholder: 'البحث في الإعلانات...',
+    loadingAnnouncements: 'جاري تحميل الإعلانات...',
+    noAnnouncementsTitle: 'لا توجد إعلانات',
+    noAnnouncementsHint: 'حاول تعديل البحث أو عوامل التصفية',
+    pinned: 'مثبت',
+    editAnnouncement: 'تعديل الإعلان',
+    publishAnnouncement: 'نشر',
+    deleteAnnouncement: 'حذف',
+    newAnnouncementFormTitle: 'إعلان جديد',
+    editAnnouncementFormTitle: 'تعديل الإعلان',
+    newAnnouncementFormHint: 'إنشاء مسودة إعلان لأحد مقرراتك المعينة.',
+    editAnnouncementFormHint: 'تحديث تفاصيل الإعلان لطلابك.',
+    titleLabel: 'العنوان',
+    courseLabel: 'المقرر',
+    messageLabel: 'الرسالة',
+    titlePlaceholder: 'مثال: مهم: تم تأجيل المعمل 3',
+    messagePlaceholder: 'قدم تفاصيل واضحة لطلابك...',
+    processing: 'جاري المعالجة...',
+    updateAnnouncement: 'تحديث الإعلان',
+    createDraft: 'إنشاء مسودة',
+    deleteAnnouncementConfirm: 'حذف الإعلان؟',
+    deleteAnnouncementWarning: 'هل أنت متأكد من حذف',
+    cannotBeUndone: 'لا يمكن التراجع عن هذا الإجراء.',
 
     // DiscussionPage
     discussionForum: 'منتدى المناقشات',
@@ -540,32 +678,123 @@ const translations: Record<Language, Record<string, string>> = {
     answer: 'إجابة',
     flagForInstructor: 'تحويل للمحاضر',
     yourAnswer: 'إجابتك:',
+
+    // AnalyticsPage
+    trackPerformance: 'تتبع أداء الطلاب، والحضور، ومقاييس التفاعل',
+    thisWeek: 'هذا الأسبوع',
+    thisMonth: 'هذا الشهر',
+    attendanceRate: 'معدل الحضور',
+    submissionRate: 'معدل التسليم',
+    engagementScore: 'درجة التفاعل',
+    needsAttention: 'يحتاج إلى اهتمام',
+    attendanceTrends: 'اتجاهات الحضور',
+    submissionPerformance: 'أداء التسليمات',
+    scoreDistribution: 'توزيع الدرجات',
+    aiInsights: 'رؤى الذكاء الاصطناعي',
+    upcomingDeadlines: 'المواعيد النهائية القادمة',
+    comparisonMetrics: 'مقاييس المقارنة',
+    metric: 'المقياس',
+    current: 'الحالي',
+    previous: 'السابق',
+    change: 'التغيير',
+    daysRemaining: 'أيام متبقية',
+    avgScore: 'متوسط الدرجات',
+    attendancePercent: 'نسبة الحضور %',
+    submissionPercent: 'نسبة التسليم %',
+    insightAttendanceDecline: '3 طلاب يظهرون انخفاضاً في الحضور خلال الأسبوعين الماضيين',
+    insightLowestSubmission: 'المعمل 5 لديه أقل معدل تسليم (65٪)',
+    insightEngagementIncrease: 'زادت المشاركة العامة بنسبة 5٪ هذا الشهر',
+    insightScoreImprovement: 'تحسن توزيع الدرجات مقارنة بالفصل الدراسي الماضي',
+    // Live Mode
+    liveAnalyticsSubheader: 'تحليلات مباشرة أساسية من الواجهة الخلفية لدوراتك التدريبية المعينة.',
+    assignedCourses: 'الدورات المعينة',
+    acrossAssignedCourses: 'عبر الدورات المعينة',
+    latestAnalyticsAverage: 'أحدث متوسط للتحليلات',
+    latestAttendanceAverage: 'أحدث متوسط للحضور',
+    attendanceTrendsLive: 'اتجاهات الحضور',
+    gradeDistribution: 'توزيع الدرجات',
+    atRiskStudents: 'الطلاب المعرضون للخطر',
+    noAttendanceData: 'لا تتوفر بيانات اتجاهات الحضور للدورة المختارة.',
+    noGradeData: 'لا تتوفر بيانات توزيع الدرجات للدورة المختارة.',
+    noAtRiskData: 'لم يتم الإبلاغ عن طلاب معرضين للخطر في النطاق المختار.',
+    aiInsightsNotConnected: 'رؤى الذكاء الاصطناعي ليست متصلة بعد.',
+    liveAnalyticsOnly: 'تدعم هذه الصفحة المباشرة حالياً مقاييس ملخص الواجهة الخلفية، واتجاهات الحضور، وتوزيع الدرجات، والطلاب المعرضين للخطر فقط.',
+    noAssignedCourses: 'لم يتم العثور على دورات معينة للتحليلات المباشرة.',
+    loadingAnalytics: 'جاري تحميل التحليلات...',
+    today: 'اليوم',
+    noScheduledItems: 'لا توجد عناصر مجدولة لليوم.',
+    academicCalendar: 'التقويم الأكاديمي',
+    noAcademicEvents: 'لا توجد أحداث متاحة في التقويم الأكاديمي.',
+    room: 'القاعة',
+    section: 'الشعبة',
+    basicLiveRoster: 'بيانات القائمة المباشرة الأساسية من الأقسام المعينة.',
+    allCourses: 'كل الدورات',
+    loadingRoster: 'جاري تحميل القائمة...',
+    noStudentsAvailable: 'لا توجد صفوف طلاب متاحة.',
+    student: 'الطالب',
+    email: 'البريد الإلكتروني',
+    course: 'الدورة',
+    enrolled: 'مسجل في',
+    rows: 'الصفوف',
+    score: 'الدرجة',
+    lab5Submission: 'تسليم المعمل 5',
+    midtermReview: 'مراجعة منتصف الفصل',
+    projectMilestone: 'مرحلة المشروع',
   },
 };
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
+  const { i18n } = useTranslation();
+
   const [language, setLanguageState] = useState<Language>(() => {
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('eduverse-language');
-      return (saved as Language) || 'en';
+      const saved = localStorage.getItem('preferredLanguage')?.split('-')[0];
+      if (saved === 'en' || saved === 'ar') return saved as Language;
+      
+      const i18nLang = i18n.language?.split('-')[0];
+      if (i18nLang === 'en' || i18nLang === 'ar') return i18nLang as Language;
     }
     return 'en';
   });
 
+  const setLanguage = (lang: Language) => {
+    setLanguageState(lang);
+    i18n.changeLanguage(lang);
+  };
+
   useEffect(() => {
-    localStorage.setItem('eduverse-language', language);
+    localStorage.setItem('preferredLanguage', language);
     document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
     document.documentElement.lang = language;
   }, [language]);
 
-  const setLanguage = (lang: Language) => {
-    setLanguageState(lang);
-  };
-
   const t = (key: string): string => {
-    return translations[language][key] || key;
+    try {
+      // 1. First Priority: Local hardcoded translations
+      const local = (translations[language] as any)?.[key];
+      if (local && typeof local === 'string') return local;
+
+      // 2. Second Priority: Check global taDashboard section
+      const globalLang = language === 'en' ? 'en' : 'ar';
+      const globalSec = (globalTranslations as any)?.[globalLang]?.taDashboard;
+      if (globalSec && globalSec[key] && typeof globalSec[key] === 'string') {
+        return globalSec[key];
+      }
+
+      // 3. Third Priority: Fallback to i18next
+      if (i18n.exists(key)) {
+        const result = i18n.t(key);
+        if (typeof result === 'string' && result !== '[object Object]') return result;
+      }
+
+      // 4. Final Fallback: Return the key itself
+      return key;
+    } catch (e) {
+      console.error('Translation error for key:', key, e);
+      return key;
+    }
   };
 
   const isRTL = language === 'ar';

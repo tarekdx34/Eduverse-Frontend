@@ -14,7 +14,7 @@ import {
   Copy,
   RefreshCw,
 } from 'lucide-react';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme } from '../../../context/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 
 type Mode = 'general' | 'grading' | 'teaching' | 'analysis';
@@ -83,7 +83,8 @@ const welcomeMessage: Message = {
 };
 
 export function AIAssistantPage() {
-  const { isDark } = useTheme();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const { t } = useLanguage();
   const [activeMode, setActiveMode] = useState<Mode>('general');
   const [messages, setMessages] = useState<Message[]>([welcomeMessage]);

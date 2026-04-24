@@ -19,12 +19,13 @@ export function StatsCard({
   isPositive,
   icon,
 }: StatsCardProps) {
-  const { isDark } = useTheme() as any;
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
 
   return (
     <div
       className={`p-6 rounded-3xl border transition-all duration-300 ${
-        isDark ? 'bg-card-dark border-white/5 shadow-sm' : 'bg-white border-slate-200 shadow-sm'
+        isDark ? 'bg-card-dark border-white/5 shadow-xl' : 'bg-white border-slate-200 shadow-sm'
       }`}
     >
       <div className="flex items-start justify-between mb-4">

@@ -9,7 +9,7 @@ import {
   AlertCircle,
   Loader,
 } from 'lucide-react';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme } from '../../../context/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../../../context/AuthContext';
 import AssignmentService, {
@@ -28,7 +28,8 @@ type AssignmentGradingPageProps = {
 };
 
 export function AssignmentGradingPage({ courseId }: AssignmentGradingPageProps) {
-  const { isDark } = useTheme() as any;
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const { t } = useLanguage();
   const { user } = useAuth();
   const [filter, setFilter] = useState<'all' | 'submitted' | 'graded'>('all');

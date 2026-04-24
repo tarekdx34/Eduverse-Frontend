@@ -26,7 +26,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme } from '../../../context/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { CleanSelect } from '../../../components/shared';
 
@@ -56,7 +56,8 @@ export function StudentPerformancePage({
   readOnly = false,
   assignedCourseNames = [],
 }: StudentPerformancePageProps) {
-  const { isDark } = useTheme();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const { t } = useLanguage();
   const visibleStudents = assignedCourseNames.length
     ? students.filter((student) =>

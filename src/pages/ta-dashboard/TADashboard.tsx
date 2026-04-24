@@ -314,7 +314,8 @@ function TADashboardContent() {
   const location = useLocation();
   const params = useParams();
   const queryClient = useQueryClient();
-  const { isDark, toggleTheme, primaryHex, primaryColor, setPrimaryColor } = useTheme() as any;
+  const { theme, toggleTheme, primaryHex, primaryColor, setPrimaryColor } = useTheme() as any;
+  const isDark = theme === 'dark';
   const { language, isRTL, setLanguage, t } = useLanguage();
   const [activeTab, setActiveTab] = useState<TabKey>('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -412,6 +413,7 @@ function TADashboardContent() {
     queryKey: ['ta-live-profile'],
     queryFn: () => AuthService.getMe(),
     enabled: !isMockMode,
+    refetchOnWindowFocus: false,
   });
 
   const {
@@ -421,6 +423,7 @@ function TADashboardContent() {
     queryKey: ['ta-teaching-courses'],
     queryFn: () => EnrollmentService.getTeachingCourses(),
     enabled: !isMockMode,
+    refetchOnWindowFocus: false,
   });
 
   const {
@@ -437,6 +440,7 @@ function TADashboardContent() {
       return Object.fromEntries(entries);
     },
     enabled: !isMockMode && teachingCoursesLive.length > 0,
+    refetchOnWindowFocus: false,
   });
 
   const liveCourseIds = useMemo(
@@ -451,6 +455,7 @@ function TADashboardContent() {
       return res;
     },
     enabled: !isMockMode && liveCourseIds.length > 0,
+    refetchOnWindowFocus: false,
   });
 
   const rawLabsLive = useMemo<Lab[]>(() => {
@@ -470,6 +475,7 @@ function TADashboardContent() {
       return Object.fromEntries(entries);
     },
     enabled: !isMockMode && rawLabsLive.length > 0,
+    refetchOnWindowFocus: false,
   });
 
   const {
@@ -479,6 +485,7 @@ function TADashboardContent() {
     queryKey: ['ta-lab-details', selectedLabId],
     queryFn: () => LabService.getById(String(selectedLabId)),
     enabled: !isMockMode && !!selectedLabId,
+    refetchOnWindowFocus: false,
   });
 
   const createLabMutation = useMutation({
@@ -531,6 +538,7 @@ function TADashboardContent() {
     queryKey: ['ta-quizzes', liveCourseIds],
     queryFn: () => QuizService.getAll({ limit: 100 }),
     enabled: !isMockMode && activeTab === 'quizzes' && liveCourseIds.length > 0,
+    refetchOnWindowFocus: false,
   });
 
   const liveQuizzes = useMemo(
@@ -548,6 +556,7 @@ function TADashboardContent() {
     queryKey: ['ta-quiz-attempts'],
     queryFn: () => QuizService.getAllAttempts({ limit: 200 }),
     enabled: !isMockMode && activeTab === 'quizzes',
+    refetchOnWindowFocus: false,
   });
 
   const createQuizMutation = useMutation({
@@ -720,6 +729,7 @@ function TADashboardContent() {
     queryKey: ['ta-announcements'],
     queryFn: () => announcementService.getAnnouncements({ limit: 100 }),
     enabled: !isMockMode,
+    refetchOnWindowFocus: false,
   });
 
   const liveAnnouncements = useMemo<Announcement[]>(() => {
@@ -737,6 +747,7 @@ function TADashboardContent() {
     queryKey: ['ta-notifications', notificationsRefreshSignal],
     queryFn: () => NotificationService.getAll({ limit: 50 }),
     enabled: !isMockMode,
+    refetchOnWindowFocus: false,
   });
 
   const liveNotifications = useMemo<Notification[]>(() => {
@@ -754,6 +765,7 @@ function TADashboardContent() {
     queryKey: ['ta-daily-schedule'],
     queryFn: () => ScheduleService.getDaily(),
     enabled: !isMockMode,
+    refetchOnWindowFocus: false,
   });
 
   const {
@@ -763,6 +775,7 @@ function TADashboardContent() {
     queryKey: ['ta-academic-events'],
     queryFn: () => ScheduleService.getAcademicCalendar(),
     enabled: !isMockMode,
+    refetchOnWindowFocus: false,
   });
 
   const {
@@ -802,6 +815,7 @@ function TADashboardContent() {
       return sections.flat();
     },
     enabled: !isMockMode && teachingCoursesLive.length > 0,
+    refetchOnWindowFocus: false,
   });
 
   const selectedLiveTeachingCourse = useMemo(
@@ -823,6 +837,7 @@ function TADashboardContent() {
     queryKey: ['ta-course-materials', selectedLiveTeachingCourse?.courseId],
     queryFn: () => CourseService.getMaterials(Number(selectedLiveTeachingCourse?.courseId)),
     enabled: !isMockMode && !!selectedLiveTeachingCourse,
+    refetchOnWindowFocus: false,
   });
 
   const {
@@ -831,6 +846,7 @@ function TADashboardContent() {
     queryKey: ['ta-course-schedules', selectedLiveTeachingCourse?.sectionId],
     queryFn: () => CourseService.getSectionSchedules(String(selectedLiveTeachingCourse?.sectionId)),
     enabled: !isMockMode && !!selectedLiveTeachingCourse,
+    refetchOnWindowFocus: false,
   });
 
   const {
@@ -840,6 +856,8 @@ function TADashboardContent() {
     queryKey: ['ta-analytics-dashboard'],
     queryFn: () => AnalyticsService.getDashboard(),
     enabled: !isMockMode && activeTab === 'analytics',
+    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000,
   });
 
   const {
@@ -849,6 +867,8 @@ function TADashboardContent() {
     queryKey: ['ta-analytics-attendance', selectedAnalyticsCourseId],
     queryFn: () => AnalyticsService.getAttendanceTrends(Number(selectedAnalyticsCourseId)),
     enabled: !isMockMode && activeTab === 'analytics' && !!selectedAnalyticsCourseId,
+    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000,
   });
 
   const {
@@ -858,6 +878,8 @@ function TADashboardContent() {
     queryKey: ['ta-analytics-grade-distribution', selectedAnalyticsCourseId],
     queryFn: () => AnalyticsService.getGradeDistribution(Number(selectedAnalyticsCourseId)),
     enabled: !isMockMode && activeTab === 'analytics' && !!selectedAnalyticsCourseId,
+    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000,
   });
 
   const {
@@ -867,6 +889,8 @@ function TADashboardContent() {
     queryKey: ['ta-analytics-at-risk', selectedAnalyticsCourseId],
     queryFn: () => AnalyticsService.getAtRiskStudents(Number(selectedAnalyticsCourseId)),
     enabled: !isMockMode && activeTab === 'analytics' && !!selectedAnalyticsCourseId,
+    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000,
   });
 
   const createAnnouncementMutation = useMutation({
@@ -1170,7 +1194,7 @@ function TADashboardContent() {
       className={`flex min-h-screen ${isRTL ? 'flex-row-reverse' : ''} ${
         isDark ? 'bg-background-dark' : 'bg-background-light'
       } text-slate-800 dark:text-slate-100 transition-colors duration-300`}
-      style={{ fontFamily: "'Montserrat', sans-serif" }}
+      style={{ fontFamily: "'Montserrat', 'Cairo', sans-serif" }}
       dir={isRTL ? 'rtl' : 'ltr'}
     >
       <DashboardSidebar
@@ -1417,7 +1441,7 @@ function TADashboardContent() {
   );
 }
 
-function TADashboard() {
+export function TADashboard() {
   return (
     <ThemeProvider>
       <LanguageProvider>
@@ -1428,4 +1452,3 @@ function TADashboard() {
 }
 
 export default TADashboard;
-
