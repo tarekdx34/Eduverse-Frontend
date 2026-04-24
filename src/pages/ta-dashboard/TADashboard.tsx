@@ -18,6 +18,8 @@ import {
 } from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { useNotificationRealtime } from '../../hooks/useNotificationRealtime';
+import { toHeaderNotification } from '../../utils/notificationUi';
 import {
   ModernDashboard,
   CoursesPage,
@@ -320,8 +322,62 @@ function TADashboardContent() {
   const [selectedLabsCourseId, setSelectedLabsCourseId] = useState<string>('');
   const [selectedLabId, setSelectedLabId] = useState<string | null>(null);
   const [selectedAnalyticsCourseId, setSelectedAnalyticsCourseId] = useState<string>('');
+  const [headerUnreadCount, setHeaderUnreadCount] = useState(0);
+  const [headerNotifications, setHeaderNotifications] = useState<Notification[]>([]);
+  const [notificationsRefreshSignal, setNotificationsRefreshSignal] = useState(0);
 
   const isMockMode = !isAuthenticated || location.state?.isMock;
+
+  useEffect(() => {
+    if (isMockMode) {
+      setHeaderNotifications([]);
+      setHeaderUnreadCount(0);
+      return;
+    }
+
+    let mounted = true;
+    const refreshHeaderNotifications = async () => {
+      try {
+        const [list, unread] = await Promise.all([
+          NotificationService.getAll({ limit: 8 }),
+          NotificationService.getUnreadCount(),
+        ]);
+        if (!mounted) return;
+        setHeaderNotifications(list);
+        setHeaderUnreadCount(Number(unread?.count ?? 0));
+      } catch {
+        if (!mounted) return;
+        setHeaderNotifications([]);
+        setHeaderUnreadCount(0);
+      }
+    };
+
+    void refreshHeaderNotifications();
+    const intervalId = window.setInterval(() => void refreshHeaderNotifications(), 30000);
+    return () => {
+      mounted = false;
+      window.clearInterval(intervalId);
+    };
+  }, [isMockMode]);
+
+  useNotificationRealtime({
+    enabled: !isMockMode,
+    onNewNotification: (notification) => {
+      setHeaderNotifications((prev) => {
+        const next = [notification, ...prev.filter((item) => item.id !== notification.id)];
+        return next.slice(0, 8);
+      });
+      if (notification.isRead !== 1 && !notification.read) {
+        setHeaderUnreadCount((prev) => prev + 1);
+      }
+      setNotificationsRefreshSignal((prev) => prev + 1);
+      void queryClient.invalidateQueries({ queryKey: ['ta-notifications'] });
+    },
+    onUnreadCountUpdate: (count) => {
+      setHeaderUnreadCount(count);
+      setNotificationsRefreshSignal((prev) => prev + 1);
+    },
+  });
 
   const translatedTabs = TABS.map((tab) => ({
     id: tab.key,
@@ -678,7 +734,7 @@ function TADashboardContent() {
     data: rawNotificationsLive = [],
     isLoading: notificationsLoading,
   } = useQuery<any>({
-    queryKey: ['ta-notifications'],
+    queryKey: ['ta-notifications', notificationsRefreshSignal],
     queryFn: () => NotificationService.getAll({ limit: 50 }),
     enabled: !isMockMode,
   });
@@ -1174,6 +1230,8 @@ function TADashboardContent() {
               viewProfile: t('viewProfile'),
               logout: t('logout'),
             }}
+            notifications={headerNotifications.map(toHeaderNotification)}
+            notificationCount={headerUnreadCount}
           />
         )}
 

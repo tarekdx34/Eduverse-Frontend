@@ -41,6 +41,12 @@ import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import { useAuth } from '../../context/AuthContext';
 import {
+  NotificationService,
+  type Notification,
+} from '../../services/api/notificationService';
+import { useNotificationRealtime } from '../../hooks/useNotificationRealtime';
+import { toHeaderNotification } from '../../utils/notificationUi';
+import {
   IT_DASHBOARD_STATS,
   SERVER_STATUS,
   API_INTEGRATIONS,
@@ -189,6 +195,8 @@ function ITAdminDashboardContent() {
   const [campuses, setCampuses] = useState(CAMPUSES);
   const [systemSettings, setSystemSettings] = useState(SYSTEM_SETTINGS);
   const [brandingSettings, setBrandingSettings] = useState(BRANDING_SETTINGS);
+  const [headerUnreadCount, setHeaderUnreadCount] = useState(0);
+  const [headerNotifications, setHeaderNotifications] = useState<Notification[]>([]);
 
   // Sync tab from URL
   useEffect(() => {
@@ -199,6 +207,45 @@ function ITAdminDashboardContent() {
       setActiveTab('dashboard');
     }
   }, [params.tab]);
+
+  useEffect(() => {
+    let mounted = true;
+    const refreshHeaderNotifications = async () => {
+      try {
+        const [list, unread] = await Promise.all([
+          NotificationService.getAll({ limit: 8 }),
+          NotificationService.getUnreadCount(),
+        ]);
+        if (!mounted) return;
+        setHeaderNotifications(list);
+        setHeaderUnreadCount(Number(unread?.count ?? 0));
+      } catch {
+        if (!mounted) return;
+        setHeaderNotifications([]);
+        setHeaderUnreadCount(0);
+      }
+    };
+
+    void refreshHeaderNotifications();
+    const intervalId = window.setInterval(() => void refreshHeaderNotifications(), 30000);
+    return () => {
+      mounted = false;
+      window.clearInterval(intervalId);
+    };
+  }, []);
+
+  useNotificationRealtime({
+    onNewNotification: (notification) => {
+      setHeaderNotifications((prev) => {
+        const next = [notification, ...prev.filter((item) => item.id !== notification.id)];
+        return next.slice(0, 8);
+      });
+      if (notification.isRead !== 1 && !notification.read) {
+        setHeaderUnreadCount((prev) => prev + 1);
+      }
+    },
+    onUnreadCountUpdate: (count) => setHeaderUnreadCount(count),
+  });
 
   // Navigate on tab change
   const handleTabChange = (key: TabKey) => {
@@ -370,6 +417,8 @@ function ITAdminDashboardContent() {
               viewProfile: t('viewProfile'),
               logout: t('logout'),
             }}
+            notifications={headerNotifications.map(toHeaderNotification)}
+            notificationCount={headerUnreadCount}
           />
         )}
         {/* Dashboard Overview */}

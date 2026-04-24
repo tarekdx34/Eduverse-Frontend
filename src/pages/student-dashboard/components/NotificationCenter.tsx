@@ -102,7 +102,15 @@ const mapAnnouncementToNotification = (announcement: Announcement): Notification
   rawCreatedAt: announcement.publishedAt ?? announcement.createdAt,
 });
 
-export function NotificationCenter() {
+interface NotificationCenterProps {
+  refreshSignal?: number;
+  externalUnreadCount?: number;
+}
+
+export function NotificationCenter({
+  refreshSignal = 0,
+  externalUnreadCount,
+}: NotificationCenterProps = {}) {
   const { isDark, primaryHex } = useTheme() as any;
   const accentColor = primaryHex || '#3b82f6';
   const [notificationList, setNotificationList] = useState<Notification[]>([]);
@@ -131,7 +139,6 @@ export function NotificationCenter() {
         NotificationService.getUnreadCount(),
         announcementService.getAnnouncements(),
       ]);
-
       const mappedNotifications: Notification[] = (notificationsResponse || []).map((n) => ({
         id: String(n.id),
         type: mapNotificationType(n.notificationType),
@@ -175,6 +182,18 @@ export function NotificationCenter() {
   useEffect(() => {
     void loadNotificationData();
   }, [loadNotificationData]);
+
+  useEffect(() => {
+    if (refreshSignal > 0) {
+      void loadNotificationData();
+    }
+  }, [refreshSignal, loadNotificationData]);
+
+  useEffect(() => {
+    if (typeof externalUnreadCount === 'number') {
+      setUnreadCount(externalUnreadCount);
+    }
+  }, [externalUnreadCount]);
 
   if (loading) {
     return (
