@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
 import {
   Home,
   LogIn,
@@ -195,6 +195,9 @@ export function QuickNavigateModal() {
             <ExternalLink className="h-5 w-5" />
             Quick Navigate
           </DialogTitle>
+          <DialogDescription>
+            Navigate quickly between dashboard pages and track latest changes.
+          </DialogDescription>
         </DialogHeader>
 
         <p className="text-sm text-muted-foreground mb-4">
@@ -235,11 +238,11 @@ export function QuickNavigateModal() {
           </p>
 
           {AWAB_PAGES.length > 0 ? (
-            AWAB_PAGES.map((page) => {
+            AWAB_PAGES.map((page, idx) => {
               const Icon = page.icon;
               return (
                 <button
-                  key={page.path}
+                  key={`awab-${idx}`}
                   type="button"
                   onClick={() => handleNavigate(page.path)}
                   className="flex items-start gap-3 w-full px-4 py-3 rounded-lg border border-primary/20 bg-primary/5 hover:bg-primary/10 transition-colors text-left"

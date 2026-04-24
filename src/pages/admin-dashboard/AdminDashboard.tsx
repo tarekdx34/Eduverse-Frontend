@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { adminService } from '../../services/adminService';
+import { adminService, type CreateSemesterPayload } from '../../services/adminService';
 import { ApiClient as api } from '../../services/api/client';
 import { toast } from 'sonner';
 
@@ -29,14 +29,13 @@ import { DashboardProfileTab } from '../../components/shared/DashboardProfileTab
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import { useAuth } from '../../context/AuthContext';
+import { useLiveApiSession } from '../../hooks/useLiveApiSession';
 import {
   DASHBOARD_STATS,
   USERS,
   COURSES,
   CALENDAR_EVENTS,
-  ANALYTICS,
   NOTIFICATION_TEMPLATES,
-  RECENT_ACTIVITY,
   ADMIN_DEPARTMENT,
   ENROLLMENT_PERIODS,
 } from './constants';
@@ -51,6 +50,20 @@ type TabKey =
   | 'communication'
   | 'chat'
   | 'profile';
+
+function addDaysToYmd(ymd: string, days: number): string {
+  const d = new Date(`${ymd}T12:00:00`);
+  d.setDate(d.getDate() + days);
+  return d.toISOString().split('T')[0];
+}
+
+function semesterLabelToCode(label: string): string {
+  const cleaned = String(label || '')
+    .replace(/[^a-zA-Z0-9]/g, '')
+    .toUpperCase();
+  if (cleaned.length >= 2 && cleaned.length <= 20) return cleaned;
+  return `SEM${Date.now()}`.replace(/\D/g, '').slice(0, 18);
+}
 
 const TABS: { key: TabKey; label: string; labelAr: string; icon: any; group: string }[] = [
   {
@@ -107,15 +120,22 @@ function AdminDashboardContent() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { isDark, toggleTheme, primaryHex, primaryColor, setPrimaryColor } = useTheme() as any;
   const { language, setLanguage, isRTL, t } = useLanguage();
-  const { isAuthenticated, user } = useAuth();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
-  const isMockMode = !isAuthenticated || location.state?.isMock;
+  const useLiveApi = useLiveApiSession();
+  const isMockMode = !useLiveApi;
 
   // Fetch live stats
-  const { data: liveStats, isLoading: statsLoading } = useQuery({
+  const { data: liveStats } = useQuery({
     queryKey: ['admin-stats'],
     queryFn: () => adminService.getStats(),
     enabled: !isMockMode,
+  });
+
+  const { data: dashboardInsights } = useQuery({
+    queryKey: ['admin-dashboard-insights'],
+    queryFn: () => adminService.getAdminDashboardInsights(),
+    enabled: !isMockMode && activeTab === 'dashboard',
   });
 
   // Fetch live users for staff assignment
@@ -130,8 +150,8 @@ function AdminDashboardContent() {
   const [usersList, setUsersList] = useState(USERS);
 
   const refreshCourses = async () => {
-    if (isMockMode) {
-      setCoursesData(COURSES);
+    if (!useLiveApi) {
+      setCoursesData([]);
       return;
     }
 
@@ -145,7 +165,7 @@ function AdminDashboardContent() {
             ? coursesRes
             : [];
 
-      console.log('[DEBUG] courses count:', apiCourses.length);
+
 
       const enrichedCourses = await Promise.all(
         apiCourses.map(async (c: any) => {
@@ -155,6 +175,7 @@ function AdminDashboardContent() {
             code: c.code,
             name: c.name,
             department: c.department?.name || 'Unknown',
+            departmentId: Number(c.department?.id ?? c.departmentId ?? 0) || 0,
             semester: 'Fall 2025',
             credits: c.credits || 3,
             enrolled: 0,
@@ -168,6 +189,7 @@ function AdminDashboardContent() {
             prerequisites: [],
             sectionId: null as number | null,
             skills: c.skills || [],
+            offeringSemesterIds: [] as number[],
           };
 
           try {
@@ -182,11 +204,24 @@ function AdminDashboardContent() {
               return base;
             }
 
+            const semIds = [
+              ...new Set(
+                sections
+                  .map((sec: any) => Number(sec.semesterId ?? sec.semester?.id))
+                  .filter((n: number) => Number.isFinite(n) && n > 0),
+              ),
+            ];
+            base.offeringSemesterIds = semIds;
+
             const section = sections[0];
             const sectionId = Number(section.id || section.sectionId);
             base.sectionId = sectionId;
             base.enrolled = section.currentEnrollment || 0;
             base.capacity = section.maxCapacity || 100;
+            const semName = section.semester?.name;
+            if (typeof semName === 'string' && semName.trim()) {
+              base.semester = semName;
+            }
 
             try {
               const instRes = await api.get<any>(`/enrollments/section/${sectionId}/instructor`);
@@ -245,40 +280,123 @@ function AdminDashboardContent() {
 
   useEffect(() => {
     refreshCourses();
-  }, [isMockMode]);
+  }, [useLiveApi]);
 
   // Fetch calendar events
-  const { data: calendarDataLive } = useQuery({
+  const calendarQuery = useQuery({
     queryKey: ['admin-calendar'],
     queryFn: () => adminService.getCalendarEvents(),
     enabled: !isMockMode && activeTab === 'calendar',
   });
 
+  const calendarDataLive = calendarQuery.data;
+
   const [calendarEvents, setCalendarEvents] = useState(CALENDAR_EVENTS);
 
-  // Sync calendar
+  // Sync calendar — expand each semester into discrete dated events + add custom events
   useEffect(() => {
-    if (calendarDataLive) {
-      const list =
-        calendarDataLive.data || (Array.isArray(calendarDataLive) ? calendarDataLive : []);
-      const mappedEvents = list.map((item: any) => ({
-        id: item.id,
-        title: `${item.name} ${item.year}`,
-        date: item.startDate || item.date,
-        endDate: item.endDate,
-        type: 'semester',
-        color: '#10b981',
-      }));
-      setCalendarEvents(mappedEvents.length > 0 ? mappedEvents : CALENDAR_EVENTS);
+    if (!calendarDataLive) return;
+    
+    const semesters = Array.isArray(calendarDataLive.semesters) ? calendarDataLive.semesters : [];
+    const customEventsRaw = Array.isArray(calendarDataLive.customEvents) ? calendarDataLive.customEvents : [];
+
+    const toYmd = (v: unknown): string | null => {
+      if (v == null || v === '') return null;
+      try {
+        const s = typeof v === 'string' ? v : new Date(v as Date).toISOString();
+        const ymd = s.split('T')[0];
+        return /^\d{4}-\d{2}-\d{2}$/.test(ymd) ? ymd : null;
+      } catch {
+        return null;
+      }
+    };
+
+    const mapped: any[] = [];
+
+    // 1. Map Semesters to periods
+    for (const s of semesters) {
+      const name = String(s.name ?? s.semesterName ?? 'Semester').trim();
+      const idBase = Number(s.id ?? s.semesterId);
+      const baseId = Number.isFinite(idBase) && idBase > 0 ? idBase : Date.now();
+
+      const semesterStart = toYmd(s.startDate ?? s.semesterStart);
+      if (semesterStart) {
+        mapped.push({
+          id: baseId * 10 + 1,
+          title: `${name} — Semester start`,
+          date: semesterStart,
+          endDate: null,
+          type: 'semesterStart',
+          color: getEventColor('semesterStart'),
+          isSystem: true,
+        });
+      }
+
+      const semesterEnd = toYmd(s.endDate ?? s.semesterEnd);
+      if (semesterEnd) {
+        mapped.push({
+          id: baseId * 10 + 2,
+          title: `${name} — Semester end`,
+          date: semesterEnd,
+          endDate: null,
+          type: 'semesterEnd',
+          color: getEventColor('semesterEnd'),
+          isSystem: true,
+        });
+      }
+
+      const regStart = toYmd(s.registrationStart);
+      const regEnd = toYmd(s.registrationEnd);
+      if (regStart && regEnd && regEnd >= regStart) {
+        mapped.push({
+          id: baseId * 10 + 3,
+          title: `${name} — Registration`,
+          date: regStart,
+          endDate: regEnd,
+          type: 'registration',
+          color: getEventColor('registration'),
+          isSystem: true,
+        });
+      } else if (regStart) {
+        mapped.push({
+          id: baseId * 10 + 3,
+          title: `${name} — Registration`,
+          date: regStart,
+          endDate: null,
+          type: 'registration',
+          color: getEventColor('registration'),
+          isSystem: true,
+        });
+      }
     }
+
+    // 2. Map Custom Events
+    for (const e of customEventsRaw) {
+      mapped.push({
+        id: Number(e.eventId),
+        title: e.title,
+        date: toYmd(e.startTime),
+        endDate: toYmd(e.endTime),
+        type: e.eventType,
+        color: e.color || getEventColor(e.eventType),
+        isSystem: false,
+      });
+    }
+
+    setCalendarEvents(mapped);
   }, [calendarDataLive]);
 
   const [templates, setTemplates] = useState(NOTIFICATION_TEMPLATES);
 
-  // Fetch enrollment periods
+  const departmentIdForPeriods = useMemo(() => {
+    const c = coursesData.find((x: any) => Number(x.departmentId) > 0);
+    return c ? Number(c.departmentId) : undefined;
+  }, [coursesData]);
+
+  // Fetch enrollment periods (counts scoped to dept when we know departmentId from courses)
   const { data: periodsDataLive } = useQuery({
-    queryKey: ['admin-periods'],
-    queryFn: () => adminService.getEnrollmentPeriods(),
+    queryKey: ['admin-periods', departmentIdForPeriods],
+    queryFn: () => adminService.getEnrollmentPeriods(departmentIdForPeriods),
     enabled: !isMockMode && activeTab === 'periods',
   });
 
@@ -355,6 +473,50 @@ function AdminDashboardContent() {
     },
   });
 
+  const createSemesterMutation = useMutation({
+    mutationFn: (payload: Parameters<typeof adminService.createSemester>[0]) =>
+      adminService.createSemester(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-periods'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-calendar'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-dashboard-insights'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+      toast.success(t('periodSaved') || 'Semester / enrollment period created');
+    },
+    onError: (error: any) => {
+      toast.error(error?.message || 'Failed to create semester');
+    },
+  });
+
+  const updateSemesterMutation = useMutation({
+    mutationFn: ({ id, payload }: { id: number; payload: Partial<import('../../services/adminService').CreateSemesterPayload> }) =>
+      adminService.updateSemester(id, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-periods'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-calendar'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-dashboard-insights'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+      toast.success(t('periodUpdated') || 'Semester updated');
+    },
+    onError: (error: any) => {
+      toast.error(error?.message || 'Failed to update semester');
+    },
+  });
+
+  const deleteSemesterMutation = useMutation({
+    mutationFn: (id: number) => adminService.deleteSemester(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-periods'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-calendar'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-dashboard-insights'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+      toast.success(t('periodDeleted') || 'Semester removed');
+    },
+    onError: (error: any) => {
+      toast.error(error?.message || 'Failed to delete semester');
+    },
+  });
+
   // Course management handlers
   const handleAddCourse = (course: any) => {
     if (isMockMode) {
@@ -411,41 +573,144 @@ function AdminDashboardContent() {
     deleteCourseMutation.mutate(id);
   };
 
+  // Calendar event mutations
+  const addEventMutation = useMutation({
+    mutationFn: (event: any) =>
+      adminService.createCalendarEvent({
+        title: event.title,
+        startTime: new Date(event.date).toISOString(),
+        endTime: new Date(event.endDate || event.date).toISOString(),
+        eventType: event.type,
+        color: getEventColor(event.type),
+      }),
+    onSuccess: () => {
+      calendarQuery.refetch();
+      toast.success('Event added successfully');
+    },
+    onError: (err) => toast.error(getErrorMessage(err)),
+  });
+
+  const editEventMutation = useMutation({
+    mutationFn: ({ id, event }: { id: number; event: any }) =>
+      adminService.updateCalendarEvent(id, {
+        title: event.title,
+        startTime: new Date(event.date).toISOString(),
+        endTime: new Date(event.endDate || event.date).toISOString(),
+        eventType: event.type,
+      }),
+    onSuccess: () => {
+      calendarQuery.refetch();
+      toast.success('Event updated successfully');
+    },
+    onError: (err) => toast.error(getErrorMessage(err)),
+  });
+
+  const deleteEventMutation = useMutation({
+    mutationFn: (id: number) => adminService.deleteCalendarEvent(id),
+    onSuccess: () => {
+      calendarQuery.refetch();
+      toast.success('Event deleted');
+    },
+    onError: (err) => toast.error(getErrorMessage(err)),
+  });
+
   // Calendar event handlers
   const handleAddEvent = (event: any) => {
-    const newEvent = {
-      id: Math.max(...calendarEvents.map((e: any) => e.id)) + 1,
-      ...event,
-      color: getEventColor(event.type),
-    };
-    setCalendarEvents([...calendarEvents, newEvent]);
+    if (isMockMode) {
+      const newEvent = {
+        id: Math.max(0, ...calendarEvents.map((e: any) => e.id)) + 1,
+        ...event,
+        color: getEventColor(event.type),
+      };
+      setCalendarEvents([...calendarEvents, newEvent]);
+      return;
+    }
+    addEventMutation.mutate(event);
   };
 
   const handleEditEvent = (id: number, event: any) => {
-    setCalendarEvents(calendarEvents.map((e: any) => (e.id === id ? { ...e, ...event } : e)));
+    if (isMockMode) {
+      setCalendarEvents(calendarEvents.map((e: any) => (e.id === id ? { ...e, ...event } : e)));
+      return;
+    }
+    editEventMutation.mutate({ id, event });
   };
 
   const handleDeleteEvent = (id: number) => {
-    setCalendarEvents(calendarEvents.filter((e: any) => e.id !== id));
+    if (isMockMode) {
+      setCalendarEvents(calendarEvents.filter((e: any) => e.id !== id));
+      return;
+    }
+    deleteEventMutation.mutate(id);
   };
 
-  // Enrollment period handlers
+  // Enrollment period handlers (persisted as semesters + registration dates)
   const handleAddEnrollmentPeriod = (period: any) => {
-    const newPeriod = {
-      id: Math.max(0, ...enrollmentPeriodsData.map((p: any) => p.id)) + 1,
-      ...period,
-    };
-    setEnrollmentPeriodsData([...enrollmentPeriodsData, newPeriod]);
+    if (isMockMode) {
+      const newPeriod = {
+        id: Math.max(0, ...enrollmentPeriodsData.map((p: any) => p.id)) + 1,
+        ...period,
+      };
+      setEnrollmentPeriodsData([...enrollmentPeriodsData, newPeriod]);
+      toast.info('Mock mode: period not saved to the server');
+      return;
+    }
+    const name = String(period.semester || '').trim();
+    const regStart = String(period.startDate || '').trim();
+    const regEnd = String(period.endDate || '').trim();
+    if (!name || !regStart || !regEnd) {
+      toast.error('Semester name and registration dates are required');
+      return;
+    }
+    const semStart =
+      String(period.semesterStartDate || '').trim() || addDaysToYmd(regEnd, 1);
+    const semEnd =
+      String(period.semesterEndDate || '').trim() || addDaysToYmd(semStart, 119);
+    const rawCode = String(period.semesterCode || semesterLabelToCode(name)).toUpperCase();
+    const code = rawCode.replace(/[^A-Z0-9]/g, '').slice(0, 20) || semesterLabelToCode(name);
+    createSemesterMutation.mutate({
+      name,
+      code,
+      startDate: semStart,
+      endDate: semEnd,
+      registrationStart: regStart,
+      registrationEnd: regEnd,
+    });
   };
 
   const handleEditEnrollmentPeriod = (id: number, period: any) => {
-    setEnrollmentPeriodsData(
-      enrollmentPeriodsData.map((p: any) => (p.id === id ? { ...p, ...period } : p))
-    );
+    if (isMockMode) {
+      setEnrollmentPeriodsData(
+        enrollmentPeriodsData.map((p: any) => (p.id === id ? { ...p, ...period } : p)),
+      );
+      toast.info('Mock mode: updated locally');
+      return;
+    }
+    const name = String(period.semester || '').trim();
+    const regStart = String(period.startDate || '').trim();
+    const regEnd = String(period.endDate || '').trim();
+    const semStart = String(period.semesterStartDate || '').trim();
+    const semEnd = String(period.semesterEndDate || '').trim();
+    const payload: Partial<CreateSemesterPayload> = {};
+    if (name) payload.name = name;
+    if (regStart) payload.registrationStart = regStart;
+    if (regEnd) payload.registrationEnd = regEnd;
+    if (semStart) payload.startDate = semStart;
+    if (semEnd) payload.endDate = semEnd;
+    if (period.semesterCode) {
+      const c = String(period.semesterCode).toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 20);
+      if (c.length >= 2) payload.code = c;
+    }
+    updateSemesterMutation.mutate({ id, payload });
   };
 
   const handleDeleteEnrollmentPeriod = (id: number) => {
-    setEnrollmentPeriodsData(enrollmentPeriodsData.filter((p: any) => p.id !== id));
+    if (isMockMode) {
+      setEnrollmentPeriodsData(enrollmentPeriodsData.filter((p: any) => p.id !== id));
+      toast.info('Mock mode: deleted locally');
+      return;
+    }
+    deleteSemesterMutation.mutate(id);
   };
 
   const getEventColor = (type: string) => {
@@ -455,13 +720,13 @@ function AdminDashboardContent() {
       case 'semesterEnd':
         return '#6366f1';
       case 'registration':
-        return '#3b82f6';
+        return primaryHex || '#3b82f6';
       case 'holiday':
         return '#ef4444';
       case 'examPeriod':
         return '#f59e0b';
       default:
-        return '#6b7280';
+        return primaryHex || '#6b7280';
     }
   };
 
@@ -519,7 +784,7 @@ function AdminDashboardContent() {
 
       {/* Main Content */}
       <main
-        className={`flex-1 ${isRTL ? 'lg:mr-72' : 'lg:ml-72'} ${activeTab === 'chat' ? 'p-0' : 'p-4 lg:p-10'}`}
+        className={`flex-1 min-h-0 ${isRTL ? 'lg:mr-72' : 'lg:ml-72'} ${activeTab === 'chat' ? 'flex flex-col p-0' : 'p-4 lg:p-10'}`}
       >
         {activeTab !== 'chat' && (
           <DashboardHeader
@@ -559,8 +824,15 @@ function AdminDashboardContent() {
         {activeTab === 'dashboard' && (
           <DashboardOverview
             stats={liveStats || DASHBOARD_STATS}
-            analytics={ANALYTICS}
-            recentActivity={RECENT_ACTIVITY}
+            analytics={
+              dashboardInsights?.analytics ?? {
+                userGrowth: [],
+                courseEngagement: [],
+                aiUsage: [],
+                systemMetrics: null,
+              }
+            }
+            recentActivity={dashboardInsights?.recentActivity ?? []}
             onNavigate={(tab) => handleTabChange(tab as TabKey)}
           />
         )}
@@ -587,6 +859,7 @@ function AdminDashboardContent() {
             enrollmentPeriods={enrollmentPeriodsData}
             courses={coursesData}
             adminDepartment={ADMIN_DEPARTMENT}
+            useLiveApi={useLiveApi}
             onAddPeriod={handleAddEnrollmentPeriod}
             onEditPeriod={handleEditEnrollmentPeriod}
             onDeletePeriod={handleDeleteEnrollmentPeriod}
@@ -614,17 +887,20 @@ function AdminDashboardContent() {
           />
         )}
 
-        {/* Chat */}
+        {/* Chat — fills main column; pass real user id for API + message mapping */}
         {activeTab === 'chat' && (
-          <MessagingChat
-            height="100vh"
-            currentUserName={user?.fullName || 'Administrator'}
-            showVideoCall={true}
-            showVoiceCall={true}
-            isDark={isDark}
-            accentColor={primaryHex || '#4f46e5'}
-            className="rounded-none border-0"
-          />
+          <div className="flex h-[calc(100dvh-4.5rem)] min-h-[420px] w-full flex-1 flex-col overflow-hidden lg:h-[calc(100dvh-3.5rem)]">
+            <MessagingChat
+              height="100%"
+              currentUserId={user?.userId != null ? String(user.userId) : undefined}
+              currentUserName={user?.fullName || 'Administrator'}
+              showVideoCall={true}
+              showVoiceCall={true}
+              isDark={isDark}
+              accentColor={primaryHex || '#4f46e5'}
+              className="min-h-0 flex-1 rounded-none border-0"
+            />
+          </div>
         )}
 
         {/* Profile */}
@@ -634,21 +910,15 @@ function AdminDashboardContent() {
             accentColor={primaryHex || '#3b82f6'}
             bannerGradient="from-[#3b82f6] to-[#06b6d4]"
             profileData={{
-              fullName: 'Dr. Ahmad Khalil',
-              role: 'Department Head',
-              department: ADMIN_DEPARTMENT,
-              email: 'a.khalil@university.edu',
-              phone: '+1 (555) 100-0001',
-              address: 'Faculty Building, Office 312',
-              dateOfBirth: '1975-03-20',
-              bio: 'Department Head for Computer Science and Engineering. Responsible for managing department courses, faculty assignments, student enrollment, and academic scheduling.',
-              specialization: [
-                'Academic Administration',
-                'Course Management',
-                'Student Affairs',
-                'Faculty Coordination',
-                'Enrollment Management',
-              ],
+              fullName: 'Admin Name',
+              role: 'Administrator',
+              department: 'Department',
+              email: 'admin@eduverse.edu',
+              phone: '',
+              address: '',
+              dateOfBirth: '',
+              bio: '',
+              specialization: [],
             }}
           />
         )}

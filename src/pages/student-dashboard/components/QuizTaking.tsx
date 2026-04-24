@@ -31,133 +31,9 @@ import { toast } from 'sonner';
 
 // --- Mock Data ---
 
-const defaultAvailableQuizzes = [
-  {
-    id: 1,
-    title: 'Data Structures Midterm Review',
-    course: 'CS201',
-    questions: 15,
-    duration: '30 min',
-    timeLimitMinutes: 30,
-    difficulty: 'Medium',
-    passingScore: 50,
-    icon: <BarChart3 className="w-6 h-6" />,
-    color: '#3B82F6',
-    maxAttempts: 1,
-  },
-  {
-    id: 2,
-    title: 'Database Design Concepts',
-    course: 'CS220',
-    questions: 10,
-    duration: '20 min',
-    timeLimitMinutes: 20,
-    difficulty: 'Easy',
-    passingScore: 50,
-    icon: <Database className="w-6 h-6" />,
-    color: '#10B981',
-    maxAttempts: 2,
-  },
-  {
-    id: 3,
-    title: 'Software Engineering Principles',
-    course: 'CS305',
-    questions: 20,
-    duration: '45 min',
-    timeLimitMinutes: 45,
-    difficulty: 'Hard',
-    passingScore: 60,
-    icon: <Settings className="w-6 h-6" />,
-    color: '#8B5CF6',
-    maxAttempts: 1,
-  },
-  {
-    id: 4,
-    title: 'Machine Learning Fundamentals',
-    course: 'CS410',
-    questions: 12,
-    duration: '25 min',
-    timeLimitMinutes: 25,
-    difficulty: 'Medium',
-    passingScore: 50,
-    icon: <Bot className="w-6 h-6" />,
-    color: '#F59E0B',
-    maxAttempts: 3,
-  },
-];
+const defaultAvailableQuizzes: any[] = [];
 
-const mockQuestions = [
-  {
-    id: 1,
-    text: 'What is the time complexity of searching in a balanced BST?',
-    type: 'mcq' as const,
-    options: ['O(1)', 'O(log n)', 'O(n)', 'O(n log n)'],
-    correct: 1,
-  },
-  {
-    id: 2,
-    text: 'A stack follows FIFO (First In, First Out) principle.',
-    type: 'tf' as const,
-    options: ['True', 'False'],
-    correct: 1,
-  },
-  {
-    id: 3,
-    text: 'Which data structure is used for BFS traversal?',
-    type: 'mcq' as const,
-    options: ['Stack', 'Queue', 'Array', 'Linked List'],
-    correct: 1,
-  },
-  {
-    id: 4,
-    text: 'What is the worst-case time complexity of QuickSort?',
-    type: 'mcq' as const,
-    options: ['O(n)', 'O(n log n)', 'O(n²)', 'O(log n)'],
-    correct: 2,
-  },
-  {
-    id: 5,
-    text: 'A binary tree can have at most 2 children per node.',
-    type: 'tf' as const,
-    options: ['True', 'False'],
-    correct: 0,
-  },
-  {
-    id: 6,
-    text: 'Which sorting algorithm has the best average-case performance?',
-    type: 'mcq' as const,
-    options: ['Bubble Sort', 'Selection Sort', 'Merge Sort', 'Insertion Sort'],
-    correct: 2,
-  },
-  {
-    id: 7,
-    text: 'Hash tables provide O(1) average-case lookup time.',
-    type: 'tf' as const,
-    options: ['True', 'False'],
-    correct: 0,
-  },
-  {
-    id: 8,
-    text: 'What data structure is used to implement recursion?',
-    type: 'mcq' as const,
-    options: ['Queue', 'Stack', 'Heap', 'Graph'],
-    correct: 1,
-  },
-  {
-    id: 9,
-    text: 'In a min-heap, the parent is always smaller than its children.',
-    type: 'tf' as const,
-    options: ['True', 'False'],
-    correct: 0,
-  },
-  {
-    id: 10,
-    text: 'Which traversal visits nodes level by level?',
-    type: 'mcq' as const,
-    options: ['Inorder', 'Preorder', 'Postorder', 'Level-order'],
-    correct: 3,
-  },
-];
+const mockQuestions: any[] = [];
 
 type View = 'selection' | 'active' | 'results';
 
@@ -248,7 +124,7 @@ export const QuizTaking = () => {
     }));
   })();
 
-  const availableQuizzes = mappedQuizzes.length > 0 ? mappedQuizzes : defaultAvailableQuizzes;
+  const availableQuizzes = mappedQuizzes;
   const [recentGradedAttempts, setRecentGradedAttempts] = useState<any[]>([]);
 
   const [view, setView] = useState<View>('selection');

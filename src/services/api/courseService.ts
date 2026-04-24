@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { ApiClient } from './client';
 import { TOKEN_KEYS } from './config';
 
@@ -355,9 +354,9 @@ export const materialService = {
 
     const base = normalizeApiBase(import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081');
     const token = localStorage.getItem(TOKEN_KEYS.ACCESS_TOKEN);
-    const response = await axios.post(`${base}/courses/${courseId}/materials/video`, formData, {
+    const response = await ApiClient.post<{ data: any }>(`/courses/${courseId}/materials/video`, formData, {
       headers: {
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        'Content-Type': 'multipart/form-data',
       },
       onUploadProgress: (e) => {
         if (onProgress && e.total) {
@@ -392,9 +391,9 @@ export const materialService = {
 
     const base = normalizeApiBase(import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081');
     const token = localStorage.getItem(TOKEN_KEYS.ACCESS_TOKEN);
-    const response = await axios.post(`${base}/courses/${courseId}/materials/document`, formData, {
+    const response = await ApiClient.post<{ data: any }>(`/courses/${courseId}/materials/document`, formData, {
       headers: {
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        'Content-Type': 'multipart/form-data',
       },
       onUploadProgress: (e) => {
         if (onProgress && e.total) {

@@ -6,6 +6,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string, rememberMe?: boolean) => Promise<User>;
+  loginMock: (role: string) => void;
   logout: () => Promise<void>;
   getDashboardPath: () => string;
 }
@@ -28,6 +29,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return response.user;
   };
 
+  const loginMock = (role: string) => {
+    const mockUser: User = {
+      userId: 9999,
+      email: `${role}.mock@eduverse.com`,
+      firstName: 'Mock',
+      lastName: role.charAt(0).toUpperCase() + role.slice(1),
+      fullName: `Mock ${role}`,
+      phone: '000-000-0000',
+      profilePictureUrl: null,
+      campusId: 1,
+      status: 'active',
+      emailVerified: true,
+      lastLoginAt: new Date().toISOString(),
+      roles: [role],
+      createdAt: new Date().toISOString(),
+    };
+    AuthService.setStoredUser(mockUser);
+    setUser(mockUser);
+  };
+
   const logout = async () => {
     await AuthService.serverLogout();
     setUser(null);
@@ -40,7 +61,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, isAuthenticated: !!user, isLoading, login, logout, getDashboardPath }}
+      value={{ user, isAuthenticated: !!user, isLoading, login, loginMock, logout, getDashboardPath }}
     >
       {children}
     </AuthContext.Provider>

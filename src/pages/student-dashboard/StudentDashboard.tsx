@@ -287,68 +287,7 @@ function StudentDashboardContent() {
   };
 
   // Dummy course data for ClassTab, including instructor images
-  const courses = [
-    {
-      id: '1',
-      title: 'Introduction to Programming',
-      code: 'CS101',
-      instructor: 'Dr. Michael Smith',
-      instructorImage: 'https://i.pravatar.cc/150?u=michael',
-      progress: 75,
-      grade: 'A-',
-      status: 'In Progress',
-      nextSession: 'Mon, Oct 26, 10:00 AM',
-      description: 'Fundamentals of programming using Python.',
-    },
-    {
-      id: '2',
-      title: 'Data Structures and Algorithms',
-      code: 'CS201',
-      instructor: 'Prof. Lisa Jones',
-      instructorImage: 'https://i.pravatar.cc/150?u=lisa',
-      progress: 90,
-      grade: 'A',
-      status: 'Completed',
-      nextSession: 'Tue, Oct 27, 1:00 PM',
-      description: 'Advanced data structures and algorithm design.',
-    },
-    {
-      id: '3',
-      title: 'Database Management Systems',
-      code: 'CS305',
-      instructor: 'Dr. Robert Brown',
-      instructorImage: 'https://i.pravatar.cc/150?u=robert',
-      progress: 60,
-      grade: 'B+',
-      status: 'In Progress',
-      nextSession: 'Wed, Oct 28, 11:00 AM',
-      description: 'Design and implementation of relational databases.',
-    },
-    {
-      id: '4',
-      title: 'Web Development Fundamentals',
-      code: 'CS301',
-      instructor: 'Prof. Sarah Davis',
-      instructorImage: 'https://i.pravatar.cc/150?u=sarah',
-      progress: 80,
-      grade: 'A-',
-      status: 'In Progress',
-      nextSession: 'Thu, Oct 29, 2:00 PM',
-      description: 'Introduction to front-end and back-end web technologies.',
-    },
-    {
-      id: '5',
-      title: 'Artificial Intelligence',
-      code: 'CS401',
-      instructor: 'Dr. Emily White',
-      instructorImage: 'https://i.pravatar.cc/150?u=emily',
-      progress: 40,
-      grade: 'B',
-      status: 'In Progress',
-      nextSession: 'Fri, Oct 30, 9:00 AM',
-      description: 'Core concepts and applications of artificial intelligence.',
-    },
-  ];
+  const courses: any[] = [];
 
   return (
     <div
@@ -388,8 +327,8 @@ function StudentDashboardContent() {
         {activeTab !== 'chat' && !isCourseFullscreen && (
           <>
             <DashboardHeader
-              userName={user?.fullName || 'Tarek Mohamed'}
-              userRole={user?.roles?.[0] || 'CS Junior'}
+              userName={user?.fullName || 'No Name'}
+              userRole={user?.roles?.[0] || 'No Role'}
               isDark={isDark}
               isRTL={isRTL}
               accentColor={primaryHex || '#3b82f6'}
@@ -431,27 +370,23 @@ function StudentDashboardContent() {
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
                     <StatsCard
                       label="Credits Completed"
-                      value={String(totalCredits || 120)}
+                      value={String(totalCredits)}
                       maxValue="144"
-                      comparison={totalCredits ? `${totalCredits} Credits Enrolled` : '+24 Credits'}
+                      comparison={`${totalCredits} Credits Enrolled`}
                       isPositive={true}
                       icon={<BookOpen size={24} />}
                     />
                     <StatsCard
                       label="Grade Point Average"
-                      value={gpaValue ? gpaValue.toFixed(2) : '3.75'}
+                      value={gpaValue.toFixed(2)}
                       maxValue="4.00"
-                      comparison={
-                        gpaValue
-                          ? `Semester: ${(gpaSummary?.semesterGpa ?? 0).toFixed(2)}`
-                          : '-0.25 Points'
-                      }
-                      isPositive={gpaValue ? gpaValue >= 3.0 : false}
+                      comparison={`Semester: ${(gpaSummary?.semesterGpa ?? 0).toFixed(2)}`}
+                      isPositive={gpaValue >= 3.0}
                       icon={<Trophy size={24} />}
                     />
                     <StatsCard
                       label="Active Class"
-                      value={String(activeClasses || 15)}
+                      value={String(activeClasses)}
                       maxValue="18"
                       comparison="Active Course This Semester"
                       isPositive={true}
@@ -513,91 +448,26 @@ function StudentDashboardContent() {
                   accentColor={primaryHex || '#3b82f6'}
                   bannerGradient="from-[#3b82f6] to-[#06b6d4]"
                   profileData={{
-                    fullName: 'Tarek Mohamed',
-                    role: 'CS Junior',
-                    department: 'Computer Science',
-                    email: 'tarek.mohamed@university.edu',
-                    phone: '+20 123 456 7890',
-                    address: 'Cairo, Egypt',
-                    dateOfBirth: '2002-05-15',
-                    bio: 'Passionate computer science student with a keen interest in AI, machine learning, and full-stack web development. Active member of the university coding club and open-source contributor.',
-                    gpa: '3.72',
-                    totalCredits: '96',
+                    fullName: user?.fullName || 'No Name',
+                    role: user?.roles?.[0] || 'No Role',
+                    department: '',
+                    email: user?.email || '',
+                    phone: '',
+                    address: '',
+                    dateOfBirth: '',
+                    bio: '',
+                    gpa: '0.00',
+                    totalCredits: '0',
                     maxCredits: '144',
-                    rank: '45',
-                    rankTotal: '1,200',
-                    enrollmentDate: '2021-09-01',
-                    expectedGraduation: '2025-06-15',
-                    studentId: 'STU-2021-0456',
-                    interests: [
-                      'Artificial Intelligence',
-                      'Web Development',
-                      'Data Science',
-                      'Cloud Computing',
-                      'Cybersecurity',
-                    ],
-                    skills: ['Python', 'TypeScript', 'React', 'Node.js', 'TensorFlow', 'SQL'],
-                    badges: [
-                      {
-                        name: "Dean's List",
-                        description: 'GPA above 3.5',
-                        icon: 'school',
-                        color: primaryHex || '#3b82f6',
-                        unlocked: true,
-                      },
-                      {
-                        name: 'Code Master',
-                        description: '100+ commits',
-                        icon: 'code',
-                        color: '#3B82F6',
-                        unlocked: true,
-                      },
-                      {
-                        name: 'Team Player',
-                        description: '10 group projects',
-                        icon: 'groups',
-                        color: '#10B981',
-                        unlocked: true,
-                      },
-                      {
-                        name: 'Early Bird',
-                        description: '95% attendance',
-                        icon: 'schedule',
-                        color: '#F59E0B',
-                        unlocked: true,
-                      },
-                      {
-                        name: 'Researcher',
-                        description: 'Published paper',
-                        icon: 'science',
-                        color: '#EC4899',
-                        unlocked: false,
-                      },
-                      {
-                        name: 'Mentor',
-                        description: 'Helped 50 peers',
-                        icon: 'volunteer_activism',
-                        color: '#6366F1',
-                        unlocked: false,
-                      },
-                    ],
-                    achievements: [
-                      {
-                        title: "Dean's Honor Roll",
-                        description: 'Fall 2023 Semester',
-                        emoji: '🏆',
-                      },
-                      {
-                        title: 'Hackathon Winner',
-                        description: 'University Tech Fest 2023',
-                        emoji: '🥇',
-                      },
-                      {
-                        title: 'Best Project Award',
-                        description: 'Software Engineering Course',
-                        emoji: '⭐',
-                      },
-                    ],
+                    rank: '-',
+                    rankTotal: '-',
+                    enrollmentDate: '',
+                    expectedGraduation: '',
+                    studentId: '',
+                    interests: [],
+                    skills: [],
+                    badges: [],
+                    achievements: [],
                   }}
                 />
               )}
