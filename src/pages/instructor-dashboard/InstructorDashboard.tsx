@@ -55,6 +55,7 @@ import {
   UploadMaterialsPage,
   LabsPage,
   LectureAttendanceFlow,
+  DashboardWalkthrough,
 } from './components';
 import {
   AssignmentListPage,
@@ -191,6 +192,25 @@ function InstructorDashboardContent() {
   const { isDark, toggleTheme, primaryHex, primaryColor, setPrimaryColor } = useTheme() as any;
   const { language, setLanguage, isRTL, t } = useLanguage();
   const { isAuthenticated, user } = useAuth();
+  const [runWalkthrough, setRunWalkthrough] = useState(false);
+
+  useEffect(() => {
+    // Specifically for instructor.tarek@example.com
+    if (user?.email === 'instructor.tarek@example.com') {
+      const hasSeenWalkthrough = localStorage.getItem('hasSeenInstructorWalkthrough');
+      if (!hasSeenWalkthrough) {
+        const timer = setTimeout(() => {
+          setRunWalkthrough(true);
+        }, 1500);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [user]);
+
+  const handleFinishWalkthrough = () => {
+    setRunWalkthrough(false);
+    localStorage.setItem('hasSeenInstructorWalkthrough', 'true');
+  };
 
   const isMockMode = !isAuthenticated || location.state?.isMock;
 
@@ -1135,6 +1155,12 @@ function InstructorDashboardContent() {
       style={{ fontFamily: "'Montserrat', sans-serif" }}
       dir={isRTL ? 'rtl' : 'ltr'}
     >
+      <DashboardWalkthrough 
+        run={runWalkthrough} 
+        onFinish={handleFinishWalkthrough} 
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+      />
       {/* Sidebar */}
       <DashboardSidebar
         tabs={translatedTabs.map((tab) => ({

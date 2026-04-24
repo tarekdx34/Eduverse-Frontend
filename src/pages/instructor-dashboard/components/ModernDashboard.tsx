@@ -134,7 +134,7 @@ export function ModernDashboard({
   return (
     <div className="space-y-6">
       {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4" id="walkthrough-stats">
         {stats.map((stat: any, idx: number) => (
           <div key={idx} className={`rounded-2xl p-5 transition-all duration-300 group ${statCardClass} hover:shadow-lg`}>
             <div className="flex items-center justify-between mb-4">
@@ -156,6 +156,7 @@ export function ModernDashboard({
 
       {/* Evy AI Assistant */}
       <div className={`rounded-3xl p-6 border-1.5 transition-all duration-300 ${isDark ? 'bg-card-dark border-white/5 shadow-2xl' : 'bg-white border-slate-200 shadow-sm'}`} 
+           id="walkthrough-evy-ai"
            style={{ borderColor: isDark ? `${th.main}40` : `${th.main}60`, backgroundColor: isDark ? `${th.main}08` : `${th.main}05` }}>
         <div className="flex items-center justify-between gap-6">
           <div className="flex-1">
@@ -180,7 +181,7 @@ export function ModernDashboard({
         {/* Left Column */}
         <div className="lg:col-span-8 space-y-6">
           {/* Performance & Engagement Chart */}
-          <div className={`rounded-[2rem] p-6 ${cardClass}`}>
+          <div className={`rounded-[2rem] p-6 ${cardClass}`} id="walkthrough-performance">
             <div className="flex items-center justify-between mb-6">
               <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('coursePerformance')} & {t('engagement')}</h3>
               <div className="flex items-center gap-4 text-xs font-medium">
@@ -231,7 +232,7 @@ export function ModernDashboard({
         {/* Right Column */}
         <div className="lg:col-span-4 space-y-6">
           {/* Upcoming Teaching */}
-          <div className={`rounded-[2.5rem] p-6 ${cardClass}`}>
+          <div className={`rounded-[2.5rem] p-6 ${cardClass}`} id="walkthrough-upcoming">
             <div className="flex items-center justify-between mb-4">
               <h3 className={`font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('upcomingTeaching')} (Monthly)</h3>
               <button onClick={() => onNavigate('schedule')} className={`text-xs font-semibold ${th.text500} hover:underline flex items-center gap-1`}>
@@ -266,7 +267,7 @@ export function ModernDashboard({
           </div>
 
           {/* Recent Activity */}
-          <div className={`rounded-[2.5rem] p-6 ${cardClass}`}>
+          <div className={`rounded-[2.5rem] p-6 ${cardClass}`} id="walkthrough-activity">
             <h3 className={`text-base font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('recentActivity')}</h3>
             <div className="space-y-4">
               {recentActivity.length > 0 ? (

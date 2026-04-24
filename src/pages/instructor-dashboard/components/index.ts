@@ -39,3 +39,4 @@ export { AnnouncementsManager } from './AnnouncementsManager';
 export { GlobalSearchPage } from './GlobalSearchPage';
 export { AIAttendanceModal } from './AIAttendanceModal';
 export { LectureAttendanceFlow } from './attendance/LectureAttendanceFlow';
+export { DashboardWalkthrough } from './DashboardWalkthrough';

@@ -158,6 +158,8 @@ export function CommunicationPage({
           title: broadcastData.title.trim(),
           content: broadcastData.message.trim(),
           priority: broadcastData.priority,
+          targetAudience: broadcastData.audience as any,
+          announcementType: broadcastData.courseId === '0' ? 'campus' : 'course',
         });
 
         if (broadcastData.publishNow) {
@@ -172,13 +174,12 @@ export function CommunicationPage({
           content: broadcastData.message.trim(),
           ...(parsedCourseId > 0 ? { courseId: parsedCourseId } : {}),
           priority: broadcastData.priority,
+          targetAudience: broadcastData.audience as any,
+          announcementType: parsedCourseId > 0 ? 'course' : 'campus',
+          isPublished: broadcastData.publishNow,
         });
 
-        if (broadcastData.publishNow) {
-          await announcementService.publishAnnouncement(created.id);
-        }
-
-        toast.success('Broadcast saved as announcement');
+        toast.success(broadcastData.publishNow ? 'Broadcast published successfully' : 'Broadcast saved as draft');
       }
 
       onSendBroadcast(broadcastData);

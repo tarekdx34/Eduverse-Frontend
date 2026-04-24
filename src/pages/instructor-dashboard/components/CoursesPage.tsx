@@ -205,7 +205,7 @@ export function CoursesPage({
         </div>
 
         {/* Course Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-4 sm:gap-6" id="walkthrough-courses-grid">
           {filteredCourses.map((course, index) => (
             <div
               key={course.id}
@@ -280,6 +280,13 @@ export function CoursesPage({
                 ? t('tryAdjustingFilters')
                 : t('createFirstCourse')}
             </p>
+            <button
+              onClick={handleCreateClick}
+              id="walkthrough-add-course"
+              className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+            >
+              {t('createNewCourse')}
+            </button>
           </div>
         )}
       </div>

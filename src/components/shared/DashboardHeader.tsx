@@ -253,6 +253,7 @@ export function DashboardHeader({
                     ? 'border border-white/10 hover:bg-white/5 bg-transparent text-slate-300'
                     : 'bg-white border border-slate-200 hover:bg-slate-50 text-slate-600'
                 }`}
+                id="walkthrough-notifications"
               >
                 <Bell size={20} className={isDark ? 'text-slate-400' : 'text-slate-600'} />
                 {unreadCount > 0 && (
@@ -383,6 +384,7 @@ export function DashboardHeader({
               <div
                 onClick={() => setShowDropdown(!showDropdown)}
                 className="flex items-center gap-3 cursor-pointer group"
+                id="walkthrough-profile"
                 role="button"
                 aria-label="User menu"
                 aria-expanded={showDropdown}
