@@ -101,6 +101,7 @@ export function DashboardSidebar({
           onTabChange(tab.id);
           handleClose();
         }}
+        id={`walkthrough-tab-${tab.id}`}
         className={`w-full flex items-center ${compactMode && !desktopExpanded ? 'justify-center gap-0 px-2' : 'gap-3 px-3'} py-2.5 rounded-lg transition-all text-sm ${isActive
             ? 'font-semibold shadow-sm'
             : isDark
@@ -129,6 +130,7 @@ export function DashboardSidebar({
       role="navigation"
       aria-label="Dashboard navigation"
       className={`${compactMode && !desktopExpanded ? 'w-20' : 'w-72'} h-screen flex flex-col ${isDark ? 'bg-card-dark border-white/5' : 'bg-white border-slate-200'} ${isRTL ? 'border-l' : 'border-r'} ${compactMode && !desktopExpanded ? 'p-4' : 'p-6'} transition-all duration-300`}
+      id="walkthrough-sidebar"
     >
       {/* Branding + Mobile Close */}
       <div

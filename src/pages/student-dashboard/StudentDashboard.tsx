@@ -52,11 +52,16 @@ import { GPA_DATA } from './constants';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { useApi } from '../../hooks/useApi';
+import { useNotificationRealtime } from '../../hooks/useNotificationRealtime';
 import { useAuth } from '../../context/AuthContext';
 import { EnrollmentService } from '../../services/api/enrollmentService';
 import { GradesService } from '../../services/api/gradesService';
-import { NotificationService } from '../../services/api/notificationService';
+import {
+  NotificationService,
+  type Notification,
+} from '../../services/api/notificationService';
 import { AttendanceService } from '../../services/api/attendanceService';
+import { toHeaderNotification } from '../../utils/notificationUi';
 import PublicProfileView from './pages/PublicProfileView';
 
 const tabTranslationKeys: Record<string, string> = {
@@ -88,6 +93,8 @@ function StudentDashboardContent() {
   const [viewingCourseId, setViewingCourseId] = useState<string | null>(null);
   const [desktopSidebarExpanded, setDesktopSidebarExpanded] = useState(false);
   const [headerUnreadCount, setHeaderUnreadCount] = useState(0);
+  const [headerNotifications, setHeaderNotifications] = useState<Notification[]>([]);
+  const [notificationRefreshSignal, setNotificationRefreshSignal] = useState(0);
   const [showFacePhotoReminder, setShowFacePhotoReminder] = useState(false);
 
   const { isRTL, language, setLanguage, t } = useLanguage();
@@ -148,12 +155,17 @@ function StudentDashboardContent() {
 
     const refreshUnreadCount = async () => {
       try {
-        const result = await NotificationService.getUnreadCount();
+        const [list, result] = await Promise.all([
+          NotificationService.getAll({ limit: 8 }),
+          NotificationService.getUnreadCount(),
+        ]);
         if (mounted) {
+          setHeaderNotifications(list);
           setHeaderUnreadCount(Number(result?.count ?? 0));
         }
       } catch {
         if (mounted) {
+          setHeaderNotifications([]);
           setHeaderUnreadCount(0);
         }
       }
@@ -169,6 +181,20 @@ function StudentDashboardContent() {
       window.clearInterval(intervalId);
     };
   }, []);
+
+  useNotificationRealtime({
+    onNewNotification: (notification) => {
+      setHeaderNotifications((prev) => {
+        const next = [notification, ...prev.filter((item) => item.id !== notification.id)];
+        return next.slice(0, 8);
+      });
+      if (notification.isRead !== 1 && !notification.read) {
+        setHeaderUnreadCount((prev) => prev + 1);
+      }
+      setNotificationRefreshSignal((prev) => prev + 1);
+    },
+    onUnreadCountUpdate: (count) => setHeaderUnreadCount(count),
+  });
 
   // Determine active tab and course ID from location
   const pathSegments = location.pathname.split('/').filter(Boolean);
@@ -348,6 +374,7 @@ function StudentDashboardContent() {
                 { id: 'rose', colorClass: 'bg-blue-500', hex: '#f43f5e' },
                 { id: 'amber', colorClass: 'bg-amber-500', hex: '#f59e0b' },
               ]}
+              notifications={headerNotifications.map(toHeaderNotification)}
               notificationCount={headerUnreadCount}
             />
           </>
@@ -428,7 +455,12 @@ function StudentDashboardContent() {
               {activeTab === 'todo' && <SmartTodoReminder />}
               { activeTab === 'gamification' && <Gamification /> }
               { activeTab === 'announcements' && <Announcements /> }
-              { activeTab === 'notifications' && <NotificationCenter /> }
+              { activeTab === 'notifications' && (
+                <NotificationCenter
+                  refreshSignal={notificationRefreshSignal}
+                  externalUnreadCount={headerUnreadCount}
+                />
+              )}
               {activeTab === 'payments' && <PaymentHistory />}
               {activeTab === 'chat' && (
                 <MessagingChat

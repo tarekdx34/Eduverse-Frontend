@@ -3,13 +3,28 @@ import { ApiClient } from './client';
 export interface Notification {
   id: string;
   userId: number;
-  notificationType: 'system' | 'assignment' | 'grade' | 'announcement' | 'enrollment' | string;
+  notificationType:
+    | 'announcement'
+    | 'grade'
+    | 'assignment'
+    | 'message'
+    | 'deadline'
+    | 'system'
+    | 'lab'
+    | 'quiz'
+    | 'material'
+    | 'community'
+    | 'discussion'
+    | 'enrollment'
+    | 'schedule'
+    | 'office_hours'
+    | string;
   title: string;
   body: string;
   relatedEntityType?: string | null;
-  relatedEntityId?: string | null;
+  relatedEntityId?: string | number | null;
   announcementId?: string | null;
-  isRead: number;
+  isRead: number | boolean;
   readAt?: string | null;
   priority?: 'low' | 'medium' | 'high' | 'urgent' | string;
   actionUrl?: string | null;
@@ -20,6 +35,17 @@ export interface Notification {
   message: string;
   read: boolean;
   data?: Record<string, unknown>;
+}
+
+function normalizeReadValue(value: unknown): { read: boolean; isRead: 0 | 1 } {
+  if (typeof value === 'boolean') {
+    return { read: value, isRead: value ? 1 : 0 };
+  }
+  if (typeof value === 'number') {
+    const normalized = value === 1;
+    return { read: normalized, isRead: normalized ? 1 : 0 };
+  }
+  return { read: false, isRead: 0 };
 }
 
 export interface NotificationPreferences {
@@ -49,10 +75,10 @@ export class NotificationService {
         'system';
       const normalizedBody =
         (item as Partial<Notification>).body || (item as Partial<Notification>).message || '';
-      const normalizedRead =
-        (item as Partial<Notification>).isRead !== undefined
-          ? (item as Partial<Notification>).isRead === 1
-          : Boolean((item as Partial<Notification>).read);
+      const hasIsRead = (item as Partial<Notification>).isRead !== undefined;
+      const normalizedReadBits = hasIsRead
+        ? normalizeReadValue((item as Partial<Notification>).isRead)
+        : normalizeReadValue((item as Partial<Notification>).read);
 
       return {
         ...item,
@@ -62,13 +88,8 @@ export class NotificationService {
         type: normalizedType,
         body: normalizedBody,
         message: normalizedBody,
-        isRead:
-          (item as Partial<Notification>).isRead !== undefined
-            ? ((item as Partial<Notification>).isRead as number)
-            : normalizedRead
-              ? 1
-              : 0,
-        read: normalizedRead,
+        isRead: normalizedReadBits.isRead,
+        read: normalizedReadBits.read,
         actionUrl: (item as Partial<Notification>).actionUrl ?? null,
         createdAt: (item as Partial<Notification>).createdAt || new Date().toISOString(),
         userId: Number((item as Partial<Notification>).userId ?? 0),
@@ -77,7 +98,10 @@ export class NotificationService {
   }
 
   static async getUnreadCount(): Promise<{ count: number }> {
-    return ApiClient.get('/notifications/unread-count');
+    const payload = await ApiClient.get<{ count?: number; unreadCount?: number }>(
+      '/notifications/unread-count'
+    );
+    return { count: Number(payload?.count ?? payload?.unreadCount ?? 0) };
   }
 
   static async markAsRead(id: string | number): Promise<Notification> {
@@ -88,16 +112,16 @@ export class NotificationService {
     return ApiClient.request<{ message?: string }>('/notifications/read-all', { method: 'PATCH' });
   }
 
-  static async deleteNotification(id: number): Promise<void> {
+  static async deleteNotification(id: number | string): Promise<void> {
     await ApiClient.delete('/notifications/' + id);
   }
 
   static async clearAll(): Promise<void> {
-    await ApiClient.delete('/notifications/clear-all');
+    await ApiClient.delete('/notifications');
   }
 
   static async clearRead(): Promise<{ affected: number }> {
-    return ApiClient.request<{ affected: number }>('/notifications/clear-read', { method: 'DELETE' });
+    return ApiClient.request<{ affected: number }>('/notifications/read', { method: 'DELETE' });
   }
 
   static async getPreferences(): Promise<NotificationPreferences> {

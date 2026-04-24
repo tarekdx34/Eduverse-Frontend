@@ -9,6 +9,7 @@ import {
   LayoutGrid,
   BookOpen,
   Calendar,
+  Bell,
   MessageSquare,
   MessageCircle,
   User,
@@ -23,6 +24,7 @@ import {
   CommunicationPage,
   EnrollmentPeriodPage,
   PrerequisitesManagementPage,
+  AdminNotificationsPage,
 } from './components';
 import { DashboardHeader, DashboardSidebar, MessagingChat } from '../../components/shared';
 import { DashboardProfileTab } from '../../components/shared/DashboardProfileTab';
@@ -40,6 +42,12 @@ import {
   ENROLLMENT_PERIODS,
 } from './constants';
 import { StudentManagementPage } from './components/StudentManagementPage';
+import {
+  NotificationService,
+  type Notification,
+} from '../../services/api/notificationService';
+import { useNotificationRealtime } from '../../hooks/useNotificationRealtime';
+import { toHeaderNotification } from '../../utils/notificationUi';
 
 type TabKey =
   | 'dashboard'
@@ -48,6 +56,7 @@ type TabKey =
   | 'periods'
   | 'calendar'
   | 'communication'
+  | 'notifications'
   | 'chat'
   | 'profile';
 
@@ -108,6 +117,13 @@ const TABS: { key: TabKey; label: string; labelAr: string; icon: any; group: str
     icon: MessageSquare,
     group: 'Communication',
   },
+  {
+    key: 'notifications',
+    label: 'Notifications',
+    labelAr: 'الإشعارات',
+    icon: Bell,
+    group: 'Communication',
+  },
   { key: 'chat', label: 'Chat', labelAr: 'الدردشة', icon: MessageCircle, group: 'Communication' },
   { key: 'profile', label: 'Profile', labelAr: 'الملف الشخصي', icon: User, group: 'Account' },
 ];
@@ -124,6 +140,54 @@ function AdminDashboardContent() {
   const queryClient = useQueryClient();
   const useLiveApi = useLiveApiSession();
   const isMockMode = !useLiveApi;
+  const [headerUnreadCount, setHeaderUnreadCount] = useState(0);
+  const [headerNotifications, setHeaderNotifications] = useState<Notification[]>([]);
+
+  useEffect(() => {
+    if (isMockMode) {
+      setHeaderNotifications([]);
+      setHeaderUnreadCount(0);
+      return;
+    }
+
+    let mounted = true;
+    const refreshHeaderNotifications = async () => {
+      try {
+        const [list, unread] = await Promise.all([
+          NotificationService.getAll({ limit: 8 }),
+          NotificationService.getUnreadCount(),
+        ]);
+        if (!mounted) return;
+        setHeaderNotifications(list);
+        setHeaderUnreadCount(Number(unread?.count ?? 0));
+      } catch {
+        if (!mounted) return;
+        setHeaderNotifications([]);
+        setHeaderUnreadCount(0);
+      }
+    };
+
+    void refreshHeaderNotifications();
+    const intervalId = window.setInterval(() => void refreshHeaderNotifications(), 30000);
+    return () => {
+      mounted = false;
+      window.clearInterval(intervalId);
+    };
+  }, [isMockMode]);
+
+  useNotificationRealtime({
+    enabled: !isMockMode,
+    onNewNotification: (notification) => {
+      setHeaderNotifications((prev) => {
+        const next = [notification, ...prev.filter((item) => item.id !== notification.id)];
+        return next.slice(0, 8);
+      });
+      if (notification.isRead !== 1 && !notification.read) {
+        setHeaderUnreadCount((prev) => prev + 1);
+      }
+    },
+    onUnreadCountUpdate: (count) => setHeaderUnreadCount(count),
+  });
 
   // Fetch live stats
   const { data: liveStats } = useQuery({
@@ -818,6 +882,8 @@ function AdminDashboardContent() {
               viewProfile: t('viewProfile'),
               logout: t('logout'),
             }}
+            notifications={headerNotifications.map(toHeaderNotification)}
+            notificationCount={headerUnreadCount}
           />
         )}
         {/* Dashboard Overview */}
@@ -886,6 +952,8 @@ function AdminDashboardContent() {
             onSendBroadcast={handleSendBroadcast}
           />
         )}
+
+        {activeTab === 'notifications' && <AdminNotificationsPage />}
 
         {/* Chat — fills main column; pass real user id for API + message mapping */}
         {activeTab === 'chat' && (

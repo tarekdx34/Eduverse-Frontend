@@ -79,7 +79,7 @@ export function AttendanceTable({
         />
       </div>
 
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto" id="walkthrough-attendance-table">
         <table className="min-w-full text-sm">
           <thead>
             <tr

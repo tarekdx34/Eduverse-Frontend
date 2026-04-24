@@ -251,6 +251,7 @@ export function RosterTable({ sectionId, data = [] }: RosterTableProps) {
         />
         <input
           type="text"
+          id="walkthrough-roster-search"
           placeholder={t('searchStudentsPlaceholder')}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
@@ -262,7 +263,7 @@ export function RosterTable({ sectionId, data = [] }: RosterTableProps) {
         />
       </div>
 
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto" id="walkthrough-roster-table">
         <table className="min-w-full text-sm">
           <thead>
             <tr className={isDark ? 'bg-white/5 text-slate-200' : 'bg-gray-100 text-gray-900'}>

@@ -41,6 +41,7 @@ interface Notification {
 interface NotificationsPageProps {
   notifications?: ApiNotification[];
   loading?: boolean;
+  refreshSignal?: number;
 }
 
 const mapApiNotificationToNotification = (api: ApiNotification): Notification => {
@@ -249,7 +250,11 @@ const categoryFilters = [
 
 type Tab = 'all' | 'unread' | 'read';
 
-export function NotificationsPage({ notifications: propNotifications, loading: propLoading = false }: NotificationsPageProps = {}) {
+export function NotificationsPage({
+  notifications: propNotifications,
+  loading: propLoading = false,
+  refreshSignal = 0,
+}: NotificationsPageProps = {}) {
   const { isDark, primaryHex = '#3b82f6' } = useTheme() as any;
   const { isRTL } = useLanguage();
 
@@ -285,6 +290,13 @@ export function NotificationsPage({ notifications: propNotifications, loading: p
       loadNotifications();
     }
   }, [propNotifications, loadNotifications]);
+
+  useEffect(() => {
+    if (propNotifications !== undefined) return;
+    if (refreshSignal > 0) {
+      void loadNotifications();
+    }
+  }, [refreshSignal, propNotifications, loadNotifications]);
 
   const loading = propLoading !== undefined ? propLoading : localLoading;
 

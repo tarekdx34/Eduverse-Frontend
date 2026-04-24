@@ -8,6 +8,7 @@ export interface Quiz {
   description: string | null;
   instructions: string | null;
   quizType: 'practice' | 'graded';
+  status?: 'draft' | 'published' | 'closed' | 'archived';
   timeLimitMinutes: number | null;
   maxAttempts: number;
   passingScore: string | null;

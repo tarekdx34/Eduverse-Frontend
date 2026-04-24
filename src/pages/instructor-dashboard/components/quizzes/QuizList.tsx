@@ -211,7 +211,7 @@ export function QuizList({
       </div>
 
       {/* Quiz Cards */}
-      <div className="space-y-4">
+      <div className="space-y-4" id="walkthrough-quizzes-list">
         {loading ? (
           <div className="flex justify-center items-center p-8">
             <Loader2 className="animate-spin" style={{ color: primaryHex }} size={32} />

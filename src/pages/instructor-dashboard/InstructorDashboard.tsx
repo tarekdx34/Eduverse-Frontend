@@ -30,8 +30,11 @@ import {
 import { GradesService } from '../../services/api/gradesService';
 import { ScheduleService } from '../../services/api/scheduleService';
 import { NotificationService } from '../../services/api/notificationService';
+import type { Notification as ApiNotification } from '../../services/api/notificationService';
 import { AnalyticsService } from '../../services/api/analyticsService';
 import { toast } from 'sonner';
+import { useNotificationRealtime } from '../../hooks/useNotificationRealtime';
+import { toHeaderNotification } from '../../utils/notificationUi';
 import {
   StatsCard,
   GradesTable,
@@ -55,6 +58,7 @@ import {
   UploadMaterialsPage,
   LabsPage,
   LectureAttendanceFlow,
+  DashboardWalkthrough,
 } from './components';
 import {
   AssignmentListPage,
@@ -186,11 +190,33 @@ function InstructorDashboardContent() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
   const [isAIAttendanceModalOpen, setIsAIAttendanceModalOpen] = useState(false);
+  const [headerUnreadCount, setHeaderUnreadCount] = useState(0);
+  const [headerNotifications, setHeaderNotifications] = useState<ApiNotification[]>([]);
+  const [notificationsRefreshSignal, setNotificationsRefreshSignal] = useState(0);
   /** Attendance tab: main lecture/roster flow vs. legacy session summary table. */
   const [attendanceUiMode, setAttendanceUiMode] = useState<'lecture' | 'sessions'>('lecture');
   const { isDark, toggleTheme, primaryHex, primaryColor, setPrimaryColor } = useTheme() as any;
   const { language, setLanguage, isRTL, t } = useLanguage();
   const { isAuthenticated, user } = useAuth();
+  const [runWalkthrough, setRunWalkthrough] = useState(false);
+
+  useEffect(() => {
+    // Specifically for instructor.tarek@example.com
+    if (user?.email === 'instructor.tarek@example.com') {
+      const hasSeenWalkthrough = localStorage.getItem('hasSeenInstructorWalkthrough');
+      if (!hasSeenWalkthrough) {
+        const timer = setTimeout(() => {
+          setRunWalkthrough(true);
+        }, 1500);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [user]);
+
+  const handleFinishWalkthrough = () => {
+    setRunWalkthrough(false);
+    localStorage.setItem('hasSeenInstructorWalkthrough', 'true');
+  };
 
   const isMockMode = !isAuthenticated || location.state?.isMock;
 
@@ -211,6 +237,48 @@ function InstructorDashboardContent() {
     queryKey: ['notifications-live'],
     queryFn: () => NotificationService.getAll({ limit: 5 }),
     enabled: !isMockMode,
+  });
+
+  useEffect(() => {
+    let mounted = true;
+    const refreshHeaderNotifications = async () => {
+      try {
+        const [list, unread] = await Promise.all([
+          NotificationService.getAll({ limit: 8 }),
+          NotificationService.getUnreadCount(),
+        ]);
+        if (!mounted) return;
+        setHeaderNotifications(list);
+        setHeaderUnreadCount(Number(unread?.count ?? 0));
+      } catch {
+        if (!mounted) return;
+        setHeaderNotifications([]);
+        setHeaderUnreadCount(0);
+      }
+    };
+
+    void refreshHeaderNotifications();
+    const intervalId = window.setInterval(() => void refreshHeaderNotifications(), 30000);
+    return () => {
+      mounted = false;
+      window.clearInterval(intervalId);
+    };
+  }, []);
+
+  useNotificationRealtime({
+    enabled: !isMockMode,
+    onNewNotification: (notification) => {
+      setHeaderNotifications((prev) => {
+        const next = [notification, ...prev.filter((item) => item.id !== notification.id)];
+        return next.slice(0, 8);
+      });
+      if (notification.isRead !== 1 && !notification.read) {
+        setHeaderUnreadCount((prev) => prev + 1);
+      }
+      setNotificationsRefreshSignal((prev) => prev + 1);
+      void queryClient.invalidateQueries({ queryKey: ['notifications-live'] });
+    },
+    onUnreadCountUpdate: (count) => setHeaderUnreadCount(count),
   });
 
   const { data: allAssignmentsLive } = useQuery({
@@ -1135,6 +1203,12 @@ function InstructorDashboardContent() {
       style={{ fontFamily: "'Montserrat', sans-serif" }}
       dir={isRTL ? 'rtl' : 'ltr'}
     >
+      <DashboardWalkthrough 
+        run={runWalkthrough} 
+        onFinish={handleFinishWalkthrough} 
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+      />
       {/* Sidebar */}
       <DashboardSidebar
         tabs={translatedTabs.map((tab) => ({
@@ -1190,6 +1264,8 @@ function InstructorDashboardContent() {
               viewProfile: t('viewProfile'),
               logout: t('logout'),
             }}
+            notifications={headerNotifications.map(toHeaderNotification)}
+            notificationCount={headerUnreadCount}
           />
         )}
         <div
@@ -1488,7 +1564,9 @@ function InstructorDashboardContent() {
           {activeTab === 'announcements' && <AnnouncementsManager />}
 
           {/* Notifications */}
-          {activeTab === 'notifications' && <NotificationsPage />}
+          {activeTab === 'notifications' && (
+            <NotificationsPage refreshSignal={notificationsRefreshSignal} />
+          )}
 
           {/* Discussion */}
           {activeTab === 'discussion' && (

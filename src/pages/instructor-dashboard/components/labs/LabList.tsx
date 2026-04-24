@@ -361,7 +361,7 @@ export function LabList({
         </div>
 
         {/* Lab cards section */}
-        <div className="space-y-4">
+        <div className="space-y-4" id="walkthrough-labs-grid">
           {loading ? (
             // Loading skeleton cards
             <>
