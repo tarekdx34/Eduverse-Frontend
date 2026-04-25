@@ -17,7 +17,7 @@ export const client = axios.create({
 client.interceptors.request.use((config) => {
   const accessToken = localStorage.getItem(TOKEN_KEYS.ACCESS_TOKEN);
   const isMock = accessToken === 'mock-dev-token';
-  
+
   if (isMock) {
     // Override the adapter for this request to return mock data immediately
     config.adapter = (cfg) => {
@@ -30,7 +30,7 @@ client.interceptors.request.use((config) => {
       });
     };
   }
-  
+
   if (accessToken && accessToken !== 'mock-dev-token') {
     config.headers.Authorization = `Bearer ${accessToken}`;
   }
@@ -69,7 +69,11 @@ export class ApiClient {
   private static baseURL = API_BASE_URL;
   private static rawBaseURL = API_BASE_URL.replace(/\/api\/?$/, '');
 
-  private static isExpectedNotFound(endpoint: string, status: number, errorMessage: string): boolean {
+  private static isExpectedNotFound(
+    endpoint: string,
+    status: number,
+    errorMessage: string
+  ): boolean {
     if (status !== 404) {
       return false;
     }
@@ -131,13 +135,15 @@ export class ApiClient {
           days: [],
         } as unknown as T);
       }
-      
+
       // Generic fallback: array for lists, empty object for others
       // Most GET requests that aren't specific above are likely lists in this project
       return Promise.resolve([] as unknown as T);
     }
 
-    if (accessToken) {
+    // Do not send Authorization header for auth endpoints (login/refresh/logout)
+    const authlessEndpoints = ['/auth/login', '/auth/refresh-token', '/auth/logout'];
+    if (accessToken && !authlessEndpoints.some((p) => endpoint.includes(p))) {
       headers['Authorization'] = `Bearer ${accessToken}`;
     }
 
