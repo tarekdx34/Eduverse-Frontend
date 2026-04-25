@@ -1,9 +1,13 @@
 // API configuration and constants
+const normalizedApiOrigin = (import.meta.env.VITE_API_URL as string | undefined)
+  ?.replace(/\/api\/?$/, '')
+  .replace(/\/$/, '');
+
 export const API_BASE_URL =
   import.meta.env.MODE === 'development'
     ? '/api'
-    : import.meta.env.VITE_API_URL
-      ? `${import.meta.env.VITE_API_URL}/api`
+    : normalizedApiOrigin
+      ? `${normalizedApiOrigin}/api`
       : 'http://localhost:8081/api';
 /** Local face-recognition service. Dev: Vite proxies `/ai-attendance` → http://127.0.0.1:8000 */
 export const AI_ATTENDANCE_BASE_URL =
