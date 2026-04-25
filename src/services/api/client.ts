@@ -33,7 +33,11 @@ client.interceptors.request.use((config) => {
 
   // Do not set Authorization header for auth endpoints
   const authlessEndpoints = ['/auth/login', '/auth/refresh-token', '/auth/logout'];
-  if (accessToken && accessToken !== 'mock-dev-token' && !authlessEndpoints.some((p) => (config.url || '').includes(p))) {
+  if (
+    accessToken &&
+    accessToken !== 'mock-dev-token' &&
+    !authlessEndpoints.some((p) => (config.url || '').includes(p))
+  ) {
     config.headers.Authorization = `Bearer ${accessToken}`;
   }
   return config;
@@ -150,9 +154,15 @@ export class ApiClient {
     }
 
     try {
+      // Avoid sending cookies for auth endpoints to prevent large Cookie headers causing 431.
+      const fetchCredentials = authlessEndpoints.some((p) => endpoint.includes(p))
+        ? 'omit'
+        : (options.credentials ?? 'same-origin');
+
       const response = await fetch(url, {
         ...options,
         headers,
+        credentials: fetchCredentials as RequestCredentials,
       });
 
       const contentType = response.headers.get('content-type');
