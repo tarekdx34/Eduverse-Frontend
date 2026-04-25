@@ -1,6 +1,11 @@
 // API configuration and constants
-export const API_BASE_URL =
-  import.meta.env.MODE === 'development' ? '/api' : 'http://localhost:8081/api';
+const envVar = import.meta.env.VITE_API_BASE_URL as string | undefined;
+const envApiHost = envVar ? envVar.replace(/\/$/, '').replace(/\/api\/?$/, '') : null;
+export const API_BASE_URL = envApiHost
+  ? `${envApiHost}/api`
+  : import.meta.env.MODE === 'development'
+    ? '/api'
+    : 'http://localhost:8081/api';
 
 /** Local face-recognition service. Dev: Vite proxies `/ai-attendance` → http://127.0.0.1:8000 */
 export const AI_ATTENDANCE_BASE_URL =
