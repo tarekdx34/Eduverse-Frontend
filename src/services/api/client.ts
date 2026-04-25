@@ -6,6 +6,11 @@ interface RequestOptions extends RequestInit {
   params?: Record<string, any>;
 }
 
+const CONFIGURED_API_TARGET = (import.meta.env.VITE_API_URL || 'http://localhost:8081').replace(
+  /\/api\/?$/,
+  ''
+);
+
 // Axios client used by newer API services.
 export const client = axios.create({
   baseURL: API_BASE_URL,
@@ -207,7 +212,7 @@ export class ApiClient {
             errorMessage.toLowerCase().includes('internal server error');
           if (generic) {
             errorMessage =
-              'Cannot reach the Nest API (or it returned a server error). Start EduVerse-Backend with npm run start:dev in that project; Vite proxies /api to http://localhost:8081.';
+              `Cannot reach the Nest API (or it returned a server error). Check backend at ${CONFIGURED_API_TARGET}; Vite proxies /api to that target in development.`;
           }
         }
 
