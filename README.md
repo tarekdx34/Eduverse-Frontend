@@ -85,6 +85,11 @@ Install dependencies:
 
 npm install
 
+Create your environment file:
+
+- Copy `.env.example` to `.env.local`
+- Update `VITE_API_URL` to point at your backend (Hugging Face Space, local backend, etc.)
+
 Start development server:
 
 npm run dev
