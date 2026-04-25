@@ -76,7 +76,7 @@ export function Header({ userName = 'Prof. Sarah Martinez', onProfileClick }: He
           }`}
         >
           <Search size={16} className={isDark ? 'text-gray-400' : 'text-gray-400'} />
-          <span className="flex-1 text-left">{t('search')}</span>
+          <span className="flex-1 text-left">{t('searchBar')}</span>
           <kbd
             className={`px-1.5 py-0.5 text-xs rounded ${isDark ? 'bg-gray-700 text-gray-400' : 'bg-gray-100 text-gray-500'}`}
           >
