@@ -1297,7 +1297,7 @@ function InstructorDashboardContent() {
               onDeleteCourse={handleDeleteCourse}
               onDuplicateCourse={handleDuplicateCourse}
               onViewCourse={(id) => {
-                navigate(`/instructordashboard/materials/${id}`);
+                navigate(`/instructordashboard/courses/${id}`);
               }}
               selectedCourseId={selectedCourseIdFromRoute}
               isMockMode={isMockMode}
