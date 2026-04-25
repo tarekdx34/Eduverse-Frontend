@@ -31,7 +31,9 @@ client.interceptors.request.use((config) => {
     };
   }
 
-  if (accessToken && accessToken !== 'mock-dev-token') {
+  // Do not set Authorization header for auth endpoints
+  const authlessEndpoints = ['/auth/login', '/auth/refresh-token', '/auth/logout'];
+  if (accessToken && accessToken !== 'mock-dev-token' && !authlessEndpoints.some((p) => (config.url || '').includes(p))) {
     config.headers.Authorization = `Bearer ${accessToken}`;
   }
   return config;
