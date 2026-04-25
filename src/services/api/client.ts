@@ -22,7 +22,6 @@ export const client = axios.create({
 client.interceptors.request.use((config) => {
   const accessToken = localStorage.getItem(TOKEN_KEYS.ACCESS_TOKEN);
   const isMock = accessToken === 'mock-dev-token';
-
   if (isMock) {
     // Override the adapter for this request to return mock data immediately
     config.adapter = (cfg) => {
@@ -35,7 +34,6 @@ client.interceptors.request.use((config) => {
       });
     };
   }
-
   // Do not set Authorization header for auth endpoints
   const authlessEndpoints = ['/auth/login', '/auth/refresh-token', '/auth/logout'];
   if (
@@ -146,7 +144,6 @@ export class ApiClient {
           days: [],
         } as unknown as T);
       }
-
       // Generic fallback: array for lists, empty object for others
       // Most GET requests that aren't specific above are likely lists in this project
       return Promise.resolve([] as unknown as T);

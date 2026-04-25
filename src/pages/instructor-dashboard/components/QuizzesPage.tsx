@@ -10,10 +10,11 @@ import { QuizzesDashboard } from './quizzes';
 
 export interface QuizzesPageProps {
   courses?: any[];
+  isMockMode?: boolean;
 }
 
-export function QuizzesPage({ courses = [] }: QuizzesPageProps) {
-  return <QuizzesDashboard courses={courses} />;
+export function QuizzesPage({ courses = [], isMockMode }: QuizzesPageProps) {
+  return <QuizzesDashboard courses={courses} isMockMode={isMockMode} />;
 }
 
 export default QuizzesPage;

@@ -83,7 +83,7 @@ export function CustomDropdown({
 
         {isOpen && (
           <div
-            className={`absolute top-full left-0 mt-1 min-w-full w-max border rounded-lg shadow-lg py-1 z-50 max-h-60 overflow-y-auto ${
+            className={`absolute top-full left-0 mt-1 min-w-full w-max border rounded-lg shadow-lg z-50 max-h-60 overflow-x-hidden overflow-y-auto ${
               isDark ? 'bg-card-dark border-white/10' : 'bg-white border-gray-200'
             }`}
           >

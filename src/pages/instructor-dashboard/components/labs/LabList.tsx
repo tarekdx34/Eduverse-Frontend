@@ -141,8 +141,7 @@ export function LabList({
   );
 
   return (
-    <div className="p-6" dir={isRTL ? 'rtl' : 'ltr'}>
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="space-y-6" dir={isRTL ? 'rtl' : 'ltr'}>
         {/* Header with create button */}
         <div className="flex items-center justify-between">
           <div>
@@ -196,6 +195,40 @@ export function LabList({
 
         {/* Filters section */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="w-full flex flex-col gap-1.5 sm:col-span-2 lg:col-span-1">
+            <label
+              htmlFor="lab-search"
+              className={`text-sm font-medium whitespace-nowrap ${
+                isDark ? 'text-slate-400' : 'text-gray-600'
+              }`}
+            >
+              {t('search') || 'Search'}
+            </label>
+            <div className="relative w-full">
+              <Search
+                className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${
+                  isDark ? 'text-slate-500' : 'text-gray-400'
+                }`}
+                size={18}
+                aria-hidden="true"
+              />
+              <input
+                id="lab-search"
+                type="text"
+                placeholder={t('searchLabs') || 'Search labs...'}
+                value={searchQuery}
+                onChange={(e) => onSearchChange(e.target.value)}
+                aria-label={t('searchLabs') || 'Search labs'}
+                className={`w-full h-10 pl-10 pr-4 border rounded-lg text-sm focus:outline-none focus:ring-2 ${
+                  isDark
+                    ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500'
+                    : 'border-gray-300 bg-white text-gray-900 placeholder:text-slate-400'
+                }`}
+                style={{ '--tw-ring-color': `${primaryHex}80` } as React.CSSProperties}
+              />
+            </div>
+          </div>
+
           <CustomDropdown
             label={t('courseLabel') || 'Course'}
             value={selectedCourse}
@@ -223,38 +256,6 @@ export function LabList({
             stackLabel
             fullWidth
           />
-          <div className="w-full flex flex-col gap-1.5 sm:col-span-2 lg:col-span-1">
-            <label
-              htmlFor="lab-search"
-              className={`text-sm font-medium whitespace-nowrap ${
-                isDark ? 'text-slate-400' : 'text-gray-600'
-              }`}
-            >
-              {t('search') || 'Search'}
-            </label>
-            <div className="relative w-full">
-              <Search
-                className={`absolute ${isRTL ? 'right-3' : 'left-3'} top-1/2 transform -translate-y-1/2 ${
-                  isDark ? 'text-slate-500' : 'text-gray-400'
-                }`}
-                size={18}
-                aria-hidden="true"
-              />
-              <input
-                id="lab-search"
-                type="text"
-                placeholder={t('searchLabs') || 'Search labs...'}
-                value={searchQuery}
-                onChange={(e) => onSearchChange(e.target.value)}
-                aria-label={t('searchLabs') || 'Search labs'}
-                className={`w-full ${isRTL ? 'pr-10 pl-4' : 'pl-10 pr-4'} py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-                  isDark
-                    ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500'
-                    : 'border-gray-300 bg-white text-gray-900 placeholder-gray-400'
-                }`}
-              />
-            </div>
-          </div>
         </div>
 
         {/* Statistics cards */}
@@ -592,7 +593,6 @@ export function LabList({
             ))
           )}
         </div>
-      </div>
     </div>
   );
 }

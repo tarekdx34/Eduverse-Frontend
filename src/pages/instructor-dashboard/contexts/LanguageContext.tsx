@@ -290,6 +290,8 @@ const translations: Record<Language, Record<string, string>> = {
     addTask: 'Add Task',
     helpDesk: 'Help Desk',
     noRecentActivity: 'No recent activity',
+    noPerformanceData: 'No performance data available',
+    noEngagementData: 'No engagement data available',
 
     // Labs
     labsManagement: 'Labs Management',
@@ -297,6 +299,11 @@ const translations: Record<Language, Record<string, string>> = {
       'Create labs, manage submissions, track attendance, and use AI to assist lab evaluation.',
     createNewLab: 'Create New Lab',
     searchLabs: 'Search Labs...',
+    totalLabs: 'Total Labs',
+    activeLabs: 'Active Labs',
+    draftLabs: 'Draft Labs',
+    noLabsYet: 'No labs created yet',
+    noLabsMatchFilter: 'No labs match your filters',
     viewSubmissions: 'View Submissions',
     editLab: 'Edit Lab',
     uploadInstructions: 'Upload Instructions',
@@ -536,6 +543,9 @@ const translations: Record<Language, Record<string, string>> = {
     closeAction: 'Close',
     noAssignmentsMatch: 'No assignments match your search.',
     noAssignmentsForSection: 'No assignments for this section.',
+    noAssignmentsEmptyTitle: 'No assignments yet',
+    noAssignmentsEmptyHint: 'Create your first assignment to get started.',
+    noAssignmentsAdjustFilters: 'Try adjusting your search or filters.',
 
     // Roster extras
     enrolledStudents: 'Enrolled Students',
@@ -874,6 +884,8 @@ const translations: Record<Language, Record<string, string>> = {
     addTask: 'إضافة مهمة',
     helpDesk: 'مكتب المساعدة',
     noRecentActivity: 'لا يوجد نشاط حديث',
+    noPerformanceData: 'لا توجد بيانات أداء متاحة',
+    noEngagementData: 'لا توجد بيانات تفاعل متاحة',
 
     // Labs
     labsManagement: 'إدارة المعامل',
@@ -881,6 +893,11 @@ const translations: Record<Language, Record<string, string>> = {
       'إنشاء المعامل، إدارة التسليمات، تتبع الحضور، واستخدام الذكاء الاصطناعي لتقييم المعامل.',
     createNewLab: 'إنشاء معمل جديد',
     searchLabs: 'البحث في المعامل...',
+    totalLabs: 'إجمالي المعامل',
+    activeLabs: 'المعامل النشطة',
+    draftLabs: 'المعامل المسودة',
+    noLabsYet: 'لا توجد معامل بعد',
+    noLabsMatchFilter: 'لا توجد معامل مطابقة للمرشحات',
     viewSubmissions: 'عرض التسليمات',
     editLab: 'تعديل المعمل',
     uploadInstructions: 'رفع التعليمات',
@@ -1094,6 +1111,9 @@ const translations: Record<Language, Record<string, string>> = {
     closeAction: 'إغلاق',
     noAssignmentsMatch: 'لا توجد واجبات مطابقة للبحث.',
     noAssignmentsForSection: 'لا توجد واجبات لهذا القسم.',
+    noAssignmentsEmptyTitle: 'لا توجد واجبات بعد',
+    noAssignmentsEmptyHint: 'أنشئ أول واجب للبدء.',
+    noAssignmentsAdjustFilters: 'جرّب تعديل البحث أو المرشحات.',
 
     // Roster extras
     enrolledStudents: 'الطلاب المسجلين',

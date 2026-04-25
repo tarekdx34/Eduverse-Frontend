@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import {
   Mail,
   Phone,
@@ -10,12 +10,15 @@ import {
   Camera,
   Save,
   X,
-  TrendingUp,
   Download,
+  UserCircle2,
+  Info,
+  Sparkles,
+  Code2,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { UserService, type UserProfile } from '../../services/api/userService';
-import { Loader2, Plus } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface ProfileData {
@@ -139,24 +142,24 @@ function TagInput({
 export function DashboardProfileTab({
   isDark,
   accentColor = '#3b82f6',
-  bannerGradient = 'from-[#3b82f6] to-[#06b6d4]',
+  bannerGradient: _bannerGradient = 'from-[#3b82f6] to-[#06b6d4]',
   profileData,
 }: DashboardProfileTabProps) {
   const { user } = useAuth();
-  const mergedProfileData: ProfileData = {
-    ...profileData,
-    ...(user
-      ? {
-          fullName: user.fullName || `${user.firstName} ${user.lastName}`,
-          email: user.email,
-          role: user.roles?.[0] || profileData.role,
-          studentId: String(user.userId),
-        }
-      : {}),
-  };
+  const mergedProfileData: ProfileData = useMemo(() => {
+    const nameFromAuth = user
+      ? (user.fullName || `${user.firstName || ''} ${user.lastName || ''}`).trim()
+      : '';
+    return {
+      ...profileData,
+      fullName: nameFromAuth || profileData.fullName || 'Instructor',
+      email: user?.email || profileData.email || '',
+      role: user?.roles?.[0] || profileData.role || 'Instructor',
+      studentId: user?.userId != null ? String(user.userId) : profileData.studentId,
+    };
+  }, [profileData, user]);
   const [isEditing, setIsEditing] = useState(false);
   const [data, setData] = useState(mergedProfileData);
-  const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
   // Sync with backend on mount
@@ -167,7 +170,11 @@ export function DashboardProfileTab({
         if (mounted) {
           setData((prev) => ({
             ...prev,
-            fullName: profile.fullName || `${profile.firstName} ${profile.lastName}`,
+            fullName:
+              profile.fullName ||
+              [profile.firstName, profile.lastName].filter(Boolean).join(' ').trim() ||
+              prev.fullName ||
+              'Instructor',
             email: profile.email,
             bio: profile.bio || prev.bio,
             interests: profile.academicInterests || prev.interests,
@@ -175,10 +182,7 @@ export function DashboardProfileTab({
           }));
         }
       })
-      .catch((err) => console.error('Failed to fetch profile:', err))
-      .finally(() => {
-        if (mounted) setIsLoading(false);
-      });
+      .catch((err) => console.error('Failed to fetch profile:', err));
 
     return () => {
       mounted = false;
@@ -214,11 +218,11 @@ export function DashboardProfileTab({
   };
 
   const cardClass = isDark
-    ? 'bg-white/5 backdrop-blur-xl border border-white/5 shadow-none'
-    : 'glass shadow-xl shadow-slate-200/50';
+    ? 'rounded-xl border border-white/10 bg-white/5'
+    : 'rounded-xl border border-gray-200 bg-white shadow-sm';
 
   const labelClass = isDark ? 'text-slate-500' : 'text-slate-400';
-  const valueClass = isDark ? 'text-white' : 'text-slate-800';
+  const valueClass = isDark ? 'text-slate-100' : 'text-slate-900';
   const inputClass = isDark
     ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500 focus:ring-2'
     : 'bg-white border-slate-200 text-slate-800 focus:ring-2';
@@ -226,7 +230,7 @@ export function DashboardProfileTab({
   return (
     <div className="space-y-6">
       {/* Header Card */}
-      <div className={`${cardClass} p-6 rounded-2xl`}>
+      <div className={`${cardClass} p-6`}>
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
           {/* Avatar */}
           <div className="relative flex-shrink-0">
@@ -297,113 +301,14 @@ export function DashboardProfileTab({
         </div>
       </div>
 
-      {isLoading && (
-        <div className="flex flex-col items-center justify-center py-12 gap-3">
-          <Loader2 className="w-8 h-8 animate-spin" style={{ color: accentColor }} />
-          <p className={labelClass}>Syncing profile...</p>
-        </div>
-      )}
-
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {data.gpa && (
-          <div
-            className={`${cardClass} p-6 rounded-3xl relative overflow-hidden group hover:scale-[1.02] transition-all duration-300`}
-          >
-            <div
-              className="absolute -right-4 -top-4 w-24 h-24 rounded-full blur-2xl"
-              style={{ backgroundColor: `${accentColor}15` }}
-            />
-            <p className={`${labelClass} font-bold text-sm uppercase tracking-wider mb-4`}>
-              Overall GPA
-            </p>
-            <div className="flex items-end gap-2 mb-4">
-              <h2 className="text-5xl font-black" style={{ color: accentColor }}>
-                {data.gpa}
-                <span className={`text-xl font-normal ${labelClass}`}>/4.00</span>
-              </h2>
-            </div>
-            <div
-              className={`w-full h-3 rounded-full overflow-hidden ${isDark ? 'bg-slate-800' : 'bg-slate-100'}`}
-            >
-              <div
-                className="h-full rounded-full bg-gradient-to-r"
-                style={{
-                  width: `${(parseFloat(data.gpa) / 4.0) * 100}%`,
-                  backgroundImage: `linear-gradient(to right, ${accentColor}80, ${accentColor})`,
-                }}
-              />
-            </div>
-          </div>
-        )}
-
-        {data.totalCredits && (
-          <div
-            className={`${cardClass} p-6 rounded-3xl relative overflow-hidden group hover:scale-[1.02] transition-all duration-300`}
-          >
-            <div className="absolute -right-4 -top-4 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl" />
-            <p className={`${labelClass} font-bold text-sm uppercase tracking-wider mb-4`}>
-              Total Credits
-            </p>
-            <div className="flex items-end gap-2 mb-4">
-              <h2 className="text-5xl font-black text-blue-600">
-                {data.totalCredits}
-                <span className={`text-xl font-normal ${labelClass}`}>
-                  /{data.maxCredits || '144'}
-                </span>
-              </h2>
-            </div>
-            <div className="flex gap-1.5 h-3">
-              <div
-                className="bg-blue-500 rounded-full"
-                style={{
-                  flex: parseInt(data.totalCredits),
-                }}
-              />
-              <div
-                className={`rounded-full ${isDark ? 'bg-slate-800' : 'bg-slate-100'}`}
-                style={{
-                  flex: parseInt(data.maxCredits || '144') - parseInt(data.totalCredits),
-                }}
-              />
-            </div>
-          </div>
-        )}
-
-        {data.rank && (
-          <div
-            className={`${cardClass} p-6 rounded-3xl relative overflow-hidden group hover:scale-[1.02] transition-all duration-300`}
-          >
-            <div className="absolute -right-4 -top-4 w-24 h-24 bg-pink-500/10 rounded-full blur-2xl" />
-            <p className={`${labelClass} font-bold text-sm uppercase tracking-wider mb-4`}>
-              Global Rank
-            </p>
-            <div className="flex items-end gap-2 mb-4">
-              <h2 className="text-5xl font-black text-pink-500">
-                #{data.rank}
-                <span className={`text-xl font-normal ${labelClass}`}>
-                  /{data.rankTotal || '1,200'}
-                </span>
-              </h2>
-            </div>
-            <div className="flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-emerald-500" />
-              <span className="text-xs font-bold text-emerald-500">Top 4% in Department</span>
-            </div>
-          </div>
-        )}
-      </div>
-
       {/* Main Content Grid */}
-      <div className="grid grid-cols-1 gap-10">
+      <div className="grid grid-cols-1 gap-6">
         {/* Main Content */}
-        <div className="space-y-10">
+        <div className="space-y-6">
           {/* Personal Information */}
-          <div className={`${cardClass} p-8 rounded-[2.5rem]`}>
-            <h3 className={`text-2xl font-bold mb-6 flex items-center gap-3 ${valueClass}`}>
-              <span className="material-symbols-rounded" style={{ color: accentColor }}>
-                contact_page
-              </span>
+          <div className={`${cardClass} p-6`}>
+            <h3 className={`text-xl font-bold mb-6 flex items-center gap-2 ${valueClass}`}>
+              <UserCircle2 className="w-5 h-5" style={{ color: accentColor }} />
               Personal Information
             </h3>
             <div className="space-y-6">
@@ -492,11 +397,9 @@ export function DashboardProfileTab({
           </div>
 
           {/* About */}
-          <div className={`${cardClass} p-8 rounded-[2.5rem]`}>
-            <h3 className={`text-2xl font-bold mb-6 flex items-center gap-3 ${valueClass}`}>
-              <span className="material-symbols-rounded" style={{ color: accentColor }}>
-                info
-              </span>
+          <div className={`${cardClass} p-6`}>
+            <h3 className={`text-xl font-bold mb-6 flex items-center gap-2 ${valueClass}`}>
+              <Info className="w-5 h-5" style={{ color: accentColor }} />
               About
             </h3>
             {isEditing ? (
@@ -516,11 +419,9 @@ export function DashboardProfileTab({
 
           {/* Interests / Specialization */}
           {(data.interests || data.specialization) && (
-            <div className={`${cardClass} p-8 rounded-2xl`}>
-              <h3 className={`text-2xl font-bold mb-6 flex items-center gap-3 ${valueClass}`}>
-                <span className="material-symbols-rounded" style={{ color: accentColor }}>
-                  psychology
-                </span>
+            <div className={`${cardClass} p-6`}>
+              <h3 className={`text-xl font-bold mb-6 flex items-center gap-2 ${valueClass}`}>
+                <Sparkles className="w-5 h-5" style={{ color: accentColor }} />
                 {data.specialization ? 'Specialization' : 'Academic Interests'}
               </h3>
               {isEditing ? (
@@ -563,11 +464,9 @@ export function DashboardProfileTab({
           )}
 
           {/* Skills */}
-          <div className={`${cardClass} p-8 rounded-2xl`}>
-            <h3 className={`text-2xl font-bold mb-6 flex items-center gap-3 ${valueClass}`}>
-              <span className="material-symbols-rounded" style={{ color: accentColor }}>
-                code
-              </span>
+          <div className={`${cardClass} p-6`}>
+            <h3 className={`text-xl font-bold mb-6 flex items-center gap-2 ${valueClass}`}>
+              <Code2 className="w-5 h-5" style={{ color: accentColor }} />
               Skills
             </h3>
             {isEditing ? (

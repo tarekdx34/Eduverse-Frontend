@@ -29,6 +29,7 @@ import { Skeleton } from '../../../components/ui/skeleton';
 interface DiscussionPageProps {
   userRole?: 'ta' | 'instructor';
   userName?: string;
+  isMockMode?: boolean;
 }
 
 const getErrorMessage = (error: unknown) =>
@@ -42,7 +43,77 @@ const normalizeDiscussions = (
   return Array.isArray(payload.data) ? payload.data : [];
 };
 
-export function DiscussionPage({ userRole = 'instructor' }: DiscussionPageProps) {
+const MOCK_DISCUSSIONS: DiscussionThread[] = [
+  {
+    id: 'mock-disc-1',
+    courseId: '101',
+    createdBy: 17,
+    title: 'Can we use repository pattern in project 2?',
+    description: 'I want to confirm if we should apply repository + service layers.',
+    isPinned: 1,
+    isLocked: 0,
+    viewCount: 54,
+    replyCount: 2,
+    createdAt: '2026-04-17T11:30:00.000Z',
+    updatedAt: '2026-04-19T09:20:00.000Z',
+  },
+  {
+    id: 'mock-disc-2',
+    courseId: '102',
+    createdBy: 22,
+    title: 'Normalization question for assignment 3',
+    description: 'Is BCNF required or 3NF is enough for this task?',
+    isPinned: 0,
+    isLocked: 0,
+    viewCount: 33,
+    replyCount: 1,
+    createdAt: '2026-04-19T08:00:00.000Z',
+    updatedAt: '2026-04-19T08:00:00.000Z',
+  },
+];
+
+const MOCK_REPLIES: Record<string, DiscussionReply[]> = {
+  'mock-disc-1': [
+    {
+      id: 'mock-reply-1',
+      threadId: 'mock-disc-1',
+      userId: 1,
+      messageText: 'Yes, repository pattern is recommended for cleaner testing.',
+      isAnswer: 1,
+      isEndorsed: 1,
+      upvoteCount: 8,
+      createdAt: '2026-04-18T08:45:00.000Z',
+      updatedAt: '2026-04-18T08:45:00.000Z',
+    },
+    {
+      id: 'mock-reply-2',
+      threadId: 'mock-disc-1',
+      userId: 17,
+      messageText: 'Perfect, thanks!',
+      parentMessageId: 'mock-reply-1',
+      isAnswer: 0,
+      isEndorsed: 0,
+      upvoteCount: 1,
+      createdAt: '2026-04-18T09:00:00.000Z',
+      updatedAt: '2026-04-18T09:00:00.000Z',
+    },
+  ],
+  'mock-disc-2': [
+    {
+      id: 'mock-reply-3',
+      threadId: 'mock-disc-2',
+      userId: 1,
+      messageText: '3NF is enough unless you explicitly detect BCNF violations.',
+      isAnswer: 1,
+      isEndorsed: 0,
+      upvoteCount: 4,
+      createdAt: '2026-04-19T08:20:00.000Z',
+      updatedAt: '2026-04-19T08:20:00.000Z',
+    },
+  ],
+};
+
+export function DiscussionPage({ userRole = 'instructor', isMockMode = false }: DiscussionPageProps) {
   const { t } = useLanguage();
   const { isDark, primaryHex = '#4f46e5' } = useTheme() as any;
 
@@ -81,6 +152,12 @@ export function DiscussionPage({ userRole = 'instructor' }: DiscussionPageProps)
   }, [t]);
 
   const loadDiscussions = useCallback(async (courseId?: string) => {
+    if (isMockMode) {
+      const rows = courseId ? MOCK_DISCUSSIONS.filter((d) => d.courseId === courseId) : MOCK_DISCUSSIONS;
+      setDiscussions(rows);
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
       const response = await discussionService.getDiscussions(courseId ? { courseId } : undefined);
@@ -90,7 +167,7 @@ export function DiscussionPage({ userRole = 'instructor' }: DiscussionPageProps)
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isMockMode]);
 
   useEffect(() => {
     const courseId = filterCourse === 'all' ? undefined : filterCourse;
@@ -132,6 +209,18 @@ export function DiscussionPage({ userRole = 'instructor' }: DiscussionPageProps)
     });
 
     if (!detailsById[id]) {
+      if (isMockMode) {
+        const thread = discussions.find((d) => d.id === id);
+        if (!thread) return;
+        setDetailsById((prev) => ({
+          ...prev,
+          [id]: {
+            thread,
+            replies: { data: MOCK_REPLIES[id] || [] },
+          },
+        }));
+        return;
+      }
       try {
         const detail = await discussionService.getDiscussion(id);
         setDetailsById((prev) => ({ ...prev, [id]: detail }));
@@ -144,6 +233,26 @@ export function DiscussionPage({ userRole = 'instructor' }: DiscussionPageProps)
   const handleCreateDiscussion = async () => {
     if (!newDiscussion.title.trim() || !newDiscussion.courseId) {
       toast.error('Course and title are required');
+      return;
+    }
+
+    if (isMockMode) {
+      const created: DiscussionThread = {
+        id: `mock-disc-${Date.now()}`,
+        courseId: newDiscussion.courseId,
+        createdBy: 1,
+        title: newDiscussion.title.trim(),
+        description: newDiscussion.description.trim() || undefined,
+        isPinned: 0,
+        isLocked: 0,
+        viewCount: 0,
+        replyCount: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      setDiscussions((prev) => [created, ...prev]);
+      setNewDiscussion({ courseId: '', title: '', description: '' });
+      toast.success('Discussion created');
       return;
     }
 
@@ -165,11 +274,29 @@ export function DiscussionPage({ userRole = 'instructor' }: DiscussionPageProps)
   };
 
   const refreshDetail = async (id: string) => {
+    if (isMockMode) {
+      const thread = discussions.find((d) => d.id === id);
+      if (!thread) return;
+      setDetailsById((prev) => ({
+        ...prev,
+        [id]: { thread, replies: { data: MOCK_REPLIES[id] || [] } },
+      }));
+      return;
+    }
     const detail = await discussionService.getDiscussion(id);
     setDetailsById((prev) => ({ ...prev, [id]: detail }));
   };
 
   const handlePinToggle = async (discussion: DiscussionThread) => {
+    if (isMockMode) {
+      setDiscussions((prev) =>
+        prev.map((item) =>
+          item.id === discussion.id ? { ...item, isPinned: item.isPinned === 1 ? 0 : 1 } : item
+        )
+      );
+      toast.success(discussion.isPinned === 1 ? 'Discussion unpinned' : 'Discussion pinned');
+      return;
+    }
     try {
       await discussionService.pinDiscussion(discussion.id, discussion.isPinned !== 1);
       toast.success(discussion.isPinned === 1 ? 'Discussion unpinned' : 'Discussion pinned');
@@ -180,6 +307,15 @@ export function DiscussionPage({ userRole = 'instructor' }: DiscussionPageProps)
   };
 
   const handleLockToggle = async (discussion: DiscussionThread) => {
+    if (isMockMode) {
+      setDiscussions((prev) =>
+        prev.map((item) =>
+          item.id === discussion.id ? { ...item, isLocked: item.isLocked === 1 ? 0 : 1 } : item
+        )
+      );
+      toast.success(discussion.isLocked === 1 ? 'Discussion unlocked' : 'Discussion locked');
+      return;
+    }
     try {
       await discussionService.lockDiscussion(discussion.id, discussion.isLocked !== 1);
       toast.success(discussion.isLocked === 1 ? 'Discussion unlocked' : 'Discussion locked');
@@ -193,6 +329,16 @@ export function DiscussionPage({ userRole = 'instructor' }: DiscussionPageProps)
   };
 
   const handleDelete = async (discussionId: string) => {
+    if (isMockMode) {
+      setDiscussions((prev) => prev.filter((item) => item.id !== discussionId));
+      setExpandedDiscussions((prev) => {
+        const next = new Set(prev);
+        next.delete(discussionId);
+        return next;
+      });
+      toast.success('Discussion deleted');
+      return;
+    }
     try {
       await discussionService.deleteDiscussion(discussionId);
       toast.success('Discussion deleted');
@@ -210,6 +356,33 @@ export function DiscussionPage({ userRole = 'instructor' }: DiscussionPageProps)
   const handleReply = async (discussionId: string) => {
     const messageText = replyTextByDiscussion[discussionId]?.trim();
     if (!messageText) return;
+
+    if (isMockMode) {
+      const current = MOCK_REPLIES[discussionId] || [];
+      const newReply: DiscussionReply = {
+        id: `mock-reply-${Date.now()}`,
+        threadId: discussionId,
+        userId: 1,
+        messageText,
+        isAnswer: 0,
+        isEndorsed: 0,
+        upvoteCount: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      MOCK_REPLIES[discussionId] = [...current, newReply];
+      setReplyTextByDiscussion((prev) => ({ ...prev, [discussionId]: '' }));
+      setDiscussions((prev) =>
+        prev.map((item) =>
+          item.id === discussionId
+            ? { ...item, replyCount: (item.replyCount || 0) + 1, updatedAt: new Date().toISOString() }
+            : item
+        )
+      );
+      await refreshDetail(discussionId);
+      toast.success('Reply sent');
+      return;
+    }
 
     try {
       await discussionService.replyToDiscussion(discussionId, messageText);

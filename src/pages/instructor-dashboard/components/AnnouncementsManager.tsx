@@ -60,6 +60,12 @@ type TeachingCourseLike = {
   };
 };
 
+interface AnnouncementsManagerProps {
+  isMockMode?: boolean;
+  mockAnnouncements?: Announcement[];
+  mockCourses?: TeachingCourseLike[];
+}
+
 const normalizeTeachingCourses = (payload: unknown): TeachingCourseLike[] => {
   if (Array.isArray(payload)) return payload as TeachingCourseLike[];
   if (
@@ -124,7 +130,61 @@ const formatDisplayDate = (value?: string) =>
     year: 'numeric',
   });
 
-export function AnnouncementsManager() {
+const DEFAULT_MOCK_ANNOUNCEMENTS: Announcement[] = [
+  {
+    id: 'mock-ann-1',
+    courseId: '101',
+    createdBy: 1,
+    title: 'Midterm Review Session',
+    content: 'Review session moved to Wednesday 2:00 PM in Hall B.',
+    announcementType: 'course',
+    priority: 'high',
+    isPublished: 1,
+    isPinned: 1,
+    viewCount: 27,
+    publishedAt: '2026-04-18T10:00:00.000Z',
+    createdAt: '2026-04-18T09:30:00.000Z',
+    author: { firstName: 'Sarah', lastName: 'Martinez', email: 's.martinez@eduverse.edu' },
+    course: { id: '101', code: 'CS301', name: 'Software Engineering' },
+  },
+  {
+    id: 'mock-ann-2',
+    courseId: '102',
+    createdBy: 1,
+    title: 'Lab Submission Window Extended',
+    content: 'Lab 3 submissions are now accepted until Friday 11:59 PM.',
+    announcementType: 'course',
+    priority: 'medium',
+    isPublished: 1,
+    isPinned: 0,
+    viewCount: 19,
+    publishedAt: '2026-04-16T12:00:00.000Z',
+    createdAt: '2026-04-16T11:20:00.000Z',
+    author: { firstName: 'Sarah', lastName: 'Martinez', email: 's.martinez@eduverse.edu' },
+    course: { id: '102', code: 'CS341', name: 'Database Systems' },
+  },
+  {
+    id: 'mock-ann-3',
+    courseId: null,
+    createdBy: 1,
+    title: 'Office Hours Update',
+    content: 'Office hours this week are online only due to department meetings.',
+    announcementType: 'campus',
+    priority: 'low',
+    isPublished: 0,
+    isPinned: 0,
+    viewCount: 0,
+    createdAt: '2026-04-20T08:30:00.000Z',
+    author: { firstName: 'Sarah', lastName: 'Martinez', email: 's.martinez@eduverse.edu' },
+    course: null,
+  },
+];
+
+export function AnnouncementsManager({
+  isMockMode = false,
+  mockAnnouncements,
+  mockCourses,
+}: AnnouncementsManagerProps = {}) {
   const { isDark, primaryHex = '#3b82f6' } = useTheme() as any;
 
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
@@ -141,6 +201,11 @@ export function AnnouncementsManager() {
   const [form, setForm] = useState<AnnouncementFormState>(emptyForm);
 
   const loadAnnouncements = useCallback(async () => {
+    if (isMockMode) {
+      setAnnouncements(mockAnnouncements ?? DEFAULT_MOCK_ANNOUNCEMENTS);
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
       const response = await announcementService.getAnnouncements();
@@ -150,13 +215,17 @@ export function AnnouncementsManager() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isMockMode, mockAnnouncements]);
 
   useEffect(() => {
     loadAnnouncements();
   }, [loadAnnouncements]);
 
   useEffect(() => {
+    if (isMockMode) {
+      setTeachingCourses(mockCourses ?? []);
+      return;
+    }
     let mounted = true;
     const loadTeachingCourses = async () => {
       try {
@@ -172,7 +241,7 @@ export function AnnouncementsManager() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [isMockMode, mockCourses]);
 
   const counts = useMemo(
     () => ({
@@ -248,6 +317,14 @@ export function AnnouncementsManager() {
   const handleDelete = async () => {
     if (!deletingAnnouncement) return;
 
+    if (isMockMode) {
+      setAnnouncements((prev) => prev.filter((a) => a.id !== deletingAnnouncement.id));
+      setShowDeleteConfirm(false);
+      setDeletingAnnouncement(null);
+      toast.success('Announcement deleted');
+      return;
+    }
+
     try {
       await announcementService.deleteAnnouncement(deletingAnnouncement.id);
       toast.success('Announcement deleted successfully');
@@ -261,6 +338,19 @@ export function AnnouncementsManager() {
   };
 
   const handlePublish = async (announcement: Announcement) => {
+    if (isMockMode) {
+      setAnnouncements((prev) =>
+        prev.map((item) =>
+          item.id === announcement.id
+            ? { ...item, isPublished: 1, publishedAt: new Date().toISOString() }
+            : item
+        )
+      );
+      setOpenMenuId(null);
+      toast.success('Announcement published');
+      return;
+    }
+
     try {
       await announcementService.publishAnnouncement(announcement.id);
       toast.success('Announcement published');
@@ -273,6 +363,17 @@ export function AnnouncementsManager() {
   };
 
   const handlePin = async (announcement: Announcement) => {
+    if (isMockMode) {
+      setAnnouncements((prev) =>
+        prev.map((item) =>
+          item.id === announcement.id ? { ...item, isPinned: item.isPinned === 1 ? 0 : 1 } : item
+        )
+      );
+      setOpenMenuId(null);
+      toast.success(announcement.isPinned === 1 ? 'Announcement unpinned' : 'Announcement pinned');
+      return;
+    }
+
     try {
       await announcementService.pinAnnouncement(announcement.id, announcement.isPinned !== 1);
       toast.success(announcement.isPinned === 1 ? 'Announcement unpinned' : 'Announcement pinned');
@@ -297,6 +398,58 @@ export function AnnouncementsManager() {
       priority: form.priority,
       ...(parsedCourseId > 0 ? { courseId: parsedCourseId } : {}),
     };
+
+    if (isMockMode) {
+      if (editingAnnouncement) {
+        setAnnouncements((prev) =>
+          prev.map((item) =>
+            item.id === editingAnnouncement.id
+              ? {
+                  ...item,
+                  title: payload.title,
+                  content: payload.content,
+                  priority: payload.priority,
+                  isPublished: form.publishNow ? 1 : item.isPublished,
+                  updatedAt: new Date().toISOString(),
+                }
+              : item
+          )
+        );
+        toast.success('Announcement updated');
+      } else {
+        const newAnnouncement: Announcement = {
+          id: `mock-ann-${Date.now()}`,
+          courseId: parsedCourseId > 0 ? String(parsedCourseId) : null,
+          createdBy: 1,
+          title: payload.title,
+          content: payload.content,
+          priority: payload.priority,
+          announcementType: parsedCourseId > 0 ? 'course' : 'campus',
+          isPublished: form.publishNow ? 1 : 0,
+          isPinned: 0,
+          viewCount: 0,
+          publishedAt: form.publishNow ? new Date().toISOString() : undefined,
+          createdAt: new Date().toISOString(),
+          author: { firstName: 'Sarah', lastName: 'Martinez', email: 's.martinez@eduverse.edu' },
+          course:
+            parsedCourseId > 0
+              ? {
+                  id: String(parsedCourseId),
+                  name:
+                    courseOptions.find((option) => option.id === String(parsedCourseId))?.label ||
+                    `Course ${parsedCourseId}`,
+                }
+              : null,
+        };
+        setAnnouncements((prev) => [newAnnouncement, ...prev]);
+        toast.success('Announcement created');
+      }
+
+      setShowCreateModal(false);
+      setEditingAnnouncement(null);
+      setForm(emptyForm);
+      return;
+    }
 
     try {
       setSaving(true);

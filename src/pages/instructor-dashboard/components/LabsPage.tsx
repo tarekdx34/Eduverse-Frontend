@@ -10,10 +10,11 @@ import { LabsDashboard } from './labs';
 
 export interface LabsPageProps {
   courses?: any[];
+  isMockMode?: boolean;
 }
 
-export function LabsPage({ courses = [] }: LabsPageProps) {
-  return <LabsDashboard courses={courses} />;
+export function LabsPage({ courses = [], isMockMode = false }: LabsPageProps) {
+  return <LabsDashboard courses={courses} isMockMode={isMockMode} />;
 }
 
 export default LabsPage;

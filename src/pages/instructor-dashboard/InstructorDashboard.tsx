@@ -32,6 +32,7 @@ import { ScheduleService } from '../../services/api/scheduleService';
 import { NotificationService } from '../../services/api/notificationService';
 import type { Notification as ApiNotification } from '../../services/api/notificationService';
 import { AnalyticsService } from '../../services/api/analyticsService';
+import { TOKEN_KEYS } from '../../services/api/config';
 import { toast } from 'sonner';
 import { useNotificationRealtime } from '../../hooks/useNotificationRealtime';
 import { toHeaderNotification } from '../../utils/notificationUi';
@@ -218,7 +219,10 @@ function InstructorDashboardContent() {
     localStorage.setItem('hasSeenInstructorWalkthrough', 'true');
   };
 
-  const isMockMode = !isAuthenticated || location.state?.isMock;
+  const isMockMode =
+    !isAuthenticated ||
+    location.state?.isMock ||
+    localStorage.getItem(TOKEN_KEYS.ACCESS_TOKEN) === 'mock-dev-token';
 
   // Live Data Queries
   const { data: teachingCoursesLive } = useQuery({
@@ -1347,9 +1351,10 @@ function InstructorDashboardContent() {
                   onClick={() => setRosterSubTab('overview')}
                   className={`pb-2 px-1 text-sm font-medium transition-colors relative ${
                     rosterSubTab === 'overview'
-                      ? 'text-indigo-600'
+                      ? ''
                       : 'text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200'
                   }`}
+                  style={rosterSubTab === 'overview' ? { color: primaryHex } : undefined}
                 >
                   {t('overview') || 'Overview'}
                   {rosterSubTab === 'overview' && (
@@ -1363,9 +1368,10 @@ function InstructorDashboardContent() {
                   onClick={() => setRosterSubTab('grades')}
                   className={`pb-2 px-1 text-sm font-medium transition-colors relative ${
                     rosterSubTab === 'grades'
-                      ? 'text-indigo-600'
+                      ? ''
                       : 'text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200'
                   }`}
+                  style={rosterSubTab === 'grades' ? { color: primaryHex } : undefined}
                 >
                   {t('detailedGrades') || 'Detailed Grades'}
                   {rosterSubTab === 'grades' && (
