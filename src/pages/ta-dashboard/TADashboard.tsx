@@ -1348,6 +1348,7 @@ function TADashboardContent() {
           <MessagingChat
             height="100vh"
             currentUserName={currentUserName}
+            onOpenSidebar={() => setSidebarOpen(true)}
             showVideoCall={isMockMode} // Hidden in live mode for now as per previous banners
             showVoiceCall={isMockMode}
             isDark={isDark}

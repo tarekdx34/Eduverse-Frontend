@@ -99,8 +99,16 @@ export function Header() {
               {t('Log in', 'تسجيل الدخول')}
             </Button>
 
-            {/* Get Started Button */}
-            <Button className="rounded-md bg-foreground text-background hover:bg-foreground/90">
+            {/* Mobile Login Button */}
+            <Button
+              onClick={handlelogin}
+              className="lg:hidden rounded-md bg-foreground text-background hover:bg-foreground/90"
+            >
+              {t('Log in', 'تسجيل الدخول')}
+            </Button>
+
+            {/* Desktop Get Started Button */}
+            <Button className="hidden lg:inline-flex rounded-md bg-foreground text-background hover:bg-foreground/90">
               {t('Get started', 'ابدأ الآن')}
             </Button>
 

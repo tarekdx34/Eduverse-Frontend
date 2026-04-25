@@ -962,6 +962,7 @@ function AdminDashboardContent() {
               height="100%"
               currentUserId={user?.userId != null ? String(user.userId) : undefined}
               currentUserName={user?.fullName || 'Administrator'}
+              onOpenSidebar={() => setSidebarOpen(true)}
               showVideoCall={true}
               showVoiceCall={true}
               isDark={isDark}

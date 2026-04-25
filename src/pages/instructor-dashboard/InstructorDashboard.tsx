@@ -1579,6 +1579,7 @@ function InstructorDashboardContent() {
             <MessagingChat
               height="100vh"
               currentUserName={user?.fullName || 'Prof. Sarah Martinez'}
+              onOpenSidebar={() => setSidebarOpen(true)}
               showVideoCall={true}
               showVoiceCall={true}
               isDark={isDark}

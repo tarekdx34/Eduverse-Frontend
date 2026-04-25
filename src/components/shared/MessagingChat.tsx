@@ -3,6 +3,7 @@ import {
   ArrowLeft,
   CornerUpLeft,
   Mail,
+  Menu,
   Mic,
   MicOff,
   Paperclip,
@@ -76,6 +77,7 @@ interface MessagingChatProps {
   onSendMessage?: (conversationId: string, message: { text?: string; file?: File }) => void;
   onSelectConversation?: (conversationId: string) => void;
   onStartNewConversation?: () => void;
+  onOpenSidebar?: () => void;
   showVideoCall?: boolean;
   showVoiceCall?: boolean;
   showCalls?: boolean;
@@ -441,6 +443,20 @@ function parseSocketMessage(payload: unknown): ChatMessageApi {
   };
 }
 
+function getMessageSortTime(message: Message): number {
+  const primary = message.rawTimestamp ? new Date(message.rawTimestamp).getTime() : Number.NaN;
+  if (!Number.isNaN(primary)) return primary;
+
+  const fallback = message.timestamp ? new Date(message.timestamp).getTime() : Number.NaN;
+  if (!Number.isNaN(fallback)) return fallback;
+
+  return 0;
+}
+
+function sortMessagesChronologically(items: Message[]): Message[] {
+  return [...items].sort((a, b) => getMessageSortTime(a) - getMessageSortTime(b));
+}
+
 export function MessagingChat({
   conversations = DEFAULT_CONVERSATIONS,
   messages: initialMessages = DEFAULT_MESSAGES,
@@ -449,6 +465,7 @@ export function MessagingChat({
   onSendMessage,
   onSelectConversation,
   onStartNewConversation,
+  onOpenSidebar,
   showVideoCall = true,
   showVoiceCall = true,
   showCalls = true,
@@ -477,10 +494,10 @@ export function MessagingChat({
   }, [currentUserId, token]);
 
   const [localConversations, setLocalConversations] = useState<Conversation[]>(() =>
-    token && !isMockToken ? [] : conversations,
+    token && !isMockToken ? [] : conversations
   );
   const [selectedConversation, setSelectedConversation] = useState<string>(() =>
-    token && !isMockToken ? '' : conversations[0]?.id || '',
+    token && !isMockToken ? '' : conversations[0]?.id || ''
   );
   const [messageInput, setMessageInput] = useState('');
   const [messages, setMessages] = useState<Message[]>(initialMessages);
@@ -504,6 +521,7 @@ export function MessagingChat({
   const typingDisplayTimer = useRef<number | null>(null);
   const lastJoinedConversation = useRef<string>('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesScrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const currentConversation = localConversations.find((c) => c.id === selectedConversation);
@@ -523,9 +541,22 @@ export function MessagingChat({
       c.lastMessage.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const scrollToLatestMessage = (behavior: ScrollBehavior = 'auto') => {
+    const viewport = messagesScrollRef.current;
+    if (viewport) {
+      viewport.scrollTop = viewport.scrollHeight;
+    }
+    messagesEndRef.current?.scrollIntoView({ behavior, block: 'end' });
+  };
+
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    const rafOne = window.requestAnimationFrame(() => {
+      const rafTwo = window.requestAnimationFrame(() => scrollToLatestMessage('auto'));
+      return () => window.cancelAnimationFrame(rafTwo);
+    });
+
+    return () => window.cancelAnimationFrame(rafOne);
+  }, [selectedConversation, visibleMessages.length, showChatOnMobile, isLoadingMessages]);
 
   useEffect(() => {
     if (!token || isMockToken) return;
@@ -550,7 +581,7 @@ export function MessagingChat({
         setUserDirectory((prev) => mergeDirectory(prev, fromConversations));
 
         const mapped = safeList.map((conversation) =>
-          mapConversation(conversation, resolvedUserId, mergeDirectory({}, fromConversations)),
+          mapConversation(conversation, resolvedUserId, mergeDirectory({}, fromConversations))
         );
         setLocalConversations(mapped);
         setSelectedConversation((prev) => {
@@ -729,7 +760,7 @@ export function MessagingChat({
       .then((list) => {
         if (!mounted) return;
         const mapped = list.map((message) => mapMessage(message, resolvedUserId, currentUserName));
-        setMessages(mapped);
+        setMessages(sortMessagesChronologically(mapped));
         chatSocketClient.emitJoinConversation(conversationId);
         chatSocketClient.emitMarkRead(conversationId);
         lastJoinedConversation.current = selectedConversation;
@@ -1027,17 +1058,30 @@ export function MessagingChat({
 
   return (
     <div
-      className={`${isDark ? 'bg-gray-800 border-white/10' : 'bg-white border-gray-200'} rounded-xl border flex flex-col md:flex-row overflow-hidden ${className}`}
+      className={`${isDark ? 'bg-gray-800 border-white/10' : 'bg-white border-gray-200'} rounded-xl border flex min-h-0 flex-col md:flex-row overflow-hidden ${className}`}
       style={{ height }}
     >
       <aside
-        className={`w-full md:w-80 shrink-0 flex flex-col border-r ${isDark ? 'bg-gray-900/50 border-white/10' : 'bg-gray-50 border-gray-200'}`}
+        className={`w-full md:w-80 shrink-0 ${
+          showChatOnMobile ? 'hidden md:flex' : 'flex'
+        } min-h-0 flex-col border-r ${isDark ? 'bg-gray-900/50 border-white/10' : 'bg-gray-50 border-gray-200'}`}
       >
         <div className={`${isDark ? 'border-white/10' : 'border-gray-200'} border-b p-4`}>
           <div className="flex items-center justify-between mb-4">
-            <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              Messages
-            </h3>
+            <div className="flex items-center gap-2">
+              {onOpenSidebar && (
+                <button
+                  onClick={onOpenSidebar}
+                  className={`p-2 rounded-lg transition-colors md:hidden ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`}
+                  title="Open menu"
+                >
+                  <Menu size={20} className={isDark ? 'text-slate-400' : 'text-gray-600'} />
+                </button>
+              )}
+              <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                Messages
+              </h3>
+            </div>
             <div className="flex items-center gap-2">
               <span
                 className={`text-xs ${isConnected ? 'text-green-600' : isDark ? 'text-slate-400' : 'text-gray-500'}`}
@@ -1150,21 +1194,22 @@ export function MessagingChat({
           )}
         </div>
 
-        <div className="flex-1 overflow-y-auto">
-          {!isLoadingConversations &&
-            !chatError &&
-            filteredConversations.length === 0 && (
-              <div
-                className={`px-4 py-8 text-center text-sm ${isDark ? 'text-slate-400' : 'text-gray-500'}`}
-              >
-                <p className={`font-medium ${isDark ? 'text-slate-200' : 'text-gray-800'}`}>
-                  No conversations yet
-                </p>
-                <p className="mt-1 text-xs">
-                  Use New chat to start a conversation, or check back when someone messages you.
-                </p>
-              </div>
-            )}
+        <div
+          className="flex-1 min-h-0 overflow-y-auto"
+          style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}
+        >
+          {!isLoadingConversations && !chatError && filteredConversations.length === 0 && (
+            <div
+              className={`px-4 py-8 text-center text-sm ${isDark ? 'text-slate-400' : 'text-gray-500'}`}
+            >
+              <p className={`font-medium ${isDark ? 'text-slate-200' : 'text-gray-800'}`}>
+                No conversations yet
+              </p>
+              <p className="mt-1 text-xs">
+                Use New chat to start a conversation, or check back when someone messages you.
+              </p>
+            </div>
+          )}
           {filteredConversations.map((conversation) => (
             <button
               key={conversation.id}
@@ -1218,7 +1263,7 @@ export function MessagingChat({
       </aside>
 
       <section
-        className={`${showChatOnMobile ? 'flex' : 'hidden md:flex'} flex-1 flex-col ${isDark ? 'bg-gray-800' : 'bg-white'}`}
+        className={`${showChatOnMobile ? 'flex' : 'hidden md:flex'} min-h-0 flex-1 flex-col ${isDark ? 'bg-gray-800' : 'bg-white'}`}
       >
         {currentConversation ? (
           <>
@@ -1226,6 +1271,15 @@ export function MessagingChat({
               className={`${isDark ? 'border-white/10 bg-gray-900' : 'border-gray-200 bg-white'} border-b p-4 flex items-center justify-between`}
             >
               <div className="flex items-center gap-3">
+                {onOpenSidebar && (
+                  <button
+                    onClick={onOpenSidebar}
+                    className={`p-2 rounded-lg transition-colors md:hidden ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`}
+                    title="Open menu"
+                  >
+                    <Menu size={20} className={isDark ? 'text-slate-400' : 'text-gray-600'} />
+                  </button>
+                )}
                 <button
                   onClick={() => setShowChatOnMobile(false)}
                   className={`p-2 rounded-lg transition-colors md:hidden ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`}
@@ -1269,7 +1323,9 @@ export function MessagingChat({
             </div>
 
             <div
+              ref={messagesScrollRef}
               className={`flex-1 overflow-y-auto p-4 md:p-6 space-y-4 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}
+              style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}
             >
               {isLoadingMessages && (
                 <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
@@ -1482,7 +1538,11 @@ export function MessagingChat({
                   onChange={(e) => setMessageInput(e.target.value)}
                   onKeyDown={handleKeyPress}
                   placeholder="Type a message..."
-                  className={`flex-1 px-4 py-2 border rounded-lg text-sm focus:outline-none focus:border-indigo-600 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500' : 'border-gray-200'}`}
+                  className={`flex-1 px-4 py-2 border rounded-lg text-sm focus:outline-none focus:border-indigo-600 ${
+                    isDark
+                      ? 'bg-slate-800 border-slate-600 text-white placeholder:text-slate-400'
+                      : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-500'
+                  }`}
                 />
 
                 {showEmojiPicker && (

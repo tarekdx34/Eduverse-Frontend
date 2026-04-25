@@ -521,6 +521,7 @@ function ITAdminDashboardContent() {
             height="100vh"
             className="rounded-none border-0"
             currentUserName={user?.fullName || 'IT Administrator'}
+            onOpenSidebar={() => setSidebarOpen(true)}
             showVideoCall={true}
             showVoiceCall={true}
             isDark={isDark}

@@ -467,6 +467,7 @@ function StudentDashboardContent() {
                   height="100vh"
                   currentUserId={user?.userId ? String(user.userId) : undefined}
                   currentUserName={user?.fullName || 'Student'}
+                  onOpenSidebar={() => setSidebarOpen(true)}
                   isDark={isDark}
                   className="rounded-none border-0"
                   accentColor={primaryHex || '#3b82f6'}
