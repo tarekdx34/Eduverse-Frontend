@@ -293,7 +293,7 @@ function InstructorDashboardContent() {
     enabled: !isMockMode,
   });
 
-  const { data: attendanceSessionsLive } = useQuery({
+  const { data: attendanceSessionsLive, isLoading: isLoadingAttendanceSessions } = useQuery({
     queryKey: ['attendance-sessions', activeSectionId],
     queryFn: () => AttendanceService.getSessions({ sectionId: Number(activeSectionId) }),
     enabled: !isMockMode && !!activeSectionId && activeTab === 'attendance',
@@ -1548,6 +1548,7 @@ function InstructorDashboardContent() {
                       {t('attendanceRecords') || 'Attendance Records'}
                     </h3>
                     <AttendanceTable
+                      loading={isLoadingAttendanceSessions}
                       sessions={activeSectionId ? attendanceData[activeSectionId] || [] : []}
                       onCreate={handleCreateAttendance}
                       onEdit={handleEditAttendance}

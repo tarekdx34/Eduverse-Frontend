@@ -26,6 +26,7 @@ import {
   Package,
   Database,
 } from 'lucide-react';
+import { Skeleton } from '../../../components/ui/skeleton';
 import { EnrollmentService } from '../../../services/api/enrollmentService';
 import {
   CourseMaterial,
@@ -1333,12 +1334,22 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
             </div>
 
             {loading ? (
-              <div
-                className={`rounded-xl p-8 border ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-slate-200'}`}
-              >
-                <div className="flex items-center gap-2 text-sm text-slate-500">
-                  <Loader2 size={16} className="animate-spin" />
-                  Loading materials...
+              <div className="space-y-4">
+                <div
+                  className={`rounded-xl p-6 border ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-slate-200'}`}
+                >
+                  <div className="space-y-3">
+                    <Skeleton className="h-5 w-44" />
+                    <Skeleton className="h-4 w-72" />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
+                      <Skeleton className="h-28 w-full" />
+                      <Skeleton className="h-28 w-full" />
+                    </div>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <Skeleton className="h-32 w-full rounded-xl" />
+                  <Skeleton className="h-32 w-full rounded-xl" />
                 </div>
               </div>
             ) : Object.keys(groupedMaterials).length === 0 ? (

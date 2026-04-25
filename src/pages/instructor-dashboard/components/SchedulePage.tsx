@@ -27,6 +27,7 @@ import {
   type OfficeHoursSuggestion,
   type PersonalEventScheduleItem,
 } from '../../../services/api/scheduleService';
+import { Skeleton } from '../../../components/ui/skeleton';
 
 type ViewMode = 'month' | 'week' | 'day';
 type ItemKind = 'class' | 'exam' | 'event' | 'campus_event' | 'office_hours';
@@ -1063,6 +1064,28 @@ export function SchedulePage() {
   const selectedCourseCode = selectedCourse?.code || selectedCourse?.courseCode;
   const selectedCourseName = selectedCourse?.name || selectedCourse?.courseName;
 
+  const renderScheduleSkeleton = () => (
+    <div className="space-y-4">
+      <div className={`rounded-lg border p-3 ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
+        <div className="flex items-center justify-between gap-3">
+          <Skeleton className="h-6 w-48" />
+          <Skeleton className="h-5 w-16" />
+        </div>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-7 gap-2">
+        {Array.from({ length: 7 }).map((_, index) => (
+          <div
+            key={index}
+            className={`rounded-lg border p-2 ${isDark ? 'border-white/10' : 'border-gray-200'}`}
+          >
+            <Skeleton className="h-4 w-12 mb-2" />
+            <Skeleton className="h-16 w-full" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -1153,10 +1176,7 @@ export function SchedulePage() {
 
         <div className="p-4 min-h-[500px]">
             {isLoading && (
-              <div className={`flex items-center justify-center gap-2 text-sm ${subtitleText} h-96`}>
-                <Loader2 size={16} className="animate-spin" />
-                {t('loadingSchedule')}
-              </div>
+              <div className="h-full">{renderScheduleSkeleton()}</div>
             )}
 
             {hasError && !isLoading && (

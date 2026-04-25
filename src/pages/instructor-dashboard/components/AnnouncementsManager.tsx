@@ -17,8 +17,8 @@ import {
   Edit3,
   Send,
   Pin,
-  Loader2,
 } from 'lucide-react';
+import { Skeleton } from '../../../components/ui/skeleton';
 
 interface AnnouncementFormState {
   title: string;
@@ -425,8 +425,24 @@ export function AnnouncementsManager() {
 
       <div className="space-y-4">
         {loading ? (
-          <div className={`${cardClass} flex items-center gap-3`}>
-            <Loader2 className="animate-spin" size={18} /> Loading announcements...
+          <div className="space-y-4">
+            {Array.from({ length: 3 }).map((_, index) => (
+              <div key={index} className={cardClass}>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Skeleton className="h-6 w-24 rounded-full" />
+                    <Skeleton className="h-6 w-16 rounded-full" />
+                  </div>
+                  <Skeleton className="h-6 w-1/2" />
+                  <Skeleton className="h-4 w-4/5" />
+                  <div className="flex gap-2 flex-wrap">
+                    <Skeleton className="h-5 w-28 rounded-full" />
+                    <Skeleton className="h-5 w-20 rounded-full" />
+                    <Skeleton className="h-5 w-16 rounded-full" />
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         ) : filtered.length === 0 ? (
           <div className={`${cardClass} text-center py-12`}>

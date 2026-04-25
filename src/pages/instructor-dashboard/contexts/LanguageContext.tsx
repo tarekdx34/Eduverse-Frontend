@@ -13,7 +13,7 @@ interface LanguageContextType {
 const translations: Record<Language, Record<string, string>> = {
   en: {
     // Header
-    search: 'Search...',
+    searchBar: 'Search...',
     searchPlaceholder: 'Search Courses, Students, Materials...',
     notifications: 'Notifications',
     language: 'Language',
@@ -85,7 +85,6 @@ const translations: Record<Language, Record<string, string>> = {
     attendanceRate: 'Attendance Rate',
     performance: 'Performance',
     contactStudent: 'Contact Student',
-    viewProfile: 'View Profile',
     atRisk: 'At Risk',
     onTrack: 'On Track',
     excellent: 'Excellent',
@@ -231,7 +230,6 @@ const translations: Record<Language, Record<string, string>> = {
 
     // Materials
     uploadMaterials: 'Upload Materials',
-    courseMaterials: 'Course Materials',
     lectures: 'Lectures',
     notes: 'Notes',
     resources: 'Resources',
@@ -367,7 +365,6 @@ const translations: Record<Language, Record<string, string>> = {
     register: 'Register',
     unregister: 'Unregister',
     eventFull: 'Event Full',
-    close: 'Close',
     campusEventRegisterSuccess: 'Registered successfully.',
     campusEventRegisterError: 'Registration failed.',
     campusEventUnregisterSuccess: 'Unregistered successfully.',
@@ -600,7 +597,7 @@ const translations: Record<Language, Record<string, string>> = {
   },
   ar: {
     // Header
-    search: 'بحث...',
+    searchBar: 'بحث...',
     searchPlaceholder: 'البحث عن المقررات والطلاب والمواد...',
     notifications: 'الإشعارات',
     language: 'اللغة',
@@ -842,6 +839,7 @@ const translations: Record<Language, Record<string, string>> = {
     reset: 'إعادة تعيين',
     filter: 'تصفية',
     sort: 'ترتيب',
+    search: 'بحث',
     noData: 'لا توجد بيانات',
     viewAll: 'عرض الكل',
     seeMore: 'المزيد',
@@ -950,7 +948,6 @@ const translations: Record<Language, Record<string, string>> = {
     register: 'تسجيل',
     unregister: 'إلغاء التسجيل',
     eventFull: 'الحدث مكتمل',
-    close: 'إغلاق',
     campusEventRegisterSuccess: 'تم التسجيل بنجاح.',
     campusEventRegisterError: 'فشل التسجيل.',
     campusEventUnregisterSuccess: 'تم إلغاء التسجيل بنجاح.',

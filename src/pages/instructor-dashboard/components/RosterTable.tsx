@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Search, ArrowUpDown, Calendar, Loader2, StickyNote, X } from 'lucide-react';
+import { Search, ArrowUpDown, Calendar, StickyNote, X } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { enrollmentService, EnrolledCourse } from '../../../services/api/enrollmentService';
+import { Skeleton } from '../../../components/ui/skeleton';
 
 export type RosterEntry = {
   id: string;
@@ -179,9 +180,11 @@ export function RosterTable({ sectionId, data = [] }: RosterTableProps) {
       </div>
 
       {loading && (
-        <div className="flex items-center gap-2 py-3 text-sm text-slate-500">
-          <Loader2 size={16} className="animate-spin" />
-          Loading roster...
+        <div className="space-y-3 py-2">
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-12 w-full" />
         </div>
       )}
 

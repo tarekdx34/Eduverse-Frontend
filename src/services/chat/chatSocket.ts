@@ -23,6 +23,16 @@ function getServerOrigin(): string {
     }
   }
 
+  const envSocketBase = (import.meta.env.VITE_SOCKET_URL as string | undefined)?.trim();
+  if (envSocketBase) {
+    return envSocketBase.replace(/\/$/, '');
+  }
+
+  const envApiUrl = (import.meta.env.VITE_API_URL as string | undefined)?.trim();
+  if (envApiUrl) {
+    return envApiUrl.replace(/\/api\/?$/, '').replace(/\/$/, '');
+  }
+
   if (API_BASE_URL.startsWith('http')) {
     return API_BASE_URL.replace(/\/api\/?$/, '');
   }
