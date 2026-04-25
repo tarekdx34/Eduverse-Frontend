@@ -10,7 +10,6 @@ import {
   ChevronUp,
   Lock,
   Trash2,
-  Loader2,
   CheckCircle,
   ShieldCheck,
 } from 'lucide-react';
@@ -25,6 +24,7 @@ import {
 } from '../../../services/api/discussionService';
 import { EnrollmentService } from '../../../services/api/enrollmentService';
 import { toast } from 'sonner';
+import { Skeleton } from '../../../components/ui/skeleton';
 
 interface DiscussionPageProps {
   userRole?: 'ta' | 'instructor';
@@ -359,10 +359,23 @@ export function DiscussionPage({ userRole = 'instructor' }: DiscussionPageProps)
 
       <div className="space-y-4">
         {loading ? (
-          <div
-            className={`text-center py-12 border rounded-lg ${isDark ? 'bg-white/5 border-white/10 text-slate-300' : 'bg-white border-gray-200 text-gray-700'}`}
-          >
-            <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" /> Loading discussions...
+          <div className="space-y-4">
+            {Array.from({ length: 3 }).map((_, index) => (
+              <div
+                key={index}
+                className={`border rounded-lg p-6 ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}
+              >
+                <div className="space-y-3">
+                  <Skeleton className="h-6 w-1/2" />
+                  <Skeleton className="h-4 w-4/5" />
+                  <div className="flex gap-3">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-4 w-20" />
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         ) : (
           filteredDiscussions.map((discussion) => {

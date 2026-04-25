@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Search, Plus, Edit2, Trash2, Sparkles } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { Skeleton } from '../../../components/ui/skeleton';
 
 export type AttendanceSession = {
   id: number;
@@ -12,6 +13,7 @@ export type AttendanceSession = {
 
 type AttendanceTableProps = {
   sessions: AttendanceSession[];
+  loading?: boolean;
   onCreate: () => void;
   onEdit: (session: AttendanceSession) => void;
   onDelete: (id: number) => void;
@@ -20,6 +22,7 @@ type AttendanceTableProps = {
 
 export function AttendanceTable({
   sessions,
+  loading = false,
   onCreate,
   onEdit,
   onDelete,
@@ -80,6 +83,14 @@ export function AttendanceTable({
       </div>
 
       <div className="overflow-x-auto" id="walkthrough-attendance-table">
+        {loading ? (
+          <div className="space-y-3">
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full" />
+          </div>
+        ) : (
         <table className="min-w-full text-sm">
           <thead>
             <tr
@@ -162,6 +173,7 @@ export function AttendanceTable({
             )}
           </tbody>
         </table>
+        )}
       </div>
     </div>
   );
