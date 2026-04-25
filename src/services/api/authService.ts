@@ -31,7 +31,16 @@ export interface LoginResponse {
 
 export class AuthService {
   static async login(credentials: LoginRequest): Promise<LoginResponse> {
-    const response = await ApiClient.post<LoginResponse>('/auth/login', credentials);
+    const payload: { email: string; password: string; rememberMe?: boolean } = {
+      email: credentials.email,
+      password: credentials.password,
+    };
+
+    if (credentials.rememberMe === true) {
+      payload.rememberMe = true;
+    }
+
+    const response = await ApiClient.post<LoginResponse>('/auth/login', payload);
     localStorage.setItem(TOKEN_KEYS.ACCESS_TOKEN, response.accessToken);
     localStorage.setItem(TOKEN_KEYS.REFRESH_TOKEN, response.refreshToken);
     localStorage.setItem(TOKEN_KEYS.USER, JSON.stringify(response.user));
