@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { type CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -1084,11 +1084,16 @@ export function UploadMaterialsPage({ courseId, isMockMode = false, courses = []
                 <div
                   key={doc.materialId}
                   className={`flex flex-wrap items-center justify-between gap-2 p-2 rounded border ${selectedDocument?.materialId === doc.materialId
-                    ? 'border-indigo-300 bg-indigo-50'
+                    ? ''
                     : isDark
                       ? 'border-white/10 bg-white/5'
                       : 'border-slate-200 bg-white'
                     }`}
+                  style={
+                    selectedDocument?.materialId === doc.materialId
+                      ? { borderColor: `${primaryHex}80`, backgroundColor: `${primaryHex}12` }
+                      : undefined
+                  }
                 >
                   <button
                     type="button"
@@ -1101,7 +1106,8 @@ export function UploadMaterialsPage({ courseId, isMockMode = false, courses = []
                   <button
                     type="button"
                     onClick={() => onDownload(doc)}
-                    className="text-xs px-2 py-1 rounded bg-indigo-600 text-white hover:bg-indigo-700"
+                    className="text-xs px-2 py-1 rounded text-white"
+                    style={{ backgroundColor: primaryHex }}
                   >
                     Open
                   </button>
@@ -1266,7 +1272,8 @@ export function UploadMaterialsPage({ courseId, isMockMode = false, courses = []
                 href={material.externalUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-white/10 text-indigo-400' : 'hover:bg-indigo-50 text-indigo-600'}`}
+                className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-white/10' : 'hover:bg-slate-100'}`}
+                style={{ color: primaryHex }}
                 title="Open Link"
               >
                 <LinkIcon size={16} />
@@ -1322,7 +1329,7 @@ export function UploadMaterialsPage({ courseId, isMockMode = false, courses = []
           <div
             className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${isDark ? 'bg-white/10' : 'bg-slate-100'}`}
           >
-            <Package size={18} className="text-indigo-500" />
+            <Package size={18} style={{ color: primaryHex }} />
           </div>
 
           <button
@@ -1334,7 +1341,10 @@ export function UploadMaterialsPage({ courseId, isMockMode = false, courses = []
               <h4 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
                 {bundle.baseTitle}
               </h4>
-              <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700">
+              <span
+                className="px-2 py-0.5 rounded-full text-xs font-medium"
+                style={{ backgroundColor: `${primaryHex}20`, color: primaryHex }}
+              >
                 Lecture Bundle
               </span>
               <span
@@ -1398,9 +1408,15 @@ export function UploadMaterialsPage({ courseId, isMockMode = false, courses = []
   const renderWeekMaterialEntry = (entry: WeekMaterialEntry) =>
     entry.kind === 'bundle' ? renderBundleCard(entry.bundle) : renderMaterialCard(entry.material);
 
+  const selectedCourseCardStyle: CSSProperties = {
+    borderColor: primaryHex,
+    backgroundColor: `${primaryHex}12`,
+    boxShadow: `0 0 0 1px ${primaryHex}40`,
+  };
+
   return (
-    <div className="p-6" dir={isRTL ? 'rtl' : 'ltr'}>
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="space-y-6" dir={isRTL ? 'rtl' : 'ltr'}>
+      <div className="space-y-6">
         <div className="flex items-center justify-between gap-4">
           <div>
             <h1
@@ -1494,14 +1510,14 @@ export function UploadMaterialsPage({ courseId, isMockMode = false, courses = []
                       <button
                         key={opt.value}
                         onClick={() => setSelectedCourseId(opt.value)}
-                        className={`flex-shrink-0 w-48 p-4 rounded-xl border text-left transition-all ${
+                        className={`flex-shrink-0 w-48 min-h-[86px] p-4 rounded-xl border text-left transition-all ${
                           isActive
-                            ? 'ring-2 ring-indigo-500 border-transparent shadow-lg scale-[1.02]'
+                            ? 'shadow-md'
                             : isDark
                               ? 'bg-white/5 border-white/10 hover:border-white/20'
                               : 'bg-white border-slate-200 hover:border-slate-300'
                         }`}
-                        style={isActive ? { backgroundColor: `${primaryHex}10` } : {}}
+                        style={isActive ? selectedCourseCardStyle : {}}
                       >
                         <div
                           className={`text-lg font-bold mb-1 ${isActive ? '' : isDark ? 'text-white' : 'text-slate-900'}`}
@@ -1510,7 +1526,8 @@ export function UploadMaterialsPage({ courseId, isMockMode = false, courses = []
                           {code}
                         </div>
                         <div
-                          className={`text-xs truncate ${isActive ? 'text-indigo-600 dark:text-indigo-400' : isDark ? 'text-slate-400' : 'text-slate-500'}`}
+                          className={`text-xs truncate ${isDark ? 'text-slate-400' : 'text-slate-500'}`}
+                          style={isActive ? { color: primaryHex } : {}}
                           title={name}
                         >
                           {name}
@@ -1852,7 +1869,7 @@ export function UploadMaterialsPage({ courseId, isMockMode = false, courses = []
                               </>
                             ) : (
                               <>
-                                <LinkIcon size={24} className="text-indigo-500" />
+                                <LinkIcon size={24} style={{ color: primaryHex }} />
                                 <div>
                                   <p className="font-bold">Web Link Detected</p>
                                   <p className="opacity-70">{new URL(form.externalUrl).hostname}</p>

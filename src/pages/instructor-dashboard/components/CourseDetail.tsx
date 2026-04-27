@@ -35,6 +35,7 @@ import { toast } from 'sonner';
 
 type Course = {
   id: number;
+  courseId?: number;
   courseCode: string;
   courseName: string;
   semester: string;
@@ -55,9 +56,16 @@ type CourseDetailProps = {
   onBack: () => void;
   courses: Course[];
   isMockMode?: boolean;
+  coursesLoading?: boolean;
 };
 
-export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: CourseDetailProps) {
+export function CourseDetail({
+  courseId,
+  onBack,
+  courses,
+  isMockMode = false,
+  coursesLoading = false,
+}: CourseDetailProps) {
   const { isDark, primaryHex = '#3b82f6' } = useTheme() as any;
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('overview');
@@ -89,19 +97,22 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
     file: null,
   });
 
-  // Get actual course data
-  const course = courses.find((c) => String(c.id) === String(courseId));
+  // Get actual course data (URL may be section id or catalog course id)
+  const course = courses.find(
+    (c) => String(c.id) === String(courseId) || String(c.courseId ?? '') === String(courseId),
+  );
+  const resolvedCourseId = Number(course?.courseId ?? course?.id ?? courseId);
 
   const queryClient = useQueryClient();
   const { data: apiCourseMaterials = [], isLoading: isLoadingMaterials } = useQuery({
-    queryKey: ['course-materials', course?.id],
-    queryFn: () => CourseService.getMaterials(course!.id),
+    queryKey: ['course-materials', resolvedCourseId],
+    queryFn: () => CourseService.getMaterials(resolvedCourseId),
     enabled: !!course?.id && !isMockMode,
   });
 
   const { data: assignmentsResponse, isLoading: isLoadingAssignments } = useQuery({
-    queryKey: ['course-assignments', course?.id],
-    queryFn: () => AssignmentService.getAll({ courseId: String(course!.id) }),
+    queryKey: ['course-assignments', resolvedCourseId],
+    queryFn: () => AssignmentService.getAll({ courseId: String(resolvedCourseId) }),
     enabled: !!course?.id && !isMockMode,
   });
   const apiCourseAssignments = Array.isArray(assignmentsResponse?.data)
@@ -153,7 +164,7 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
   const createAssignmentMutation = useMutation({
     mutationFn: (newAssignment: any) => AssignmentService.create(newAssignment),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['course-assignments', course?.id] });
+      queryClient.invalidateQueries({ queryKey: ['course-assignments', resolvedCourseId] });
       setShowAssignmentForm(false);
       setAssignmentForm(null);
       setEditingAssignmentIndex(null);
@@ -165,7 +176,7 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
   const updateAssignmentMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: any }) => AssignmentService.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['course-assignments', course?.id] });
+      queryClient.invalidateQueries({ queryKey: ['course-assignments', resolvedCourseId] });
       setShowAssignmentForm(false);
       setAssignmentForm(null);
       setEditingAssignmentIndex(null);
@@ -177,7 +188,7 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
   const deleteAssignmentMutation = useMutation({
     mutationFn: (id: string) => AssignmentService.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['course-assignments', course?.id] });
+      queryClient.invalidateQueries({ queryKey: ['course-assignments', resolvedCourseId] });
       toast.success('Assignment deleted successfully');
     },
     onError: () => toast.error('Failed to delete assignment'),
@@ -194,7 +205,7 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
       title: string;
     }) => AssignmentService.uploadInstructions(assignmentId, file, title),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['course-assignments', course?.id] });
+      queryClient.invalidateQueries({ queryKey: ['course-assignments', resolvedCourseId] });
       toast.success('Instructions uploaded successfully');
     },
     onError: () => toast.error('Failed to upload instructions'),
@@ -203,6 +214,12 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
   const { data: sectionStudents = [] } = useQuery({
     queryKey: ['section-students', course?.id],
     queryFn: () => EnrollmentService.getSectionStudents(course!.id),
+    enabled: !!course?.id && !isMockMode,
+  });
+
+  const { data: recentActivity = [], isLoading: isLoadingRecentActivity } = useQuery({
+    queryKey: ['course-recent-activity', resolvedCourseId],
+    queryFn: () => CourseService.getRecentActivity(resolvedCourseId, 6),
     enabled: !!course?.id && !isMockMode,
   });
 
@@ -266,6 +283,19 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
     },
     onError: () => toast.error('Failed to save grade'),
   });
+
+  if (!course && coursesLoading) {
+    return (
+      <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4 px-4">
+        <Loader2 className="animate-spin" size={36} style={{ color: primaryHex }} aria-hidden />
+        <div className="w-full max-w-md space-y-3">
+          <div className={`h-6 w-2/3 max-w-[280px] rounded animate-pulse ${isDark ? 'bg-slate-700' : 'bg-gray-200'}`} />
+          <div className={`h-4 w-full rounded animate-pulse ${isDark ? 'bg-slate-700' : 'bg-gray-200'}`} />
+          <div className={`h-4 w-2/3 rounded animate-pulse ${isDark ? 'bg-slate-700' : 'bg-gray-200'}`} />
+        </div>
+      </div>
+    );
+  }
 
   if (!course) {
     return (
@@ -361,7 +391,7 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
       instructions: data.description || '',
       dueDate: formattedDueDate,
       status: toApiStatus(data.status),
-      courseId: Number(course!.id),
+      courseId: resolvedCourseId,
       maxScore: 100,
       submissionType: 'file',
     };
@@ -421,7 +451,7 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
     const assignment = courseAssignments[index];
     AssignmentService.updateStatus(String(assignment.id), 'published')
       .then(() => {
-        queryClient.invalidateQueries({ queryKey: ['course-assignments', course?.id] });
+        queryClient.invalidateQueries({ queryKey: ['course-assignments', resolvedCourseId] });
         toast.success('Assignment published successfully');
       })
       .catch((error) => {
@@ -488,8 +518,8 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
       formData.append('weekNumber', String(parseInt(materialForm.lectureId.split('.')[0]) || 1));
       formData.append('isPublished', 'true');
 
-      await courseService.uploadDocument(course.id, formData);
-      queryClient.invalidateQueries({ queryKey: ['course-materials', course.id] });
+      await courseService.uploadDocument(resolvedCourseId, formData);
+      queryClient.invalidateQueries({ queryKey: ['course-materials', resolvedCourseId] });
       setShowMaterialModal(false);
       setMaterialForm({ title: '', lectureId: '', file: null });
     } catch (error) {
@@ -501,7 +531,7 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
 
   return (
     <div>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
+      <div className="w-full pb-4">
         <div
           className={`rounded-xl border shadow-sm overflow-hidden ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}
         >
@@ -556,7 +586,7 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
       </div>
 
       {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-6">
+      <div className="w-full">
         {/* Overview Tab */}
         {activeTab === 'overview' && (
           <>
@@ -670,7 +700,27 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
                 </div>
 
                 <div className="space-y-3">
-                  {upcomingDeadlines.length > 0 ? (
+                  {isLoadingAssignments ? (
+                    Array.from({ length: 3 }).map((_, idx) => (
+                      <div
+                        key={`upcoming-skeleton-${idx}`}
+                        className={`p-3 rounded-lg border ${
+                          isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'
+                        }`}
+                      >
+                        <div
+                          className={`h-3.5 w-2/3 rounded animate-pulse ${
+                            isDark ? 'bg-white/10' : 'bg-gray-200'
+                          }`}
+                        />
+                        <div
+                          className={`h-3 w-1/3 rounded mt-2 animate-pulse ${
+                            isDark ? 'bg-white/10' : 'bg-gray-200'
+                          }`}
+                        />
+                      </div>
+                    ))
+                  ) : upcomingDeadlines.length > 0 ? (
                     upcomingDeadlines.map((assignment: any) => (
                       <div
                         key={assignment.id}
@@ -731,12 +781,60 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
               <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'} mb-6`}>
                 {t('recentActivity')}
               </h3>
-              <div className="space-y-4">
-                <div
-                  className={`text-sm text-center py-4 ${isDark ? 'text-slate-400' : 'text-gray-500'}`}
-                >
-                  No recent activity found.
-                </div>
+              <div className="space-y-3">
+                {isLoadingRecentActivity ? (
+                  Array.from({ length: 3 }).map((_, idx) => (
+                    <div
+                      key={`activity-skeleton-${idx}`}
+                      className={`p-3 rounded-lg border ${
+                        isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'
+                      }`}
+                    >
+                      <div
+                        className={`h-3.5 w-1/2 rounded animate-pulse ${
+                          isDark ? 'bg-white/10' : 'bg-gray-200'
+                        }`}
+                      />
+                      <div
+                        className={`h-3 w-5/6 rounded mt-2 animate-pulse ${
+                          isDark ? 'bg-white/10' : 'bg-gray-200'
+                        }`}
+                      />
+                      <div
+                        className={`h-3 w-1/4 rounded mt-2 animate-pulse ${
+                          isDark ? 'bg-white/10' : 'bg-gray-200'
+                        }`}
+                      />
+                    </div>
+                  ))
+                ) : recentActivity.length > 0 ? (
+                  recentActivity.map((item: any, idx: number) => (
+                    <div
+                      key={`${item.type}-${item.occurredAt}-${idx}`}
+                      className={`flex items-start justify-between gap-3 p-3 rounded-lg ${
+                        isDark ? 'bg-white/5 border border-white/10' : 'bg-gray-50 border border-gray-200'
+                      }`}
+                    >
+                      <div className="min-w-0">
+                        <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                          {item.title}
+                        </p>
+                        <p className={`text-xs mt-1 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                          {item.description}
+                        </p>
+                      </div>
+                      <span className={`text-xs shrink-0 ${isDark ? 'text-slate-500' : 'text-gray-500'}`}>
+                        {new Date(item.occurredAt).toLocaleString()}
+                      </span>
+                    </div>
+                  ))
+                ) : (
+                  <div
+                    className={`text-sm text-center py-4 ${isDark ? 'text-slate-400' : 'text-gray-500'}`}
+                  >
+                    No recent activity found.
+                  </div>
+                )}
               </div>
             </div>
           </>

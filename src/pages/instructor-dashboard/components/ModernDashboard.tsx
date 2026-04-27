@@ -119,6 +119,21 @@ export function ModernDashboard({
   const currentEngagement = chartEngagementData[chartEngagementData.length - 1]?.value || 72;
   const prevEngagement = chartEngagementData[chartEngagementData.length - 2]?.value || 70;
   const engagementTrend = currentEngagement - prevEngagement;
+  const formatPercent = (value: number) => `${Number(value).toFixed(2)}%`;
+  const tooltipStyles = {
+    contentStyle: {
+      backgroundColor: isDark ? '#1e1e22' : 'white',
+      border: isDark ? '1px solid rgba(255,255,255,0.12)' : '1px solid #d1d5db',
+      borderRadius: '12px',
+    },
+    labelStyle: {
+      color: isDark ? '#f3f4f6' : '#111827',
+      fontWeight: 600,
+    },
+    itemStyle: {
+      color: isDark ? '#e5e7eb' : '#1f2937',
+    },
+  } as const;
 
   const statCardClass = isDark
     ? 'bg-card-dark border border-white/5 hover:border-white/20'
@@ -136,7 +151,7 @@ export function ModernDashboard({
               <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${isDark ? 'bg-white/10' : 'bg-slate-50'}`}>
                 <stat.icon size={24} className={isDark ? 'text-white' : `text-${stat.color || 'blue'}-600`} />
               </div>
-              <div className={`flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-full ${stat.trend === 'up' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-slate-500/10 text-slate-500'}`}>
+              <div className={`flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-full ${stat.trend === 'up' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-slate-500/10 text-slate-500'}`}>
                 {stat.trend === 'up' && <TrendingUp size={12} />}
                 {stat.value ? (stat.change || '') : '--'}
               </div>
@@ -193,7 +208,16 @@ export function ModernDashboard({
                 <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#ffffff08' : '#f0f0f0'} vertical={false} />
                 <XAxis dataKey="course" tick={{ fill: isDark ? '#9ca3af' : '#6b7280', fontSize: 11 }} axisLine={{ stroke: isDark ? '#374151' : '#e5e7eb' }} />
                 <YAxis domain={[0, 100]} tick={{ fill: isDark ? '#9ca3af' : '#6b7280', fontSize: 11 }} axisLine={{ stroke: isDark ? '#374151' : '#e5e7eb' }} />
-                <Tooltip contentStyle={{ backgroundColor: isDark ? '#1e1e22' : 'white', border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid #e5e7eb', borderRadius: '12px' }} />
+                <Tooltip
+                  {...tooltipStyles}
+                  formatter={(value: number | string, name: string) => {
+                    if (typeof value === 'number') {
+                      if (name === 'engagement') return [formatPercent(value), name];
+                      return [value.toFixed(2), name];
+                    }
+                    return [value, name];
+                  }}
+                />
                 <Area type="monotone" dataKey="value" stroke="#3b82f6" strokeWidth={3} fill="url(#colorPerf)" name={t('performance')} />
                 <Area type="monotone" dataKey="engagement" stroke="#10b981" strokeWidth={3} fill="url(#colorEngage)" name={t('engagement')} />
               </AreaChart>
@@ -205,7 +229,7 @@ export function ModernDashboard({
             <div className="flex items-center justify-between mb-6">
               <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('studentEngagement')}</h3>
               <div className="flex items-center gap-2">
-                <span className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{currentEngagement}%</span>
+                <span className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{formatPercent(currentEngagement)}</span>
                 <TrendingUp className="text-emerald-500" size={20} />
               </div>
             </div>
@@ -217,7 +241,12 @@ export function ModernDashboard({
                 <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#ffffff08' : '#f0f0f0'} />
                 <XAxis dataKey="week" tick={{ fill: isDark ? '#9ca3af' : '#6b7280', fontSize: 12 }} axisLine={{ stroke: isDark ? '#374151' : '#e5e7eb' }} />
                 <YAxis domain={[0, 100]} tick={{ fill: isDark ? '#9ca3af' : '#6b7280', fontSize: 12 }} axisLine={{ stroke: isDark ? '#374151' : '#e5e7eb' }} />
-                <Tooltip contentStyle={{ backgroundColor: isDark ? '#1e1e22' : 'white', border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid #e5e7eb', borderRadius: '12px' }} />
+                <Tooltip
+                  {...tooltipStyles}
+                  formatter={(value: number | string) =>
+                    typeof value === 'number' ? [formatPercent(value), 'value'] : [value, 'value']
+                  }
+                />
                 <Area type="monotone" dataKey="value" stroke={th.main} strokeWidth={3} fill="url(#engagementGradient)" dot={{ fill: th.main, r: 5 }} />
               </AreaChart>
             </ResponsiveContainer>
@@ -231,7 +260,7 @@ export function ModernDashboard({
             <div className="flex items-center justify-between mb-4">
               <h3 className={`font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('upcomingTeaching')} (Monthly)</h3>
               <button onClick={() => onNavigate('schedule')} className={`text-xs font-semibold ${th.text500} hover:underline flex items-center gap-1`}>
-                View Full <ArrowRight size={12} />
+                {t('viewFull')} <ArrowRight size={12} />
               </button>
             </div>
             <div className="space-y-3">

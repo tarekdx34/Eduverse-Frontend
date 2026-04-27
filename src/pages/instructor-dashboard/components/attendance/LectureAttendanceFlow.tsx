@@ -530,10 +530,13 @@ export function LectureAttendanceFlow({ embedded = true }: LectureAttendanceFlow
       if (prev == null || conf > prev) confidenceByUser.set(uid, conf);
     }
     return rosterRows.map((r) => ({
-      userId: r.userId,
+      userId: Number(r.userId),
       name: r.name,
       suggested: markedSet.has(String(r.userId)) ? 'present' : 'absent',
-      confidence: confidenceByUser.has(r.userId) ? confidenceByUser.get(r.userId)! : null,
+      confidence:
+        Number.isFinite(Number(r.userId)) && confidenceByUser.has(Number(r.userId))
+          ? confidenceByUser.get(Number(r.userId))!
+          : null,
     }));
   }, [aiResult, rosterRows]);
 
@@ -563,8 +566,8 @@ export function LectureAttendanceFlow({ embedded = true }: LectureAttendanceFlow
     const rows = [...rosterRows];
     if (!aiResult || needsReviewIdSet.size === 0) return rows;
     return rows.sort((a, b) => {
-      const aFlag = needsReviewIdSet.has(a.userId) ? 0 : 1;
-      const bFlag = needsReviewIdSet.has(b.userId) ? 0 : 1;
+      const aFlag = needsReviewIdSet.has(Number(a.userId)) ? 0 : 1;
+      const bFlag = needsReviewIdSet.has(Number(b.userId)) ? 0 : 1;
       if (aFlag !== bFlag) return aFlag - bFlag;
       return a.name.localeCompare(b.name);
     });
@@ -1051,8 +1054,11 @@ export function LectureAttendanceFlow({ embedded = true }: LectureAttendanceFlow
                       </tr>
                     ) : (
                       sortedRosterRows.map((row) => {
-                        const ai = aiResult ? aiReviewByUserId.get(row.userId) : undefined;
-                        const needsHighlight = Boolean(aiResult && needsReviewIdSet.has(row.userId));
+                        const numericUserId = Number(row.userId);
+                        const ai = aiResult ? aiReviewByUserId.get(numericUserId) : undefined;
+                        const needsHighlight = Boolean(
+                          aiResult && needsReviewIdSet.has(numericUserId),
+                        );
                         return (
                           <tr
                             key={row.userId}

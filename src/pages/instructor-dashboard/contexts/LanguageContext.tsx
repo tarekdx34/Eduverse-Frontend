@@ -45,13 +45,19 @@ const translations: Record<Language, Record<string, string>> = {
     upcomingDeadlines: 'Upcoming Deadlines',
     quickStats: 'Quick Stats',
     recentActivity: 'Recent Activity',
+    engagement: 'Engagement',
+    viewFull: 'View Full',
 
     // Stats
     totalStudents: 'Total Students',
     activeCourses: 'Active Courses',
     avgAttendance: 'Avg Attendance',
+    pendingGrades: 'Pending Grades',
     pendingGrading: 'Pending Grading',
     assignmentsToGrade: 'Assignments to Grade',
+    currentlyEnrolled: 'Currently Enrolled',
+    thisSemester: 'This Semester',
+    awaitingReview: 'Awaiting Review',
 
     // Courses
     myCourses: 'My Courses',
@@ -639,13 +645,19 @@ const translations: Record<Language, Record<string, string>> = {
     upcomingDeadlines: 'المواعيد النهائية القادمة',
     quickStats: 'إحصائيات سريعة',
     recentActivity: 'النشاط الأخير',
+    engagement: 'التفاعل',
+    viewFull: 'عرض الكل',
 
     // Stats
     totalStudents: 'إجمالي الطلاب',
     activeCourses: 'المقررات النشطة',
     avgAttendance: 'متوسط الحضور',
+    pendingGrades: 'درجات بانتظار المراجعة',
     pendingGrading: 'بانتظار التصحيح',
     assignmentsToGrade: 'واجبات للتصحيح',
+    currentlyEnrolled: 'مسجلون حالياً',
+    thisSemester: 'هذا الفصل',
+    awaitingReview: 'بانتظار المراجعة',
 
     // Courses
     myCourses: 'مقرراتي',

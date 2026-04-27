@@ -132,6 +132,13 @@ export interface CourseSection {
   schedules: SectionSchedule[];
 }
 
+export interface CourseRecentActivity {
+  type: 'assignment_created' | 'submission_received' | 'submission_graded' | 'material_uploaded';
+  title: string;
+  description: string;
+  occurredAt: string;
+}
+
 export class CourseService {
   static async getAll(params?: {
     search?: string;
@@ -181,6 +188,15 @@ export class CourseService {
       `/schedules/section/${sectionId}`
     );
     return extractArray(response);
+  }
+
+  static async getRecentActivity(
+    courseId: number,
+    limit = 8
+  ): Promise<CourseRecentActivity[]> {
+    return ApiClient.get<CourseRecentActivity[]>(`/courses/${courseId}/recent-activity`, {
+      params: { limit },
+    });
   }
 
   static async createMaterial(courseId: number, data: any): Promise<CourseMaterial> {
@@ -446,6 +462,7 @@ export const courseService = {
   getStructure: CourseService.getStructure,
   getCourseSections: CourseService.getCourseSections,
   getSectionSchedules: CourseService.getSectionSchedules,
+  getRecentActivity: CourseService.getRecentActivity,
   materialService,
   structureService,
 };
