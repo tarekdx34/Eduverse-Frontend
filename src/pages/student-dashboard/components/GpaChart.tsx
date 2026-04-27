@@ -17,22 +17,26 @@ interface GpaChartProps {
     yourGpa: number;
     avgGpa: number;
   }>;
+  className?: string;
 }
 
-export default function GpaChart({ data }: GpaChartProps) {
-  const currentYourGpa = data[data.length - 1]?.yourGpa || 0;
-  const currentAvgGpa = data[data.length - 1]?.avgGpa || 0;
+export default function GpaChart({ data, className = '' }: GpaChartProps) {
+  const safeData = Array.isArray(data) ? data : [];
+  const hasTrendData = safeData.length > 1;
+  const hasAnyGpaData = safeData.some((point) => point.yourGpa > 0 || point.avgGpa > 0);
+  const currentYourGpa = safeData[safeData.length - 1]?.yourGpa || 0;
+  const currentAvgGpa = safeData[safeData.length - 1]?.avgGpa || 0;
   const { isDark, primaryHex } = useTheme() as any;
   const accentColor = primaryHex || '#3b82f6';
   const { t } = useLanguage();
 
   return (
     <div
-      className={`p-8 rounded-3xl border transition-all duration-300 ${
+      className={`p-8 rounded-3xl border transition-all duration-300 h-full ${
         isDark
           ? 'bg-card-dark border-white/5 shadow-xl shadow-black/20'
           : 'bg-white border-slate-200 shadow-sm'
-      }`}
+      } ${className}`}
     >
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
         <div>
@@ -48,16 +52,16 @@ export default function GpaChart({ data }: GpaChartProps) {
         </CleanSelect>
       </div>
 
-      <ResponsiveContainer width="100%" height={300}>
-        <AreaChart data={data}>
+      <ResponsiveContainer width="100%" height={hasTrendData ? 300 : 240}>
+        <AreaChart data={safeData}>
           <defs>
             <linearGradient id="colorYourGPA" x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor={accentColor} stopOpacity={0.15} />
               <stop offset="95%" stopColor={accentColor} stopOpacity={0} />
             </linearGradient>
-            <linearGradient id="lineGradientStroke" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor={accentColor} />
-              <stop offset="100%" stopColor="#ec4899" />
+            <linearGradient id="colorAvgGPA" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#ec4899" stopOpacity={0.12} />
+              <stop offset="95%" stopColor="#ec4899" stopOpacity={0} />
             </linearGradient>
           </defs>
           <CartesianGrid
@@ -73,8 +77,8 @@ export default function GpaChart({ data }: GpaChartProps) {
             dy={10}
           />
           <YAxis
-            domain={[1.0, 4.0]}
-            ticks={[1.0, 2.0, 3.0, 4.0]}
+            domain={[0, 4.0]}
+            ticks={[0, 1.0, 2.0, 3.0, 4.0]}
             tick={{ fill: isDark ? '#64748b' : '#94a3b8', fontSize: 11 }}
             axisLine={false}
             tickLine={false}
@@ -87,7 +91,10 @@ export default function GpaChart({ data }: GpaChartProps) {
               boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)',
               color: isDark ? '#f1f5f9' : '#1e293b',
             }}
-            formatter={(value: number) => [value, t('yourGPA') || 'Your GPA']}
+            formatter={(value: number, name: string) => [
+              Number(value).toFixed(2),
+              name === 'avgGpa' ? t('averageGPA') || 'Average GPA' : t('yourGPA') || 'Your GPA',
+            ]}
           />
           <Area
             type="monotone"
@@ -96,16 +103,42 @@ export default function GpaChart({ data }: GpaChartProps) {
             stroke={accentColor}
             strokeWidth={4}
             fill="url(#colorYourGPA)"
-            dot={{ fill: accentColor, r: 5, strokeWidth: 0 }}
+            dot={{ fill: accentColor, r: hasTrendData ? 5 : 7, strokeWidth: 0 }}
             activeDot={{
               fill: accentColor,
-              r: 7,
+              r: hasTrendData ? 7 : 9,
+              stroke: isDark ? '#16161a' : 'white',
+              strokeWidth: 2,
+            }}
+          />
+          <Area
+            type="monotone"
+            dataKey="avgGpa"
+            name={t('averageGPA') || 'Average GPA'}
+            stroke="#ec4899"
+            strokeWidth={3}
+            fill="url(#colorAvgGPA)"
+            dot={{ fill: '#ec4899', r: hasTrendData ? 4 : 6, strokeWidth: 0 }}
+            activeDot={{
+              fill: '#ec4899',
+              r: hasTrendData ? 6 : 8,
               stroke: isDark ? '#16161a' : 'white',
               strokeWidth: 2,
             }}
           />
         </AreaChart>
       </ResponsiveContainer>
+      {!hasTrendData && hasAnyGpaData && (
+        <p className={`text-xs mt-2 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+          Only one semester is available right now. The trend line will become clearer once more
+          semester GPA records are added.
+        </p>
+      )}
+      {!hasAnyGpaData && (
+        <p className={`text-xs mt-2 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+          No GPA data yet. Values will appear after graded coursework is available.
+        </p>
+      )}
 
       <div className="mt-8 flex gap-8">
         <div className="flex items-center gap-3">

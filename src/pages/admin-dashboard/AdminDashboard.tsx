@@ -142,6 +142,7 @@ function AdminDashboardContent() {
   const isMockMode = !useLiveApi;
   const [headerUnreadCount, setHeaderUnreadCount] = useState(0);
   const [headerNotifications, setHeaderNotifications] = useState<Notification[]>([]);
+  const [isNotificationsLoading, setIsNotificationsLoading] = useState(false);
 
   useEffect(() => {
     if (isMockMode) {
@@ -175,6 +176,13 @@ function AdminDashboardContent() {
     };
   }, [isMockMode]);
 
+  useEffect(() => {
+    if (activeTab !== 'notifications' || isMockMode) return;
+    setIsNotificationsLoading(true);
+    const timer = window.setTimeout(() => setIsNotificationsLoading(false), 500);
+    return () => window.clearTimeout(timer);
+  }, [activeTab, isMockMode]);
+
   useNotificationRealtime({
     enabled: !isMockMode,
     onNewNotification: (notification) => {
@@ -190,13 +198,13 @@ function AdminDashboardContent() {
   });
 
   // Fetch live stats
-  const { data: liveStats } = useQuery({
+  const { data: liveStats, isLoading: isStatsLoading } = useQuery({
     queryKey: ['admin-stats'],
     queryFn: () => adminService.getStats(),
     enabled: !isMockMode,
   });
 
-  const { data: dashboardInsights } = useQuery({
+  const { data: dashboardInsights, isLoading: isDashboardInsightsLoading } = useQuery({
     queryKey: ['admin-dashboard-insights'],
     queryFn: () => adminService.getAdminDashboardInsights(),
     enabled: !isMockMode && activeTab === 'dashboard',
@@ -211,11 +219,14 @@ function AdminDashboardContent() {
 
   // State for data management
   const [coursesData, setCoursesData] = useState(COURSES);
+  const [isCoursesLoading, setIsCoursesLoading] = useState(!isMockMode);
   const [usersList, setUsersList] = useState(USERS);
 
   const refreshCourses = async () => {
+    setIsCoursesLoading(true);
     if (!useLiveApi) {
       setCoursesData([]);
+      setIsCoursesLoading(false);
       return;
     }
 
@@ -323,6 +334,8 @@ function AdminDashboardContent() {
     } catch (error: any) {
       console.error('[ERROR] refreshCourses failed:', error);
       toast.error('Failed to refresh courses: ' + (error.message || 'Unknown error'));
+    } finally {
+      setIsCoursesLoading(false);
     }
   };
 
@@ -345,6 +358,10 @@ function AdminDashboardContent() {
   useEffect(() => {
     refreshCourses();
   }, [useLiveApi]);
+
+  useEffect(() => {
+    if (isMockMode) setIsCoursesLoading(false);
+  }, [isMockMode]);
 
   // Fetch calendar events
   const calendarQuery = useQuery({
@@ -458,7 +475,7 @@ function AdminDashboardContent() {
   }, [coursesData]);
 
   // Fetch enrollment periods (counts scoped to dept when we know departmentId from courses)
-  const { data: periodsDataLive } = useQuery({
+  const { data: periodsDataLive, isLoading: isPeriodsLoading } = useQuery({
     queryKey: ['admin-periods', departmentIdForPeriods],
     queryFn: () => adminService.getEnrollmentPeriods(departmentIdForPeriods),
     enabled: !isMockMode && activeTab === 'periods',
@@ -900,6 +917,7 @@ function AdminDashboardContent() {
             }
             recentActivity={dashboardInsights?.recentActivity ?? []}
             onNavigate={(tab) => handleTabChange(tab as TabKey)}
+            isLoading={!isMockMode && (isStatsLoading || isDashboardInsightsLoading)}
           />
         )}
 
@@ -916,6 +934,7 @@ function AdminDashboardContent() {
             onEditCourse={handleEditCourse}
             onDeleteCourse={handleDeleteCourse}
             onRefreshCourses={refreshCourses}
+            isLoading={!isMockMode && isCoursesLoading}
           />
         )}
 
@@ -929,6 +948,7 @@ function AdminDashboardContent() {
             onAddPeriod={handleAddEnrollmentPeriod}
             onEditPeriod={handleEditEnrollmentPeriod}
             onDeletePeriod={handleDeleteEnrollmentPeriod}
+            isLoading={!isMockMode && isPeriodsLoading}
           />
         )}
 
@@ -953,7 +973,7 @@ function AdminDashboardContent() {
           />
         )}
 
-        {activeTab === 'notifications' && <AdminNotificationsPage />}
+        {activeTab === 'notifications' && <AdminNotificationsPage isLoading={isNotificationsLoading} />}
 
         {/* Chat — fills main column; pass real user id for API + message mapping */}
         {activeTab === 'chat' && (

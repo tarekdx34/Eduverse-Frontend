@@ -1,4 +1,4 @@
-import { MoreVertical, Clock, Users, BookOpen, Loader2 } from 'lucide-react';
+import { MoreVertical, Clock, Users, BookOpen } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useApi } from '../../../hooks/useApi';
@@ -38,6 +38,38 @@ interface ClassTabProps {
 }
 
 const defaultCourses: Course[] = [];
+
+function ClassTabSkeleton({ isDark }: { isDark: boolean }) {
+  return (
+    <div className="space-y-6 animate-pulse">
+      <div className="space-y-2">
+        <div className={`h-7 w-48 rounded-md ${isDark ? 'bg-white/10' : 'bg-slate-200'}`} />
+        <div className={`h-4 w-72 rounded-md ${isDark ? 'bg-white/5' : 'bg-slate-100'}`} />
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {Array.from({ length: 6 }).map((_, idx) => (
+          <div
+            key={idx}
+            className={`rounded-3xl border overflow-hidden ${isDark ? 'bg-card-dark border-white/5' : 'bg-white border-slate-200'}`}
+          >
+            <div className={`h-2 ${isDark ? 'bg-white/10' : 'bg-slate-200'}`} />
+            <div className="p-6 space-y-4">
+              <div className={`h-5 w-3/4 rounded ${isDark ? 'bg-white/10' : 'bg-slate-200'}`} />
+              <div className={`h-4 w-1/3 rounded ${isDark ? 'bg-white/5' : 'bg-slate-100'}`} />
+              <div className={`h-12 w-full rounded-xl ${isDark ? 'bg-white/5' : 'bg-slate-100'}`} />
+              <div className={`h-14 w-full rounded-xl ${isDark ? 'bg-white/5' : 'bg-slate-100'}`} />
+              <div className={`h-8 w-full rounded ${isDark ? 'bg-white/5' : 'bg-slate-100'}`} />
+              <div className="flex gap-2">
+                <div className={`h-10 flex-1 rounded-lg ${isDark ? 'bg-white/10' : 'bg-slate-200'}`} />
+                <div className={`h-10 flex-1 rounded-lg ${isDark ? 'bg-white/5' : 'bg-slate-100'}`} />
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 const CourseCard = ({
   course,
@@ -246,11 +278,7 @@ export default function ClassTab({ courses: propCourses, onViewCourse }: ClassTa
   const courses = apiCourses.length > 0 ? apiCourses : (propCourses ?? defaultCourses);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
-      </div>
-    );
+    return <ClassTabSkeleton isDark={isDark} />;
   }
 
   if (error) {

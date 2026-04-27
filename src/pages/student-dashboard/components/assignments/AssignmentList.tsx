@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, SlidersHorizontal, Check, Loader2, FileText } from 'lucide-react';
+import { Search, SlidersHorizontal, Check, FileText } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useAssignments } from './hooks/useAssignments';
@@ -27,17 +27,38 @@ export function AssignmentList({ courseId, onSelectAssignment }: AssignmentListP
     { value: 'graded', label: t('graded') || 'Graded' },
   ];
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 text-[var(--accent-color)] mx-auto mb-4 animate-spin" />
-          <p className={isDark ? 'text-slate-400' : 'text-slate-600'}>
-            {t('loading') || 'Loading assignments...'}
-          </p>
+  const assignmentsSkeleton = (
+    <div className="space-y-6 animate-pulse">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {Array.from({ length: 4 }).map((_, idx) => (
+          <div
+            key={idx}
+            className={`p-5 rounded-2xl border ${
+              isDark ? 'bg-card-dark border-white/5' : 'bg-white border-slate-200'
+            }`}
+          >
+            <div className={`h-4 w-2/3 rounded mb-3 ${isDark ? 'bg-white/10' : 'bg-slate-200'}`} />
+            <div className={`h-8 w-1/3 rounded ${isDark ? 'bg-white/10' : 'bg-slate-200'}`} />
+          </div>
+        ))}
+      </div>
+      <div
+        className={`p-6 rounded-3xl border ${
+          isDark ? 'bg-card-dark border-white/5' : 'bg-white border-slate-200'
+        }`}
+      >
+        <div className={`h-11 w-full rounded-xl mb-6 ${isDark ? 'bg-white/5' : 'bg-slate-100'}`} />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {Array.from({ length: 4 }).map((_, idx) => (
+            <div key={idx} className={`h-44 rounded-2xl ${isDark ? 'bg-white/5' : 'bg-slate-100'}`} />
+          ))}
         </div>
       </div>
-    );
+    </div>
+  );
+
+  if (loading) {
+    return assignmentsSkeleton;
   }
 
   return (

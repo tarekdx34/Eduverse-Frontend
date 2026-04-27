@@ -24,6 +24,19 @@ export interface TranscriptData {
   studentName: string;
   cumulativeGpa: number;
   totalCredits: number;
+  semesters?: Array<{
+    semesterId: number;
+    semesterName: string;
+    gpa: number;
+    courses: Array<{
+      courseId: number;
+      courseName: string;
+      credits: number;
+      letterGrade: string;
+      score: number;
+      maxScore: number;
+    }>;
+  }>;
 }
 
 export class GradesService {

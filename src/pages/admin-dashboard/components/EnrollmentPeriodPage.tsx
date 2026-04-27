@@ -56,6 +56,7 @@ interface EnrollmentPeriod {
 interface EnrollmentPeriodPageProps {
   /** When true, nested scheduling pages never substitute mock data on API failure. */
   useLiveApi?: boolean;
+  isLoading?: boolean;
   enrollmentPeriods: EnrollmentPeriod[];
   courses: {
     id: number;
@@ -76,6 +77,7 @@ interface EnrollmentPeriodPageProps {
 
 export function EnrollmentPeriodPage({
   useLiveApi = false,
+  isLoading = false,
   enrollmentPeriods,
   courses,
   adminDepartment,
@@ -117,6 +119,29 @@ export function EnrollmentPeriodPage({
   const headingClass = `${isDark ? 'text-white' : 'text-slate-900'}`;
   const labelClass = `${isDark ? 'text-slate-300' : 'text-slate-600'}`;
   const inputClass = `${isDark ? 'bg-slate-800/50 border-slate-700 text-white placeholder-slate-500' : 'bg-white border-slate-300 text-slate-900 placeholder-slate-400'} border rounded-lg px-3 py-2 text-sm focus:outline-none transition-all duration-200`;
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6 animate-pulse">
+        <div className="flex gap-2">
+          {Array.from({ length: 4 }).map((_, idx) => (
+            <div key={idx} className={`h-10 w-36 rounded-xl ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`} />
+          ))}
+        </div>
+        <div className={`h-20 rounded-2xl ${isDark ? 'bg-slate-800/60' : 'bg-slate-100'}`} />
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {Array.from({ length: 4 }).map((_, idx) => (
+            <div key={idx} className={`h-24 rounded-xl ${isDark ? 'bg-slate-800/60' : 'bg-slate-100'}`} />
+          ))}
+        </div>
+        <div className="space-y-4">
+          {Array.from({ length: 3 }).map((_, idx) => (
+            <div key={idx} className={`h-48 rounded-2xl border ${isDark ? 'bg-slate-800/50 border-white/10' : 'bg-white border-slate-200'}`} />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   const deptPeriods = enrollmentPeriods.filter(
     (p) => !p.department || p.department === adminDepartment,

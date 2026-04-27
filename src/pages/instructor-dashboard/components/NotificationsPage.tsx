@@ -44,6 +44,19 @@ interface NotificationsPageProps {
   refreshSignal?: number;
 }
 
+const hexToRgba = (hex: string, alpha: number): string => {
+  const normalized = hex.replace('#', '');
+  const full = normalized.length === 3
+    ? normalized.split('').map((char) => char + char).join('')
+    : normalized;
+  const value = Number.parseInt(full, 16);
+  if (Number.isNaN(value)) return `rgba(59,130,246,${alpha})`;
+  const r = (value >> 16) & 255;
+  const g = (value >> 8) & 255;
+  const b = value & 255;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+
 const mapApiNotificationToNotification = (api: ApiNotification): Notification => {
   const typeMap: Record<string, Notification['type']> = {
     assignment: 'submission',
@@ -212,9 +225,9 @@ const typeColors: Record<string, { bg: string; text: string; border: string }> =
     border: 'border-blue-500',
   },
   grading: {
-    bg: 'bg-indigo-100 dark:bg-indigo-500/20',
-    text: 'text-indigo-600 dark:text-indigo-400',
-    border: 'border-indigo-500',
+    bg: 'bg-sky-100 dark:bg-sky-500/20',
+    text: 'text-sky-600 dark:text-sky-400',
+    border: 'border-sky-500',
   },
   message: {
     bg: 'bg-green-100 dark:bg-green-500/20',
@@ -435,26 +448,30 @@ export function NotificationsPage({
     {
       label: 'Total',
       value: stats.total,
-      color: 'text-indigo-600 dark:text-indigo-400',
-      bg: 'bg-indigo-50 dark:bg-indigo-500/10',
+      icon: Bell,
+      color: primaryHex,
+      note: 'All notifications',
     },
     {
       label: 'Unread',
       value: stats.unread,
-      color: 'text-red-600 dark:text-red-400',
-      bg: 'bg-red-50 dark:bg-red-500/10',
+      icon: Eye,
+      color: '#ef4444',
+      note: 'Needs attention',
     },
     {
       label: 'Submissions',
       value: stats.submissions,
-      color: 'text-blue-600 dark:text-blue-400',
-      bg: 'bg-blue-50 dark:bg-blue-500/10',
+      icon: FileText,
+      color: '#3b82f6',
+      note: 'Student work updates',
     },
     {
       label: 'Deadlines',
       value: stats.deadlines,
-      color: 'text-amber-600 dark:text-amber-400',
-      bg: 'bg-amber-50 dark:bg-amber-500/10',
+      icon: Clock,
+      color: '#f59e0b',
+      note: 'Upcoming due dates',
     },
   ];
 
@@ -494,8 +511,21 @@ export function NotificationsPage({
                 ? isDark
                   ? 'border-white/5 text-gray-600 cursor-not-allowed'
                   : 'border-gray-100 text-gray-300 cursor-not-allowed'
-                : 'border-indigo-600 text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-500/10'
+                : isDark
+                  ? 'border-white/15 text-slate-100 hover:bg-white/10'
+                  : 'text-gray-700 hover:bg-gray-50'
             }`}
+            style={
+              unreadCount === 0
+                ? undefined
+                : isDark
+                  ? { borderColor: hexToRgba(primaryHex, 0.45) }
+                  : {
+                      borderColor: hexToRgba(primaryHex, 0.35),
+                      color: primaryHex,
+                      backgroundColor: hexToRgba(primaryHex, 0.05),
+                    }
+            }
           >
             <CheckCheck className="w-4 h-4" />
             Mark All Read
@@ -519,10 +549,31 @@ export function NotificationsPage({
         {statCards.map((stat) => (
           <div
             key={stat.label}
-            className={`rounded-xl border p-4 ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200 shadow-sm'}`}
+            className={`rounded-xl border p-4 transition-colors ${isDark ? 'bg-white/5 border-white/10 hover:bg-white/[0.07]' : 'bg-white border-gray-200 shadow-sm hover:shadow-md'}`}
+            style={{
+              borderColor: isDark ? undefined : hexToRgba(stat.color, 0.25),
+              background: isDark
+                ? `linear-gradient(180deg, ${hexToRgba(stat.color, 0.14)} 0%, rgba(255,255,255,0.02) 65%)`
+                : `linear-gradient(180deg, ${hexToRgba(stat.color, 0.08)} 0%, #ffffff 70%)`,
+            }}
           >
-            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{stat.label}</p>
-            <p className={`text-2xl font-bold mt-1 ${stat.color}`}>{stat.value}</p>
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <p className={`text-xs uppercase tracking-wide ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                  {stat.label}
+                </p>
+                <p className="text-2xl font-bold mt-1" style={{ color: stat.color }}>
+                  {stat.value}
+                </p>
+              </div>
+              <div
+                className="w-9 h-9 rounded-lg flex items-center justify-center"
+                style={{ backgroundColor: hexToRgba(stat.color, isDark ? 0.25 : 0.14) }}
+              >
+                <stat.icon className="w-4 h-4" style={{ color: stat.color }} />
+              </div>
+            </div>
+            <p className={`text-xs mt-2 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{stat.note}</p>
           </div>
         ))}
       </div>
@@ -573,11 +624,21 @@ export function NotificationsPage({
               <span
                 className={`${isRTL ? 'mr-1.5' : 'ml-1.5'} text-xs px-1.5 py-0.5 rounded-full ${
                   activeTab === tab
-                    ? 'bg-indigo-100 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-400'
+                    ? isDark
+                      ? 'text-slate-100'
+                      : 'text-gray-700'
                     : isDark
                       ? 'bg-white/10 text-gray-400'
                       : 'bg-gray-100 text-gray-500'
                 }`}
+                style={
+                  activeTab === tab
+                    ? {
+                        backgroundColor: hexToRgba(primaryHex, isDark ? 0.3 : 0.14),
+                        color: isDark ? '#f8fafc' : primaryHex,
+                      }
+                    : undefined
+                }
               >
                 {tabCounts[tab]}
               </span>
@@ -660,7 +721,10 @@ export function NotificationsPage({
                             {notification.title}
                           </h3>
                           {!notification.read && (
-                            <span className="w-2 h-2 rounded-full bg-indigo-600 flex-shrink-0" />
+                            <span
+                              className="w-2 h-2 rounded-full flex-shrink-0"
+                              style={{ backgroundColor: primaryHex }}
+                            />
                           )}
                         </div>
                         <p
@@ -671,7 +735,11 @@ export function NotificationsPage({
                         <div className="flex items-center gap-2 mt-2 flex-wrap">
                           {notification.course && (
                             <span
-                              className={`text-xs px-2 py-0.5 rounded-md font-medium ${isDark ? 'bg-indigo-500/15 text-indigo-400' : 'bg-indigo-50 text-indigo-600'}`}
+                              className="text-xs px-2 py-0.5 rounded-md font-medium"
+                              style={{
+                                backgroundColor: hexToRgba(primaryHex, isDark ? 0.2 : 0.1),
+                                color: isDark ? '#93c5fd' : primaryHex,
+                              }}
                             >
                               {notification.course}
                             </span>

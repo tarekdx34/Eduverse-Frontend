@@ -1,6 +1,7 @@
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { CourseService } from '../../../services/api/courseService';
+import { useNavigate } from 'react-router-dom';
+import { CourseService, getCourseMaterialPreviewUrl } from '../../../services/api/courseService';
 import {
   AssignmentService,
   Assignment,
@@ -22,6 +23,7 @@ import {
   Bell,
   Plus,
   Loader2,
+  Settings,
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -66,6 +68,7 @@ export function CourseDetail({
   isMockMode = false,
   coursesLoading = false,
 }: CourseDetailProps) {
+  const navigate = useNavigate();
   const { isDark, primaryHex = '#3b82f6' } = useTheme() as any;
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('overview');
@@ -83,19 +86,6 @@ export function CourseDetail({
       throw error;
     }
   }, [courseId]);
-
-  const [showMaterialModal, setShowMaterialModal] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const [materialForm, setMaterialForm] = useState<{
-    title: string;
-    lectureId: string;
-    file: File | null;
-  }>({
-    title: '',
-    lectureId: '',
-    file: null,
-  });
 
   // Get actual course data (URL may be section id or catalog course id)
   const course = courses.find(
@@ -235,15 +225,6 @@ export function CourseDetail({
   const dynamicWeeks = Array.from(new Set(courseMaterials.map((m: any) => m.weekNumber || 1))).sort(
     (a: any, b: any) => a - b
   );
-
-  // Used by upload modal only, not rendered as fake lecture data
-  const lectures = Array.from({ length: 12 }, (_, index) => {
-    const week = index + 1;
-    return {
-      id: `${week}.1`,
-      label: `Week ${week}`,
-    };
-  });
 
   const tabs = [
     { id: 'overview', label: t('dashboard'), icon: BookOpen },
@@ -487,46 +468,6 @@ export function CourseDetail({
         },
       }
     );
-  };
-
-  const handleSaveMaterial = async () => {
-    if (!materialForm.title.trim() || !materialForm.lectureId || !materialForm.file || !course) return;
-
-    if (isMockMode) {
-      const weekNumber = parseInt(materialForm.lectureId.split('.')[0]) || 1;
-      setMockCourseMaterials((prev) => [
-        {
-          id: `mock-material-${courseId}-${Date.now()}`,
-          title: materialForm.title.trim(),
-          weekNumber,
-          createdAt: new Date().toISOString(),
-        },
-        ...prev,
-      ]);
-      setShowMaterialModal(false);
-      setMaterialForm({ title: '', lectureId: '', file: null });
-      toast.success('Mock material uploaded');
-      return;
-    }
-
-    setIsUploading(true);
-    try {
-      const formData = new FormData();
-      formData.append('document', materialForm.file);
-      formData.append('title', materialForm.title.trim());
-      formData.append('materialType', 'document');
-      formData.append('weekNumber', String(parseInt(materialForm.lectureId.split('.')[0]) || 1));
-      formData.append('isPublished', 'true');
-
-      await courseService.uploadDocument(resolvedCourseId, formData);
-      queryClient.invalidateQueries({ queryKey: ['course-materials', resolvedCourseId] });
-      setShowMaterialModal(false);
-      setMaterialForm({ title: '', lectureId: '', file: null });
-    } catch (error) {
-      console.error('Failed to upload document', error);
-    } finally {
-      setIsUploading(false);
-    }
   };
 
   return (
@@ -845,16 +786,18 @@ export function CourseDetail({
           <div className="space-y-6">
             <div className="flex justify-between items-center mb-4">
               <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                {t('lectures')}
+                Lecture Materials
               </h2>
-              <button
-                onClick={() => setShowMaterialModal(true)}
-                className="flex items-center gap-2 px-4 py-2 text-white rounded-lg transition-colors text-sm font-medium"
-                style={{ backgroundColor: primaryHex }}
-              >
-                <Plus size={16} />
-                Upload Material
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => navigate(`/instructordashboard/materials/${resolvedCourseId}`)}
+                  className="flex items-center gap-2 px-4 py-2 text-white rounded-lg transition-colors text-sm font-medium"
+                  style={{ backgroundColor: primaryHex }}
+                >
+                  <Settings size={16} />
+                  Manage Materials
+                </button>
+              </div>
             </div>
 
             {courseMaterials.length === 0 ? (
@@ -870,7 +813,7 @@ export function CourseDetail({
                   No lecture materials yet
                 </h3>
                 <p className={`${isDark ? 'text-slate-400' : 'text-slate-500'} max-w-md`}>
-                  Upload your first lecture material to organize this course content.
+                  Manage and upload materials from the Materials page for this course.
                 </p>
               </div>
             ) : (
@@ -892,17 +835,44 @@ export function CourseDetail({
                         {weekMaterials.map((material: any) => (
                           <div
                             key={material.materialId || material.id}
-                            className={`flex items-center justify-between p-3 rounded-lg ${isDark ? 'bg-white/5 border-transparent' : 'bg-white border text-gray-700'} text-sm`}
+                            className={`p-3 rounded-lg ${isDark ? 'bg-white/5 border-transparent' : 'bg-white border text-gray-700'} text-sm`}
                           >
-                            <div className="flex items-center gap-2">
-                              <FileText size={16} style={{ color: primaryHex }} />
-                              <span className={isDark ? 'text-slate-200' : ''}>{material.title}</span>
+                            <div className="flex items-center justify-between gap-3">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <FileText size={16} style={{ color: primaryHex }} />
+                                <span className={`truncate ${isDark ? 'text-slate-200' : ''}`}>
+                                  {material.title}
+                                </span>
+                              </div>
+                              <span className={`text-xs shrink-0 ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
+                                {material.createdAt
+                                  ? new Date(material.createdAt).toLocaleDateString()
+                                  : 'Just now'}
+                              </span>
                             </div>
-                            <span className={`text-xs ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
-                              {material.createdAt
-                                ? new Date(material.createdAt).toLocaleDateString()
-                                : 'Just now'}
-                            </span>
+
+                            {(() => {
+                              const previewUrl =
+                                material.youtubeVideoId
+                                  ? `https://www.youtube.com/embed/${material.youtubeVideoId}`
+                                  : getCourseMaterialPreviewUrl(material);
+                              const isVideoMaterial =
+                                material.materialType === 'video' ||
+                                Boolean(material.youtubeVideoId) ||
+                                Boolean(previewUrl && previewUrl.includes('youtube.com/embed'));
+                              if (!isVideoMaterial || !previewUrl) return null;
+
+                              return (
+                                <div className="mt-3 rounded-lg overflow-hidden border border-slate-200 aspect-video">
+                                  <iframe
+                                    src={previewUrl}
+                                    className="h-full w-full"
+                                    allowFullScreen
+                                    title={`lecture-preview-${material.materialId || material.id}`}
+                                  />
+                                </div>
+                              );
+                            })()}
                           </div>
                         ))}
                       </div>
@@ -1328,160 +1298,6 @@ export function CourseDetail({
         )}
       </div>
 
-      {/* Upload Material Modal */}
-      {showMaterialModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div
-            className={`w-full max-w-md rounded-2xl p-6 shadow-xl border ${isDark ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'}`}
-          >
-            <h3 className={`text-lg font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              Upload Material
-            </h3>
-
-            <div className="space-y-4 mb-6">
-              <div>
-                <label
-                  className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-300' : 'text-gray-700'}`}
-                >
-                  File / Title
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Chapter_1_Slides.pdf"
-                  value={materialForm.title}
-                  onChange={(e) => setMaterialForm({ ...materialForm, title: e.target.value })}
-                  className={`w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-slate-500' : 'bg-white border-gray-300 text-gray-900'}`}
-                  style={{ '--tw-ring-color': primaryHex } as React.CSSProperties}
-                />
-              </div>
-
-              <div>
-                <label
-                  className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-300' : 'text-gray-700'}`}
-                >
-                  Document File
-                </label>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  className="hidden"
-                  onChange={(e) =>
-                    setMaterialForm({ ...materialForm, file: e.target.files?.[0] || null })
-                  }
-                />
-                {!materialForm.file ? (
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className={`w-full rounded-lg border border-dashed px-4 py-4 text-left transition-colors ${
-                      isDark
-                        ? 'border-white/15 bg-white/5 hover:bg-white/10'
-                        : 'border-slate-300 bg-slate-50 hover:bg-slate-100'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between gap-3">
-                      <div>
-                        <p className={`text-sm font-medium ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>
-                          Click to choose a file
-                        </p>
-                        <p className={`text-xs mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                          PDF, DOC, PPT, or image files
-                        </p>
-                      </div>
-                      <span
-                        className="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium"
-                        style={{
-                          backgroundColor: isDark ? `${primaryHex}26` : `${primaryHex}14`,
-                          color: primaryHex,
-                        }}
-                      >
-                        Browse
-                      </span>
-                    </div>
-                  </button>
-                ) : (
-                  <div
-                    className={`flex items-center justify-between rounded-lg border px-3 py-2 ${
-                      isDark ? 'border-white/10 bg-white/5' : 'border-slate-200 bg-white'
-                    }`}
-                  >
-                    <div className="min-w-0">
-                      <p
-                        className={`text-sm font-medium truncate ${isDark ? 'text-slate-200' : 'text-slate-800'}`}
-                      >
-                        {materialForm.file.name}
-                      </p>
-                      <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                        {(materialForm.file.size / 1024 / 1024).toFixed(2)} MB
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setMaterialForm({ ...materialForm, file: null })}
-                      className={`text-xs font-semibold px-2 py-1 rounded-md transition-colors ${
-                        isDark
-                          ? 'text-red-300 hover:text-red-200 hover:bg-red-500/15'
-                          : 'text-red-600 hover:text-red-700 hover:bg-red-50'
-                      }`}
-                    >
-                      Remove
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <label
-                  className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-300' : 'text-gray-700'}`}
-                >
-                  Target Lecture / Week
-                </label>
-                <CleanSelect
-                  value={materialForm.lectureId}
-                  onChange={(e) => setMaterialForm({ ...materialForm, lectureId: e.target.value })}
-                  className={`w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2 ${isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
-                  style={{ '--tw-ring-color': primaryHex } as React.CSSProperties}
-                >
-                  <option value="">Select a lecture...</option>
-                  {lectures.map((lec) => (
-                    <option key={lec.id} value={lec.id}>
-                      {lec.label}
-                    </option>
-                  ))}
-                </CleanSelect>
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => setShowMaterialModal(false)}
-                className={`px-4 py-2 text-sm rounded-lg border ${isDark ? 'border-white/10 text-slate-300 hover:bg-white/10' : 'border-gray-300 text-gray-700 hover:bg-gray-50'} transition-colors`}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSaveMaterial}
-                disabled={
-                  !materialForm.title.trim() ||
-                  !materialForm.lectureId ||
-                  !materialForm.file ||
-                  isUploading
-                }
-                className="px-4 py-2 text-sm text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                style={{ backgroundColor: primaryHex }}
-              >
-                {isUploading ? (
-                  <>
-                    <Loader2 size={16} className="animate-spin" /> Uploading...
-                  </>
-                ) : (
-                  'Upload'
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

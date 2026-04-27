@@ -48,7 +48,6 @@ import TodayClassesWidget from './components/TodayClassesWidget';
 import { DashboardHeader, DashboardSidebar, MessagingChat } from '../../components/shared';
 import { DashboardProfileTab } from '../../components/shared/DashboardProfileTab';
 import CourseViewPage from './pages/CourseView';
-import { GPA_DATA } from './constants';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { useApi } from '../../hooks/useApi';
@@ -63,6 +62,8 @@ import {
 import { AttendanceService } from '../../services/api/attendanceService';
 import { toHeaderNotification } from '../../utils/notificationUi';
 import PublicProfileView from './pages/PublicProfileView';
+import { SearchService, type SearchEntityType } from '../../services/api/searchService';
+import type { SearchResult as HeaderSearchResult } from '../../components/shared/GlobalSearch';
 
 const tabTranslationKeys: Record<string, string> = {
   dashboard: 'dashboard',
@@ -110,10 +111,100 @@ function StudentDashboardContent() {
         : Promise.resolve({ semesterGpa: 0, cumulativeGpa: 0 }),
     [user?.userId]
   );
+  const { data: transcript } = useApi(
+    () => (user ? GradesService.getTranscript(user.userId) : Promise.resolve(null)),
+    [user?.userId]
+  );
 
   const totalCredits = enrollments?.reduce((sum, e) => sum + (e.course?.credits ?? 0), 0) ?? 0;
   const activeClasses = enrollments?.filter((e) => e.status === 'enrolled').length ?? 0;
   const gpaValue = gpaSummary?.cumulativeGpa ?? 0;
+  const gpaChartData =
+    transcript?.semesters && transcript.semesters.length > 0
+      ? transcript.semesters.map((semester) => ({
+          semester: semester.semesterName,
+          yourGpa: Number(semester.gpa ?? 0),
+          avgGpa: Number(gpaSummary?.semesterGpa ?? 0),
+        }))
+      : [
+          {
+            semester: 'Current',
+            yourGpa: Number(gpaSummary?.cumulativeGpa ?? 0),
+            avgGpa: Number(gpaSummary?.semesterGpa ?? 0),
+          },
+        ];
+
+  const mapSearchType = (entityType: SearchEntityType): HeaderSearchResult['type'] => {
+    switch (entityType) {
+      case 'course':
+        return 'course';
+      case 'assignment':
+        return 'assignment';
+      case 'file':
+      case 'material':
+        return 'file';
+      case 'announcement':
+        return 'announcement';
+      case 'user':
+        return 'user';
+      case 'post':
+        return 'event';
+      case 'quiz':
+        return 'assignment';
+      default:
+        return 'event';
+    }
+  };
+
+  const mapSearchUrl = (entityType: SearchEntityType, entityId: number): string => {
+    switch (entityType) {
+      case 'course':
+        return `/studentdashboard/myclass/${entityId}`;
+      case 'assignment':
+        return '/studentdashboard/assignments';
+      case 'quiz':
+        return '/studentdashboard/quizzes';
+      case 'announcement':
+        return '/studentdashboard/announcements';
+      case 'user':
+      case 'post':
+        return '/studentdashboard/community';
+      case 'material':
+      case 'file':
+        return '/studentdashboard/myclass';
+      default:
+        return '/studentdashboard/dashboard';
+    }
+  };
+
+  const parseMetaDescription = (metadata: string | null, fallback: string): string => {
+    if (!metadata) return fallback;
+    try {
+      const parsed = JSON.parse(metadata) as Record<string, unknown>;
+      return String(parsed.description ?? parsed.summary ?? parsed.subtitle ?? fallback);
+    } catch {
+      return fallback;
+    }
+  };
+
+  const handleHeaderSearch = useCallback(
+    async (query: string): Promise<HeaderSearchResult[]> => {
+      if (!query.trim()) return [];
+      const response = await SearchService.globalSearch({ query: query.trim(), limit: 30 });
+      const flattened = response.results.flatMap((group) =>
+        group.items.map((item) => ({
+          id: `${item.entityType}-${item.entityId}-${item.indexId}`,
+          type: mapSearchType(item.entityType),
+          title: item.title || query.trim(),
+          description: parseMetaDescription(item.metadata, item.content || item.keywords || item.entityType),
+          meta: item.entityType,
+          url: mapSearchUrl(item.entityType, item.entityId),
+        }))
+      );
+      return flattened;
+    },
+    []
+  );
 
   const dismissFacePhotoReminder = useCallback(() => {
     setShowFacePhotoReminder(false);
@@ -376,6 +467,7 @@ function StudentDashboardContent() {
               ]}
               notifications={headerNotifications.map(toHeaderNotification)}
               notificationCount={headerUnreadCount}
+              onSearch={handleHeaderSearch}
             />
           </>
         )}
@@ -422,10 +514,10 @@ function StudentDashboardContent() {
                   </div>
 
                   {/* Charts, AI Card & Schedule — 12-col grid */}
-                  <div className="grid grid-cols-12 gap-8">
+                  <div className="grid grid-cols-12 gap-6 items-stretch">
                     {/* Left column: GPA + AI Insight */}
-                    <div className="col-span-12 lg:col-span-8 space-y-8">
-                      <GpaChart data={GPA_DATA} />
+                    <div className="col-span-12 lg:col-span-8 h-full">
+                      <GpaChart data={gpaChartData} className="min-h-full" />
                     </div>
 
                     {/* Right column: Schedule */}
@@ -435,7 +527,7 @@ function StudentDashboardContent() {
                   </div>
 
                   {/* Payment History */}
-                  <div className="mt-10">
+                  <div className="mt-6">
                     <PaymentHistory />
                   </div>
                 </>

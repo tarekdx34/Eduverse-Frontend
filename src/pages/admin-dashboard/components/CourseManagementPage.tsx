@@ -50,6 +50,7 @@ interface CourseManagementPageProps {
   onEditCourse: (id: number, course: any) => void;
   onDeleteCourse: (id: number) => void;
   onRefreshCourses: () => Promise<void> | void;
+  isLoading?: boolean;
 }
 
 /** One course section + schedule + staff (supports multiple sections & instructors per course). */
@@ -205,6 +206,7 @@ export function CourseManagementPage({
   onEditCourse,
   onDeleteCourse,
   onRefreshCourses,
+  isLoading = false,
 }: CourseManagementPageProps) {
   const { isDark, primaryHex } = useTheme() as any;
   const accentColor = primaryHex || '#3b82f6';
@@ -808,6 +810,41 @@ export function CourseManagementPage({
         };
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6 animate-pulse">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className={`h-8 w-56 rounded ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`} />
+            <div className={`mt-3 h-4 w-80 rounded ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`} />
+          </div>
+          <div className={`h-10 w-32 rounded-lg ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`} />
+        </div>
+        <div className="flex gap-2">
+          {Array.from({ length: 4 }).map((_, idx) => (
+            <div
+              key={idx}
+              className={`h-10 w-32 rounded-xl ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`}
+            />
+          ))}
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {Array.from({ length: 6 }).map((_, idx) => (
+            <div
+              key={idx}
+              className={`rounded-2xl border p-5 ${isDark ? 'bg-slate-800/50 border-white/10' : 'bg-white border-slate-200'}`}
+            >
+              <div className={`h-20 rounded-xl ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`} />
+              <div className={`mt-4 h-5 w-20 rounded ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`} />
+              <div className={`mt-3 h-4 w-48 rounded ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`} />
+              <div className={`mt-5 h-9 w-full rounded-lg ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`} />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

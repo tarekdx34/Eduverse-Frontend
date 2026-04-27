@@ -7,7 +7,6 @@ import {
   TrendingUp,
   BookOpen,
   Award,
-  Loader2,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -502,12 +501,29 @@ export default function GradesTranscript({
       ? rawGrades.reduce((sum, g) => sum + Number(g.percentage), 0) / rawGrades.length
       : 0;
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+  const gradesSkeleton = (
+    <div className="space-y-6 animate-pulse">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {Array.from({ length: 4 }).map((_, idx) => (
+          <div key={idx} className={`p-6 rounded-[2.5rem] ${isDark ? 'bg-card-dark border border-white/5' : 'glass'}`}>
+            <div className={`h-4 w-1/2 rounded mb-3 ${isDark ? 'bg-white/10' : 'bg-slate-200'}`} />
+            <div className={`h-8 w-1/3 rounded mb-2 ${isDark ? 'bg-white/10' : 'bg-slate-200'}`} />
+            <div className={`h-3 w-2/3 rounded ${isDark ? 'bg-white/5' : 'bg-slate-100'}`} />
+          </div>
+        ))}
       </div>
-    );
+      <div className={`rounded-[2.5rem] p-6 ${isDark ? 'bg-card-dark border border-white/5' : 'glass'}`}>
+        <div className="space-y-3">
+          {Array.from({ length: 8 }).map((_, idx) => (
+            <div key={idx} className={`h-12 rounded-lg ${isDark ? 'bg-white/5' : 'bg-slate-100'}`} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  if (loading) {
+    return gradesSkeleton;
   }
 
   if (error) {

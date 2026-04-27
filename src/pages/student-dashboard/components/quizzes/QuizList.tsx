@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -157,12 +156,24 @@ export const QuizList: React.FC<QuizListProps> = ({ onStartQuiz, loadingQuizId }
   if (loading) {
     return (
       <div className={`min-h-screen ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
-        <div className="flex items-center justify-center py-12">
-          <div className="text-center">
-            <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4" />
-            <p className={`text-lg font-medium ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-              {t.loading}
-            </p>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 animate-pulse">
+          <div className="mb-10 space-y-2">
+            <div className={`h-8 w-56 rounded ${isDark ? 'bg-white/10' : 'bg-slate-200'}`} />
+            <div className={`h-5 w-96 rounded ${isDark ? 'bg-white/5' : 'bg-slate-100'}`} />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {Array.from({ length: 4 }).map((_, idx) => (
+              <div
+                key={idx}
+                className={`rounded-[2rem] p-6 ${
+                  isDark ? 'bg-gray-800/60 border border-gray-700/50' : 'bg-white border border-slate-200'
+                }`}
+              >
+                <div className={`h-6 w-2/3 rounded mb-3 ${isDark ? 'bg-white/10' : 'bg-slate-200'}`} />
+                <div className={`h-4 w-1/3 rounded mb-5 ${isDark ? 'bg-white/5' : 'bg-slate-100'}`} />
+                <div className={`h-12 w-full rounded-xl ${isDark ? 'bg-white/5' : 'bg-slate-100'}`} />
+              </div>
+            ))}
           </div>
         </div>
       </div>

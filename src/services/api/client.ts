@@ -89,7 +89,8 @@ export class ApiClient {
 
     const isSubmissionLookup = /\/submissions\/my$/i.test(endpoint);
     const isNotFoundMessage = /submission not found|not found/i.test(errorMessage);
-    return isSubmissionLookup && isNotFoundMessage;
+    const isPaymentsLookup = /\/payments\/my$/i.test(endpoint);
+    return (isSubmissionLookup && isNotFoundMessage) || isPaymentsLookup;
   }
 
   static async request<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {

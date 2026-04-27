@@ -19,6 +19,7 @@ interface DashboardOverviewProps {
   analytics: any;
   recentActivity: any[];
   onNavigate: (tab: string) => void;
+  isLoading?: boolean;
 }
 
 const cardClass = (isDark: boolean) =>
@@ -26,9 +27,44 @@ const cardClass = (isDark: boolean) =>
 
 const headingClass = (isDark: boolean) => `${isDark ? 'text-white' : 'text-slate-900'}`;
 
-export function DashboardOverview({ stats, analytics, recentActivity }: DashboardOverviewProps) {
+function DashboardOverviewSkeleton({ isDark }: { isDark: boolean }) {
+  return (
+    <div className="space-y-6 animate-pulse">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {Array.from({ length: 4 }).map((_, idx) => (
+          <div
+            key={idx}
+            className={`rounded-3xl border p-6 ${isDark ? 'bg-slate-800/50 border-white/10' : 'bg-white border-slate-200'}`}
+          >
+            <div className={`h-6 w-24 rounded ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`} />
+            <div className={`mt-4 h-10 w-20 rounded ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`} />
+            <div className={`mt-3 h-4 w-32 rounded ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`} />
+          </div>
+        ))}
+      </div>
+      <div className={`rounded-3xl border p-8 ${isDark ? 'bg-slate-800/40 border-white/10' : 'bg-white border-slate-200'}`}>
+        <div className={`h-7 w-48 rounded ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`} />
+        <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+          {Array.from({ length: 4 }).map((_, idx) => (
+            <div key={idx} className={`h-20 rounded-2xl ${isDark ? 'bg-slate-700/60' : 'bg-slate-100'}`} />
+          ))}
+        </div>
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className={`lg:col-span-2 h-80 rounded-3xl border ${isDark ? 'bg-slate-800/40 border-white/10' : 'bg-white border-slate-200'}`} />
+        <div className={`h-80 rounded-3xl border ${isDark ? 'bg-slate-800/40 border-white/10' : 'bg-white border-slate-200'}`} />
+      </div>
+    </div>
+  );
+}
+
+export function DashboardOverview({ stats, analytics, recentActivity, isLoading = false }: DashboardOverviewProps) {
   const { isDark, primaryHex } = useTheme() as any;
   const { t } = useLanguage();
+
+  if (isLoading) {
+    return <DashboardOverviewSkeleton isDark={isDark} />;
+  }
 
   const enrollmentData: { course: string; enrolled: number; capacity: number }[] = Array.isArray(
     stats.enrollmentChart,

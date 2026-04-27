@@ -18,6 +18,7 @@ import {
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GlobalSearch } from './GlobalSearch';
+import type { SearchResult } from './GlobalSearch';
 
 interface HeaderNotification {
   id: string;
@@ -99,6 +100,7 @@ interface DashboardHeaderProps {
     logout?: string;
   };
   onMenuClick?: () => void;
+  onSearch?: (query: string) => Promise<SearchResult[]>;
 }
 
 export function DashboardHeader({
@@ -120,6 +122,7 @@ export function DashboardHeader({
   availableColors,
   translations = {},
   onMenuClick,
+  onSearch,
 }: DashboardHeaderProps) {
   const [showDropdown, setShowDropdown] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -233,6 +236,7 @@ export function DashboardHeader({
               userRole={(searchRole as 'student' | 'instructor' | 'admin') || 'student'}
               placeholder={t.search}
               accentColor={accentColor}
+              onSearch={onSearch}
             />
           </div>
 
@@ -947,6 +951,7 @@ export function DashboardHeader({
               userRole={(searchRole as 'student' | 'instructor' | 'admin') || 'student'}
               placeholder={t.search}
               accentColor={accentColor}
+              onSearch={onSearch}
             />
           </div>
         </div>

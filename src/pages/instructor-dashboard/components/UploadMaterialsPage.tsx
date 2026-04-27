@@ -1054,14 +1054,14 @@ export function UploadMaterialsPage({ courseId, isMockMode = false, courses = []
               )}
             </div>
             {bundleVideoSrc ? (
-              <iframe
-                src={bundleVideoSrc}
-                width="100%"
-                height="260"
-                allowFullScreen
-                title={`bundle-video-${bundle.key}`}
-                className="rounded"
-              />
+              <div className="rounded overflow-hidden aspect-video">
+                <iframe
+                  src={bundleVideoSrc}
+                  className="h-full w-full"
+                  allowFullScreen
+                  title={`bundle-video-${bundle.key}`}
+                />
+              </div>
             ) : (
               <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                 Video preview is unavailable.
@@ -1144,6 +1144,8 @@ export function UploadMaterialsPage({ courseId, isMockMode = false, courses = []
                     '';
     const documentPreviewSrc = getCourseMaterialPreviewUrl(material);
     const canInlinePreview = !!documentPreviewSrc;
+    const isVideoPreview =
+      Boolean(effectiveYoutubeId) || Boolean(documentPreviewSrc && documentPreviewSrc.includes('youtube.com/embed'));
 
     const ytThumb = effectiveYoutubeId
       ? `https://img.youtube.com/vi/${effectiveYoutubeId}/mqdefault.jpg`
@@ -1205,11 +1207,13 @@ export function UploadMaterialsPage({ courseId, isMockMode = false, courses = []
             </div>
 
             {canInlinePreview ? (
-              <div className="mt-3 rounded-lg overflow-hidden border border-slate-200">
+              <div
+                className={`mt-3 rounded-lg overflow-hidden border border-slate-200 ${isVideoPreview ? 'aspect-video' : ''}`}
+              >
                 <iframe
                   src={documentPreviewSrc || ''}
-                  width="100%"
-                  height={effectiveYoutubeId ? "315" : "380"}
+                  className={isVideoPreview ? 'h-full w-full' : 'w-full'}
+                  height={isVideoPreview ? undefined : '380'}
                   allowFullScreen
                   title={`material-preview-${material.materialId}`}
                 />

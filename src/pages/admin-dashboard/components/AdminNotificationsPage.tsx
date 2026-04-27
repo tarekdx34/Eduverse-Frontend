@@ -124,10 +124,37 @@ const templates: Template[] = [
 
 const statusFilters: StatusFilter[] = ['All', 'Sent', 'Pending', 'Failed', 'Scheduled'];
 
-export function AdminNotificationsPage() {
+function NotificationsSkeleton({ isDark }: { isDark: boolean }) {
+  return (
+    <div className="space-y-6 animate-pulse">
+      <div className={`h-16 rounded-xl ${isDark ? 'bg-gray-800' : 'bg-slate-100'}`} />
+      <div className={`h-12 rounded-xl ${isDark ? 'bg-gray-800' : 'bg-slate-100'}`} />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {Array.from({ length: 4 }).map((_, idx) => (
+          <div key={idx} className={`h-28 rounded-xl ${isDark ? 'bg-gray-800' : 'bg-slate-100'}`} />
+        ))}
+      </div>
+      <div className="space-y-4">
+        {Array.from({ length: 4 }).map((_, idx) => (
+          <div key={idx} className={`h-24 rounded-xl ${isDark ? 'bg-gray-800' : 'bg-slate-100'}`} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+interface AdminNotificationsPageProps {
+  isLoading?: boolean;
+}
+
+export function AdminNotificationsPage({ isLoading = false }: AdminNotificationsPageProps) {
   const { isDark, primaryHex } = useTheme() as any;
   const accentColor = primaryHex || '#3b82f6';
   const { t } = useLanguage();
+
+  if (isLoading) {
+    return <NotificationsSkeleton isDark={isDark} />;
+  }
 
   const [activeTab, setActiveTab] = useState<Tab>('overview');
   const [searchQuery, setSearchQuery] = useState('');

@@ -5,7 +5,6 @@ import {
   ChevronRight,
   Clock,
   Download,
-  Loader2,
   MapPin,
   User,
 } from 'lucide-react';
@@ -196,6 +195,42 @@ export default function ClassSchedule() {
     return filteredClassItems.filter((item) => item.day === normalizedDay);
   };
 
+  const scheduleSkeleton = (
+    <div className="space-y-6 animate-pulse" dir={isRTL ? 'rtl' : 'ltr'}>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-8">
+        <div className="lg:col-span-2 space-y-4">
+          <div className={`rounded-[2.5rem] p-6 ${isDark ? 'bg-card-dark border border-white/5' : 'glass'}`}>
+            <div className="flex items-center justify-between">
+              <div className="space-y-2">
+                <div className={`h-6 w-44 rounded ${isDark ? 'bg-white/10' : 'bg-slate-200'}`} />
+                <div className={`h-4 w-52 rounded ${isDark ? 'bg-white/5' : 'bg-slate-100'}`} />
+              </div>
+              <div className="flex gap-2">
+                <div className={`h-9 w-28 rounded-lg ${isDark ? 'bg-white/10' : 'bg-slate-200'}`} />
+                <div className={`h-9 w-28 rounded-lg ${isDark ? 'bg-white/5' : 'bg-slate-100'}`} />
+              </div>
+            </div>
+          </div>
+          <div className={`rounded-[2.5rem] p-6 ${isDark ? 'bg-card-dark border border-white/5' : 'glass'}`}>
+            <div className="space-y-3">
+              {Array.from({ length: 8 }).map((_, idx) => (
+                <div key={idx} className={`h-14 rounded-xl ${isDark ? 'bg-white/5' : 'bg-slate-100'}`} />
+              ))}
+            </div>
+          </div>
+        </div>
+        <div className={`rounded-[2.5rem] p-6 ${isDark ? 'bg-card-dark border border-white/5' : 'glass'}`}>
+          <div className={`h-6 w-1/2 rounded mb-5 ${isDark ? 'bg-white/10' : 'bg-slate-200'}`} />
+          <div className="space-y-4">
+            {Array.from({ length: 4 }).map((_, idx) => (
+              <div key={idx} className={`h-20 rounded-xl ${isDark ? 'bg-white/5' : 'bg-slate-100'}`} />
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   const handlePrevious = () => {
     if (scheduleType === 'daily') {
       setCurrentDate((prev) => addDays(prev, -1));
@@ -223,11 +258,7 @@ export default function ClassSchedule() {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
-      </div>
-    );
+    return scheduleSkeleton;
   }
 
   return (
