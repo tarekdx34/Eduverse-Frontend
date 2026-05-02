@@ -22,6 +22,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 
 type Course = {
   id: number;
+  courseId?: number;
   courseCode: string;
   courseName: string;
   semester: string;
@@ -58,6 +59,7 @@ type CoursesPageProps = {
   onViewCourse: (id: number) => void;
   selectedCourseId?: number | null;
   isMockMode?: boolean;
+  coursesLoading?: boolean;
 };
 
 // Course Lucide icons (replacing emojis)
@@ -72,6 +74,7 @@ export function CoursesPage({
   onViewCourse,
   selectedCourseId,
   isMockMode = false,
+  coursesLoading = false,
 }: CoursesPageProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'archived'>('all');
@@ -84,17 +87,15 @@ export function CoursesPage({
   const { t, isRTL } = useLanguage();
   const navigate = useNavigate();
 
-  // If viewing course detail, show that instead
+  // If viewing course detail, show that instead (route id is section id from list; CourseDetail resolves catalog id for APIs)
   if (selectedCourseId !== null) {
-    const activeCourse = courses.find((c: any) => c.id === selectedCourseId) as any;
-    const realCourseId = activeCourse?.courseId || selectedCourseId;
-
     return (
       <CourseDetail
-        courseId={realCourseId}
+        courseId={selectedCourseId}
         onBack={() => navigate('/instructordashboard/courses')}
         courses={courses}
         isMockMode={isMockMode}
+        coursesLoading={coursesLoading}
       />
     );
   }
@@ -140,6 +141,29 @@ export function CoursesPage({
 
         {/* Filters Bar */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {/* Search */}
+          <div className="w-full flex flex-col gap-1.5 sm:col-span-2 lg:col-span-1">
+            <span
+              className={`text-sm font-medium whitespace-nowrap ${isDark ? 'text-slate-400' : 'text-gray-600'}`}
+            >
+              {t('search')}
+            </span>
+            <div className="relative w-full">
+              <Search
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                size={18}
+              />
+              <input
+                type="text"
+                placeholder={t('searchCourses')}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                style={{ '--courses-accent': primaryHex } as React.CSSProperties}
+                className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--courses-accent)] focus:border-[var(--courses-accent)] ${isDark ? 'border-white/10 bg-white/5 text-white placeholder-gray-500' : 'border-gray-300 bg-white text-gray-900'}`}
+              />
+            </div>
+          </div>
+
           {/* Semester Filter */}
           <CustomDropdown
             label={t('semesterLabel')}
@@ -180,28 +204,6 @@ export function CoursesPage({
             stackLabel
             fullWidth
           />
-
-          {/* Search */}
-          <div className="w-full flex flex-col gap-1.5 sm:col-span-2 lg:col-span-1">
-            <span
-              className={`text-sm font-medium whitespace-nowrap ${isDark ? 'text-slate-400' : 'text-gray-600'}`}
-            >
-              {t('search')}
-            </span>
-            <div className="relative w-full">
-              <Search
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                size={18}
-              />
-              <input
-                type="text"
-                placeholder={t('searchCourses')}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? 'border-white/10 bg-white/5 text-white placeholder-gray-500' : 'border-gray-300 bg-white text-gray-900'}`}
-              />
-            </div>
-          </div>
         </div>
 
         {/* Course Grid */}

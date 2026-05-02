@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Search, Plus, Edit2, Trash2, Eye, Archive, Send } from 'lucide-react';
+import { Search, Plus, Edit2, Trash2, Eye, Archive, Send, ClipboardList } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { CustomDropdown } from '../CustomDropdown';
@@ -31,7 +31,7 @@ export function AssignmentListPage({
   const [filterStatus, setFilterStatus] = useState<'all' | AssignmentStatus>('all');
   const [filterType, setFilterType] = useState<'all' | 'text' | 'file' | 'link' | 'any'>('all');
   const { isDark } = useTheme();
-  const { t } = useLanguage();
+  const { t, isRTL } = useLanguage();
   const { primaryHex = '#4f46e5' } = useTheme() as any;
 
   const filteredAssignments = useMemo(() => {
@@ -151,6 +151,12 @@ export function AssignmentListPage({
     }
   };
 
+  const emptyCardClass = isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200';
+  const headingCls = isDark ? 'text-slate-200' : 'text-slate-800';
+  const subCls = isDark ? 'text-slate-400' : 'text-slate-500';
+  const hasActiveFilters =
+    Boolean(searchTerm) || filterStatus !== 'all' || filterType !== 'all';
+
   return (
     <div className="space-y-6">
       {/* Filters Bar + Create Button */}
@@ -165,7 +171,7 @@ export function AssignmentListPage({
             </span>
             <div className="relative w-full">
               <Search
-                className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}
+                className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
                 size={18}
               />
               <input
@@ -174,11 +180,12 @@ export function AssignmentListPage({
                 aria-label={t('searchAssignments')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                className={`w-full h-10 pl-10 pr-4 border rounded-lg text-sm focus:outline-none focus:ring-2 ${
                   isDark
                     ? 'bg-white/5 border-white/10 text-slate-200 placeholder:text-slate-500'
-                    : 'bg-white border-gray-300 text-gray-900'
+                    : 'bg-white border-gray-300 text-gray-900 placeholder:text-slate-400'
                 }`}
+                style={{ '--tw-ring-color': `${primaryHex}80` } as React.CSSProperties}
               />
             </div>
           </div>
@@ -342,11 +349,24 @@ export function AssignmentListPage({
 
         {filteredAssignments.length === 0 && (
           <div
-            className={`col-span-full text-center py-12 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}
+            className={`col-span-full rounded-xl border shadow-sm p-8 sm:p-10 text-center flex flex-col items-center justify-center min-h-[min(50vh,24rem)] ${emptyCardClass}`}
           >
-            {searchTerm || filterStatus !== 'all' || filterType !== 'all'
-              ? 'No assignments match your filters'
-              : 'No assignments yet. Create your first assignment to get started.'}
+            <ClipboardList className={`mb-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`} size={48} aria-hidden />
+            <h3 className={`text-lg font-semibold mb-2 ${headingCls}`}>
+              {hasActiveFilters ? t('noAssignmentsMatch') : t('noAssignmentsEmptyTitle')}
+            </h3>
+            <p className={`${subCls} mb-6 max-w-md`}>
+              {hasActiveFilters ? t('noAssignmentsAdjustFilters') : t('noAssignmentsEmptyHint')}
+            </p>
+            <button
+              type="button"
+              onClick={onCreate}
+              className="inline-flex items-center gap-2 px-4 py-2 text-white rounded-lg transition-colors text-sm font-medium"
+              style={{ backgroundColor: primaryHex }}
+            >
+              <Plus size={18} />
+              {t('createAssignment')}
+            </button>
           </div>
         )}
       </div>

@@ -32,6 +32,7 @@ import { ScheduleService } from '../../services/api/scheduleService';
 import { NotificationService } from '../../services/api/notificationService';
 import type { Notification as ApiNotification } from '../../services/api/notificationService';
 import { AnalyticsService } from '../../services/api/analyticsService';
+import { TOKEN_KEYS } from '../../services/api/config';
 import { toast } from 'sonner';
 import { useNotificationRealtime } from '../../hooks/useNotificationRealtime';
 import { toHeaderNotification } from '../../utils/notificationUi';
@@ -206,7 +207,7 @@ function InstructorDashboardContent() {
   const [attendanceUiMode, setAttendanceUiMode] = useState<'lecture' | 'sessions'>('lecture');
   const { isDark, toggleTheme, primaryHex, primaryColor, setPrimaryColor } = useTheme() as any;
   const { language, setLanguage, isRTL, t } = useLanguage();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, isLoading: isAuthLoading, user } = useAuth();
   const [runWalkthrough, setRunWalkthrough] = useState(false);
 
   useEffect(() => {
@@ -227,13 +228,16 @@ function InstructorDashboardContent() {
     localStorage.setItem('hasSeenInstructorWalkthrough', 'true');
   };
 
-  const isMockMode = !isAuthenticated || location.state?.isMock;
+  const isForcedMockMode =
+    Boolean(location.state?.isMock) ||
+    localStorage.getItem(TOKEN_KEYS.ACCESS_TOKEN) === 'mock-dev-token';
+  const isMockMode = isForcedMockMode || (!isAuthLoading && !isAuthenticated);
 
   // Live Data Queries
-  const { data: teachingCoursesLive } = useQuery({
+  const { data: teachingCoursesLive, isLoading: isTeachingCoursesLoading } = useQuery({
     queryKey: ['teaching-courses'],
     queryFn: () => EnrollmentService.getTeachingCourses(),
-    enabled: !isAuthenticated && !isMockMode ? false : !isMockMode, // Ensure auth before query
+    enabled: !isAuthLoading && !isMockMode,
   });
 
   const { data: upcomingClassesLive } = useQuery({
@@ -302,10 +306,21 @@ function InstructorDashboardContent() {
     enabled: !isMockMode,
   });
 
+  const liveSectionIds = useMemo(
+    () =>
+      new Set(
+        (Array.isArray(teachingCoursesLive) ? teachingCoursesLive : []).map((s: any) =>
+          String(s.sectionId ?? s.section?.id ?? s.id)
+        )
+      ),
+    [teachingCoursesLive]
+  );
+  const isActiveSectionAllowed = !!activeSectionId && (isMockMode || liveSectionIds.has(String(activeSectionId)));
+
   const { data: attendanceSessionsLive, isLoading: isLoadingAttendanceSessions } = useQuery({
     queryKey: ['attendance-sessions', activeSectionId],
     queryFn: () => AttendanceService.getSessions({ sectionId: Number(activeSectionId) }),
-    enabled: !isMockMode && !!activeSectionId && activeTab === 'attendance',
+    enabled: !isMockMode && isActiveSectionAllowed && activeTab === 'attendance',
   });
 
   const liveStats = useMemo(() => {
@@ -565,7 +580,7 @@ function InstructorDashboardContent() {
       const resolvedCourseId = section?.courseId ?? section?.id ?? activeSectionId;
       return AssignmentService.getAll({ courseId: String(resolvedCourseId) });
     },
-    enabled: !isMockMode && !!activeSectionId && activeTab === 'assignments',
+    enabled: !isMockMode && isActiveSectionAllowed && activeTab === 'assignments',
   });
 
   const selectedLiveSection = useMemo(
@@ -587,13 +602,13 @@ function InstructorDashboardContent() {
   const { data: sectionGradesLive } = useQuery({
     queryKey: ['section-grades', activeSectionId],
     queryFn: () => GradesService.getCourseGrades(Number(selectedCourseId)),
-    enabled: !isMockMode && !!activeSectionId && !!selectedCourseId && activeTab === 'roster',
+    enabled: !isMockMode && isActiveSectionAllowed && !!selectedCourseId && activeTab === 'roster',
   });
 
   const { data: sectionStudentsLive } = useQuery({
     queryKey: ['section-students', activeSectionId],
     queryFn: () => EnrollmentService.getSectionStudents(Number(activeSectionId)),
-    enabled: !isMockMode && !!activeSectionId && activeTab === 'roster',
+    enabled: !isMockMode && isActiveSectionAllowed && activeTab === 'roster',
   });
 
   // State for roster management
@@ -703,13 +718,42 @@ function InstructorDashboardContent() {
   // Set default section on mount and when entering section-dependent tabs
   useEffect(() => {
     if (activeSectionId || !['roster', 'assignments', 'attendance'].includes(activeTab)) return;
-    const firstLive =
-      !isMockMode && teachingCoursesLive?.length
-        ? String(teachingCoursesLive[0].sectionId ?? teachingCoursesLive[0].id)
-        : null;
-    const firstMock = SECTIONS.length ? String(SECTIONS[0].sectionId) : null;
-    setActiveSectionId(firstLive || firstMock);
+    if (isMockMode) {
+      const firstMock = SECTIONS.length ? String(SECTIONS[0].sectionId) : null;
+      setActiveSectionId(firstMock);
+      return;
+    }
+    if (Array.isArray(teachingCoursesLive) && teachingCoursesLive.length > 0) {
+      const firstLive = String(teachingCoursesLive[0].sectionId ?? teachingCoursesLive[0].id);
+      setActiveSectionId(firstLive);
+    }
   }, [activeTab, activeSectionId, isMockMode, teachingCoursesLive]);
+
+  // If a mock section was selected during auth hydration (e.g. "101"),
+  // swap it to an accessible live section once teaching courses are loaded.
+  useEffect(() => {
+    if (
+      isMockMode ||
+      !activeSectionId ||
+      !Array.isArray(teachingCoursesLive) ||
+      teachingCoursesLive.length === 0
+    ) {
+      return;
+    }
+
+    const liveSectionIds = new Set(
+      teachingCoursesLive.map((s: any) => String(s.sectionId ?? s.section?.id ?? s.id))
+    );
+
+    if (!liveSectionIds.has(String(activeSectionId))) {
+      const firstLive = String(
+        teachingCoursesLive[0].sectionId ??
+          teachingCoursesLive[0].section?.id ??
+          teachingCoursesLive[0].id
+      );
+      setActiveSectionId(firstLive);
+    }
+  }, [isMockMode, activeSectionId, teachingCoursesLive]);
 
   // Disable browser's native scroll restoration so it doesn't fight our scroll calls
   useEffect(() => {
@@ -743,9 +787,13 @@ function InstructorDashboardContent() {
     requestAnimationFrame(() => scrollToTop());
   };
 
-  // Sync live data with local states
+  // Sync courses list: mock uses static data; live uses API (never keep mock rows while live, or detail flashes "not found")
   useEffect(() => {
-    if (teachingCoursesLive && !isMockMode) {
+    if (isMockMode) {
+      setCoursesData(COURSES);
+      return;
+    }
+    if (Array.isArray(teachingCoursesLive)) {
       const mappedCourses = teachingCoursesLive.map((s: any) => ({
         id: s.sectionId || s.section?.id,
         courseId: s.courseId || s.course?.id,
@@ -766,7 +814,9 @@ function InstructorDashboardContent() {
         description: s.course?.description || s.courseDescription || '',
       }));
       setCoursesData(mappedCourses);
+      return;
     }
+    setCoursesData([]);
   }, [teachingCoursesLive, isMockMode]);
 
   useEffect(() => {
@@ -1306,10 +1356,11 @@ function InstructorDashboardContent() {
               onDeleteCourse={handleDeleteCourse}
               onDuplicateCourse={handleDuplicateCourse}
               onViewCourse={(id) => {
-                navigate(`/instructordashboard/materials/${id}`);
+                navigate(`/instructordashboard/courses/${id}`);
               }}
               selectedCourseId={selectedCourseIdFromRoute}
               isMockMode={isMockMode}
+              coursesLoading={!isMockMode && (isAuthLoading || isTeachingCoursesLoading)}
             />
           )}
 
@@ -1354,57 +1405,71 @@ function InstructorDashboardContent() {
               </div>
               <SelectedSectionSummary section={selectedSection as any} />
 
-              <div className="flex gap-4 border-b border-gray-200 dark:border-white/10 mb-6">
-                <button
-                  onClick={() => setRosterSubTab('overview')}
-                  className={`pb-2 px-1 text-sm font-medium transition-colors relative ${
-                    rosterSubTab === 'overview'
-                      ? 'text-indigo-600'
-                      : 'text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200'
+              {!isMockMode && (!isActiveSectionAllowed || sectionOptions.length === 0) ? (
+                <div
+                  className={`rounded-xl border p-6 text-sm ${
+                    isDark ? 'bg-card-dark border-white/10 text-slate-300' : 'bg-white border-gray-200 text-gray-700'
                   }`}
                 >
-                  {t('overview') || 'Overview'}
-                  {rosterSubTab === 'overview' && (
-                    <div
-                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600"
-                      style={{ backgroundColor: primaryHex }}
-                    />
-                  )}
-                </button>
-                <button
-                  onClick={() => setRosterSubTab('grades')}
-                  className={`pb-2 px-1 text-sm font-medium transition-colors relative ${
-                    rosterSubTab === 'grades'
-                      ? 'text-indigo-600'
-                      : 'text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200'
-                  }`}
-                >
-                  {t('detailedGrades') || 'Detailed Grades'}
-                  {rosterSubTab === 'grades' && (
-                    <div
-                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600"
-                      style={{ backgroundColor: primaryHex }}
-                    />
-                  )}
-                </button>
-              </div>
-
-              {rosterSubTab === 'overview' ? (
-                <RosterTable
-                  sectionId={activeSectionId || undefined}
-                  data={currentRoster}
-                  grades={activeSectionId ? gradesData[activeSectionId] || [] : []}
-                  onEdit={(student) => {
-                    setEditingStudent(student);
-                    setIsEditOpen(true);
-                  }}
-                />
+                  Loading your roster section...
+                </div>
               ) : (
-                <GradesTable
-                  data={activeSectionId ? gradesData[activeSectionId] || [] : []}
-                  onEdit={handleEditGrade}
-                  onDelete={handleDeleteGrade}
-                />
+                <>
+
+                  <div className="flex gap-4 border-b border-gray-200 dark:border-white/10 mb-6">
+                    <button
+                      onClick={() => setRosterSubTab('overview')}
+                      className={`pb-2 px-1 text-sm font-medium transition-colors relative ${
+                        rosterSubTab === 'overview'
+                          ? ''
+                          : 'text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200'
+                      }`}
+                      style={rosterSubTab === 'overview' ? { color: primaryHex } : undefined}
+                    >
+                      {t('overview') || 'Overview'}
+                      {rosterSubTab === 'overview' && (
+                        <div
+                          className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600"
+                          style={{ backgroundColor: primaryHex }}
+                        />
+                      )}
+                    </button>
+                    <button
+                      onClick={() => setRosterSubTab('grades')}
+                      className={`pb-2 px-1 text-sm font-medium transition-colors relative ${
+                        rosterSubTab === 'grades'
+                          ? ''
+                          : 'text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200'
+                      }`}
+                      style={rosterSubTab === 'grades' ? { color: primaryHex } : undefined}
+                    >
+                      {t('detailedGrades') || 'Detailed Grades'}
+                      {rosterSubTab === 'grades' && (
+                        <div
+                          className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600"
+                          style={{ backgroundColor: primaryHex }}
+                        />
+                      )}
+                    </button>
+                  </div>
+
+                  {rosterSubTab === 'overview' ? (
+                    <RosterTable
+                      data={currentRoster}
+                      grades={activeSectionId ? gradesData[activeSectionId] || [] : []}
+                      onEdit={(student) => {
+                        setEditingStudent(student);
+                        setIsEditOpen(true);
+                      }}
+                    />
+                  ) : (
+                    <GradesTable
+                      data={activeSectionId ? gradesData[activeSectionId] || [] : []}
+                      onEdit={handleEditGrade}
+                      onDelete={handleDeleteGrade}
+                    />
+                  )}
+                </>
               )}
             </div>
           )}

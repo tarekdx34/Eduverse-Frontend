@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { CourseService } from '../../../services/api/courseService';
+import { useNavigate } from 'react-router-dom';
+import { CourseService, getCourseMaterialPreviewUrl } from '../../../services/api/courseService';
 import {
   AssignmentService,
   Assignment,
@@ -22,6 +23,7 @@ import {
   Bell,
   Plus,
   Loader2,
+  Settings,
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -35,6 +37,7 @@ import { toast } from 'sonner';
 
 type Course = {
   id: number;
+  courseId?: number;
   courseCode: string;
   courseName: string;
   semester: string;
@@ -55,13 +58,20 @@ type CourseDetailProps = {
   onBack: () => void;
   courses: Course[];
   isMockMode?: boolean;
+  coursesLoading?: boolean;
 };
 
-export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: CourseDetailProps) {
+export function CourseDetail({
+  courseId,
+  onBack,
+  courses,
+  isMockMode = false,
+  coursesLoading = false,
+}: CourseDetailProps) {
+  const navigate = useNavigate();
   const { isDark, primaryHex = '#3b82f6' } = useTheme() as any;
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('overview');
-  const [selectedLecture, setSelectedLecture] = useState('');
   const [showAssignmentForm, setShowAssignmentForm] = useState(false);
   const [assignmentForm, setAssignmentForm] = useState<AssignmentFormData | null>(null);
   const [editingAssignmentIndex, setEditingAssignmentIndex] = useState<number | null>(null);
@@ -77,47 +87,64 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
     }
   }, [courseId]);
 
-  const [showMaterialModal, setShowMaterialModal] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-  const [materialForm, setMaterialForm] = useState<{
-    title: string;
-    lectureId: string;
-    file: File | null;
-  }>({
-    title: '',
-    lectureId: '',
-    file: null,
-  });
-
-  // Get actual course data
-  const course = courses.find((c) => String(c.id) === String(courseId));
+  // Get actual course data (URL may be section id or catalog course id)
+  const course = courses.find(
+    (c) => String(c.id) === String(courseId) || String(c.courseId ?? '') === String(courseId),
+  );
+  const resolvedCourseId = Number(course?.courseId ?? course?.id ?? courseId);
 
   const queryClient = useQueryClient();
-  const { data: courseMaterials = [], isLoading: isLoadingMaterials } = useQuery({
-    queryKey: ['course-materials', course?.id],
-    queryFn: () => CourseService.getMaterials(course!.id),
+  const { data: apiCourseMaterials = [], isLoading: isLoadingMaterials } = useQuery({
+    queryKey: ['course-materials', resolvedCourseId],
+    queryFn: () => CourseService.getMaterials(resolvedCourseId),
     enabled: !!course?.id && !isMockMode,
-  });
-
-  const createMaterialMutation = useMutation({
-    mutationFn: (newMaterial: any) => CourseService.createMaterial(course!.id, newMaterial),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['course-materials', course?.id] });
-      setShowMaterialModal(false);
-      setMaterialForm({ title: '', lectureId: '', file: null });
-    },
   });
 
   const { data: assignmentsResponse, isLoading: isLoadingAssignments } = useQuery({
-    queryKey: ['course-assignments', course?.id],
-    queryFn: () => AssignmentService.getAll({ courseId: String(course!.id) }),
+    queryKey: ['course-assignments', resolvedCourseId],
+    queryFn: () => AssignmentService.getAll({ courseId: String(resolvedCourseId) }),
     enabled: !!course?.id && !isMockMode,
   });
-  const courseAssignments = Array.isArray(assignmentsResponse?.data)
+  const apiCourseAssignments = Array.isArray(assignmentsResponse?.data)
     ? assignmentsResponse.data
     : Array.isArray(assignmentsResponse)
       ? assignmentsResponse
       : [];
+
+  const [mockCourseMaterials, setMockCourseMaterials] = useState<any[]>([
+    {
+      id: `mock-mat-${courseId}-1`,
+      title: `${course?.courseCode || 'Course'} Intro Slides`,
+      weekNumber: 1,
+      createdAt: new Date().toISOString(),
+    },
+    {
+      id: `mock-mat-${courseId}-2`,
+      title: `${course?.courseCode || 'Course'} Week 2 Notes`,
+      weekNumber: 2,
+      createdAt: new Date(Date.now() - 86400000).toISOString(),
+    },
+  ]);
+
+  const [mockAssignments, setMockAssignments] = useState<any[]>([
+    {
+      id: `mock-assignment-${courseId}-1`,
+      title: 'Assignment 1 - Fundamentals',
+      description: 'Solve the core problems from weeks 1-2.',
+      dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      status: 'published',
+    },
+    {
+      id: `mock-assignment-${courseId}-2`,
+      title: 'Assignment 2 - Practice Set',
+      description: 'Apply lecture concepts to a practical case.',
+      dueDate: new Date(Date.now() + 12 * 24 * 60 * 60 * 1000).toISOString(),
+      status: 'draft',
+    },
+  ]);
+
+  const courseMaterials = isMockMode ? mockCourseMaterials : apiCourseMaterials;
+  const courseAssignments = isMockMode ? mockAssignments : apiCourseAssignments;
 
   const upcomingDeadlines = courseAssignments
     .filter((a: any) => a.dueDate && new Date(a.dueDate) > new Date())
@@ -127,7 +154,7 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
   const createAssignmentMutation = useMutation({
     mutationFn: (newAssignment: any) => AssignmentService.create(newAssignment),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['course-assignments', course?.id] });
+      queryClient.invalidateQueries({ queryKey: ['course-assignments', resolvedCourseId] });
       setShowAssignmentForm(false);
       setAssignmentForm(null);
       setEditingAssignmentIndex(null);
@@ -139,7 +166,7 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
   const updateAssignmentMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: any }) => AssignmentService.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['course-assignments', course?.id] });
+      queryClient.invalidateQueries({ queryKey: ['course-assignments', resolvedCourseId] });
       setShowAssignmentForm(false);
       setAssignmentForm(null);
       setEditingAssignmentIndex(null);
@@ -151,7 +178,7 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
   const deleteAssignmentMutation = useMutation({
     mutationFn: (id: string) => AssignmentService.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['course-assignments', course?.id] });
+      queryClient.invalidateQueries({ queryKey: ['course-assignments', resolvedCourseId] });
       toast.success('Assignment deleted successfully');
     },
     onError: () => toast.error('Failed to delete assignment'),
@@ -168,15 +195,21 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
       title: string;
     }) => AssignmentService.uploadInstructions(assignmentId, file, title),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['course-assignments', course?.id] });
+      queryClient.invalidateQueries({ queryKey: ['course-assignments', resolvedCourseId] });
       toast.success('Instructions uploaded successfully');
     },
     onError: () => toast.error('Failed to upload instructions'),
   });
 
-  const { data: sectionStudents = [], isLoading: isLoadingStudents } = useQuery({
+  const { data: sectionStudents = [] } = useQuery({
     queryKey: ['section-students', course?.id],
     queryFn: () => EnrollmentService.getSectionStudents(course!.id),
+    enabled: !!course?.id && !isMockMode,
+  });
+
+  const { data: recentActivity = [], isLoading: isLoadingRecentActivity } = useQuery({
+    queryKey: ['course-recent-activity', resolvedCourseId],
+    queryFn: () => CourseService.getRecentActivity(resolvedCourseId, 6),
     enabled: !!course?.id && !isMockMode,
   });
 
@@ -188,18 +221,10 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
     };
   };
 
-  // Derive unique weeks dynamically
+  // Derive lecture weeks from actual uploaded materials only
   const dynamicWeeks = Array.from(new Set(courseMaterials.map((m: any) => m.weekNumber || 1))).sort(
     (a: any, b: any) => a - b
   );
-
-  // Fallback to static 4 weeks for Mock Mode if empty
-  const weeksToRender = isMockMode || dynamicWeeks.length === 0 ? [1, 2, 3, 4] : dynamicWeeks;
-
-  const lectures = weeksToRender.map((week) => ({
-    id: `${week}.1`,
-    label: `Lecture ${week}.1 - Introduction`,
-  }));
 
   const tabs = [
     { id: 'overview', label: t('dashboard'), icon: BookOpen },
@@ -240,6 +265,19 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
     onError: () => toast.error('Failed to save grade'),
   });
 
+  if (!course && coursesLoading) {
+    return (
+      <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4 px-4">
+        <Loader2 className="animate-spin" size={36} style={{ color: primaryHex }} aria-hidden />
+        <div className="w-full max-w-md space-y-3">
+          <div className={`h-6 w-2/3 max-w-[280px] rounded animate-pulse ${isDark ? 'bg-slate-700' : 'bg-gray-200'}`} />
+          <div className={`h-4 w-full rounded animate-pulse ${isDark ? 'bg-slate-700' : 'bg-gray-200'}`} />
+          <div className={`h-4 w-2/3 rounded animate-pulse ${isDark ? 'bg-slate-700' : 'bg-gray-200'}`} />
+        </div>
+      </div>
+    );
+  }
+
   if (!course) {
     return (
       <div className={`flex items-center justify-center`}>
@@ -247,7 +285,7 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
           <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'} mb-2`}>
             {t('courseNotFound')}
           </h2>
-          <button onClick={onBack} className="text-indigo-600 hover:text-indigo-700 font-medium">
+          <button onClick={onBack} className="font-medium" style={{ color: primaryHex }}>
             {t('backToCourses')}
           </button>
         </div>
@@ -270,7 +308,55 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
     }
   };
 
+  const studentsForRoster = isMockMode
+    ? Array.from({ length: Math.max(course.enrolled || 0, 0) }, (_, index) => ({
+        id: index + 1,
+        firstName: `Student`,
+        lastName: `${index + 1}`,
+        email: `student${index + 1}@eduverse.local`,
+        userId: index + 1,
+      }))
+    : sectionStudents;
+
   const handleSaveAssignment = (data: AssignmentFormData) => {
+    if (isMockMode) {
+      const normalizedStatus = data.status === 'open' ? 'published' : data.status;
+      if (editingAssignmentIndex !== null) {
+        setMockAssignments((prev) =>
+          prev.map((item, idx) =>
+            idx === editingAssignmentIndex
+              ? {
+                  ...item,
+                  title: data.title,
+                  description: data.description || '',
+                  dueDate: data.dueDate ? new Date(data.dueDate).toISOString() : item.dueDate,
+                  status: normalizedStatus,
+                }
+              : item
+          )
+        );
+        toast.success('Mock assignment updated');
+      } else {
+        setMockAssignments((prev) => [
+          {
+            id: `mock-assignment-${courseId}-${Date.now()}`,
+            title: data.title,
+            description: data.description || '',
+            dueDate: data.dueDate
+              ? new Date(data.dueDate).toISOString()
+              : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+            status: normalizedStatus,
+          },
+          ...prev,
+        ]);
+        toast.success('Mock assignment created');
+      }
+      setShowAssignmentForm(false);
+      setAssignmentForm(null);
+      setEditingAssignmentIndex(null);
+      return;
+    }
+
     const formattedDueDate = data.dueDate
       ? new Date(data.dueDate).toISOString()
       : new Date().toISOString();
@@ -286,7 +372,7 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
       instructions: data.description || '',
       dueDate: formattedDueDate,
       status: toApiStatus(data.status),
-      courseId: Number(course!.id),
+      courseId: resolvedCourseId,
       maxScore: 100,
       submissionType: 'file',
     };
@@ -333,10 +419,20 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
   };
 
   const handlePublishAssignment = (index: number) => {
+    if (isMockMode) {
+      setMockAssignments((prev) =>
+        prev.map((assignment, idx) =>
+          idx === index ? { ...assignment, status: 'published' } : assignment
+        )
+      );
+      toast.success('Mock assignment published');
+      return;
+    }
+
     const assignment = courseAssignments[index];
     AssignmentService.updateStatus(String(assignment.id), 'published')
       .then(() => {
-        queryClient.invalidateQueries({ queryKey: ['course-assignments', course?.id] });
+        queryClient.invalidateQueries({ queryKey: ['course-assignments', resolvedCourseId] });
         toast.success('Assignment published successfully');
       })
       .catch((error) => {
@@ -345,13 +441,24 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
       });
   };
 
-  const handleDeleteAssignment = (id: number) => {
+  const handleDeleteAssignment = (id: number | string) => {
     if (!window.confirm('Delete this assignment? This action cannot be undone.')) return;
+    if (isMockMode) {
+      setMockAssignments((prev) =>
+        prev.filter((assignment) => String(assignment.id) !== String(id))
+      );
+      toast.success('Mock assignment deleted');
+      return;
+    }
     deleteAssignmentMutation.mutate(String(id));
   };
 
   const handleUploadInstruction = (assignmentId: number, file: File | null) => {
     if (!file) return;
+    if (isMockMode) {
+      toast.success('Mock instruction file attached');
+      return;
+    }
     setUploadingInstructionId(assignmentId);
     uploadInstructionMutation.mutate(
       { assignmentId: String(assignmentId), file, title: file.name },
@@ -363,95 +470,64 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
     );
   };
 
-  const handleSaveMaterial = async () => {
-    if (!materialForm.title.trim() || !materialForm.lectureId || !course) return;
-
-    if (materialForm.file) {
-      setIsUploading(true);
-      try {
-        const formData = new FormData();
-        formData.append('document', materialForm.file);
-        formData.append('title', materialForm.title.trim());
-        formData.append('materialType', 'document');
-        formData.append('weekNumber', String(parseInt(materialForm.lectureId.split('.')[0]) || 1));
-        formData.append('isPublished', 'true');
-
-        await courseService.uploadDocument(course.id, formData);
-        queryClient.invalidateQueries({ queryKey: ['course-materials', course.id] });
-        setShowMaterialModal(false);
-        setMaterialForm({ title: '', lectureId: '', file: null });
-      } catch (error) {
-        console.error('Failed to upload document', error);
-      } finally {
-        setIsUploading(false);
-      }
-    } else {
-      createMaterialMutation.mutate({
-        title: materialForm.title,
-        materialType: 'document',
-        weekNumber: parseInt(materialForm.lectureId.split('.')[0]) || 1,
-        isPublished: true,
-      });
-    }
-  };
-
   return (
     <div>
-      {/* Course Title */}
-      <div
-        className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} border-b`}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-            <button
-              onClick={onBack}
-              className={`p-2 self-start ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'} rounded-lg transition-colors`}
-            >
-              <ArrowLeft size={20} className={isDark ? 'text-slate-400' : 'text-gray-600'} />
-            </button>
-            <div>
-              <h1
-                className={`text-2xl sm:text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'} mb-1`}
+      <div className="w-full pb-4">
+        <div
+          className={`rounded-xl border shadow-sm overflow-hidden ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}
+        >
+          {/* Course Title */}
+          <div className="px-4 sm:px-6 py-5">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+              <button
+                onClick={onBack}
+                className={`p-2 self-start ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'} rounded-lg transition-colors`}
               >
-                {course.courseName}
-              </h1>
-              <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
-                Manage lectures, assignments, materials, students, and announcements.
-              </p>
+                <ArrowLeft size={20} className={isDark ? 'text-slate-400' : 'text-gray-600'} />
+              </button>
+              <div>
+                <h1
+                  className={`text-2xl sm:text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'} mb-1`}
+                >
+                  {course.courseName}
+                </h1>
+                <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                  Manage lectures, assignments, materials, students, and announcements.
+                </p>
+              </div>
+            </div>
+          </div>
+          {/* Tabs */}
+          <div className={`px-2 sm:px-4 border-t ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
+            <div
+              className="flex items-center gap-2 sm:gap-4 -mb-px overflow-x-auto pb-px"
+              style={{ width: '100%' }}
+            >
+              {tabs.map((tab) => {
+                const isActive = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex items-center gap-2 px-3 sm:px-4 py-3 border-b-2 transition-colors whitespace-nowrap ${
+                      isActive
+                        ? ''
+                        : `border-transparent ${isDark ? 'text-slate-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`
+                    }`}
+                    style={isActive ? { color: primaryHex, borderColor: primaryHex } : undefined}
+                  >
+                    <tab.icon size={18} />
+                    <span className="text-sm font-medium">{tab.label}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Tabs */}
-      <div
-        className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} border-b`}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div
-            className="flex items-center gap-4 sm:gap-6 -mb-px overflow-x-auto pb-px"
-            style={{ width: '100%' }}
-          >
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-colors whitespace-nowrap ${
-                  activeTab === tab.id
-                    ? 'border-indigo-600 text-indigo-600'
-                    : `border-transparent ${isDark ? 'text-slate-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`
-                }`}
-              >
-                <tab.icon size={18} />
-                <span className="text-sm font-medium">{tab.label}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
       {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+      <div className="w-full">
         {/* Overview Tab */}
         {activeTab === 'overview' && (
           <>
@@ -531,7 +607,10 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
                               </div>
                               <div className={isDark ? 'text-slate-400' : 'text-gray-600'}>
                                 {location} •
-                                <span className="ml-1 px-2 py-0.5 rounded-full text-xs bg-indigo-100 text-indigo-700 capitalize">
+                                <span
+                                  className="ml-1 px-2 py-0.5 rounded-full text-xs capitalize"
+                                  style={getPrimaryBadgeStyle('')}
+                                >
                                   {schedule.scheduleType}
                                 </span>
                               </div>
@@ -562,7 +641,27 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
                 </div>
 
                 <div className="space-y-3">
-                  {upcomingDeadlines.length > 0 ? (
+                  {isLoadingAssignments ? (
+                    Array.from({ length: 3 }).map((_, idx) => (
+                      <div
+                        key={`upcoming-skeleton-${idx}`}
+                        className={`p-3 rounded-lg border ${
+                          isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'
+                        }`}
+                      >
+                        <div
+                          className={`h-3.5 w-2/3 rounded animate-pulse ${
+                            isDark ? 'bg-white/10' : 'bg-gray-200'
+                          }`}
+                        />
+                        <div
+                          className={`h-3 w-1/3 rounded mt-2 animate-pulse ${
+                            isDark ? 'bg-white/10' : 'bg-gray-200'
+                          }`}
+                        />
+                      </div>
+                    ))
+                  ) : upcomingDeadlines.length > 0 ? (
                     upcomingDeadlines.map((assignment: any) => (
                       <div
                         key={assignment.id}
@@ -623,12 +722,60 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
               <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'} mb-6`}>
                 {t('recentActivity')}
               </h3>
-              <div className="space-y-4">
-                <div
-                  className={`text-sm text-center py-4 ${isDark ? 'text-slate-400' : 'text-gray-500'}`}
-                >
-                  No recent activity found.
-                </div>
+              <div className="space-y-3">
+                {isLoadingRecentActivity ? (
+                  Array.from({ length: 3 }).map((_, idx) => (
+                    <div
+                      key={`activity-skeleton-${idx}`}
+                      className={`p-3 rounded-lg border ${
+                        isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'
+                      }`}
+                    >
+                      <div
+                        className={`h-3.5 w-1/2 rounded animate-pulse ${
+                          isDark ? 'bg-white/10' : 'bg-gray-200'
+                        }`}
+                      />
+                      <div
+                        className={`h-3 w-5/6 rounded mt-2 animate-pulse ${
+                          isDark ? 'bg-white/10' : 'bg-gray-200'
+                        }`}
+                      />
+                      <div
+                        className={`h-3 w-1/4 rounded mt-2 animate-pulse ${
+                          isDark ? 'bg-white/10' : 'bg-gray-200'
+                        }`}
+                      />
+                    </div>
+                  ))
+                ) : recentActivity.length > 0 ? (
+                  recentActivity.map((item: any, idx: number) => (
+                    <div
+                      key={`${item.type}-${item.occurredAt}-${idx}`}
+                      className={`flex items-start justify-between gap-3 p-3 rounded-lg ${
+                        isDark ? 'bg-white/5 border border-white/10' : 'bg-gray-50 border border-gray-200'
+                      }`}
+                    >
+                      <div className="min-w-0">
+                        <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                          {item.title}
+                        </p>
+                        <p className={`text-xs mt-1 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                          {item.description}
+                        </p>
+                      </div>
+                      <span className={`text-xs shrink-0 ${isDark ? 'text-slate-500' : 'text-gray-500'}`}>
+                        {new Date(item.occurredAt).toLocaleString()}
+                      </span>
+                    </div>
+                  ))
+                ) : (
+                  <div
+                    className={`text-sm text-center py-4 ${isDark ? 'text-slate-400' : 'text-gray-500'}`}
+                  >
+                    No recent activity found.
+                  </div>
+                )}
               </div>
             </div>
           </>
@@ -639,93 +786,101 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
           <div className="space-y-6">
             <div className="flex justify-between items-center mb-4">
               <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                {t('lectures')}
+                Lecture Materials
               </h2>
-              <button
-                onClick={() => setShowMaterialModal(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
-              >
-                <Plus size={16} />
-                Upload Material
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => navigate(`/instructordashboard/materials/${resolvedCourseId}`)}
+                  className="flex items-center gap-2 px-4 py-2 text-white rounded-lg transition-colors text-sm font-medium"
+                  style={{ backgroundColor: primaryHex }}
+                >
+                  <Settings size={16} />
+                  Manage Materials
+                </button>
+              </div>
             </div>
 
-            <div className="space-y-4">
-              {weeksToRender.map((week) => {
-                const weekMaterials = courseMaterials.filter(
-                  (m: any) => m.weekNumber === week || (!m.weekNumber && week === 1)
-                );
+            {courseMaterials.length === 0 ? (
+              <div
+                className={`rounded-xl border p-10 text-center flex flex-col items-center justify-center min-h-[min(50vh,24rem)] ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}
+              >
+                <Video
+                  size={48}
+                  className={`mb-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                  aria-hidden
+                />
+                <h3 className={`text-lg font-semibold mb-2 ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>
+                  No lecture materials yet
+                </h3>
+                <p className={`${isDark ? 'text-slate-400' : 'text-slate-500'} max-w-md`}>
+                  Manage and upload materials from the Materials page for this course.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {dynamicWeeks.map((week) => {
+                  const weekMaterials = courseMaterials.filter(
+                    (m: any) => m.weekNumber === week || (!m.weekNumber && week === 1)
+                  );
 
-                return (
-                  <div
-                    key={week}
-                    className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}
-                  >
-                    <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'} mb-4`}>
-                      Week {week}
-                    </h3>
-                    <div className="space-y-3">
-                      <div
-                        className={`flex items-center justify-between p-4 ${isDark ? 'bg-transparent hover:bg-white/10' : 'bg-gray-50 hover:bg-gray-100'} rounded-lg transition-colors cursor-pointer`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <Video size={20} className="text-indigo-600" />
-                          <div>
-                            <div
-                              className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}
-                            >
-                              Lecture {week}.1 - Introduction
-                            </div>
-                            <div
-                              className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}
-                            >
-                              {course.schedule || 'Scheduled via portal'}
-                            </div>
-                          </div>
-                        </div>
-                        <CheckCircle size={20} className="text-green-600" />
-                      </div>
-
-                      {weekMaterials.length > 0 ? (
-                        <div className="mt-4 space-y-2 pl-4 border-l-2 border-indigo-100 dark:border-indigo-900/30 ml-4">
-                          <h4
-                            className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-500' : 'text-gray-500'} mb-2`}
+                  return (
+                    <div
+                      key={week}
+                      className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}
+                    >
+                      <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'} mb-4`}>
+                        Week {week}
+                      </h3>
+                      <div className="space-y-2">
+                        {weekMaterials.map((material: any) => (
+                          <div
+                            key={material.materialId || material.id}
+                            className={`p-3 rounded-lg ${isDark ? 'bg-white/5 border-transparent' : 'bg-white border text-gray-700'} text-sm`}
                           >
-                            Materials
-                          </h4>
-                          {weekMaterials.map((material: any) => (
-                            <div
-                              key={material.materialId || material.id}
-                              className={`flex items-center justify-between p-3 rounded-lg ${isDark ? 'bg-white/5 border-transparent' : 'bg-white border text-gray-700'} text-sm`}
-                            >
-                              <div className="flex items-center gap-2">
-                                <FileText size={16} className="text-indigo-500" />
-                                <span className={isDark ? 'text-slate-200' : ''}>
+                            <div className="flex items-center justify-between gap-3">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <FileText size={16} style={{ color: primaryHex }} />
+                                <span className={`truncate ${isDark ? 'text-slate-200' : ''}`}>
                                   {material.title}
                                 </span>
                               </div>
-                              <span
-                                className={`text-xs ${isDark ? 'text-slate-400' : 'text-gray-500'}`}
-                              >
+                              <span className={`text-xs shrink-0 ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
                                 {material.createdAt
                                   ? new Date(material.createdAt).toLocaleDateString()
                                   : 'Just now'}
                               </span>
                             </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div
-                          className={`mt-4 pl-4 text-xs italic ${isDark ? 'text-slate-500' : 'text-gray-500'}`}
-                        >
-                          No materials uploaded yet for this week.
-                        </div>
-                      )}
+
+                            {(() => {
+                              const previewUrl =
+                                material.youtubeVideoId
+                                  ? `https://www.youtube.com/embed/${material.youtubeVideoId}`
+                                  : getCourseMaterialPreviewUrl(material);
+                              const isVideoMaterial =
+                                material.materialType === 'video' ||
+                                Boolean(material.youtubeVideoId) ||
+                                Boolean(previewUrl && previewUrl.includes('youtube.com/embed'));
+                              if (!isVideoMaterial || !previewUrl) return null;
+
+                              return (
+                                <div className="mt-3 rounded-lg overflow-hidden border border-slate-200 aspect-video">
+                                  <iframe
+                                    src={previewUrl}
+                                    className="h-full w-full"
+                                    allowFullScreen
+                                    title={`lecture-preview-${material.materialId || material.id}`}
+                                  />
+                                </div>
+                              );
+                            })()}
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
 
@@ -743,7 +898,8 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
                   setEditingAssignmentIndex(null);
                   setShowAssignmentForm(true);
                 }}
-                className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm"
+                className="flex items-center gap-2 px-4 py-2 text-white rounded-lg transition-colors text-sm"
+                style={{ backgroundColor: primaryHex }}
               >
                 <FileText size={16} />
                 Create New Assignment
@@ -763,13 +919,48 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
 
             {/* Assignment Cards */}
             <div className="space-y-4">
-              {courseAssignments.map((assignment, index) => {
-                const normalizedStatus = String(assignment.status || 'draft').toLowerCase();
-                return (
-                  <div
-                    key={assignment.id}
-                    className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}
+              {isLoadingAssignments ? (
+                <div
+                  className={`rounded-xl border p-10 text-center ${isDark ? 'bg-white/5 border-white/10 text-slate-400' : 'bg-white border-gray-200 text-gray-500'}`}
+                >
+                  Loading assignments...
+                </div>
+              ) : courseAssignments.length === 0 ? (
+                <div
+                  className={`rounded-xl border p-10 text-center flex flex-col items-center justify-center min-h-[min(50vh,24rem)] ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}
+                >
+                  <FileText
+                    size={48}
+                    className={`mb-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                    aria-hidden
+                  />
+                  <h3 className={`text-lg font-semibold mb-2 ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>
+                    No assignments yet
+                  </h3>
+                  <p className={`${isDark ? 'text-slate-400' : 'text-slate-500'} max-w-md mb-6`}>
+                    Create your first assignment for this course to get started.
+                  </p>
+                  <button
+                    onClick={() => {
+                      setAssignmentForm(null);
+                      setEditingAssignmentIndex(null);
+                      setShowAssignmentForm(true);
+                    }}
+                    className="inline-flex items-center gap-2 px-4 py-2 text-white rounded-lg transition-colors text-sm font-medium"
+                    style={{ backgroundColor: primaryHex }}
                   >
+                    <Plus size={16} />
+                    Create New Assignment
+                  </button>
+                </div>
+              ) : (
+                courseAssignments.map((assignment, index) => {
+                  const normalizedStatus = String(assignment.status || 'draft').toLowerCase();
+                  return (
+                    <div
+                      key={assignment.id}
+                      className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}
+                    >
                     <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-4 gap-2">
                       <div className="flex-1">
                         <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
@@ -779,8 +970,8 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
                             {assignment.title}
                           </h3>
                           <span
-                            className={`px-2 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700`}
-                            style={getPrimaryBadgeStyle('bg-indigo-100 text-indigo-700')}
+                            className="px-2 py-1 rounded-full text-xs font-medium"
+                            style={getPrimaryBadgeStyle('')}
                           >
                             {course.courseName}
                           </span>
@@ -833,7 +1024,7 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
                         Edit
                       </button>
                       <button
-                        onClick={() => handleDeleteAssignment(Number(assignment.id))}
+                        onClick={() => handleDeleteAssignment(assignment.id)}
                         className={`flex items-center gap-2 px-3 py-2 text-sm text-red-600 ${isDark ? 'hover:bg-red-500/10' : 'hover:bg-red-50'} rounded-lg transition-colors`}
                       >
                         Delete
@@ -871,7 +1062,8 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
                           setActiveTab('grading');
                           setGradingSubTab('auto');
                         }}
-                        className="flex items-center gap-2 px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                        className={`flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-50'}`}
+                        style={{ color: primaryHex }}
                       >
                         <Sparkles size={16} />
                         AI Auto-Grading
@@ -885,9 +1077,10 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
                         </button>
                       )}
                     </div>
-                  </div>
-                );
-              })}
+                    </div>
+                  );
+                })
+              )}
             </div>
           </div>
         )}
@@ -903,11 +1096,12 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
                 onClick={() => setGradingSubTab('manual')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   gradingSubTab === 'manual'
-                    ? 'bg-indigo-600 text-white'
+                    ? 'text-white'
                     : isDark
                       ? 'text-slate-400 hover:bg-white/10'
                       : 'text-gray-600 hover:bg-gray-100'
                 }`}
+                style={gradingSubTab === 'manual' ? { backgroundColor: primaryHex } : undefined}
               >
                 Manual Grading
               </button>
@@ -915,11 +1109,12 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
                 onClick={() => setGradingSubTab('auto')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   gradingSubTab === 'auto'
-                    ? 'bg-indigo-600 text-white'
+                    ? 'text-white'
                     : isDark
                       ? 'text-slate-400 hover:bg-white/10'
                       : 'text-gray-600 hover:bg-gray-100'
                 }`}
+                style={gradingSubTab === 'auto' ? { backgroundColor: primaryHex } : undefined}
               >
                 Auto-Graded Results
               </button>
@@ -935,7 +1130,8 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
                     <select
                       value={selectedAssignmentIdForGrading || ''}
                       onChange={(e) => setSelectedAssignmentIdForGrading(e.target.value)}
-                      className={`w-full p-2.5 rounded-xl border text-sm focus:ring-2 focus:ring-indigo-500 transition-all ${isDark ? 'bg-white/5 border-white/10 text-white [&>option]:bg-gray-800' : 'bg-gray-50 border-gray-200 text-gray-900'} outline-none`}
+                      className={`w-full p-2.5 rounded-xl border text-sm focus:ring-2 transition-all ${isDark ? 'bg-white/5 border-white/10 text-white [&>option]:bg-gray-800' : 'bg-gray-50 border-gray-200 text-gray-900'} outline-none`}
+                      style={{ '--tw-ring-color': primaryHex } as React.CSSProperties}
                     >
                       <option value="">Select an Assignment</option>
                       {courseAssignments.map((a: any) => (
@@ -1018,7 +1214,8 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
                             value={draftGrades[sub.id] !== undefined ? draftGrades[sub.id] : ''}
                             onChange={(e) => handleInlineGrade(sub.id, e.target.value)}
                             placeholder="e.g. 85"
-                            className={`w-20 px-3 py-1.5 text-sm rounded-lg border focus:outline-none focus:ring-2 ${isDark ? 'bg-white/5 border-white/10 text-white focus:ring-indigo-500' : 'bg-white border-gray-300 text-gray-900 focus:ring-indigo-500'}`}
+                            className={`w-20 px-3 py-1.5 text-sm rounded-lg border focus:outline-none focus:ring-2 ${isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+                            style={{ '--tw-ring-color': primaryHex } as React.CSSProperties}
                           />
                           <span
                             className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-500'} mr-2`}
@@ -1027,7 +1224,8 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
                           </span>
                           <button
                             onClick={() => saveInlineGrade(sub.id)}
-                            className="px-4 py-1.5 text-sm font-medium bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                            className="px-4 py-1.5 text-sm font-medium text-white rounded-lg transition-colors"
+                            style={{ backgroundColor: primaryHex }}
                           >
                             Save Grade
                           </button>
@@ -1080,116 +1278,26 @@ export function CourseDetail({ courseId, onBack, courses, isMockMode = false }: 
 
         {/* Students Tab */}
         {activeTab === 'students' && (
-          <div
-            className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-sm`}
-          >
-            <RosterTable
-              data={sectionStudents.map((student: any, index: number) => ({
-                id: student.id || student.userId || index + 1,
-                name:
-                  `${student.firstName || ''} ${student.lastName || ''}`.trim() ||
-                  `Student ${index + 1}`,
-                email: student.email || `student${index + 1}@edu.com`,
-                status: 'Enrolled',
-                grades: {
-                  assignments: '-',
-                  quizzes: '-',
-                  midterm: '-',
-                  final: '-',
-                  total: '-',
-                },
-              }))}
-            />
-          </div>
+          <RosterTable
+            data={studentsForRoster.map((student: any, index: number) => ({
+              id: student.id || student.userId || index + 1,
+              name:
+                `${student.firstName || ''} ${student.lastName || ''}`.trim() ||
+                `Student ${index + 1}`,
+              email: student.email || `student${index + 1}@edu.com`,
+              status: 'Enrolled',
+              grades: {
+                assignments: '-',
+                quizzes: '-',
+                midterm: '-',
+                final: '-',
+                total: '-',
+              },
+            }))}
+          />
         )}
       </div>
 
-      {/* Upload Material Modal */}
-      {showMaterialModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div
-            className={`w-full max-w-md rounded-2xl p-6 shadow-xl border ${isDark ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'}`}
-          >
-            <h3 className={`text-lg font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              Upload Material
-            </h3>
-
-            <div className="space-y-4 mb-6">
-              <div>
-                <label
-                  className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-300' : 'text-gray-700'}`}
-                >
-                  File / Title
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Chapter_1_Slides.pdf"
-                  value={materialForm.title}
-                  onChange={(e) => setMaterialForm({ ...materialForm, title: e.target.value })}
-                  className={`w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-slate-500 focus:ring-indigo-500' : 'bg-white border-gray-300 text-gray-900 focus:ring-indigo-500'}`}
-                />
-              </div>
-
-              <div>
-                <label
-                  className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-300' : 'text-gray-700'}`}
-                >
-                  Document File (Optional)
-                </label>
-                <input
-                  type="file"
-                  onChange={(e) =>
-                    setMaterialForm({ ...materialForm, file: e.target.files?.[0] || null })
-                  }
-                  className={`w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2 ${isDark ? 'bg-white/5 border-white/10 text-white focus:ring-indigo-500' : 'bg-white border-gray-300 text-gray-900 focus:ring-indigo-500'}`}
-                />
-              </div>
-
-              <div>
-                <label
-                  className={`block text-sm font-medium mb-1 ${isDark ? 'text-slate-300' : 'text-gray-700'}`}
-                >
-                  Target Lecture / Week
-                </label>
-                <CleanSelect
-                  value={materialForm.lectureId}
-                  onChange={(e) => setMaterialForm({ ...materialForm, lectureId: e.target.value })}
-                  className={`w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2 ${isDark ? 'bg-white/5 border-white/10 text-white focus:ring-indigo-500' : 'bg-white border-gray-300 text-gray-900 focus:ring-indigo-500'}`}
-                >
-                  <option value="">Select a lecture...</option>
-                  {lectures.map((lec) => (
-                    <option key={lec.id} value={lec.id}>
-                      {lec.label}
-                    </option>
-                  ))}
-                </CleanSelect>
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => setShowMaterialModal(false)}
-                className={`px-4 py-2 text-sm rounded-lg border ${isDark ? 'border-white/10 text-slate-300 hover:bg-white/10' : 'border-gray-300 text-gray-700 hover:bg-gray-50'} transition-colors`}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSaveMaterial}
-                disabled={!materialForm.title.trim() || !materialForm.lectureId || isUploading}
-                className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-              >
-                {isUploading ? (
-                  <>
-                    <Loader2 size={16} className="animate-spin" /> Uploading...
-                  </>
-                ) : (
-                  'Upload'
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

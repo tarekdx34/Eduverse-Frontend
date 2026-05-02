@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
-import { CleanSelect } from '../../../components/shared';
+import { CleanSelect, CustomDropdown } from '../../../components/shared';
 import { announcementService, type Announcement } from '../../../services/api/announcementService';
 import { EnrollmentService } from '../../../services/api/enrollmentService';
 import { toast } from 'sonner';
@@ -17,6 +17,10 @@ import {
   Edit3,
   Send,
   Pin,
+  Building2,
+  BookOpen,
+  CircleDot,
+  Check,
 } from 'lucide-react';
 import { Skeleton } from '../../../components/ui/skeleton';
 
@@ -60,6 +64,12 @@ type TeachingCourseLike = {
   };
 };
 
+interface AnnouncementsManagerProps {
+  isMockMode?: boolean;
+  mockAnnouncements?: Announcement[];
+  mockCourses?: TeachingCourseLike[];
+}
+
 const normalizeTeachingCourses = (payload: unknown): TeachingCourseLike[] => {
   if (Array.isArray(payload)) return payload as TeachingCourseLike[];
   if (
@@ -95,28 +105,6 @@ const getPublishedBadgeClass = (isDark: boolean) =>
     ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-400/25'
     : 'bg-emerald-50 text-emerald-700 border border-emerald-200';
 
-const getPriorityBadgeClass = (priority: string | undefined, isDark: boolean) => {
-  const normalized = String(priority || 'low').trim().toLowerCase();
-  if (normalized === 'urgent') {
-    return isDark
-      ? 'bg-red-500/15 text-red-300 border border-red-400/25'
-      : 'bg-red-50 text-red-700 border border-red-200';
-  }
-  if (normalized === 'high') {
-    return isDark
-      ? 'bg-orange-500/15 text-orange-300 border border-orange-400/25'
-      : 'bg-orange-50 text-orange-700 border border-orange-200';
-  }
-  if (normalized === 'medium') {
-    return isDark
-      ? 'bg-amber-500/15 text-amber-300 border border-amber-400/25'
-      : 'bg-amber-50 text-amber-700 border border-amber-200';
-  }
-  return isDark
-    ? 'bg-slate-500/15 text-slate-300 border border-slate-400/25'
-    : 'bg-slate-100 text-slate-700 border border-slate-200';
-};
-
 const formatDisplayDate = (value?: string) =>
   new Date(value ?? Date.now()).toLocaleDateString('en-US', {
     month: 'short',
@@ -124,7 +112,91 @@ const formatDisplayDate = (value?: string) =>
     year: 'numeric',
   });
 
-export function AnnouncementsManager() {
+const getPriorityAppearance = (priority: string, isDark: boolean) => {
+  const normalized = String(priority || 'low').toLowerCase();
+  if (normalized === 'urgent') {
+    return {
+      label: 'Urgent',
+      bg: isDark ? 'rgba(239, 68, 68, 0.2)' : 'rgba(254, 226, 226, 1)',
+      color: isDark ? '#fca5a5' : '#b91c1c',
+    };
+  }
+  if (normalized === 'high') {
+    return {
+      label: 'High',
+      bg: isDark ? 'rgba(249, 115, 22, 0.2)' : 'rgba(255, 237, 213, 1)',
+      color: isDark ? '#fdba74' : '#c2410c',
+    };
+  }
+  if (normalized === 'medium') {
+    return {
+      label: 'Medium',
+      bg: isDark ? 'rgba(245, 158, 11, 0.2)' : 'rgba(254, 243, 199, 1)',
+      color: isDark ? '#fcd34d' : '#b45309',
+    };
+  }
+  return {
+    label: 'Low',
+    bg: isDark ? 'rgba(100, 116, 139, 0.2)' : 'rgba(241, 245, 249, 1)',
+    color: isDark ? '#cbd5e1' : '#475569',
+  };
+};
+
+const DEFAULT_MOCK_ANNOUNCEMENTS: Announcement[] = [
+  {
+    id: 'mock-ann-1',
+    courseId: '101',
+    createdBy: 1,
+    title: 'Midterm Review Session',
+    content: 'Review session moved to Wednesday 2:00 PM in Hall B.',
+    announcementType: 'course',
+    priority: 'high',
+    isPublished: 1,
+    isPinned: 1,
+    viewCount: 27,
+    publishedAt: '2026-04-18T10:00:00.000Z',
+    createdAt: '2026-04-18T09:30:00.000Z',
+    author: { firstName: 'Sarah', lastName: 'Martinez', email: 's.martinez@eduverse.edu' },
+    course: { id: '101', code: 'CS301', name: 'Software Engineering' },
+  },
+  {
+    id: 'mock-ann-2',
+    courseId: '102',
+    createdBy: 1,
+    title: 'Lab Submission Window Extended',
+    content: 'Lab 3 submissions are now accepted until Friday 11:59 PM.',
+    announcementType: 'course',
+    priority: 'medium',
+    isPublished: 1,
+    isPinned: 0,
+    viewCount: 19,
+    publishedAt: '2026-04-16T12:00:00.000Z',
+    createdAt: '2026-04-16T11:20:00.000Z',
+    author: { firstName: 'Sarah', lastName: 'Martinez', email: 's.martinez@eduverse.edu' },
+    course: { id: '102', code: 'CS341', name: 'Database Systems' },
+  },
+  {
+    id: 'mock-ann-3',
+    courseId: null,
+    createdBy: 1,
+    title: 'Office Hours Update',
+    content: 'Office hours this week are online only due to department meetings.',
+    announcementType: 'campus',
+    priority: 'low',
+    isPublished: 0,
+    isPinned: 0,
+    viewCount: 0,
+    createdAt: '2026-04-20T08:30:00.000Z',
+    author: { firstName: 'Sarah', lastName: 'Martinez', email: 's.martinez@eduverse.edu' },
+    course: null,
+  },
+];
+
+export function AnnouncementsManager({
+  isMockMode = false,
+  mockAnnouncements,
+  mockCourses,
+}: AnnouncementsManagerProps = {}) {
   const { isDark, primaryHex = '#3b82f6' } = useTheme() as any;
 
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
@@ -141,6 +213,11 @@ export function AnnouncementsManager() {
   const [form, setForm] = useState<AnnouncementFormState>(emptyForm);
 
   const loadAnnouncements = useCallback(async () => {
+    if (isMockMode) {
+      setAnnouncements(mockAnnouncements ?? DEFAULT_MOCK_ANNOUNCEMENTS);
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
       const response = await announcementService.getAnnouncements();
@@ -150,13 +227,17 @@ export function AnnouncementsManager() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isMockMode, mockAnnouncements]);
 
   useEffect(() => {
     loadAnnouncements();
   }, [loadAnnouncements]);
 
   useEffect(() => {
+    if (isMockMode) {
+      setTeachingCourses(mockCourses ?? []);
+      return;
+    }
     let mounted = true;
     const loadTeachingCourses = async () => {
       try {
@@ -172,7 +253,7 @@ export function AnnouncementsManager() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [isMockMode, mockCourses]);
 
   const counts = useMemo(
     () => ({
@@ -248,6 +329,14 @@ export function AnnouncementsManager() {
   const handleDelete = async () => {
     if (!deletingAnnouncement) return;
 
+    if (isMockMode) {
+      setAnnouncements((prev) => prev.filter((a) => a.id !== deletingAnnouncement.id));
+      setShowDeleteConfirm(false);
+      setDeletingAnnouncement(null);
+      toast.success('Announcement deleted');
+      return;
+    }
+
     try {
       await announcementService.deleteAnnouncement(deletingAnnouncement.id);
       toast.success('Announcement deleted successfully');
@@ -261,6 +350,19 @@ export function AnnouncementsManager() {
   };
 
   const handlePublish = async (announcement: Announcement) => {
+    if (isMockMode) {
+      setAnnouncements((prev) =>
+        prev.map((item) =>
+          item.id === announcement.id
+            ? { ...item, isPublished: 1, publishedAt: new Date().toISOString() }
+            : item
+        )
+      );
+      setOpenMenuId(null);
+      toast.success('Announcement published');
+      return;
+    }
+
     try {
       await announcementService.publishAnnouncement(announcement.id);
       toast.success('Announcement published');
@@ -273,6 +375,17 @@ export function AnnouncementsManager() {
   };
 
   const handlePin = async (announcement: Announcement) => {
+    if (isMockMode) {
+      setAnnouncements((prev) =>
+        prev.map((item) =>
+          item.id === announcement.id ? { ...item, isPinned: item.isPinned === 1 ? 0 : 1 } : item
+        )
+      );
+      setOpenMenuId(null);
+      toast.success(announcement.isPinned === 1 ? 'Announcement unpinned' : 'Announcement pinned');
+      return;
+    }
+
     try {
       await announcementService.pinAnnouncement(announcement.id, announcement.isPinned !== 1);
       toast.success(announcement.isPinned === 1 ? 'Announcement unpinned' : 'Announcement pinned');
@@ -297,6 +410,58 @@ export function AnnouncementsManager() {
       priority: form.priority,
       ...(parsedCourseId > 0 ? { courseId: parsedCourseId } : {}),
     };
+
+    if (isMockMode) {
+      if (editingAnnouncement) {
+        setAnnouncements((prev) =>
+          prev.map((item) =>
+            item.id === editingAnnouncement.id
+              ? {
+                  ...item,
+                  title: payload.title,
+                  content: payload.content,
+                  priority: payload.priority,
+                  isPublished: form.publishNow ? 1 : item.isPublished,
+                  updatedAt: new Date().toISOString(),
+                }
+              : item
+          )
+        );
+        toast.success('Announcement updated');
+      } else {
+        const newAnnouncement: Announcement = {
+          id: `mock-ann-${Date.now()}`,
+          courseId: parsedCourseId > 0 ? String(parsedCourseId) : null,
+          createdBy: 1,
+          title: payload.title,
+          content: payload.content,
+          priority: payload.priority,
+          announcementType: parsedCourseId > 0 ? 'course' : 'campus',
+          isPublished: form.publishNow ? 1 : 0,
+          isPinned: 0,
+          viewCount: 0,
+          publishedAt: form.publishNow ? new Date().toISOString() : undefined,
+          createdAt: new Date().toISOString(),
+          author: { firstName: 'Sarah', lastName: 'Martinez', email: 's.martinez@eduverse.edu' },
+          course:
+            parsedCourseId > 0
+              ? {
+                  id: String(parsedCourseId),
+                  name:
+                    courseOptions.find((option) => option.id === String(parsedCourseId))?.label ||
+                    `Course ${parsedCourseId}`,
+                }
+              : null,
+        };
+        setAnnouncements((prev) => [newAnnouncement, ...prev]);
+        toast.success('Announcement created');
+      }
+
+      setShowCreateModal(false);
+      setEditingAnnouncement(null);
+      setForm(emptyForm);
+      return;
+    }
 
     try {
       setSaving(true);
@@ -351,7 +516,31 @@ export function AnnouncementsManager() {
   const cardClass = `rounded-xl p-5 border ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200 shadow-sm'}`;
   const textPrimary = isDark ? 'text-white' : 'text-gray-900';
   const textSecondary = isDark ? 'text-gray-400' : 'text-gray-500';
-  const inputClass = `w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-gray-500' : 'border-gray-300 bg-white text-gray-900'}`;
+  const inputClass = `w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--ann-accent)] focus:border-[var(--ann-accent)] ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-gray-500' : 'border-gray-300 bg-white text-gray-900'}`;
+  const selectedPriorityAppearance = getPriorityAppearance(form.priority, isDark);
+
+  const courseDropdownOptions = useMemo(
+    () =>
+      courseOptions.map((option) => ({
+        value: option.id,
+        label: option.label,
+        icon: option.id === '0' ? <Building2 size={14} /> : <BookOpen size={14} />,
+      })),
+    [courseOptions]
+  );
+
+  const priorityDropdownOptions = useMemo(
+    () =>
+      ['low', 'medium', 'high', 'urgent'].map((value) => {
+        const appearance = getPriorityAppearance(value, isDark);
+        return {
+          value,
+          label: appearance.label,
+          icon: <CircleDot size={12} style={{ color: appearance.color }} />,
+        };
+      }),
+    [isDark]
+  );
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
@@ -480,31 +669,23 @@ export function AnnouncementsManager() {
 
                   <div className="flex flex-wrap items-center gap-3 mt-3 text-sm">
                     <span
-                      className={`px-2 py-0.5 rounded text-xs font-medium ${
-                        isDark
-                          ? 'bg-indigo-500/20 text-indigo-400'
-                          : 'bg-indigo-50 text-indigo-700'
-                      }`}
+                      className="px-2 py-0.5 rounded text-xs font-medium inline-flex items-center gap-1.5"
+                      style={{ backgroundColor: `${primaryHex}20`, color: primaryHex }}
                     >
+                      {a.course?.id ? <BookOpen size={12} /> : <Building2 size={12} />}
                       {getCourseLabel(a)}
                     </span>
                     <span className={textSecondary}>Author: {getAuthorLabel(a)}</span>
                     <span
-                      className={`px-2 py-0.5 rounded text-xs font-medium ${
-                        isDark ? 'bg-blue-500/20 text-blue-300' : 'bg-blue-50 text-blue-700'
-                      }`}
+                      className="px-2 py-0.5 rounded text-xs font-semibold inline-flex items-center gap-1.5 border"
+                      style={{
+                        backgroundColor: getPriorityAppearance(a.priority ?? 'low', isDark).bg,
+                        color: getPriorityAppearance(a.priority ?? 'low', isDark).color,
+                        borderColor: `${getPriorityAppearance(a.priority ?? 'low', isDark).color}55`,
+                      }}
                     >
-                      {a.announcementType ??
-                        (a as Announcement & { type?: string }).type ??
-                        'course'}
-                    </span>
-                    <span
-                      className={`px-2 py-0.5 rounded text-xs font-medium ${getPriorityBadgeClass(
-                        a.priority,
-                        isDark
-                      )}`}
-                    >
-                      {a.priority ?? 'low'}
+                      <CircleDot size={11} />
+                      {getPriorityAppearance(a.priority ?? 'low', isDark).label}
                     </span>
                     <span className={textSecondary}>Views: {a.viewCount ?? 0}</span>
                     <span className={textSecondary}>
@@ -595,7 +776,7 @@ export function AnnouncementsManager() {
               </button>
             </div>
 
-            <div className="px-6 pt-4 pb-6 space-y-5">
+            <div className="px-6 pt-4 pb-6 space-y-5" style={{ ['--ann-accent' as string]: primaryHex }}>
               <div>
                 <label className={`block text-sm font-medium mb-2 ${textPrimary}`}>Title</label>
                 <input
@@ -623,42 +804,56 @@ export function AnnouncementsManager() {
                   <label className={`block text-sm font-medium mb-2 ${textPrimary}`}>
                     Course
                   </label>
-                  <CleanSelect
+                  <CustomDropdown
                     value={form.courseId}
-                    onChange={(e) => setForm((f) => ({ ...f, courseId: e.target.value }))}
-                    className={inputClass}
-                  >
-                    {courseOptions.map((option) => (
-                      <option key={option.id} value={option.id}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </CleanSelect>
+                    onChange={(value) => setForm((f) => ({ ...f, courseId: value }))}
+                    options={courseDropdownOptions}
+                    isDark={isDark}
+                    accentColor={primaryHex}
+                    className="w-full"
+                  />
                 </div>
                 <div>
                   <label className={`block text-sm font-medium mb-2 ${textPrimary}`}>
                     Priority
                   </label>
-                  <CleanSelect
-                    value={form.priority}
-                    onChange={(e) => setForm((f) => ({ ...f, priority: e.target.value }))}
-                    className={inputClass}
+                  <div
+                    className="rounded-xl"
+                    style={{
+                      backgroundColor: selectedPriorityAppearance.bg,
+                      border: `1px solid ${selectedPriorityAppearance.color}66`,
+                    }}
                   >
-                    <option value="low">Low</option>
-                    <option value="medium">Medium</option>
-                    <option value="high">High</option>
-                    <option value="urgent">Urgent</option>
-                  </CleanSelect>
+                    <CustomDropdown
+                      value={form.priority}
+                      onChange={(value) => setForm((f) => ({ ...f, priority: value }))}
+                      options={priorityDropdownOptions}
+                      isDark={isDark}
+                      accentColor={primaryHex}
+                      className="w-full"
+                    />
+                  </div>
                 </div>
               </div>
 
               <div className={`pt-1 ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
                 <label className={`flex items-center gap-2 text-sm ${textPrimary}`}>
-                  <input
-                    type="checkbox"
-                    checked={form.publishNow}
-                    onChange={(e) => setForm((f) => ({ ...f, publishNow: e.target.checked }))}
-                  />
+                  <button
+                    type="button"
+                    role="checkbox"
+                    aria-checked={form.publishNow}
+                    onClick={() => setForm((f) => ({ ...f, publishNow: !f.publishNow }))}
+                    className={`w-5 h-5 rounded-md border flex items-center justify-center transition-colors ${
+                      form.publishNow
+                        ? 'text-white'
+                        : isDark
+                          ? 'border-white/25 bg-white/5'
+                          : 'border-slate-300 bg-white'
+                    }`}
+                    style={form.publishNow ? { backgroundColor: primaryHex, borderColor: primaryHex } : undefined}
+                  >
+                    {form.publishNow && <Check size={13} strokeWidth={3} />}
+                  </button>
                   Publish immediately
                 </label>
               </div>
@@ -681,7 +876,8 @@ export function AnnouncementsManager() {
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="px-4 py-2 rounded-lg text-sm bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-70"
+                className="px-4 py-2 rounded-lg text-sm text-white disabled:opacity-70"
+                style={{ backgroundColor: primaryHex }}
               >
                 {saving ? 'Saving...' : editingAnnouncement ? 'Update' : 'Create'}
               </button>

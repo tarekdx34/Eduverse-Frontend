@@ -32,6 +32,13 @@ import { Skeleton } from '../../../components/ui/skeleton';
 type ViewMode = 'month' | 'week' | 'day';
 type ItemKind = 'class' | 'exam' | 'event' | 'campus_event' | 'office_hours';
 type CampusSource = 'all' | 'my';
+type ScheduleCourseOption = {
+  id?: string | number;
+  courseId?: string | number;
+  name?: string;
+  courseName?: string;
+  courseCode?: string;
+};
 
 type UnifiedScheduleItem = {
   id: string;
@@ -50,6 +57,12 @@ type UnifiedScheduleItem = {
   examItem?: ExamScheduleItem;
   personalEvent?: PersonalEventScheduleItem;
   officeHoursSlot?: OfficeHoursSlot;
+};
+
+type HoverPreviewState = {
+  item: UnifiedScheduleItem;
+  x: number;
+  y: number;
 };
 
 const typeStyles: Record<ItemKind, { text: string; bg: string; border: string }> = {
@@ -233,6 +246,111 @@ const getOfficeHoursModeLabel = (mode: string, t: (key: string) => string) => {
   return mode.replace(/_/g, ' ');
 };
 
+type PositionedCalendarItem = {
+  item: UnifiedScheduleItem;
+  index: number;
+  top: number;
+  height: number;
+  column: number;
+  columnCount: number;
+};
+
+const getMinutesFromTime = (value: string): number => {
+  const normalized = normalizeTime(value);
+  const [hour, minute] = normalized.split(':').map(Number);
+  return hour * 60 + minute;
+};
+
+const buildPositionedCalendarItems = (
+  items: UnifiedScheduleItem[],
+  dayStartHour: number,
+  minHeight: number
+): PositionedCalendarItem[] => {
+  if (!items.length) return [];
+
+  type Segment = {
+    item: UnifiedScheduleItem;
+    index: number;
+    start: number;
+    end: number;
+    top: number;
+    height: number;
+  };
+
+  const dayStartMinutes = dayStartHour * 60;
+  const segments: Segment[] = items.map((item, index) => {
+    const start = getMinutesFromTime(item.startTime);
+    const rawEnd = getMinutesFromTime(item.endTime);
+    const end = Math.max(rawEnd, start + 15);
+    const top = ((start - dayStartMinutes) / 60) * 60;
+    const height = Math.max(((end - start) / 60) * 60, minHeight);
+    return {
+      item,
+      index,
+      start,
+      end,
+      top: Math.max(0, top),
+      height,
+    };
+  });
+
+  const visited = new Array(segments.length).fill(false);
+  const overlap = (a: Segment, b: Segment) => a.start < b.end && b.start < a.end;
+  const positioned: PositionedCalendarItem[] = [];
+
+  for (let i = 0; i < segments.length; i += 1) {
+    if (visited[i]) continue;
+
+    const stack = [i];
+    const componentIndexes: number[] = [];
+    visited[i] = true;
+
+    while (stack.length) {
+      const current = stack.pop()!;
+      componentIndexes.push(current);
+      for (let j = 0; j < segments.length; j += 1) {
+        if (visited[j]) continue;
+        if (overlap(segments[current], segments[j])) {
+          visited[j] = true;
+          stack.push(j);
+        }
+      }
+    }
+
+    const component = componentIndexes
+      .map((segmentIndex) => segments[segmentIndex])
+      .sort((a, b) => a.start - b.start || a.end - b.end || a.index - b.index);
+
+    const laneEndTimes: number[] = [];
+    const laneByItemIndex = new Map<number, number>();
+
+    component.forEach((segment) => {
+      let lane = laneEndTimes.findIndex((laneEnd) => laneEnd <= segment.start);
+      if (lane === -1) {
+        lane = laneEndTimes.length;
+        laneEndTimes.push(segment.end);
+      } else {
+        laneEndTimes[lane] = segment.end;
+      }
+      laneByItemIndex.set(segment.index, lane);
+    });
+
+    const columnCount = Math.max(1, laneEndTimes.length);
+    component.forEach((segment) => {
+      positioned.push({
+        item: segment.item,
+        index: segment.index,
+        top: segment.top,
+        height: segment.height,
+        column: laneByItemIndex.get(segment.index) ?? 0,
+        columnCount,
+      });
+    });
+  }
+
+  return positioned;
+};
+
 const buildLocalOfficeHoursSuggestions = (slots: OfficeHoursSlot[]): OfficeHoursSuggestion[] => {
   const ranked = slots
     .map<OfficeHoursSuggestion>((slot) => {
@@ -326,6 +444,44 @@ const getEventColor = (kind: ItemKind): string => {
     default: return '#6b7280';
   }
 };
+
+function EventHoverPreview({
+  preview,
+  isDark,
+}: {
+  preview: HoverPreviewState | null;
+  isDark: boolean;
+}) {
+  if (!preview) return null;
+
+  const popupWidth = 260;
+  const left = Math.max(12, Math.min(preview.x + 14, window.innerWidth - popupWidth - 12));
+  const top = Math.max(12, preview.y + 14);
+
+  return (
+    <div
+      className={`fixed z-[60] pointer-events-none rounded-lg border shadow-lg p-3 ${
+        isDark ? 'bg-gray-900 border-white/15 text-slate-100' : 'bg-white border-gray-200 text-gray-900'
+      }`}
+      style={{ left, top, width: popupWidth }}
+    >
+      <div className="text-sm font-semibold truncate">{preview.item.title}</div>
+      <div className={`text-xs mt-1 ${isDark ? 'text-slate-300' : 'text-gray-600'}`}>
+        {formatTime24To12(preview.item.startTime)} - {formatTime24To12(preview.item.endTime)}
+      </div>
+      {preview.item.location && (
+        <div className={`text-xs mt-1 truncate ${isDark ? 'text-slate-300' : 'text-gray-600'}`}>
+          {preview.item.location}
+        </div>
+      )}
+      {preview.item.subtitle && (
+        <div className={`text-xs mt-1 capitalize ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
+          {preview.item.subtitle}
+        </div>
+      )}
+    </div>
+  );
+}
 
 // Month Calendar View Component
 function MonthCalendarView({
@@ -454,23 +610,13 @@ function WeekCalendarView({
   const weekStart = startOfWeek(currentDate);
   const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
   const today = toISODate(new Date());
+  const [hoverPreview, setHoverPreview] = useState<HoverPreviewState | null>(null);
 
   const hours = Array.from({ length: 14 }, (_, i) => i + 7); // 7 AM to 8 PM
 
   const getItemsForDate = (date: Date) => {
     const iso = toISODate(date);
     return filteredItems.filter((item) => item.date === iso);
-  };
-
-  const getItemPosition = (item: UnifiedScheduleItem) => {
-    const [sh, sm] = item.startTime.split(':').map(Number);
-    const [eh, em] = item.endTime.split(':').map(Number);
-    const startMinutes = sh * 60 + sm;
-    const endMinutes = eh * 60 + em;
-    const dayStart = 7 * 60; // 7 AM
-    const top = ((startMinutes - dayStart) / 60) * 60; // 60px per hour
-    const height = Math.max(((endMinutes - startMinutes) / 60) * 60, 24);
-    return { top: Math.max(0, top), height };
   };
 
   return (
@@ -521,6 +667,7 @@ function WeekCalendarView({
         {days.map((date) => {
           const iso = toISODate(date);
           const dayItems = getItemsForDate(date);
+          const positionedItems = buildPositionedCalendarItems(dayItems, 7, 24);
 
           return (
             <div
@@ -536,21 +683,44 @@ function WeekCalendarView({
               ))}
 
               {/* Events */}
-              {dayItems.map((item, index) => {
-                const { top, height } = getItemPosition(item);
+              {positionedItems.map(({ item, index, top, height, column, columnCount }) => {
                 const color = getEventColor(item.kind);
+                const horizontalGap = 2;
+                const widthPercent = 100 / columnCount;
+                const leftPercent = column * widthPercent;
 
                 return (
                   <button
                     key={`${item.id}-${index}`}
-                    className="absolute left-0.5 right-0.5 rounded px-1 py-0.5 text-left overflow-hidden transition-opacity hover:opacity-90"
+                    className="absolute rounded px-1 py-0.5 text-left overflow-hidden transition-opacity hover:opacity-90"
                     style={{
                       top: `${top}px`,
                       height: `${height}px`,
+                      left: `calc(${leftPercent}% + ${horizontalGap / 2}px)`,
+                      width: `calc(${widthPercent}% - ${horizontalGap}px)`,
                       backgroundColor: `${color}20`,
                       borderLeft: `3px solid ${color}`,
                     }}
                     onClick={() => onSelectItem(item)}
+                    onMouseEnter={(event) =>
+                      setHoverPreview({
+                        item,
+                        x: event.clientX,
+                        y: event.clientY,
+                      })
+                    }
+                    onMouseMove={(event) =>
+                      setHoverPreview((current) =>
+                        current
+                          ? {
+                              ...current,
+                              x: event.clientX,
+                              y: event.clientY,
+                            }
+                          : null
+                      )
+                    }
+                    onMouseLeave={() => setHoverPreview(null)}
                   >
                     <div className="text-[10px] font-semibold truncate" style={{ color }}>
                       {item.title}
@@ -572,6 +742,7 @@ function WeekCalendarView({
           );
         })}
       </div>
+      <EventHoverPreview preview={hoverPreview} isDark={isDark} />
     </div>
   );
 }
@@ -587,18 +758,9 @@ function DayCalendarView({
 }: CalendarViewProps) {
   const iso = toISODate(currentDate);
   const dayItems = filteredItems.filter((item) => item.date === iso);
+  const positionedItems = buildPositionedCalendarItems(dayItems, 6, 30);
+  const [hoverPreview, setHoverPreview] = useState<HoverPreviewState | null>(null);
   const hours = Array.from({ length: 16 }, (_, i) => i + 6); // 6 AM to 9 PM
-
-  const getItemPosition = (item: UnifiedScheduleItem) => {
-    const [sh, sm] = item.startTime.split(':').map(Number);
-    const [eh, em] = item.endTime.split(':').map(Number);
-    const startMinutes = sh * 60 + sm;
-    const endMinutes = eh * 60 + em;
-    const dayStart = 6 * 60; // 6 AM
-    const top = ((startMinutes - dayStart) / 60) * 60;
-    const height = Math.max(((endMinutes - startMinutes) / 60) * 60, 30);
-    return { top: Math.max(0, top), height };
-  };
 
   return (
     <div className="h-full overflow-auto">
@@ -627,21 +789,44 @@ function DayCalendarView({
           ))}
 
           {/* Events */}
-          {dayItems.map((item, index) => {
-            const { top, height } = getItemPosition(item);
+          {positionedItems.map(({ item, index, top, height, column, columnCount }) => {
             const color = getEventColor(item.kind);
+            const horizontalGap = 6;
+            const widthPercent = 100 / columnCount;
+            const leftPercent = column * widthPercent;
 
             return (
               <button
                 key={`${item.id}-${index}`}
-                className="absolute left-1 right-1 rounded-lg px-3 py-2 text-left overflow-hidden transition-all hover:shadow-md"
+                className="absolute rounded-lg px-3 py-2 text-left overflow-hidden transition-all hover:shadow-md"
                 style={{
                   top: `${top}px`,
                   height: `${height}px`,
+                  left: `calc(${leftPercent}% + ${horizontalGap / 2}px)`,
+                  width: `calc(${widthPercent}% - ${horizontalGap}px)`,
                   backgroundColor: `${color}15`,
                   borderLeft: `4px solid ${color}`,
                 }}
                 onClick={() => onSelectItem(item)}
+                onMouseEnter={(event) =>
+                  setHoverPreview({
+                    item,
+                    x: event.clientX,
+                    y: event.clientY,
+                  })
+                }
+                onMouseMove={(event) =>
+                  setHoverPreview((current) =>
+                    current
+                      ? {
+                          ...current,
+                          x: event.clientX,
+                          y: event.clientY,
+                        }
+                      : null
+                  )
+                }
+                onMouseLeave={() => setHoverPreview(null)}
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0 flex-1">
@@ -681,11 +866,18 @@ function DayCalendarView({
           )}
         </div>
       </div>
+      <EventHoverPreview preview={hoverPreview} isDark={isDark} />
     </div>
   );
 }
 
-export function SchedulePage() {
+export function SchedulePage({
+  isMockMode = false,
+  courses = [],
+}: {
+  isMockMode?: boolean;
+  courses?: ScheduleCourseOption[];
+}) {
   const { t, language } = useLanguage();
   const { isDark, primaryHex = '#3b82f6' } = useTheme() as { isDark: boolean; primaryHex: string };
   const { user } = useAuth();
@@ -710,17 +902,19 @@ export function SchedulePage() {
   const dailyQuery = useQuery({
     queryKey: ['schedule-daily-unified', dayDate],
     queryFn: () => ScheduleService.getDailyUnified(dayDate),
+    enabled: !isMockMode,
   });
 
   const weeklyQuery = useQuery({
     queryKey: ['schedule-weekly-unified', weekStart],
     queryFn: () => ScheduleService.getWeeklyUnified(weekStart),
+    enabled: !isMockMode,
   });
 
   const monthQuery = useQuery({
     queryKey: ['schedule-month-unified', currentDate.getFullYear(), currentDate.getMonth()],
     queryFn: () => getMonthDays(currentDate),
-    enabled: viewMode === 'month',
+    enabled: !isMockMode && viewMode === 'month',
   });
 
   const campusEventsQuery = useQuery({
@@ -738,6 +932,7 @@ export function SchedulePage() {
       };
       return ScheduleService.getCampusEvents(params);
     },
+    enabled: !isMockMode,
   });
 
   const officeHoursQuery = useQuery({
@@ -746,9 +941,67 @@ export function SchedulePage() {
       const payload = (await ScheduleService.getMyOfficeHoursSlots(user?.userId)) as unknown;
       return normalizeOfficeHoursSlotsResponse(payload);
     },
-    enabled: Boolean(user?.userId),
+    enabled: !isMockMode && Boolean(user?.userId),
     retry: false,
   });
+  const mockUnifiedItems = useMemo<UnifiedScheduleItem[]>(() => {
+    const today = new Date();
+    const codeAndName = (idx: number) => {
+      const source = courses[idx] || courses[0] || {};
+      const code = source.courseCode || `CS30${idx + 1}`;
+      const name = source.courseName || source.name || `Course ${idx + 1}`;
+      return { code, name, id: String(source.courseId ?? source.id ?? idx + 1) };
+    };
+    const c1 = codeAndName(0);
+    const c2 = codeAndName(1);
+    return [
+      {
+        id: 'mock-class-1',
+        kind: 'class',
+        date: toISODate(addDays(today, 1)),
+        startTime: '10:00',
+        endTime: '11:30',
+        title: `${c1.code} - ${c1.name}`,
+        subtitle: 'lecture',
+        location: 'B-204',
+        color: '#3b82f6',
+      },
+      {
+        id: 'mock-lab-1',
+        kind: 'class',
+        date: toISODate(addDays(today, 2)),
+        startTime: '12:00',
+        endTime: '13:30',
+        title: `${c2.code} - ${c2.name}`,
+        subtitle: 'lab',
+        location: 'Lab 3',
+        color: '#3b82f6',
+      },
+      {
+        id: 'mock-exam-1',
+        kind: 'exam',
+        date: toISODate(addDays(today, 5)),
+        startTime: '09:00',
+        endTime: '11:00',
+        title: `${c1.code} Midterm`,
+        subtitle: 'Midterm',
+        location: 'Hall A',
+        color: '#ef4444',
+      },
+      {
+        id: 'mock-office-hours-1',
+        kind: 'office_hours',
+        date: toISODate(addDays(today, 3)),
+        startTime: '14:00',
+        endTime: '15:00',
+        title: t('officeHours'),
+        subtitle: t('officeHoursInPerson'),
+        location: 'Office 2-11',
+        color: '#f59e0b',
+      },
+    ];
+  }, [courses, t]);
+
 
   const registerMutation = useMutation({
     mutationFn: (eventId: number) => ScheduleService.registerForCampusEvent(eventId),
@@ -853,6 +1106,7 @@ export function SchedulePage() {
   }, [officeHoursQuery.data, startDate, endDate, t]);
 
   const unifiedItems = useMemo<UnifiedScheduleItem[]>(() => {
+    if (isMockMode) return mockUnifiedItems;
     const items: UnifiedScheduleItem[] = [];
 
     allScheduleDays.forEach((day) => {
@@ -951,7 +1205,7 @@ export function SchedulePage() {
       if (timeCmp !== 0) return timeCmp;
       return a.id.localeCompare(b.id);
     });
-  }, [allScheduleDays, campusEventsQuery.data, officeHoursItems, t]);
+  }, [allScheduleDays, campusEventsQuery.data, officeHoursItems, t, isMockMode, mockUnifiedItems]);
 
   const courseOptions = useMemo(() => {
     const set = new Set<string>();
@@ -1018,13 +1272,14 @@ export function SchedulePage() {
   }, [filteredItems, latestSuggestions]);
 
   const isLoading =
-    dailyQuery.isLoading ||
-    weeklyQuery.isLoading ||
-    (viewMode === 'month' && monthQuery.isLoading) ||
-    campusEventsQuery.isLoading ||
-    officeHoursQuery.isLoading;
+    !isMockMode &&
+    (dailyQuery.isLoading ||
+      weeklyQuery.isLoading ||
+      (viewMode === 'month' && monthQuery.isLoading) ||
+      campusEventsQuery.isLoading ||
+      officeHoursQuery.isLoading);
   const hasError =
-    dailyQuery.error || weeklyQuery.error || monthQuery.error || campusEventsQuery.error;
+    !isMockMode && (dailyQuery.error || weeklyQuery.error || monthQuery.error || campusEventsQuery.error);
 
   const headerLabel = useMemo(() => {
     if (viewMode === 'day') return formatDateHeader(toISODate(currentDate), language);

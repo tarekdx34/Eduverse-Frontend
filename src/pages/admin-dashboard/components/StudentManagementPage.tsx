@@ -41,6 +41,20 @@ const enrollmentConflicts: Record<
   { course: string; conflict: string; resolution: string }[]
 > = {};
 
+function StudentTableSkeleton({ isDark }: { isDark: boolean }) {
+  return (
+    <>
+      {Array.from({ length: 6 }).map((_, index) => (
+        <tr key={index}>
+          <td colSpan={6} className="px-4 py-3">
+            <div className={`h-12 w-full rounded-lg animate-pulse ${isDark ? 'bg-slate-800/70' : 'bg-slate-100'}`} />
+          </td>
+        </tr>
+      ))}
+    </>
+  );
+}
+
 type ModalType =
   | 'add-course'
   | 'remove-course'
@@ -363,12 +377,7 @@ export function StudentManagementPage() {
             </thead>
             <tbody className={`${isDark ? 'divide-white/5' : 'divide-slate-100'} divide-y`}>
               {isLoading ? (
-                <tr>
-                  <td colSpan={6} className="px-4 py-12 text-center text-slate-500">
-                    <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2 text-blue-500" />
-                    Loading students...
-                  </td>
-                </tr>
+                <StudentTableSkeleton isDark={isDark} />
               ) : filteredStudents.length > 0 ? (
                 filteredStudents.map((student) => (
                   <tr key={student.id} className={`${rowHoverClass} transition-colors`}>

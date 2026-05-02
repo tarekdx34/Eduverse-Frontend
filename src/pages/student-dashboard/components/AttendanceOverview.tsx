@@ -9,7 +9,6 @@ import {
   Users,
   BarChart3,
   ChevronLeft,
-  Loader2,
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -22,6 +21,44 @@ const defaultAttendanceData: any[] = [];
 const defaultCourseDailyRecords: Record<number, { date: string; day: string; status: string }[]> = {};
 const defaultRecentAttendance: any[] = [];
 
+function AttendanceOverviewSkeleton({ isDark }: { isDark: boolean }) {
+  return (
+    <div className="space-y-8 animate-pulse">
+      <div className="space-y-2">
+        <div className={`h-9 w-64 rounded ${isDark ? 'bg-white/10' : 'bg-slate-200'}`} />
+        <div className={`h-4 w-80 rounded ${isDark ? 'bg-white/5' : 'bg-slate-100'}`} />
+      </div>
+      <div className={`glass rounded-[2.5rem] p-8`}>
+        <div className="flex justify-between gap-6">
+          <div className="space-y-3">
+            <div className={`h-6 w-52 rounded ${isDark ? 'bg-white/10' : 'bg-slate-200'}`} />
+            <div className={`h-4 w-64 rounded ${isDark ? 'bg-white/5' : 'bg-slate-100'}`} />
+          </div>
+          <div className={`h-20 w-28 rounded-xl ${isDark ? 'bg-white/10' : 'bg-slate-200'}`} />
+        </div>
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {Array.from({ length: 4 }).map((_, idx) => (
+              <div key={idx} className="glass rounded-[2.5rem] p-6 space-y-4">
+                <div className={`h-5 w-3/4 rounded ${isDark ? 'bg-white/10' : 'bg-slate-200'}`} />
+                <div className={`h-4 w-1/3 rounded ${isDark ? 'bg-white/5' : 'bg-slate-100'}`} />
+                <div className={`h-10 w-full rounded ${isDark ? 'bg-white/5' : 'bg-slate-100'}`} />
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="glass rounded-[2.5rem] p-6 space-y-4">
+          {Array.from({ length: 4 }).map((_, idx) => (
+            <div key={idx} className={`h-14 rounded-lg ${isDark ? 'bg-white/5' : 'bg-slate-100'}`} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function AttendanceOverview() {
   const { t, isRTL } = useLanguage();
   const { isDark, primaryHex } = useTheme() as any;
@@ -29,8 +66,8 @@ export function AttendanceOverview() {
   const { user } = useAuth();
 
   const { data: apiAttendance, loading } = useApi(
-    () => AttendanceService.getByStudent(user?.userId ?? 0),
-    [user?.userId]
+    () => AttendanceService.getMyAttendance(),
+    []
   );
 
   const ATTENDANCE_COLORS = [
@@ -74,11 +111,7 @@ export function AttendanceOverview() {
   );
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
-      </div>
-    );
+    return <AttendanceOverviewSkeleton isDark={isDark} />;
   }
 
   const totalClasses = attendanceData.reduce((sum, course) => sum + course.totalClasses, 0);

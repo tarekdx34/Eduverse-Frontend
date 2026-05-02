@@ -15,7 +15,6 @@ import {
   GraduationCap,
   Info,
   CheckCircle,
-  Loader2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { CustomDropdown } from '../../../components/shared';
@@ -49,6 +48,53 @@ interface RegisteredCourse extends EnrolledCourse {
   code: string;
   title: string;
   scheduleLabel: string;
+}
+
+function CourseRegistrationSkeleton({ isDark }: { isDark: boolean }) {
+  return (
+    <div className="space-y-6 animate-pulse">
+      <div className="space-y-2">
+        <div className={`h-9 w-64 rounded-md ${isDark ? 'bg-white/10' : 'bg-slate-200'}`} />
+        <div className={`h-4 w-80 rounded-md ${isDark ? 'bg-white/5' : 'bg-slate-100'}`} />
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        {Array.from({ length: 3 }).map((_, idx) => (
+          <div
+            key={idx}
+            className={`rounded-2xl p-5 border-2 ${isDark ? 'bg-card-dark border-white/5' : 'bg-white border-slate-50'}`}
+          >
+            <div className={`h-4 w-1/2 rounded mb-4 ${isDark ? 'bg-white/10' : 'bg-slate-200'}`} />
+            <div className={`h-8 w-1/3 rounded ${isDark ? 'bg-white/10' : 'bg-slate-200'}`} />
+          </div>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-4">
+          <div className={`h-12 w-full rounded-xl ${isDark ? 'bg-white/5' : 'bg-slate-100'}`} />
+          {Array.from({ length: 4 }).map((_, idx) => (
+            <div
+              key={idx}
+              className={`rounded-xl border-2 p-5 ${isDark ? 'bg-card-dark border-white/5' : 'bg-white border-slate-100'}`}
+            >
+              <div className={`h-5 w-2/3 rounded mb-3 ${isDark ? 'bg-white/10' : 'bg-slate-200'}`} />
+              <div className={`h-4 w-1/3 rounded mb-4 ${isDark ? 'bg-white/5' : 'bg-slate-100'}`} />
+              <div className={`h-10 w-full rounded ${isDark ? 'bg-white/5' : 'bg-slate-100'}`} />
+            </div>
+          ))}
+        </div>
+        <div className={`rounded-[2.5rem] p-4 ${isDark ? 'bg-card-dark border border-white/5' : 'glass'}`}>
+          <div className={`h-5 w-1/2 rounded mb-4 ${isDark ? 'bg-white/10' : 'bg-slate-200'}`} />
+          <div className="space-y-3">
+            {Array.from({ length: 4 }).map((_, idx) => (
+              <div key={idx} className={`h-16 rounded-lg ${isDark ? 'bg-white/5' : 'bg-slate-100'}`} />
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export function CourseRegistration() {
@@ -241,11 +287,7 @@ export function CourseRegistration() {
   const combinedError = availableError || myCoursesError;
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
-      </div>
-    );
+    return <CourseRegistrationSkeleton isDark={isDark} />;
   }
 
   if (combinedError) {

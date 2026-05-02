@@ -1,12 +1,7 @@
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
-
-interface PaymentRecord {
-  id: string;
-  category: string;
-  date: string;
-  status: 'On-Verification' | 'Completed' | 'Pending' | 'Failed';
-}
+import { useApi } from '../../../hooks/useApi';
+import { PaymentService, type PaymentRecord } from '../../../services/api/paymentService';
 
 interface PaymentHistoryProps {
   payments?: PaymentRecord[];
@@ -22,19 +17,13 @@ const getStatusColor = (status: string, isDark: boolean) => {
   return colors[status as keyof typeof colors] || colors['On-Verification'];
 };
 
-const defaultPayments: PaymentRecord[] = [
-  {
-    id: 'PID - 331829',
-    category: '6th Semester Tuition',
-    date: '23 October 2024',
-    status: 'On-Verification',
-  },
-];
-
-export default function PaymentHistory({ payments = defaultPayments }: PaymentHistoryProps) {
+export default function PaymentHistory({ payments: paymentsProp }: PaymentHistoryProps) {
   const { isDark, primaryHex } = useTheme() as any;
   const accentColor = primaryHex || '#3b82f6';
   const { t } = useLanguage();
+  const { data: apiPayments = [], loading } = useApi(() => PaymentService.getMyPayments(), []);
+
+  const payments = paymentsProp ?? apiPayments;
 
   return (
     <div
@@ -62,7 +51,16 @@ export default function PaymentHistory({ payments = defaultPayments }: PaymentHi
       </div>
 
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+        {loading ? (
+          <div className={`py-8 text-sm text-center ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+            Loading payments...
+          </div>
+        ) : payments.length === 0 ? (
+          <div className={`py-8 text-sm text-center ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+            No payment records available yet.
+          </div>
+        ) : (
+          <table className="w-full text-sm">
           <thead className={`border-b ${isDark ? 'border-white/5' : 'border-slate-100'}`}>
             <tr>
               <th
@@ -120,7 +118,8 @@ export default function PaymentHistory({ payments = defaultPayments }: PaymentHi
               </tr>
             ))}
           </tbody>
-        </table>
+          </table>
+        )}
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { type CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -45,6 +45,8 @@ import {
 
 type UploadMaterialsPageProps = {
   courseId?: string;
+  isMockMode?: boolean;
+  courses?: Array<{ id?: string | number; courseId?: string | number; name?: string; courseName?: string; courseCode?: string }>;
 };
 
 type UploadType = 'text' | 'file' | 'video' | 'bundle';
@@ -175,7 +177,7 @@ const uploaderName = (material: CourseMaterial): string => {
   return 'Unknown';
 };
 
-export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
+export function UploadMaterialsPage({ courseId, isMockMode = false, courses = [] }: UploadMaterialsPageProps) {
   const { id: routeId } = useParams();
   const { isDark, primaryHex = '#3b82f6' } = useTheme() as any;
   const { isRTL } = useLanguage();
@@ -284,7 +286,50 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
     );
   }, []);
 
+  const createMockMaterial = useCallback(
+    (overrides: Partial<CourseMaterial> = {}): CourseMaterial => ({
+      materialId: overrides.materialId || `mock-material-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      courseId: overrides.courseId || activeCourseId || '101',
+      materialType: overrides.materialType || 'document',
+      title: overrides.title || 'Mock Material',
+      description: overrides.description ?? '',
+      externalUrl: overrides.externalUrl ?? null,
+      driveViewUrl: overrides.driveViewUrl ?? null,
+      driveDownloadUrl: overrides.driveDownloadUrl ?? null,
+      fileName: overrides.fileName ?? null,
+      youtubeVideoId: overrides.youtubeVideoId ?? null,
+      orderIndex: overrides.orderIndex ?? 0,
+      weekNumber: overrides.weekNumber ?? null,
+      viewCount: overrides.viewCount ?? 0,
+      downloadCount: overrides.downloadCount ?? 0,
+      uploader: overrides.uploader ?? {
+        userId: 1,
+        firstName: 'Instructor',
+        lastName: 'Mock',
+        email: 'instructor.mock@eduverse.local',
+      },
+      isPublished: overrides.isPublished ?? 1,
+      createdAt: overrides.createdAt || new Date().toISOString(),
+      updatedAt: overrides.updatedAt || new Date().toISOString(),
+    }),
+    [activeCourseId]
+  );
+
   const loadCourseOptions = useCallback(async () => {
+    if (isMockMode) {
+      const mapped = courses
+        .map((c) => {
+          const value = String(c.courseId ?? c.id ?? '');
+          const name = c.courseName || c.name || 'Course';
+          const code = c.courseCode || '';
+          return value ? { value, label: code ? `${code} - ${name}` : name } : null;
+        })
+        .filter(Boolean) as Array<{ value: string; label: string }>;
+      setCourseOptions(mapped);
+      if (!selectedCourseId && mapped.length > 0) setSelectedCourseId(mapped[0].value);
+      return;
+    }
+
     try {
       const teaching = await EnrollmentService.getTeachingCourses();
       const mapped = (Array.isArray(teaching) ? teaching : [])
@@ -303,7 +348,7 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
     } catch {
       setCourseOptions([]);
     }
-  }, [selectedCourseId]);
+  }, [selectedCourseId, isMockMode, courses]);
 
   const loadStructure = useCallback(async (targetCourseId: string) => {
     const response = await structureService.getStructure(targetCourseId);
@@ -334,6 +379,7 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
   );
 
   const refetchAll = useCallback(async () => {
+    if (isMockMode) return;
     if (!activeCourseId) return;
     setLoading(true);
     try {
@@ -344,7 +390,7 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
     } finally {
       setLoading(false);
     }
-  }, [activeCourseId, loadMaterials, loadStructure]);
+  }, [activeCourseId, loadMaterials, loadStructure, isMockMode]);
 
   useEffect(() => {
     loadCourseOptions();
@@ -353,6 +399,62 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
   useEffect(() => {
     refetchAll();
   }, [refetchAll]);
+
+  useEffect(() => {
+    if (!isMockMode || !activeCourseId) return;
+    const now = new Date();
+    const seed = [
+      createMockMaterial({
+        materialId: `mock-${activeCourseId}-mat-1`,
+        courseId: activeCourseId,
+        title: 'Week 1 Lecture Slides',
+        materialType: 'slide',
+        weekNumber: 1,
+        isPublished: 1,
+        createdAt: now.toISOString(),
+      }),
+      createMockMaterial({
+        materialId: `mock-${activeCourseId}-mat-2`,
+        courseId: activeCourseId,
+        title: 'Week 2 Lab Instructions',
+        materialType: 'document',
+        weekNumber: 2,
+        isPublished: 1,
+        createdAt: now.toISOString(),
+      }),
+      createMockMaterial({
+        materialId: `mock-${activeCourseId}-mat-3`,
+        courseId: activeCourseId,
+        title: 'Course Orientation Video',
+        materialType: 'video',
+        weekNumber: 1,
+        isPublished: 0,
+        externalUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+      }),
+    ];
+    setMaterialsResponse({ data: seed, meta: { total: seed.length, page: 1, limit: 100, totalPages: 1 } });
+  }, [isMockMode, activeCourseId, createMockMaterial]);
+
+  useEffect(() => {
+    if (!isMockMode) return;
+    const byWeek: Record<string, any[]> = {};
+    (materialsResponse.data || []).forEach((item) => {
+      if (item.weekNumber == null) return;
+      const key = String(item.weekNumber);
+      if (!byWeek[key]) byWeek[key] = [];
+      byWeek[key].push({
+        organizationId: `mock-org-${item.materialId}`,
+        courseId: item.courseId,
+        materialId: item.materialId,
+        material: item,
+        organizationType: 'lecture',
+        title: item.title,
+        weekNumber: item.weekNumber,
+        orderIndex: item.orderIndex || 0,
+      });
+    });
+    setStructureResponse({ data: Object.values(byWeek).flat(), byWeek });
+  }, [isMockMode, materialsResponse.data]);
 
   const weekOptions = useMemo(() => {
     const dynamic = Object.keys(structureResponse.byWeek || {})
@@ -434,6 +536,66 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
 
   const onCreateMaterial = async () => {
     if (!activeCourseId || !createForm.title.trim()) return;
+
+    if (isMockMode) {
+      const weekNumber = parseWeekNumber(createForm.weekNumber) ?? null;
+      const basePayload = {
+        courseId: activeCourseId,
+        title: createForm.title.trim(),
+        description: createForm.description || '',
+        weekNumber,
+        isPublished: createForm.isPublished ? 1 : 0,
+      } as Partial<CourseMaterial>;
+
+      if (uploadType === 'bundle') {
+        const items: CourseMaterial[] = [];
+        if (bundleVideo) {
+          items.push(
+            createMockMaterial({
+              ...basePayload,
+              title: `${createForm.title.trim()} - Video`,
+              materialType: 'video',
+              fileName: bundleVideo.name,
+              externalUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+            })
+          );
+        }
+        bundleDocuments.forEach((file, index) => {
+          items.push(
+            createMockMaterial({
+              ...basePayload,
+              title: `${createForm.title.trim()} - ${file.name.replace(/\.[^.]+$/, '')}`,
+              materialType: createForm.materialType,
+              fileName: file.name,
+              orderIndex: index + 1,
+            })
+          );
+        });
+        if (items.length === 0) {
+          setUploadError('Please add a video or at least one document.');
+          return;
+        }
+        setMaterialsResponse((prev) => ({ ...prev, data: [...items, ...(prev.data || [])] }));
+      } else {
+        const one = createMockMaterial({
+          ...basePayload,
+          materialType: uploadType === 'video' ? 'video' : createForm.materialType,
+          fileName: selectedFile?.name || null,
+          externalUrl: uploadType === 'video' ? 'https://www.youtube.com/embed/dQw4w9WgXcQ' : null,
+        });
+        setMaterialsResponse((prev) => ({ ...prev, data: [one, ...(prev.data || [])] }));
+      }
+
+      addActivity(`Created: ${createForm.title}`, 'completed');
+      toast.success('Mock material created');
+      setShowCreateModal(false);
+      setSelectedFile(null);
+      setBundleVideo(null);
+      setBundleDocuments([]);
+      setUploadProgress(0);
+      setUploadError('');
+      return;
+    }
 
     // --- Lecture Bundle Upload ---
     if (uploadType === 'bundle') {
@@ -651,6 +813,46 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
 
   const onUpdateMaterial = async () => {
     if (!activeCourseId) return;
+    if (isMockMode) {
+      if (editingBundle && editingBundle.items.length > 0) {
+        const ids = new Set(editingBundle.items.map((i) => i.materialId));
+        setMaterialsResponse((prev) => ({
+          ...prev,
+          data: (prev.data || []).map((item) =>
+            ids.has(item.materialId)
+              ? {
+                  ...item,
+                  title: `${editForm.title.trim()} - ${getBundleSuffix(item, editingBundle.baseTitle)}`,
+                  description: editForm.description || '',
+                  weekNumber: parseWeekNumber(editForm.weekNumber) ?? null,
+                  isPublished: editForm.isPublished ? 1 : 0,
+                  updatedAt: new Date().toISOString(),
+                }
+              : item
+          ),
+        }));
+      } else if (selectedMaterial) {
+        setMaterialsResponse((prev) => ({
+          ...prev,
+          data: (prev.data || []).map((item) =>
+            item.materialId === selectedMaterial.materialId
+              ? {
+                  ...item,
+                  title: editForm.title.trim(),
+                  description: editForm.description || '',
+                  weekNumber: parseWeekNumber(editForm.weekNumber) ?? null,
+                  isPublished: editForm.isPublished ? 1 : 0,
+                  updatedAt: new Date().toISOString(),
+                }
+              : item
+          ),
+        }));
+      }
+      toast.success('Mock material updated');
+      setShowEditModal(false);
+      setEditingBundle(null);
+      return;
+    }
     setMutating(true);
     try {
       if (editingBundle && editingBundle.items.length > 0) {
@@ -694,6 +896,26 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
 
   const onDeleteMaterial = async () => {
     if (!activeCourseId) return;
+    if (isMockMode) {
+      if (deletingBundle && deletingBundle.items.length > 0) {
+        const ids = new Set(deletingBundle.items.map((m) => m.materialId));
+        setMaterialsResponse((prev) => ({
+          ...prev,
+          data: (prev.data || []).filter((m) => !ids.has(m.materialId)),
+        }));
+        toast.success('Mock lecture bundle deleted');
+      } else if (selectedMaterial) {
+        setMaterialsResponse((prev) => ({
+          ...prev,
+          data: (prev.data || []).filter((m) => m.materialId !== selectedMaterial.materialId),
+        }));
+        toast.success('Mock material deleted');
+      }
+      setShowDeleteDialog(false);
+      setDeletingBundle(null);
+      setSelectedMaterial(null);
+      return;
+    }
     setMutating(true);
     try {
       if (deletingBundle && deletingBundle.items.length > 0) {
@@ -728,6 +950,15 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
 
   const onToggleVisibility = async (material: CourseMaterial) => {
     if (!activeCourseId) return;
+    if (isMockMode) {
+      setMaterialsResponse((prev) => ({
+        ...prev,
+        data: (prev.data || []).map((m) =>
+          m.materialId === material.materialId ? { ...m, isPublished: m.isPublished === 1 ? 0 : 1 } : m
+        ),
+      }));
+      return;
+    }
     try {
       await materialService.toggleVisibility(
         activeCourseId,
@@ -743,6 +974,15 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
 
   const onToggleBundleVisibility = async (bundle: MaterialBundle) => {
     if (!activeCourseId) return;
+    if (isMockMode) {
+      const ids = new Set(bundle.items.map((i) => i.materialId));
+      const nextVisibleState = bundle.items.some((item) => item.isPublished !== 1) ? 1 : 0;
+      setMaterialsResponse((prev) => ({
+        ...prev,
+        data: (prev.data || []).map((m) => (ids.has(m.materialId) ? { ...m, isPublished: nextVisibleState } : m)),
+      }));
+      return;
+    }
     const nextVisibleState = bundle.items.some((item) => item.isPublished !== 1);
     try {
       await Promise.all(
@@ -814,14 +1054,14 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
               )}
             </div>
             {bundleVideoSrc ? (
-              <iframe
-                src={bundleVideoSrc}
-                width="100%"
-                height="260"
-                allowFullScreen
-                title={`bundle-video-${bundle.key}`}
-                className="rounded"
-              />
+              <div className="rounded overflow-hidden aspect-video">
+                <iframe
+                  src={bundleVideoSrc}
+                  className="h-full w-full"
+                  allowFullScreen
+                  title={`bundle-video-${bundle.key}`}
+                />
+              </div>
             ) : (
               <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                 Video preview is unavailable.
@@ -844,11 +1084,16 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
                 <div
                   key={doc.materialId}
                   className={`flex flex-wrap items-center justify-between gap-2 p-2 rounded border ${selectedDocument?.materialId === doc.materialId
-                    ? 'border-indigo-300 bg-indigo-50'
+                    ? ''
                     : isDark
                       ? 'border-white/10 bg-white/5'
                       : 'border-slate-200 bg-white'
                     }`}
+                  style={
+                    selectedDocument?.materialId === doc.materialId
+                      ? { borderColor: `${primaryHex}80`, backgroundColor: `${primaryHex}12` }
+                      : undefined
+                  }
                 >
                   <button
                     type="button"
@@ -861,7 +1106,8 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
                   <button
                     type="button"
                     onClick={() => onDownload(doc)}
-                    className="text-xs px-2 py-1 rounded bg-indigo-600 text-white hover:bg-indigo-700"
+                    className="text-xs px-2 py-1 rounded text-white"
+                    style={{ backgroundColor: primaryHex }}
                   >
                     Open
                   </button>
@@ -898,6 +1144,8 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
                     '';
     const documentPreviewSrc = getCourseMaterialPreviewUrl(material);
     const canInlinePreview = !!documentPreviewSrc;
+    const isVideoPreview =
+      Boolean(effectiveYoutubeId) || Boolean(documentPreviewSrc && documentPreviewSrc.includes('youtube.com/embed'));
 
     const ytThumb = effectiveYoutubeId
       ? `https://img.youtube.com/vi/${effectiveYoutubeId}/mqdefault.jpg`
@@ -959,11 +1207,13 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
             </div>
 
             {canInlinePreview ? (
-              <div className="mt-3 rounded-lg overflow-hidden border border-slate-200">
+              <div
+                className={`mt-3 rounded-lg overflow-hidden border border-slate-200 ${isVideoPreview ? 'aspect-video' : ''}`}
+              >
                 <iframe
                   src={documentPreviewSrc || ''}
-                  width="100%"
-                  height={effectiveYoutubeId ? "315" : "380"}
+                  className={isVideoPreview ? 'h-full w-full' : 'w-full'}
+                  height={isVideoPreview ? undefined : '380'}
                   allowFullScreen
                   title={`material-preview-${material.materialId}`}
                 />
@@ -1026,7 +1276,8 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
                 href={material.externalUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-white/10 text-indigo-400' : 'hover:bg-indigo-50 text-indigo-600'}`}
+                className={`p-2 rounded-lg transition-colors ${isDark ? 'hover:bg-white/10' : 'hover:bg-slate-100'}`}
+                style={{ color: primaryHex }}
                 title="Open Link"
               >
                 <LinkIcon size={16} />
@@ -1082,7 +1333,7 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
           <div
             className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${isDark ? 'bg-white/10' : 'bg-slate-100'}`}
           >
-            <Package size={18} className="text-indigo-500" />
+            <Package size={18} style={{ color: primaryHex }} />
           </div>
 
           <button
@@ -1094,7 +1345,10 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
               <h4 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
                 {bundle.baseTitle}
               </h4>
-              <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700">
+              <span
+                className="px-2 py-0.5 rounded-full text-xs font-medium"
+                style={{ backgroundColor: `${primaryHex}20`, color: primaryHex }}
+              >
                 Lecture Bundle
               </span>
               <span
@@ -1158,9 +1412,15 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
   const renderWeekMaterialEntry = (entry: WeekMaterialEntry) =>
     entry.kind === 'bundle' ? renderBundleCard(entry.bundle) : renderMaterialCard(entry.material);
 
+  const selectedCourseCardStyle: CSSProperties = {
+    borderColor: primaryHex,
+    backgroundColor: `${primaryHex}12`,
+    boxShadow: `0 0 0 1px ${primaryHex}40`,
+  };
+
   return (
-    <div className="p-6" dir={isRTL ? 'rtl' : 'ltr'}>
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="space-y-6" dir={isRTL ? 'rtl' : 'ltr'}>
+      <div className="space-y-6">
         <div className="flex items-center justify-between gap-4">
           <div>
             <h1
@@ -1254,14 +1514,14 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
                       <button
                         key={opt.value}
                         onClick={() => setSelectedCourseId(opt.value)}
-                        className={`flex-shrink-0 w-48 p-4 rounded-xl border text-left transition-all ${
+                        className={`flex-shrink-0 w-48 min-h-[86px] p-4 rounded-xl border text-left transition-all ${
                           isActive
-                            ? 'ring-2 ring-indigo-500 border-transparent shadow-lg scale-[1.02]'
+                            ? 'shadow-md'
                             : isDark
                               ? 'bg-white/5 border-white/10 hover:border-white/20'
                               : 'bg-white border-slate-200 hover:border-slate-300'
                         }`}
-                        style={isActive ? { backgroundColor: `${primaryHex}10` } : {}}
+                        style={isActive ? selectedCourseCardStyle : {}}
                       >
                         <div
                           className={`text-lg font-bold mb-1 ${isActive ? '' : isDark ? 'text-white' : 'text-slate-900'}`}
@@ -1270,7 +1530,8 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
                           {code}
                         </div>
                         <div
-                          className={`text-xs truncate ${isActive ? 'text-indigo-600 dark:text-indigo-400' : isDark ? 'text-slate-400' : 'text-slate-500'}`}
+                          className={`text-xs truncate ${isDark ? 'text-slate-400' : 'text-slate-500'}`}
+                          style={isActive ? { color: primaryHex } : {}}
                           title={name}
                         >
                           {name}
@@ -1612,7 +1873,7 @@ export function UploadMaterialsPage({ courseId }: UploadMaterialsPageProps) {
                               </>
                             ) : (
                               <>
-                                <LinkIcon size={24} className="text-indigo-500" />
+                                <LinkIcon size={24} style={{ color: primaryHex }} />
                                 <div>
                                   <p className="font-bold">Web Link Detected</p>
                                   <p className="opacity-70">{new URL(form.externalUrl).hostname}</p>

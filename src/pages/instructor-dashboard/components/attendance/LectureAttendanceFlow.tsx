@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { LucideIcon } from 'lucide-react';
-import { Camera, CheckCircle2, CircleHelp, Clock, XCircle } from 'lucide-react';
+import { Camera, CheckCircle2, CircleHelp, Clock, XCircle, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../../../context/AuthContext';
 import { ApiClient } from '../../../../services/api/client';
@@ -530,10 +530,13 @@ export function LectureAttendanceFlow({ embedded = true }: LectureAttendanceFlow
       if (prev == null || conf > prev) confidenceByUser.set(uid, conf);
     }
     return rosterRows.map((r) => ({
-      userId: r.userId,
+      userId: Number(r.userId),
       name: r.name,
       suggested: markedSet.has(String(r.userId)) ? 'present' : 'absent',
-      confidence: confidenceByUser.has(r.userId) ? confidenceByUser.get(r.userId)! : null,
+      confidence:
+        Number.isFinite(Number(r.userId)) && confidenceByUser.has(Number(r.userId))
+          ? confidenceByUser.get(Number(r.userId))!
+          : null,
     }));
   }, [aiResult, rosterRows]);
 
@@ -563,8 +566,8 @@ export function LectureAttendanceFlow({ embedded = true }: LectureAttendanceFlow
     const rows = [...rosterRows];
     if (!aiResult || needsReviewIdSet.size === 0) return rows;
     return rows.sort((a, b) => {
-      const aFlag = needsReviewIdSet.has(a.userId) ? 0 : 1;
-      const bFlag = needsReviewIdSet.has(b.userId) ? 0 : 1;
+      const aFlag = needsReviewIdSet.has(Number(a.userId)) ? 0 : 1;
+      const bFlag = needsReviewIdSet.has(Number(b.userId)) ? 0 : 1;
       if (aFlag !== bFlag) return aFlag - bFlag;
       return a.name.localeCompare(b.name);
     });
@@ -694,9 +697,19 @@ export function LectureAttendanceFlow({ embedded = true }: LectureAttendanceFlow
             {loadingTeaching ? (
               <p className={`text-sm ${subMuted}`}>Loading your sections…</p>
             ) : teaching.length === 0 ? (
-              <p className={`${card} p-4 text-sm ${muted}`}>
-                No sections are assigned to your account as instructor or TA.
-              </p>
+              <div className={`${card} p-10 text-center`}>
+                <Users
+                  size={48}
+                  className={`mx-auto mb-4 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+                  aria-hidden
+                />
+                <h3 className={`text-lg font-semibold mb-2 ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>
+                  No sections assigned
+                </h3>
+                <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                  No sections are assigned to your account as instructor or TA.
+                </p>
+              </div>
             ) : (
               <div className="grid gap-3 sm:grid-cols-2">
                 {teaching.map((row) => {
@@ -1041,8 +1054,11 @@ export function LectureAttendanceFlow({ embedded = true }: LectureAttendanceFlow
                       </tr>
                     ) : (
                       sortedRosterRows.map((row) => {
-                        const ai = aiResult ? aiReviewByUserId.get(row.userId) : undefined;
-                        const needsHighlight = Boolean(aiResult && needsReviewIdSet.has(row.userId));
+                        const numericUserId = Number(row.userId);
+                        const ai = aiResult ? aiReviewByUserId.get(numericUserId) : undefined;
+                        const needsHighlight = Boolean(
+                          aiResult && needsReviewIdSet.has(numericUserId),
+                        );
                         return (
                           <tr
                             key={row.userId}
