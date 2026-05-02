@@ -52,6 +52,7 @@
     "axios": "^1.7.9",
     "class-variance-authority": "^0.7.1",
     "clx": "^1.0.0",
+    "docx": "^9.6.1",
     "embla-carousel-react": "^8.6.0",
     "i18next": "^25.8.18",
     "i18next-browser-languagedetector": "^8.2.1",

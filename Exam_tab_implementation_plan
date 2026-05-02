@@ -1,0 +1,216 @@
+# Dedicated Exams Tab Implementation Plan
+
+The objective is to create a dedicated "Exams" tab in the Instructor Dashboard to house the Question Bank and Exam Generation features, separating them from the general "Quizzes" management area.
+
+## 1. Instructor Dashboard Navigation
+- Add `'exams'` to the `TabKey` type in `InstructorDashboard.tsx`.
+- Add an entry for `Exams` in the `TABS` constant using the `FileText` icon.
+- Route to `ExamsPage` component when `activeTab === 'exams'`.
+
+## 2. ExamsPage UI 
+- Display a robust header and summary.
+- Provide two primary Call-To-Action buttons: **"Add Question to Bank"** and **"Generate Exam"**.
+- Below the controls, render a list of existing questions retrieved from the Question Bank (paginated and filterable by course/chapter).
+
+---
+
+## API Documentation & Shapes (As Requested)
+
+Here are the complete details for ALL endpoints, requests, and responses for the Question Bank and Exam Generation modules:
+
+### A. Question Bank & Chapter Endpoints
+
+#### 1. Create Chapter
+- **Endpoint:** `POST /api/courses/:courseId/chapters`
+- **Request Body (`CreateChapterDto`):**
+```json
+{
+  "name": "Chapter 1",
+  "chapterOrder": 1
+}
+```
+- **Response Shape:** Returns the created `CourseChapter` entity.
+
+#### 2. Get Course Chapters
+- **Endpoint:** `GET /api/courses/:courseId/chapters`
+- **Response Shape:**
+```json
+[
+  {
+    "id": 2,
+    "courseId": 34,
+    "name": "Web Development Mastery",
+    "chapterOrder": 1,
+    "isActive": 1
+  }
+]
+```
+
+#### 3. Update Chapter
+- **Endpoint:** `PATCH /api/courses/:courseId/chapters/:chapterId`
+- **Request Body (`UpdateChapterDto`):**
+```json
+{
+  "name": "Chapter 2",
+  "chapterOrder": 2,
+  "isActive": 1
+}
+```
+- **Response Shape:** Returns the updated `CourseChapter` entity.
+
+#### 4. Delete Chapter
+- **Endpoint:** `DELETE /api/courses/:courseId/chapters/:chapterId`
+- **Response Shape:**
+```json
+{
+  "message": "Chapter deleted successfully"
+}
+```
+
+#### 5. Create Question in Bank
+- **Endpoint:** `POST /api/question-bank/questions`
+- **Request Body (`CreateQuestionBankQuestionDto`):**
+```json
+{
+  "courseId": 34,
+  "chapterId": 2,
+  "questionType": "mcq", // "written" | "mcq" | "true_false" | "fill_blanks" | "essay"
+  "difficulty": "medium", // "easy" | "medium" | "hard"
+  "bloomLevel": "applying", // "remembering" | "understanding" | "applying" | "analyzing" | "evaluating" | "creating"
+  "questionText": "What does CSS stand for?",
+  "questionFileId": null,
+  "expectedAnswerText": "Cascading Style Sheets",
+  "hints": "Think about styling...",
+  "status": "approved", // "draft" | "approved" | "archived"
+  "options": [
+    {
+      "optionText": "Cascading Style Sheets",
+      "isCorrect": true
+    }
+  ],
+  "fillBlanks": [
+    {
+      "blankKey": "blank_1",
+      "acceptableAnswer": "Cascading",
+      "isCaseSensitive": false
+    }
+  ]
+}
+```
+- **Response Shape:** Returns the constructed `QuestionBankQuestion` object with auto-generated ID.
+
+#### 6. List Questions from Bank
+- **Endpoint:** `GET /api/question-bank/questions?courseId=34&limit=50&page=1`
+- **Response Shape:**
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "courseId": 34,
+      "chapterId": 2,
+      "questionType": "mcq",
+      "difficulty": "medium",
+      "bloomLevel": "applying",
+      "questionText": "What does CSS stand for?",
+      "options": [...]
+    }
+  ],
+  "total": 50
+}
+```
+
+#### 7. Get Single Question
+- **Endpoint:** `GET /api/question-bank/questions/:id`
+- **Response Shape:** Returns a single `QuestionBankQuestion` entity including its options and blanks.
+
+#### 8. Update Question
+- **Endpoint:** `PATCH /api/question-bank/questions/:id`
+- **Request Body (`UpdateQuestionBankQuestionDto`):** Same shape as Create DTO, but all fields are optional.
+- **Response Shape:** Returns the updated `QuestionBankQuestion` entity.
+
+#### 9. Delete Question
+- **Endpoint:** `DELETE /api/question-bank/questions/:id`
+- **Response Shape:**
+```json
+{
+  "message": "Question deleted successfully"
+}
+```
+
+### B. Exam Generation Endpoints
+
+#### 1. Generate Exam Preview (Draft)
+- **Endpoint:** `POST /api/exams/generate-preview`
+- **Request Body (`GenerateExamPreviewDto`):**
+```json
+{
+  "courseId": 34,
+  "title": "Web Development Final Exam",
+  "seed": "optional_random_seed", 
+  "rules": [
+    {
+      "chapterId": 2,
+      "count": 5,
+      "weightPerQuestion": 2,
+      "questionType": "mcq",
+      "difficulty": "medium",
+      "bloomLevel": "applying"
+    }
+  ]
+}
+```
+- **Response Shape:**
+```json
+{
+  "draftId": 1,
+  "seed": "123e4567-e89b-12d3-a456-426614174000",
+  "totalQuestions": 5,
+  "totalWeight": 10,
+  "items": [
+    {
+      "id": 1,
+      "draftId": 1,
+      "questionId": 15,
+      "chapterId": 2,
+      "questionType": "mcq",
+      "difficulty": "medium",
+      "bloomLevel": "applying",
+      "weight": 2,
+      "itemOrder": 0
+    }
+  ]
+}
+```
+
+#### 2. Modify Exam Draft Item
+- **Endpoint:** `PATCH /api/exams/drafts/:draftId/items/:itemId`
+- **Request Body (`UpdateDraftItemDto`):**
+```json
+{
+  "replacementQuestionId": 42,
+  "weight": 5,
+  "itemOrder": 1
+}
+```
+- **Response Shape:** Returns the updated `ExamDraftItem`.
+
+#### 3. Save Draft to Final Exam
+- **Endpoint:** `POST /api/exams/drafts/:draftId/save`
+- **Request Body:** `{}` 
+- **Response Shape:** Returns the saved `Exam` entity.
+
+#### 4. Export Exam as Word Document
+- **Endpoint:** `POST /api/exams/:id/export-word`
+- **Response Shape:**
+```json
+{
+  "fileName": "exam-1.doc",
+  "mimeType": "application/msword",
+  "content": "base64_encoded_string_of_the_doc_file..."
+}
+```
+
+## User Review Required
+
+The complete list of all Question Bank & Exam endpoints is now comprehensively documented above! If this looks perfect, please give me the final approval and I'll jump right into creating the new frontend `ExamsPage` tab.

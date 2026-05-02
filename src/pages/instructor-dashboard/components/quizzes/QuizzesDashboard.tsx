@@ -7,16 +7,12 @@ import React, { useState, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useAuth } from '../../../../context/AuthContext';
-import { useLanguage } from '../../contexts/LanguageContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { QuizList } from './QuizList';
 import { QuizCreate } from './QuizCreate';
 import { QuizEdit } from './QuizEdit';
-import { AttemptsList } from './AttemptsList';
-import { GradingPanel } from './GradingPanel';
-import { QuizStatistics } from './QuizStatistics';
 import { useQuizzes } from './hooks/useQuizzes';
-import { QuizUIData, QuizFormData, DEFAULT_QUIZ_FORM } from './types';
+import { QuizUIData } from './types';
 import { ConfirmDialog } from '../ConfirmDialog';
 
 export interface QuizzesDashboardProps {
@@ -26,8 +22,7 @@ export interface QuizzesDashboardProps {
 type ActivePanel = 'none' | 'attempts' | 'grading' | 'statistics';
 
 export function QuizzesDashboard({ courses = [] }: QuizzesDashboardProps) {
-  const { t } = useLanguage();
-  const { isDark, primaryHex = '#3b82f6' } = useTheme() as any;
+  const { isDark } = useTheme() as any;
   const location = useLocation();
   const { isAuthenticated } = useAuth();
   const isMockMode = !isAuthenticated || Boolean(location.state?.isMock);

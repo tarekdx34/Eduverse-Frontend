@@ -27,6 +27,7 @@ export { CustomDropdown } from './CustomDropdown';
 export { CourseDetail } from './CourseDetail';
 export { LabsPage } from './LabsPage';
 export { QuizzesPage } from './QuizzesPage';
+export { ExamsPage } from './ExamsPage';
 export { SchedulePage } from './SchedulePage';
 export { AnalyticsPage } from './AnalyticsPage';
 export { AIToolsPage } from './AIToolsPage';

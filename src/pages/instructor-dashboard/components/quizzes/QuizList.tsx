@@ -9,7 +9,6 @@ import {
   Calendar,
   Clock,
   BarChart3,
-  Sparkles,
   Search,
   Eye,
   Edit,
@@ -22,7 +21,7 @@ import {
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { CustomDropdown } from '../CustomDropdown';
-import { QuizUIData, STATUS_STYLES, QuizStatus } from './types';
+import { QuizUIData, STATUS_STYLES } from './types';
 import { AttemptsList } from './AttemptsList';
 import { QuizStatistics } from './QuizStatistics';
 import { QuizAttempt, QuizStatistics as QuizStatsType } from '../../../../services/api/quizService';
@@ -77,7 +76,7 @@ export function QuizList({
   fetchStatistics,
   onGradeClick,
 }: QuizListProps) {
-  const { t, isRTL } = useLanguage();
+  const { isRTL } = useLanguage();
   const { isDark, primaryHex = '#3b82f6' } = useTheme() as any;
 
   // Inline panel loading states

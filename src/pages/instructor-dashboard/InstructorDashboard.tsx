@@ -49,6 +49,7 @@ import {
   ModernDashboard,
   CoursesPage,
   QuizzesPage,
+  ExamsPage,
   SchedulePage,
   DiscussionPage,
   NotificationsPage,
@@ -106,6 +107,7 @@ type TabKey =
   | 'assignments'
   | 'labs'
   | 'quizzes'
+  | 'exams'
   | 'schedule'
   | 'materials'
   | 'attendance'
@@ -129,6 +131,13 @@ const TABS: { key: TabKey; label: string; labelAr: string; icon: any; group: str
     label: 'Quizzes Management',
     labelAr: 'إدارة الاختبارات',
     icon: ClipboardList,
+    group: 'Teaching',
+  },
+  {
+    key: 'exams',
+    label: 'Exams',
+    labelAr: 'الامتحانات',
+    icon: FileText,
     group: 'Teaching',
   },
   {
@@ -1306,6 +1315,9 @@ function InstructorDashboardContent() {
 
           {/* Quizzes */}
           {activeTab === 'quizzes' && <QuizzesPage courses={coursesData} />}
+
+          {/* Exams */}
+          {activeTab === 'exams' && <ExamsPage courses={coursesData} />}
 
           {/* Labs */}
           {activeTab === 'labs' && <LabsPage courses={coursesData} />}
