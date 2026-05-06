@@ -1,4 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import 'katex/dist/katex.min.css';
+import { InlineMath, BlockMath } from 'react-katex';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import {
   AlertCircle,
@@ -368,6 +370,41 @@ const normalizeDraftDetail = (
     savedExamId: toFiniteNumber(payload.savedExamId ?? payload.examId) ?? fallbackDraft?.savedExamId,
     items,
   };
+};
+
+// Renders text with inline ($...$) and display ($$...$$) LaTeX math.
+const MathText = ({ text }: { text: string }) => {
+  const parts: React.ReactNode[] = [];
+  const displayRe = /\$\$([\s\S]+?)\$\$/g;
+  const inlineRe = /\$((?:[^$]|\\.)+?)\$/g;
+  let last = 0;
+
+  // Split on $$...$$ first
+  let m: RegExpExecArray | null;
+  const segments: { start: number; end: number; math: string; display: boolean }[] = [];
+  while ((m = displayRe.exec(text)) !== null)
+    segments.push({ start: m.index, end: m.index + m[0].length, math: m[1], display: true });
+
+  // Then inline $...$ on the remaining gaps
+  const covered = (pos: number) => segments.some((s) => pos >= s.start && pos < s.end);
+  let im: RegExpExecArray | null;
+  while ((im = inlineRe.exec(text)) !== null)
+    if (!covered(im.index))
+      segments.push({ start: im.index, end: im.index + im[0].length, math: im[1], display: false });
+
+  segments.sort((a, b) => a.start - b.start);
+
+  for (const seg of segments) {
+    if (seg.start > last) parts.push(text.slice(last, seg.start));
+    parts.push(
+      seg.display
+        ? <BlockMath key={seg.start} math={seg.math} />
+        : <InlineMath key={seg.start} math={seg.math} />,
+    );
+    last = seg.end;
+  }
+  if (last < text.length) parts.push(text.slice(last));
+  return <>{parts}</>;
 };
 
 const resolveQuestionAnswer = (question: Question): string => {
@@ -2128,7 +2165,7 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
 
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
                   <p className={`text-sm sm:text-base font-medium ${headingClass}`}>
-                    {question.questionText?.trim() || 'Untitled question'}
+                    <MathText text={question.questionText?.trim() || 'Untitled question'} />
                   </p>
                   <button
                     type="button"
@@ -2158,7 +2195,8 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
 
                 <div className={`mt-2 text-xs sm:text-sm space-y-1 ${subTextClass}`}>
                   <p>
-                    <span className="font-semibold">Answer:</span> {resolveQuestionAnswer(question)}
+                    <span className="font-semibold">Answer:</span>{' '}
+                    <MathText text={resolveQuestionAnswer(question)} />
                   </p>
                   <p>
                     <span className="font-semibold">Hint:</span> {question.hints?.trim() || 'No hint provided'}
