@@ -13,8 +13,16 @@ export class ChapterService {
     return ApiClient.get<CourseChapter[]>(`/courses/${courseId}/chapters`);
   }
 
-  static async create(courseId: string | number, payload: { name: string; chapterOrder: number }) {
+  static async create(courseId: string | number, payload: { name: string }) {
     return ApiClient.post<CourseChapter>(`/courses/${courseId}/chapters`, payload);
+  }
+
+  static async update(courseId: string | number, chapterId: string | number, payload: { name: string }) {
+    return ApiClient.patch<CourseChapter>(`/courses/${courseId}/chapters/${chapterId}`, payload);
+  }
+
+  static async delete(courseId: string | number, chapterId: string | number) {
+    return ApiClient.delete(`/courses/${courseId}/chapters/${chapterId}`);
   }
 }
 

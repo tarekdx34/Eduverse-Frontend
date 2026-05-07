@@ -39,7 +39,7 @@ export interface CreateQuestionBankPayload {
 const RAW_API_BASE_URL = API_BASE_URL.replace(/\/api\/?$/, '');
 
 export interface UpdateQuestionBankPayload extends Partial<CreateQuestionBankPayload> {
-  status?: 'draft' | 'approved' | 'archived';
+  status?: 'draft' | 'under_review' | 'approved' | 'rejected' | 'archived';
 }
 
 interface UploadQuestionImageRawResponse {
@@ -103,8 +103,85 @@ export class QuestionBankService {
     bloomLevel?: BloomLevel;
     page?: number;
     limit?: number;
+    search?: string;
+    status?: string;
   }) {
     return ApiClient.get<{ data: any[]; total: number }>('/question-bank/questions', { params });
+  }
+
+  static async submitForReview(id: number) {
+    return ApiClient.post(`/question-bank/questions/${id}/submit-for-review`);
+  }
+
+  static async approveQuestion(id: number) {
+    return ApiClient.post(`/question-bank/questions/${id}/approve`);
+  }
+
+  static async rejectQuestion(id: number, reason: string) {
+    return ApiClient.post(`/question-bank/questions/${id}/reject`, { reason });
+  }
+
+  static async archiveQuestion(id: number) {
+    return ApiClient.post(`/question-bank/questions/${id}/archive`);
+  }
+
+  static async restoreQuestion(id: number) {
+    return ApiClient.post(`/question-bank/questions/${id}/restore`);
+  }
+
+  static async batchUpdateStatus(ids: number[], status: string) {
+    return ApiClient.post('/question-bank/questions/status/batch', { ids, status });
+  }
+
+  static async getStats() {
+    return ApiClient.get('/question-bank/questions/stats');
+  }
+
+  static async getChapterCounts(courseId: number) {
+    return ApiClient.get('/question-bank/questions/chapter-counts', { params: { courseId } });
+  }
+
+  static async addAttachment(questionId: number, dto: { url?: string; type: string; caption?: string; altText?: string }) {
+    return ApiClient.post(`/question-bank/questions/${questionId}/attachments`, dto);
+  }
+
+  static async uploadImageAttachment(questionId: number, file: File): Promise<{ fileId: number }> {
+    const formData = new FormData();
+    formData.append('image', file);
+
+    const response = await ApiClient.post<UploadQuestionImageRawResponse>(
+      `/question-bank/questions/${questionId}/attachments/upload-image`,
+      formData,
+    );
+
+    const fileId =
+      response?.fileId !== undefined ? Number(response.fileId) : Number(response?.data?.fileId);
+
+    if (!Number.isFinite(fileId) || fileId <= 0) {
+      throw new Error('Image upload succeeded but no valid fileId was returned');
+    }
+
+    return { fileId };
+  }
+
+  static async updateAttachment(questionId: number, attachmentId: number, dto: { caption?: string; altText?: string; type?: string }) {
+    return ApiClient.patch(`/question-bank/questions/${questionId}/attachments/${attachmentId}`, dto);
+  }
+
+  static async deleteAttachment(questionId: number, attachmentId: number) {
+    return ApiClient.delete(`/question-bank/questions/${questionId}/attachments/${attachmentId}`);
+  }
+
+  static async reorderAttachments(questionId: number, order: number[]) {
+    return ApiClient.patch(`/question-bank/questions/${questionId}/attachments/reorder`, { order });
+  }
+
+  static async createBatch(payloads: CreateQuestionBankPayload[]) {
+    return ApiClient.post('/question-bank/questions/batch', payloads);
+  }
+
+  static async deleteQuestion(id: number) {
+    return ApiClient.delete(`/question-bank/questions/${id}`);
   }
 }
 

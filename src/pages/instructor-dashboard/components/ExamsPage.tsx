@@ -19,16 +19,40 @@ import {
   Sparkles,
   Trash2,
   X,
+  MoreVertical,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { Checkbox } from '../../../components/ui/checkbox';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '../../../components/ui/dropdown-menu';
 import { CustomDropdown } from './CustomDropdown';
 import { QuestionBankModal } from './quizzes/QuestionBankModal';
 import { ExamGenerationModal, type ExamDraftPreviewRecord } from './quizzes/ExamGenerationModal';
+import { DraftEditorModal } from '../../../components/exam-draft/DraftEditorModal';
+import { ExamFullViewModal } from '../../../components/exam-draft/ExamFullViewModal';
 import { useTheme } from '../contexts/ThemeContext';
 import ChapterService, { CourseChapter } from '../../../services/api/chapterService';
 import ExamGenerationService from '../../../services/api/examGenerationService';
 import QuestionBankService from '../../../services/api/questionBankService';
+import PaperTemplateService, { PaperTemplateDto } from '../../../services/api/paperTemplateService';
+import { QuestionGroupsTab } from '../../../components/question-bank/QuestionGroupsTab';
 import { exportExamToWord } from '../../../utils/examWordExport';
+import {
+  StatusBadge,
+  ConfirmDialog,
+  BulkActionToolbar,
+  LoadingSkeleton,
+  EmptyState,
+} from '../../../components/shared';
+import {
+  RejectQuestionDialog,
+  BatchStatusDialog,
+  ChapterManagerDrawer,
+} from '../../../components/question-bank';
 
 type CourseInput = {
   id?: string;
@@ -56,6 +80,7 @@ type Question = {
   bloomLevel?: string;
   questionText?: string;
   questionFileId?: string | number | null;
+  questionImageUrl?: string | null;
   expectedAnswerText?: string;
   hints?: string;
   status?: string;
@@ -140,7 +165,7 @@ type DraftDetail = {
   items: ExamDetailQuestion[];
 };
 
-type ExamsWorkspaceTab = 'questions' | 'drafts' | 'saved';
+type ExamsWorkspaceTab = 'questions' | 'groups' | 'drafts' | 'saved';
 
 export interface ExamsPageProps {
   courses?: CourseInput[];
@@ -373,7 +398,7 @@ const normalizeDraftDetail = (
 };
 
 // Renders text with inline ($...$) and display ($$...$$) LaTeX math.
-const MathText = ({ text }: { text: string }) => {
+const MathText = React.memo(({ text }: { text: string }) => {
   const parts: React.ReactNode[] = [];
   const displayRe = /\$\$([\s\S]+?)\$\$/g;
   const inlineRe = /\$((?:[^$]|\\.)+?)\$/g;
@@ -405,7 +430,7 @@ const MathText = ({ text }: { text: string }) => {
   }
   if (last < text.length) parts.push(text.slice(last));
   return <>{parts}</>;
-};
+});
 
 const resolveQuestionAnswer = (question: Question): string => {
   const expected = toNonEmptyString(question.expectedAnswerText);
@@ -490,6 +515,20 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
   const [wordEnDepartment, setWordEnDepartment] = useState('Electrical Engineering Department');
   const [wordEnMonthYear, setWordEnMonthYear] = useState('');
   const [wordArUniversity, setWordArUniversity] = useState('جامعة الإسكندرية');
+
+  // New state for DraftEditorModal and ExamFullViewModal
+  const [draftEditorOpen, setDraftEditorOpen] = useState(false);
+  const [activeDraftEditorId, setActiveDraftEditorId] = useState<number | null>(null);
+  const [activeDraftEditorTitle, setActiveDraftEditorTitle] = useState('');
+  const [examViewOpen, setExamViewOpen] = useState(false);
+  const [activeExamViewId, setActiveExamViewId] = useState<number | null>(null);
+
+  // Paper template state for Saved Exams
+  const [templates, setTemplates] = useState<any[]>([]);
+  const [loadingTemplates, setLoadingTemplates] = useState(false);
+  const [showApplyTemplate, setShowApplyTemplate] = useState(false);
+  const [templateExamId, setTemplateExamId] = useState<number | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<string>('');
   const [wordArFaculty, setWordArFaculty] = useState('كلية الهندسة');
   const [wordArDepartment, setWordArDepartment] = useState('قسم الهندسة الكهربية');
   const [wordArMonthYear, setWordArMonthYear] = useState('يناير ٢٠٢٥');
@@ -505,6 +544,49 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
   >({});
   const [savedExamQuestionCountOverrides, setSavedExamQuestionCountOverrides] = useState<Record<number, number>>({});
   const [draftQuestionCountOverrides, setDraftQuestionCountOverrides] = useState<Record<number, number>>({});
+
+  // Question bank upgrades state
+  const [selectedQuestionIds, setSelectedQuestionIds] = useState<Set<number>>(new Set());
+  const [filterQuestionType, setFilterQuestionType] = useState<string[]>([]);
+  const [filterDifficulty, setFilterDifficulty] = useState<string[]>([]);
+  const [filterStatus, setFilterStatus] = useState<string[]>([]);
+  const [filterBloomLevel, setFilterBloomLevel] = useState<string[]>([]);
+  const [searchInput, setSearchInput] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [stats, setStats] = useState<{ approved: number; underReview: number; draft: number } | null>(null);
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [rejectingQuestionId, setRejectingQuestionId] = useState<number | null>(null);
+  const [rejectingQuestionText, setRejectingQuestionText] = useState('');
+  const [batchStatusDialogOpen, setBatchStatusDialogOpen] = useState(false);
+  const [chapterManagerOpen, setChapterManagerOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deletingQuestionIds, setDeletingQuestionIds] = useState<number[]>([]);
+
+  // Debounce search input → searchQuery (300ms)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearchQuery(searchInput.trim());
+      setPage(1);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  // Load live stats (approved / under_review / draft counts)
+  useEffect(() => {
+    let mounted = true;
+    QuestionBankService.getStats()
+      .then((response) => {
+        if (!mounted) return;
+        const record = toRecord(response) ?? {};
+        const data = toRecord(record.data) ?? record;
+        const approved = toFiniteNumber(data.approved ?? data.approvedCount) ?? 0;
+        const underReview = toFiniteNumber(data.under_review ?? data.underReview ?? data.underReviewCount) ?? 0;
+        const draft = toFiniteNumber(data.draft ?? data.draftCount) ?? 0;
+        setStats({ approved, underReview, draft });
+      })
+      .catch(() => {/* non-critical, stats stay null */});
+    return () => { mounted = false; };
+  }, [refreshKey]);
 
   useEffect(() => {
     const cached = localStorage.getItem(DRAFT_PREVIEWS_STORAGE_KEY);
@@ -524,6 +606,8 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
   }, [generatedDrafts]);
 
   const totalPages = useMemo(() => Math.max(1, Math.ceil(total / limit)), [total, limit]);
+
+  const selectedQuestionIdsArray = useMemo(() => Array.from(selectedQuestionIds), [selectedQuestionIds]);
 
   const chapterOptions = useMemo(
     () => chapters.map((chapter) => ({ value: String(chapter.id), label: chapter.name })),
@@ -585,12 +669,19 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
         const params: {
           courseId?: number;
           chapterId?: number;
+          questionType?: string;
+          difficulty?: string;
+          bloomLevel?: string;
+          status?: string;
+          search?: string;
           page: number;
           limit: number;
         } = {
           page,
           limit,
         };
+
+        if (searchQuery) params.search = searchQuery;
 
         if (selectedCourse !== 'all') {
           const parsedCourseId = Number(selectedCourse);
@@ -606,12 +697,91 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
           }
         }
 
-        const response = await QuestionBankService.list(params);
-        const normalized = normalizeQuestionsResponse(response);
+        // Backend only accepts a single enum value per param.
+        // Fan out one request per combination when multiple are selected, then merge.
+        const typeValues = filterQuestionType.length > 0 ? filterQuestionType : [undefined];
+        const diffValues = filterDifficulty.length > 0 ? filterDifficulty : [undefined];
+        const statusValues = filterStatus.length > 0 ? filterStatus : [undefined];
+        const bloomValues = filterBloomLevel.length > 0 ? filterBloomLevel : [undefined];
+
+        const isMulti =
+          filterQuestionType.length > 1 ||
+          filterDifficulty.length > 1 ||
+          filterStatus.length > 1 ||
+          filterBloomLevel.length > 1;
+
+        let normalized: ListQuestionsResult;
+
+        if (!isMulti) {
+          // Single-value path — one request, server-side pagination works normally
+          if (filterQuestionType.length === 1) params.questionType = filterQuestionType[0];
+          if (filterDifficulty.length === 1) (params as Record<string, unknown>).difficulty = filterDifficulty[0];
+          if (filterStatus.length === 1) params.status = filterStatus[0];
+          if (filterBloomLevel.length === 1) params.bloomLevel = filterBloomLevel[0];
+          normalized = normalizeQuestionsResponse(await QuestionBankService.list(params as Parameters<typeof QuestionBankService.list>[0]));
+        } else {
+          // Multi-value path — fan out requests for every combination, fetch all pages
+          const combos: Array<{ questionType?: string; difficulty?: string; status?: string; bloomLevel?: string }> = [];
+          for (const qt of typeValues) {
+            for (const diff of diffValues) {
+              for (const st of statusValues) {
+                for (const bl of bloomValues) {
+                  combos.push({ questionType: qt, difficulty: diff, status: st, bloomLevel: bl });
+                }
+              }
+            }
+          }
+
+          const allData: Question[] = [];
+
+          const fetchAllPages = async (combo: { questionType?: string; difficulty?: string; status?: string; bloomLevel?: string }) => {
+            const PAGE_LIMIT = 100;
+            const comboParams = { ...params, page: 1, limit: PAGE_LIMIT };
+            if (combo.questionType) comboParams.questionType = combo.questionType;
+            if (combo.difficulty) (comboParams as Record<string, unknown>).difficulty = combo.difficulty;
+            if (combo.status) comboParams.status = combo.status;
+            if (combo.bloomLevel) comboParams.bloomLevel = combo.bloomLevel;
+
+            type ListParams = Parameters<typeof QuestionBankService.list>[0];
+            const first = normalizeQuestionsResponse(await QuestionBankService.list(comboParams as ListParams));
+            allData.push(...first.data);
+
+            const totalPages = Math.ceil(first.total / PAGE_LIMIT);
+            if (totalPages > 1) {
+              const rest = await Promise.all(
+                Array.from({ length: totalPages - 1 }, (_, i) =>
+                  QuestionBankService.list({ ...comboParams, page: i + 2 } as ListParams).then(normalizeQuestionsResponse),
+                ),
+              );
+              rest.forEach((r) => allData.push(...r.data));
+            }
+          };
+
+          await Promise.all(combos.map(fetchAllPages));
+
+          // Deduplicate by id, then apply pagination manually
+          const seen = new Set<string>();
+          const deduped = allData.filter((q) => {
+            const key = String(q.id ?? Math.random());
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+          });
+
+          const start = (page - 1) * limit;
+          normalized = {
+            data: deduped.slice(start, start + limit),
+            total: deduped.length,
+          };
+        }
 
         if (!mounted) return;
         setQuestions(normalized.data);
         setTotal(normalized.total);
+        const newTotalPages = Math.max(1, Math.ceil(normalized.total / limit));
+        if (page > newTotalPages) {
+          setPage(newTotalPages);
+        }
       } catch (err) {
         if (!mounted) return;
         const message = err instanceof Error ? err.message : 'Failed to load question bank';
@@ -629,74 +799,35 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
     return () => {
       mounted = false;
     };
-  }, [selectedCourse, selectedChapter, page, limit, refreshKey]);
+  }, [selectedCourse, selectedChapter, page, limit, refreshKey, searchQuery, filterQuestionType.join(','), filterDifficulty.join(','), filterStatus.join(','), filterBloomLevel.join(',')]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (page > totalPages) {
-      setPage(totalPages);
-    }
-  }, [page, totalPages]);
+    const nextUrls: Record<string, string> = {};
+    const nextErrors: Record<string, boolean> = {};
 
-  useEffect(() => {
-    let cancelled = false;
-    const objectUrls: string[] = [];
-
-    setQuestionImageUrls((previous) => {
-      Object.values(previous).forEach((url) => URL.revokeObjectURL(url));
-      return {};
-    });
-    setQuestionImageErrors({});
-
-    const loadQuestionImages = async () => {
-      const nextUrls: Record<string, string> = {};
-      const nextErrors: Record<string, boolean> = {};
-
-      await Promise.all(
-        questions.map(async (question, index) => {
-          const questionId = String(question.id ?? `question-${page}-${index}`);
-          const rawFileId = question.questionFileId;
-          const fileId =
-            typeof rawFileId === 'number'
-              ? rawFileId
-              : typeof rawFileId === 'string' && rawFileId.trim()
-                ? Number(rawFileId)
-                : NaN;
-
-          if (!Number.isFinite(fileId) || fileId <= 0) {
-            return;
-          }
-
-          try {
-            const blob = await QuestionBankService.downloadImageBlob(fileId);
-            const objectUrl = URL.createObjectURL(blob);
-            objectUrls.push(objectUrl);
-            nextUrls[questionId] = objectUrl;
-          } catch {
-            nextErrors[questionId] = true;
-          }
-        }),
-      );
-
-      if (cancelled) {
-        objectUrls.forEach((url) => URL.revokeObjectURL(url));
-        return;
+    questions.forEach((question, index) => {
+      const questionKey = String(question.id ?? `question-${page}-${index}`);
+      if (question.questionImageUrl) {
+        nextUrls[questionKey] = question.questionImageUrl;
+      } else if (question.questionFileId != null && question.questionFileId !== '') {
+        nextErrors[questionKey] = true;
       }
+    });
 
-      setQuestionImageUrls(nextUrls);
-      setQuestionImageErrors(nextErrors);
-    };
-
-    void loadQuestionImages();
-
-    return () => {
-      cancelled = true;
-      objectUrls.forEach((url) => URL.revokeObjectURL(url));
-    };
+    setQuestionImageUrls(nextUrls);
+    setQuestionImageErrors(nextErrors);
   }, [questions, page]);
 
   const refreshQuestions = useCallback(() => {
     setRefreshKey((previous) => previous + 1);
   }, []);
+
+  const refreshChapters = useCallback(() => {
+    if (selectedCourse !== 'all') {
+      setChapters([]);
+      setSelectedChapter('all');
+    }
+  }, [selectedCourse]);
 
   const handleCourseChange = (value: string) => {
     setSelectedCourse(value);
@@ -1109,21 +1240,38 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
   const rangeStart = total === 0 ? 0 : (page - 1) * limit + 1;
   const rangeEnd = total === 0 ? 0 : Math.min(page * limit, total);
 
-  const cardClass = isDark ? 'bg-card-dark border-white/10' : 'bg-white border-gray-300 shadow-sm';
-  const innerCardClass = isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-300';
-  const headingClass = isDark ? 'text-white' : 'text-gray-950';
-  const subTextClass = isDark ? 'text-slate-300' : 'text-gray-800';
-  const secondaryButtonClass = isDark
-    ? 'border-white/10 text-slate-200 hover:bg-white/10'
-    : 'border-gray-400 bg-white text-gray-800 hover:bg-gray-100';
-  const metaBadgeBaseClass = 'px-2 py-1 text-xs rounded-full font-medium';
-  const questionTypeBadgeClass = `${metaBadgeBaseClass} ${isDark ? 'bg-indigo-500/20 text-indigo-200' : 'bg-indigo-100 text-indigo-800'}`;
-  const difficultyBadgeClass = `${metaBadgeBaseClass} ${isDark ? 'bg-amber-500/20 text-amber-200' : 'bg-amber-100 text-amber-800'}`;
-  const bloomBadgeClass = `${metaBadgeBaseClass} ${isDark ? 'bg-emerald-500/20 text-emerald-200' : 'bg-emerald-100 text-emerald-800'}`;
-  const statusBadgeClass = `${metaBadgeBaseClass} ${isDark ? 'bg-slate-500/20 text-slate-200' : 'bg-slate-200 text-slate-800'}`;
-  const countBadgeClass = `${metaBadgeBaseClass} ${isDark ? 'bg-indigo-500/20 text-indigo-200' : 'bg-indigo-100 text-indigo-800'}`;
-  const weightBadgeClass = `${metaBadgeBaseClass} ${isDark ? 'bg-blue-500/20 text-blue-200' : 'bg-blue-100 text-blue-800'}`;
-  const draftBadgeClass = `${metaBadgeBaseClass} ${isDark ? 'bg-slate-500/20 text-slate-200' : 'bg-slate-200 text-slate-800'}`;
+  const {
+    cardClass,
+    innerCardClass,
+    headingClass,
+    subTextClass,
+    secondaryButtonClass,
+    questionTypeBadgeClass,
+    difficultyBadgeClass,
+    bloomBadgeClass,
+    countBadgeClass,
+    weightBadgeClass,
+    draftBadgeClass,
+    questionCardClass,
+  } = useMemo(() => {
+    const base = 'px-2 py-1 text-xs rounded-full font-medium';
+    return {
+      cardClass: isDark ? 'bg-card-dark border-white/10' : 'bg-white border-gray-300 shadow-sm',
+      innerCardClass: isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-300',
+      headingClass: isDark ? 'text-white' : 'text-gray-950',
+      subTextClass: isDark ? 'text-slate-300' : 'text-gray-800',
+      secondaryButtonClass: isDark
+        ? 'border-white/10 text-slate-200 hover:bg-white/10'
+        : 'border-gray-400 bg-white text-gray-800 hover:bg-gray-100',
+      questionTypeBadgeClass: `${base} ${isDark ? 'bg-indigo-500/20 text-indigo-200' : 'bg-indigo-100 text-indigo-800'}`,
+      difficultyBadgeClass: `${base} ${isDark ? 'bg-amber-500/20 text-amber-200' : 'bg-amber-100 text-amber-800'}`,
+      bloomBadgeClass: `${base} ${isDark ? 'bg-emerald-500/20 text-emerald-200' : 'bg-emerald-100 text-emerald-800'}`,
+      countBadgeClass: `${base} ${isDark ? 'bg-indigo-500/20 text-indigo-200' : 'bg-indigo-100 text-indigo-800'}`,
+      weightBadgeClass: `${base} ${isDark ? 'bg-blue-500/20 text-blue-200' : 'bg-blue-100 text-blue-800'}`,
+      draftBadgeClass: `${base} ${isDark ? 'bg-slate-500/20 text-slate-200' : 'bg-slate-200 text-slate-800'}`,
+      questionCardClass: `rounded-lg border p-4 ${isDark ? 'border-white/10 bg-white/5' : 'border-gray-300 bg-gray-50'} transition-colors`,
+    };
+  }, [isDark]);
 
   const openQuestionEditor = (question: Question) => {
     setEditingQuestion(question);
@@ -1164,6 +1312,93 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
       setSavingQuestionEdit(false);
     }
   };
+
+  // Question bank upgrade handlers
+  const handleToggleQuestionSelect = (questionId: number) => {
+    setSelectedQuestionIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(questionId)) {
+        next.delete(questionId);
+      } else {
+        next.add(questionId);
+      }
+      return next;
+    });
+  };
+
+  const handleSelectAllOnPage = () => {
+    if (selectedQuestionIds.size === questions.length && questions.length > 0) {
+      setSelectedQuestionIds(new Set());
+    } else {
+      const allIds = new Set(questions.map((q) => Number(q.id)));
+      setSelectedQuestionIds(allIds);
+    }
+  };
+
+  const handleClearFilters = () => {
+    setFilterQuestionType([]);
+    setFilterDifficulty([]);
+    setFilterStatus([]);
+    setFilterBloomLevel([]);
+    setSearchInput('');
+    setPage(1);
+  };
+
+  const handleToggleQuestionType = (type: string) => {
+    setFilterQuestionType((prev) =>
+      prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]
+    );
+    setPage(1);
+  };
+
+  const handleToggleDifficulty = (difficulty: string) => {
+    setFilterDifficulty((prev) =>
+      prev.includes(difficulty) ? prev.filter((d) => d !== difficulty) : [...prev, difficulty]
+    );
+    setPage(1);
+  };
+
+  const handleToggleStatus = (status: string) => {
+    setFilterStatus((prev) =>
+      prev.includes(status) ? prev.filter((s) => s !== status) : [...prev, status]
+    );
+    setPage(1);
+  };
+
+  const handleToggleBloomLevel = (bloom: string) => {
+    setFilterBloomLevel((prev) =>
+      prev.includes(bloom) ? prev.filter((b) => b !== bloom) : [...prev, bloom]
+    );
+    setPage(1);
+  };
+
+  const handleOpenRejectDialog = (questionId: number, questionText: string) => {
+    setRejectingQuestionId(questionId);
+    setRejectingQuestionText(questionText);
+    setRejectDialogOpen(true);
+  };
+
+  const handleDeleteSelectedQuestions = async () => {
+    const ids = Array.from(selectedQuestionIds);
+    if (ids.length === 0) return;
+
+    try {
+      setActionLoading('delete-questions');
+      for (const id of ids) {
+        await QuestionBankService.deleteQuestion(id);
+      }
+      toast.success(`${ids.length} question${ids.length !== 1 ? 's' : ''} deleted`);
+      setSelectedQuestionIds(new Set());
+      setDeleteConfirmOpen(false);
+      refreshQuestions();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to delete questions');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   const updateDraftItemEdit = (
     itemId: string,
@@ -1848,39 +2083,47 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
               <Plus size={18} />
               Add Question to Bank
             </button>
-            <button
-              type="button"
-              onClick={() => setShowExamGenerationModal(true)}
-              className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors focus:outline-none focus:ring-2 ${secondaryButtonClass}`}
-              style={{ '--tw-ring-color': `${primaryHex}80` } as React.CSSProperties}
-            >
-              <Sparkles size={18} />
-              Generate Exam
-            </button>
+            <div className="flex flex-col items-end gap-1">
+              <button
+                type="button"
+                onClick={() => setShowExamGenerationModal(true)}
+                disabled={stats !== null && stats.approved === 0}
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors focus:outline-none focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed ${secondaryButtonClass}`}
+                style={{ '--tw-ring-color': `${primaryHex}80` } as React.CSSProperties}
+              >
+                <Sparkles size={18} />
+                Generate Exam
+              </button>
+              {stats !== null && stats.approved === 0 && (
+                <span className={`text-xs ${isDark ? 'text-amber-400' : 'text-amber-600'}`}>
+                  Approve questions first to generate an exam
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
-        <div className={`mt-6 pt-6 border-t grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
+        <div className={`mt-6 pt-6 border-t grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
           <div className={`rounded-lg border p-4 ${innerCardClass}`}>
-            <div className={`text-xs uppercase tracking-wide ${subTextClass}`}>Total Questions</div>
+            <div className={`text-xs uppercase tracking-wide ${subTextClass}`}>Total in View</div>
             <div className={`mt-1 text-2xl font-bold ${headingClass}`}>{total}</div>
           </div>
-          <div className={`rounded-lg border p-4 ${innerCardClass}`}>
-            <div className={`text-xs uppercase tracking-wide ${subTextClass}`}>Visible on Page</div>
-            <div className={`mt-1 text-2xl font-bold ${headingClass}`}>{questions.length}</div>
+          <div className={`rounded-lg border p-4 ${isDark ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-emerald-50 border-emerald-200'}`}>
+            <div className={`text-xs uppercase tracking-wide ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`}>Approved</div>
+            <div className={`mt-1 text-2xl font-bold ${isDark ? 'text-emerald-300' : 'text-emerald-800'}`}>
+              {stats ? stats.approved : '—'}
+            </div>
           </div>
-          <div className={`rounded-lg border p-4 ${innerCardClass}`}>
-            <div className={`text-xs uppercase tracking-wide ${subTextClass}`}>Selected Course</div>
-            <div className={`mt-1 text-sm font-semibold ${headingClass}`}>
-              {selectedCourse === 'all' ? 'All Courses' : courseNameById.get(selectedCourse) || 'Unknown Course'}
+          <div className={`rounded-lg border p-4 ${isDark ? 'bg-amber-500/10 border-amber-500/30' : 'bg-amber-50 border-amber-200'}`}>
+            <div className={`text-xs uppercase tracking-wide ${isDark ? 'text-amber-400' : 'text-amber-700'}`}>Under Review</div>
+            <div className={`mt-1 text-2xl font-bold ${isDark ? 'text-amber-300' : 'text-amber-800'}`}>
+              {stats ? stats.underReview : '—'}
             </div>
           </div>
           <div className={`rounded-lg border p-4 ${innerCardClass}`}>
-            <div className={`text-xs uppercase tracking-wide ${subTextClass}`}>Selected Chapter</div>
-            <div className={`mt-1 text-sm font-semibold ${headingClass}`}>
-              {selectedChapter === 'all'
-                ? 'All Chapters'
-                : chapterNameById.get(selectedChapter) || `Chapter #${selectedChapter}`}
+            <div className={`text-xs uppercase tracking-wide ${subTextClass}`}>Drafts</div>
+            <div className={`mt-1 text-2xl font-bold ${headingClass}`}>
+              {stats ? stats.draft : '—'}
             </div>
           </div>
         </div>
@@ -1890,6 +2133,7 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
         <div className="flex flex-wrap gap-2">
           {[
             { key: 'questions', label: 'Questions' },
+            { key: 'groups', label: 'Groups' },
             { key: 'drafts', label: 'Drafts' },
             { key: 'saved', label: 'Saved Exams' },
           ].map((tab) => {
@@ -1926,11 +2170,10 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
         </div>
 
         {generatedDrafts.length === 0 ? (
-          <div className={`rounded-lg border p-6 text-center ${innerCardClass}`}>
-            <p className={`text-sm ${subTextClass}`}>
-              No generated drafts yet. Use <strong>Generate Exam</strong> to create a preview draft.
-            </p>
-          </div>
+          <EmptyState
+            title="No generated drafts yet"
+            description="Use Generate Exam to create a preview draft."
+          />
         ) : (
           <div className="space-y-3">
             {generatedDrafts.map((draft) => (
@@ -1939,28 +2182,67 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
                 className={`rounded-lg border p-4 ${isDark ? 'border-white/10 bg-white/5' : 'border-gray-300 bg-gray-50'}`}
               >
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                  <div>
-                    <h4 className={`text-base font-semibold ${headingClass}`}>{draft.title || `Draft #${draft.draftId}`}</h4>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h4 className={`text-base font-semibold ${headingClass}`}>{draft.title || `Draft #${draft.draftId}`}</h4>
+                      <StatusBadge status={(draft as any).status || 'draft'} />
+                    </div>
                     <p className={`text-sm ${subTextClass}`}>
                       {courseNameById.get(String(draft.courseId)) || `Course #${draft.courseId}`} • Generated{' '}
                       {formatDateTime(draft.generatedAt)}
                     </p>
                   </div>
-                  {draft.savedExamId ? (
-                    <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-green-300 text-green-800 bg-green-50 dark:border-green-500/40 dark:bg-green-500/10 dark:text-green-300">
-                      Saved as Exam #{draft.savedExamId}
-                      <ArrowUpRight size={14} />
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300">
-                      Not saved yet
-                    </span>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {draft.savedExamId ? (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-green-300 text-green-800 bg-green-50 dark:border-green-500/40 dark:bg-green-500/10 dark:text-green-300">
+                        Saved as Exam #{draft.savedExamId}
+                        <ArrowUpRight size={14} />
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300">
+                        Not saved yet
+                      </span>
+                    )}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button className="p-2 hover:bg-gray-300 dark:hover:bg-gray-600 rounded">
+                          <MoreVertical size={16} />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          onClick={() => {
+                            setActiveDraftEditorId(draft.draftId);
+                            setActiveDraftEditorTitle(draft.title || `Draft #${draft.draftId}`);
+                            setDraftEditorOpen(true);
+                          }}
+                        >
+                          Open Editor
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={async () => {
+                            try {
+                              await ExamGenerationService.duplicateDraft(draft.draftId);
+                              toast.success('Draft duplicated');
+                              setRefreshKey((k) => k + 1);
+                            } catch (err) {
+                              toast.error(err instanceof Error ? err.message : 'Failed to duplicate draft');
+                            }
+                          }}
+                        >
+                          Duplicate
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </div>
 
                 <div className="mt-3 flex flex-wrap gap-2">
                   <span className={countBadgeClass}>
                     {draftQuestionCountOverrides[draft.draftId] ?? draft.totalQuestions} questions
+                  </span>
+                  <span className={`px-2 py-1 rounded-lg border text-xs font-semibold ${isDark ? 'border-purple-500/30 bg-purple-500/10 text-purple-300' : 'border-purple-300 bg-purple-50 text-purple-800'}`}>
+                    {draft.items.filter(item => !(item as any).sectionId).length} sections
                   </span>
                   <span className={weightBadgeClass}>
                     Total weight {draft.totalWeight}
@@ -2012,11 +2294,10 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
         </div>
 
         {savedExams.length === 0 ? (
-          <div className={`rounded-lg border p-6 text-center ${innerCardClass}`}>
-            <p className={`text-sm ${subTextClass}`}>
-              No saved exams yet. Generate a preview and click <strong>Save Exam</strong>.
-            </p>
-          </div>
+          <EmptyState
+            title="No saved exams yet"
+            description="Save a draft to publish it."
+          />
         ) : (
           <div className="space-y-3">
             {savedExams.map((exam) => {
@@ -2025,11 +2306,14 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
                   key={`saved-${exam.examId}`}
                   className={`rounded-lg border p-4 ${isDark ? 'border-white/10 bg-white/5' : 'border-gray-300 bg-gray-50'}`}
                 >
-                  <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                    <div>
-                      <h4 className={`text-base font-semibold ${headingClass}`}>
-                        {exam.title || `Exam #${exam.examId}`}
-                      </h4>
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between w-full">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h4 className={`text-base font-semibold ${headingClass}`}>
+                          {exam.title || `Exam #${exam.examId}`}
+                        </h4>
+                        <StatusBadge status={exam.status || 'saved'} />
+                      </div>
                       <p className={`text-sm ${subTextClass}`}>
                         Exam #{exam.examId} •{' '}
                         {courseNameById.get(String(exam.courseId ?? '')) || `Course #${exam.courseId ?? 'N/A'}`}
@@ -2044,12 +2328,84 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
                       </span>
                       <button
                         type="button"
-                        onClick={() => navigate(`/instructordashboard/exams/${exam.examId}?entity=saved`)}
+                        onClick={() => {
+                          setActiveExamViewId(exam.examId);
+                          setExamViewOpen(true);
+                        }}
                         className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg border text-sm ${secondaryButtonClass}`}
                       >
-                        Open Exam Page
+                        View
                         <ArrowUpRight size={14} />
                       </button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button className="p-2 hover:bg-gray-300 dark:hover:bg-gray-600 rounded">
+                            <MoreVertical size={16} />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={async () => {
+                              try {
+                                await ExamGenerationService.publishExam(exam.examId);
+                                toast.success('Exam published');
+                                setRefreshKey((k) => k + 1);
+                              } catch (err) {
+                                toast.error(err instanceof Error ? err.message : 'Failed to publish exam');
+                              }
+                            }}
+                          >
+                            Publish
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={async () => {
+                              try {
+                                await ExamGenerationService.unpublishExam(exam.examId);
+                                toast.success('Exam unpublished');
+                                setRefreshKey((k) => k + 1);
+                              } catch (err) {
+                                toast.error(err instanceof Error ? err.message : 'Failed to unpublish exam');
+                              }
+                            }}
+                          >
+                            Unpublish
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={async () => {
+                              try {
+                                await ExamGenerationService.archiveExam(exam.examId);
+                                toast.success('Exam archived');
+                                setRefreshKey((k) => k + 1);
+                              } catch (err) {
+                                toast.error(err instanceof Error ? err.message : 'Failed to archive exam');
+                              }
+                            }}
+                            className="text-amber-600"
+                          >
+                            Archive
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={async () => {
+                              try {
+                                await ExamGenerationService.exportExamWord(exam.examId);
+                                toast.success('Exam exported');
+                              } catch (err) {
+                                toast.error(err instanceof Error ? err.message : 'Failed to export exam');
+                              }
+                            }}
+                          >
+                            Export to Word
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setTemplateExamId(exam.examId);
+                              setShowApplyTemplate(true);
+                            }}
+                          >
+                            Apply Template
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   </div>
                 </article>
@@ -2060,10 +2416,16 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
       </section>
       )}
 
+      {activeWorkspaceTab === 'groups' && (
+      <section className={`rounded-xl border p-4 sm:p-5 ${cardClass}`}>
+        <QuestionGroupsTab courses={courseOptions} selectedCourse={selectedCourse} />
+      </section>
+      )}
+
       {activeWorkspaceTab === 'questions' && (
       <>
       <section className={`rounded-xl border p-4 ${cardClass}`}>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
           <CustomDropdown
             label="Course"
             value={selectedCourse}
@@ -2089,14 +2451,156 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
             stackLabel
             fullWidth
           />
-          <CustomDropdown
-            label="Rows per page"
-            value={String(limit)}
-            options={LIMIT_OPTIONS.map((value) => ({ value: String(value), label: String(value) }))}
-            onChange={handleLimitChange}
-            stackLabel
-            fullWidth
+          <div className="flex items-end gap-2">
+            <CustomDropdown
+              label="Rows per page"
+              value={String(limit)}
+              options={LIMIT_OPTIONS.map((value) => ({ value: String(value), label: String(value) }))}
+              onChange={handleLimitChange}
+              stackLabel
+              fullWidth
+            />
+            <button
+              type="button"
+              onClick={() => setChapterManagerOpen(true)}
+              className={`px-3 py-2 rounded-lg border text-sm font-medium transition-colors ${secondaryButtonClass}`}
+              title="Manage chapters for this course"
+            >
+              Manage Chapters
+            </button>
+          </div>
+        </div>
+
+        {/* Search */}
+        <div className="mb-4">
+          <input
+            type="search"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            placeholder="Search questions..."
+            className={`w-full px-4 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2 ${
+              isDark
+                ? 'bg-white/5 border-white/10 text-white placeholder-slate-500'
+                : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'
+            }`}
+            style={{ '--tw-ring-color': `${primaryHex}60` } as React.CSSProperties}
           />
+        </div>
+
+        {/* Filter Bar */}
+        <div className={`rounded-lg border ${isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-50'}`}>
+          <div className={`flex items-center justify-between px-4 py-2 border-b ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
+            <span className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>
+              Filters
+            </span>
+            {(filterQuestionType.length > 0 || filterDifficulty.length > 0 || filterStatus.length > 0 || filterBloomLevel.length > 0 || searchQuery) && (
+              <button
+                onClick={handleClearFilters}
+                className={`text-xs font-medium transition-colors ${isDark ? 'text-slate-400 hover:text-white' : 'text-gray-400 hover:text-gray-700'}`}
+              >
+                Clear all
+              </button>
+            )}
+          </div>
+          <div className={`flex flex-wrap divide-x ${isDark ? 'divide-white/10' : 'divide-gray-200'}`}>
+            {/* Type group */}
+            <div className="flex items-center gap-1.5 px-4 py-2.5 flex-wrap">
+              <span className={`text-[11px] font-bold uppercase tracking-wider shrink-0 mr-1 ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
+                Type
+              </span>
+              {['mcq', 'true_false', 'written', 'fill_blanks', 'essay'].map((type) => (
+                <button
+                  key={type}
+                  onClick={() => handleToggleQuestionType(type)}
+                  className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all ${
+                    filterQuestionType.includes(type)
+                      ? isDark
+                        ? 'bg-blue-500 text-white shadow-sm'
+                        : 'bg-blue-600 text-white shadow-sm'
+                      : isDark
+                        ? 'text-slate-300 hover:bg-white/10'
+                        : 'text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  {type.replace(/_/g, ' ')}
+                </button>
+              ))}
+            </div>
+
+            {/* Difficulty group */}
+            <div className="flex items-center gap-1.5 px-4 py-2.5 flex-wrap">
+              <span className={`text-[11px] font-bold uppercase tracking-wider shrink-0 mr-1 ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
+                Difficulty
+              </span>
+              {[
+                { value: 'easy',   on: isDark ? 'bg-emerald-500 text-white' : 'bg-emerald-600 text-white' },
+                { value: 'medium', on: isDark ? 'bg-amber-500 text-white'   : 'bg-amber-500 text-white'   },
+                { value: 'hard',   on: isDark ? 'bg-red-500 text-white'     : 'bg-red-600 text-white'     },
+              ].map(({ value, on }) => (
+                <button
+                  key={value}
+                  onClick={() => handleToggleDifficulty(value)}
+                  className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all shadow-sm ${
+                    filterDifficulty.includes(value)
+                      ? `${on} shadow-sm`
+                      : isDark
+                        ? 'text-slate-300 hover:bg-white/10'
+                        : 'text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  {value.charAt(0).toUpperCase() + value.slice(1)}
+                </button>
+              ))}
+            </div>
+
+            {/* Status group */}
+            <div className="flex items-center gap-1.5 px-4 py-2.5 flex-wrap">
+              <span className={`text-[11px] font-bold uppercase tracking-wider shrink-0 mr-1 ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
+                Status
+              </span>
+              {['draft', 'under_review', 'approved', 'rejected', 'archived'].map((status) => (
+                <button
+                  key={status}
+                  onClick={() => handleToggleStatus(status)}
+                  className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all ${
+                    filterStatus.includes(status)
+                      ? isDark
+                        ? 'bg-violet-500 text-white shadow-sm'
+                        : 'bg-violet-600 text-white shadow-sm'
+                      : isDark
+                        ? 'text-slate-300 hover:bg-white/10'
+                        : 'text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  {status.replace(/_/g, ' ')}
+                </button>
+              ))}
+            </div>
+
+            {/* Bloom level group */}
+            <div className="flex items-center gap-1.5 px-4 py-2.5 flex-wrap">
+              <span className={`text-[11px] font-bold uppercase tracking-wider shrink-0 mr-1 ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
+                Bloom
+              </span>
+              {['remembering', 'understanding', 'applying', 'analyzing', 'evaluating', 'creating'].map((bloom) => (
+                <button
+                  key={bloom}
+                  onClick={() => handleToggleBloomLevel(bloom)}
+                  className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all ${
+                    filterBloomLevel.includes(bloom)
+                      ? isDark
+                        ? 'bg-teal-500 text-white shadow-sm'
+                        : 'bg-teal-600 text-white shadow-sm'
+                      : isDark
+                        ? 'text-slate-300 hover:bg-white/10'
+                        : 'text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  {bloom.charAt(0).toUpperCase() + bloom.slice(1)}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 
@@ -2109,8 +2613,27 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center py-10">
-            <Loader2 size={22} className="animate-spin" style={{ color: primaryHex }} />
+          <div className="space-y-3">
+            {Array.from({ length: limit > 5 ? 5 : limit }).map((_, i) => (
+              <div
+                key={i}
+                className={`rounded-lg border p-4 ${isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-50'}`}
+              >
+                <div className="flex items-start gap-3">
+                  <div className={`mt-1 h-4 w-4 rounded shrink-0 ${isDark ? 'bg-white/10' : 'bg-gray-200'} animate-pulse`} />
+                  <div className="flex-1 space-y-2">
+                    <div className="flex gap-2">
+                      <div className={`h-5 w-14 rounded-full ${isDark ? 'bg-white/10' : 'bg-gray-200'} animate-pulse`} />
+                      <div className={`h-5 w-12 rounded-full ${isDark ? 'bg-white/10' : 'bg-gray-200'} animate-pulse`} />
+                      <div className={`h-5 w-16 rounded-full ${isDark ? 'bg-white/10' : 'bg-gray-200'} animate-pulse`} />
+                    </div>
+                    <div className={`h-4 w-full rounded ${isDark ? 'bg-white/10' : 'bg-gray-200'} animate-pulse`} />
+                    <div className={`h-4 w-3/4 rounded ${isDark ? 'bg-white/10' : 'bg-gray-200'} animate-pulse`} />
+                    <div className={`h-3 w-1/2 rounded ${isDark ? 'bg-white/10' : 'bg-gray-200'} animate-pulse`} />
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         ) : error ? (
           <div className={`rounded-lg border p-4 flex items-start gap-2 ${isDark ? 'border-red-500/40 bg-red-500/10 text-red-200' : 'border-red-200 bg-red-50 text-red-700'}`}>
@@ -2127,54 +2650,167 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
             <p className={`text-sm mt-1 ${subTextClass}`}>Try another filter or add a new question to the bank.</p>
           </div>
         ) : (
-          <div className="space-y-3">
-            {questions.map((question, index) => (
+          <div>
+            {selectedQuestionIds.size > 0 && (
+              <BulkActionToolbar
+                selectedCount={selectedQuestionIds.size}
+                actions={[
+                  {
+                    label: 'Change Status',
+                    onClick: () => setBatchStatusDialogOpen(true),
+                  },
+                  {
+                    label: 'Delete Selected',
+                    danger: true,
+                    onClick: () => {
+                      setDeletingQuestionIds(selectedQuestionIdsArray);
+                      setDeleteConfirmOpen(true);
+                    },
+                  },
+                ]}
+              />
+            )}
+
+            <div className="space-y-3">
+            {questions.map((question, index) => {
+              const questionId = Number(question.id ?? 0);
+              const questionKey = String(question.id ?? `question-${page}-${index}`);
+              const imageUrl = questionImageUrls[questionKey];
+              const imageFailed = questionImageErrors[questionKey];
+              return (
               <article
-                key={String(question.id ?? `question-${page}-${index}`)}
-                className={`rounded-lg border p-4 ${isDark ? 'border-white/10 bg-white/5' : 'border-gray-300 bg-gray-50'} transition-colors`}
+                key={questionKey}
+                className={questionCardClass}
               >
-                {(() => {
-                  const questionKey = String(question.id ?? `question-${page}-${index}`);
-                  const imageUrl = questionImageUrls[questionKey];
-                  const imageFailed = questionImageErrors[questionKey];
+                <div className="flex items-start justify-between gap-3 mb-3">
+                  <div className="flex items-start gap-3 flex-1">
+                    <Checkbox
+                      checked={questionId > 0 && selectedQuestionIds.has(questionId)}
+                      onCheckedChange={() => questionId > 0 && handleToggleQuestionSelect(questionId)}
+                      className="mt-1"
+                    />
+                    <div className="flex-1">
+                      <div className="flex flex-wrap items-center gap-2 mb-2">
+                        {question.questionType && (
+                          <span className={questionTypeBadgeClass}>
+                            {formatEnumLabel(question.questionType)}
+                          </span>
+                        )}
+                        {question.difficulty && (
+                          <span className={difficultyBadgeClass}>
+                            {formatEnumLabel(question.difficulty)}
+                          </span>
+                        )}
+                        {question.bloomLevel && (
+                          <span className={bloomBadgeClass}>
+                            {formatEnumLabel(question.bloomLevel)}
+                          </span>
+                        )}
+                        {question.status && (
+                          <StatusBadge status={question.status} />
+                        )}
+                      </div>
+                      <p className={`text-sm sm:text-base font-medium ${headingClass}`}>
+                        <MathText text={question.questionText?.trim() || 'Untitled question'} />
+                      </p>
+                    </div>
+                  </div>
 
-                  return (
-                    <>
-                <div className="flex flex-wrap items-center gap-2 mb-2">
-                  {question.questionType && (
-                    <span className={questionTypeBadgeClass}>
-                      {formatEnumLabel(question.questionType)}
-                    </span>
-                  )}
-                  {question.difficulty && (
-                    <span className={difficultyBadgeClass}>
-                      {formatEnumLabel(question.difficulty)}
-                    </span>
-                  )}
-                  {question.bloomLevel && (
-                    <span className={bloomBadgeClass}>
-                      {formatEnumLabel(question.bloomLevel)}
-                    </span>
-                  )}
-                  {question.status && (
-                    <span className={statusBadgeClass}>
-                      {formatEnumLabel(question.status)}
-                    </span>
-                  )}
-                </div>
-
-                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
-                  <p className={`text-sm sm:text-base font-medium ${headingClass}`}>
-                    <MathText text={question.questionText?.trim() || 'Untitled question'} />
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => openQuestionEditor(question)}
-                    className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-md border text-xs font-semibold ${secondaryButtonClass}`}
-                  >
-                    <Pencil size={13} />
-                    Edit
-                  </button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button
+                        type="button"
+                        className={`p-2 rounded-md border transition-colors ${secondaryButtonClass}`}
+                      >
+                        <MoreVertical size={16} />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => openQuestionEditor(question)}>
+                        <Pencil size={14} className="mr-2" />
+                        Edit
+                      </DropdownMenuItem>
+                      {question.status === 'draft' && (
+                        <DropdownMenuItem
+                          onClick={async () => {
+                            try {
+                              setActionLoading(`submit-${question.id}`);
+                              await QuestionBankService.submitForReview(questionId);
+                              toast.success('Question submitted for review');
+                              refreshQuestions();
+                            } catch (err) {
+                              toast.error(err instanceof Error ? err.message : 'Failed to submit');
+                            } finally {
+                              setActionLoading(null);
+                            }
+                          }}
+                        >
+                          Submit for Review
+                        </DropdownMenuItem>
+                      )}
+                      {question.status === 'under_review' && (
+                        <>
+                          <DropdownMenuItem
+                            onClick={async () => {
+                              try {
+                                setActionLoading(`approve-${question.id}`);
+                                await QuestionBankService.approveQuestion(questionId);
+                                toast.success('Question approved');
+                                refreshQuestions();
+                              } catch (err) {
+                                toast.error(err instanceof Error ? err.message : 'Failed to approve');
+                              } finally {
+                                setActionLoading(null);
+                              }
+                            }}
+                          >
+                            Approve
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleOpenRejectDialog(questionId, question.questionText || '')}
+                          >
+                            Reject
+                          </DropdownMenuItem>
+                        </>
+                      )}
+                      {(question.status === 'approved' || question.status === 'rejected') && (
+                        <DropdownMenuItem
+                          onClick={async () => {
+                            try {
+                              setActionLoading(`archive-${question.id}`);
+                              await QuestionBankService.archiveQuestion(questionId);
+                              toast.success('Question archived');
+                              refreshQuestions();
+                            } catch (err) {
+                              toast.error(err instanceof Error ? err.message : 'Failed to archive');
+                            } finally {
+                              setActionLoading(null);
+                            }
+                          }}
+                        >
+                          Archive
+                        </DropdownMenuItem>
+                      )}
+                      {question.status === 'archived' && (
+                        <DropdownMenuItem
+                          onClick={async () => {
+                            try {
+                              setActionLoading(`restore-${question.id}`);
+                              await QuestionBankService.restoreQuestion(questionId);
+                              toast.success('Question restored');
+                              refreshQuestions();
+                            } catch (err) {
+                              toast.error(err instanceof Error ? err.message : 'Failed to restore');
+                            } finally {
+                              setActionLoading(null);
+                            }
+                          }}
+                        >
+                          Restore
+                        </DropdownMenuItem>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
 
                 {imageUrl && (
@@ -2231,11 +2867,10 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
                     ))}
                   </div>
                 )}
-                    </>
-                  );
-                })()}
               </article>
-            ))}
+            );
+            })}
+          </div>
           </div>
         )}
 
@@ -2269,6 +2904,42 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
       </section>
       </>
       )}
+
+      {/* New Question Bank Dialogs */}
+      <RejectQuestionDialog
+        open={rejectDialogOpen}
+        onOpenChange={setRejectDialogOpen}
+        questionId={rejectingQuestionId ?? 0}
+        questionText={rejectingQuestionText}
+        onSuccess={refreshQuestions}
+      />
+
+      <BatchStatusDialog
+        open={batchStatusDialogOpen}
+        onOpenChange={setBatchStatusDialogOpen}
+        selectedIds={selectedQuestionIdsArray}
+        onSuccess={() => {
+          refreshQuestions();
+          setSelectedQuestionIds(new Set());
+        }}
+      />
+
+      <ChapterManagerDrawer
+        open={chapterManagerOpen}
+        onOpenChange={setChapterManagerOpen}
+        courseId={selectedCourse !== 'all' ? Number(selectedCourse) : 0}
+        onChapterChange={refreshChapters}
+      />
+
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        onOpenChange={setDeleteConfirmOpen}
+        title="Delete Questions"
+        message={`Are you sure you want to delete ${deletingQuestionIds.length} question${deletingQuestionIds.length !== 1 ? 's' : ''}? This action cannot be undone.`}
+        danger
+        loading={actionLoading === 'delete-questions'}
+        onConfirm={handleDeleteSelectedQuestions}
+      />
 
       {editingQuestion && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
@@ -2345,6 +3016,89 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
           onPreviewGenerated={handlePreviewGenerated}
           onExamSaved={handleDraftSaved}
         />
+      )}
+
+      {draftEditorOpen && activeDraftEditorId && (
+        <DraftEditorModal
+          open={draftEditorOpen}
+          onOpenChange={setDraftEditorOpen}
+          draftId={activeDraftEditorId}
+          draftTitle={activeDraftEditorTitle}
+          onSaved={() => setRefreshKey((k) => k + 1)}
+        />
+      )}
+
+      {examViewOpen && activeExamViewId && (
+        <ExamFullViewModal
+          open={examViewOpen}
+          onOpenChange={setExamViewOpen}
+          examId={activeExamViewId}
+        />
+      )}
+
+      {/* Apply Template Dialog */}
+      {showApplyTemplate && templateExamId && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div
+            className={`w-full max-w-md rounded-xl border p-6 ${cardClass}`}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <h3 className={`text-lg font-semibold mb-4 ${headingClass}`}>Apply Template</h3>
+            <div className="space-y-4">
+              <div>
+                <label className={`text-sm font-medium ${subTextClass}`}>Select Template</label>
+                <select
+                  value={selectedTemplate}
+                  onChange={(e) => setSelectedTemplate(e.target.value)}
+                  className={`mt-1 w-full px-3 py-2 rounded-lg border ${isDark ? 'border-white/10 bg-white/5 text-white' : 'border-gray-300 bg-white text-gray-900'}`}
+                  disabled={loadingTemplates}
+                >
+                  <option value="">-- Select a template --</option>
+                  {templates.map((t: any) => (
+                    <option key={t.id} value={t.id}>
+                      {t.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div className="mt-6 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowApplyTemplate(false);
+                  setSelectedTemplate('');
+                  setTemplateExamId(null);
+                }}
+                className={`px-4 py-2 rounded-lg border text-sm ${secondaryButtonClass}`}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  if (!selectedTemplate || !templateExamId) {
+                    toast.error('Select a template');
+                    return;
+                  }
+                  try {
+                    await PaperTemplateService.applyToExam(templateExamId, parseInt(selectedTemplate, 10));
+                    toast.success('Template applied');
+                    setShowApplyTemplate(false);
+                    setSelectedTemplate('');
+                    setTemplateExamId(null);
+                    setRefreshKey((k) => k + 1);
+                  } catch (err) {
+                    toast.error(err instanceof Error ? err.message : 'Failed to apply template');
+                  }
+                }}
+                className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60"
+              >
+                Apply
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

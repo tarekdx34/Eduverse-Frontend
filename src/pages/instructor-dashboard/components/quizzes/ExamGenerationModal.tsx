@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Loader2, Plus, X } from 'lucide-react';
+import { AlertCircle, Loader2, Plus, X } from 'lucide-react';
 import { toast } from 'sonner';
 import ChapterService, { CourseChapter } from '../../../../services/api/chapterService';
 import ExamGenerationService, { GenerateExamPreviewResponse } from '../../../../services/api/examGenerationService';
@@ -75,12 +75,21 @@ export function ExamGenerationModal({
   const [chapters, setChapters] = useState<CourseChapter[]>([]);
   const [rules, setRules] = useState<RuleState[]>([{ chapterId: '', count: 1, weightPerQuestion: 1 }]);
   const [loading, setLoading] = useState(false);
+  const [generateError, setGenerateError] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [draftId, setDraftId] = useState<number | null>(null);
   const [generatedExamId, setGeneratedExamId] = useState<number | null>(null);
   const [preview, setPreview] = useState<GenerateExamPreviewResponse | null>(null);
   const [previewGeneratedAt, setPreviewGeneratedAt] = useState('');
   const [itemEdits, setItemEdits] = useState<Record<number, DraftItemEditState>>({});
   const [updatingItemId, setUpdatingItemId] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!open) {
+      setGenerateError(null);
+      setSaveError(null);
+    }
+  }, [open]);
 
   useEffect(() => {
     if (!courseId) {
@@ -121,11 +130,20 @@ export function ExamGenerationModal({
   const fieldClass = `w-full px-3 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 ${inputCls}`;
   const labelClass = `text-sm font-medium ${subCls}`;
   const helperClass = `text-sm ${subCls}`;
-  const secondaryButtonClass =
-    'px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 dark:border-white/10 dark:text-slate-200 dark:hover:bg-white/10 disabled:opacity-60 disabled:cursor-not-allowed';
-  const stepBadgeClass =
-    'px-2 py-1 rounded-full text-xs font-semibold border border-gray-200 bg-white text-gray-700 dark:border-white/10 dark:bg-white/5 dark:text-slate-200';
+  const secondaryButtonClass = isDark
+    ? 'px-4 py-2 rounded-lg border border-white/10 text-slate-200 hover:bg-white/10 disabled:opacity-60 disabled:cursor-not-allowed'
+    : 'px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed';
+  const iconButtonClass = isDark
+    ? 'px-2 py-2 rounded-lg border border-white/10 text-slate-200 hover:bg-white/10'
+    : 'px-2 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100';
+  const stepBadgeClass = isDark
+    ? 'px-2 py-1 rounded-full text-xs font-semibold border border-white/10 bg-white/5 text-slate-200'
+    : 'px-2 py-1 rounded-full text-xs font-semibold border border-gray-200 bg-white text-gray-700';
   const sectionCls = isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200';
+  const addRuleCls = isDark
+    ? 'inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-white/10 text-slate-200 hover:bg-white/10'
+    : 'inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100';
+  const totalWeightCls = `mt-4 text-sm font-medium ${isDark ? 'text-slate-300' : 'text-gray-700'}`;
 
   const updateRule = (index: number, patch: Partial<RuleState>) => {
     setRules((prev) => prev.map((rule, idx) => (idx === index ? { ...rule, ...patch } : rule)));
@@ -145,14 +163,16 @@ export function ExamGenerationModal({
   const removeRule = (index: number) => setRules((prev) => prev.filter((_, idx) => idx !== index));
 
   const generatePreview = async () => {
+    setGenerateError(null);
+
     if (!courseId || !title.trim()) {
-      toast.error('Course and title are required');
+      setGenerateError('Course and title are required');
       return;
     }
 
     const invalid = rules.find((rule) => !rule.chapterId || rule.count < 1 || rule.weightPerQuestion < 0);
     if (invalid) {
-      toast.error('Each rule must include chapter, count >= 1, and non-negative weight');
+      setGenerateError('Each rule must include a chapter, count ≥ 1, and a non-negative weight');
       return;
     }
 
@@ -184,15 +204,19 @@ export function ExamGenerationModal({
       });
       toast.success(`Preview generated. Review draft #${response.draftId} below.`);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Preview generation failed');
+      const message = err instanceof Error ? err.message : 'Preview generation failed';
+      setGenerateError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
   };
 
   const saveExam = async () => {
+    setSaveError(null);
+
     if (!draftId) {
-      toast.error('Generate preview first');
+      setSaveError('Generate a preview first before saving');
       return;
     }
     try {
@@ -202,7 +226,9 @@ export function ExamGenerationModal({
       onExamSaved?.({ draftId, examId: exam.id });
       toast.success('Exam saved');
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to save exam');
+      const message = err instanceof Error ? err.message : 'Failed to save exam';
+      setSaveError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -431,7 +457,7 @@ export function ExamGenerationModal({
                 {rules.length > 1 && (
                   <button
                     onClick={() => removeRule(index)}
-                    className="px-2 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 dark:border-white/10 dark:text-slate-200 dark:hover:bg-white/10"
+                    className={iconButtonClass}
                   >
                     <X size={14} />
                   </button>
@@ -441,15 +467,12 @@ export function ExamGenerationModal({
           ))}
         </div>
 
-        <button
-          onClick={addRule}
-          className="mt-3 inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 dark:border-white/10 dark:text-slate-200 dark:hover:bg-white/10"
-        >
+        <button onClick={addRule} className={`mt-3 ${addRuleCls}`}>
           <Plus size={14} />
           Add Rule
         </button>
 
-        <div className="mt-4 text-sm font-medium text-gray-700 dark:text-slate-300">Total weight: {totalWeight}</div>
+        <div className={totalWeightCls}>Total weight: {totalWeight}</div>
 
         {preview && (
           <section className={`mt-4 rounded-lg border p-4 ${sectionCls}`}>
@@ -549,19 +572,37 @@ export function ExamGenerationModal({
           </div>
         )}
 
+        {generateError && (
+          <div className={`mt-3 rounded-lg border p-3 flex items-start gap-2 ${isDark ? 'border-red-500/40 bg-red-500/10 text-red-300' : 'border-red-200 bg-red-50 text-red-700'}`}>
+            <AlertCircle size={16} className="mt-0.5 shrink-0" />
+            <span className="text-sm">{generateError}</span>
+          </div>
+        )}
+
+        {saveError && (
+          <div className={`mt-3 rounded-lg border p-3 flex items-start gap-2 ${isDark ? 'border-red-500/40 bg-red-500/10 text-red-300' : 'border-red-200 bg-red-50 text-red-700'}`}>
+            <AlertCircle size={16} className="mt-0.5 shrink-0" />
+            <span className="text-sm">{saveError}</span>
+          </div>
+        )}
+
         <div className="flex justify-end gap-2 mt-4">
           <button onClick={onClose} className={secondaryButtonClass}>
             Close
           </button>
-          <button onClick={generatePreview} disabled={loading} className={secondaryButtonClass}>
-            {loading ? <Loader2 size={16} className="animate-spin" /> : 'Generate Preview'}
+          <button
+            onClick={() => void generatePreview()}
+            disabled={loading}
+            className={secondaryButtonClass}
+          >
+            {loading && !draftId ? <Loader2 size={16} className="animate-spin" /> : 'Generate Preview'}
           </button>
           <button
-            onClick={saveExam}
+            onClick={() => void saveExam()}
             disabled={loading || !draftId}
             className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            Save Exam
+            {loading && !!draftId ? <Loader2 size={16} className="animate-spin inline" /> : 'Save Exam'}
           </button>
         </div>
       </div>

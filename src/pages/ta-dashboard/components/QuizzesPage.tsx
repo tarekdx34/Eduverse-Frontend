@@ -41,68 +41,6 @@ interface QuizUIData {
   raw?: any; // Keep backend data for reference
 }
 
-const MOCK_QUIZZES: QuizUIData[] = [
-  {
-    id: '1',
-    title: 'Midterm Review Quiz',
-    course: 'Data Structures',
-    status: 'published',
-    questions: 15,
-    date: '2025-01-10',
-    attempts: 42,
-    duration: 30,
-  },
-  {
-    id: '2',
-    title: 'Sorting Algorithms',
-    course: 'Algorithms',
-    status: 'closed',
-    questions: 10,
-    date: '2024-12-20',
-    attempts: 38,
-    duration: 20,
-  },
-  {
-    id: '3',
-    title: 'OOP Concepts',
-    course: 'Object-Oriented Programming',
-    status: 'draft',
-    questions: 12,
-    date: '2025-01-15',
-    attempts: 0,
-    duration: 25,
-  },
-  {
-    id: '4',
-    title: 'Database Normalization',
-    course: 'Database Systems',
-    status: 'published',
-    questions: 8,
-    date: '2025-01-08',
-    attempts: 35,
-    duration: 15,
-  },
-  {
-    id: '5',
-    title: 'Graph Theory Basics',
-    course: 'Discrete Mathematics',
-    status: 'draft',
-    questions: 20,
-    date: '2025-01-18',
-    attempts: 0,
-    duration: 40,
-  },
-  {
-    id: '6',
-    title: 'Final Exam Prep',
-    course: 'Data Structures',
-    status: 'closed',
-    questions: 25,
-    date: '2024-12-15',
-    attempts: 45,
-    duration: 60,
-  },
-];
 
 const COURSES = [
   'Data Structures',
@@ -186,8 +124,7 @@ export function QuizzesPage() {
         setError(null);
 
         if (!hasToken) {
-          // Demo mode - use mock data
-          setQuizzes(MOCK_QUIZZES);
+          setQuizzes([]);
           setLoading(false);
           return;
         }
@@ -203,7 +140,7 @@ export function QuizzesPage() {
           status: q.status || 'draft',
           questions: q.questions?.length || 0,
           date: q.createdAt?.slice(0, 10) || new Date().toISOString().slice(0, 10),
-          attempts: 0, // Will be calculated separately if needed
+          attempts: 0,
           duration: q.timeLimit || null,
           raw: q,
         }));
@@ -211,13 +148,9 @@ export function QuizzesPage() {
         setQuizzes(mapped);
       } catch (err) {
         console.error('Failed to load quizzes', err);
-        if (hasToken) {
-          const message = err instanceof Error ? err.message : 'Failed to load quizzes';
-          setError(message);
-          toast.error(message);
-        } else {
-          setQuizzes(MOCK_QUIZZES);
-        }
+        const message = err instanceof Error ? err.message : 'Failed to load quizzes';
+        setError(message);
+        toast.error(message);
       } finally {
         setLoading(false);
       }

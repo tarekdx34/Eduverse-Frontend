@@ -1,0 +1,548 @@
+import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
+import { Trash2, Plus, Search, Loader2, AlertCircle } from 'lucide-react';
+import * as Tabs from '@radix-ui/react-tabs';
+import QuestionGroupService from '../../services/api/questionGroupService';
+import QuestionBankService, { CreateQuestionBankPayload } from '../../services/api/questionBankService';
+import { AccessibleModal } from '../shared/AccessibleModal';
+import { LoadingSkeleton, ConfirmDialog, SearchInput } from '../shared/index';
+import { GroupFormModal } from './GroupFormModal';
+
+interface GroupDetailModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  groupId: number;
+  courseId?: number;
+  onGroupUpdated: () => void;
+}
+
+interface GroupDetail {
+  id: number;
+  title: string;
+  description?: string;
+  groupType: string;
+  chapterId?: number;
+  chapter?: { id: number; name: string };
+  sharedImageFileId?: number;
+  questions?: any[];
+}
+
+interface ApprovedQuestion {
+  id: number;
+  questionText: string;
+  questionType: string;
+  difficulty: string;
+}
+
+const QUESTION_TYPES = ['mcq', 'written', 'true_false', 'fill_blanks', 'essay'];
+
+export function GroupDetailModal({ open, onOpenChange, groupId, courseId, onGroupUpdated }: GroupDetailModalProps) {
+  const [group, setGroup] = useState<GroupDetail | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const [approvedQuestions, setApprovedQuestions] = useState<ApprovedQuestion[]>([]);
+  const [selectedQuestionIds, setSelectedQuestionIds] = useState<Set<number>>(new Set());
+  const [isLoadingQuestions, setIsLoadingQuestions] = useState(false);
+  const [isLinkingQuestions, setIsLinkingQuestions] = useState(false);
+
+  const [newQuestionType, setNewQuestionType] = useState<string>('mcq');
+  const [newQuestionText, setNewQuestionText] = useState('');
+  const [mcqOptions, setMcqOptions] = useState<Array<{ text: string; isCorrect: boolean }>>([
+    { text: '', isCorrect: false },
+    { text: '', isCorrect: false },
+  ]);
+  const [isCreatingQuestion, setIsCreatingQuestion] = useState(false);
+
+  const [editingGroup, setEditingGroup] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
+
+  const [sharedImagePreview, setSharedImagePreview] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (open && groupId) {
+      loadGroupDetail();
+    }
+  }, [open, groupId]);
+
+  useEffect(() => {
+    if (open && newQuestionType === 'mcq' && mcqOptions.length === 0) {
+      setMcqOptions([
+        { text: '', isCorrect: false },
+        { text: '', isCorrect: false },
+      ]);
+    }
+  }, [open, newQuestionType]);
+
+  const loadGroupDetail = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const data = await QuestionGroupService.getById(groupId) as any;
+      const groupData = data?.data ?? data;
+      setGroup(groupData as GroupDetail);
+
+      if (groupData?.sharedImageFileId) {
+        loadImagePreview(groupData.sharedImageFileId);
+      }
+
+      // Load approved questions
+      loadApprovedQuestions();
+    } catch (err) {
+      console.error('Failed to load group detail:', err);
+      setError('Failed to load group details');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loadImagePreview = async (fileId: number) => {
+    try {
+      let blob: Blob;
+      // Try to use downloadGroupImage if available, fall back to downloadImageBlob
+      try {
+        blob = await QuestionGroupService.downloadGroupImage?.(fileId) || await QuestionBankService.downloadImageBlob(fileId);
+      } catch {
+        blob = await QuestionBankService.downloadImageBlob(fileId);
+      }
+      const url = URL.createObjectURL(blob);
+      setSharedImagePreview(url);
+    } catch (error) {
+      console.error('Failed to load image:', error);
+    }
+  };
+
+  const loadApprovedQuestions = async () => {
+    if (!courseId) return;
+    try {
+      setIsLoadingQuestions(true);
+      const response = await QuestionBankService.list({
+        courseId,
+        ...(searchQuery && { search: searchQuery }),
+      });
+      const data = Array.isArray(response) ? response : response?.data || [];
+      setApprovedQuestions(data.slice(0, 50) as ApprovedQuestion[]);
+    } catch (err) {
+      console.error('Failed to load approved questions:', err);
+      toast.error('Failed to load questions');
+    } finally {
+      setIsLoadingQuestions(false);
+    }
+  };
+
+  const handleSearchQuestions = async (query: string) => {
+    setSearchQuery(query);
+    if (!courseId) return;
+    try {
+      setIsLoadingQuestions(true);
+      const response = await QuestionBankService.list({
+        courseId,
+        ...(query && { search: query }),
+      });
+      const data = Array.isArray(response) ? response : response?.data || [];
+      setApprovedQuestions(data.slice(0, 50) as ApprovedQuestion[]);
+    } catch (err) {
+      console.error('Failed to search questions:', err);
+    } finally {
+      setIsLoadingQuestions(false);
+    }
+  };
+
+  const handleLinkQuestions = async () => {
+    if (selectedQuestionIds.size === 0) {
+      toast.error('Select at least one question');
+      return;
+    }
+
+    try {
+      setIsLinkingQuestions(true);
+      await QuestionGroupService.linkQuestions(groupId, Array.from(selectedQuestionIds));
+      toast.success('Questions linked successfully');
+      setSelectedQuestionIds(new Set());
+      setSearchQuery('');
+      loadGroupDetail();
+    } catch (err) {
+      console.error('Failed to link questions:', err);
+      toast.error('Failed to link questions');
+    } finally {
+      setIsLinkingQuestions(false);
+    }
+  };
+
+  const handleRemoveQuestion = async (questionId: number) => {
+    try {
+      await QuestionGroupService.unlinkQuestion(groupId, questionId);
+      toast.success('Question removed from group');
+      loadGroupDetail();
+    } catch (err) {
+      console.error('Failed to remove question:', err);
+      toast.error('Failed to remove question');
+    }
+  };
+
+  const handleCreateQuestion = async () => {
+    if (!newQuestionText.trim()) {
+      toast.error('Question text is required');
+      return;
+    }
+
+    if (newQuestionType === 'mcq') {
+      const validOptions = mcqOptions.filter((o) => o.text.trim());
+      if (validOptions.length < 2) {
+        toast.error('MCQ must have at least 2 options');
+        return;
+      }
+      if (!validOptions.some((o) => o.isCorrect)) {
+        toast.error('At least one option must be marked as correct');
+        return;
+      }
+    }
+
+    try {
+      setIsCreatingQuestion(true);
+      const payload: CreateQuestionBankPayload = {
+        courseId: courseId || 0,
+        chapterId: group?.chapterId || 0,
+        questionType: newQuestionType as any,
+        difficulty: 'medium',
+        bloomLevel: 'understanding',
+        questionText: newQuestionText,
+        ...(newQuestionType === 'mcq' && {
+          options: mcqOptions
+            .filter((o) => o.text.trim())
+            .map((o) => ({ optionText: o.text, isCorrect: o.isCorrect })),
+        }),
+      };
+
+      await QuestionGroupService.addQuestions(groupId, [payload]);
+      toast.success('Question created and added to group');
+      setNewQuestionText('');
+      setMcqOptions([
+        { text: '', isCorrect: false },
+        { text: '', isCorrect: false },
+      ]);
+      loadGroupDetail();
+    } catch (err) {
+      console.error('Failed to create question:', err);
+      toast.error('Failed to create question');
+    } finally {
+      setIsCreatingQuestion(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <AccessibleModal isOpen={open} onClose={() => onOpenChange(false)} title="Group Details">
+        <LoadingSkeleton rows={6} />
+      </AccessibleModal>
+    );
+  }
+
+  if (error || !group) {
+    return (
+      <AccessibleModal isOpen={open} onClose={() => onOpenChange(false)} title="Group Details">
+        <div className="space-y-3">
+          <div className="flex items-start gap-3 p-4 bg-red-50 dark:bg-red-500/10 rounded-lg border border-red-200 dark:border-red-500/30">
+            <AlertCircle size={20} className="text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-medium text-red-900 dark:text-red-200">{error || 'Group not found'}</p>
+              <button
+                onClick={loadGroupDetail}
+                className="text-sm text-red-700 dark:text-red-300 hover:underline mt-2"
+              >
+                Try Again
+              </button>
+            </div>
+          </div>
+        </div>
+      </AccessibleModal>
+    );
+  }
+
+  return (
+    <AccessibleModal isOpen={open} onClose={() => onOpenChange(false)} title={group.title}>
+      <div className="space-y-6 max-w-4xl">
+        {/* Group Info Section */}
+        <section className="border-b border-gray-200 dark:border-gray-700 pb-6">
+          <div className="flex items-start justify-between mb-4">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{group.title}</h2>
+              <div className="flex items-center gap-2 mt-2 flex-wrap">
+                <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-300">
+                  {group.groupType.replace('_', ' ').toUpperCase()}
+                </span>
+                {group.chapter && (
+                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                    Chapter: <strong>{group.chapter.name}</strong>
+                  </span>
+                )}
+              </div>
+            </div>
+            <button
+              onClick={() => setEditingGroup(true)}
+              className="px-3 py-1.5 text-sm rounded-lg bg-blue-500 text-white hover:bg-blue-600"
+            >
+              Edit Group
+            </button>
+          </div>
+
+          {group.description && (
+            <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 max-h-40 overflow-y-auto">
+              <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{group.description}</p>
+            </div>
+          )}
+
+          {sharedImagePreview && (
+            <div className="mt-4">
+              <img
+                src={sharedImagePreview}
+                alt="Group shared image"
+                className="max-w-sm h-auto rounded-lg border border-gray-300 dark:border-gray-600"
+              />
+            </div>
+          )}
+        </section>
+
+        {/* Questions Table */}
+        {group.questions && group.questions.length > 0 && (
+          <section>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Questions ({group.questions.length})</h3>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-200 dark:border-gray-700">
+                    <th className="text-left py-2 px-3 font-semibold text-gray-700 dark:text-gray-300">#</th>
+                    <th className="text-left py-2 px-3 font-semibold text-gray-700 dark:text-gray-300">Question</th>
+                    <th className="text-left py-2 px-3 font-semibold text-gray-700 dark:text-gray-300">Type</th>
+                    <th className="text-left py-2 px-3 font-semibold text-gray-700 dark:text-gray-300">Difficulty</th>
+                    <th className="text-left py-2 px-3 font-semibold text-gray-700 dark:text-gray-300">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {group.questions.map((q, idx) => (
+                    <tr key={q.id} className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                      <td className="py-3 px-3 text-gray-600 dark:text-gray-400">{idx + 1}</td>
+                      <td className="py-3 px-3 text-gray-800 dark:text-gray-200">
+                        {(q.questionText || '').substring(0, 80)}
+                        {(q.questionText || '').length > 80 ? '...' : ''}
+                      </td>
+                      <td className="py-3 px-3">
+                        <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded">
+                          {q.questionType}
+                        </span>
+                      </td>
+                      <td className="py-3 px-3 text-gray-600 dark:text-gray-400">{q.difficulty || 'N/A'}</td>
+                      <td className="py-3 px-3">
+                        <button
+                          onClick={() => setConfirmDelete(q.id)}
+                          className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 p-1"
+                          title="Remove from group"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
+
+        {/* Add Questions Tabs */}
+        <section>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Add Questions</h3>
+          <Tabs.Root defaultValue="link" className="w-full">
+            <Tabs.List className="flex gap-0 border-b border-gray-200 dark:border-gray-700">
+              <Tabs.Trigger
+                value="link"
+                className="px-4 py-2 font-medium text-gray-700 dark:text-gray-300 border-b-2 border-transparent data-[state=active]:border-blue-500 data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400"
+              >
+                Link Existing
+              </Tabs.Trigger>
+              <Tabs.Trigger
+                value="create"
+                className="px-4 py-2 font-medium text-gray-700 dark:text-gray-300 border-b-2 border-transparent data-[state=active]:border-blue-500 data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400"
+              >
+                Create New
+              </Tabs.Trigger>
+            </Tabs.List>
+
+            {/* Link Existing Tab */}
+            <Tabs.Content value="link" className="space-y-4 pt-4">
+              <SearchInput
+                placeholder="Search approved questions..."
+                value={searchQuery}
+                onChange={(e) => handleSearchQuestions(e.target.value)}
+              />
+
+              {isLoadingQuestions ? (
+                <div className="flex justify-center py-8">
+                  <Loader2 className="animate-spin text-gray-400" size={24} />
+                </div>
+              ) : approvedQuestions.length > 0 ? (
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {approvedQuestions.map((q) => (
+                    <label key={q.id} className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 border border-gray-200 dark:border-gray-700 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={selectedQuestionIds.has(q.id)}
+                        onChange={(e) => {
+                          const newSet = new Set(selectedQuestionIds);
+                          if (e.target.checked) {
+                            newSet.add(q.id);
+                          } else {
+                            newSet.delete(q.id);
+                          }
+                          setSelectedQuestionIds(newSet);
+                        }}
+                        className="mt-1"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                          {(q.questionText || '').substring(0, 100)}
+                          {(q.questionText || '').length > 100 ? '...' : ''}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          Type: {q.questionType} | Difficulty: {q.difficulty}
+                        </p>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-center text-gray-500 dark:text-gray-400 py-8">No approved questions found</p>
+              )}
+
+              <button
+                onClick={handleLinkQuestions}
+                disabled={selectedQuestionIds.size === 0 || isLinkingQuestions}
+                className="w-full py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isLinkingQuestions ? 'Linking...' : `Link Selected (${selectedQuestionIds.size})`}
+              </button>
+            </Tabs.Content>
+
+            {/* Create New Tab */}
+            <Tabs.Content value="create" className="space-y-4 pt-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
+                  Question Type
+                </label>
+                <select
+                  value={newQuestionType}
+                  onChange={(e) => setNewQuestionType(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+                >
+                  {QUESTION_TYPES.map((type) => (
+                    <option key={type} value={type}>
+                      {type.toUpperCase()}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
+                  Question Text
+                </label>
+                <textarea
+                  value={newQuestionText}
+                  onChange={(e) => setNewQuestionText(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+                  placeholder="Enter question text..."
+                  rows={4}
+                />
+              </div>
+
+              {newQuestionType === 'mcq' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
+                    Options
+                  </label>
+                  <div className="space-y-2">
+                    {mcqOptions.map((option, idx) => (
+                      <div key={idx} className="flex gap-2">
+                        <input
+                          type="text"
+                          value={option.text}
+                          onChange={(e) => {
+                            const newOptions = [...mcqOptions];
+                            newOptions[idx].text = e.target.value;
+                            setMcqOptions(newOptions);
+                          }}
+                          placeholder={`Option ${idx + 1}`}
+                          className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+                        />
+                        <label className="flex items-center gap-2 px-3">
+                          <input
+                            type="checkbox"
+                            checked={option.isCorrect}
+                            onChange={(e) => {
+                              const newOptions = [...mcqOptions];
+                              newOptions[idx].isCorrect = e.target.checked;
+                              setMcqOptions(newOptions);
+                            }}
+                            className="w-4 h-4"
+                          />
+                          <span className="text-sm text-gray-600 dark:text-gray-400">Correct</span>
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setMcqOptions([...mcqOptions, { text: '', isCorrect: false }])
+                    }
+                    className="text-sm text-blue-600 dark:text-blue-400 hover:underline mt-2"
+                  >
+                    + Add Option
+                  </button>
+                </div>
+              )}
+
+              <button
+                onClick={handleCreateQuestion}
+                disabled={isCreatingQuestion || !newQuestionText.trim()}
+                className="w-full py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isCreatingQuestion ? 'Creating...' : 'Create and Add Question'}
+              </button>
+            </Tabs.Content>
+          </Tabs.Root>
+        </section>
+      </div>
+
+      {/* Modals */}
+      {editingGroup && (
+        <GroupFormModal
+          open={editingGroup}
+          onOpenChange={setEditingGroup}
+          courseId={courseId}
+          group={group}
+          onSuccess={() => {
+            setEditingGroup(false);
+            loadGroupDetail();
+            onGroupUpdated();
+          }}
+        />
+      )}
+
+      {confirmDelete !== null && (
+        <ConfirmDialog
+          open={confirmDelete !== null}
+          onOpenChange={(open) => !open && setConfirmDelete(null)}
+          title="Remove Question"
+          message="Remove this question from the group? It will remain in the question bank."
+          onConfirm={() => {
+            handleRemoveQuestion(confirmDelete);
+            setConfirmDelete(null);
+          }}
+          danger={false}
+        />
+      )}
+    </AccessibleModal>
+  );
+}

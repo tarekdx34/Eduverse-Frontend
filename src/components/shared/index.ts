@@ -56,3 +56,11 @@ export { DashboardSidebar } from './DashboardSidebar';
 export { CustomDropdown } from './CustomDropdown';
 export { CleanSelect } from './CleanSelect';
 export { Tooltip } from './Tooltip';
+
+// Shared UI Components
+export { StatusBadge } from './StatusBadge';
+export { ConfirmDialog } from './ConfirmDialog';
+export { EmptyState } from './EmptyState';
+export { LoadingSkeleton } from './LoadingSkeleton';
+export { BulkActionToolbar } from './BulkActionToolbar';
+export { SearchInput } from './SearchInput';

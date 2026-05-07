@@ -90,6 +90,82 @@ export class ExamGenerationService {
   static async listExams(params?: { courseId?: number; page?: number; limit?: number }) {
     return this.getFirstAvailable(['/exams', '/exams/list'], params);
   }
+
+  static async checkGenerationReadiness(courseId: number) {
+    return ApiClient.get('/exams/generation-readiness', { params: { courseId } });
+  }
+
+  static async validateDraft(draftId: number) {
+    return ApiClient.get(`/exams/drafts/${draftId}/validation`);
+  }
+
+  static async regenerateDraft(draftId: number, seed?: string) {
+    return ApiClient.post(`/exams/drafts/${draftId}/regenerate`, { seed });
+  }
+
+  static async duplicateDraft(draftId: number) {
+    return ApiClient.post(`/exams/drafts/${draftId}/duplicate`);
+  }
+
+  static async createSection(draftId: number, dto: { title: string; instructions?: string; totalMarks?: number; answerPolicy?: string }) {
+    return ApiClient.post(`/exams/drafts/${draftId}/sections`, dto);
+  }
+
+  static async updateSection(draftId: number, sectionId: number, dto: Partial<{ title: string; instructions: string; totalMarks: number; answerPolicy: string }>) {
+    return ApiClient.patch(`/exams/drafts/${draftId}/sections/${sectionId}`, dto);
+  }
+
+  static async deleteSection(draftId: number, sectionId: number) {
+    return ApiClient.delete(`/exams/drafts/${draftId}/sections/${sectionId}`);
+  }
+
+  static async reorderSections(draftId: number, order: number[]) {
+    return ApiClient.patch(`/exams/drafts/${draftId}/sections/reorder`, { order });
+  }
+
+  static async reshuffleSection(draftId: number, sectionId: number, seed?: string) {
+    return ApiClient.post(`/exams/drafts/${draftId}/sections/${sectionId}/reshuffle`, { seed });
+  }
+
+  static async normalizeMarks(draftId: number, sectionId: number) {
+    return ApiClient.post(`/exams/drafts/${draftId}/sections/${sectionId}/normalize-marks`);
+  }
+
+  static async reorderDraftItems(draftId: number, order: number[]) {
+    return ApiClient.patch(`/exams/drafts/${draftId}/items/reorder`, { order });
+  }
+
+  static async checkReplacement(draftId: number, itemId: number) {
+    return ApiClient.post(`/exams/drafts/${draftId}/items/${itemId}/replacement-check`);
+  }
+
+  static async publishExam(id: number) {
+    return ApiClient.post(`/exams/${id}/publish`);
+  }
+
+  static async unpublishExam(id: number) {
+    return ApiClient.post(`/exams/${id}/unpublish`);
+  }
+
+  static async archiveExam(id: number) {
+    return ApiClient.post(`/exams/${id}/archive`);
+  }
+
+  static async exportExamWord(id: number) {
+    return ApiClient.post(`/exams/${id}/export-word`);
+  }
+
+  static async getExamFull(id: number) {
+    return ApiClient.get(`/exams/${id}/full`);
+  }
+
+  static async getExamStats() {
+    return ApiClient.get('/exams/stats');
+  }
+
+  static async listDraftsFull(params?: { courseId?: number; page?: number; limit?: number }) {
+    return this.getFirstAvailable(['/exams/drafts', '/exams/drafts/list', '/exam-drafts'], params);
+  }
 }
 
 export default ExamGenerationService;
