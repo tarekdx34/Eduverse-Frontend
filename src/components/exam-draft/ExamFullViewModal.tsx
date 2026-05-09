@@ -1,4 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import 'katex/dist/katex.min.css';
+import { InlineMath, BlockMath } from 'react-katex';
 import {
   Dialog,
   DialogContent,
@@ -32,6 +34,8 @@ interface ExamQuestion {
   questionType?: string;
   difficulty?: string;
   expectedAnswerText?: string;
+  hints?: string;
+  imagePreviewUrl?: string;
   options?: Array<{ optionText?: string; isCorrect?: boolean }>;
 }
 
@@ -74,8 +78,67 @@ export const ExamFullViewModal: React.FC<ExamFullViewModalProps> = ({
     try {
       setLoading(true);
       setError(null);
-      const data = await ExamGenerationService.getExamFull(examId);
-      setExam(data as ExamFullData);
+      const raw = await ExamGenerationService.getExamFull(examId);
+      const r = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
+      const payload = (r.data && typeof r.data === 'object' ? r.data : r) as Record<string, unknown>;
+
+      const toStr = (v: unknown): string | undefined => (typeof v === 'string' && v.trim() ? v.trim() : undefined);
+      const toNum = (v: unknown): number => (typeof v === 'number' && Number.isFinite(v) ? v : 0);
+
+      const normalizeItem = (item: unknown, idx: number): ExamQuestion => {
+        const i = (item && typeof item === 'object' ? item : {}) as Record<string, unknown>;
+        const snap = (i.snapshot && typeof i.snapshot === 'object' ? i.snapshot : {}) as Record<string, unknown>;
+        const q = (i.question && typeof i.question === 'object' ? i.question : snap) as Record<string, unknown>;
+        const rawOptions = snap.options ?? i.options ?? q.options;
+        return {
+          id: String(i.id ?? i.itemId ?? idx + 1),
+          questionId: typeof i.questionId === 'number' ? i.questionId : undefined,
+          questionText: toStr(snap.questionText) ?? toStr(q.questionText) ?? toStr(q.text) ?? toStr(i.questionText) ?? `Question #${idx + 1}`,
+          weight: toNum(i.weight ?? i.marks ?? snap.weight),
+          questionType: toStr(snap.questionType ?? q.questionType ?? i.questionType),
+          difficulty: toStr(snap.difficulty ?? q.difficulty ?? i.difficulty),
+          expectedAnswerText: toStr(snap.expectedAnswerText ?? q.expectedAnswerText ?? i.expectedAnswerText),
+          hints: toStr(snap.hints ?? q.hints ?? i.hints),
+          imagePreviewUrl: toStr(snap.questionImagePreviewUrl ?? snap.sourceGroupImagePreviewUrl),
+          options: Array.isArray(rawOptions)
+            ? (rawOptions as unknown[]).map((o) => {
+                const opt = (o && typeof o === 'object' ? o : {}) as Record<string, unknown>;
+                return { optionText: toStr(opt.optionText ?? opt.text), isCorrect: opt.isCorrect === true };
+              })
+            : [],
+        };
+      };
+
+      const normalizeSection = (sec: unknown, idx: number): ExamSection => {
+        const s = (sec && typeof sec === 'object' ? sec : {}) as Record<string, unknown>;
+        const rawItems = Array.isArray(s.items) ? s.items : [];
+        return {
+          id: typeof s.id === 'number' ? s.id : idx,
+          title: toStr(s.title) ?? `Section ${idx + 1}`,
+          instructions: toStr(s.instructions),
+          totalMarks: typeof s.totalMarks === 'number' ? s.totalMarks : undefined,
+          items: rawItems.map(normalizeItem),
+        };
+      };
+
+      const rawSections = Array.isArray(payload.sections) ? payload.sections : [];
+      const rawItems = Array.isArray(payload.items) ? payload.items
+        : Array.isArray(payload.questions) ? payload.questions
+        : Array.isArray(payload.examItems) ? payload.examItems
+        : [];
+
+      const sections = rawSections.length > 0 ? rawSections.map(normalizeSection) : undefined;
+      const items = rawItems.map(normalizeItem);
+
+      setExam({
+        examId: toNum(payload.id ?? payload.examId) || examId,
+        title: toStr(payload.title) ?? `Exam #${examId}`,
+        status: toStr(payload.status),
+        totalWeight: toNum(payload.totalMarks ?? payload.totalWeight),
+        questionCount: toNum(payload.itemCount ?? payload.totalQuestions ?? payload.questionCount) || items.length,
+        sections,
+        items: sections ? undefined : items,
+      });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to load exam';
       setError(message);
@@ -93,12 +156,23 @@ export const ExamFullViewModal: React.FC<ExamFullViewModalProps> = ({
   const handleExport = async () => {
     try {
       setExporting(true);
-      await ExamGenerationService.exportExamWord(examId);
-      toast.success('Exam exported to Word');
+      const result = await ExamGenerationService.exportExamWord(examId) as { fileName?: string; mimeType?: string; content?: string };
+      const fileName = result?.fileName ?? `exam-${examId}.docx`;
+      const mimeType = result?.mimeType ?? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+      const base64 = result?.content ?? '';
+      const byteChars = atob(base64);
+      const bytes = new Uint8Array(byteChars.length);
+      for (let i = 0; i < byteChars.length; i++) bytes[i] = byteChars.charCodeAt(i);
+      const blob = new Blob([bytes], { type: mimeType });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success(`Downloaded ${fileName}`);
     } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : 'Failed to export exam',
-      );
+      toast.error(err instanceof Error ? err.message : 'Failed to export exam');
     } finally {
       setExporting(false);
     }
@@ -111,7 +185,7 @@ export const ExamFullViewModal: React.FC<ExamFullViewModalProps> = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="max-w-4xl max-h-[90vh] overflow-y-auto"
+        className="max-w-5xl max-h-[90vh] overflow-y-auto"
         style={{
           backgroundColor: isDark ? '#1f2937' : '#ffffff',
           borderColor: isDark ? '#374151' : '#e5e7eb',
@@ -280,6 +354,35 @@ export const ExamFullViewModal: React.FC<ExamFullViewModalProps> = ({
   );
 };
 
+const MathText = React.memo(({ text }: { text: string | undefined }) => {
+  if (!text) return null;
+  const parts: React.ReactNode[] = [];
+  const displayRe = /\$\$([\s\S]+?)\$\$/g;
+  const inlineRe = /\$((?:[^$]|\\.)+?)\$/g;
+  let last = 0;
+  const segments: { start: number; end: number; math: string; display: boolean }[] = [];
+  let m: RegExpExecArray | null;
+  while ((m = displayRe.exec(text)) !== null)
+    segments.push({ start: m.index, end: m.index + m[0].length, math: m[1], display: true });
+  const covered = (pos: number) => segments.some((s) => pos >= s.start && pos < s.end);
+  let im: RegExpExecArray | null;
+  while ((im = inlineRe.exec(text)) !== null)
+    if (!covered(im.index))
+      segments.push({ start: im.index, end: im.index + im[0].length, math: im[1], display: false });
+  segments.sort((a, b) => a.start - b.start);
+  for (const seg of segments) {
+    if (seg.start > last) parts.push(text.slice(last, seg.start));
+    parts.push(
+      seg.display
+        ? <BlockMath key={seg.start} math={seg.math} />
+        : <InlineMath key={seg.start} math={seg.math} />,
+    );
+    last = seg.end;
+  }
+  if (last < text.length) parts.push(text.slice(last));
+  return <>{parts}</>;
+});
+
 interface QuestionCardProps {
   question: ExamQuestion;
   index: number;
@@ -309,9 +412,9 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
           {index}
         </div>
         <div className="flex-1">
-          <p className={`font-medium ${isDark ? 'text-gray-100' : 'text-gray-900'}`}>
-            {question.questionText}
-          </p>
+          <div className={`font-medium ${isDark ? 'text-gray-100' : 'text-gray-900'}`}>
+            <MathText text={question.questionText} />
+          </div>
           <div className="flex flex-wrap gap-2 mt-2">
             {question.questionType && (
               <span
@@ -345,14 +448,34 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
               {question.weight} mark{question.weight !== 1 ? 's' : ''}
             </span>
           </div>
+          {question.imagePreviewUrl && (
+            <div className="mt-2">
+              <img
+                src={question.imagePreviewUrl}
+                alt="Question diagram"
+                className="max-h-48 rounded border object-contain"
+                style={{ borderColor: isDark ? '#4b5563' : '#e5e7eb' }}
+              />
+            </div>
+          )}
           {question.expectedAnswerText && (
             <div className="mt-2">
               <div className={`text-xs font-semibold mb-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                Expected Answer
+                Answer
               </div>
-              <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                {question.expectedAnswerText}
-              </p>
+              <div className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                <MathText text={question.expectedAnswerText} />
+              </div>
+            </div>
+          )}
+          {question.hints && (
+            <div className="mt-1">
+              <div className={`text-xs font-semibold mb-1 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                Hint
+              </div>
+              <div className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                <MathText text={question.hints} />
+              </div>
             </div>
           )}
           {question.options && question.options.length > 0 && (
@@ -364,7 +487,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
                 {question.options.map((opt, idx) => (
                   <li key={idx} className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                     <span className={opt.isCorrect ? 'font-semibold text-green-600' : ''}>
-                      {opt.optionText}
+                      {opt.optionText ? <MathText text={opt.optionText} /> : null}
                       {opt.isCorrect && ' ✓'}
                     </span>
                   </li>

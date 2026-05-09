@@ -11,19 +11,19 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
   const getColorClass = (): string => {
     switch (normalizedStatus) {
       case 'DRAFT':
-        return 'bg-gray-200 text-gray-900 dark:bg-gray-700 dark:text-gray-100 border-gray-300 dark:border-gray-600';
+        return 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-white/5 dark:text-slate-400 dark:border-white/10';
       case 'UNDER_REVIEW':
-        return 'bg-blue-200 text-blue-900 dark:bg-blue-900 dark:text-blue-100 border-blue-300 dark:border-blue-700';
+        return 'bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20';
       case 'APPROVED':
-        return 'bg-green-200 text-green-900 dark:bg-green-900 dark:text-green-100 border-green-300 dark:border-green-700';
+        return 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20';
       case 'REJECTED':
-        return 'bg-red-200 text-red-900 dark:bg-red-900 dark:text-red-100 border-red-300 dark:border-red-700';
+        return 'bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20';
       case 'ARCHIVED':
-        return 'bg-amber-200 text-amber-900 dark:bg-amber-900 dark:text-amber-100 border-amber-300 dark:border-amber-700';
+        return 'bg-indigo-50 text-indigo-600 border-indigo-200 dark:bg-indigo-500/10 dark:text-indigo-400 dark:border-indigo-500/20';
       case 'PUBLISHED':
-        return 'bg-emerald-200 text-emerald-900 dark:bg-emerald-900 dark:text-emerald-100 border-emerald-300 dark:border-emerald-700';
+        return 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20';
       default:
-        return 'bg-gray-200 text-gray-900 dark:bg-gray-700 dark:text-gray-100 border-gray-300 dark:border-gray-600';
+        return 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-white/5 dark:text-slate-400 dark:border-white/10';
     }
   };
 
@@ -32,7 +32,7 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
   };
 
   return (
-    <Badge className={`border ${getColorClass()}`}>
+    <Badge className={`px-2 py-0.5 rounded-full border text-[10px] font-bold uppercase tracking-widest shadow-none ${getColorClass()}`}>
       {getDisplayText()}
     </Badge>
   );

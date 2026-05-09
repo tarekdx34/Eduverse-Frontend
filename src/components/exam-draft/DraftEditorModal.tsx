@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
@@ -198,23 +199,24 @@ export const DraftEditorModal: React.FC<DraftEditorModalProps> = ({
       setValidating(true);
       setValidationIssues([]);
       const result = await ExamGenerationService.validateDraft(draftId);
-      const resultRecord = result as Record<string, unknown>;
-      if (resultRecord.valid) {
-        toast.success('Draft is valid and ready to save');
-        setShowValidationPanel(false);
-      } else {
-        const issues = resultRecord.issues as string[] | undefined;
-        if (Array.isArray(issues)) {
-          setValidationIssues(issues);
+      const r = result as Record<string, unknown>;
+      const errors = Array.isArray(r.errors) ? r.errors as string[] : [];
+      const warnings = Array.isArray(r.warnings) ? r.warnings as string[] : [];
+      const canSave = r.canSave === true;
+      if (canSave && errors.length === 0) {
+        toast.success(warnings.length > 0 ? `Ready to save (${warnings.length} warning${warnings.length > 1 ? 's' : ''})` : 'Draft is valid and ready to save');
+        if (warnings.length > 0) {
+          setValidationIssues(warnings.map((w) => `⚠ ${w}`));
           setShowValidationPanel(true);
         } else {
-          setValidationIssues(['Validation failed']);
-          setShowValidationPanel(true);
+          setShowValidationPanel(false);
         }
+      } else {
+        setValidationIssues([...errors, ...warnings.map((w) => `⚠ ${w}`)]);
+        setShowValidationPanel(true);
       }
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : 'Validation failed';
+      const message = err instanceof Error ? err.message : 'Validation failed';
       setValidationIssues([message]);
       setShowValidationPanel(true);
     } finally {
@@ -259,10 +261,11 @@ export const DraftEditorModal: React.FC<DraftEditorModalProps> = ({
     try {
       setValidating(true);
       const result = await ExamGenerationService.validateDraft(draftId);
-      const resultRecord = result as Record<string, unknown>;
-      if (!resultRecord.valid) {
-        const issues = resultRecord.issues as string[] | undefined;
-        setValidationIssues(Array.isArray(issues) ? issues : ['Validation failed']);
+      const r = result as Record<string, unknown>;
+      const errors = Array.isArray(r.errors) ? r.errors as string[] : [];
+      const warnings = Array.isArray(r.warnings) ? r.warnings as string[] : [];
+      if (r.canSave !== true || errors.length > 0) {
+        setValidationIssues([...errors, ...warnings.map((w) => `⚠ ${w}`)]);
         setShowValidationPanel(true);
         return;
       }
@@ -499,6 +502,7 @@ export const DraftEditorModal: React.FC<DraftEditorModalProps> = ({
                 <StatusBadge status={draft.status || 'draft'} />
               )}
             </div>
+            <DialogDescription className="sr-only">Edit draft exam questions, sections, and marks</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
@@ -558,23 +562,13 @@ export const DraftEditorModal: React.FC<DraftEditorModalProps> = ({
               </button>
 
               <button
-                onClick={handleExport}
-                disabled={exporting || loading}
-                className="px-3 py-2 rounded-lg text-sm font-medium border transition-colors"
-                style={{
-                  backgroundColor: exporting ? '#e5e7eb' : 'transparent',
-                  borderColor: primaryHex,
-                  color: primaryHex,
-                }}
+                onClick={() => toast.info('Save the draft as an exam first, then export from the Saved Exams tab.')}
+                disabled={loading}
+                title="Only saved exams can be exported"
+                className="px-3 py-2 rounded-lg text-sm font-medium border transition-colors opacity-50 cursor-not-allowed"
+                style={{ borderColor: primaryHex, color: primaryHex }}
               >
-                {exporting ? (
-                  <>
-                    <Loader2 size={14} className="inline mr-1 animate-spin" />
-                    Exporting...
-                  </>
-                ) : (
-                  'Export'
-                )}
+                Export
               </button>
 
               <button
@@ -776,6 +770,7 @@ export const DraftEditorModal: React.FC<DraftEditorModalProps> = ({
         >
           <DialogHeader>
             <DialogTitle>Create New Section</DialogTitle>
+            <DialogDescription className="sr-only">Add a new section to organise questions</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
@@ -926,6 +921,7 @@ export const DraftEditorModal: React.FC<DraftEditorModalProps> = ({
         >
           <DialogHeader>
             <DialogTitle>Add Questions</DialogTitle>
+            <DialogDescription className="sr-only">Select approved questions to add to this section</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
@@ -1058,6 +1054,7 @@ export const DraftEditorModal: React.FC<DraftEditorModalProps> = ({
         >
           <DialogHeader>
             <DialogTitle>Duplicate Draft</DialogTitle>
+            <DialogDescription className="sr-only">Create a copy of this draft with a new name</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">

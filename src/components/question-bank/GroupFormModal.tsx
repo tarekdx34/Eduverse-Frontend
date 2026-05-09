@@ -143,6 +143,15 @@ export function GroupFormModal({ open, onOpenChange, courseId, group, onSuccess 
     setImageFile(null);
   };
 
+  const isDark = document.documentElement.classList.contains('dark');
+  const headingClass = isDark ? 'text-slate-100' : 'text-slate-900';
+  const subTextClass = isDark ? 'text-slate-400' : 'text-slate-500';
+  const borderColor = isDark ? 'border-white/10' : 'border-slate-200';
+  const bgSoft = isDark ? 'bg-white/5' : 'bg-slate-50';
+  const inputClass = `w-full px-4 py-2.5 rounded-xl border transition-all focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none ${
+    isDark ? 'bg-white/5 border-white/10 text-slate-100 placeholder:text-slate-600' : 'bg-white border-slate-200 text-slate-900 placeholder:text-slate-400'
+  }`;
+
   const onSubmit = async (data: GroupFormData) => {
     try {
       const payload = {
@@ -178,11 +187,11 @@ export function GroupFormModal({ open, onOpenChange, courseId, group, onSuccess 
 
   return (
     <AccessibleModal isOpen={open} onClose={() => onOpenChange(false)} title={group?.id ? 'Edit Question Group' : 'Create Question Group'}>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 max-w-2xl">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 max-w-2xl">
         {/* Title */}
-        <div>
-          <label className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
-            Title <span className="text-red-500">*</span>
+        <div className="space-y-2">
+          <label className={`block text-xs font-bold uppercase tracking-widest ${subTextClass}`}>
+            Group Title <span className="text-rose-500">*</span>
           </label>
           <input
             type="text"
@@ -190,86 +199,87 @@ export function GroupFormModal({ open, onOpenChange, courseId, group, onSuccess 
               required: 'Title is required',
               minLength: { value: 3, message: 'Title must be at least 3 characters' },
             })}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className={inputClass}
             placeholder="e.g., Physics Chapter 5 Passage"
           />
-          {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title.message}</p>}
+          {errors.title && <p className="text-rose-500 text-xs mt-1 font-medium">{errors.title.message}</p>}
         </div>
 
-        {/* Group Type */}
-        <div>
-          <label className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
-            Group Type <span className="text-red-500">*</span>
-          </label>
-          <select
-            {...register('groupType')}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            {GROUP_TYPE_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Chapter */}
-        {courseId && (
-          <div>
-            <label className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
-              Chapter
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Group Type */}
+          <div className="space-y-2">
+            <label className={`block text-xs font-bold uppercase tracking-widest ${subTextClass}`}>
+              Structure Type <span className="text-rose-500">*</span>
             </label>
             <select
-              {...register('chapterId')}
-              disabled={isLoadingChapters}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
+              {...register('groupType')}
+              className={inputClass}
             >
-              <option value="">Select a chapter (optional)</option>
-              {chapters.map((chapter) => (
-                <option key={chapter.id} value={chapter.id}>
-                  {chapter.name}
+              {GROUP_TYPE_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
                 </option>
               ))}
             </select>
           </div>
-        )}
+
+          {/* Chapter */}
+          {courseId && (
+            <div className="space-y-2">
+              <label className={`block text-xs font-bold uppercase tracking-widest ${subTextClass}`}>
+                Link to Chapter
+              </label>
+              <select
+                {...register('chapterId')}
+                disabled={isLoadingChapters}
+                className={inputClass}
+              >
+                <option value="">Select a chapter (optional)</option>
+                {chapters.map((chapter) => (
+                  <option key={chapter.id} value={chapter.id}>
+                    {chapter.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
 
         {/* Description / Shared Passage */}
-        <div>
-          <label className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
-            Description / Shared Passage
+        <div className="space-y-2">
+          <label className={`block text-xs font-bold uppercase tracking-widest ${subTextClass}`}>
+            Content / Shared Passage
           </label>
           <textarea
             {...register('description')}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="Enter the shared passage, case study, or description..."
-            rows={6}
+            className={`${inputClass} min-h-[160px] resize-none`}
+            placeholder="Enter the shared passage, case study, or group description..."
           />
-          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+          <div className={`text-[10px] font-bold uppercase tracking-widest flex justify-end ${isDark ? 'text-slate-600' : 'text-slate-400'}`}>
             {descriptionValue.length} characters
           </div>
         </div>
 
         {/* Shared Image Upload */}
-        <div>
-          <label className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
-            Shared Image
+        <div className="space-y-2">
+          <label className={`block text-xs font-bold uppercase tracking-widest ${subTextClass}`}>
+            Shared Visual Asset
           </label>
           {sharedImagePreview ? (
-            <div className="space-y-3">
-              <div className="relative inline-block">
+            <div className="space-y-4">
+              <div className={`relative inline-block p-1 rounded-2xl border ${borderColor} ${bgSoft}`}>
                 <img
                   src={sharedImagePreview}
                   alt="Shared group image"
-                  className="max-w-sm h-auto rounded-lg border border-gray-300 dark:border-gray-600"
+                  className="max-w-md h-auto rounded-xl"
                 />
                 <button
                   type="button"
                   onClick={handleRemoveImage}
-                  className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600"
+                  className="absolute -top-2 -right-2 p-1.5 bg-rose-500 text-white rounded-full shadow-lg hover:bg-rose-600 transition-transform hover:scale-110"
                   disabled={isUploadingImage}
                 >
-                  <Trash2 size={16} />
+                  <Trash2 size={14} />
                 </button>
               </div>
               <label className="block">
@@ -278,12 +288,16 @@ export function GroupFormModal({ open, onOpenChange, courseId, group, onSuccess 
                   accept="image/*"
                   onChange={handleImageSelect}
                   disabled={isUploadingImage}
-                  className="text-sm text-gray-500 dark:text-gray-400 file:mr-2 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 dark:file:bg-blue-500/20 dark:file:text-blue-300 hover:file:bg-blue-100 disabled:opacity-50"
+                  className={`text-xs ${subTextClass} file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-bold file:uppercase file:tracking-widest ${
+                    isDark ? 'file:bg-white/5 file:text-slate-300' : 'file:bg-slate-100 file:text-slate-700'
+                  } hover:file:opacity-80 transition-all`}
                 />
               </label>
             </div>
           ) : (
-            <label className="flex items-center justify-center w-full px-4 py-6 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:border-gray-400 dark:hover:border-gray-500">
+            <label className={`flex items-center justify-center w-full min-h-[120px] border-2 border-dashed rounded-2xl cursor-pointer transition-all hover:scale-[1.01] active:scale-[0.99] ${
+              isDark ? 'border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/[0.07]' : 'border-slate-200 bg-slate-50 hover:border-slate-300 hover:bg-slate-100'
+            }`}>
               <input
                 type="file"
                 accept="image/*"
@@ -291,30 +305,38 @@ export function GroupFormModal({ open, onOpenChange, courseId, group, onSuccess 
                 disabled={isUploadingImage}
                 className="hidden"
               />
-              <div className="flex flex-col items-center">
-                <Upload size={24} className="text-gray-400 dark:text-gray-500 mb-2" />
-                <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  {isUploadingImage ? 'Uploading...' : 'Click to upload image'}
+              <div className="flex flex-col items-center py-6">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-3 ${isDark ? 'bg-indigo-500/10 text-indigo-400' : 'bg-indigo-50 text-indigo-600'}`}>
+                  <Upload size={20} />
+                </div>
+                <p className={`text-sm font-semibold ${headingClass}`}>
+                  {isUploadingImage ? 'Uploading asset...' : 'Upload group image'}
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">PNG, JPG or GIF</p>
+                <p className={`text-[10px] font-bold uppercase tracking-widest mt-1 ${isDark ? 'text-slate-600' : 'text-slate-400'}`}>
+                  PNG, JPG or GIF (max 5MB)
+                </p>
               </div>
             </label>
           )}
         </div>
 
         {/* Buttons */}
-        <div className="flex gap-2 justify-end pt-4 border-t border-gray-200 dark:border-gray-700">
+        <div className={`flex gap-3 justify-end pt-6 border-t ${borderColor}`}>
           <button
             type="button"
             onClick={() => onOpenChange(false)}
-            className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-800"
+            className={`px-6 py-2.5 rounded-xl text-sm font-bold uppercase tracking-widest transition-all ${
+              isDark ? 'text-slate-400 hover:bg-white/5' : 'text-slate-500 hover:bg-slate-50'
+            }`}
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={isSubmitting || isUploadingImage}
-            className="px-4 py-2 rounded-lg bg-blue-500 text-white font-medium hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+            className={`px-8 py-2.5 rounded-xl text-sm font-bold uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 ${
+              isDark ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20' : 'bg-slate-900 text-white shadow-lg shadow-slate-900/20'
+            }`}
           >
             {isSubmitting ? 'Saving...' : group?.id ? 'Update Group' : 'Create Group'}
           </button>

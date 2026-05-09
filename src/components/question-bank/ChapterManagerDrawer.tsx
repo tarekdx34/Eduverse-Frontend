@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Loader2, Plus, Trash2, X } from 'lucide-react';
+import { Loader2, Plus, Trash2, X, Layers, Paperclip } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   Dialog,
@@ -13,6 +13,7 @@ import { Input } from '../ui/input';
 import { ConfirmDialog, LoadingSkeleton } from '../shared';
 import ChapterService, { CourseChapter } from '../../services/api/chapterService';
 import QuestionBankService from '../../services/api/questionBankService';
+import { CheckCircle2 } from 'lucide-react';
 
 interface ChapterManagerDrawerProps {
   open: boolean;
@@ -158,18 +159,29 @@ export const ChapterManagerDrawer: React.FC<ChapterManagerDrawerProps> = ({
     }
   };
 
+  const isDark = document.documentElement.classList.contains('dark');
+  const headingClass = isDark ? 'text-slate-100' : 'text-slate-900';
+  const subTextClass = isDark ? 'text-slate-400' : 'text-slate-500';
+  const borderColor = isDark ? 'border-white/10' : 'border-slate-200';
+  const bgSoft = isDark ? 'bg-white/5' : 'bg-slate-50';
+
   return (
     <>
       <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
-          <DialogHeader>
-            <DialogTitle>Manage Chapters</DialogTitle>
-            <DialogDescription>
-              Add, edit, or delete chapters for this course.
+        <DialogContent className={`max-w-2xl max-h-[90vh] flex flex-col rounded-3xl p-0 overflow-hidden ${isDark ? 'bg-slate-950 border-white/10 shadow-2xl shadow-indigo-500/10' : 'bg-white border-slate-200'}`}>
+          <DialogHeader className="p-8 pb-4">
+            <div className="flex items-center gap-3 mb-2">
+              <div className={`p-2 rounded-xl ${isDark ? 'bg-indigo-500/10 text-indigo-400' : 'bg-indigo-50 text-indigo-600'}`}>
+                <Layers size={20} />
+              </div>
+              <DialogTitle className={`text-xl font-bold tracking-tight ${headingClass}`}>Curriculum Architect</DialogTitle>
+            </div>
+            <DialogDescription className={`text-sm ${subTextClass}`}>
+              Structure your course by defining thematic chapters and modules.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto px-8 pb-4">
             {loading ? (
               <div className="space-y-2">
                 {[...Array(3)].map((_, i) => (
@@ -192,73 +204,80 @@ export const ChapterManagerDrawer: React.FC<ChapterManagerDrawerProps> = ({
                   return (
                     <div
                       key={chapter.id}
-                      className="flex items-center gap-3 rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 p-3"
+                      className={`group flex items-center gap-4 rounded-2xl border p-4 transition-all hover:scale-[1.01] ${
+                        isDark ? 'bg-white/5 border-white/10 hover:bg-white/10' : 'bg-slate-50 border-slate-200 hover:bg-white hover:shadow-xl hover:shadow-slate-200/50'
+                      }`}
                     >
                       {isEditing ? (
-                        <Input
-                          autoFocus
-                          value={editingName}
-                          onChange={(e) => setEditingName(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              void handleSaveEdit(chapter.id);
-                            } else if (e.key === 'Escape') {
-                              setEditingId(null);
-                              setEditingName('');
-                            }
-                          }}
-                          placeholder="Chapter name"
-                          className="flex-1 h-9"
-                          disabled={isActioning}
-                        />
+                        <div className="flex-1 flex items-center gap-2">
+                          <input
+                            autoFocus
+                            value={editingName}
+                            onChange={(e) => setEditingName(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                void handleSaveEdit(chapter.id);
+                              } else if (e.key === 'Escape') {
+                                setEditingId(null);
+                                setEditingName('');
+                              }
+                            }}
+                            className={`flex-1 h-10 px-4 rounded-xl text-sm font-medium transition-all focus:outline-none focus:ring-2 ${
+                              isDark ? 'bg-black/20 border-white/10 text-white focus:ring-indigo-500/20' : 'bg-white border-slate-200 text-slate-900 focus:ring-indigo-500/10'
+                            }`}
+                            disabled={isActioning}
+                          />
+                        </div>
                       ) : (
                         <div
-                          className="flex-1 cursor-pointer py-1"
+                          className="flex-1 cursor-pointer"
                           onClick={() => handleStartEdit(chapter)}
                         >
-                          <p className="font-medium text-sm text-gray-900 dark:text-white">
+                          <p className={`font-bold text-sm tracking-tight ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>
                             {chapter.name}
+                          </p>
+                          <p className={`text-[10px] font-bold uppercase tracking-widest mt-0.5 flex items-center gap-1 ${isDark ? 'text-indigo-400/60' : 'text-indigo-500/60'}`}>
+                            <Paperclip size={10} />
+                            {questionCount} Artifact{questionCount !== 1 ? 's' : ''} Linked
                           </p>
                         </div>
                       )}
 
-                      <div className="text-xs text-gray-600 dark:text-gray-400 whitespace-nowrap">
-                        {questionCount} question{questionCount !== 1 ? 's' : ''}
+                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        {isEditing ? (
+                          <>
+                            <button
+                              onClick={() => void handleSaveEdit(chapter.id)}
+                              disabled={isActioning}
+                              className={`p-2 rounded-lg text-emerald-500 hover:bg-emerald-500/10 transition-colors`}
+                            >
+                              {isActioning ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}
+                            </button>
+                            <button
+                              onClick={() => { setEditingId(null); setEditingName(''); }}
+                              disabled={isActioning}
+                              className={`p-2 rounded-lg text-slate-400 hover:bg-slate-500/10 transition-colors`}
+                            >
+                              <X size={16} />
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button
+                              onClick={() => handleStartEdit(chapter)}
+                              className={`p-2 rounded-lg text-slate-400 hover:text-indigo-500 hover:bg-indigo-500/10 transition-colors`}
+                            >
+                              <Plus size={16} className="rotate-45" />
+                            </button>
+                            <button
+                              onClick={() => setConfirmDelete({ open: true, chapterId: chapter.id })}
+                              className={`p-2 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition-colors`}
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </>
+                        )}
                       </div>
-
-                      {isEditing ? (
-                        <div className="flex items-center gap-1">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => void handleSaveEdit(chapter.id)}
-                            disabled={isActioning}
-                          >
-                            {isActioning && <Loader2 className="h-3 w-3 animate-spin mr-1" />}
-                            Save
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => {
-                              setEditingId(null);
-                              setEditingName('');
-                            }}
-                            disabled={isActioning}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ) : (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => setConfirmDelete({ open: true, chapterId: chapter.id })}
-                          disabled={isActioning}
-                        >
-                          <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
-                        </Button>
-                      )}
                     </div>
                   );
                 })}
@@ -266,10 +285,10 @@ export const ChapterManagerDrawer: React.FC<ChapterManagerDrawerProps> = ({
             )}
           </div>
 
-          <div className="border-t border-gray-200 dark:border-white/10 pt-4">
-            <div className="flex items-center gap-2">
-              <Input
-                placeholder="New chapter name"
+          <div className={`mt-4 border-t p-8 ${borderColor} ${bgSoft}`}>
+            <div className="flex items-center gap-3">
+              <input
+                placeholder="Initialize new chapter..."
                 value={newChapterName}
                 onChange={(e) => setNewChapterName(e.target.value)}
                 onKeyDown={(e) => {
@@ -277,17 +296,21 @@ export const ChapterManagerDrawer: React.FC<ChapterManagerDrawerProps> = ({
                     void handleAddChapter();
                   }
                 }}
+                className={`flex-1 h-11 px-4 rounded-xl text-sm font-medium transition-all focus:outline-none focus:ring-2 ${
+                  isDark ? 'bg-white/5 border-white/10 text-white placeholder-slate-600 focus:ring-indigo-500/20' : 'bg-white border-slate-200 text-slate-900 placeholder-slate-400 focus:ring-indigo-500/10'
+                }`}
                 disabled={actionLoading === 'add'}
               />
-              <Button
+              <button
                 onClick={() => void handleAddChapter()}
                 disabled={!newChapterName.trim() || actionLoading === 'add'}
-                size="sm"
+                className={`h-11 flex items-center gap-2 px-6 rounded-xl text-xs font-bold uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 ${
+                  isDark ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20' : 'bg-slate-900 text-white shadow-lg shadow-slate-900/20'
+                }`}
               >
-                {actionLoading === 'add' && <Loader2 className="h-4 w-4 animate-spin mr-1" />}
-                <Plus className="h-4 w-4 mr-1" />
-                Add
-              </Button>
+                {actionLoading === 'add' ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />}
+                Append
+              </button>
             </div>
           </div>
         </DialogContent>

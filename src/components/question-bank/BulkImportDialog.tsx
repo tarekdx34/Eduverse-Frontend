@@ -189,27 +189,43 @@ export function BulkImportDialog({
     }
   };
 
+  const isDark = document.documentElement.classList.contains('dark');
+  const headingClass = isDark ? 'text-slate-100' : 'text-slate-900';
+  const subTextClass = isDark ? 'text-slate-400' : 'text-slate-500';
+  const borderColor = isDark ? 'border-white/10' : 'border-slate-200';
+  const bgSoft = isDark ? 'bg-white/5' : 'bg-slate-50';
+
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
-        <DialogHeader>
-          <DialogTitle>Bulk Import Questions</DialogTitle>
-          <DialogDescription>
-            Upload a CSV file to create multiple questions at once
+      <DialogContent className={`max-w-2xl max-h-[90vh] flex flex-col rounded-3xl p-0 overflow-hidden ${isDark ? 'bg-slate-950 border-white/10 shadow-2xl shadow-indigo-500/10' : 'bg-white border-slate-200'}`}>
+        <DialogHeader className="p-8 pb-4">
+          <div className="flex items-center gap-3 mb-2">
+            <div className={`p-2 rounded-xl ${isDark ? 'bg-indigo-500/10 text-indigo-400' : 'bg-indigo-50 text-indigo-600'}`}>
+              <Download size={20} />
+            </div>
+            <DialogTitle className={`text-xl font-bold tracking-tight ${headingClass}`}>Bulk Import Questions</DialogTitle>
+          </div>
+          <DialogDescription className={`text-sm ${subTextClass}`}>
+            Synchronize your local question bank with the cloud environment.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto px-8 pb-8">
           {step === 'upload' && (
-            <div className="space-y-4 p-4">
+            <div className="space-y-6">
               <div className="flex items-center justify-between">
-                <p className="text-sm font-medium">Step 1: Upload CSV File</p>
+                <div className="space-y-1">
+                  <h4 className={`text-sm font-bold uppercase tracking-wider ${headingClass}`}>Step 1: Resource Setup</h4>
+                  <p className={`text-xs ${subTextClass}`}>Upload your data source in CSV format.</p>
+                </div>
                 <button
                   onClick={handleDownloadTemplate}
-                  className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-widest transition-all ${
+                    isDark ? 'bg-white/5 text-slate-300 border border-white/10 hover:bg-white/10' : 'bg-slate-100 text-slate-600 border border-slate-200 hover:bg-slate-200'
+                  }`}
                 >
-                  <Download size={16} />
-                  Download Template
+                  <Download size={14} />
+                  Template
                 </button>
               </div>
 
@@ -227,57 +243,55 @@ export function BulkImportDialog({
                 </div>
               )}
 
-              <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-white/10 dark:bg-white/5">
-                <p className="text-xs font-medium text-gray-600 dark:text-gray-400">Expected CSV columns:</p>
-                <p className="mt-1 font-mono text-xs text-gray-700 dark:text-gray-300">
+              <div className={`rounded-2xl border p-4 ${borderColor} ${bgSoft}`}>
+                <p className={`text-[10px] font-bold uppercase tracking-widest mb-2 ${isDark ? 'text-slate-600' : 'text-slate-400'}`}>Required Structure:</p>
+                <div className={`p-3 rounded-xl font-mono text-[10px] break-all ${isDark ? 'bg-black/20 text-slate-400' : 'bg-white text-slate-600 border border-slate-100'}`}>
                   questionText, questionType, difficulty, bloomLevel, expectedAnswerText, hints
-                </p>
+                </div>
               </div>
             </div>
           )}
 
           {step === 'preview' && (
-            <div className="space-y-4 p-4">
-              <div className="flex items-center gap-2">
-                <p className="text-sm font-medium">Step 2: Preview & Validate</p>
-                <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">
-                  {parsedRows.length}
-                </span>
-                <span className="text-xs text-gray-500 dark:text-gray-400">
-                  ({validRowCount} valid, {parsedRows.length - validRowCount} errors)
-                </span>
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <h4 className={`text-sm font-bold uppercase tracking-wider ${headingClass}`}>Step 2: Integrity Check</h4>
+                  <p className={`text-xs ${subTextClass}`}>
+                    Reviewing <span className="font-bold text-indigo-500">{parsedRows.length}</span> entries. 
+                    {parsedRows.length - validRowCount > 0 && <span className="ml-1 text-rose-500 font-bold underline decoration-2">{parsedRows.length - validRowCount} issues found.</span>}
+                  </p>
+                </div>
               </div>
 
-              <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-white/10">
+              <div className={`overflow-hidden rounded-2xl border ${borderColor}`}>
                 <table className="w-full text-sm">
-                  <thead className="bg-gray-50 dark:bg-white/5">
-                    <tr>
-                      <th className="px-3 py-2 text-left font-medium text-gray-700 dark:text-gray-300">Question</th>
-                      <th className="px-3 py-2 text-left font-medium text-gray-700 dark:text-gray-300">Type</th>
-                      <th className="px-3 py-2 text-left font-medium text-gray-700 dark:text-gray-300">Difficulty</th>
-                      <th className="px-3 py-2 text-left font-medium text-gray-700 dark:text-gray-300">Bloom</th>
-                      <th className="px-3 py-2 text-left font-medium text-gray-700 dark:text-gray-300">Status</th>
+                  <thead>
+                    <tr className={`${bgSoft} border-b ${borderColor}`}>
+                      <th className={`px-3 py-2.5 text-left text-[10px] font-bold uppercase tracking-widest ${subTextClass}`}>Content Preview</th>
+                      <th className={`px-3 py-2.5 text-left text-[10px] font-bold uppercase tracking-widest ${subTextClass}`}>Type</th>
+                      <th className={`px-3 py-2.5 text-left text-[10px] font-bold uppercase tracking-widest ${subTextClass}`}>Diff</th>
+                      <th className={`px-3 py-2.5 text-left text-[10px] font-bold uppercase tracking-widest ${subTextClass}`}>Bloom</th>
+                      <th className={`px-3 py-2.5 text-left text-[10px] font-bold uppercase tracking-widest ${subTextClass}`}>Status</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-200 dark:divide-white/10">
+                  <tbody className={`divide-y ${borderColor}`}>
                     {parsedRows.slice(0, 20).map((row) => (
                       <tr
                         key={row.index}
-                        className={row.errors.length > 0 ? 'bg-red-50 dark:bg-red-500/10' : ''}
+                        className={`transition-colors ${row.errors.length > 0 ? (isDark ? 'bg-rose-500/5' : 'bg-rose-50') : (isDark ? 'hover:bg-white/5' : 'hover:bg-slate-50')}`}
                       >
-                        <td className="px-3 py-2 text-xs text-gray-700 dark:text-gray-300 truncate max-w-xs">
+                        <td className={`px-3 py-2 text-[11px] truncate max-w-xs ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
                           {row.questionText}
                         </td>
-                        <td className="px-3 py-2 text-xs text-gray-600 dark:text-gray-400">{row.questionType}</td>
-                        <td className="px-3 py-2 text-xs text-gray-600 dark:text-gray-400">{row.difficulty}</td>
-                        <td className="px-3 py-2 text-xs text-gray-600 dark:text-gray-400">{row.bloomLevel}</td>
-                        <td className="px-3 py-2 text-xs">
+                        <td className={`px-3 py-2 text-[10px] font-bold uppercase tracking-wider ${subTextClass}`}>{row.questionType}</td>
+                        <td className={`px-3 py-2 text-[10px] font-bold uppercase tracking-wider ${subTextClass}`}>{row.difficulty}</td>
+                        <td className={`px-3 py-2 text-[10px] font-bold uppercase tracking-wider ${subTextClass}`}>{row.bloomLevel}</td>
+                        <td className="px-3 py-2 text-center">
                           {row.errors.length === 0 ? (
-                            <span className="text-green-600 dark:text-green-400">✓</span>
+                            <CheckCircle2 size={14} className="text-emerald-500 mx-auto" />
                           ) : (
-                            <span className="text-red-600 dark:text-red-400" title={row.errors.join('; ')}>
-                              ✗
-                            </span>
+                            <AlertCircle size={14} className="text-rose-500 mx-auto" title={row.errors.join('; ')} />
                           )}
                         </td>
                       </tr>
@@ -311,48 +325,69 @@ export function BulkImportDialog({
           )}
         </div>
 
-        <div className="flex items-center justify-between border-t border-gray-200 px-6 py-4 dark:border-white/10">
+        <div className={`flex items-center justify-between border-t px-8 py-6 ${borderColor} ${bgSoft}`}>
           {step === 'upload' && (
             <div className="ml-auto">
-              <Button variant="outline" onClick={() => onOpenChange(false)}>
-                Close
-              </Button>
+              <button 
+                onClick={() => onOpenChange(false)}
+                className={`px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all ${
+                  isDark ? 'text-slate-400 hover:bg-white/5' : 'text-slate-500 hover:bg-slate-50'
+                }`}
+              >
+                Cancel
+              </button>
             </div>
           )}
           {step === 'preview' && (
-            <div className="flex gap-2 ml-auto">
-              <Button variant="outline" onClick={() => setStep('upload')}>
-                Back
-              </Button>
-              <Button
+            <div className="flex gap-4 ml-auto">
+              <button 
+                onClick={() => setStep('upload')}
+                className={`px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all ${
+                  isDark ? 'text-slate-400 hover:bg-white/5' : 'text-slate-500 hover:bg-slate-50'
+                }`}
+              >
+                Previous
+              </button>
+              <button
                 onClick={handleImport}
                 disabled={validRowCount === 0 || loading}
+                className={`flex items-center gap-2 px-8 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 ${
+                  isDark ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20' : 'bg-slate-900 text-white shadow-lg shadow-slate-900/20'
+                }`}
               >
                 {loading ? (
                   <>
                     <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-r-transparent mr-2" />
-                    Importing...
+                    Processing...
                   </>
                 ) : (
                   <>
-                    Import {validRowCount} Question{validRowCount !== 1 ? 's' : ''}
-                    <ChevronRight size={16} className="ml-1.5" />
+                    Sync {validRowCount} Question{validRowCount !== 1 ? 's' : ''}
+                    <ChevronRight size={16} />
                   </>
                 )}
-              </Button>
+              </button>
             </div>
           )}
           {step === 'success' && (
             <div className="ml-auto">
-              <Button onClick={() => { handleReset(); onOpenChange(false); }}>
-                Done
-              </Button>
+              <button 
+                onClick={() => { handleReset(); onOpenChange(false); }}
+                className={`px-10 py-3 rounded-xl text-xs font-bold uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-[0.98] ${
+                  isDark ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20' : 'bg-slate-900 text-white shadow-lg shadow-slate-900/20'
+                }`}
+              >
+                Finalize
+              </button>
             </div>
           )}
 
           {loading && (
-            <div className="absolute bottom-[60px] left-0 right-0 h-1 bg-gray-200 dark:bg-white/10">
-              <Progress value={progress} className="h-full rounded-none" />
+            <div className="absolute top-0 left-0 right-0 h-1 bg-transparent overflow-hidden">
+              <div 
+                className="h-full bg-indigo-500 transition-all duration-300 ease-out"
+                style={{ width: `${progress}%` }}
+              />
             </div>
           )}
         </div>

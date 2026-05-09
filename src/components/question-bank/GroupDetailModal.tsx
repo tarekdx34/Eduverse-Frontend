@@ -267,25 +267,31 @@ export function GroupDetailModal({ open, onOpenChange, groupId, courseId, onGrou
       opacity: isDragging ? 0.5 : 1,
     };
     return (
-      <tr ref={setNodeRef} style={style} className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50">
-        <td className="py-3 px-3 text-gray-600 dark:text-gray-400 cursor-grab active:cursor-grabbing" {...attributes} {...listeners}>
-          <GripVertical size={16} className="text-gray-400" />
+      <tr ref={setNodeRef} style={style} className={`border-b transition-colors ${isDark ? 'border-white/5 hover:bg-white/5' : 'border-gray-100 hover:bg-gray-50'}`}>
+        <td className={`py-3 px-3 cursor-grab active:cursor-grabbing ${isDark ? 'text-slate-500' : 'text-gray-400'}`} {...attributes} {...listeners}>
+          <GripVertical size={16} />
         </td>
-        <td className="py-3 px-3 text-gray-600 dark:text-gray-400">{idx + 1}</td>
-        <td className="py-3 px-3 text-gray-800 dark:text-gray-200">
+        <td className={`py-3 px-3 ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>{idx + 1}</td>
+        <td className={`py-3 px-3 font-medium ${isDark ? 'text-slate-200' : 'text-gray-800'}`}>
           {(q.questionText || '').substring(0, 80)}
           {(q.questionText || '').length > 80 ? '...' : ''}
         </td>
         <td className="py-3 px-3">
-          <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded">
+          <span className={`text-[10px] px-2 py-0.5 font-bold uppercase tracking-wider rounded-full ${
+            isDark ? 'bg-white/5 text-slate-400 border border-white/10' : 'bg-gray-100 text-gray-600 border border-gray-200'
+          }`}>
             {q.questionType}
           </span>
         </td>
-        <td className="py-3 px-3 text-gray-600 dark:text-gray-400">{q.difficulty || 'N/A'}</td>
+        <td className="py-3 px-3">
+          <span className={`text-xs ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+            {q.difficulty?.charAt(0).toUpperCase() + q.difficulty?.slice(1) || 'N/A'}
+          </span>
+        </td>
         <td className="py-3 px-3">
           <button
             onClick={() => onRemove(q.id)}
-            className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 p-1"
+            className={`p-1.5 rounded-lg transition-colors ${isDark ? 'text-rose-400 hover:bg-rose-500/10' : 'text-rose-600 hover:bg-rose-50'}`}
             title="Remove from group"
           >
             <Trash2 size={16} />
@@ -324,65 +330,84 @@ export function GroupDetailModal({ open, onOpenChange, groupId, courseId, onGrou
     );
   }
 
+  const isDark = document.documentElement.classList.contains('dark');
+  const headingClass = isDark ? 'text-slate-100' : 'text-slate-900';
+  const subTextClass = isDark ? 'text-slate-400' : 'text-slate-500';
+  const borderColor = isDark ? 'border-white/10' : 'border-slate-200';
+  const bgSoft = isDark ? 'bg-white/5' : 'bg-slate-50';
+
   return (
     <AccessibleModal isOpen={open} onClose={() => onOpenChange(false)} title={group.title}>
-      <div className="space-y-6 max-w-4xl">
+      <div className="space-y-8 max-w-4xl">
         {/* Group Info Section */}
-        <section className="border-b border-gray-200 dark:border-gray-700 pb-6">
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{group.title}</h2>
-              <div className="flex items-center gap-2 mt-2 flex-wrap">
-                <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-300">
-                  {group.groupType.replace('_', ' ').toUpperCase()}
+        <section className={`border-b ${borderColor} pb-8`}>
+          <div className="flex items-start justify-between mb-6">
+            <div className="space-y-2">
+              <h2 className={`text-2xl font-bold tracking-tight ${headingClass}`}>{group.title}</h2>
+              <div className="flex items-center gap-3 flex-wrap">
+                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                  isDark ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20' : 'bg-indigo-50 text-indigo-700 border border-indigo-100'
+                }`}>
+                  {group.groupType.replace('_', ' ')}
                 </span>
                 {group.chapter && (
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
-                    Chapter: <strong>{group.chapter.name}</strong>
+                  <span className={`text-sm flex items-center gap-1.5 ${subTextClass}`}>
+                    <span className="w-1 h-1 rounded-full bg-slate-400"></span>
+                    Chapter: <strong className={headingClass}>{group.chapter.name}</strong>
                   </span>
                 )}
               </div>
             </div>
             <button
               onClick={() => setEditingGroup(true)}
-              className="px-3 py-1.5 text-sm rounded-lg bg-blue-500 text-white hover:bg-blue-600"
+              className={`px-4 py-2 text-sm font-semibold rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98] ${
+                isDark ? 'bg-white text-slate-900 hover:bg-slate-100' : 'bg-slate-900 text-white hover:bg-slate-800'
+              }`}
             >
-              Edit Group
+              Edit Details
             </button>
           </div>
 
           {group.description && (
-            <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 max-h-40 overflow-y-auto">
-              <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{group.description}</p>
+            <div className={`rounded-2xl p-5 border ${borderColor} ${bgSoft}`}>
+              <p className={`text-sm leading-relaxed whitespace-pre-wrap ${subTextClass}`}>
+                {group.description}
+              </p>
             </div>
           )}
 
           {sharedImagePreview && (
-            <div className="mt-4">
-              <img
-                src={sharedImagePreview}
-                alt="Group shared image"
-                className="max-w-sm h-auto rounded-lg border border-gray-300 dark:border-gray-600"
-              />
+            <div className="mt-6">
+              <div className={`inline-block p-1 rounded-2xl border ${borderColor} ${bgSoft}`}>
+                <img
+                  src={sharedImagePreview}
+                  alt="Group shared image"
+                  className="max-w-md h-auto rounded-xl"
+                />
+              </div>
             </div>
           )}
         </section>
 
-        {/* Questions Table */}
         {group.questions && group.questions.length > 0 && (
-          <section>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Questions ({group.questions.length})</h3>
-            <div className="overflow-x-auto">
+          <section className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className={`text-lg font-bold ${headingClass}`}>Questions</h3>
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded bg-slate-500/10 text-slate-500 border border-slate-500/20 uppercase tracking-widest`}>
+                {group.questions.length} Total
+              </span>
+            </div>
+            <div className={`overflow-hidden rounded-2xl border ${borderColor}`}>
               <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-gray-200 dark:border-gray-700">
-                      {group.questions.length > 1 && <th className="text-left py-2 px-3 font-semibold text-gray-700 dark:text-gray-300 w-8"></th>}
-                      <th className="text-left py-2 px-3 font-semibold text-gray-700 dark:text-gray-300">#</th>
-                      <th className="text-left py-2 px-3 font-semibold text-gray-700 dark:text-gray-300">Question</th>
-                      <th className="text-left py-2 px-3 font-semibold text-gray-700 dark:text-gray-300">Type</th>
-                      <th className="text-left py-2 px-3 font-semibold text-gray-700 dark:text-gray-300">Difficulty</th>
-                      <th className="text-left py-2 px-3 font-semibold text-gray-700 dark:text-gray-300">Actions</th>
+                    <tr className={`${bgSoft} border-b ${borderColor}`}>
+                      {group.questions.length > 1 && <th className="w-10"></th>}
+                      <th className={`text-left py-3 px-3 text-[10px] font-bold uppercase tracking-widest ${subTextClass}`}>#</th>
+                      <th className={`text-left py-3 px-3 text-[10px] font-bold uppercase tracking-widest ${subTextClass}`}>Question Content</th>
+                      <th className={`text-left py-3 px-3 text-[10px] font-bold uppercase tracking-widest ${subTextClass}`}>Type</th>
+                      <th className={`text-left py-3 px-3 text-[10px] font-bold uppercase tracking-widest ${subTextClass}`}>Difficulty</th>
+                      <th className={`text-left py-3 px-3 text-[10px] font-bold uppercase tracking-widest ${subTextClass}`}>Actions</th>
                     </tr>
                   </thead>
                   <SortableContext items={group.questions.map(q => q.id)} strategy={verticalListSortingStrategy}>
@@ -399,21 +424,29 @@ export function GroupDetailModal({ open, onOpenChange, groupId, courseId, onGrou
         )}
 
         {/* Add Questions Tabs */}
-        <section>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Add Questions</h3>
+        <section className="space-y-4">
+          <h3 className={`text-lg font-bold ${headingClass}`}>Expand Group</h3>
           <Tabs.Root defaultValue="link" className="w-full">
-            <Tabs.List className="flex gap-0 border-b border-gray-200 dark:border-gray-700">
+            <Tabs.List className={`flex gap-1 p-1 rounded-xl mb-6 ${bgSoft} border ${borderColor}`}>
               <Tabs.Trigger
                 value="link"
-                className="px-4 py-2 font-medium text-gray-700 dark:text-gray-300 border-b-2 border-transparent data-[state=active]:border-blue-500 data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400"
+                className={`flex-1 px-4 py-2 text-sm font-semibold rounded-lg transition-all data-[state=active]:shadow-sm ${
+                  isDark 
+                    ? 'text-slate-400 data-[state=active]:bg-white data-[state=active]:text-slate-900' 
+                    : 'text-slate-500 data-[state=active]:bg-white data-[state=active]:text-slate-900'
+                }`}
               >
                 Link Existing
               </Tabs.Trigger>
               <Tabs.Trigger
                 value="create"
-                className="px-4 py-2 font-medium text-gray-700 dark:text-gray-300 border-b-2 border-transparent data-[state=active]:border-blue-500 data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400"
+                className={`flex-1 px-4 py-2 text-sm font-semibold rounded-lg transition-all data-[state=active]:shadow-sm ${
+                  isDark 
+                    ? 'text-slate-400 data-[state=active]:bg-white data-[state=active]:text-slate-900' 
+                    : 'text-slate-500 data-[state=active]:bg-white data-[state=active]:text-slate-900'
+                }`}
               >
-                Create New
+                Quick Create
               </Tabs.Trigger>
             </Tabs.List>
 
@@ -466,9 +499,11 @@ export function GroupDetailModal({ open, onOpenChange, groupId, courseId, onGrou
               <button
                 onClick={handleLinkQuestions}
                 disabled={selectedQuestionIds.size === 0 || isLinkingQuestions}
-                className="w-full py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                className={`w-full py-3 rounded-xl font-bold transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:hover:scale-100 ${
+                  isDark ? 'bg-indigo-500 text-white' : 'bg-slate-900 text-white'
+                }`}
               >
-                {isLinkingQuestions ? 'Linking...' : `Link Selected (${selectedQuestionIds.size})`}
+                {isLinkingQuestions ? 'Linking...' : `Link Selected Questions (${selectedQuestionIds.size})`}
               </button>
             </Tabs.Content>
 
@@ -635,7 +670,9 @@ export function GroupDetailModal({ open, onOpenChange, groupId, courseId, onGrou
               <button
                 onClick={handleCreateQuestion}
                 disabled={isCreatingQuestion || !newQuestionText.trim()}
-                className="w-full py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                className={`w-full py-3 rounded-xl font-bold transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:hover:scale-100 ${
+                  isDark ? 'bg-indigo-500 text-white' : 'bg-slate-900 text-white'
+                }`}
               >
                 {isCreatingQuestion ? 'Creating...' : 'Create and Add Question'}
               </button>

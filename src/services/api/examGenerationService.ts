@@ -56,8 +56,12 @@ export class ExamGenerationService {
     return ApiClient.post<GenerateExamPreviewResponse>('/exams/generate-preview', payload);
   }
 
-  static async updateDraftItem(draftId: number, itemId: number, payload: any) {
+  static async updateDraftItem(draftId: number, itemId: number, payload: { weight?: number; weightUnits?: number; marks?: number; replacementQuestionId?: number }) {
     return ApiClient.patch(`/exams/drafts/${draftId}/items/${itemId}`, payload);
+  }
+
+  static async reorderDraftItems(draftId: number, items: { itemId: number; itemOrder: number }[]) {
+    return ApiClient.patch(`/exams/drafts/${draftId}/items/reorder`, { items });
   }
 
   static async addDraftItem(
@@ -131,9 +135,6 @@ export class ExamGenerationService {
     return ApiClient.post(`/exams/drafts/${draftId}/sections/${sectionId}/normalize-marks`);
   }
 
-  static async reorderDraftItems(draftId: number, order: number[]) {
-    return ApiClient.patch(`/exams/drafts/${draftId}/items/reorder`, { order });
-  }
 
   static async checkReplacement(draftId: number, itemId: number) {
     return ApiClient.post(`/exams/drafts/${draftId}/items/${itemId}/replacement-check`);

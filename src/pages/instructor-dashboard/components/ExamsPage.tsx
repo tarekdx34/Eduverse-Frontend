@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import 'katex/dist/katex.min.css';
 import { InlineMath, BlockMath } from 'react-katex';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
@@ -7,19 +7,23 @@ import {
   ArrowLeft,
   ArrowUpRight,
   BookOpen,
+  CheckCircle2,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   ClipboardList,
+  Eye,
+  FileCheck,
   FileText,
   History,
   Loader2,
+  MoreVertical,
   Pencil,
   Plus,
   Save,
   Sparkles,
   Trash2,
   X,
-  MoreVertical,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Checkbox } from '../../../components/ui/checkbox';
@@ -178,10 +182,11 @@ const DRAFT_PREVIEWS_STORAGE_KEY = 'eduverse-instructor-exam-draft-previews';
 
 const formatEnumLabel = (value?: string) => {
   if (!value) return 'N/A';
+  if (value.toLowerCase() === 'mcq') return 'MCQ';
   return value
     .split('_')
     .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
     .join(' ');
 };
 
@@ -221,7 +226,8 @@ const toNonEmptyString = (value: unknown): string | undefined => {
 
 const resolveQuestionCount = (record: Record<string, unknown>, fallback: number): number =>
   toFiniteNumber(
-    record.totalQuestions ??
+    record.itemCount ??
+      record.totalQuestions ??
       record.questionCount ??
       record.questionsCount ??
       record.totalQuestionCount ??
@@ -400,7 +406,8 @@ const normalizeDraftDetail = (
 };
 
 // Renders text with inline ($...$) and display ($$...$$) LaTeX math.
-const MathText = React.memo(({ text }: { text: string }) => {
+const MathText = React.memo(({ text }: { text: string | undefined }) => {
+  if (!text) return null;
   const parts: React.ReactNode[] = [];
   const displayRe = /\$\$([\s\S]+?)\$\$/g;
   const inlineRe = /\$((?:[^$]|\\.)+?)\$/g;
@@ -477,6 +484,11 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
     () => new Map<string, string>(courseOptions.map((course) => [course.value, course.label])),
     [courseOptions],
   );
+
+  // Keep a ref so loadBackendExamsAndDrafts can read the latest courseOptions
+  // without adding it to the effect dependency array (prevents spurious re-runs).
+  const courseOptionsRef = useRef(courseOptions);
+  useEffect(() => { courseOptionsRef.current = courseOptions; }, [courseOptions]);
 
   const [questions, setQuestions] = useState<Question[]>([]);
   const [questionImageUrls, setQuestionImageUrls] = useState<Record<string, string>>({});
@@ -583,8 +595,9 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
     return () => clearTimeout(timer);
   }, [searchInput]);
 
-  // Load live stats (approved / under_review / draft counts)
+  // Load live stats (approved / under_review / draft counts) — only needed on questions tab
   useEffect(() => {
+    if (activeWorkspaceTab !== 'questions') return;
     let mounted = true;
     QuestionBankService.getStats()
       .then((response) => {
@@ -601,7 +614,7 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
         if (mounted) setStatsError(true);
       });
     return () => { mounted = false; };
-  }, [refreshKey]);
+  }, [activeWorkspaceTab, refreshKey]);
 
   // Check generation readiness for drafts tab
   useEffect(() => {
@@ -722,6 +735,8 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
   }, [selectedCourse]);
 
   useEffect(() => {
+    if (activeWorkspaceTab !== 'questions') return;
+
     let mounted = true;
 
     const loadQuestions = async () => {
@@ -862,7 +877,7 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
     return () => {
       mounted = false;
     };
-  }, [selectedCourse, selectedChapter, page, limit, refreshKey, searchQuery, filterQuestionType.join(','), filterDifficulty.join(','), filterStatus.join(','), filterBloomLevel.join(',')]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [activeWorkspaceTab, selectedCourse, selectedChapter, page, limit, refreshKey, searchQuery, filterQuestionType.join(','), filterDifficulty.join(','), filterStatus.join(','), filterBloomLevel.join(',')]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const nextUrls: Record<string, string> = {};
@@ -957,7 +972,7 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
         } catch (error) {
           const allCourseIds = Array.from(
             new Set(
-              courseOptions
+              courseOptionsRef.current
                 .map((course) => toFiniteNumber(course.value))
                 .filter((courseId): courseId is number => courseId !== undefined),
             ),
@@ -1060,7 +1075,7 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
               courseId: toFiniteNumber(exam.courseId) ?? fallbackCourseId ?? selectedCourseId,
               status: toNonEmptyString(exam.status) || 'saved',
               questionCount: resolveQuestionCount(examRecord, items.length),
-              totalWeight: toFiniteNumber(exam.totalWeight) ?? totalWeightFromItems,
+              totalWeight: toFiniteNumber(exam.totalMarks ?? exam.totalWeight) ?? totalWeightFromItems,
               createdAt: resolveDateString(exam.createdAt, exam.generatedAt, exam.updatedAt),
             } as SavedExamSummary;
           })
@@ -1091,7 +1106,7 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
     return () => {
       mounted = false;
     };
-  }, [selectedCourse, refreshKey, courseOptions]);
+  }, [selectedCourse, refreshKey]);
 
   const savedExamsFromDrafts = useMemo(
     () =>
@@ -1799,13 +1814,13 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
               >
                 Export Word (.docx)
               </button>
-              <span className="px-2.5 py-1 rounded bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300">
+              <span className={countBadgeClass}>
                 {detailQuestionCount.toString()} questions
               </span>
-              <span className="px-2.5 py-1 rounded bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+              <span className={weightBadgeClass}>
                 Total weight {detailWeight}
               </span>
-              <span className="px-2.5 py-1 rounded bg-gray-200 text-gray-800 dark:bg-white/10 dark:text-slate-200">
+              <span className={draftBadgeClass}>
                 {formatEnumLabel(detailStatus)}
               </span>
             </div>
@@ -1846,37 +1861,31 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
                     <div className="flex flex-wrap items-start justify-between gap-2">
                       <div>
                         <h4 className={`text-base font-semibold ${headingClass}`}>
-                          {index + 1}. {item.questionText || `Question #${item.questionId ?? item.id}`}
+                          {index + 1}. <MathText text={item.questionText || `Question #${item.questionId ?? item.id}`} />
                         </h4>
                         <p className={`mt-1 text-sm ${subTextClass}`}>
                           Question #{item.questionId ?? 'N/A'} • Chapter {item.chapterId ?? 'N/A'}
                         </p>
                       </div>
-                      <span className="px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+                      <span className={weightBadgeClass}>
                         Weight {item.weight}
                       </span>
                     </div>
 
                     <div className="mt-2 flex flex-wrap gap-2 text-xs">
-                      <span className="px-2 py-1 rounded bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300">
-                        {formatEnumLabel(item.questionType)}
-                      </span>
-                      <span className="px-2 py-1 rounded bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
-                        {formatEnumLabel(item.difficulty)}
-                      </span>
-                      <span className="px-2 py-1 rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300">
-                        {formatEnumLabel(item.bloomLevel)}
-                      </span>
+                      <span className={questionTypeBadgeClass}>{formatEnumLabel(item.questionType)}</span>
+                      <span className={difficultyBadgeClass}>{formatEnumLabel(item.difficulty)}</span>
+                      <span className={bloomBadgeClass}>{formatEnumLabel(item.bloomLevel)}</span>
                     </div>
 
                     {item.expectedAnswerText && (
                       <div className={`mt-2 text-sm ${subTextClass}`}>
-                        <span className="font-semibold">Answer:</span> {item.expectedAnswerText}
+                        <span className="font-semibold">Answer:</span> <MathText text={item.expectedAnswerText} />
                       </div>
                     )}
                     {item.hints && (
                       <div className={`mt-1 text-sm ${subTextClass}`}>
-                        <span className="font-semibold">Hint:</span> {item.hints}
+                        <span className="font-semibold">Hint:</span> <MathText text={item.hints} />
                       </div>
                     )}
 
@@ -1942,7 +1951,8 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
                               type="button"
                               onClick={() => void applyDraftItemEdit(item)}
                               disabled={draftActionLoadingKey === `patch-${item.id}`}
-                              className="inline-flex items-center justify-center gap-1 rounded-lg px-3 py-2 text-sm bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60"
+                              className="inline-flex items-center justify-center gap-1 rounded-lg px-3 py-2 text-sm text-white disabled:opacity-60"
+                              style={{ backgroundColor: primaryHex }}
                             >
                               <Save size={14} />
                               {draftActionLoadingKey === `patch-${item.id}` ? 'Saving...' : 'Apply'}
@@ -1966,15 +1976,14 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
           )}
 
           {isDraftDetail && draftDetail && (
-            <div className={`mt-4 pt-4 border-t space-y-3 ${isDark ? 'border-white/10' : 'border-gray-300'}`}>
-              <h4 className={`text-sm font-semibold ${headingClass}`}>Add Question To Draft</h4>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
+            <div className={`mt-4 pt-4 border-t ${isDark ? 'border-white/10' : 'border-gray-300'}`}>
+              <div className="flex flex-wrap items-center gap-2">
                 <input
                   type="number"
                   min={1}
                   value={draftAddQuestionId}
                   onChange={(event) => setDraftAddQuestionId(event.target.value)}
-                  className={`w-full px-3 py-2 rounded-lg border ${isDark ? 'border-white/10 bg-white/5 text-white' : 'border-gray-300 bg-white text-gray-900'}`}
+                  className={`w-28 px-3 py-2 rounded-lg border text-sm ${isDark ? 'border-white/10 bg-white/5 text-white' : 'border-gray-300 bg-white text-gray-900'}`}
                   placeholder="Question ID"
                 />
                 <input
@@ -1982,7 +1991,7 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
                   min={0}
                   value={draftAddWeight}
                   onChange={(event) => setDraftAddWeight(event.target.value)}
-                  className={`w-full px-3 py-2 rounded-lg border ${isDark ? 'border-white/10 bg-white/5 text-white' : 'border-gray-300 bg-white text-gray-900'}`}
+                  className={`w-20 px-3 py-2 rounded-lg border text-sm ${isDark ? 'border-white/10 bg-white/5 text-white' : 'border-gray-300 bg-white text-gray-900'}`}
                   placeholder="Weight"
                 />
                 <input
@@ -1990,28 +1999,28 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
                   min={0}
                   value={draftAddOrder}
                   onChange={(event) => setDraftAddOrder(event.target.value)}
-                  className={`w-full px-3 py-2 rounded-lg border ${isDark ? 'border-white/10 bg-white/5 text-white' : 'border-gray-300 bg-white text-gray-900'}`}
-                  placeholder="Item order"
+                  className={`w-20 px-3 py-2 rounded-lg border text-sm ${isDark ? 'border-white/10 bg-white/5 text-white' : 'border-gray-300 bg-white text-gray-900'}`}
+                  placeholder="Order"
                 />
                 <button
                   type="button"
                   onClick={() => void addQuestionToDraft()}
                   disabled={draftActionLoadingKey === 'add-item'}
-                  className="inline-flex items-center justify-center gap-1 rounded-lg px-3 py-2 text-sm bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-60"
+                  className="inline-flex items-center gap-1 rounded-lg px-3 py-2 text-sm text-white disabled:opacity-60"
+                  style={{ backgroundColor: primaryHex }}
                 >
                   <Plus size={14} />
-                  {draftActionLoadingKey === 'add-item' ? 'Adding...' : 'Add To Draft'}
+                  {draftActionLoadingKey === 'add-item' ? 'Adding...' : 'Add Question'}
                 </button>
-              </div>
-              <div className="flex justify-end">
                 <button
                   type="button"
                   onClick={() => void saveDraftAsExamFromDetail()}
                   disabled={draftActionLoadingKey === 'save-draft'}
-                  className="inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm bg-green-600 text-white hover:bg-green-700 disabled:opacity-60"
+                  className="inline-flex items-center gap-1 rounded-lg px-3 py-2 text-sm text-white disabled:opacity-60 ml-auto"
+                  style={{ backgroundColor: primaryHex }}
                 >
                   <Save size={14} />
-                  {draftActionLoadingKey === 'save-draft' ? 'Saving...' : 'Save Draft To Saved Exams'}
+                  {draftActionLoadingKey === 'save-draft' ? 'Saving...' : 'Save as Exam'}
                 </button>
               </div>
             </div>
@@ -2122,70 +2131,64 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
   }
 
   return (
-    <div className="space-y-6">
-      <section className={`rounded-xl border p-6 ${cardClass}`}>
-        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-          <div>
-            <div className={`inline-flex items-center gap-2 text-sm font-medium ${subTextClass}`}>
-              <FileText size={16} />
-              Exams Workspace
+    <div className="space-y-4">
+      <section className={`rounded-xl border p-4 sm:px-6 sm:py-4 ${cardClass}`}>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className={`p-2 rounded-lg ${isDark ? 'bg-white/5' : 'bg-gray-100'}`}>
+              <FileText size={20} className={isDark ? 'text-slate-400' : 'text-gray-500'} />
             </div>
-            <h2 className={`mt-2 text-2xl font-bold ${headingClass}`}>Exams</h2>
-            <p className={`mt-1 text-sm ${subTextClass}`}>
-              Manage your question bank and generate balanced exams by course and chapter.
-            </p>
+            <div>
+              <h2 className={`text-xl font-bold ${headingClass}`}>Exams</h2>
+              <p className={`text-xs ${subTextClass}`}>Manage question bank and generate exams</p>
+            </div>
           </div>
 
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
               onClick={() => setShowQuestionBankModal(true)}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-white transition-opacity hover:opacity-90 focus:outline-none focus:ring-2"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white transition-opacity hover:opacity-90 focus:outline-none focus:ring-2"
               style={{ backgroundColor: primaryHex, '--tw-ring-color': `${primaryHex}80` } as React.CSSProperties}
             >
-              <Plus size={18} />
-              Add Question to Bank
+              <Plus size={16} />
+              Add Question
             </button>
             <div className="flex flex-col items-end gap-1">
               <button
                 type="button"
                 onClick={() => setShowExamGenerationModal(true)}
                 disabled={stats !== null && stats.approved === 0}
-                className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors focus:outline-none focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed ${secondaryButtonClass}`}
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition-colors focus:outline-none focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed ${secondaryButtonClass}`}
                 style={{ '--tw-ring-color': `${primaryHex}80` } as React.CSSProperties}
               >
-                <Sparkles size={18} />
+                <Sparkles size={16} />
                 Generate Exam
               </button>
-              {stats !== null && stats.approved === 0 && (
-                <span className={`text-xs ${isDark ? 'text-amber-400' : 'text-amber-600'}`}>
-                  Approve questions first to generate an exam
-                </span>
-              )}
             </div>
           </div>
         </div>
 
-        <div className={`mt-6 pt-6 border-t grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
-          <div className={`rounded-lg border p-4 ${innerCardClass}`}>
-            <div className={`text-xs uppercase tracking-wide ${subTextClass}`}>Total in View</div>
-            <div className={`mt-1 text-2xl font-bold ${headingClass}`}>{total}</div>
+        <div className={`mt-4 pt-4 border-t grid grid-cols-2 lg:grid-cols-4 gap-3 ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
+          <div className={`rounded-lg border px-4 py-2.5 ${innerCardClass}`}>
+            <div className={`text-[10px] font-bold uppercase tracking-wider ${subTextClass}`}>Total View</div>
+            <div className={`text-xl font-bold ${headingClass}`}>{total}</div>
           </div>
-          <div className={`rounded-lg border p-4 ${isDark ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-emerald-50 border-emerald-200'}`}>
-            <div className={`text-xs uppercase tracking-wide ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`}>Approved</div>
-            <div className={`mt-1 text-2xl font-bold ${isDark ? 'text-emerald-300' : 'text-emerald-800'}`}>
+          <div className={`rounded-lg border px-4 py-2.5 ${isDark ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-emerald-50 border-emerald-200'}`}>
+            <div className={`text-[10px] font-bold uppercase tracking-wider ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`}>Approved</div>
+            <div className={`text-xl font-bold ${isDark ? 'text-emerald-300' : 'text-emerald-800'}`}>
               {stats ? stats.approved : '—'}
             </div>
           </div>
-          <div className={`rounded-lg border p-4 ${isDark ? 'bg-amber-500/10 border-amber-500/30' : 'bg-amber-50 border-amber-200'}`}>
-            <div className={`text-xs uppercase tracking-wide ${isDark ? 'text-amber-400' : 'text-amber-700'}`}>Under Review</div>
-            <div className={`mt-1 text-2xl font-bold ${isDark ? 'text-amber-300' : 'text-amber-800'}`}>
+          <div className={`rounded-lg border px-4 py-2.5 ${isDark ? 'bg-amber-500/10 border-amber-500/20' : 'bg-amber-50 border-amber-200'}`}>
+            <div className={`text-[10px] font-bold uppercase tracking-wider ${isDark ? 'text-amber-400' : 'text-amber-700'}`}>Reviewing</div>
+            <div className={`text-xl font-bold ${isDark ? 'text-amber-300' : 'text-amber-800'}`}>
               {stats ? stats.underReview : '—'}
             </div>
           </div>
-          <div className={`rounded-lg border p-4 ${innerCardClass}`}>
-            <div className={`text-xs uppercase tracking-wide ${subTextClass}`}>Drafts</div>
-            <div className={`mt-1 text-2xl font-bold ${headingClass}`}>
+          <div className={`rounded-lg border px-4 py-2.5 ${innerCardClass}`}>
+            <div className={`text-[10px] font-bold uppercase tracking-wider ${subTextClass}`}>Drafts</div>
+            <div className={`text-xl font-bold ${headingClass}`}>
               {stats ? stats.draft : '—'}
             </div>
           </div>
@@ -2208,7 +2211,70 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
         )}
       </section>
 
-      <section className={`rounded-xl border p-3 ${cardClass}`}>
+      <section className={`rounded-xl border p-4 ${cardClass}`}>
+        <div className="flex flex-wrap gap-4 items-end">
+          <div className="flex-1 min-w-[200px]">
+            <CustomDropdown
+              label="Course"
+              value={selectedCourse}
+              options={[
+                { value: 'all', label: 'All Courses' },
+                ...courseOptions,
+              ]}
+              onChange={handleCourseChange}
+              stackLabel
+              fullWidth
+            />
+          </div>
+          <div className="flex-1 min-w-[200px]">
+            <CustomDropdown
+              label="Chapter"
+              value={selectedChapter}
+              options={[
+                {
+                  value: 'all',
+                  label: selectedCourse === 'all' ? 'Select a course first' : chaptersLoading ? 'Loading chapters...' : 'All Chapters',
+                },
+                ...chapterOptions,
+              ]}
+              onChange={handleChapterChange}
+              stackLabel
+              fullWidth
+            />
+          </div>
+          <div className="w-[120px]">
+            <CustomDropdown
+              label="Rows per page"
+              value={String(limit)}
+              options={LIMIT_OPTIONS.map((value) => ({ value: String(value), label: String(value) }))}
+              onChange={handleLimitChange}
+              stackLabel
+              fullWidth
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setChapterManagerOpen(true)}
+              className={`whitespace-nowrap px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${secondaryButtonClass}`}
+              title="Manage chapters for this course"
+            >
+              Manage Chapters
+            </button>
+            <button
+              type="button"
+              onClick={() => setBulkImportOpen(true)}
+              disabled={selectedCourse === 'all'}
+              className={`whitespace-nowrap px-4 py-2 rounded-lg border text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${secondaryButtonClass}`}
+              title={selectedCourse === 'all' ? 'Select a course first' : 'Import questions from CSV'}
+            >
+              Import Questions
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section className={`rounded-xl border p-2 ${cardClass}`}>
         <div className="flex flex-wrap gap-2">
           {[
             { key: 'questions', label: 'Questions' },
@@ -2239,93 +2305,119 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
       </section>
 
       {activeWorkspaceTab === 'drafts' && (
-      <section className={`rounded-xl border p-4 sm:p-5 ${cardClass}`}>
+      <section className={`rounded-3xl border p-8 space-y-6 ${cardClass} shadow-sm`}>
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className={`p-2 rounded-xl`} style={{ backgroundColor: isDark ? `${primaryHex}1A` : `${primaryHex}0D`, color: primaryHex }}>
+              <History size={20} />
+            </div>
+            <div>
+              <h3 className={`text-lg font-bold tracking-tight ${headingClass}`}>Generated Drafts</h3>
+              <p className={`text-xs ${subTextClass}`}>Review and finalize your recent exam permutations.</p>
+            </div>
+          </div>
+          <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-lg border ${isDark ? 'bg-white/5 border-white/10 text-slate-500' : 'bg-slate-50 border-slate-200 text-slate-400'}`}>
+            {generatedDrafts.length} Artifacts
+          </span>
+        </div>
+
         {readinessLoading && (
-          <div className={`rounded-lg border mb-4 px-4 py-3 flex items-center gap-2.5 ${isDark ? 'border-blue-500/30 bg-blue-500/10' : 'border-blue-200 bg-blue-50'}`}>
-            <Loader2 size={18} className={`animate-spin ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
-            <span className={`text-sm ${isDark ? 'text-blue-200' : 'text-blue-700'}`}>Checking readiness...</span>
+          <div className={`rounded-2xl border px-4 py-3 flex items-center gap-3`} style={{ borderColor: isDark ? `${primaryHex}33` : `${primaryHex}1A`, backgroundColor: isDark ? `${primaryHex}1A` : `${primaryHex}0D` }}>
+            <Loader2 size={16} className={`animate-spin`} style={{ color: primaryHex }} />
+            <span className={`text-xs font-bold uppercase tracking-widest`} style={{ color: primaryHex }}>Synchronizing Engine...</span>
           </div>
         )}
+
         {!readinessLoading && readiness?.ready === true && (
-          <div className={`rounded-lg border mb-4 px-4 py-3 flex items-center gap-2.5 ${isDark ? 'border-green-500/30 bg-green-500/10' : 'border-green-200 bg-green-50'}`}>
-            <CheckCircle2 size={18} className={`${isDark ? 'text-green-400' : 'text-green-600'}`} />
-            <span className={`text-sm font-medium ${isDark ? 'text-green-200' : 'text-green-700'}`}>Ready to generate exams</span>
+          <div className={`rounded-2xl border px-4 py-3 flex items-center gap-3 ${isDark ? 'border-emerald-500/30 bg-emerald-500/5' : 'border-emerald-100 bg-emerald-50/50'}`}>
+            <CheckCircle2 size={16} className={`${isDark ? 'text-emerald-400' : 'text-emerald-600'}`} />
+            <span className={`text-xs font-bold uppercase tracking-widest ${isDark ? 'text-emerald-300' : 'text-emerald-700'}`}>Engine Ready for Generation</span>
           </div>
         )}
+
         {!readinessLoading && readiness?.ready === false && (
-          <div className={`rounded-lg border mb-4 px-4 py-3 ${isDark ? 'border-amber-500/30 bg-amber-500/10' : 'border-amber-200 bg-amber-50'}`}>
-            <div className="flex items-start gap-2.5">
+          <div className={`rounded-2xl border p-4 ${isDark ? 'border-amber-500/30 bg-amber-500/5' : 'border-amber-100 bg-amber-50/50'}`}>
+            <div className="flex items-start gap-3">
               <AlertCircle size={18} className={`mt-0.5 flex-shrink-0 ${isDark ? 'text-amber-400' : 'text-amber-600'}`} />
               <div>
-                <p className={`text-sm font-medium ${isDark ? 'text-amber-200' : 'text-amber-700'}`}>Not ready to generate</p>
+                <p className={`text-xs font-bold uppercase tracking-widest ${isDark ? 'text-amber-300' : 'text-amber-700'}`}>Generation Requirements Pending</p>
                 {readiness?.reasons && readiness.reasons.length > 0 && (
-                  <ul className={`mt-1 text-xs space-y-1 ${isDark ? 'text-amber-200/80' : 'text-amber-600'}`}>
-                    {readiness.reasons.map((reason, i) => <li key={i}>• {reason}</li>)}
+                  <ul className={`mt-2 text-xs space-y-1 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                    {readiness.reasons.map((reason, i) => <li key={i} className="flex items-center gap-2">
+                      <div className={`w-1 h-1 rounded-full ${isDark ? 'bg-amber-500/50' : 'bg-amber-400'}`} />
+                      {reason}
+                    </li>)}
                   </ul>
                 )}
               </div>
             </div>
           </div>
         )}
-        <div className="flex items-center justify-between gap-3 mb-4">
-          <div className="flex items-center gap-2">
-            <History size={18} className={subTextClass} />
-            <h3 className={`text-lg font-semibold ${headingClass}`}>Generated Draft Previews</h3>
-          </div>
-          <span className={`text-sm ${subTextClass}`}>{generatedDrafts.length} draft(s) in this session</span>
-        </div>
 
         {generatedDrafts.length === 0 ? (
-          <EmptyState
-            title="No generated drafts yet"
-            description="Use Generate Exam to create a preview draft."
-          />
+          <div className={`py-20 text-center rounded-3xl border-2 border-dashed transition-colors ${isDark ? 'border-white/5 bg-white/[0.02]' : 'border-slate-100 bg-slate-50/50'}`}>
+            <div className={`mx-auto w-16 h-16 rounded-2xl flex items-center justify-center mb-4 ${isDark ? 'bg-white/5 text-slate-600' : 'bg-slate-100 text-slate-400'}`}>
+              <Sparkles size={32} />
+            </div>
+            <h3 className={`text-lg font-bold tracking-tight mb-1 ${headingClass}`}>No drafts active</h3>
+            <p className={`max-w-xs mx-auto text-sm ${subTextClass}`}>
+              Initiate the generation engine to populate your workspace with exam candidates.
+            </p>
+          </div>
         ) : (
-          <div className="space-y-3">
-            {generatedDrafts.map((draft) => (
+          <div className="grid grid-cols-1 gap-4">
+            {Array.from(new Map(generatedDrafts.map((d) => [d.draftId, d])).values()).map((draft) => (
               <article
                 key={draft.draftId}
-                className={`rounded-lg border p-4 ${isDark ? 'border-white/10 bg-white/5' : 'border-gray-300 bg-gray-50'}`}
+                className={`group relative rounded-3xl border p-6 transition-all ${isDark ? 'bg-white/5 border-white/10 hover:bg-white/10' : 'bg-white border-slate-200 hover:bg-slate-50'}`}
               >
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h4 className={`text-base font-semibold ${headingClass}`}>{draft.title || `Draft #${draft.draftId}`}</h4>
+                    <div className="flex items-center gap-3 mb-1">
+                      <h4 className={`text-base font-bold tracking-tight ${headingClass}`}>{draft.title || `Draft #${draft.draftId}`}</h4>
                       <StatusBadge status={(draft as any).status || 'draft'} />
                     </div>
-                    <p className={`text-sm ${subTextClass}`}>
-                      {courseNameById.get(String(draft.courseId)) || `Course #${draft.courseId}`} • Generated{' '}
-                      {formatDateTime(draft.generatedAt)}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <p className={`text-xs font-medium ${subTextClass}`}>
+                        {courseNameById.get(String(draft.courseId)) || `Course #${draft.courseId}`}
+                      </p>
+                      <div className={`w-1 h-1 rounded-full ${isDark ? 'bg-white/10' : 'bg-slate-200'}`} />
+                      <p className={`text-[10px] font-bold uppercase tracking-widest ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                        {formatDateTime(draft.generatedAt)}
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-3">
                     {draft.savedExamId ? (
-                      <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-green-300 text-green-800 bg-green-50 dark:border-green-500/40 dark:bg-green-500/10 dark:text-green-300">
-                        Saved as Exam #{draft.savedExamId}
-                        <ArrowUpRight size={14} />
-                      </span>
+                      <div className={`px-3 py-1.5 rounded-xl border text-xs font-bold uppercase tracking-widest flex items-center gap-2 ${isDark ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-emerald-50 border-emerald-200 text-emerald-700'}`}>
+                        Artifact #{draft.savedExamId}
+                        <ArrowUpRight size={12} />
+                      </div>
                     ) : (
-                      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300">
-                        Not saved yet
+                      <span className={`px-3 py-1.5 rounded-xl border text-[10px] font-bold uppercase tracking-widest ${isDark ? 'bg-amber-500/10 border-amber-500/20 text-amber-400' : 'bg-amber-50 border-amber-200 text-amber-600'}`}>
+                        Awaiting Commit
                       </span>
                     )}
-                    <DropdownMenu>
+                    
+                    <DropdownMenu modal={false}>
                       <DropdownMenuTrigger asChild>
-                        <button className="p-2 hover:bg-gray-300 dark:hover:bg-gray-600 rounded">
-                          <MoreVertical size={16} />
+                        <button className={`p-2 rounded-xl transition-colors ${isDark ? 'hover:bg-white/10 text-slate-400 hover:text-white' : 'hover:bg-slate-100 text-slate-500 hover:text-slate-900'}`}>
+                          <MoreVertical size={18} />
                         </button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
+                      <DropdownMenuContent align="end" className={`rounded-2xl p-2 ${isDark ? 'bg-slate-900 border-white/10 shadow-2xl' : 'bg-white border-slate-200 shadow-2xl'}`}>
                         <DropdownMenuItem
+                          className={`rounded-xl cursor-pointer py-2.5 px-4 text-xs font-semibold ${isDark ? 'text-slate-200 focus:bg-white/10 focus:text-white' : 'text-slate-700 focus:bg-slate-100 focus:text-slate-900'}`}
                           onClick={() => {
                             setActiveDraftEditorId(draft.draftId);
                             setActiveDraftEditorTitle(draft.title || `Draft #${draft.draftId}`);
                             setDraftEditorOpen(true);
                           }}
                         >
-                          Open Editor
+                          Launch Editor
                         </DropdownMenuItem>
                         <DropdownMenuItem
+                          className={`rounded-xl cursor-pointer py-2.5 px-4 text-xs font-semibold ${isDark ? 'text-slate-200 focus:bg-white/10 focus:text-white' : 'text-slate-700 focus:bg-slate-100 focus:text-slate-900'}`}
                           onClick={async () => {
                             try {
                               await ExamGenerationService.duplicateDraft(draft.draftId);
@@ -2336,55 +2428,32 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
                             }
                           }}
                         >
-                          Duplicate
+                          Clone Artifact
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
                 </div>
 
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <span className={countBadgeClass}>
-                    {draftQuestionCountOverrides[draft.draftId] ?? draft.totalQuestions} questions
+                <div className="mt-6 flex flex-wrap gap-2">
+                  <span className={`px-3 py-1.5 rounded-xl border text-[10px] font-bold uppercase tracking-widest ${isDark ? 'bg-white/5 border-white/10 text-slate-400' : 'bg-slate-50 border-slate-200 text-slate-500'}`}>
+                    {draftQuestionCountOverrides[draft.draftId] ?? draft.totalQuestions} Questions
                   </span>
-                  <span className={`px-2 py-1 rounded-lg border text-xs font-semibold ${isDark ? 'border-purple-500/30 bg-purple-500/10 text-purple-300' : 'border-purple-300 bg-purple-50 text-purple-800'}`}>
-                    {draft.items.filter(item => !(item as any).sectionId).length} sections
+                  <span className={`px-3 py-1.5 rounded-xl border text-[10px] font-bold uppercase tracking-widest ${isDark ? 'bg-white/5 border-white/10 text-slate-400' : 'bg-slate-50 border-slate-200 text-slate-500'}`}>
+                    {draft.items.filter(item => !(item as any).sectionId).length} Modular Sections
                   </span>
-                  <span className={weightBadgeClass}>
-                    Total weight {draft.totalWeight}
-                  </span>
-                  <span className={draftBadgeClass}>
-                    Draft #{draft.draftId}
+                  <span className={`px-3 py-1.5 rounded-xl border text-[10px] font-bold uppercase tracking-widest`} style={{ backgroundColor: isDark ? `${primaryHex}1A` : `${primaryHex}0D`, borderColor: isDark ? `${primaryHex}33` : `${primaryHex}33`, color: primaryHex }}>
+                    Weight {draft.totalWeight}
                   </span>
                   <button
                     type="button"
                     onClick={() => navigate(`/instructordashboard/exams/${draft.draftId}?entity=draft`)}
-                    className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold border ${secondaryButtonClass}`}
+                    className={`ml-auto inline-flex items-center gap-2 px-4 py-1.5 rounded-xl border text-[10px] font-bold uppercase tracking-widest transition-all ${isDark ? 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10 hover:text-white' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:shadow-sm'}`}
                   >
-                    Open Draft Page
+                    Deep Dive
                     <ArrowUpRight size={12} />
                   </button>
                 </div>
-
-                {draft.items.length > 0 && (
-                  <div className={`mt-3 pt-3 border-t ${isDark ? 'border-white/10' : 'border-gray-300'}`}>
-                    <p className={`text-xs mb-2 ${subTextClass}`}>Preview items</p>
-                    <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
-                      {draft.items.slice(0, 10).map((item) => (
-                        <div
-                          key={`${draft.draftId}-${item.id}`}
-                          className={`rounded px-2 py-1 text-sm ${isDark ? 'bg-white/5' : 'bg-white border border-gray-300'}`}
-                        >
-                          <span className={headingClass}>Q#{item.questionId}</span>{' '}
-                          <span className={subTextClass}>
-                            • Chapter {item.chapterId} • {formatEnumLabel(item.questionType)} •{' '}
-                            {formatEnumLabel(item.difficulty)} • Weight {item.weight}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
               </article>
             ))}
           </div>
@@ -2393,97 +2462,122 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
       )}
 
       {activeWorkspaceTab === 'saved' && (
-      <section id="saved-exams-section" className={`rounded-xl border p-4 sm:p-5 ${cardClass}`}>
-        <div className="flex items-center justify-between gap-3 mb-4">
-          <h3 className={`text-lg font-semibold ${headingClass}`}>Saved Exams</h3>
-          <span className={`text-sm ${subTextClass}`}>{savedExams.length} saved exam(s)</span>
+      <section id="saved-exams-section" className={`rounded-3xl border p-8 space-y-6 ${cardClass} shadow-sm`}>
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className={`p-2 rounded-xl`} style={{ backgroundColor: isDark ? `${primaryHex}1A` : `${primaryHex}0D`, color: primaryHex }}>
+              <FileCheck size={20} />
+            </div>
+            <div>
+              <h3 className={`text-lg font-bold tracking-tight ${headingClass}`}>Saved Exams</h3>
+              <p className={`text-xs ${subTextClass}`}>Manage your certified evaluation records.</p>
+            </div>
+          </div>
+          <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-lg border ${isDark ? 'bg-white/5 border-white/10 text-slate-500' : 'bg-slate-50 border-slate-200 text-slate-400'}`}>
+            {savedExams.length} Documents
+          </span>
         </div>
 
         {/* Exam Statistics */}
-        <div className={`rounded-lg border mb-4 ${isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-50'}`}>
+        <div className={`rounded-2xl border overflow-hidden ${isDark ? 'border-white/10 bg-white/5' : 'border-slate-200 bg-slate-50/50'}`}>
           <button
             onClick={() => setExamStatsOpen(o => !o)}
-            className={`w-full flex items-center justify-between px-4 py-3 text-sm font-medium transition-colors hover:bg-white/5 dark:hover:bg-white/10`}
+            className={`w-full flex items-center justify-between px-6 py-4 text-xs font-bold uppercase tracking-widest transition-all hover:bg-white/5 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}
           >
-            <span className={headingClass}>Statistics</span>
-            {examStatsOpen ? <ChevronRight size={18} className="rotate-90" /> : <ChevronRight size={18} />}
+            Insights & Analytics
+            {examStatsOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
           </button>
           {examStatsOpen && (
-            <div className={`px-4 pb-3 pt-0 border-t ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
+            <div className={`px-6 pb-6 pt-2 border-t ${isDark ? 'border-white/10' : 'border-slate-200'}`}>
               {examStatsLoading ? (
                 <LoadingSkeleton rows={1} cols={4} />
               ) : examStats && Object.keys(examStats).length > 0 ? (
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-2">
                   {Object.entries(examStats).map(([key, value]) => (
-                    <div key={key} className={`rounded-lg border p-3 ${innerCardClass}`}>
-                      <p className={`text-xs uppercase tracking-wide ${subTextClass}`}>
+                    <div key={key} className={`rounded-2xl border p-4 ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-slate-200'}`}>
+                      <p className={`text-[10px] font-bold uppercase tracking-widest ${subTextClass}`}>
                         {key.replace(/_/g, ' ')}
                       </p>
-                      <p className={`mt-1 text-2xl font-bold ${headingClass}`}>
+                      <p className={`mt-1 text-2xl font-bold tracking-tight ${headingClass}`}>
                         {typeof value === 'number' ? value : 0}
                       </p>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className={`text-sm py-2 ${subTextClass}`}>No statistics available</p>
+                <p className={`text-xs font-medium py-2 ${subTextClass}`}>Metric engine data unavailable</p>
               )}
             </div>
           )}
         </div>
 
         {savedExams.length === 0 ? (
-          <EmptyState
-            title="No saved exams yet"
-            description="Save a draft to publish it."
-          />
+          <div className={`py-20 text-center rounded-3xl border-2 border-dashed transition-colors ${isDark ? 'border-white/5 bg-white/[0.02]' : 'border-slate-100 bg-slate-50/50'}`}>
+            <div className={`mx-auto w-16 h-16 rounded-2xl flex items-center justify-center mb-4 ${isDark ? 'bg-white/5 text-slate-600' : 'bg-slate-100 text-slate-400'}`}>
+              <FileCheck size={32} />
+            </div>
+            <h3 className={`text-lg font-bold tracking-tight mb-1 ${headingClass}`}>Library empty</h3>
+            <p className={`max-w-xs mx-auto text-sm ${subTextClass}`}>
+              Transition your high-performing drafts into saved exams to build your evaluation library.
+            </p>
+          </div>
         ) : (
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 gap-4">
             {savedExams.map((exam) => {
               return (
                 <article
                   key={`saved-${exam.examId}`}
-                  className={`rounded-lg border p-4 ${isDark ? 'border-white/10 bg-white/5' : 'border-gray-300 bg-gray-50'}`}
+                  className={`group relative rounded-3xl border p-6 transition-all ${isDark ? 'bg-white/5 border-white/10 hover:bg-white/10' : 'bg-white border-slate-200 hover:bg-slate-50'}`}
                 >
-                  <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between w-full">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between w-full">
                     <div className="flex-1">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <h4 className={`text-base font-semibold ${headingClass}`}>
+                      <div className="flex items-center gap-3 mb-1">
+                        <h4 className={`text-base font-bold tracking-tight ${headingClass}`}>
                           {exam.title || `Exam #${exam.examId}`}
                         </h4>
                         <StatusBadge status={exam.status || 'saved'} />
                       </div>
-                      <p className={`text-sm ${subTextClass}`}>
-                        Exam #{exam.examId} •{' '}
-                        {courseNameById.get(String(exam.courseId ?? '')) || `Course #${exam.courseId ?? 'N/A'}`}
-                      </p>
+                      <div className="flex items-center gap-2">
+                        <p className={`text-xs font-medium ${subTextClass}`}>
+                          Exam #{exam.examId}
+                        </p>
+                        <div className={`w-1 h-1 rounded-full ${isDark ? 'bg-white/10' : 'bg-slate-200'}`} />
+                        <p className={`text-[10px] font-bold uppercase tracking-widest ${subTextClass}`}>
+                          {courseNameById.get(String(exam.courseId ?? '')) || `Course #${exam.courseId ?? 'N/A'}`}
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className={countBadgeClass}>
-                        {savedExamQuestionCountOverrides[exam.examId] ?? exam.questionCount} questions
-                      </span>
-                      <span className={weightBadgeClass}>
-                        Weight {exam.totalWeight}
-                      </span>
+                    <div className="flex flex-wrap items-center gap-3">
+                      <div className="flex gap-2">
+                        <span className={`px-3 py-1.5 rounded-xl border text-[10px] font-bold uppercase tracking-widest ${isDark ? 'bg-white/5 border-white/10 text-slate-400' : 'bg-slate-50 border-slate-200 text-slate-500'}`}>
+                          {savedExamQuestionCountOverrides[exam.examId] ?? exam.questionCount} Items
+                        </span>
+                        <span className={`px-3 py-1.5 rounded-xl border text-[10px] font-bold uppercase tracking-widest`} style={{ backgroundColor: isDark ? `${primaryHex}1A` : `${primaryHex}0D`, borderColor: isDark ? `${primaryHex}33` : `${primaryHex}33`, color: primaryHex }}>
+                          Weight {exam.totalWeight}
+                        </span>
+                      </div>
+                      
                       <button
                         type="button"
                         onClick={() => {
                           setActiveExamViewId(exam.examId);
                           setExamViewOpen(true);
                         }}
-                        className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg border text-sm ${secondaryButtonClass}`}
+                        className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl border text-[10px] font-bold uppercase tracking-widest transition-all ${isDark ? 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10 hover:text-white' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:shadow-sm'}`}
                       >
-                        View
-                        <ArrowUpRight size={14} />
+                        Preview
+                        <Eye size={14} />
                       </button>
-                      <DropdownMenu>
+                      
+                      <DropdownMenu modal={false}>
                         <DropdownMenuTrigger asChild>
-                          <button className="p-2 hover:bg-gray-300 dark:hover:bg-gray-600 rounded">
-                            <MoreVertical size={16} />
+                          <button className={`p-2 rounded-xl transition-colors ${isDark ? 'hover:bg-white/10 text-slate-400 hover:text-white' : 'hover:bg-slate-100 text-slate-500 hover:text-slate-900'}`}>
+                            <MoreVertical size={18} />
                           </button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
+                        <DropdownMenuContent align="end" className={`rounded-2xl p-2 ${isDark ? 'bg-slate-900 border-white/10 shadow-2xl' : 'bg-white border-slate-200 shadow-2xl'}`}>
                           <DropdownMenuItem
+                            className={`rounded-xl cursor-pointer py-2.5 px-4 text-xs font-semibold ${isDark ? 'text-slate-200 focus:bg-white/10 focus:text-white' : 'text-slate-700 focus:bg-slate-100 focus:text-slate-900'}`}
                             onClick={async () => {
                               try {
                                 await ExamGenerationService.publishExam(exam.examId);
@@ -2494,9 +2588,10 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
                               }
                             }}
                           >
-                            Publish
+                            Go Live
                           </DropdownMenuItem>
                           <DropdownMenuItem
+                            className={`rounded-xl cursor-pointer py-2.5 px-4 text-xs font-semibold ${isDark ? 'text-slate-200 focus:bg-white/10 focus:text-white' : 'text-slate-700 focus:bg-slate-100 focus:text-slate-900'}`}
                             onClick={async () => {
                               try {
                                 await ExamGenerationService.unpublishExam(exam.examId);
@@ -2507,9 +2602,10 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
                               }
                             }}
                           >
-                            Unpublish
+                            Suspend
                           </DropdownMenuItem>
                           <DropdownMenuItem
+                            className="rounded-xl cursor-pointer py-2.5 px-4 text-xs font-semibold text-rose-500 focus:bg-rose-50 focus:text-rose-600 dark:focus:bg-rose-500/10 dark:focus:text-rose-400"
                             onClick={async () => {
                               try {
                                 await ExamGenerationService.archiveExam(exam.examId);
@@ -2519,23 +2615,35 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
                                 toast.error(err instanceof Error ? err.message : 'Failed to archive exam');
                               }
                             }}
-                            className="text-amber-600"
                           >
                             Archive
                           </DropdownMenuItem>
+                          <div className={`my-1 border-t ${isDark ? 'border-white/10' : 'border-slate-100'}`} />
                           <DropdownMenuItem
+                            className={`rounded-xl cursor-pointer py-2.5 px-4 text-xs font-semibold ${isDark ? 'text-slate-200 focus:bg-white/10 focus:text-white' : 'text-slate-700 focus:bg-slate-100 focus:text-slate-900'}`}
                             onClick={async () => {
                               try {
-                                await ExamGenerationService.exportExamWord(exam.examId);
-                                toast.success('Exam exported');
+                                const result = await ExamGenerationService.exportExamWord(exam.examId) as { fileName?: string; mimeType?: string; content?: string };
+                                const fileName = result?.fileName ?? `exam-${exam.examId}.docx`;
+                                const mimeType = result?.mimeType ?? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+                                const byteChars = atob(result?.content ?? '');
+                                const bytes = new Uint8Array(byteChars.length);
+                                for (let i = 0; i < byteChars.length; i++) bytes[i] = byteChars.charCodeAt(i);
+                                const blob = new Blob([bytes], { type: mimeType });
+                                const url = URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.href = url; a.download = fileName; a.click();
+                                URL.revokeObjectURL(url);
+                                toast.success(`Downloaded ${fileName}`);
                               } catch (err) {
                                 toast.error(err instanceof Error ? err.message : 'Failed to export exam');
                               }
                             }}
                           >
-                            Export to Word
+                            Export Word
                           </DropdownMenuItem>
                           <DropdownMenuItem
+                            className={`rounded-xl cursor-pointer py-2.5 px-4 text-xs font-semibold ${isDark ? 'text-slate-200 focus:bg-white/10 focus:text-white' : 'text-slate-700 focus:bg-slate-100 focus:text-slate-900'}`}
                             onClick={() => {
                               setTemplateExamId(exam.examId);
                               setShowApplyTemplate(true);
@@ -2564,61 +2672,6 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
       {activeWorkspaceTab === 'questions' && (
       <>
       <section className={`rounded-xl border p-4 ${cardClass}`}>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-          <CustomDropdown
-            label="Course"
-            value={selectedCourse}
-            options={[
-              { value: 'all', label: 'All Courses' },
-              ...courseOptions,
-            ]}
-            onChange={handleCourseChange}
-            stackLabel
-            fullWidth
-          />
-          <CustomDropdown
-            label="Chapter"
-            value={selectedChapter}
-            options={[
-              {
-                value: 'all',
-                label: selectedCourse === 'all' ? 'Select a course first' : chaptersLoading ? 'Loading chapters...' : 'All Chapters',
-              },
-              ...chapterOptions,
-            ]}
-            onChange={handleChapterChange}
-            stackLabel
-            fullWidth
-          />
-          <div className="flex items-end gap-2">
-            <CustomDropdown
-              label="Rows per page"
-              value={String(limit)}
-              options={LIMIT_OPTIONS.map((value) => ({ value: String(value), label: String(value) }))}
-              onChange={handleLimitChange}
-              stackLabel
-              fullWidth
-            />
-            <button
-              type="button"
-              onClick={() => setChapterManagerOpen(true)}
-              className={`px-3 py-2 rounded-lg border text-sm font-medium transition-colors ${secondaryButtonClass}`}
-              title="Manage chapters for this course"
-            >
-              Manage Chapters
-            </button>
-            <button
-              type="button"
-              onClick={() => setBulkImportOpen(true)}
-              disabled={selectedCourse === 'all'}
-              className={`px-3 py-2 rounded-lg border text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${secondaryButtonClass}`}
-              title={selectedCourse === 'all' ? 'Select a course first' : 'Import questions from CSV'}
-            >
-              Import Questions
-            </button>
-          </div>
-        </div>
-
         {/* Search */}
         <div className="mb-4">
           <input
@@ -2639,8 +2692,8 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
         <div className={`rounded-lg border ${isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-50'}`}>
           <div className={`flex items-center justify-between px-4 py-2 border-b ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
             <div className="flex items-center gap-2">
-              <span className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>
-                Filters
+              <span className={`text-[10px] font-bold uppercase tracking-widest ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>
+                Active Filters
               </span>
               {(() => {
                 const activeFilterCount = filterQuestionType.length + filterDifficulty.length +
@@ -2662,103 +2715,111 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
               </button>
             )}
           </div>
-          <div className={`flex flex-wrap divide-x ${isDark ? 'divide-white/10' : 'divide-gray-200'}`}>
+          <div className="flex flex-wrap gap-3 p-4">
             {/* Type group */}
-            <div className="flex items-center gap-1.5 px-4 py-2.5 flex-wrap">
-              <span className={`text-[11px] font-bold uppercase tracking-wider shrink-0 mr-1 ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
+            <div className={`flex items-center gap-3 px-3 py-2 rounded-xl border ${isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-50/50'}`}>
+              <span className={`text-[10px] font-bold uppercase tracking-widest shrink-0 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>
                 Type
               </span>
-              {['mcq', 'true_false', 'written', 'fill_blanks', 'essay'].map((type) => (
-                <button
-                  key={type}
-                  onClick={() => handleToggleQuestionType(type)}
-                  className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all ${
-                    filterQuestionType.includes(type)
-                      ? isDark
-                        ? 'bg-blue-500 text-white shadow-sm'
-                        : 'bg-blue-600 text-white shadow-sm'
-                      : isDark
-                        ? 'text-slate-300 hover:bg-white/10'
-                        : 'text-gray-600 hover:bg-gray-200'
-                  }`}
-                >
-                  {type.replace(/_/g, ' ')}
-                </button>
-              ))}
+              <div className="flex flex-wrap gap-1.5">
+                {['mcq', 'true_false', 'written', 'fill_blanks', 'essay'].map((type) => (
+                  <button
+                    key={type}
+                    onClick={() => handleToggleQuestionType(type)}
+                    className={`px-3 py-1 rounded-full border text-xs font-medium transition-all ${
+                      filterQuestionType.includes(type)
+                        ? isDark
+                          ? 'border-blue-500 bg-blue-500 text-white shadow-sm'
+                          : 'border-blue-600 bg-blue-600 text-white shadow-sm'
+                        : isDark
+                          ? 'border-white/20 bg-transparent text-slate-300 hover:bg-white/10 hover:text-white'
+                          : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                    }`}
+                  >
+                    {formatEnumLabel(type)}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Difficulty group */}
-            <div className="flex items-center gap-1.5 px-4 py-2.5 flex-wrap">
-              <span className={`text-[11px] font-bold uppercase tracking-wider shrink-0 mr-1 ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
+            <div className={`flex items-center gap-3 px-3 py-2 rounded-xl border ${isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-50/50'}`}>
+              <span className={`text-[10px] font-bold uppercase tracking-widest shrink-0 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>
                 Difficulty
               </span>
-              {[
-                { value: 'easy',   on: isDark ? 'bg-emerald-500 text-white' : 'bg-emerald-600 text-white' },
-                { value: 'medium', on: isDark ? 'bg-amber-500 text-white'   : 'bg-amber-500 text-white'   },
-                { value: 'hard',   on: isDark ? 'bg-red-500 text-white'     : 'bg-red-600 text-white'     },
-              ].map(({ value, on }) => (
-                <button
-                  key={value}
-                  onClick={() => handleToggleDifficulty(value)}
-                  className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all shadow-sm ${
-                    filterDifficulty.includes(value)
-                      ? `${on} shadow-sm`
-                      : isDark
-                        ? 'text-slate-300 hover:bg-white/10'
-                        : 'text-gray-600 hover:bg-gray-200'
-                  }`}
-                >
-                  {value.charAt(0).toUpperCase() + value.slice(1)}
-                </button>
-              ))}
+              <div className="flex flex-wrap gap-1.5">
+                {[
+                  { value: 'easy',   onDark: 'border-emerald-500 bg-emerald-500 text-white', onLight: 'border-emerald-600 bg-emerald-600 text-white' },
+                  { value: 'medium', onDark: 'border-amber-500 bg-amber-500 text-white', onLight: 'border-amber-500 bg-amber-500 text-white' },
+                  { value: 'hard',   onDark: 'border-red-500 bg-red-500 text-white', onLight: 'border-red-600 bg-red-600 text-white' },
+                ].map(({ value, onDark, onLight }) => (
+                  <button
+                    key={value}
+                    onClick={() => handleToggleDifficulty(value)}
+                    className={`px-3 py-1 rounded-full border text-xs font-medium transition-all ${
+                      filterDifficulty.includes(value)
+                        ? `${isDark ? onDark : onLight} shadow-sm`
+                        : isDark
+                          ? 'border-white/20 bg-transparent text-slate-300 hover:bg-white/10 hover:text-white'
+                          : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                    }`}
+                  >
+                    {formatEnumLabel(value)}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Status group */}
-            <div className="flex items-center gap-1.5 px-4 py-2.5 flex-wrap">
-              <span className={`text-[11px] font-bold uppercase tracking-wider shrink-0 mr-1 ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
+            <div className={`flex items-center gap-3 px-3 py-2 rounded-xl border ${isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-50/50'}`}>
+              <span className={`text-[10px] font-bold uppercase tracking-widest shrink-0 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>
                 Status
               </span>
-              {['draft', 'under_review', 'approved', 'rejected', 'archived'].map((status) => (
-                <button
-                  key={status}
-                  onClick={() => handleToggleStatus(status)}
-                  className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all ${
-                    filterStatus.includes(status)
-                      ? isDark
-                        ? 'bg-violet-500 text-white shadow-sm'
-                        : 'bg-violet-600 text-white shadow-sm'
-                      : isDark
-                        ? 'text-slate-300 hover:bg-white/10'
-                        : 'text-gray-600 hover:bg-gray-200'
-                  }`}
-                >
-                  {status.replace(/_/g, ' ')}
-                </button>
-              ))}
+              <div className="flex flex-wrap gap-1.5">
+                {['draft', 'under_review', 'approved', 'rejected', 'archived'].map((status) => (
+                  <button
+                    key={status}
+                    onClick={() => handleToggleStatus(status)}
+                    className={`px-3 py-1 rounded-full border text-xs font-medium transition-all ${
+                      filterStatus.includes(status)
+                        ? isDark
+                          ? 'border-violet-500 bg-violet-500 text-white shadow-sm'
+                          : 'border-violet-600 bg-violet-600 text-white shadow-sm'
+                        : isDark
+                          ? 'border-white/20 bg-transparent text-slate-300 hover:bg-white/10 hover:text-white'
+                          : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                    }`}
+                  >
+                    {formatEnumLabel(status)}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Bloom level group */}
-            <div className="flex items-center gap-1.5 px-4 py-2.5 flex-wrap">
-              <span className={`text-[11px] font-bold uppercase tracking-wider shrink-0 mr-1 ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
+            <div className={`flex items-center gap-3 px-3 py-2 rounded-xl border ${isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-50/50'}`}>
+              <span className={`text-[10px] font-bold uppercase tracking-widest shrink-0 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>
                 Bloom
               </span>
-              {['remembering', 'understanding', 'applying', 'analyzing', 'evaluating', 'creating'].map((bloom) => (
-                <button
-                  key={bloom}
-                  onClick={() => handleToggleBloomLevel(bloom)}
-                  className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all ${
-                    filterBloomLevel.includes(bloom)
-                      ? isDark
-                        ? 'bg-teal-500 text-white shadow-sm'
-                        : 'bg-teal-600 text-white shadow-sm'
-                      : isDark
-                        ? 'text-slate-300 hover:bg-white/10'
-                        : 'text-gray-600 hover:bg-gray-200'
-                  }`}
-                >
-                  {bloom.charAt(0).toUpperCase() + bloom.slice(1)}
-                </button>
-              ))}
+              <div className="flex flex-wrap gap-1.5">
+                {['remembering', 'understanding', 'applying', 'analyzing', 'evaluating', 'creating'].map((bloom) => (
+                  <button
+                    key={bloom}
+                    onClick={() => handleToggleBloomLevel(bloom)}
+                    className={`px-3 py-1 rounded-full border text-xs font-medium transition-all ${
+                      filterBloomLevel.includes(bloom)
+                        ? isDark
+                          ? 'border-teal-500 bg-teal-500 text-white shadow-sm'
+                          : 'border-teal-600 bg-teal-600 text-white shadow-sm'
+                        : isDark
+                          ? 'border-white/20 bg-transparent text-slate-300 hover:bg-white/10 hover:text-white'
+                          : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                    }`}
+                  >
+                    {formatEnumLabel(bloom)}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -2804,10 +2865,23 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
             </div>
           </div>
         ) : questions.length === 0 ? (
-          <div className={`rounded-lg border p-8 text-center ${innerCardClass}`}>
-            <ClipboardList size={42} className={`mx-auto mb-3 ${subTextClass}`} />
-            <h4 className={`text-lg font-semibold ${headingClass}`}>No questions found</h4>
-            <p className={`text-sm mt-1 ${subTextClass}`}>Try another filter or add a new question to the bank.</p>
+          <div className={`p-12 text-center rounded-xl border-2 border-dashed ${isDark ? 'border-white/5 bg-white/5' : 'border-gray-100 bg-gray-50/30'}`}>
+            <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full mb-4 ${isDark ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-50 text-blue-600'}`}>
+              <ClipboardList size={32} />
+            </div>
+            <h3 className={`text-lg font-semibold mb-2 ${headingClass}`}>No questions found</h3>
+            <p className={`max-w-xs mx-auto text-sm leading-relaxed ${subTextClass}`}>
+              Try adjusting your filters or search query to find what you're looking for.
+            </p>
+            {(filterQuestionType.length > 0 || filterDifficulty.length > 0 || filterStatus.length > 0 || filterBloomLevel.length > 0 || searchInput) && (
+              <button
+                onClick={handleClearFilters}
+                className="mt-4 px-4 py-2 rounded-lg text-sm font-semibold text-white transition-opacity hover:opacity-90"
+                style={{ backgroundColor: primaryHex }}
+              >
+                Clear all filters
+              </button>
+            )}
           </div>
         ) : (
           <div>
@@ -3030,7 +3104,7 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
                     {question.options.slice(0, 4).map((option, optionIndex) => (
                       <div
                         key={`${String(question.id ?? index)}-option-${optionIndex}`}
-                        className={`text-xs sm:text-sm flex items-center justify-between rounded px-2 py-1 ${isDark ? 'bg-white/5' : 'bg-gray-50'}`}
+                        className={`text-xs sm:text-sm flex items-center justify-between rounded px-2 py-1 ${isDark ? 'bg-white/5' : 'bg-gray-100/50 border border-gray-200'}`}
                       >
                         <span className={`${headingClass} truncate pr-2`}>
                           {option.optionText?.trim() || `Option ${optionIndex + 1}`}
