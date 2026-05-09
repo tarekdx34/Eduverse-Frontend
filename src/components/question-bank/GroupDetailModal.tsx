@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { Trash2, Plus, Search, Loader2, AlertCircle } from 'lucide-react';
+import { Trash2, Plus, Search, Loader2, AlertCircle, GripVertical } from 'lucide-react';
 import * as Tabs from '@radix-ui/react-tabs';
+import { DndContext, closestCenter, DragEndEvent } from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import QuestionGroupService from '../../services/api/questionGroupService';
 import QuestionBankService, { CreateQuestionBankPayload } from '../../services/api/questionBankService';
 import { AccessibleModal } from '../shared/AccessibleModal';
@@ -35,6 +38,8 @@ interface ApprovedQuestion {
 }
 
 const QUESTION_TYPES = ['mcq', 'written', 'true_false', 'fill_blanks', 'essay'];
+const VALID_DIFFICULTIES = ['easy', 'medium', 'hard'];
+const VALID_BLOOMS = ['remembering', 'understanding', 'applying', 'analyzing', 'evaluating', 'creating'];
 
 export function GroupDetailModal({ open, onOpenChange, groupId, courseId, onGroupUpdated }: GroupDetailModalProps) {
   const [group, setGroup] = useState<GroupDetail | null>(null);
@@ -49,10 +54,14 @@ export function GroupDetailModal({ open, onOpenChange, groupId, courseId, onGrou
 
   const [newQuestionType, setNewQuestionType] = useState<string>('mcq');
   const [newQuestionText, setNewQuestionText] = useState('');
+  const [newQuestionDifficulty, setNewQuestionDifficulty] = useState<string>('medium');
+  const [newQuestionBloom, setNewQuestionBloom] = useState<string>('understanding');
   const [mcqOptions, setMcqOptions] = useState<Array<{ text: string; isCorrect: boolean }>>([
     { text: '', isCorrect: false },
     { text: '', isCorrect: false },
   ]);
+  const [trueFalseAnswer, setTrueFalseAnswer] = useState<boolean>(true);
+  const [expectedAnswerText, setExpectedAnswerText] = useState('');
   const [isCreatingQuestion, setIsCreatingQuestion] = useState(false);
 
   const [editingGroup, setEditingGroup] = useState(false);
@@ -181,6 +190,19 @@ export function GroupDetailModal({ open, onOpenChange, groupId, courseId, onGrou
     }
   };
 
+  const handleDragEnd = ({ active, over }: DragEndEvent) => {
+    if (!group?.questions || !over || active.id === over.id) return;
+    const oldIdx = group.questions.findIndex(q => q.id === active.id);
+    const newIdx = group.questions.findIndex(q => q.id === over.id);
+    if (oldIdx === -1 || newIdx === -1) return;
+    const reordered = arrayMove(group.questions, oldIdx, newIdx);
+    setGroup(g => g ? { ...g, questions: reordered } : g);
+    QuestionGroupService.reorderQuestions(groupId, reordered.map(q => q.id)).catch(() => {
+      toast.error('Failed to reorder questions');
+      loadGroupDetail();
+    });
+  };
+
   const handleCreateQuestion = async () => {
     if (!newQuestionText.trim()) {
       toast.error('Question text is required');
@@ -205,23 +227,29 @@ export function GroupDetailModal({ open, onOpenChange, groupId, courseId, onGrou
         courseId: courseId || 0,
         chapterId: group?.chapterId || 0,
         questionType: newQuestionType as any,
-        difficulty: 'medium',
-        bloomLevel: 'understanding',
+        difficulty: newQuestionDifficulty as any,
+        bloomLevel: newQuestionBloom as any,
         questionText: newQuestionText,
         ...(newQuestionType === 'mcq' && {
           options: mcqOptions
             .filter((o) => o.text.trim())
             .map((o) => ({ optionText: o.text, isCorrect: o.isCorrect })),
         }),
+        ...(newQuestionType === 'true_false' && { expectedAnswerText: String(trueFalseAnswer) }),
+        ...(['written', 'fill_blanks', 'essay'].includes(newQuestionType) && { expectedAnswerText }),
       };
 
       await QuestionGroupService.addQuestions(groupId, [payload]);
       toast.success('Question created and added to group');
       setNewQuestionText('');
+      setNewQuestionDifficulty('medium');
+      setNewQuestionBloom('understanding');
       setMcqOptions([
         { text: '', isCorrect: false },
         { text: '', isCorrect: false },
       ]);
+      setTrueFalseAnswer(true);
+      setExpectedAnswerText('');
       loadGroupDetail();
     } catch (err) {
       console.error('Failed to create question:', err);
@@ -230,6 +258,42 @@ export function GroupDetailModal({ open, onOpenChange, groupId, courseId, onGrou
       setIsCreatingQuestion(false);
     }
   };
+
+  function SortableQuestionRow({ q, idx, onRemove }: { q: any; idx: number; onRemove: (id: number) => void }) {
+    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: q.id });
+    const style = {
+      transform: CSS.Transform.toString(transform),
+      transition,
+      opacity: isDragging ? 0.5 : 1,
+    };
+    return (
+      <tr ref={setNodeRef} style={style} className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50">
+        <td className="py-3 px-3 text-gray-600 dark:text-gray-400 cursor-grab active:cursor-grabbing" {...attributes} {...listeners}>
+          <GripVertical size={16} className="text-gray-400" />
+        </td>
+        <td className="py-3 px-3 text-gray-600 dark:text-gray-400">{idx + 1}</td>
+        <td className="py-3 px-3 text-gray-800 dark:text-gray-200">
+          {(q.questionText || '').substring(0, 80)}
+          {(q.questionText || '').length > 80 ? '...' : ''}
+        </td>
+        <td className="py-3 px-3">
+          <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded">
+            {q.questionType}
+          </span>
+        </td>
+        <td className="py-3 px-3 text-gray-600 dark:text-gray-400">{q.difficulty || 'N/A'}</td>
+        <td className="py-3 px-3">
+          <button
+            onClick={() => onRemove(q.id)}
+            className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 p-1"
+            title="Remove from group"
+          >
+            <Trash2 size={16} />
+          </button>
+        </td>
+      </tr>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -309,43 +373,27 @@ export function GroupDetailModal({ open, onOpenChange, groupId, courseId, onGrou
           <section>
             <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Questions ({group.questions.length})</h3>
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-gray-200 dark:border-gray-700">
-                    <th className="text-left py-2 px-3 font-semibold text-gray-700 dark:text-gray-300">#</th>
-                    <th className="text-left py-2 px-3 font-semibold text-gray-700 dark:text-gray-300">Question</th>
-                    <th className="text-left py-2 px-3 font-semibold text-gray-700 dark:text-gray-300">Type</th>
-                    <th className="text-left py-2 px-3 font-semibold text-gray-700 dark:text-gray-300">Difficulty</th>
-                    <th className="text-left py-2 px-3 font-semibold text-gray-700 dark:text-gray-300">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {group.questions.map((q, idx) => (
-                    <tr key={q.id} className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                      <td className="py-3 px-3 text-gray-600 dark:text-gray-400">{idx + 1}</td>
-                      <td className="py-3 px-3 text-gray-800 dark:text-gray-200">
-                        {(q.questionText || '').substring(0, 80)}
-                        {(q.questionText || '').length > 80 ? '...' : ''}
-                      </td>
-                      <td className="py-3 px-3">
-                        <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded">
-                          {q.questionType}
-                        </span>
-                      </td>
-                      <td className="py-3 px-3 text-gray-600 dark:text-gray-400">{q.difficulty || 'N/A'}</td>
-                      <td className="py-3 px-3">
-                        <button
-                          onClick={() => setConfirmDelete(q.id)}
-                          className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 p-1"
-                          title="Remove from group"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </td>
+              <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-200 dark:border-gray-700">
+                      {group.questions.length > 1 && <th className="text-left py-2 px-3 font-semibold text-gray-700 dark:text-gray-300 w-8"></th>}
+                      <th className="text-left py-2 px-3 font-semibold text-gray-700 dark:text-gray-300">#</th>
+                      <th className="text-left py-2 px-3 font-semibold text-gray-700 dark:text-gray-300">Question</th>
+                      <th className="text-left py-2 px-3 font-semibold text-gray-700 dark:text-gray-300">Type</th>
+                      <th className="text-left py-2 px-3 font-semibold text-gray-700 dark:text-gray-300">Difficulty</th>
+                      <th className="text-left py-2 px-3 font-semibold text-gray-700 dark:text-gray-300">Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <SortableContext items={group.questions.map(q => q.id)} strategy={verticalListSortingStrategy}>
+                    <tbody>
+                      {group.questions.map((q, idx) => (
+                        <SortableQuestionRow key={q.id} q={q} idx={idx} onRemove={(id) => setConfirmDelete(id)} />
+                      ))}
+                    </tbody>
+                  </SortableContext>
+                </table>
+              </DndContext>
             </div>
           </section>
         )}
@@ -445,6 +493,40 @@ export function GroupDetailModal({ open, onOpenChange, groupId, courseId, onGrou
 
               <div>
                 <label className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
+                  Difficulty
+                </label>
+                <select
+                  value={newQuestionDifficulty}
+                  onChange={(e) => setNewQuestionDifficulty(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+                >
+                  {VALID_DIFFICULTIES.map((d) => (
+                    <option key={d} value={d}>
+                      {d.charAt(0).toUpperCase() + d.slice(1)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
+                  Bloom Level
+                </label>
+                <select
+                  value={newQuestionBloom}
+                  onChange={(e) => setNewQuestionBloom(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+                >
+                  {VALID_BLOOMS.map((b) => (
+                    <option key={b} value={b}>
+                      {b.charAt(0).toUpperCase() + b.slice(1)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
                   Question Text
                 </label>
                 <textarea
@@ -455,6 +537,38 @@ export function GroupDetailModal({ open, onOpenChange, groupId, courseId, onGrou
                   rows={4}
                 />
               </div>
+
+              {newQuestionType === 'true_false' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
+                    Correct Answer
+                  </label>
+                  <div className="flex gap-4">
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="trueFalse"
+                        value="true"
+                        checked={trueFalseAnswer === true}
+                        onChange={() => setTrueFalseAnswer(true)}
+                        className="w-4 h-4"
+                      />
+                      <span className="text-sm text-gray-700 dark:text-gray-300">True</span>
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="trueFalse"
+                        value="false"
+                        checked={trueFalseAnswer === false}
+                        onChange={() => setTrueFalseAnswer(false)}
+                        className="w-4 h-4"
+                      />
+                      <span className="text-sm text-gray-700 dark:text-gray-300">False</span>
+                    </label>
+                  </div>
+                </div>
+              )}
 
               {newQuestionType === 'mcq' && (
                 <div>
@@ -500,6 +614,21 @@ export function GroupDetailModal({ open, onOpenChange, groupId, courseId, onGrou
                   >
                     + Add Option
                   </button>
+                </div>
+              )}
+
+              {['written', 'fill_blanks', 'essay'].includes(newQuestionType) && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
+                    Expected Answer
+                  </label>
+                  <textarea
+                    value={expectedAnswerText}
+                    onChange={(e) => setExpectedAnswerText(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+                    placeholder="Enter the expected answer or answer key..."
+                    rows={3}
+                  />
                 </div>
               )}
 

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { Plus, MoreVertical, Trash2, Eye, Pencil, AlertCircle, RotateCw } from 'lucide-react';
 import QuestionGroupService from '../../services/api/questionGroupService';
+import ChapterService, { CourseChapter } from '../../services/api/chapterService';
 import { SearchInput, ConfirmDialog, EmptyState, LoadingSkeleton, StatusBadge } from '../shared/index';
 import { GroupFormModal } from './GroupFormModal';
 import { GroupDetailModal } from './GroupDetailModal';
@@ -35,6 +36,9 @@ export function QuestionGroupsTab({ courses, selectedCourse }: QuestionGroupsTab
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedGroupTypes, setSelectedGroupTypes] = useState<Set<string>>(new Set());
+  const [selectedChapterId, setSelectedChapterId] = useState<number | undefined>(undefined);
+  const [chapters, setChapters] = useState<CourseChapter[]>([]);
+  const [isLoadingChapters, setIsLoadingChapters] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalGroups, setTotalGroups] = useState(0);
   const pageSize = 20;
@@ -64,6 +68,7 @@ export function QuestionGroupsTab({ courses, selectedCourse }: QuestionGroupsTab
 
       const response = await QuestionGroupService.list({
         courseId,
+        chapterId: selectedChapterId,
         page: currentPage,
         limit: pageSize,
         search: searchQuery || undefined,
@@ -81,11 +86,23 @@ export function QuestionGroupsTab({ courses, selectedCourse }: QuestionGroupsTab
     } finally {
       setIsLoading(false);
     }
-  }, [courseId, currentPage, searchQuery, selectedGroupTypes]);
+  }, [courseId, currentPage, searchQuery, selectedGroupTypes, selectedChapterId]);
+
+  useEffect(() => {
+    if (!courseId) {
+      setChapters([]);
+      return;
+    }
+    setIsLoadingChapters(true);
+    ChapterService.listByCourse(courseId)
+      .then(data => setChapters(Array.isArray(data) ? data : []))
+      .catch(() => setChapters([]))
+      .finally(() => setIsLoadingChapters(false));
+  }, [courseId]);
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedCourse, searchQuery, selectedGroupTypes]);
+  }, [selectedCourse, searchQuery, selectedGroupTypes, selectedChapterId]);
 
   useEffect(() => {
     loadGroups();
@@ -171,6 +188,20 @@ export function QuestionGroupsTab({ courses, selectedCourse }: QuestionGroupsTab
           <Plus size={18} />
           Create Group
         </button>
+
+        <select
+          value={selectedChapterId ?? ''}
+          onChange={(e) => setSelectedChapterId(e.target.value ? Number(e.target.value) : undefined)}
+          disabled={isLoadingChapters || chapters.length === 0}
+          className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-sm text-gray-700 dark:text-gray-300 disabled:opacity-50"
+        >
+          <option value="">All Chapters</option>
+          {chapters.map((ch) => (
+            <option key={ch.id} value={ch.id}>
+              {ch.name}
+            </option>
+          ))}
+        </select>
 
         <SearchInput
           placeholder="Search by group title..."

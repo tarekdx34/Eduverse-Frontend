@@ -474,7 +474,18 @@ export function ExamGenerationModal({
 
         <div className={totalWeightCls}>Total weight: {totalWeight}</div>
 
-        {preview && (
+        {loading && !draftId && (
+          <div className={`mt-4 rounded-lg border p-4 ${sectionCls}`}>
+            <p className={`text-sm font-semibold mb-3 ${headingCls}`}>Generating preview...</p>
+            <div className="space-y-2 animate-pulse">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className={`h-10 rounded-md ${isDark ? 'bg-white/10' : 'bg-gray-200'}`} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {preview && !loading && (
           <section className={`mt-4 rounded-lg border p-4 ${sectionCls}`}>
             <h4 className={`text-sm font-semibold ${headingCls}`}>
               Preview Draft #{preview.draftId}

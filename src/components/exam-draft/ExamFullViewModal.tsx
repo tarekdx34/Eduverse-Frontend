@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
@@ -121,6 +122,7 @@ export const ExamFullViewModal: React.FC<ExamFullViewModalProps> = ({
             <DialogTitle>{exam?.title || `Exam #${examId}`}</DialogTitle>
             {exam?.status && <StatusBadge status={exam.status} />}
           </div>
+          <DialogDescription className="sr-only">Full view of exam sections and questions</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">

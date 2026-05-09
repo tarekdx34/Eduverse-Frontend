@@ -52,6 +52,8 @@ import {
   RejectQuestionDialog,
   BatchStatusDialog,
   ChapterManagerDrawer,
+  BulkImportDialog,
+  QuestionAttachmentsPanel,
 } from '../../../components/question-bank';
 
 type CourseInput = {
@@ -554,6 +556,7 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
   const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [stats, setStats] = useState<{ approved: number; underReview: number; draft: number } | null>(null);
+  const [statsError, setStatsError] = useState(false);
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [rejectingQuestionId, setRejectingQuestionId] = useState<number | null>(null);
   const [rejectingQuestionText, setRejectingQuestionText] = useState('');
@@ -561,6 +564,15 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
   const [chapterManagerOpen, setChapterManagerOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deletingQuestionIds, setDeletingQuestionIds] = useState<number[]>([]);
+  const [bulkImportOpen, setBulkImportOpen] = useState(false);
+  const [attachmentsPanelOpen, setAttachmentsPanelOpen] = useState(false);
+  const [attachmentsPanelQuestionId, setAttachmentsPanelQuestionId] = useState<number | null>(null);
+  const [attachmentsPanelQuestionText, setAttachmentsPanelQuestionText] = useState('');
+  const [readiness, setReadiness] = useState<{ ready: boolean; reasons?: string[] } | null>(null);
+  const [readinessLoading, setReadinessLoading] = useState(false);
+  const [examStats, setExamStats] = useState<Record<string, number> | null>(null);
+  const [examStatsLoading, setExamStatsLoading] = useState(false);
+  const [examStatsOpen, setExamStatsOpen] = useState(false);
 
   // Debounce search input → searchQuery (300ms)
   useEffect(() => {
@@ -583,10 +595,61 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
         const underReview = toFiniteNumber(data.under_review ?? data.underReview ?? data.underReviewCount) ?? 0;
         const draft = toFiniteNumber(data.draft ?? data.draftCount) ?? 0;
         setStats({ approved, underReview, draft });
+        if (mounted) setStatsError(false);
       })
-      .catch(() => {/* non-critical, stats stay null */});
+      .catch(() => {
+        if (mounted) setStatsError(true);
+      });
     return () => { mounted = false; };
   }, [refreshKey]);
+
+  // Check generation readiness for drafts tab
+  useEffect(() => {
+    if (activeWorkspaceTab !== 'drafts' || selectedCourse === 'all') {
+      setReadiness(null);
+      return;
+    }
+    let mounted = true;
+    setReadinessLoading(true);
+    ExamGenerationService.checkGenerationReadiness(Number(selectedCourse))
+      .then((response) => {
+        if (!mounted) return;
+        const record = toRecord(response) ?? {};
+        const data = toRecord(record.data) ?? record;
+        setReadiness({ ready: data.ready ?? true, reasons: data.reasons || [] });
+      })
+      .catch(() => {
+        if (mounted) setReadiness(null);
+      })
+      .finally(() => {
+        if (mounted) setReadinessLoading(false);
+      });
+    return () => { mounted = false; };
+  }, [activeWorkspaceTab, selectedCourse]);
+
+  // Fetch exam statistics for saved exams tab
+  useEffect(() => {
+    if (activeWorkspaceTab !== 'saved') {
+      setExamStats(null);
+      return;
+    }
+    let mounted = true;
+    setExamStatsLoading(true);
+    ExamGenerationService.getExamStats()
+      .then((response) => {
+        if (!mounted) return;
+        const record = toRecord(response) ?? {};
+        const data = toRecord(record.data) ?? record;
+        setExamStats(data);
+      })
+      .catch(() => {
+        if (mounted) setExamStats(null);
+      })
+      .finally(() => {
+        if (mounted) setExamStatsLoading(false);
+      });
+    return () => { mounted = false; };
+  }, [activeWorkspaceTab]);
 
   useEffect(() => {
     const cached = localStorage.getItem(DRAFT_PREVIEWS_STORAGE_KEY);
@@ -2127,6 +2190,22 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
             </div>
           </div>
         </div>
+        {statsError && (
+          <div className={`mt-4 flex items-center gap-3 rounded-lg border px-4 py-3 ${isDark ? 'border-red-500/30 bg-red-500/10' : 'border-red-200 bg-red-50'}`}>
+            <span className={`text-sm ${isDark ? 'text-red-400' : 'text-red-700'}`}>
+              Failed to load statistics
+            </span>
+            <button
+              onClick={() => {
+                setStatsError(false);
+                setRefreshKey(k => k + 1);
+              }}
+              className={`ml-auto text-xs font-medium px-2.5 py-1 rounded transition-colors ${isDark ? 'text-red-400 hover:text-red-300' : 'text-red-700 hover:text-red-900'}`}
+            >
+              Retry
+            </button>
+          </div>
+        )}
       </section>
 
       <section className={`rounded-xl border p-3 ${cardClass}`}>
@@ -2161,6 +2240,33 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
 
       {activeWorkspaceTab === 'drafts' && (
       <section className={`rounded-xl border p-4 sm:p-5 ${cardClass}`}>
+        {readinessLoading && (
+          <div className={`rounded-lg border mb-4 px-4 py-3 flex items-center gap-2.5 ${isDark ? 'border-blue-500/30 bg-blue-500/10' : 'border-blue-200 bg-blue-50'}`}>
+            <Loader2 size={18} className={`animate-spin ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
+            <span className={`text-sm ${isDark ? 'text-blue-200' : 'text-blue-700'}`}>Checking readiness...</span>
+          </div>
+        )}
+        {!readinessLoading && readiness?.ready === true && (
+          <div className={`rounded-lg border mb-4 px-4 py-3 flex items-center gap-2.5 ${isDark ? 'border-green-500/30 bg-green-500/10' : 'border-green-200 bg-green-50'}`}>
+            <CheckCircle2 size={18} className={`${isDark ? 'text-green-400' : 'text-green-600'}`} />
+            <span className={`text-sm font-medium ${isDark ? 'text-green-200' : 'text-green-700'}`}>Ready to generate exams</span>
+          </div>
+        )}
+        {!readinessLoading && readiness?.ready === false && (
+          <div className={`rounded-lg border mb-4 px-4 py-3 ${isDark ? 'border-amber-500/30 bg-amber-500/10' : 'border-amber-200 bg-amber-50'}`}>
+            <div className="flex items-start gap-2.5">
+              <AlertCircle size={18} className={`mt-0.5 flex-shrink-0 ${isDark ? 'text-amber-400' : 'text-amber-600'}`} />
+              <div>
+                <p className={`text-sm font-medium ${isDark ? 'text-amber-200' : 'text-amber-700'}`}>Not ready to generate</p>
+                {readiness?.reasons && readiness.reasons.length > 0 && (
+                  <ul className={`mt-1 text-xs space-y-1 ${isDark ? 'text-amber-200/80' : 'text-amber-600'}`}>
+                    {readiness.reasons.map((reason, i) => <li key={i}>• {reason}</li>)}
+                  </ul>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
         <div className="flex items-center justify-between gap-3 mb-4">
           <div className="flex items-center gap-2">
             <History size={18} className={subTextClass} />
@@ -2291,6 +2397,39 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
         <div className="flex items-center justify-between gap-3 mb-4">
           <h3 className={`text-lg font-semibold ${headingClass}`}>Saved Exams</h3>
           <span className={`text-sm ${subTextClass}`}>{savedExams.length} saved exam(s)</span>
+        </div>
+
+        {/* Exam Statistics */}
+        <div className={`rounded-lg border mb-4 ${isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-50'}`}>
+          <button
+            onClick={() => setExamStatsOpen(o => !o)}
+            className={`w-full flex items-center justify-between px-4 py-3 text-sm font-medium transition-colors hover:bg-white/5 dark:hover:bg-white/10`}
+          >
+            <span className={headingClass}>Statistics</span>
+            {examStatsOpen ? <ChevronRight size={18} className="rotate-90" /> : <ChevronRight size={18} />}
+          </button>
+          {examStatsOpen && (
+            <div className={`px-4 pb-3 pt-0 border-t ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
+              {examStatsLoading ? (
+                <LoadingSkeleton rows={1} cols={4} />
+              ) : examStats && Object.keys(examStats).length > 0 ? (
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3">
+                  {Object.entries(examStats).map(([key, value]) => (
+                    <div key={key} className={`rounded-lg border p-3 ${innerCardClass}`}>
+                      <p className={`text-xs uppercase tracking-wide ${subTextClass}`}>
+                        {key.replace(/_/g, ' ')}
+                      </p>
+                      <p className={`mt-1 text-2xl font-bold ${headingClass}`}>
+                        {typeof value === 'number' ? value : 0}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className={`text-sm py-2 ${subTextClass}`}>No statistics available</p>
+              )}
+            </div>
+          )}
         </div>
 
         {savedExams.length === 0 ? (
@@ -2468,6 +2607,15 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
             >
               Manage Chapters
             </button>
+            <button
+              type="button"
+              onClick={() => setBulkImportOpen(true)}
+              disabled={selectedCourse === 'all'}
+              className={`px-3 py-2 rounded-lg border text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${secondaryButtonClass}`}
+              title={selectedCourse === 'all' ? 'Select a course first' : 'Import questions from CSV'}
+            >
+              Import Questions
+            </button>
           </div>
         </div>
 
@@ -2490,9 +2638,21 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
         {/* Filter Bar */}
         <div className={`rounded-lg border ${isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-gray-50'}`}>
           <div className={`flex items-center justify-between px-4 py-2 border-b ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
-            <span className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>
-              Filters
-            </span>
+            <div className="flex items-center gap-2">
+              <span className={`text-xs font-semibold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-gray-400'}`}>
+                Filters
+              </span>
+              {(() => {
+                const activeFilterCount = filterQuestionType.length + filterDifficulty.length +
+                  filterStatus.length + filterBloomLevel.length +
+                  (selectedChapter !== 'all' ? 1 : 0);
+                return activeFilterCount > 0 ? (
+                  <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-blue-500 text-white text-xs font-medium">
+                    {activeFilterCount}
+                  </span>
+                ) : null;
+              })()}
+            </div>
             {(filterQuestionType.length > 0 || filterDifficulty.length > 0 || filterStatus.length > 0 || filterBloomLevel.length > 0 || searchQuery) && (
               <button
                 onClick={handleClearFilters}
@@ -2710,9 +2870,9 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
                           <StatusBadge status={question.status} />
                         )}
                       </div>
-                      <p className={`text-sm sm:text-base font-medium ${headingClass}`}>
+                      <div className={`text-sm sm:text-base font-medium ${headingClass}`}>
                         <MathText text={question.questionText?.trim() || 'Untitled question'} />
-                      </p>
+                      </div>
                     </div>
                   </div>
 
@@ -2809,6 +2969,16 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
                           Restore
                         </DropdownMenuItem>
                       )}
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setAttachmentsPanelQuestionId(questionId);
+                          setAttachmentsPanelQuestionText(question.questionText ?? '');
+                          setAttachmentsPanelOpen(true);
+                        }}
+                      >
+                        <FileText size={14} className="mr-2" />
+                        Attachments
+                      </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
@@ -2848,6 +3018,11 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
                     <FileText size={14} />
                     {chapterNameById.get(String(question.chapterId ?? '')) || `Chapter #${String(question.chapterId ?? 'N/A')}`}
                   </span>
+                  {question.createdAt && (
+                    <span className="text-[11px]">
+                      Created: {new Date(question.createdAt).toLocaleDateString()}
+                    </span>
+                  )}
                 </div>
 
                 {Array.isArray(question.options) && question.options.length > 0 && (
@@ -2929,6 +3104,24 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
         onOpenChange={setChapterManagerOpen}
         courseId={selectedCourse !== 'all' ? Number(selectedCourse) : 0}
         onChapterChange={refreshChapters}
+      />
+
+      <BulkImportDialog
+        open={bulkImportOpen}
+        onOpenChange={setBulkImportOpen}
+        courseId={selectedCourse !== 'all' ? Number(selectedCourse) : 0}
+        chapterId={selectedChapter !== 'all' ? Number(selectedChapter) : undefined}
+        onSuccess={(count) => {
+          toast.success(`${count} question${count !== 1 ? 's' : ''} imported`);
+          refreshQuestions();
+        }}
+      />
+
+      <QuestionAttachmentsPanel
+        open={attachmentsPanelOpen}
+        onOpenChange={setAttachmentsPanelOpen}
+        questionId={attachmentsPanelQuestionId ?? 0}
+        questionText={attachmentsPanelQuestionText}
       />
 
       <ConfirmDialog
