@@ -16,6 +16,13 @@ import {
   AccordionTrigger,
 } from '../ui/accordion';
 import { Button } from '../ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../ui/select';
 import { useTheme } from '../../pages/instructor-dashboard/contexts/ThemeContext';
 import {
   StatusBadge,
@@ -24,7 +31,8 @@ import {
 } from '../shared/index';
 import ExamGenerationService from '../../services/api/examGenerationService';
 import { toast } from 'sonner';
-import { Loader2 } from 'lucide-react';
+import { Archive, Loader2, Send } from 'lucide-react';
+import type { ExamExportOptions, ExamPaperTemplate } from '../../types/examGenerator';
 
 interface ExamQuestion {
   id: string;
@@ -49,6 +57,7 @@ interface ExamSection {
 
 interface ExamFullData {
   examId: number;
+  courseId?: number;
   title: string;
   status?: string;
   totalWeight: number;
@@ -73,6 +82,21 @@ export const ExamFullViewModal: React.FC<ExamFullViewModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
+  const [showExportOptions, setShowExportOptions] = useState(false);
+  const [templates, setTemplates] = useState<ExamPaperTemplate[]>([]);
+  const [lifecycleLoading, setLifecycleLoading] = useState<string | null>(null);
+  const [exportOptions, setExportOptions] = useState<ExamExportOptions>({
+    format: 'docx',
+    variant: 'student',
+    includeAnswerKey: false,
+    studentNameLine: true,
+    showCourseCode: true,
+    pageBreakPerSection: false,
+    showInstructorName: false,
+    showTotalMarks: true,
+    showQuestionMarks: true,
+    answerKeyStyle: 'inline',
+  });
 
   const loadExam = useCallback(async () => {
     try {
@@ -132,6 +156,7 @@ export const ExamFullViewModal: React.FC<ExamFullViewModalProps> = ({
 
       setExam({
         examId: toNum(payload.id ?? payload.examId) || examId,
+        courseId: typeof payload.courseId === 'number' ? payload.courseId : undefined,
         title: toStr(payload.title) ?? `Exam #${examId}`,
         status: toStr(payload.status),
         totalWeight: toNum(payload.totalMarks ?? payload.totalWeight),
@@ -139,6 +164,10 @@ export const ExamFullViewModal: React.FC<ExamFullViewModalProps> = ({
         sections,
         items: sections ? undefined : items,
       });
+      const loadedCourseId = typeof payload.courseId === 'number' ? payload.courseId : undefined;
+      ExamGenerationService.getPaperTemplates({ courseId: loadedCourseId })
+        .then((items) => setTemplates(Array.isArray(items) ? items : []))
+        .catch(() => setTemplates([]));
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to load exam';
       setError(message);
@@ -156,10 +185,12 @@ export const ExamFullViewModal: React.FC<ExamFullViewModalProps> = ({
   const handleExport = async () => {
     try {
       setExporting(true);
-      const result = await ExamGenerationService.exportExamWord(examId) as { fileName?: string; mimeType?: string; content?: string };
-      const fileName = result?.fileName ?? `exam-${examId}.docx`;
-      const mimeType = result?.mimeType ?? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-      const base64 = result?.content ?? '';
+      const result = await ExamGenerationService.exportExam(examId, exportOptions);
+      const response = (result?.data ?? result) as { fileName?: string; mimeType?: string; content?: string };
+      const fileName = response?.fileName ?? `exam-${examId}.${exportOptions.format}`;
+      const mimeType = response?.mimeType ?? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+      const base64 = response?.content ?? '';
+      if (!base64) throw new Error('Export completed without file content');
       const byteChars = atob(base64);
       const bytes = new Uint8Array(byteChars.length);
       for (let i = 0; i < byteChars.length; i++) bytes[i] = byteChars.charCodeAt(i);
@@ -171,12 +202,32 @@ export const ExamFullViewModal: React.FC<ExamFullViewModalProps> = ({
       a.click();
       URL.revokeObjectURL(url);
       toast.success(`Downloaded ${fileName}`);
+      setShowExportOptions(false);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to export exam');
     } finally {
       setExporting(false);
     }
   };
+
+  const handleLifecycle = async (action: 'publish' | 'archive') => {
+    const reason = window.prompt(
+      action === 'publish' ? 'Publish reason (optional)' : 'Archive reason (optional)',
+    ) ?? undefined;
+    try {
+      setLifecycleLoading(action);
+      await ExamGenerationService.lifecycle(examId, action, reason?.trim() || undefined);
+      toast.success(action === 'publish' ? 'Exam published' : 'Exam archived');
+      await loadExam();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : `Failed to ${action} exam`);
+    } finally {
+      setLifecycleLoading(null);
+    }
+  };
+
+  const updateExportOption = (patch: Partial<ExamExportOptions>) =>
+    setExportOptions((current) => ({ ...current, ...patch }));
 
   const hasSections = exam && exam.sections && exam.sections.length > 0;
 
@@ -327,19 +378,30 @@ export const ExamFullViewModal: React.FC<ExamFullViewModalProps> = ({
 
         <DialogFooter>
           <Button
-            onClick={handleExport}
+            variant="outline"
+            onClick={() => void handleLifecycle('publish')}
+            disabled={!!lifecycleLoading || loading}
+            className={isDark ? 'border-gray-600 text-gray-200' : ''}
+          >
+            {lifecycleLoading === 'publish' ? <Loader2 size={16} className="mr-2 animate-spin" /> : <Send size={16} className="mr-2" />}
+            Publish
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => void handleLifecycle('archive')}
+            disabled={!!lifecycleLoading || loading}
+            className={isDark ? 'border-gray-600 text-gray-200' : ''}
+          >
+            {lifecycleLoading === 'archive' ? <Loader2 size={16} className="mr-2 animate-spin" /> : <Archive size={16} className="mr-2" />}
+            Archive
+          </Button>
+          <Button
+            onClick={() => setShowExportOptions(true)}
             disabled={exporting || loading}
             style={{ backgroundColor: primaryHex }}
             className="text-white"
           >
-            {exporting ? (
-              <>
-                <Loader2 size={16} className="inline mr-2 animate-spin" />
-                Exporting...
-              </>
-            ) : (
-              'Export to Word'
-            )}
+            Export
           </Button>
           <Button
             variant="outline"
@@ -350,6 +412,115 @@ export const ExamFullViewModal: React.FC<ExamFullViewModalProps> = ({
           </Button>
         </DialogFooter>
       </DialogContent>
+      <Dialog open={showExportOptions} onOpenChange={setShowExportOptions}>
+        <DialogContent
+          className="max-w-2xl"
+          style={{
+            backgroundColor: isDark ? '#1f2937' : '#ffffff',
+            borderColor: isDark ? '#374151' : '#e5e7eb',
+          }}
+        >
+          <DialogHeader>
+            <DialogTitle>Export Exam</DialogTitle>
+            <DialogDescription>Choose the paper variant, answer key behavior, and template options.</DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className={`text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>Format</label>
+              <Select value={exportOptions.format} onValueChange={(value) => updateExportOption({ format: value as ExamExportOptions['format'] })}>
+                <SelectTrigger className={isDark ? 'mt-1 bg-gray-700 border-gray-600 text-white' : 'mt-1'}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="docx">DOCX</SelectItem>
+                  <SelectItem value="pdf">PDF</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className={`text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>Variant</label>
+              <Select value={exportOptions.variant} onValueChange={(value) => updateExportOption({ variant: value as ExamExportOptions['variant'], includeAnswerKey: value !== 'student' })}>
+                <SelectTrigger className={isDark ? 'mt-1 bg-gray-700 border-gray-600 text-white' : 'mt-1'}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="student">Student Paper</SelectItem>
+                  <SelectItem value="answer_key">Answer Key</SelectItem>
+                  <SelectItem value="combined">Combined</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className={`text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>Answer Key Style</label>
+              <Select value={exportOptions.answerKeyStyle ?? 'inline'} onValueChange={(value) => updateExportOption({ answerKeyStyle: value as ExamExportOptions['answerKeyStyle'] })}>
+                <SelectTrigger className={isDark ? 'mt-1 bg-gray-700 border-gray-600 text-white' : 'mt-1'}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="inline">Inline</SelectItem>
+                  <SelectItem value="separate">Separate</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className={`text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>Paper Template</label>
+              <Select
+                value={exportOptions.paperTemplateId ? String(exportOptions.paperTemplateId) : 'none'}
+                onValueChange={(value) => {
+                  const template = templates.find((item) => String(item.id) === value);
+                  updateExportOption({
+                    paperTemplateId: value === 'none' ? undefined : Number(value),
+                    paperTemplateSnapshot: template?.snapshot ?? template?.template,
+                  });
+                }}
+              >
+                <SelectTrigger className={isDark ? 'mt-1 bg-gray-700 border-gray-600 text-white' : 'mt-1'}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No template</SelectItem>
+                  {templates.map((template) => (
+                    <SelectItem key={String(template.id)} value={String(template.id)}>
+                      {String(template.name ?? `Template #${template.id}`)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {[
+              ['studentNameLine', 'Student name line'],
+              ['showCourseCode', 'Show course code'],
+              ['pageBreakPerSection', 'Page break per section'],
+              ['showInstructorName', 'Show instructor name'],
+              ['showTotalMarks', 'Show total marks'],
+              ['showQuestionMarks', 'Show question marks'],
+            ].map(([key, label]) => (
+              <label key={key} className={`flex items-center gap-2 text-sm ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
+                <input
+                  type="checkbox"
+                  checked={Boolean(exportOptions[key as keyof ExamExportOptions])}
+                  onChange={(event) => updateExportOption({ [key]: event.target.checked } as Partial<ExamExportOptions>)}
+                />
+                {label}
+              </label>
+            ))}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowExportOptions(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleExport}
+              disabled={exporting}
+              style={{ backgroundColor: primaryHex }}
+              className="text-white"
+            >
+              {exporting ? <Loader2 size={16} className="mr-2 animate-spin" /> : null}
+              Export
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 };

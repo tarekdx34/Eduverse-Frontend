@@ -52,6 +52,7 @@ import {
   Loader2,
   AlertCircle,
   X,
+  RefreshCw,
 } from 'lucide-react';
 
 const LoadTrigger: React.FC<{ onMount: () => void }> = ({ onMount }) => {
@@ -66,6 +67,7 @@ interface DraftSection {
   instructions?: string;
   totalMarks?: number;
   answerPolicy?: string;
+  requiredAnswerCount?: number;
   itemOrder?: number;
 }
 
@@ -77,9 +79,12 @@ interface DraftItem {
   questionType?: string;
   difficulty?: string;
   weight: number;
+  marks?: number;
+  weightUnits?: number;
   itemOrder?: number;
   questionText?: string;
   sectionId?: number;
+  draftSectionId?: number;
 }
 
 interface DraftDetail {
@@ -138,8 +143,10 @@ export const DraftEditorModal: React.FC<DraftEditorModalProps> = ({
     title: '',
     instructions: '',
     totalMarks: '',
-    answerPolicy: 'ANSWER_ALL',
+    answerPolicy: 'answer_all',
+    requiredAnswerCount: '',
   });
+  const [editingSectionId, setEditingSectionId] = useState<number | null>(null);
 
   const [showDeleteSection, setShowDeleteSection] = useState(false);
   const [sectionToDelete, setSectionToDelete] = useState<number | null>(null);
@@ -149,6 +156,10 @@ export const DraftEditorModal: React.FC<DraftEditorModalProps> = ({
     null,
   );
   const [searchQuery, setSearchQuery] = useState('');
+  const [candidateType, setCandidateType] = useState('');
+  const [candidateDifficulty, setCandidateDifficulty] = useState('');
+  const [candidateBloom, setCandidateBloom] = useState('');
+  const [candidateChapterId, setCandidateChapterId] = useState('');
   const [approvedQuestions, setApprovedQuestions] = useState<Question[]>([]);
   const [questionsLoading, setQuestionsLoading] = useState(false);
   const [selectedQuestions, setSelectedQuestions] = useState<Set<number>>(
@@ -165,8 +176,16 @@ export const DraftEditorModal: React.FC<DraftEditorModalProps> = ({
 
   const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
   const [duplicateName, setDuplicateName] = useState(`Copy of ${draftTitle}`);
+  const [duplicateSeed, setDuplicateSeed] = useState('');
+  const [duplicateRegenerate, setDuplicateRegenerate] = useState(false);
 
   const [showRegenerateConfirm, setShowRegenerateConfirm] = useState(false);
+  const [regenerateSeed, setRegenerateSeed] = useState('');
+  const [keepManualEdits, setKeepManualEdits] = useState(true);
+  const [showReplaceQuestion, setShowReplaceQuestion] = useState(false);
+  const [replacementItemId, setReplacementItemId] = useState<number | null>(null);
+  const [replacementQuestionId, setReplacementQuestionId] = useState<number | null>(null);
+  const [overrideReason, setOverrideReason] = useState('');
 
   const loadDraft = useCallback(async () => {
     try {
@@ -227,10 +246,14 @@ export const DraftEditorModal: React.FC<DraftEditorModalProps> = ({
   const handleRegenerate = async () => {
     try {
       setRegenerating(true);
-      await ExamGenerationService.regenerateDraft(draftId);
+      await ExamGenerationService.regenerateDraft(draftId, {
+        seed: regenerateSeed.trim() || undefined,
+        keepManualEdits,
+      });
       toast.success('Draft regenerated');
       await loadDraft();
       setShowRegenerateConfirm(false);
+      setRegenerateSeed('');
     } catch (err) {
       toast.error(
         err instanceof Error ? err.message : 'Failed to regenerate draft',
@@ -243,7 +266,11 @@ export const DraftEditorModal: React.FC<DraftEditorModalProps> = ({
   const handleDuplicate = async () => {
     try {
       setDuplicating(true);
-      const result = await ExamGenerationService.duplicateDraft(draftId);
+      await ExamGenerationService.duplicateDraft(draftId, {
+        title: duplicateName.trim() || undefined,
+        seed: duplicateSeed.trim() || undefined,
+        regenerate: duplicateRegenerate,
+      });
       toast.success('Draft duplicated');
       onSaved();
       setShowDuplicateDialog(false);
@@ -288,8 +315,10 @@ export const DraftEditorModal: React.FC<DraftEditorModalProps> = ({
   const handleExport = async () => {
     try {
       setExporting(true);
-      await ExamGenerationService.exportExamWord(draftId);
-      toast.success('Exam exported to Word');
+      const savedExam = await ExamGenerationService.saveDraft(draftId);
+      await ExamGenerationService.exportExamWord(savedExam.id ?? savedExam.examId ?? draftId);
+      toast.success('Draft saved and exported to Word');
+      onSaved();
     } catch (err) {
       toast.error(
         err instanceof Error ? err.message : 'Failed to export exam',
@@ -299,6 +328,18 @@ export const DraftEditorModal: React.FC<DraftEditorModalProps> = ({
     }
   };
 
+  const openSectionEditor = (section?: DraftSection) => {
+    setEditingSectionId(section?.id ?? null);
+    setSectionForm({
+      title: section?.title ?? '',
+      instructions: section?.instructions ?? '',
+      totalMarks: section?.totalMarks ? String(section.totalMarks) : '',
+      answerPolicy: section?.answerPolicy === 'answer_any' ? 'answer_any' : 'answer_all',
+      requiredAnswerCount: section?.requiredAnswerCount ? String(section.requiredAnswerCount) : '',
+    });
+    setShowCreateSection(true);
+  };
+
   const handleCreateSection = async () => {
     if (!sectionForm.title.trim()) {
       toast.error('Section title is required');
@@ -306,7 +347,13 @@ export const DraftEditorModal: React.FC<DraftEditorModalProps> = ({
     }
 
     try {
-      const dto: { title: string; instructions?: string; totalMarks?: number; answerPolicy?: string } = {
+      const dto: {
+        title: string;
+        instructions?: string;
+        totalMarks?: number;
+        answerPolicy?: 'answer_all' | 'answer_any';
+        requiredAnswerCount?: number;
+      } = {
         title: sectionForm.title,
       };
       if (sectionForm.instructions.trim()) {
@@ -316,23 +363,53 @@ export const DraftEditorModal: React.FC<DraftEditorModalProps> = ({
         dto.totalMarks = parseInt(sectionForm.totalMarks, 10);
       }
       if (sectionForm.answerPolicy) {
-        dto.answerPolicy = sectionForm.answerPolicy;
+        dto.answerPolicy = sectionForm.answerPolicy as 'answer_all' | 'answer_any';
+      }
+      if (sectionForm.answerPolicy === 'answer_any' && sectionForm.requiredAnswerCount) {
+        dto.requiredAnswerCount = parseInt(sectionForm.requiredAnswerCount, 10);
       }
 
-      await ExamGenerationService.createSection(draftId, dto);
-      toast.success('Section created');
+      if (editingSectionId) {
+        await ExamGenerationService.updateSection(draftId, editingSectionId, dto);
+        toast.success('Section updated');
+      } else {
+        await ExamGenerationService.createSection(draftId, dto);
+        toast.success('Section created');
+      }
       setSectionForm({
         title: '',
         instructions: '',
         totalMarks: '',
-        answerPolicy: 'ANSWER_ALL',
+        answerPolicy: 'answer_all',
+        requiredAnswerCount: '',
       });
+      setEditingSectionId(null);
       setShowCreateSection(false);
       await loadDraft();
     } catch (err) {
       toast.error(
         err instanceof Error ? err.message : 'Failed to create section',
       );
+    }
+  };
+
+  const handleReshuffleSection = async (sectionId: number) => {
+    try {
+      await ExamGenerationService.reshuffleSection(draftId, sectionId, { keepManualEdits: true });
+      toast.success('Section reshuffled');
+      await loadDraft();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to reshuffle section');
+    }
+  };
+
+  const handleNormalizeSection = async (section: DraftSection) => {
+    try {
+      await ExamGenerationService.normalizeSectionMarks(draftId, section.id, section.totalMarks);
+      toast.success('Section marks normalized');
+      await loadDraft();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to normalize marks');
     }
   };
 
@@ -356,9 +433,15 @@ export const DraftEditorModal: React.FC<DraftEditorModalProps> = ({
     try {
       setQuestionsLoading(true);
       const result = await QuestionBankService.list({
+        courseId: draft?.courseId,
         status: 'approved',
         page: 1,
         limit: 100,
+        search: searchQuery || undefined,
+        questionType: candidateType as any || undefined,
+        difficulty: candidateDifficulty as any || undefined,
+        bloomLevel: candidateBloom as any || undefined,
+        chapterId: candidateChapterId ? Number(candidateChapterId) : undefined,
       });
       const resultRecord = result as Record<string, unknown>;
       const data = Array.isArray(resultRecord.data)
@@ -387,6 +470,12 @@ export const DraftEditorModal: React.FC<DraftEditorModalProps> = ({
     }
   };
 
+  useEffect(() => {
+    if (showAddQuestion || showReplaceQuestion) {
+      void handleLoadApprovedQuestions();
+    }
+  }, [showAddQuestion, showReplaceQuestion, searchQuery, candidateType, candidateDifficulty, candidateBloom, candidateChapterId]);
+
   const handleAddQuestions = async () => {
     if (selectedQuestions.size === 0) {
       toast.error('Select at least one question');
@@ -399,8 +488,9 @@ export const DraftEditorModal: React.FC<DraftEditorModalProps> = ({
       for (const questionId of selectedQuestions) {
         await ExamGenerationService.addDraftItem(draftId, {
           questionId,
-          weight: 1,
-          ...(sectionId !== null && { sectionId }),
+          weightUnits: 1,
+          marks: 1,
+          ...(sectionId !== null && { draftSectionId: sectionId }),
         });
       }
       toast.success('Questions added');
@@ -428,7 +518,8 @@ export const DraftEditorModal: React.FC<DraftEditorModalProps> = ({
 
     try {
       await ExamGenerationService.updateDraftItem(draftId, editingMarks.itemId, {
-        weight: marks,
+        marks,
+        weightUnits: marks,
       });
       toast.success('Marks updated');
       setEditingMarks(null);
@@ -437,6 +528,32 @@ export const DraftEditorModal: React.FC<DraftEditorModalProps> = ({
       toast.error(
         err instanceof Error ? err.message : 'Failed to update marks',
       );
+    }
+  };
+
+  const handleReplaceQuestion = async () => {
+    if (!replacementItemId || !replacementQuestionId) {
+      toast.error('Choose a replacement question');
+      return;
+    }
+    try {
+      const check = await ExamGenerationService.checkReplacement(draftId, replacementItemId, replacementQuestionId);
+      if ((check as any)?.requiresOverride && !overrideReason.trim()) {
+        toast.error('Override reason is required for this replacement');
+        return;
+      }
+      await ExamGenerationService.updateDraftItem(draftId, replacementItemId, {
+        replacementQuestionId,
+        overrideReason: overrideReason.trim() || undefined,
+      });
+      toast.success('Question replaced');
+      setShowReplaceQuestion(false);
+      setReplacementItemId(null);
+      setReplacementQuestionId(null);
+      setOverrideReason('');
+      await loadDraft();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to replace question');
     }
   };
 
@@ -671,6 +788,15 @@ export const DraftEditorModal: React.FC<DraftEditorModalProps> = ({
                             </button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent>
+                            <DropdownMenuItem onClick={() => openSectionEditor(section)}>
+                              Edit Section
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => void handleReshuffleSection(section.id)}>
+                              Reshuffle Section
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => void handleNormalizeSection(section)}>
+                              Normalize Marks
+                            </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => {
                                 setSectionToDelete(section.id);
@@ -689,7 +815,7 @@ export const DraftEditorModal: React.FC<DraftEditorModalProps> = ({
                   )}
 
                   <button
-                    onClick={() => setShowCreateSection(true)}
+                    onClick={() => openSectionEditor()}
                     className="inline-flex items-center gap-1 px-2 py-1 rounded text-sm hover:bg-gray-200 dark:hover:bg-gray-700"
                   >
                     <Plus size={14} />
@@ -710,6 +836,12 @@ export const DraftEditorModal: React.FC<DraftEditorModalProps> = ({
                         onDeleteItem={(itemId) => {
                           setItemToDelete(itemId);
                           setShowDeleteConfirm(true);
+                        }}
+                        onReplaceItem={(itemId) => {
+                          setReplacementItemId(itemId);
+                          setReplacementQuestionId(null);
+                          setOverrideReason('');
+                          setShowReplaceQuestion(true);
                         }}
                         onAddQuestion={() => {
                           setSelectedSectionId(section.id);
@@ -732,6 +864,12 @@ export const DraftEditorModal: React.FC<DraftEditorModalProps> = ({
                       onDeleteItem={(itemId) => {
                         setItemToDelete(itemId);
                         setShowDeleteConfirm(true);
+                      }}
+                      onReplaceItem={(itemId) => {
+                        setReplacementItemId(itemId);
+                        setReplacementQuestionId(null);
+                        setOverrideReason('');
+                        setShowReplaceQuestion(true);
                       }}
                       onAddQuestion={() => {
                         setSelectedSectionId(null);
@@ -769,7 +907,7 @@ export const DraftEditorModal: React.FC<DraftEditorModalProps> = ({
           }}
         >
           <DialogHeader>
-            <DialogTitle>Create New Section</DialogTitle>
+            <DialogTitle>{editingSectionId ? 'Edit Section' : 'Create New Section'}</DialogTitle>
             <DialogDescription className="sr-only">Add a new section to organise questions</DialogDescription>
           </DialogHeader>
 
@@ -864,17 +1002,37 @@ export const DraftEditorModal: React.FC<DraftEditorModalProps> = ({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ANSWER_ALL">Answer All</SelectItem>
-                  <SelectItem value="ANSWER_ANY">Answer Any</SelectItem>
+                  <SelectItem value="answer_all">Answer All</SelectItem>
+                  <SelectItem value="answer_any">Answer Any</SelectItem>
                 </SelectContent>
               </Select>
             </div>
+            {sectionForm.answerPolicy === 'answer_any' && (
+              <div>
+                <label className={`text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
+                  Required Answer Count
+                </label>
+                <Input
+                  type="number"
+                  min={1}
+                  value={sectionForm.requiredAnswerCount}
+                  onChange={(e) =>
+                    setSectionForm({ ...sectionForm, requiredAnswerCount: e.target.value })
+                  }
+                  placeholder="How many questions should students answer?"
+                  className={isDark ? 'mt-1 bg-gray-700 border-gray-600 text-white' : 'mt-1'}
+                />
+              </div>
+            )}
           </div>
 
           <DialogFooter>
             <Button
               variant="outline"
-              onClick={() => setShowCreateSection(false)}
+              onClick={() => {
+                setShowCreateSection(false);
+                setEditingSectionId(null);
+              }}
             >
               Cancel
             </Button>
@@ -883,7 +1041,7 @@ export const DraftEditorModal: React.FC<DraftEditorModalProps> = ({
               style={{ backgroundColor: primaryHex }}
               className="text-white"
             >
-              Create
+              {editingSectionId ? 'Update' : 'Create'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -929,6 +1087,52 @@ export const DraftEditorModal: React.FC<DraftEditorModalProps> = ({
               placeholder="Search questions by text..."
               onSearch={setSearchQuery}
             />
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
+              <Select value={candidateType || 'all'} onValueChange={(value) => setCandidateType(value === 'all' ? '' : value)}>
+                <SelectTrigger className={isDark ? 'bg-gray-700 border-gray-600 text-white' : ''}>
+                  <SelectValue placeholder="Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Any Type</SelectItem>
+                  <SelectItem value="mcq">MCQ</SelectItem>
+                  <SelectItem value="true_false">True / False</SelectItem>
+                  <SelectItem value="written">Written</SelectItem>
+                  <SelectItem value="fill_blanks">Fill Blanks</SelectItem>
+                  <SelectItem value="essay">Essay</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={candidateDifficulty || 'all'} onValueChange={(value) => setCandidateDifficulty(value === 'all' ? '' : value)}>
+                <SelectTrigger className={isDark ? 'bg-gray-700 border-gray-600 text-white' : ''}>
+                  <SelectValue placeholder="Difficulty" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Any Difficulty</SelectItem>
+                  <SelectItem value="easy">Easy</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="hard">Hard</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={candidateBloom || 'all'} onValueChange={(value) => setCandidateBloom(value === 'all' ? '' : value)}>
+                <SelectTrigger className={isDark ? 'bg-gray-700 border-gray-600 text-white' : ''}>
+                  <SelectValue placeholder="Bloom" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Any Bloom</SelectItem>
+                  <SelectItem value="remembering">Remembering</SelectItem>
+                  <SelectItem value="understanding">Understanding</SelectItem>
+                  <SelectItem value="applying">Applying</SelectItem>
+                  <SelectItem value="analyzing">Analyzing</SelectItem>
+                  <SelectItem value="evaluating">Evaluating</SelectItem>
+                  <SelectItem value="creating">Creating</SelectItem>
+                </SelectContent>
+              </Select>
+              <Input
+                value={candidateChapterId}
+                onChange={(event) => setCandidateChapterId(event.target.value)}
+                placeholder="Chapter ID"
+                className={isDark ? 'bg-gray-700 border-gray-600 text-white' : ''}
+              />
+            </div>
 
             {questionsLoading ? (
               <LoadingSkeleton rows={3} cols={1} />
@@ -1044,6 +1248,78 @@ export const DraftEditorModal: React.FC<DraftEditorModalProps> = ({
         </AlertDialogContent>
       </AlertDialog>
 
+      {/* Replace Question Modal */}
+      <Dialog open={showReplaceQuestion} onOpenChange={setShowReplaceQuestion}>
+        <DialogContent
+          className="max-w-2xl max-h-[80vh] overflow-y-auto"
+          style={{
+            backgroundColor: isDark ? '#1f2937' : '#ffffff',
+            borderColor: isDark ? '#374151' : '#e5e7eb',
+          }}
+        >
+          <DialogHeader>
+            <DialogTitle>Replace Question</DialogTitle>
+            <DialogDescription>
+              Pick an approved replacement. The backend compatibility check runs before applying it.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <SearchInput placeholder="Search replacement questions..." onSearch={setSearchQuery} />
+            {questionsLoading ? (
+              <LoadingSkeleton rows={3} cols={1} />
+            ) : (
+              <div className="space-y-2 max-h-72 overflow-y-auto">
+                {filteredQuestions.map((q) => (
+                  <label
+                    key={q.id}
+                    className={`flex items-start gap-3 p-3 rounded border cursor-pointer ${
+                      isDark ? 'border-gray-600 bg-gray-700' : 'border-gray-300 bg-gray-50'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="replacement-question"
+                      checked={replacementQuestionId === q.id}
+                      onChange={() => setReplacementQuestionId(q.id)}
+                      className="mt-1"
+                    />
+                    <div>
+                      <p className={`text-sm font-medium ${isDark ? 'text-gray-100' : 'text-gray-900'}`}>
+                        Q#{q.id}
+                      </p>
+                      <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                        {q.questionText}
+                      </p>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            )}
+            <Textarea
+              value={overrideReason}
+              onChange={(event) => setOverrideReason(event.target.value)}
+              placeholder="Override reason, required when compatibility check asks for it"
+              className={isDark ? 'bg-gray-700 border-gray-600 text-white' : ''}
+            />
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowReplaceQuestion(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() => void handleReplaceQuestion()}
+              disabled={!replacementQuestionId}
+              style={{ backgroundColor: primaryHex }}
+              className="text-white"
+            >
+              Replace
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Duplicate Dialog */}
       <Dialog open={showDuplicateDialog} onOpenChange={setShowDuplicateDialog}>
         <DialogContent
@@ -1076,6 +1352,25 @@ export const DraftEditorModal: React.FC<DraftEditorModalProps> = ({
                 }
               />
             </div>
+            <div>
+              <label className={`text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
+                Seed
+              </label>
+              <Input
+                value={duplicateSeed}
+                onChange={(e) => setDuplicateSeed(e.target.value)}
+                placeholder="Optional seed"
+                className={isDark ? 'mt-1 bg-gray-700 border-gray-600 text-white' : 'mt-1'}
+              />
+            </div>
+            <label className={`flex items-center gap-2 text-sm ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
+              <input
+                type="checkbox"
+                checked={duplicateRegenerate}
+                onChange={(event) => setDuplicateRegenerate(event.target.checked)}
+              />
+              Regenerate questions in the duplicate
+            </label>
           </div>
 
           <DialogFooter>
@@ -1110,6 +1405,21 @@ export const DraftEditorModal: React.FC<DraftEditorModalProps> = ({
               same rules. Cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
+          <div className="space-y-3 px-6">
+            <Input
+              value={regenerateSeed}
+              onChange={(event) => setRegenerateSeed(event.target.value)}
+              placeholder="Optional seed"
+            />
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={keepManualEdits}
+                onChange={(event) => setKeepManualEdits(event.target.checked)}
+              />
+              Keep manual edits where possible
+            </label>
+          </div>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
@@ -1135,6 +1445,7 @@ interface QuestionsTableProps {
   items: DraftItem[];
   onEditMarks: (itemId: number, marks: number) => void;
   onDeleteItem: (itemId: number) => void;
+  onReplaceItem: (itemId: number) => void;
   onAddQuestion: () => void;
   isDark: boolean;
   primaryHex: string;
@@ -1146,6 +1457,7 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({
   items,
   onEditMarks,
   onDeleteItem,
+  onReplaceItem,
   onAddQuestion,
   isDark,
   primaryHex,
@@ -1307,6 +1619,9 @@ const QuestionsTable: React.FC<QuestionsTableProps> = ({
                           onClick={() => onEditMarks(item.id, item.weight)}
                         >
                           Edit Marks
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onReplaceItem(item.id)}>
+                          Replace Question
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => onDeleteItem(item.id)}

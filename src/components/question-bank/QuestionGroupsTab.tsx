@@ -14,7 +14,8 @@ import {
   FileText,
   Files,
   Image as ImageIcon,
-  MousePointer2
+  MousePointer2,
+  Layers,
 } from 'lucide-react';
 import QuestionGroupService from '../../services/api/questionGroupService';
 import ChapterService, { CourseChapter } from '../../services/api/chapterService';
@@ -50,6 +51,7 @@ const GROUP_TYPE_OPTIONS = [
   { value: 'case_study', label: 'Case Study' },
   { value: 'image_set', label: 'Image Set' },
   { value: 'multipart', label: 'Multipart' },
+  { value: 'other', label: 'Other' },
 ];
 
 export function QuestionGroupsTab({ courses, selectedCourse }: QuestionGroupsTabProps) {
@@ -189,6 +191,9 @@ export function QuestionGroupsTab({ courses, selectedCourse }: QuestionGroupsTab
       multipart: isDark 
         ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400' 
         : 'border-emerald-200 bg-emerald-50 text-emerald-700',
+      other: isDark
+        ? 'border-slate-500/30 bg-slate-500/10 text-slate-300'
+        : 'border-slate-200 bg-slate-50 text-slate-700',
     };
     return colorMap[type] || (isDark ? 'border-white/10 bg-white/5 text-slate-400' : 'border-gray-200 bg-gray-50 text-gray-600');
   };
@@ -199,6 +204,7 @@ export function QuestionGroupsTab({ courses, selectedCourse }: QuestionGroupsTab
       case 'case_study': return <BookOpen size={12} />;
       case 'image_set': return <ImageIcon size={12} />;
       case 'multipart': return <Files size={12} />;
+      case 'other': return <Layers size={12} />;
       default: return <LayoutGrid size={12} />;
     }
   };

@@ -16,8 +16,10 @@ interface GroupFormModalProps {
 
 type GroupFormData = {
   title: string;
-  description: string;
-  groupType: 'passage' | 'case_study' | 'image_set' | 'multipart';
+  sharedPrompt: string;
+  sharedFileCaption: string;
+  sharedFileAltText: string;
+  groupType: 'passage' | 'case_study' | 'image_set' | 'multipart' | 'other';
   chapterId?: number;
 };
 
@@ -26,6 +28,7 @@ const GROUP_TYPE_OPTIONS = [
   { value: 'case_study', label: 'Case Study' },
   { value: 'image_set', label: 'Image Set' },
   { value: 'multipart', label: 'Multipart' },
+  { value: 'other', label: 'Other' },
 ];
 
 export function GroupFormModal({ open, onOpenChange, courseId, group, onSuccess }: GroupFormModalProps) {
@@ -39,7 +42,9 @@ export function GroupFormModal({ open, onOpenChange, courseId, group, onSuccess 
   } = useForm<GroupFormData>({
     defaultValues: {
       title: '',
-      description: '',
+      sharedPrompt: '',
+      sharedFileCaption: '',
+      sharedFileAltText: '',
       groupType: 'passage',
       chapterId: undefined,
     },
@@ -52,7 +57,7 @@ export function GroupFormModal({ open, onOpenChange, courseId, group, onSuccess 
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
 
-  const descriptionValue = watch('description');
+  const sharedPromptValue = watch('sharedPrompt');
 
   useEffect(() => {
     if (open && courseId) {
@@ -64,18 +69,23 @@ export function GroupFormModal({ open, onOpenChange, courseId, group, onSuccess 
     if (open && group) {
       reset({
         title: group.title || '',
-        description: group.description || '',
+        sharedPrompt: group.sharedPrompt || group.description || '',
+        sharedFileCaption: group.sharedFileCaption || '',
+        sharedFileAltText: group.sharedFileAltText || '',
         groupType: group.groupType || 'passage',
         chapterId: group.chapterId,
       });
-      if (group.sharedImageFileId) {
-        setSharedImageFileId(group.sharedImageFileId);
-        loadImagePreview(group.sharedImageFileId);
+      const sharedFileId = group.sharedFileId || group.sharedImageFileId;
+      if (sharedFileId) {
+        setSharedImageFileId(sharedFileId);
+        loadImagePreview(sharedFileId);
       }
     } else if (open) {
       reset({
         title: '',
-        description: '',
+        sharedPrompt: '',
+        sharedFileCaption: '',
+        sharedFileAltText: '',
         groupType: 'passage',
         chapterId: undefined,
       });
@@ -156,10 +166,12 @@ export function GroupFormModal({ open, onOpenChange, courseId, group, onSuccess 
     try {
       const payload = {
         title: data.title,
-        description: data.description,
+        sharedPrompt: data.sharedPrompt,
+        sharedFileCaption: data.sharedFileCaption || undefined,
+        sharedFileAltText: data.sharedFileAltText || undefined,
         groupType: data.groupType,
         chapterId: data.chapterId ? Number(data.chapterId) : undefined,
-        sharedImageFileId: sharedImageFileId || undefined,
+        sharedFileId: sharedImageFileId || undefined,
       };
 
       if (group?.id) {
@@ -251,12 +263,12 @@ export function GroupFormModal({ open, onOpenChange, courseId, group, onSuccess 
             Content / Shared Passage
           </label>
           <textarea
-            {...register('description')}
+            {...register('sharedPrompt')}
             className={`${inputClass} min-h-[160px] resize-none`}
             placeholder="Enter the shared passage, case study, or group description..."
           />
           <div className={`text-[10px] font-bold uppercase tracking-widest flex justify-end ${isDark ? 'text-slate-600' : 'text-slate-400'}`}>
-            {descriptionValue.length} characters
+            {sharedPromptValue.length} characters
           </div>
         </div>
 
@@ -318,6 +330,31 @@ export function GroupFormModal({ open, onOpenChange, courseId, group, onSuccess 
               </div>
             </label>
           )}
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <label className={`block text-xs font-bold uppercase tracking-widest ${subTextClass}`}>
+              Image Caption
+            </label>
+            <input
+              type="text"
+              {...register('sharedFileCaption')}
+              className={inputClass}
+              placeholder="Optional caption shown with the shared visual"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className={`block text-xs font-bold uppercase tracking-widest ${subTextClass}`}>
+              Image Alt Text
+            </label>
+            <input
+              type="text"
+              {...register('sharedFileAltText')}
+              className={inputClass}
+              placeholder="Describe the image for accessibility"
+            />
+          </div>
         </div>
 
         {/* Buttons */}

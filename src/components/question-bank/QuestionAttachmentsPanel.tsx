@@ -67,14 +67,20 @@ export function QuestionAttachmentsPanel({
 
     setUploadLoading(true);
     try {
-      const result = await QuestionBankService.uploadImageAttachment(questionId, file);
-      // The API returns the newly created attachment, add it to the list
-      const newAttachment: Attachment = {
-        id: result?.fileId || Date.now(),
-        type: 'image',
-        url: result?.url || '',
+      const result = await QuestionBankService.uploadImageAttachment(questionId, file, {
         caption: file.name,
         altText: file.name,
+        attachmentType: 'image',
+        displayOrder: attachments.length,
+        isPrimary: attachments.length === 0,
+      });
+      const created = result.attachment;
+      const newAttachment: Attachment = {
+        id: created?.id || result.fileId || Date.now(),
+        type: 'image',
+        url: created?.url || '',
+        caption: created?.caption || file.name,
+        altText: created?.altText || file.name,
       };
       setAttachments([...attachments, newAttachment]);
     } catch (err) {
@@ -263,7 +269,7 @@ export function QuestionAttachmentsPanel({
                     <option value="image">Image</option>
                     <option value="video">Video</option>
                     <option value="document">Document</option>
-                    <option value="link">Link</option>
+                    <option value="audio">Audio</option>
                   </select>
                 </div>
               </div>

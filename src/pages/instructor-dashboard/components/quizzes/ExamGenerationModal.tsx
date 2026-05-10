@@ -1,10 +1,19 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { AlertCircle, ChevronDown, ChevronUp, Loader2, Plus, X } from 'lucide-react';
+import { AlertCircle, ChevronDown, ChevronUp, Loader2, Plus, RefreshCw, Shuffle, X } from 'lucide-react';
 import { InlineMath, BlockMath } from 'react-katex';
 import { toast } from 'sonner';
 import ChapterService, { CourseChapter } from '../../../../services/api/chapterService';
 import ExamGenerationService, { GenerateExamPreviewResponse } from '../../../../services/api/examGenerationService';
 import QuestionBankService, { BloomLevel, QuestionBankDifficulty, QuestionBankType } from '../../../../services/api/questionBankService';
+import QuestionGroupService from '../../../../services/api/questionGroupService';
+import type {
+  ExamGenerationRule,
+  ExamGenerationScope,
+  ExamGenerationSection,
+  ExamGroupSelectionMode,
+  ExamMarkDistributionMode,
+  ExamRoundingPolicy,
+} from '../../../../types/examGenerator';
 import { useTheme } from '../../contexts/ThemeContext';
 import { CustomDropdown } from '../CustomDropdown';
 
@@ -24,12 +33,30 @@ interface ExamGenerationModalProps {
 }
 
 interface RuleState {
+  scope: ExamGenerationScope;
   chapterId: string;
+  chapterIds: string[];
+  groupIds: string[];
   count: string;
   weightPerQuestion: string;
   questionType: string;
   difficulty: string;
   bloomLevel: string;
+}
+
+interface GroupOption {
+  id: number;
+  title: string;
+  groupType?: string;
+}
+
+interface SectionState {
+  title: string;
+  instructions: string;
+  totalMarks: string;
+  answerPolicy: 'answer_all' | 'answer_any';
+  requiredAnswerCount: string;
+  rules: RuleState[];
 }
 
 interface DraftItemEditState {
@@ -106,12 +133,24 @@ const formatEnumLabel = (value?: string) => {
 };
 
 const defaultRule = (): RuleState => ({
+  scope: 'chapter',
   chapterId: '',
+  chapterIds: [],
+  groupIds: [],
   count: '',
   weightPerQuestion: '',
   questionType: '',
   difficulty: '',
   bloomLevel: '',
+});
+
+const defaultSection = (index = 0): SectionState => ({
+  title: `Section ${String.fromCharCode(65 + index)}`,
+  instructions: '',
+  totalMarks: '',
+  answerPolicy: 'answer_all',
+  requiredAnswerCount: '',
+  rules: [defaultRule()],
 });
 
 export function ExamGenerationModal({
@@ -125,7 +164,21 @@ export function ExamGenerationModal({
   const [title, setTitle] = useState('');
   const [courseId, setCourseId] = useState('');
   const [chapters, setChapters] = useState<CourseChapter[]>([]);
+  const [groups, setGroups] = useState<GroupOption[]>([]);
+  const [mode, setMode] = useState<'flat' | 'sectioned'>('flat');
+  const [totalMarks, setTotalMarks] = useState('');
+  const [markDistributionMode, setMarkDistributionMode] = useState<ExamMarkDistributionMode>('manual');
+  const [roundingPolicy, setRoundingPolicy] = useState<ExamRoundingPolicy>('none');
+  const [groupSelectionMode, setGroupSelectionMode] = useState<ExamGroupSelectionMode>('independent');
+  const [seed, setSeed] = useState('');
+  const [durationMinutes, setDurationMinutes] = useState('');
+  const [instructions, setInstructions] = useState('');
+  const [headerText, setHeaderText] = useState('');
+  const [footerText, setFooterText] = useState('');
   const [rules, setRules] = useState<RuleState[]>([defaultRule()]);
+  const [sections, setSections] = useState<SectionState[]>([defaultSection()]);
+  const [availability, setAvailability] = useState<Record<string, unknown> | null>(null);
+  const [checkingAvailability, setCheckingAvailability] = useState(false);
   const [loading, setLoading] = useState(false);
   const [generateError, setGenerateError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -169,11 +222,23 @@ export function ExamGenerationModal({
         );
       })
       .catch((err) => toast.error(err instanceof Error ? err.message : 'Failed to load chapters'));
+
+    QuestionGroupService.list({ courseId: Number(courseId), limit: 200 })
+      .then((response) => {
+        const data = Array.isArray(response) ? response : response?.data ?? [];
+        setGroups(data.map((group: any) => ({
+          id: Number(group.id),
+          title: String(group.title ?? `Group #${group.id}`),
+          groupType: group.groupType,
+        })).filter((group) => Number.isFinite(group.id)));
+      })
+      .catch(() => setGroups([]));
   }, [courseId]);
 
   const totalWeight = useMemo(
-    () => rules.reduce((sum, r) => sum + (Number(r.count) || 0) * (Number(r.weightPerQuestion) || 0), 0),
-    [rules],
+    () => (mode === 'flat' ? rules : sections.flatMap((section) => section.rules))
+      .reduce((sum, r) => sum + (Number(r.count) || 0) * (Number(r.weightPerQuestion) || 0), 0),
+    [mode, rules, sections],
   );
 
   if (!open) return null;
@@ -202,10 +267,144 @@ export function ExamGenerationModal({
   const addRule = () => setRules((prev) => [...prev, defaultRule()]);
   const removeRule = (index: number) => setRules((prev) => prev.filter((_, i) => i !== index));
 
+  const updateSection = (index: number, patch: Partial<SectionState>) =>
+    setSections((prev) => prev.map((section, i) => (i === index ? { ...section, ...patch } : section)));
+
+  const addSection = () => setSections((prev) => [...prev, defaultSection(prev.length)]);
+  const removeSection = (index: number) => setSections((prev) => prev.filter((_, i) => i !== index));
+
+  const updateSectionRule = (sectionIndex: number, ruleIndex: number, patch: Partial<RuleState>) =>
+    setSections((prev) => prev.map((section, i) => {
+      if (i !== sectionIndex) return section;
+      return {
+        ...section,
+        rules: section.rules.map((rule, rIndex) => (rIndex === ruleIndex ? { ...rule, ...patch } : rule)),
+      };
+    }));
+
+  const addSectionRule = (sectionIndex: number) =>
+    setSections((prev) => prev.map((section, i) =>
+      i === sectionIndex ? { ...section, rules: [...section.rules, defaultRule()] } : section,
+    ));
+
+  const removeSectionRule = (sectionIndex: number, ruleIndex: number) =>
+    setSections((prev) => prev.map((section, i) =>
+      i === sectionIndex
+        ? { ...section, rules: section.rules.filter((_, rIndex) => rIndex !== ruleIndex) }
+        : section,
+    ));
+
   const chapterOptions = (hasCourse: boolean) =>
     hasCourse
       ? chapters.map((c) => ({ value: String(c.id), label: c.name }))
       : [];
+
+  const toggleArrayValue = (values: string[], value: string) =>
+    values.includes(value) ? values.filter((item) => item !== value) : [...values, value];
+
+  const resetScopeFields = (scope: ExamGenerationScope): Partial<RuleState> => ({
+    scope,
+    chapterId: '',
+    chapterIds: [],
+    groupIds: [],
+  });
+
+  const toOptionalNumber = (value: string) => {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
+  };
+
+  const buildRulePayload = (rule: RuleState): ExamGenerationRule => ({
+    scope: rule.scope,
+    chapterId: rule.scope === 'chapter' && rule.chapterId ? Number(rule.chapterId) : undefined,
+    chapterIds: rule.scope === 'chapters' ? rule.chapterIds.map(Number) : undefined,
+    groupIds: rule.scope === 'group' ? rule.groupIds.map(Number) : undefined,
+    count: Number(rule.count),
+    weightPerQuestion: Number(rule.weightPerQuestion),
+    questionType: rule.questionType ? rule.questionType as QuestionBankType : undefined,
+    difficulty: rule.difficulty ? rule.difficulty as QuestionBankDifficulty : undefined,
+    bloomLevel: rule.bloomLevel ? rule.bloomLevel as BloomLevel : undefined,
+  });
+
+  const buildSectionsPayload = (): ExamGenerationSection[] => sections.map((section) => ({
+    title: section.title.trim(),
+    instructions: section.instructions.trim() || undefined,
+    totalMarks: Number(section.totalMarks),
+    answerPolicy: section.answerPolicy,
+    requiredAnswerCount: section.answerPolicy === 'answer_any' ? Number(section.requiredAnswerCount) : undefined,
+    rules: section.rules.map(buildRulePayload),
+  }));
+
+  const buildGenerationPayload = () => ({
+    courseId: Number(courseId),
+    title: title.trim(),
+    totalMarks: toOptionalNumber(totalMarks),
+    markDistributionMode,
+    roundingPolicy,
+    groupSelectionMode,
+    seed: seed.trim() || undefined,
+    durationMinutes: toOptionalNumber(durationMinutes),
+    instructions: instructions.trim() || undefined,
+    headerText: headerText.trim() || undefined,
+    footerText: footerText.trim() || undefined,
+    rules: mode === 'flat' ? rules.map(buildRulePayload) : undefined,
+    sections: mode === 'sectioned' ? buildSectionsPayload() : undefined,
+  });
+
+  const validateRule = (rule: RuleState, label: string) => {
+    if (rule.scope === 'chapter' && !rule.chapterId) return `${label} needs a chapter`;
+    if (rule.scope === 'chapters' && rule.chapterIds.length === 0) return `${label} needs at least one chapter`;
+    if (rule.scope === 'group' && rule.groupIds.length === 0) return `${label} needs at least one group`;
+    if (!Number(rule.count) || Number(rule.count) < 1) return `${label} count must be at least 1`;
+    if (!Number(rule.weightPerQuestion) || Number(rule.weightPerQuestion) <= 0) return `${label} weight must be greater than 0`;
+    return null;
+  };
+
+  const validateGenerationForm = () => {
+    if (!courseId || !title.trim()) return 'Course and title are required';
+    if (mode === 'flat') {
+      for (let index = 0; index < rules.length; index += 1) {
+        const issue = validateRule(rules[index], `Rule ${index + 1}`);
+        if (issue) return issue;
+      }
+    } else {
+      for (let sectionIndex = 0; sectionIndex < sections.length; sectionIndex += 1) {
+        const section = sections[sectionIndex];
+        if (!section.title.trim()) return `Section ${sectionIndex + 1} needs a title`;
+        if (!Number(section.totalMarks) || Number(section.totalMarks) <= 0) return `${section.title} needs total marks`;
+        if (section.answerPolicy === 'answer_any' && (!Number(section.requiredAnswerCount) || Number(section.requiredAnswerCount) < 1)) {
+          return `${section.title} needs a required answer count`;
+        }
+        for (let ruleIndex = 0; ruleIndex < section.rules.length; ruleIndex += 1) {
+          const issue = validateRule(section.rules[ruleIndex], `${section.title} rule ${ruleIndex + 1}`);
+          if (issue) return issue;
+        }
+      }
+    }
+    return null;
+  };
+
+  const checkAvailability = async () => {
+    setGenerateError(null);
+    const validationIssue = validateGenerationForm();
+    if (validationIssue) {
+      setGenerateError(validationIssue);
+      return;
+    }
+    try {
+      setCheckingAvailability(true);
+      const result = await ExamGenerationService.checkGenerationAvailability(buildGenerationPayload());
+      setAvailability(result as Record<string, unknown>);
+      const shortages = Array.isArray((result as any)?.shortages) ? (result as any).shortages.length : 0;
+      toast.success(shortages > 0 ? `Availability checked with ${shortages} shortage${shortages > 1 ? 's' : ''}` : 'Availability checked');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Availability check failed';
+      setGenerateError(message);
+      toast.error(message);
+    } finally {
+      setCheckingAvailability(false);
+    }
+  };
 
   const buildItemEdits = (items: GenerateExamPreviewResponse['items']) =>
     items.reduce<Record<number, DraftItemEditState>>((acc, item) => {
@@ -242,23 +441,11 @@ export function ExamGenerationModal({
   // ─── Actions ─────────────────────────────────────────────────────────────────
   const generatePreview = async () => {
     setGenerateError(null);
-    if (!courseId || !title.trim()) { setGenerateError('Course and title are required'); return; }
-    const invalid = rules.find((r) => !r.chapterId || !Number(r.count) || Number(r.count) < 1 || Number(r.weightPerQuestion) < 0);
-    if (invalid) { setGenerateError('Each rule must include a chapter, count ≥ 1, and a non-negative weight'); return; }
+    const validationIssue = validateGenerationForm();
+    if (validationIssue) { setGenerateError(validationIssue); return; }
     try {
       setLoading(true);
-      const response = await ExamGenerationService.generatePreview({
-        courseId: Number(courseId),
-        title,
-        rules: rules.map((r) => ({
-          chapterId: Number(r.chapterId),
-          count: Number(r.count),
-          weightPerQuestion: Number(r.weightPerQuestion) || 0,
-          questionType: r.questionType as QuestionBankType || undefined,
-          difficulty: r.difficulty as QuestionBankDifficulty || undefined,
-          bloomLevel: r.bloomLevel as BloomLevel || undefined,
-        })),
-      });
+      const response = await ExamGenerationService.generatePreview(buildGenerationPayload());
       const generatedAt = new Date().toISOString();
       setDraftId(response.draftId);
       setPreview(response);
@@ -279,6 +466,122 @@ export function ExamGenerationModal({
       setLoading(false);
     }
   };
+
+  const renderScopeTarget = (
+    rule: RuleState,
+    onPatch: (patch: Partial<RuleState>) => void,
+  ) => {
+    if (rule.scope === 'course') {
+      return (
+        <div className={`px-3 py-2 rounded-lg border text-sm ${isDark ? 'border-white/10 bg-white/5 text-slate-300' : 'border-gray-200 bg-white text-gray-600'}`}>
+          Entire course
+        </div>
+      );
+    }
+    if (rule.scope === 'chapter') {
+      return (
+        <CustomDropdown
+          value={rule.chapterId}
+          options={chapterOptions(!!courseId)}
+          onChange={(v) => onPatch({ chapterId: v })}
+          placeholder={!courseId ? 'Select course first' : chapters.length === 0 ? 'No chapters' : 'Chapter'}
+          disabled={!courseId}
+          fullWidth
+        />
+      );
+    }
+    if (rule.scope === 'chapters') {
+      return (
+        <div className={`max-h-28 overflow-y-auto rounded-lg border p-2 ${isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white'}`}>
+          {chapters.length === 0 ? (
+            <p className={`text-xs ${subCls}`}>No chapters available</p>
+          ) : chapters.map((chapter) => (
+            <label key={chapter.id} className={`flex items-center gap-2 py-1 text-xs ${headingCls}`}>
+              <input
+                type="checkbox"
+                checked={rule.chapterIds.includes(String(chapter.id))}
+                onChange={() => onPatch({ chapterIds: toggleArrayValue(rule.chapterIds, String(chapter.id)) })}
+              />
+              {chapter.name}
+            </label>
+          ))}
+        </div>
+      );
+    }
+    return (
+      <div className={`max-h-28 overflow-y-auto rounded-lg border p-2 ${isDark ? 'border-white/10 bg-white/5' : 'border-gray-200 bg-white'}`}>
+        {groups.length === 0 ? (
+          <p className={`text-xs ${subCls}`}>No question groups available</p>
+        ) : groups.map((group) => (
+          <label key={group.id} className={`flex items-center gap-2 py-1 text-xs ${headingCls}`}>
+            <input
+              type="checkbox"
+              checked={rule.groupIds.includes(String(group.id))}
+              onChange={() => onPatch({ groupIds: toggleArrayValue(rule.groupIds, String(group.id)) })}
+            />
+            {group.title}
+          </label>
+        ))}
+      </div>
+    );
+  };
+
+  const renderRuleEditor = (
+    rule: RuleState,
+    index: number,
+    onPatch: (patch: Partial<RuleState>) => void,
+    onRemove?: () => void,
+  ) => (
+    <div className={`rounded-xl border p-3 ${sectionCls}`}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-8 gap-2 items-end">
+        <div className="lg:col-span-1">
+          <label className={labelCls}>Scope</label>
+          <CustomDropdown
+            value={rule.scope}
+            options={[
+              { value: 'course', label: 'Course' },
+              { value: 'chapter', label: 'Chapter' },
+              { value: 'chapters', label: 'Chapters' },
+              { value: 'group', label: 'Group' },
+            ]}
+            onChange={(value) => onPatch(resetScopeFields(value as ExamGenerationScope))}
+            fullWidth
+          />
+        </div>
+        <div className="lg:col-span-2">
+          <label className={labelCls}>{rule.scope === 'group' ? 'Groups' : rule.scope === 'chapters' ? 'Chapters' : 'Target'}</label>
+          {renderScopeTarget(rule, onPatch)}
+        </div>
+        <div className="lg:col-span-1">
+          <label className={labelCls}>Count</label>
+          <input type="number" min={1} value={rule.count} onChange={(e) => onPatch({ count: e.target.value })} className={fieldCls} placeholder="# questions" />
+        </div>
+        <div className="lg:col-span-1">
+          <label className={labelCls}>Marks / Q</label>
+          <input type="number" min={0.25} step={0.25} value={rule.weightPerQuestion} onChange={(e) => onPatch({ weightPerQuestion: e.target.value })} className={fieldCls} placeholder="Marks each" />
+        </div>
+        <div className="lg:col-span-1">
+          <label className={labelCls}>Type</label>
+          <CustomDropdown value={rule.questionType} options={questionTypeOptions} onChange={(v) => onPatch({ questionType: v })} fullWidth />
+        </div>
+        <div className="lg:col-span-1">
+          <label className={labelCls}>Difficulty</label>
+          <CustomDropdown value={rule.difficulty} options={difficultyOptions} onChange={(v) => onPatch({ difficulty: v })} fullWidth />
+        </div>
+        <div className="lg:col-span-1 flex items-end gap-2">
+          <div className="flex-1 min-w-0">
+            <label className={labelCls}>Bloom</label>
+            <CustomDropdown value={rule.bloomLevel} options={bloomOptions} onChange={(v) => onPatch({ bloomLevel: v })} fullWidth />
+          </div>
+          {onRemove && (
+            <button onClick={onRemove} className={`flex-shrink-0 p-2 rounded-lg border text-sm transition-colors ${isDark ? 'border-white/10 text-slate-400 hover:bg-white/10' : 'border-gray-300 text-gray-500 hover:bg-gray-100'}`}>
+              <X size={14} />
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 
   const saveExam = async () => {
     setSaveError(null);
@@ -418,103 +721,226 @@ export function ExamGenerationModal({
           </div>
         </div>
 
-        {/* Rules */}
-        <div className="space-y-3">
-          {rules.map((rule, index) => (
-            <div key={index} className={`rounded-xl border p-3 ${sectionCls}`}>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-2 items-end">
-                {/* Chapter */}
-                <div className="lg:col-span-1">
-                  <label className={labelCls}>Chapter</label>
-                  <CustomDropdown
-                    value={rule.chapterId}
-                    options={chapterOptions(!!courseId)}
-                    onChange={(v) => updateRule(index, { chapterId: v })}
-                    placeholder={!courseId ? 'Select course first' : chapters.length === 0 ? 'No chapters' : 'Chapter'}
-                    disabled={!courseId}
-                    fullWidth
-                  />
-                </div>
-                {/* Count */}
-                <div className="lg:col-span-1">
-                  <label className={labelCls}>Count</label>
-                  <input
-                    type="number"
-                    min={1}
-                    value={rule.count}
-                    onChange={(e) => updateRule(index, { count: e.target.value })}
-                    className={fieldCls}
-                    placeholder="# questions"
-                  />
-                </div>
-                {/* Weight */}
-                <div className="lg:col-span-1">
-                  <label className={labelCls}>Weight / Q</label>
-                  <input
-                    type="number"
-                    min={0}
-                    value={rule.weightPerQuestion}
-                    onChange={(e) => updateRule(index, { weightPerQuestion: e.target.value })}
-                    className={fieldCls}
-                    placeholder="Marks each"
-                  />
-                </div>
-                {/* Type */}
-                <div className="lg:col-span-1">
-                  <label className={labelCls}>Type</label>
-                  <CustomDropdown
-                    value={rule.questionType}
-                    options={questionTypeOptions}
-                    onChange={(v) => updateRule(index, { questionType: v })}
-                    fullWidth
-                  />
-                </div>
-                {/* Difficulty */}
-                <div className="lg:col-span-1">
-                  <label className={labelCls}>Difficulty</label>
-                  <CustomDropdown
-                    value={rule.difficulty}
-                    options={difficultyOptions}
-                    onChange={(v) => updateRule(index, { difficulty: v })}
-                    fullWidth
-                  />
-                </div>
-                {/* Bloom + remove */}
-                <div className="lg:col-span-1 flex items-end gap-2">
-                  <div className="flex-1 min-w-0">
-                    <label className={labelCls}>Bloom</label>
+        {/* Advanced settings */}
+        <section className={`mb-4 rounded-xl border p-4 ${sectionCls}`}>
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h4 className={`text-sm font-semibold ${headingCls}`}>Generation Settings</h4>
+              <p className={`text-xs ${subCls}`}>Match the mobile generator: marks, sections, seed, instructions, and grouping behavior.</p>
+            </div>
+            <div className={`inline-flex rounded-lg border p-1 ${isDark ? 'border-white/10 bg-black/20' : 'border-gray-200 bg-white'}`}>
+              <button
+                type="button"
+                onClick={() => setMode('flat')}
+                className={`px-3 py-1.5 rounded-md text-xs font-semibold ${mode === 'flat' ? 'text-white' : subCls}`}
+                style={{ backgroundColor: mode === 'flat' ? primaryHex : 'transparent' }}
+              >
+                Flat
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode('sectioned')}
+                className={`px-3 py-1.5 rounded-md text-xs font-semibold ${mode === 'sectioned' ? 'text-white' : subCls}`}
+                style={{ backgroundColor: mode === 'sectioned' ? primaryHex : 'transparent' }}
+              >
+                Sectioned
+              </button>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div>
+              <label className={labelCls}>Total Marks</label>
+              <input type="number" min={0} step={0.25} value={totalMarks} onChange={(e) => setTotalMarks(e.target.value)} className={fieldCls} placeholder="Optional" />
+            </div>
+            <div>
+              <label className={labelCls}>Distribution</label>
+              <CustomDropdown
+                value={markDistributionMode}
+                options={[
+                  { value: 'manual', label: 'Manual' },
+                  { value: 'weight_normalized', label: 'Weight Normalized' },
+                  { value: 'equal', label: 'Equal' },
+                ]}
+                onChange={(value) => setMarkDistributionMode(value as ExamMarkDistributionMode)}
+                fullWidth
+              />
+            </div>
+            <div>
+              <label className={labelCls}>Rounding</label>
+              <CustomDropdown
+                value={roundingPolicy}
+                options={[
+                  { value: 'none', label: 'None' },
+                  { value: 'nearest_0_25', label: 'Nearest 0.25' },
+                  { value: 'nearest_0_5', label: 'Nearest 0.5' },
+                  { value: 'nearest_1', label: 'Nearest 1' },
+                ]}
+                onChange={(value) => setRoundingPolicy(value as ExamRoundingPolicy)}
+                fullWidth
+              />
+            </div>
+            <div>
+              <label className={labelCls}>Grouped Questions</label>
+              <CustomDropdown
+                value={groupSelectionMode}
+                options={[
+                  { value: 'independent', label: 'Independent' },
+                  { value: 'exclude_grouped', label: 'Exclude Grouped' },
+                  { value: 'keep_group_together', label: 'Keep Together' },
+                ]}
+                onChange={(value) => setGroupSelectionMode(value as ExamGroupSelectionMode)}
+                fullWidth
+              />
+            </div>
+            <div>
+              <label className={labelCls}>Seed</label>
+              <div className="flex gap-2">
+                <input value={seed} onChange={(e) => setSeed(e.target.value)} className={fieldCls} placeholder="Optional seed" />
+                <button
+                  type="button"
+                  onClick={() => setSeed(Math.random().toString(36).slice(2, 10))}
+                  className={secondaryCls}
+                  title="Randomize seed"
+                >
+                  <Shuffle size={14} />
+                </button>
+              </div>
+            </div>
+            <div>
+              <label className={labelCls}>Duration</label>
+              <input type="number" min={1} value={durationMinutes} onChange={(e) => setDurationMinutes(e.target.value)} className={fieldCls} placeholder="Minutes" />
+            </div>
+            <div className="sm:col-span-2">
+              <label className={labelCls}>Header Text</label>
+              <input value={headerText} onChange={(e) => setHeaderText(e.target.value)} className={fieldCls} placeholder="Optional exam header" />
+            </div>
+            <div className="sm:col-span-2">
+              <label className={labelCls}>Instructions</label>
+              <textarea value={instructions} onChange={(e) => setInstructions(e.target.value)} className={`${fieldCls} min-h-20 resize-y`} placeholder="Student-facing instructions" />
+            </div>
+            <div className="sm:col-span-2">
+              <label className={labelCls}>Footer Text</label>
+              <textarea value={footerText} onChange={(e) => setFooterText(e.target.value)} className={`${fieldCls} min-h-20 resize-y`} placeholder="Optional footer" />
+            </div>
+          </div>
+        </section>
+
+        {mode === 'flat' ? (
+          <>
+            <div className="space-y-3">
+              {rules.map((rule, index) => (
+                <React.Fragment key={index}>
+                  {renderRuleEditor(rule, index, (patch) => updateRule(index, patch), rules.length > 1 ? () => removeRule(index) : undefined)}
+                </React.Fragment>
+              ))}
+            </div>
+            <button onClick={addRule} className={`mt-3 inline-flex items-center gap-2 px-3 py-2 rounded-lg border text-sm transition-colors ${isDark ? 'border-white/10 text-slate-200 hover:bg-white/10' : 'border-gray-300 text-gray-700 hover:bg-gray-100'}`}>
+              <Plus size={14} />
+              Add Rule
+            </button>
+          </>
+        ) : (
+          <div className="space-y-4">
+            {sections.map((section, sectionIndex) => (
+              <section key={sectionIndex} className={`rounded-xl border p-4 ${sectionCls}`}>
+                <div className="mb-3 grid grid-cols-1 md:grid-cols-5 gap-3">
+                  <div className="md:col-span-2">
+                    <label className={labelCls}>Section Title</label>
+                    <input value={section.title} onChange={(e) => updateSection(sectionIndex, { title: e.target.value })} className={fieldCls} />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Marks</label>
+                    <input type="number" min={0.25} step={0.25} value={section.totalMarks} onChange={(e) => updateSection(sectionIndex, { totalMarks: e.target.value })} className={fieldCls} />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Answer Policy</label>
                     <CustomDropdown
-                      value={rule.bloomLevel}
-                      options={bloomOptions}
-                      onChange={(v) => updateRule(index, { bloomLevel: v })}
+                      value={section.answerPolicy}
+                      options={[
+                        { value: 'answer_all', label: 'Answer All' },
+                        { value: 'answer_any', label: 'Answer Any' },
+                      ]}
+                      onChange={(value) => updateSection(sectionIndex, { answerPolicy: value as 'answer_all' | 'answer_any' })}
                       fullWidth
                     />
                   </div>
-                  {rules.length > 1 && (
-                    <button
-                      onClick={() => removeRule(index)}
-                      className={`flex-shrink-0 p-2 rounded-lg border text-sm transition-colors ${isDark ? 'border-white/10 text-slate-400 hover:bg-white/10' : 'border-gray-300 text-gray-500 hover:bg-gray-100'}`}
-                    >
+                  <div>
+                    <label className={labelCls}>Required</label>
+                    <input
+                      type="number"
+                      min={1}
+                      value={section.requiredAnswerCount}
+                      onChange={(e) => updateSection(sectionIndex, { requiredAnswerCount: e.target.value })}
+                      disabled={section.answerPolicy !== 'answer_any'}
+                      className={fieldCls}
+                      placeholder={section.answerPolicy === 'answer_any' ? 'Count' : 'All'}
+                    />
+                  </div>
+                  <div className="md:col-span-5">
+                    <label className={labelCls}>Section Instructions</label>
+                    <textarea value={section.instructions} onChange={(e) => updateSection(sectionIndex, { instructions: e.target.value })} className={`${fieldCls} min-h-16 resize-y`} />
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  {section.rules.map((rule, ruleIndex) => (
+                    <React.Fragment key={ruleIndex}>
+                      {renderRuleEditor(
+                        rule,
+                        ruleIndex,
+                        (patch) => updateSectionRule(sectionIndex, ruleIndex, patch),
+                        section.rules.length > 1 ? () => removeSectionRule(sectionIndex, ruleIndex) : undefined,
+                      )}
+                    </React.Fragment>
+                  ))}
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <button type="button" onClick={() => addSectionRule(sectionIndex)} className={secondaryCls}>
+                    <Plus size={14} />
+                    Add Section Rule
+                  </button>
+                  {sections.length > 1 && (
+                    <button type="button" onClick={() => removeSection(sectionIndex)} className={secondaryCls}>
                       <X size={14} />
+                      Remove Section
                     </button>
                   )}
                 </div>
-              </div>
+              </section>
+            ))}
+            <button type="button" onClick={addSection} className={secondaryCls}>
+              <Plus size={14} />
+              Add Section
+            </button>
+          </div>
+        )}
+
+        <div className={`mt-3 flex flex-wrap items-center gap-3 text-sm font-medium ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>
+          <span>Estimated total weight: {totalWeight}</span>
+          <button type="button" onClick={() => void checkAvailability()} disabled={checkingAvailability || loading} className={secondaryCls}>
+            {checkingAvailability ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
+            Check Availability
+          </button>
+          {availability && (
+            <span className={`rounded-full px-3 py-1 text-xs font-semibold ${Array.isArray((availability as any).shortages) && (availability as any).shortages.length > 0 ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300'}`}>
+              {Array.isArray((availability as any).shortages) && (availability as any).shortages.length > 0
+                ? `${(availability as any).shortages.length} shortage${(availability as any).shortages.length > 1 ? 's' : ''}`
+                : 'Ready'}
+            </span>
+          )}
+        </div>
+
+        {availability && Array.isArray((availability as any).shortages) && (availability as any).shortages.length > 0 && (
+          <div className={`mt-3 rounded-lg border p-3 ${isDark ? 'border-amber-500/30 bg-amber-500/10 text-amber-200' : 'border-amber-200 bg-amber-50 text-amber-800'}`}>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide">Shortages</p>
+            <div className="space-y-1 text-sm">
+              {((availability as any).shortages as any[]).slice(0, 6).map((shortage, index) => (
+                <p key={index}>
+                  {shortage.message || `${shortage.sectionTitle ? `${shortage.sectionTitle}: ` : ''}Required ${shortage.requiredCount ?? '?'} / Available ${shortage.availableCount ?? 0}`}
+                </p>
+              ))}
             </div>
-          ))}
-        </div>
-
-        <button
-          onClick={addRule}
-          className={`mt-3 inline-flex items-center gap-2 px-3 py-2 rounded-lg border text-sm transition-colors ${isDark ? 'border-white/10 text-slate-200 hover:bg-white/10' : 'border-gray-300 text-gray-700 hover:bg-gray-100'}`}
-        >
-          <Plus size={14} />
-          Add Rule
-        </button>
-
-        <div className={`mt-3 text-sm font-medium ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>
-          Estimated total weight: {totalWeight}
-        </div>
+          </div>
+        )}
 
         {/* Generating skeleton */}
         {loading && !draftId && (

@@ -45,6 +45,7 @@ import QuestionBankService from '../../../services/api/questionBankService';
 import PaperTemplateService, { PaperTemplateDto } from '../../../services/api/paperTemplateService';
 import { QuestionGroupsTab } from '../../../components/question-bank/QuestionGroupsTab';
 import { exportExamToWord } from '../../../utils/examWordExport';
+import { useExamGeneratorList } from '../../../hooks/useExamGeneratorList';
 import {
   StatusBadge,
   ConfirmDialog,
@@ -484,6 +485,7 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
     () => new Map<string, string>(courseOptions.map((course) => [course.value, course.label])),
     [courseOptions],
   );
+  const examList = useExamGeneratorList();
 
   // Keep a ref so loadBackendExamsAndDrafts can read the latest courseOptions
   // without adding it to the effect dependency array (prevents spurious re-runs).
@@ -676,6 +678,54 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
       localStorage.removeItem(DRAFT_PREVIEWS_STORAGE_KEY);
     }
   }, []);
+
+  useEffect(() => {
+    if (activeWorkspaceTab !== 'drafts' && activeWorkspaceTab !== 'saved') return;
+    const courseId = selectedCourse !== 'all' ? Number(selectedCourse) : undefined;
+    void examList.loadDrafts({ courseId, page: 1, limit });
+    void examList.loadExams({ courseId, page: 1, limit });
+    void examList.loadStats(courseId);
+  }, [activeWorkspaceTab, selectedCourse, limit]);
+
+  useEffect(() => {
+    if (!examList.drafts.length) return;
+    setGeneratedDrafts((previous) => {
+      const mapped = examList.drafts
+        .filter((draft) => (draft.draftId ?? draft.id) !== undefined)
+        .map((draft) => ({
+          ...draft,
+          draftId: Number(draft.draftId ?? draft.id),
+          title: draft.title ?? `Draft #${draft.draftId ?? draft.id}`,
+          courseId: Number(draft.courseId ?? 0),
+          generatedAt: new Date().toISOString(),
+          totalQuestions: Number(draft.totalQuestions ?? draft.items?.length ?? 0),
+          totalWeight: Number(draft.totalWeight ?? draft.totalMarks ?? 0),
+          items: draft.items ?? [],
+        })) as ExamDraftPreviewRecord[];
+
+      if (mapped.length === 0) return previous;
+      const byId = new Map<number, ExamDraftPreviewRecord>();
+      [...previous, ...mapped].forEach((item) => byId.set(item.draftId, item));
+      return Array.from(byId.values());
+    });
+  }, [examList.drafts]);
+
+  useEffect(() => {
+    if (!examList.exams.length) return;
+    setBackendSavedExams(
+      examList.exams
+        .filter((exam) => (exam.examId ?? exam.id) !== undefined)
+        .map((exam) => ({
+          examId: Number(exam.examId ?? exam.id),
+          title: exam.title ?? `Exam #${exam.examId ?? exam.id}`,
+          courseId: exam.courseId,
+          status: exam.status ?? 'draft',
+          questionCount: Number(exam.totalMarks ?? 0),
+          totalWeight: Number(exam.totalMarks ?? 0),
+          createdAt: new Date().toISOString(),
+        })),
+    );
+  }, [examList.exams]);
 
   useEffect(() => {
     localStorage.setItem(DRAFT_PREVIEWS_STORAGE_KEY, JSON.stringify(generatedDrafts));

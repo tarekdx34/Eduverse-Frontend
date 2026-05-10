@@ -1,62 +1,108 @@
 import { ApiClient } from './client';
 import { API_BASE_URL, TOKEN_KEYS } from './config';
-import { CreateQuestionBankPayload } from './questionBankService';
+import type {
+  QuestionBankFormPayload,
+  QuestionBankGroup,
+  QuestionBankQuestion,
+  QuestionBankUploadResponse,
+  QuestionGroupListParams,
+  QuestionGroupPayload,
+  QuestionGroupType,
+} from '../../types/questionBank';
+
+export type { QuestionGroupPayload as QuestionGroupDto, QuestionGroupType } from '../../types/questionBank';
 
 const RAW_API_BASE_URL = API_BASE_URL.replace(/\/api\/?$/, '');
 
-export interface QuestionGroupDto {
-  title: string;
+type LegacyGroupPayload = Partial<QuestionGroupPayload> & {
+  courseId?: number;
   description?: string;
-  groupType: 'passage' | 'case_study' | 'image_set' | 'multipart';
   chapterId?: number;
-  sharedImageFileId?: number;
-}
+  sharedImageFileId?: number | null;
+};
+
+const normalizeGroupPayload = (
+  dto: LegacyGroupPayload,
+  includeCourse = true,
+): Partial<QuestionGroupPayload> & { chapterId?: number } => {
+  const payload: Partial<QuestionGroupPayload> & { chapterId?: number } = {
+    ...(includeCourse && dto.courseId !== undefined ? { courseId: dto.courseId } : {}),
+    title: dto.title,
+    sharedPrompt: dto.sharedPrompt ?? dto.description ?? null,
+    sharedFileId: dto.sharedFileId ?? dto.sharedImageFileId ?? null,
+    sharedFileCaption: dto.sharedFileCaption ?? null,
+    sharedFileAltText: dto.sharedFileAltText ?? null,
+    groupType: dto.groupType as QuestionGroupType,
+  };
+
+  if (dto.chapterId !== undefined) {
+    payload.chapterId = dto.chapterId;
+  }
+
+  return Object.fromEntries(
+    Object.entries(payload).filter(([, value]) => value !== undefined),
+  ) as Partial<QuestionGroupPayload> & { chapterId?: number };
+};
 
 export class QuestionGroupService {
-  static async list(params?: { courseId?: number; chapterId?: number; page?: number; limit?: number; search?: string; groupType?: string }) {
-    return ApiClient.get('/question-bank/groups', { params });
+  static async list(params?: QuestionGroupListParams) {
+    return ApiClient.get<{ data: QuestionBankGroup[]; total?: number } | QuestionBankGroup[]>(
+      '/question-bank/groups',
+      { params },
+    );
   }
 
   static async getById(groupId: number) {
-    return ApiClient.get(`/question-bank/groups/${groupId}`);
+    return ApiClient.get<QuestionBankGroup>(`/question-bank/groups/${groupId}`);
   }
 
-  static async create(dto: QuestionGroupDto) {
-    return ApiClient.post('/question-bank/groups', dto);
+  static async create(dto: QuestionGroupPayload | LegacyGroupPayload) {
+    return ApiClient.post<QuestionBankGroup>('/question-bank/groups', normalizeGroupPayload(dto));
   }
 
-  static async update(groupId: number, dto: Partial<QuestionGroupDto>) {
-    return ApiClient.patch(`/question-bank/groups/${groupId}`, dto);
+  static async update(groupId: number, dto: Partial<QuestionGroupPayload> | LegacyGroupPayload) {
+    return ApiClient.patch<QuestionBankGroup>(
+      `/question-bank/groups/${groupId}`,
+      normalizeGroupPayload(dto, false),
+    );
   }
 
   static async delete(groupId: number) {
-    return ApiClient.delete(`/question-bank/groups/${groupId}`);
+    return ApiClient.delete<void>(`/question-bank/groups/${groupId}`);
   }
 
-  static async addQuestions(groupId: number, questions: CreateQuestionBankPayload[]) {
-    return ApiClient.post(`/question-bank/groups/${groupId}/questions/batch`, questions);
+  static async addQuestions(groupId: number, questions: QuestionBankFormPayload[]) {
+    return ApiClient.post<QuestionBankQuestion[]>(
+      `/question-bank/groups/${groupId}/questions/batch`,
+      { questions },
+    );
   }
 
   static async linkQuestions(groupId: number, questionIds: number[]) {
-    return ApiClient.post(`/question-bank/groups/${groupId}/questions/link`, { questionIds });
+    return ApiClient.post<QuestionBankQuestion[]>(
+      `/question-bank/groups/${groupId}/questions/link`,
+      { questionIds },
+    );
   }
 
   static async unlinkQuestion(groupId: number, questionId: number) {
-    return ApiClient.delete(`/question-bank/groups/${groupId}/questions/${questionId}`);
+    return ApiClient.delete<void>(`/question-bank/groups/${groupId}/questions/${questionId}`);
   }
 
-  static async reorderQuestions(groupId: number, order: number[]) {
-    return ApiClient.patch(`/question-bank/groups/${groupId}/questions/reorder`, { order });
+  static async reorderQuestions(groupId: number, orderedQuestionIds: number[]) {
+    return ApiClient.patch<void>(`/question-bank/groups/${groupId}/questions/reorder`, {
+      items: orderedQuestionIds.map((questionId, itemOrder) => ({ questionId, itemOrder })),
+    });
   }
 
-  static async uploadGroupImage(file: File): Promise<{ fileId: number }> {
+  static async uploadGroupImage(file: File): Promise<QuestionBankUploadResponse> {
     const formData = new FormData();
     formData.append('image', file);
 
-    const response = await ApiClient.post<{ fileId?: number | string; data?: { fileId?: number | string } }>(
-      '/question-bank/groups/upload-image',
-      formData,
-    );
+    const response = await ApiClient.post<{
+      fileId?: number | string;
+      data?: { fileId?: number | string };
+    }>('/question-bank/groups/upload-image', formData);
 
     const fileId =
       response?.fileId !== undefined ? Number(response.fileId) : Number(response?.data?.fileId);
@@ -65,7 +111,7 @@ export class QuestionGroupService {
       throw new Error('Image upload succeeded but no valid fileId was returned');
     }
 
-    return { fileId };
+    return { fileId, data: response.data };
   }
 
   static async downloadGroupImage(fileId: number): Promise<Blob> {
