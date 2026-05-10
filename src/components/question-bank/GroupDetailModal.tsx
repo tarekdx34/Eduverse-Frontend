@@ -92,7 +92,9 @@ export function GroupDetailModal({ open, onOpenChange, groupId, courseId, onGrou
       const groupData = data?.data ?? data;
       setGroup(groupData as GroupDetail);
 
-      if (groupData?.sharedImageFileId) {
+      if (groupData?.imageUrl) {
+        setSharedImagePreview(groupData.imageUrl as string);
+      } else if (groupData?.sharedImageFileId) {
         loadImagePreview(groupData.sharedImageFileId);
       }
 

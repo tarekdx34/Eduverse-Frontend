@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { AlertCircle, ChevronDown, ChevronUp, Loader2, Plus, RefreshCw, Shuffle, X } from 'lucide-react';
-import { InlineMath, BlockMath } from 'react-katex';
+import { MathText } from '../../../../components/exam-paper/MathText';
 import { toast } from 'sonner';
 import ChapterService, { CourseChapter } from '../../../../services/api/chapterService';
 import ExamGenerationService, { GenerateExamPreviewResponse } from '../../../../services/api/examGenerationService';
@@ -69,36 +69,6 @@ interface QuestionDetail {
   hints?: string;
   imageBlobUrl?: string;
 }
-
-// Renders text with inline ($...$) and display ($$...$$) LaTeX math.
-const MathText = React.memo(({ text }: { text: string | undefined }) => {
-  if (!text) return null;
-  const parts: React.ReactNode[] = [];
-  const displayRe = /\$\$([\s\S]+?)\$\$/g;
-  const inlineRe = /\$((?:[^$]|\\.)+?)\$/g;
-  let last = 0;
-  const segments: { start: number; end: number; math: string; display: boolean }[] = [];
-  let m: RegExpExecArray | null;
-  while ((m = displayRe.exec(text)) !== null)
-    segments.push({ start: m.index, end: m.index + m[0].length, math: m[1], display: true });
-  const covered = (pos: number) => segments.some((s) => pos >= s.start && pos < s.end);
-  let im: RegExpExecArray | null;
-  while ((im = inlineRe.exec(text)) !== null)
-    if (!covered(im.index))
-      segments.push({ start: im.index, end: im.index + im[0].length, math: im[1], display: false });
-  segments.sort((a, b) => a.start - b.start);
-  for (const seg of segments) {
-    if (seg.start > last) parts.push(text.slice(last, seg.start));
-    parts.push(
-      seg.display
-        ? <BlockMath key={seg.start} math={seg.math} />
-        : <InlineMath key={seg.start} math={seg.math} />,
-    );
-    last = seg.end;
-  }
-  if (last < text.length) parts.push(text.slice(last));
-  return <>{parts}</>;
-});
 
 const questionTypeOptions = [
   { value: '', label: 'Any type' },
@@ -422,14 +392,7 @@ export function ExamGenerationModal({
         const text = ((q.questionText ?? q.text ?? '') as string) || `Q#${ids[idx]}`;
         const answer = (q.expectedAnswerText ?? '') as string;
         const hints = (q.hints ?? '') as string;
-        const fileId = q.questionFileId as number | null | undefined;
-        let imageBlobUrl: string | undefined;
-        if (fileId) {
-          try {
-            const blob = await QuestionBankService.downloadImageBlob(fileId);
-            imageBlobUrl = URL.createObjectURL(blob);
-          } catch { /* skip image silently */ }
-        }
+        const imageBlobUrl = (q.questionImageUrl as string | null | undefined) || undefined;
         map[ids[idx]] = { text, answer: answer || undefined, hints: hints || undefined, imageBlobUrl };
       } else {
         map[ids[idx]] = { text: `Q#${ids[idx]}` };

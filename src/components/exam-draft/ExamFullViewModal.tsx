@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import 'katex/dist/katex.min.css';
-import { InlineMath, BlockMath } from 'react-katex';
+import { MathText } from '../exam-paper/MathText';
 import {
   Dialog,
   DialogContent,
@@ -30,6 +29,7 @@ import {
   EmptyState,
 } from '../shared/index';
 import ExamGenerationService from '../../services/api/examGenerationService';
+import { downloadClientExamPdf } from '../../lib/exam-paper/clientExamPdfExport';
 import { toast } from 'sonner';
 import { Archive, Loader2, Send } from 'lucide-react';
 import type { ExamExportOptions, ExamPaperTemplate } from '../../types/examGenerator';
@@ -97,6 +97,7 @@ export const ExamFullViewModal: React.FC<ExamFullViewModalProps> = ({
     showQuestionMarks: true,
     answerKeyStyle: 'inline',
   });
+  const [exportingPdf, setExportingPdf] = useState(false);
 
   const loadExam = useCallback(async () => {
     try {
@@ -181,6 +182,18 @@ export const ExamFullViewModal: React.FC<ExamFullViewModalProps> = ({
       void loadExam();
     }
   }, [open, loadExam]);
+
+  const handleExportPdf = async () => {
+    try {
+      setExportingPdf(true);
+      await downloadClientExamPdf(examId);
+      toast.success('Downloaded exam PDF');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to export PDF');
+    } finally {
+      setExportingPdf(false);
+    }
+  };
 
   const handleExport = async () => {
     try {
@@ -376,7 +389,22 @@ export const ExamFullViewModal: React.FC<ExamFullViewModalProps> = ({
           ) : null}
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="flex flex-wrap gap-2 sm:justify-end">
+          <Button
+            onClick={() => void handleExportPdf()}
+            disabled={exportingPdf || exporting || loading}
+            variant="outline"
+            className={isDark ? 'border-gray-600 text-gray-200' : ''}
+          >
+            {exportingPdf ? (
+              <>
+                <Loader2 size={16} className="inline mr-2 animate-spin" />
+                PDF…
+              </>
+            ) : (
+              'Export PDF'
+            )}
+          </Button>
           <Button
             variant="outline"
             onClick={() => void handleLifecycle('publish')}
@@ -396,8 +424,8 @@ export const ExamFullViewModal: React.FC<ExamFullViewModalProps> = ({
             Archive
           </Button>
           <Button
-            onClick={() => setShowExportOptions(true)}
-            disabled={exporting || loading}
+            onClick={handleExport}
+            disabled={exporting || exportingPdf || loading}
             style={{ backgroundColor: primaryHex }}
             className="text-white"
           >
@@ -524,35 +552,6 @@ export const ExamFullViewModal: React.FC<ExamFullViewModalProps> = ({
     </Dialog>
   );
 };
-
-const MathText = React.memo(({ text }: { text: string | undefined }) => {
-  if (!text) return null;
-  const parts: React.ReactNode[] = [];
-  const displayRe = /\$\$([\s\S]+?)\$\$/g;
-  const inlineRe = /\$((?:[^$]|\\.)+?)\$/g;
-  let last = 0;
-  const segments: { start: number; end: number; math: string; display: boolean }[] = [];
-  let m: RegExpExecArray | null;
-  while ((m = displayRe.exec(text)) !== null)
-    segments.push({ start: m.index, end: m.index + m[0].length, math: m[1], display: true });
-  const covered = (pos: number) => segments.some((s) => pos >= s.start && pos < s.end);
-  let im: RegExpExecArray | null;
-  while ((im = inlineRe.exec(text)) !== null)
-    if (!covered(im.index))
-      segments.push({ start: im.index, end: im.index + im[0].length, math: im[1], display: false });
-  segments.sort((a, b) => a.start - b.start);
-  for (const seg of segments) {
-    if (seg.start > last) parts.push(text.slice(last, seg.start));
-    parts.push(
-      seg.display
-        ? <BlockMath key={seg.start} math={seg.math} />
-        : <InlineMath key={seg.start} math={seg.math} />,
-    );
-    last = seg.end;
-  }
-  if (last < text.length) parts.push(text.slice(last));
-  return <>{parts}</>;
-});
 
 interface QuestionCardProps {
   question: ExamQuestion;

@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import 'katex/dist/katex.min.css';
-import { InlineMath, BlockMath } from 'react-katex';
+import { MathText } from '../../../components/exam-paper/MathText';
+import { downloadClientExamPdf } from '../../../lib/exam-paper/clientExamPdfExport';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import {
   AlertCircle,
@@ -406,42 +406,6 @@ const normalizeDraftDetail = (
   };
 };
 
-// Renders text with inline ($...$) and display ($$...$$) LaTeX math.
-const MathText = React.memo(({ text }: { text: string | undefined }) => {
-  if (!text) return null;
-  const parts: React.ReactNode[] = [];
-  const displayRe = /\$\$([\s\S]+?)\$\$/g;
-  const inlineRe = /\$((?:[^$]|\\.)+?)\$/g;
-  let last = 0;
-
-  // Split on $$...$$ first
-  let m: RegExpExecArray | null;
-  const segments: { start: number; end: number; math: string; display: boolean }[] = [];
-  while ((m = displayRe.exec(text)) !== null)
-    segments.push({ start: m.index, end: m.index + m[0].length, math: m[1], display: true });
-
-  // Then inline $...$ on the remaining gaps
-  const covered = (pos: number) => segments.some((s) => pos >= s.start && pos < s.end);
-  let im: RegExpExecArray | null;
-  while ((im = inlineRe.exec(text)) !== null)
-    if (!covered(im.index))
-      segments.push({ start: im.index, end: im.index + im[0].length, math: im[1], display: false });
-
-  segments.sort((a, b) => a.start - b.start);
-
-  for (const seg of segments) {
-    if (seg.start > last) parts.push(text.slice(last, seg.start));
-    parts.push(
-      seg.display
-        ? <BlockMath key={seg.start} math={seg.math} />
-        : <InlineMath key={seg.start} math={seg.math} />,
-    );
-    last = seg.end;
-  }
-  if (last < text.length) parts.push(text.slice(last));
-  return <>{parts}</>;
-});
-
 const resolveQuestionAnswer = (question: Question): string => {
   const expected = toNonEmptyString(question.expectedAnswerText);
   if (expected) return expected;
@@ -521,17 +485,7 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
   const [savingQuestionEdit, setSavingQuestionEdit] = useState(false);
   const [draftActionLoadingKey, setDraftActionLoadingKey] = useState<string | null>(null);
   const [exportingDocx, setExportingDocx] = useState(false);
-  const [showExportWordModal, setShowExportWordModal] = useState(false);
-  const [wordLogoUrl, setWordLogoUrl] = useState('/logo.png');
-  const [wordExaminerName, setWordExaminerName] = useState('Prof. Dr. [Examiner Full Name]');
-  const [wordDurationMinutes, setWordDurationMinutes] = useState('60');
-  const [wordHintText, setWordHintText] = useState('ε₀ = 8.85 x 10⁻¹² F/m  ,  μ₀ = 4π x 10⁻⁷ H/m');
-  const [wordEnUniversity, setWordEnUniversity] = useState('Alexandria University');
-  const [wordEnFaculty, setWordEnFaculty] = useState('Faculty of Engineering');
-  const [wordEnDepartment, setWordEnDepartment] = useState('Electrical Engineering Department');
-  const [wordEnMonthYear, setWordEnMonthYear] = useState('');
-  const [wordArUniversity, setWordArUniversity] = useState('جامعة الإسكندرية');
-
+  const [exportingPdf, setExportingPdf] = useState(false);
   // New state for DraftEditorModal and ExamFullViewModal
   const [draftEditorOpen, setDraftEditorOpen] = useState(false);
   const [activeDraftEditorId, setActiveDraftEditorId] = useState<number | null>(null);
@@ -545,13 +499,6 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
   const [showApplyTemplate, setShowApplyTemplate] = useState(false);
   const [templateExamId, setTemplateExamId] = useState<number | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<string>('');
-  const [wordArFaculty, setWordArFaculty] = useState('كلية الهندسة');
-  const [wordArDepartment, setWordArDepartment] = useState('قسم الهندسة الكهربية');
-  const [wordArMonthYear, setWordArMonthYear] = useState('يناير ٢٠٢٥');
-  const [wordEnCourseTitle, setWordEnCourseTitle] = useState('');
-  const [wordEnYearTrack, setWordEnYearTrack] = useState('Third Year - Communications');
-  const [wordArCourseTitle, setWordArCourseTitle] = useState('موجات كهرومغناطيسية');
-  const [wordArYearTrack, setWordArYearTrack] = useState('السنة الثالثة - اتصالات');
   const [draftAddQuestionId, setDraftAddQuestionId] = useState('');
   const [draftAddWeight, setDraftAddWeight] = useState('1');
   const [draftAddOrder, setDraftAddOrder] = useState('1');
@@ -672,7 +619,10 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
     try {
       const parsed = JSON.parse(cached) as ExamDraftPreviewRecord[];
       if (Array.isArray(parsed)) {
-        setGeneratedDrafts(parsed);
+        const deduped = Array.from(
+          new Map(parsed.map((d) => [d.draftId, d])).values(),
+        );
+        setGeneratedDrafts(deduped);
       }
     } catch {
       localStorage.removeItem(DRAFT_PREVIEWS_STORAGE_KEY);
@@ -1728,69 +1678,27 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
     }
   };
 
+  const downloadFromBase64 = (result: { fileName?: string; mimeType?: string; content?: string }, fallbackName: string, fallbackMime: string) => {
+    const fileName = result?.fileName ?? fallbackName;
+    const mimeType = result?.mimeType ?? fallbackMime;
+    const byteChars = atob(result?.content ?? '');
+    const bytes = new Uint8Array(byteChars.length);
+    for (let i = 0; i < byteChars.length; i++) bytes[i] = byteChars.charCodeAt(i);
+    const blob = new Blob([bytes], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = fileName; a.click();
+    URL.revokeObjectURL(url);
+    return fileName;
+  };
+
   const exportDetailToWord = async () => {
     if (examIdFromRoute === null) return;
-    const isDraftDetail = detailEntity === 'draft';
-    const fallbackSummary = savedExams.find((exam) => exam.examId === examIdFromRoute);
-    const title = isDraftDetail
-      ? draftDetail?.title || `Draft #${examIdFromRoute}`
-      : examDetail?.title || fallbackSummary?.title || `Exam #${examIdFromRoute}`;
-    const courseId = isDraftDetail ? draftDetail?.courseId : examDetail?.courseId;
-    const generatedAt = isDraftDetail
-      ? draftDetail?.generatedAt || new Date().toISOString()
-      : examDetail?.createdAt || fallbackSummary?.createdAt || new Date().toISOString();
-    const items = isDraftDetail ? draftDetail?.items ?? [] : examDetail?.items ?? [];
-
-    if (!items.length) {
-      toast.error('No questions available to export');
-      return;
-    }
-
     try {
       setExportingDocx(true);
-      let logoBytes: Uint8Array | undefined;
-      if (wordLogoUrl.trim()) {
-        try {
-          const response = await fetch(wordLogoUrl.trim());
-          if (response.ok) {
-            const arrayBuffer = await response.arrayBuffer();
-            logoBytes = new Uint8Array(arrayBuffer);
-          }
-        } catch {
-          // Keep exporting even if logo is missing.
-        }
-      }
-
-      const parsedDuration = Number(wordDurationMinutes);
-      await exportExamToWord({
-        title,
-        courseName: courseNameById.get(String(courseId ?? '')) || `Course #${courseId ?? 'N/A'}`,
-        generatedAt,
-        items,
-        isDraft: isDraftDetail,
-        durationMinutes: Number.isFinite(parsedDuration) && parsedDuration > 0 ? parsedDuration : 60,
-        examinerName: wordExaminerName.trim() || 'Prof. Dr. [Examiner Full Name]',
-        hintText: wordHintText.trim(),
-        logoBytes,
-        institution: {
-          enUniversity: wordEnUniversity.trim(),
-          enFaculty: wordEnFaculty.trim(),
-          enDepartment: wordEnDepartment.trim(),
-          enMonthYear: wordEnMonthYear.trim(),
-          arUniversity: wordArUniversity.trim(),
-          arFaculty: wordArFaculty.trim(),
-          arDepartment: wordArDepartment.trim(),
-          arMonthYear: wordArMonthYear.trim(),
-        },
-        courseInfo: {
-          enCourseTitle: wordEnCourseTitle.trim() || (courseNameById.get(String(courseId ?? '')) || title),
-          enYearTrack: wordEnYearTrack.trim(),
-          arCourseTitle: wordArCourseTitle.trim(),
-          arYearTrack: wordArYearTrack.trim(),
-        },
-      });
-      toast.success('Word file downloaded');
-      setShowExportWordModal(false);
+      const result = await ExamGenerationService.exportExamWord(examIdFromRoute) as { fileName?: string; mimeType?: string; content?: string };
+      const fileName = downloadFromBase64(result, `exam-${examIdFromRoute}.docx`, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+      toast.success(`Downloaded ${fileName}`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to export Word file');
     } finally {
@@ -1798,23 +1706,17 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
     }
   };
 
-  const openExportWordModal = () => {
+  const exportDetailToPdf = async () => {
     if (examIdFromRoute === null) return;
-    const isDraftDetail = detailEntity === 'draft';
-    const fallbackSummary = savedExams.find((exam) => exam.examId === examIdFromRoute);
-    const title = isDraftDetail
-      ? draftDetail?.title || `Draft #${examIdFromRoute}`
-      : examDetail?.title || fallbackSummary?.title || `Exam #${examIdFromRoute}`;
-    const courseId = isDraftDetail ? draftDetail?.courseId : examDetail?.courseId;
-    const courseLabel = courseNameById.get(String(courseId ?? '')) || title;
-    const generatedAt = isDraftDetail
-      ? draftDetail?.generatedAt || new Date().toISOString()
-      : examDetail?.createdAt || fallbackSummary?.createdAt || new Date().toISOString();
-    const monthYear = new Date(generatedAt).toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
-
-    setWordEnMonthYear(monthYear);
-    setWordEnCourseTitle(courseLabel);
-    setShowExportWordModal(true);
+    try {
+      setExportingPdf(true);
+      await downloadClientExamPdf(examIdFromRoute);
+      toast.success('Downloaded exam PDF');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to export PDF');
+    } finally {
+      setExportingPdf(false);
+    }
   };
 
   if (examIdFromRoute !== null) {
@@ -1858,11 +1760,19 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
             <div className="flex flex-wrap gap-2 text-xs sm:text-sm">
               <button
                 type="button"
-                onClick={openExportWordModal}
+                onClick={() => void exportDetailToWord()}
                 disabled={exportingDocx}
                 className={`px-2.5 py-1 rounded border text-xs font-semibold ${secondaryButtonClass} disabled:opacity-60`}
               >
-                Export Word (.docx)
+                {exportingDocx ? 'Exporting...' : 'Export Word (.docx)'}
+              </button>
+              <button
+                type="button"
+                onClick={() => void exportDetailToPdf()}
+                disabled={exportingPdf}
+                className={`px-2.5 py-1 rounded border text-xs font-semibold ${secondaryButtonClass} disabled:opacity-60`}
+              >
+                {exportingPdf ? 'Exporting...' : 'Export PDF'}
               </button>
               <span className={countBadgeClass}>
                 {detailQuestionCount.toString()} questions
@@ -2077,105 +1987,6 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
           )}
         </section>
 
-        {showExportWordModal && (
-          <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-            <div
-              className={`w-full max-w-5xl max-h-[90vh] overflow-auto rounded-xl border p-5 ${cardClass}`}
-              onClick={(event) => event.stopPropagation()}
-            >
-              <div className="flex items-center justify-between">
-                <h3 className={`text-lg font-semibold ${headingClass}`}>Word Export Preview</h3>
-                <button
-                  type="button"
-                  onClick={() => setShowExportWordModal(false)}
-                  className={`p-2 rounded-lg border ${secondaryButtonClass}`}
-                >
-                  <X size={16} />
-                </button>
-              </div>
-
-              <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <div className={`rounded-lg border p-4 space-y-3 ${innerCardClass}`}>
-                  <h4 className={`text-sm font-semibold ${headingClass}`}>Export Settings</h4>
-                  <input
-                    value={wordLogoUrl}
-                    onChange={(event) => setWordLogoUrl(event.target.value)}
-                    className={`w-full px-3 py-2 rounded-lg border ${isDark ? 'border-white/10 bg-white/5 text-white' : 'border-gray-300 bg-white text-gray-900'}`}
-                    placeholder="Logo URL, example: /logo.png"
-                  />
-                  <input
-                    value={wordExaminerName}
-                    onChange={(event) => setWordExaminerName(event.target.value)}
-                    className={`w-full px-3 py-2 rounded-lg border ${isDark ? 'border-white/10 bg-white/5 text-white' : 'border-gray-300 bg-white text-gray-900'}`}
-                    placeholder="Examiner Name"
-                  />
-                  <input
-                    value={wordDurationMinutes}
-                    onChange={(event) => setWordDurationMinutes(event.target.value)}
-                    className={`w-full px-3 py-2 rounded-lg border ${isDark ? 'border-white/10 bg-white/5 text-white' : 'border-gray-300 bg-white text-gray-900'}`}
-                    placeholder="Duration Minutes"
-                  />
-                  <input
-                    value={wordHintText}
-                    onChange={(event) => setWordHintText(event.target.value)}
-                    className={`w-full px-3 py-2 rounded-lg border ${isDark ? 'border-white/10 bg-white/5 text-white' : 'border-gray-300 bg-white text-gray-900'}`}
-                    placeholder="Hint constants line"
-                  />
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    <input value={wordEnUniversity} onChange={(event) => setWordEnUniversity(event.target.value)} className={`w-full px-3 py-2 rounded-lg border ${isDark ? 'border-white/10 bg-white/5 text-white' : 'border-gray-300 bg-white text-gray-900'}`} placeholder="EN University" />
-                    <input value={wordArUniversity} onChange={(event) => setWordArUniversity(event.target.value)} className={`w-full px-3 py-2 rounded-lg border ${isDark ? 'border-white/10 bg-white/5 text-white' : 'border-gray-300 bg-white text-gray-900'}`} placeholder="AR University" />
-                    <input value={wordEnFaculty} onChange={(event) => setWordEnFaculty(event.target.value)} className={`w-full px-3 py-2 rounded-lg border ${isDark ? 'border-white/10 bg-white/5 text-white' : 'border-gray-300 bg-white text-gray-900'}`} placeholder="EN Faculty" />
-                    <input value={wordArFaculty} onChange={(event) => setWordArFaculty(event.target.value)} className={`w-full px-3 py-2 rounded-lg border ${isDark ? 'border-white/10 bg-white/5 text-white' : 'border-gray-300 bg-white text-gray-900'}`} placeholder="AR Faculty" />
-                    <input value={wordEnDepartment} onChange={(event) => setWordEnDepartment(event.target.value)} className={`w-full px-3 py-2 rounded-lg border ${isDark ? 'border-white/10 bg-white/5 text-white' : 'border-gray-300 bg-white text-gray-900'}`} placeholder="EN Department" />
-                    <input value={wordArDepartment} onChange={(event) => setWordArDepartment(event.target.value)} className={`w-full px-3 py-2 rounded-lg border ${isDark ? 'border-white/10 bg-white/5 text-white' : 'border-gray-300 bg-white text-gray-900'}`} placeholder="AR Department" />
-                    <input value={wordEnMonthYear} onChange={(event) => setWordEnMonthYear(event.target.value)} className={`w-full px-3 py-2 rounded-lg border ${isDark ? 'border-white/10 bg-white/5 text-white' : 'border-gray-300 bg-white text-gray-900'}`} placeholder="EN Month, Year" />
-                    <input value={wordArMonthYear} onChange={(event) => setWordArMonthYear(event.target.value)} className={`w-full px-3 py-2 rounded-lg border ${isDark ? 'border-white/10 bg-white/5 text-white' : 'border-gray-300 bg-white text-gray-900'}`} placeholder="AR Month, Year" />
-                    <input value={wordEnCourseTitle} onChange={(event) => setWordEnCourseTitle(event.target.value)} className={`w-full px-3 py-2 rounded-lg border ${isDark ? 'border-white/10 bg-white/5 text-white' : 'border-gray-300 bg-white text-gray-900'}`} placeholder="EN Course Title" />
-                    <input value={wordArCourseTitle} onChange={(event) => setWordArCourseTitle(event.target.value)} className={`w-full px-3 py-2 rounded-lg border ${isDark ? 'border-white/10 bg-white/5 text-white' : 'border-gray-300 bg-white text-gray-900'}`} placeholder="AR Course Title" />
-                    <input value={wordEnYearTrack} onChange={(event) => setWordEnYearTrack(event.target.value)} className={`w-full px-3 py-2 rounded-lg border ${isDark ? 'border-white/10 bg-white/5 text-white' : 'border-gray-300 bg-white text-gray-900'}`} placeholder="EN Year Track" />
-                    <input value={wordArYearTrack} onChange={(event) => setWordArYearTrack(event.target.value)} className={`w-full px-3 py-2 rounded-lg border ${isDark ? 'border-white/10 bg-white/5 text-white' : 'border-gray-300 bg-white text-gray-900'}`} placeholder="AR Year Track" />
-                  </div>
-                </div>
-
-                <div className={`rounded-lg border p-4 ${innerCardClass}`}>
-                  <h4 className={`text-sm font-semibold ${headingClass}`}>Preview</h4>
-                  <div className={`mt-3 rounded border p-3 ${isDark ? 'border-white/10 bg-black/10' : 'border-gray-300 bg-white'}`}>
-                    <p className={`text-sm font-semibold ${headingClass}`}>{wordEnUniversity}</p>
-                    <p className={`text-xs ${subTextClass}`}>{wordEnFaculty}</p>
-                    <p className={`text-xs ${subTextClass}`}>{wordEnDepartment}</p>
-                    <p className={`text-xs ${subTextClass}`}>{wordEnMonthYear}</p>
-                    <div className={`my-2 border-t ${isDark ? 'border-white/20' : 'border-gray-300'}`} />
-                    <p className={`text-sm font-semibold ${headingClass}`}>{wordEnCourseTitle}</p>
-                    <p className={`text-xs ${subTextClass}`}>{wordEnYearTrack}</p>
-                    <p className={`text-xs ${subTextClass}`}>Time allowed: {wordDurationMinutes || '60'} minutes</p>
-                    <p className={`mt-2 text-sm ${headingClass}`}><strong>Answer All Questions</strong></p>
-                    <p className={`mt-2 text-xs ${subTextClass}`}>Examiner: {wordExaminerName}</p>
-                    <p className={`text-xs ${subTextClass}`}>Questions in file: {detailItems.length}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-4 flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShowExportWordModal(false)}
-                  className={`px-4 py-2 rounded-lg border text-sm ${secondaryButtonClass}`}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={() => void exportDetailToWord()}
-                  disabled={exportingDocx}
-                  className="px-4 py-2 rounded-lg text-sm bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60"
-                >
-                  {exportingDocx ? 'Preparing Word...' : 'Download Word (.docx)'}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     );
   }
@@ -2674,16 +2485,7 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
                             onClick={async () => {
                               try {
                                 const result = await ExamGenerationService.exportExamWord(exam.examId) as { fileName?: string; mimeType?: string; content?: string };
-                                const fileName = result?.fileName ?? `exam-${exam.examId}.docx`;
-                                const mimeType = result?.mimeType ?? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-                                const byteChars = atob(result?.content ?? '');
-                                const bytes = new Uint8Array(byteChars.length);
-                                for (let i = 0; i < byteChars.length; i++) bytes[i] = byteChars.charCodeAt(i);
-                                const blob = new Blob([bytes], { type: mimeType });
-                                const url = URL.createObjectURL(blob);
-                                const a = document.createElement('a');
-                                a.href = url; a.download = fileName; a.click();
-                                URL.revokeObjectURL(url);
+                                const fileName = downloadFromBase64(result, `exam-${exam.examId}.docx`, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
                                 toast.success(`Downloaded ${fileName}`);
                               } catch (err) {
                                 toast.error(err instanceof Error ? err.message : 'Failed to export exam');
@@ -2691,6 +2493,19 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
                             }}
                           >
                             Export Word
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className={`rounded-xl cursor-pointer py-2.5 px-4 text-xs font-semibold ${isDark ? 'text-slate-200 focus:bg-white/10 focus:text-white' : 'text-slate-700 focus:bg-slate-100 focus:text-slate-900'}`}
+                            onClick={async () => {
+                              try {
+                                await downloadClientExamPdf(exam.examId);
+                                toast.success('Downloaded exam PDF');
+                              } catch (err) {
+                                toast.error(err instanceof Error ? err.message : 'Failed to export PDF');
+                              }
+                            }}
+                          >
+                            Export PDF
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             className={`rounded-xl cursor-pointer py-2.5 px-4 text-xs font-semibold ${isDark ? 'text-slate-200 focus:bg-white/10 focus:text-white' : 'text-slate-700 focus:bg-slate-100 focus:text-slate-900'}`}
@@ -3124,13 +2939,13 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
                 )}
 
                 <div className={`mt-2 text-xs sm:text-sm space-y-1 ${subTextClass}`}>
-                  <p>
+                  <div>
                     <span className="font-semibold">Answer:</span>{' '}
                     <MathText text={resolveQuestionAnswer(question)} />
-                  </p>
-                  <p>
+                  </div>
+                  <div>
                     <span className="font-semibold">Hint:</span> {question.hints?.trim() || 'No hint provided'}
-                  </p>
+                  </div>
                 </div>
 
                 <div className={`mt-3 text-xs sm:text-sm flex flex-wrap gap-x-4 gap-y-1 ${subTextClass}`}>

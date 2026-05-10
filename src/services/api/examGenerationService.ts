@@ -305,8 +305,20 @@ export class ExamGenerationService {
     return ApiClient.post<ExamExportResponse>(`/exams/${id}/export-word`, options);
   }
 
-  static async exportExamWord(id: number) {
-    return this.exportExam(id, DEFAULT_EXPORT_OPTIONS);
+  static async exportExamWord(id: number, options?: { format?: string }) {
+    return this.exportExam(id, { ...DEFAULT_EXPORT_OPTIONS, ...options });
+  }
+
+  static async getExamFull(id: number) {
+    return ApiClient.get(`/exams/${id}/full`);
+  }
+
+  static async getExamStats() {
+    return ApiClient.get('/exams/stats');
+  }
+
+  static async listDraftsFull(params?: { courseId?: number; page?: number; limit?: number }) {
+    return this.getFirstAvailable(['/exams/drafts', '/exams/drafts/list', '/exam-drafts'], params);
   }
 }
 
