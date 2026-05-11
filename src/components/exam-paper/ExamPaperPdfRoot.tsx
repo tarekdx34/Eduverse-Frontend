@@ -237,7 +237,7 @@ const PdfBlock: React.FC<{ block: ExamPaperPdfBlock; model: ClientExamPaperModel
 
   const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
   return (
-    <div style={{ marginTop: 14, breakInside: 'avoid' as const }}>
+    <div data-pdf-block="question" style={{ marginTop: 14, breakInside: 'avoid' as const }}>
       <div style={{ margin: '0 0 6px', lineHeight: 1.45 }}>
         <strong>{block.index}.</strong>{' '}
         <span style={{ display: 'inline' }}>
