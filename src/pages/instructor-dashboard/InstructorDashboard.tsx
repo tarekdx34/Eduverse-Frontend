@@ -195,7 +195,13 @@ function InstructorDashboardContent() {
   const location = useLocation();
   const params = useParams();
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<TabKey>('dashboard');
+  const initialTab = (() => {
+    const t = params.tab as TabKey | undefined;
+    if (!t) return 'dashboard';
+    if (t === 'grades') return 'roster';
+    return TABS.some((tab) => tab.key === t) ? t : 'dashboard';
+  })();
+  const [activeTab, setActiveTab] = useState<TabKey>(initialTab);
   const [rosterSubTab, setRosterSubTab] = useState<'overview' | 'grades'>('overview');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);

@@ -25,7 +25,13 @@ function parseMathSegments(text: string): MathSegment[] {
   const inlineRe = /\$((?:[^$]|\\.)+?)\$/g;
   let im: RegExpExecArray | null;
   while ((im = inlineRe.exec(text)) !== null) {
-    if (!covered(im.index) && im[1].length <= MAX_INLINE_MATH_LENGTH) {
+    if (covered(im.index)) {
+      // Don't consume past a skipped match — only skip one char so we don't
+      // accidentally swallow the opening $ of the next legitimate inline span.
+      inlineRe.lastIndex = im.index + 1;
+      continue;
+    }
+    if (im[1].length <= MAX_INLINE_MATH_LENGTH) {
       segments.push({ start: im.index, end: im.index + im[0].length, math: im[1], display: false });
     }
   }

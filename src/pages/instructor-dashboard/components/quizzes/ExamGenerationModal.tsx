@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { AlertCircle, ChevronDown, ChevronUp, Loader2, Plus, RefreshCw, Shuffle, X } from 'lucide-react';
+import { AlertCircle, CheckCircle2, ChevronDown, ChevronUp, Lightbulb, Loader2, Plus, RefreshCw, Shuffle, X } from 'lucide-react';
 import { MathText } from '../../../../components/exam-paper/MathText';
 import { toast } from 'sonner';
 import ChapterService, { CourseChapter } from '../../../../services/api/chapterService';
@@ -218,14 +218,13 @@ export function ExamGenerationModal({
   const headingCls = isDark ? 'text-white' : 'text-gray-900';
   const subCls     = isDark ? 'text-slate-400' : 'text-gray-600';
   const inputCls   = isDark
-    ? 'bg-white/5 border-white/10 text-white placeholder-slate-500 focus:outline-none focus:ring-2'
-    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2';
+    ? 'bg-white/5 border-white/10 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[var(--modal-focus-ring)]'
+    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--modal-focus-ring)]';
   const fieldCls   = `w-full px-3 py-2 rounded-lg border text-sm ${inputCls}`;
   const labelCls   = `block text-xs font-semibold uppercase tracking-wide mb-1 ${subCls}`;
   const sectionCls = isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200';
-  const secondaryCls = isDark
-    ? 'px-4 py-2 rounded-lg border border-white/10 text-slate-200 hover:bg-white/10 disabled:opacity-60 disabled:cursor-not-allowed'
-    : 'px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed';
+  const secondaryCls = `inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-sm font-medium transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${isDark ? 'border-white/10 text-slate-200 hover:bg-white/10' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`;
+  const dangerCls = `inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-sm font-medium transition-colors ${isDark ? 'border-red-500/30 text-red-400 hover:bg-red-500/10' : 'border-red-200 text-red-600 hover:bg-red-50'}`;
   const stepBadgeCls = isDark
     ? 'px-2 py-1 rounded-full text-xs font-semibold border border-white/10 bg-white/5 text-slate-200'
     : 'px-2 py-1 rounded-full text-xs font-semibold border border-gray-200 bg-white text-gray-700';
@@ -496,52 +495,60 @@ export function ExamGenerationModal({
     onRemove?: () => void,
   ) => (
     <div className={`rounded-xl border p-3 ${sectionCls}`}>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-8 gap-2 items-end">
-        <div className="lg:col-span-1">
-          <label className={labelCls}>Scope</label>
-          <CustomDropdown
-            value={rule.scope}
-            options={[
-              { value: 'course', label: 'Course' },
-              { value: 'chapter', label: 'Chapter' },
-              { value: 'chapters', label: 'Chapters' },
-              { value: 'group', label: 'Group' },
-            ]}
-            onChange={(value) => onPatch(resetScopeFields(value as ExamGenerationScope))}
-            fullWidth
-          />
-        </div>
-        <div className="lg:col-span-2">
-          <label className={labelCls}>{rule.scope === 'group' ? 'Groups' : rule.scope === 'chapters' ? 'Chapters' : 'Target'}</label>
-          {renderScopeTarget(rule, onPatch)}
-        </div>
-        <div className="lg:col-span-1">
-          <label className={labelCls}>Count</label>
-          <input type="number" min={1} value={rule.count} onChange={(e) => onPatch({ count: e.target.value })} className={fieldCls} placeholder="# questions" />
-        </div>
-        <div className="lg:col-span-1">
-          <label className={labelCls}>Marks / Q</label>
-          <input type="number" min={0.25} step={0.25} value={rule.weightPerQuestion} onChange={(e) => onPatch({ weightPerQuestion: e.target.value })} className={fieldCls} placeholder="Marks each" />
-        </div>
-        <div className="lg:col-span-1">
-          <label className={labelCls}>Type</label>
-          <CustomDropdown value={rule.questionType} options={questionTypeOptions} onChange={(v) => onPatch({ questionType: v })} fullWidth />
-        </div>
-        <div className="lg:col-span-1">
-          <label className={labelCls}>Difficulty</label>
-          <CustomDropdown value={rule.difficulty} options={difficultyOptions} onChange={(v) => onPatch({ difficulty: v })} fullWidth />
-        </div>
-        <div className="lg:col-span-1 flex items-end gap-2">
-          <div className="flex-1 min-w-0">
-            <label className={labelCls}>Bloom</label>
-            <CustomDropdown value={rule.bloomLevel} options={bloomOptions} onChange={(v) => onPatch({ bloomLevel: v })} fullWidth />
+      <div className="flex gap-2">
+        <div className="flex-1 min-w-0 space-y-2">
+          {/* Row 1: Scope, Target, Count, Marks/Q */}
+          <div className="grid grid-cols-4 gap-2">
+            <div>
+              <label className={labelCls}>Scope</label>
+              <CustomDropdown
+                value={rule.scope}
+                options={[
+                  { value: 'course', label: 'Course' },
+                  { value: 'chapter', label: 'Chapter' },
+                  { value: 'chapters', label: 'Chapters' },
+                  { value: 'group', label: 'Group' },
+                ]}
+                onChange={(value) => onPatch(resetScopeFields(value as ExamGenerationScope))}
+                fullWidth
+              />
+            </div>
+            <div className="col-span-2">
+              <label className={labelCls}>{rule.scope === 'group' ? 'Groups' : rule.scope === 'chapters' ? 'Chapters' : 'Target'}</label>
+              {renderScopeTarget(rule, onPatch)}
+            </div>
+            <div>
+              <label className={labelCls}>Count</label>
+              <input type="number" min={1} value={rule.count} onChange={(e) => onPatch({ count: e.target.value })} className={fieldCls} placeholder="# questions" />
+            </div>
           </div>
-          {onRemove && (
-            <button onClick={onRemove} className={`flex-shrink-0 p-2 rounded-lg border text-sm transition-colors ${isDark ? 'border-white/10 text-slate-400 hover:bg-white/10' : 'border-gray-300 text-gray-500 hover:bg-gray-100'}`}>
+          {/* Row 2: Marks/Q, Type, Difficulty, Bloom */}
+          <div className="grid grid-cols-4 gap-2">
+            <div>
+              <label className={labelCls}>Marks / Q</label>
+              <input type="number" min={0.25} step={0.25} value={rule.weightPerQuestion} onChange={(e) => onPatch({ weightPerQuestion: e.target.value })} className={fieldCls} placeholder="Marks each" />
+            </div>
+            <div>
+              <label className={labelCls}>Type</label>
+              <CustomDropdown value={rule.questionType} options={questionTypeOptions} onChange={(v) => onPatch({ questionType: v })} fullWidth />
+            </div>
+            <div>
+              <label className={labelCls}>Difficulty</label>
+              <CustomDropdown value={rule.difficulty} options={difficultyOptions} onChange={(v) => onPatch({ difficulty: v })} fullWidth />
+            </div>
+            <div>
+              <label className={labelCls}>Bloom</label>
+              <CustomDropdown value={rule.bloomLevel} options={bloomOptions} onChange={(v) => onPatch({ bloomLevel: v })} fullWidth />
+            </div>
+          </div>
+        </div>
+        {onRemove && (
+          <div className="flex items-center">
+            <button onClick={onRemove} className={`flex-shrink-0 p-1.5 rounded-lg border transition-colors ${isDark ? 'border-red-500/30 text-red-400 hover:bg-red-500/10' : 'border-red-200 text-red-500 hover:bg-red-50'}`} title="Remove rule">
               <X size={14} />
             </button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -640,6 +647,7 @@ export function ExamGenerationModal({
       <div
         className={`w-full max-w-5xl rounded-2xl border p-6 shadow-xl max-h-[90vh] overflow-auto ${cardCls}`}
         onClick={(e) => e.stopPropagation()}
+        style={{ '--modal-focus-ring': `${primaryHex}66` } as React.CSSProperties}
       >
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
@@ -797,7 +805,7 @@ export function ExamGenerationModal({
                 </React.Fragment>
               ))}
             </div>
-            <button onClick={addRule} className={`mt-3 inline-flex items-center gap-2 px-3 py-2 rounded-lg border text-sm transition-colors ${isDark ? 'border-white/10 text-slate-200 hover:bg-white/10' : 'border-gray-300 text-gray-700 hover:bg-gray-100'}`}>
+            <button onClick={addRule} className={`mt-3 ${secondaryCls}`}>
               <Plus size={14} />
               Add Rule
             </button>
@@ -862,7 +870,7 @@ export function ExamGenerationModal({
                     Add Section Rule
                   </button>
                   {sections.length > 1 && (
-                    <button type="button" onClick={() => removeSection(sectionIndex)} className={secondaryCls}>
+                    <button type="button" onClick={() => removeSection(sectionIndex)} className={dangerCls}>
                       <X size={14} />
                       Remove Section
                     </button>
@@ -870,7 +878,7 @@ export function ExamGenerationModal({
                 </div>
               </section>
             ))}
-            <button type="button" onClick={addSection} className={secondaryCls}>
+            <button type="button" onClick={addSection} className={`mt-2 ${secondaryCls}`}>
               <Plus size={14} />
               Add Section
             </button>
@@ -949,107 +957,112 @@ export function ExamGenerationModal({
                   const detail = questionDetails[item.questionId];
                   const isFirst = sortedIdx === 0;
                   const isLast = sortedIdx === localOrder.length - 1;
+                  const isMcq = item.questionType === 'mcq' || item.questionType === 'true_false';
                   return (
-                    <div
+                    <article
                       key={item.id}
-                      className={`rounded-lg border px-4 py-3 text-sm ${isDark ? 'border-white/10 bg-gray-900' : 'border-gray-200 bg-white'}`}
+                      className={`rounded-lg border p-4 ${isDark ? 'border-white/10 bg-white/5' : 'border-gray-300 bg-gray-50'}`}
                     >
-                      {/* Top row: up/down + number circle + text */}
+                      {/* Header: arrows + number + title + weight badge */}
                       <div className="flex items-start gap-3">
                         {/* Up/down arrows */}
-                        <div className="flex flex-col gap-0.5 flex-shrink-0 mt-0.5">
-                          <button
-                            type="button"
-                            disabled={isFirst}
-                            onClick={() => moveItem(item.id, 'up')}
-                            className={`p-0.5 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed ${isDark ? 'hover:bg-white/10 text-slate-400' : 'hover:bg-gray-100 text-gray-400'}`}
-                          >
+                        <div className="flex flex-col gap-0.5 flex-shrink-0 mt-1">
+                          <button type="button" disabled={isFirst} onClick={() => moveItem(item.id, 'up')}
+                            className={`p-0.5 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed ${isDark ? 'hover:bg-white/10 text-slate-400' : 'hover:bg-gray-200 text-gray-400'}`}>
                             <ChevronUp size={14} />
                           </button>
-                          <button
-                            type="button"
-                            disabled={isLast}
-                            onClick={() => moveItem(item.id, 'down')}
-                            className={`p-0.5 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed ${isDark ? 'hover:bg-white/10 text-slate-400' : 'hover:bg-gray-100 text-gray-400'}`}
-                          >
+                          <button type="button" disabled={isLast} onClick={() => moveItem(item.id, 'down')}
+                            className={`p-0.5 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed ${isDark ? 'hover:bg-white/10 text-slate-400' : 'hover:bg-gray-200 text-gray-400'}`}>
                             <ChevronDown size={14} />
                           </button>
                         </div>
 
-                        {/* Number badge */}
-                        <div
-                          className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold mt-0.5"
-                          style={{ backgroundColor: primaryHex }}
-                        >
-                          {sortedIdx + 1}
-                        </div>
-
-                        {/* Question body */}
+                        {/* Body */}
                         <div className="flex-1 min-w-0">
-                          <div className={`font-medium text-sm leading-snug ${headingCls}`}>
-                            {detail
-                              ? <MathText text={detail.text} />
-                              : <span className={`italic ${subCls}`}>Q#{item.questionId} — loading...</span>}
-                          </div>
-
-                          {/* Diagram */}
-                          {detail?.imageBlobUrl && (
-                            <div className="mt-2">
-                              <img
-                                src={detail.imageBlobUrl}
-                                alt="Question diagram"
-                                className={`max-h-40 rounded border object-contain ${isDark ? 'border-white/10' : 'border-gray-200'}`}
-                              />
-                            </div>
-                          )}
-
-                          {/* Badges */}
-                          <div className="flex flex-wrap gap-1.5 mt-2">
-                            {item.questionType && (
-                              <span className="inline-flex px-2 py-0.5 rounded text-xs font-medium" style={{ backgroundColor: `${primaryHex}20`, color: primaryHex }}>
-                                {formatEnumLabel(item.questionType)}
-                              </span>
-                            )}
-                            {item.difficulty && (
-                              <span className={`inline-flex px-2 py-0.5 rounded text-xs font-medium ${isDark ? 'bg-white/10 text-slate-300' : 'bg-gray-100 text-gray-600'}`}>
-                                {formatEnumLabel(item.difficulty)}
-                              </span>
-                            )}
-                            {item.bloomLevel && (
-                              <span className={`inline-flex px-2 py-0.5 rounded text-xs font-medium ${isDark ? 'bg-white/10 text-slate-300' : 'bg-gray-100 text-gray-600'}`}>
-                                {formatEnumLabel(item.bloomLevel)}
-                              </span>
-                            )}
-                            <span className={`inline-flex px-2 py-0.5 rounded text-xs font-medium ${isDark ? 'bg-white/10 text-slate-300' : 'bg-gray-100 text-gray-600'}`}>
+                          <div className="flex flex-wrap items-start justify-between gap-2">
+                            <h4 className={`text-base font-semibold leading-snug ${headingCls}`}>
+                              {sortedIdx + 1}.{' '}
+                              {detail
+                                ? <MathText text={detail.text} />
+                                : <span className={`italic ${subCls}`}>Q#{item.questionId} — loading…</span>}
+                            </h4>
+                            <span className={`px-2 py-0.5 rounded text-xs font-semibold ${isDark ? 'bg-blue-500/20 text-blue-200 border border-blue-500/30' : 'bg-blue-50 text-blue-700 border border-blue-200'}`}>
                               {item.weight} mark{item.weight !== 1 ? 's' : ''}
                             </span>
                           </div>
 
-                          {/* Answer */}
-                          {detail?.answer && (
-                            <div className={`mt-2 text-xs ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
-                              <span className="font-semibold">Answer:</span>{' '}
-                              <MathText text={detail.answer} />
+                          {/* Diagram */}
+                          {detail?.imageBlobUrl && (
+                            <div className={`mt-3 overflow-hidden rounded-lg border ${isDark ? 'border-white/10 bg-black/20' : 'border-gray-200 bg-white'}`}>
+                              <img src={detail.imageBlobUrl} alt="Question diagram" className="max-h-60 w-full object-contain" />
                             </div>
                           )}
 
+                          {/* Type / difficulty / bloom badges */}
+                          <div className="mt-2 flex flex-wrap gap-1.5 text-xs">
+                            {item.questionType && (
+                              <span className="px-2 py-0.5 rounded font-medium" style={{ backgroundColor: `${primaryHex}20`, color: primaryHex }}>
+                                {formatEnumLabel(item.questionType)}
+                              </span>
+                            )}
+                            {item.difficulty && (
+                              <span className={`px-2 py-0.5 rounded font-medium ${
+                                item.difficulty === 'easy' ? isDark ? 'bg-emerald-500/20 text-emerald-200' : 'bg-emerald-100 text-emerald-800'
+                                : item.difficulty === 'medium' ? isDark ? 'bg-amber-500/20 text-amber-200' : 'bg-amber-100 text-amber-800'
+                                : isDark ? 'bg-red-500/20 text-red-200' : 'bg-red-100 text-red-800'
+                              }`}>
+                                {formatEnumLabel(item.difficulty)}
+                              </span>
+                            )}
+                            {item.bloomLevel && (
+                              <span className={`px-2 py-0.5 rounded font-medium ${isDark ? 'bg-emerald-500/20 text-emerald-200' : 'bg-emerald-100 text-emerald-800'}`}>
+                                {formatEnumLabel(item.bloomLevel)}
+                              </span>
+                            )}
+                          </div>
+
+                          {/* MCQ options OR Answer callout */}
+                          {isMcq && item.options && item.options.length > 0 ? (
+                            <div className={`mt-3 pt-3 border-t space-y-1.5 ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
+                              {item.options.map((option, oi) => (
+                                <div key={oi} className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm ${
+                                  option.isCorrect
+                                    ? isDark ? 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-200' : 'bg-emerald-50 border border-emerald-300 text-emerald-800'
+                                    : isDark ? 'bg-white/5 border border-white/8 text-slate-300' : 'bg-gray-50 border border-gray-200 text-gray-700'
+                                }`}>
+                                  {option.isCorrect
+                                    ? <CheckCircle2 size={15} className="shrink-0 opacity-80" />
+                                    : <span className={`shrink-0 w-[15px] h-[15px] rounded-full border-2 ${isDark ? 'border-white/20' : 'border-gray-300'}`} />
+                                  }
+                                  <span className="flex-1"><MathText text={option.optionText || `Option ${oi + 1}`} /></span>
+                                </div>
+                              ))}
+                            </div>
+                          ) : detail?.answer ? (
+                            <div className="mt-3 space-y-2">
+                              <div className={`flex gap-2 rounded-lg px-3 py-2 text-sm ${isDark ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-200' : 'bg-emerald-50 border border-emerald-200 text-emerald-800'}`}>
+                                <CheckCircle2 size={14} className="mt-0.5 shrink-0 opacity-70" />
+                                <span><span className="font-semibold">Answer: </span><MathText text={detail.answer} /></span>
+                              </div>
+                            </div>
+                          ) : null}
+
                           {/* Hint */}
                           {detail?.hints && (
-                            <div className={`mt-1 text-xs ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>
-                              <span className="font-semibold">Hint:</span>{' '}
-                              <MathText text={detail.hints} />
+                            <div className={`mt-2 flex gap-2 rounded-lg px-3 py-2 text-sm ${isDark ? 'bg-amber-500/10 border border-amber-500/20 text-amber-200' : 'bg-amber-50 border border-amber-200 text-amber-800'}`}>
+                              <Lightbulb size={14} className="mt-0.5 shrink-0 opacity-70" />
+                              <span><span className="font-semibold">Hint: </span><MathText text={detail.hints} /></span>
                             </div>
                           )}
                         </div>
                       </div>
 
                       {/* Weight edit row */}
-                      <div className="mt-3 flex items-end gap-2">
+                      <div className={`mt-3 pt-3 border-t flex items-end gap-2 ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
                         <div className="w-36">
                           <label className={labelCls}>Weight</label>
                           <input
-                            type="number"
-                            min={0}
+                            type="number" min={0}
                             value={itemEdits[item.id]?.weight ?? ''}
                             onChange={(e) => updateItemEditState(item.id, { weight: e.target.value })}
                             className={fieldCls}
@@ -1063,14 +1076,12 @@ export function ExamGenerationModal({
                           className="px-4 py-2 rounded-lg text-sm font-medium text-white disabled:opacity-60 disabled:cursor-not-allowed"
                           style={{ backgroundColor: primaryHex }}
                         >
-                          {updatingItemId === item.id ? (
-                            <span className="inline-flex items-center gap-2">
-                              <Loader2 size={14} className="animate-spin" /> Saving...
-                            </span>
-                          ) : 'Apply'}
+                          {updatingItemId === item.id
+                            ? <span className="inline-flex items-center gap-2"><Loader2 size={14} className="animate-spin" /> Saving…</span>
+                            : 'Apply'}
                         </button>
                       </div>
-                    </div>
+                    </article>
                   );
                 })}
               </div>

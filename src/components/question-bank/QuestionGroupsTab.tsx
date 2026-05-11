@@ -14,7 +14,6 @@ import {
   FileText,
   Files,
   Image as ImageIcon,
-  MousePointer2,
   Layers,
 } from 'lucide-react';
 import QuestionGroupService from '../../services/api/questionGroupService';
@@ -87,10 +86,9 @@ export function QuestionGroupsTab({ courses, selectedCourse }: QuestionGroupsTab
     ? 'border-white/10 text-slate-300 hover:bg-white/10' 
     : 'border-gray-300 text-gray-700 hover:bg-gray-100';
 
-  const courseId = selectedCourse ? Number(selectedCourse) : undefined;
+  const courseId = selectedCourse && selectedCourse !== 'all' ? Number(selectedCourse) : undefined;
 
   const loadGroups = useCallback(async () => {
-    if (!courseId) return;
 
     try {
       setIsLoading(true);
@@ -100,7 +98,7 @@ export function QuestionGroupsTab({ courses, selectedCourse }: QuestionGroupsTab
         selectedGroupTypes.size > 0 ? Array.from(selectedGroupTypes).join(',') : undefined;
 
       const response = await QuestionGroupService.list({
-        courseId,
+        ...(courseId ? { courseId } : {}),
         chapterId: selectedChapterId,
         page: currentPage,
         limit: pageSize,
@@ -124,6 +122,7 @@ export function QuestionGroupsTab({ courses, selectedCourse }: QuestionGroupsTab
   useEffect(() => {
     if (!courseId) {
       setChapters([]);
+      setSelectedChapterId(undefined);
       return;
     }
     setIsLoadingChapters(true);
@@ -230,20 +229,6 @@ export function QuestionGroupsTab({ courses, selectedCourse }: QuestionGroupsTab
   const startIndex = (currentPage - 1) * pageSize + 1;
   const endIndex = Math.min(startIndex + pageSize - 1, totalGroups);
 
-  if (!courseId) {
-    return (
-      <div className={`p-12 text-center rounded-xl border-2 border-dashed ${isDark ? 'border-white/5 bg-white/5' : 'border-gray-100 bg-gray-50/30'}`}>
-        <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full mb-4 ${isDark ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-50 text-blue-600'}`}>
-          <MousePointer2 size={32} />
-        </div>
-        <h3 className={`text-lg font-semibold mb-2 ${headingClass}`}>No Course Selected</h3>
-        <p className={`max-w-xs mx-auto text-sm leading-relaxed ${subTextClass}`}>
-          Please choose a course from the selector above to manage its question groups.
-        </p>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -260,7 +245,7 @@ export function QuestionGroupsTab({ courses, selectedCourse }: QuestionGroupsTab
           
           <div className="h-8 w-px bg-gray-200 dark:bg-white/10 hidden sm:block" />
           
-          <div className="flex flex-wrap gap-1.5 p-1 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10">
+          <div className={`flex flex-wrap gap-1.5 p-1 rounded-xl border ${isDark ? 'bg-white/5 border-white/10' : 'bg-gray-100 border-gray-200'}`}>
             {GROUP_TYPE_OPTIONS.map((option) => {
               const active = selectedGroupTypes.has(option.value);
               return (
@@ -269,9 +254,12 @@ export function QuestionGroupsTab({ courses, selectedCourse }: QuestionGroupsTab
                   onClick={() => toggleGroupType(option.value)}
                   className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${
                     active
-                      ? 'bg-white dark:bg-white/10 shadow-sm text-gray-900 dark:text-white'
-                      : 'text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200'
+                      ? 'shadow-sm text-white'
+                      : isDark
+                        ? 'text-slate-400 hover:text-white hover:bg-white/10'
+                        : 'text-gray-500 hover:text-gray-900 hover:bg-white'
                   }`}
+                  style={active ? { backgroundColor: primaryHex } : undefined}
                 >
                   {option.label}
                 </button>
@@ -284,11 +272,11 @@ export function QuestionGroupsTab({ courses, selectedCourse }: QuestionGroupsTab
           <select
             value={selectedChapterId ?? ''}
             onChange={(e) => setSelectedChapterId(e.target.value ? Number(e.target.value) : undefined)}
-            disabled={isLoadingChapters || chapters.length === 0}
+            disabled={!courseId || isLoadingChapters || chapters.length === 0}
             className={`w-full sm:w-48 px-3 py-2 rounded-lg border text-sm transition-colors focus:outline-none focus:ring-2 ${
-              isDark 
-                ? 'bg-white/5 border-white/10 text-slate-200 focus:ring-white/20' 
-                : 'bg-white border-gray-300 text-gray-700 focus:ring-blue-500/20'
+              isDark
+                ? 'bg-white/5 border-white/10 text-slate-200 focus:ring-white/20'
+                : 'bg-white border-gray-300 text-gray-700 focus:ring-gray-300'
             }`}
           >
             <option value="">All Chapters</option>
@@ -307,9 +295,9 @@ export function QuestionGroupsTab({ courses, selectedCourse }: QuestionGroupsTab
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className={`w-full pl-9 pr-4 py-2 rounded-lg border text-sm transition-colors focus:outline-none focus:ring-2 ${
-                isDark 
-                  ? 'bg-white/5 border-white/10 text-white placeholder-slate-500 focus:ring-white/20' 
-                  : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-blue-500/20'
+                isDark
+                  ? 'bg-white/5 border-white/10 text-white placeholder-slate-500 focus:ring-white/20'
+                  : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400 focus:ring-gray-300'
               }`}
             />
           </div>
@@ -342,7 +330,8 @@ export function QuestionGroupsTab({ courses, selectedCourse }: QuestionGroupsTab
           action={
             <button
               onClick={() => setOpenCreateModal(true)}
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600"
+              className="px-4 py-2 text-white rounded-lg font-medium opacity-90 hover:opacity-100 transition-opacity"
+              style={{ backgroundColor: primaryHex }}
             >
               Create Group
             </button>

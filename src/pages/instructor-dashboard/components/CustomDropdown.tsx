@@ -146,8 +146,8 @@ export function CustomDropdown({
             disabled
               ? isDark ? 'bg-white/5 border-white/10 opacity-50 cursor-not-allowed' : 'bg-gray-50 border-gray-200 opacity-60 cursor-not-allowed'
               : isDark ? 'bg-white/5 border-white/10 hover:bg-white/10' : 'bg-white border-gray-300 hover:bg-gray-50'
-          } outline-none ${isOpen ? 'ring-2' : ''}`}
-          style={isOpen ? ({ '--tw-ring-color': `${primaryHex}80` } as React.CSSProperties) : undefined}
+          } outline-none focus-visible:ring-2 ${isOpen ? 'ring-2' : ''}`}
+          style={{ '--tw-ring-color': `${primaryHex}80` } as React.CSSProperties}
         >
           <span className={`truncate ${isDark ? 'text-slate-200' : 'text-gray-900'}`}>
             {selectedOption?.label || placeholder}

@@ -16,6 +16,7 @@ import {
   FileCheck,
   FileText,
   History,
+  Lightbulb,
   Loader2,
   MoreVertical,
   Pencil,
@@ -1279,7 +1280,7 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
           return;
         }
 
-        const response = await ExamGenerationService.getExam(examIdFromRoute);
+        const response = await ExamGenerationService.getExamFull(examIdFromRoute);
         const record = normalizeObjectData(response);
         if (!record || !mounted) return;
 
@@ -1838,14 +1839,20 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
                       <span className={bloomBadgeClass}>{formatEnumLabel(item.bloomLevel)}</span>
                     </div>
 
-                    {item.expectedAnswerText && (
-                      <div className={`mt-2 text-sm ${subTextClass}`}>
-                        <span className="font-semibold">Answer:</span> <MathText text={item.expectedAnswerText} />
-                      </div>
-                    )}
-                    {item.hints && (
-                      <div className={`mt-1 text-sm ${subTextClass}`}>
-                        <span className="font-semibold">Hint:</span> <MathText text={item.hints} />
+                    {(item.expectedAnswerText || item.hints) && (
+                      <div className="mt-3 space-y-2">
+                        {item.expectedAnswerText && (
+                          <div className={`flex gap-2 rounded-lg px-3 py-2 text-sm ${isDark ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-200' : 'bg-emerald-50 border border-emerald-200 text-emerald-800'}`}>
+                            <CheckCircle2 size={14} className="mt-0.5 shrink-0 opacity-70" />
+                            <span><span className="font-semibold">Answer: </span><MathText text={item.expectedAnswerText} /></span>
+                          </div>
+                        )}
+                        {item.hints && (
+                          <div className={`flex gap-2 rounded-lg px-3 py-2 text-sm ${isDark ? 'bg-amber-500/10 border border-amber-500/20 text-amber-200' : 'bg-amber-50 border border-amber-200 text-amber-800'}`}>
+                            <Lightbulb size={14} className="mt-0.5 shrink-0 opacity-70" />
+                            <span><span className="font-semibold">Hint: </span><MathText text={item.hints} /></span>
+                          </div>
+                        )}
                       </div>
                     )}
 
@@ -1856,7 +1863,7 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
                             key={`${item.id}-option-${optionIndex}`}
                             className={`rounded px-2 py-1 text-sm flex items-center justify-between ${isDark ? 'bg-white/5' : 'bg-white border border-gray-300'}`}
                           >
-                            <span className={headingClass}>{option.optionText || `Option ${optionIndex + 1}`}</span>
+                            <span className={headingClass}><MathText text={option.optionText || `Option ${optionIndex + 1}`} /></span>
                             {option.isCorrect && (
                               <span className="text-[11px] font-semibold text-green-600 dark:text-green-400">
                                 Correct
@@ -2033,25 +2040,43 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
         <div className={`mt-4 pt-4 border-t grid grid-cols-2 lg:grid-cols-4 gap-3 ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
           <div className={`rounded-lg border px-4 py-2.5 ${innerCardClass}`}>
             <div className={`text-[10px] font-bold uppercase tracking-wider ${subTextClass}`}>Total View</div>
-            <div className={`text-xl font-bold ${headingClass}`}>{total}</div>
+            {stats === null && !statsError ? (
+              <div className={`mt-1 h-6 w-12 rounded animate-pulse ${isDark ? 'bg-white/10' : 'bg-gray-200'}`} />
+            ) : (
+              <div className={`text-xl font-bold ${headingClass}`}>
+                {stats ? stats.approved + stats.underReview + stats.draft : '—'}
+              </div>
+            )}
           </div>
           <div className={`rounded-lg border px-4 py-2.5 ${isDark ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-emerald-50 border-emerald-200'}`}>
             <div className={`text-[10px] font-bold uppercase tracking-wider ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`}>Approved</div>
-            <div className={`text-xl font-bold ${isDark ? 'text-emerald-300' : 'text-emerald-800'}`}>
-              {stats ? stats.approved : '—'}
-            </div>
+            {stats === null && !statsError ? (
+              <div className={`mt-1 h-6 w-12 rounded animate-pulse ${isDark ? 'bg-emerald-500/20' : 'bg-emerald-200'}`} />
+            ) : (
+              <div className={`text-xl font-bold ${isDark ? 'text-emerald-300' : 'text-emerald-800'}`}>
+                {stats ? stats.approved : '—'}
+              </div>
+            )}
           </div>
           <div className={`rounded-lg border px-4 py-2.5 ${isDark ? 'bg-amber-500/10 border-amber-500/20' : 'bg-amber-50 border-amber-200'}`}>
             <div className={`text-[10px] font-bold uppercase tracking-wider ${isDark ? 'text-amber-400' : 'text-amber-700'}`}>Reviewing</div>
-            <div className={`text-xl font-bold ${isDark ? 'text-amber-300' : 'text-amber-800'}`}>
-              {stats ? stats.underReview : '—'}
-            </div>
+            {stats === null && !statsError ? (
+              <div className={`mt-1 h-6 w-12 rounded animate-pulse ${isDark ? 'bg-amber-500/20' : 'bg-amber-200'}`} />
+            ) : (
+              <div className={`text-xl font-bold ${isDark ? 'text-amber-300' : 'text-amber-800'}`}>
+                {stats ? stats.underReview : '—'}
+              </div>
+            )}
           </div>
           <div className={`rounded-lg border px-4 py-2.5 ${innerCardClass}`}>
             <div className={`text-[10px] font-bold uppercase tracking-wider ${subTextClass}`}>Drafts</div>
-            <div className={`text-xl font-bold ${headingClass}`}>
-              {stats ? stats.draft : '—'}
-            </div>
+            {stats === null && !statsError ? (
+              <div className={`mt-1 h-6 w-12 rounded animate-pulse ${isDark ? 'bg-white/10' : 'bg-gray-200'}`} />
+            ) : (
+              <div className={`text-xl font-bold ${headingClass}`}>
+                {stats ? stats.draft : '—'}
+              </div>
+            )}
           </div>
         </div>
         {statsError && (
@@ -2565,7 +2590,7 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
                   filterStatus.length + filterBloomLevel.length +
                   (selectedChapter !== 'all' ? 1 : 0);
                 return activeFilterCount > 0 ? (
-                  <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-blue-500 text-white text-xs font-medium">
+                  <span className="inline-flex items-center justify-center w-5 h-5 rounded-full text-white text-xs font-medium" style={{ backgroundColor: primaryHex }}>
                     {activeFilterCount}
                   </span>
                 ) : null;
@@ -2593,13 +2618,12 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
                     onClick={() => handleToggleQuestionType(type)}
                     className={`px-3 py-1 rounded-full border text-xs font-medium transition-all ${
                       filterQuestionType.includes(type)
-                        ? isDark
-                          ? 'border-blue-500 bg-blue-500 text-white shadow-sm'
-                          : 'border-blue-600 bg-blue-600 text-white shadow-sm'
+                        ? 'text-white shadow-sm'
                         : isDark
                           ? 'border-white/20 bg-transparent text-slate-300 hover:bg-white/10 hover:text-white'
                           : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                     }`}
+                    style={filterQuestionType.includes(type) ? { backgroundColor: primaryHex, borderColor: primaryHex } : undefined}
                   >
                     {formatEnumLabel(type)}
                   </button>
@@ -2647,13 +2671,12 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
                     onClick={() => handleToggleStatus(status)}
                     className={`px-3 py-1 rounded-full border text-xs font-medium transition-all ${
                       filterStatus.includes(status)
-                        ? isDark
-                          ? 'border-violet-500 bg-violet-500 text-white shadow-sm'
-                          : 'border-violet-600 bg-violet-600 text-white shadow-sm'
+                        ? 'text-white shadow-sm'
                         : isDark
                           ? 'border-white/20 bg-transparent text-slate-300 hover:bg-white/10 hover:text-white'
                           : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                     }`}
+                    style={filterStatus.includes(status) ? { backgroundColor: primaryHex, borderColor: primaryHex } : undefined}
                   >
                     {formatEnumLabel(status)}
                   </button>
@@ -2673,13 +2696,12 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
                     onClick={() => handleToggleBloomLevel(bloom)}
                     className={`px-3 py-1 rounded-full border text-xs font-medium transition-all ${
                       filterBloomLevel.includes(bloom)
-                        ? isDark
-                          ? 'border-teal-500 bg-teal-500 text-white shadow-sm'
-                          : 'border-teal-600 bg-teal-600 text-white shadow-sm'
+                        ? 'text-white shadow-sm'
                         : isDark
                           ? 'border-white/20 bg-transparent text-slate-300 hover:bg-white/10 hover:text-white'
                           : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                     }`}
+                    style={filterBloomLevel.includes(bloom) ? { backgroundColor: primaryHex, borderColor: primaryHex } : undefined}
                   >
                     {formatEnumLabel(bloom)}
                   </button>
@@ -2938,15 +2960,44 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
                   </div>
                 )}
 
-                <div className={`mt-2 text-xs sm:text-sm space-y-1 ${subTextClass}`}>
-                  <div>
-                    <span className="font-semibold">Answer:</span>{' '}
-                    <MathText text={resolveQuestionAnswer(question)} />
+                {Array.isArray(question.options) && question.options.length > 0 ? (
+                  <div className={`mt-3 pt-3 border-t space-y-1.5 ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
+                    {question.options.slice(0, 4).map((option, optionIndex) => (
+                      <div
+                        key={`${String(question.id ?? index)}-option-${optionIndex}`}
+                        className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm ${
+                          option.isCorrect
+                            ? isDark
+                              ? 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-200'
+                              : 'bg-emerald-50 border border-emerald-300 text-emerald-800'
+                            : isDark
+                              ? 'bg-white/5 border border-white/8 text-slate-300'
+                              : 'bg-gray-50 border border-gray-200 text-gray-700'
+                        }`}
+                      >
+                        {option.isCorrect
+                          ? <CheckCircle2 size={15} className="shrink-0 opacity-80" />
+                          : <span className={`shrink-0 w-[15px] h-[15px] rounded-full border-2 ${isDark ? 'border-white/20' : 'border-gray-300'}`} />
+                        }
+                        <span className="flex-1"><MathText text={option.optionText?.trim() || `Option ${optionIndex + 1}`} /></span>
+                      </div>
+                    ))}
                   </div>
-                  <div>
-                    <span className="font-semibold">Hint:</span> {question.hints?.trim() || 'No hint provided'}
+                ) : (
+                  <div className="mt-3 space-y-2">
+                    <div className={`flex gap-2 rounded-lg px-3 py-2 text-xs sm:text-sm ${isDark ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-200' : 'bg-emerald-50 border border-emerald-200 text-emerald-800'}`}>
+                      <CheckCircle2 size={14} className="mt-0.5 shrink-0 opacity-70" />
+                      <span><span className="font-semibold">Answer: </span><MathText text={resolveQuestionAnswer(question)} /></span>
+                    </div>
                   </div>
-                </div>
+                )}
+
+                {question.hints?.trim() && (
+                  <div className={`mt-2 flex gap-2 rounded-lg px-3 py-2 text-xs sm:text-sm ${isDark ? 'bg-amber-500/10 border border-amber-500/20 text-amber-200' : 'bg-amber-50 border border-amber-200 text-amber-800'}`}>
+                    <Lightbulb size={14} className="mt-0.5 shrink-0 opacity-70" />
+                    <span><span className="font-semibold">Hint: </span><MathText text={question.hints.trim()} /></span>
+                  </div>
+                )}
 
                 <div className={`mt-3 text-xs sm:text-sm flex flex-wrap gap-x-4 gap-y-1 ${subTextClass}`}>
                   <span className="inline-flex items-center gap-1.5">
@@ -2963,24 +3014,6 @@ export function ExamsPage({ courses = [] }: ExamsPageProps) {
                     </span>
                   )}
                 </div>
-
-                {Array.isArray(question.options) && question.options.length > 0 && (
-                  <div className={`mt-3 pt-3 border-t space-y-1 ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
-                    {question.options.slice(0, 4).map((option, optionIndex) => (
-                      <div
-                        key={`${String(question.id ?? index)}-option-${optionIndex}`}
-                        className={`text-xs sm:text-sm flex items-center justify-between rounded px-2 py-1 ${isDark ? 'bg-white/5' : 'bg-gray-100/50 border border-gray-200'}`}
-                      >
-                        <span className={`${headingClass} truncate pr-2`}>
-                          {option.optionText?.trim() || `Option ${optionIndex + 1}`}
-                        </span>
-                        {option.isCorrect && (
-                          <span className="text-[11px] font-semibold text-green-600 dark:text-green-400">Correct</span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
               </article>
             );
             })}

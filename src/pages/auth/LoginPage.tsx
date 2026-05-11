@@ -56,11 +56,10 @@ const LoginPage = () => {
 
     try {
       const user = await authLogin(loginEmail, loginPassword);
-      // Use the returned user directly — avoids stale React state closure
+      // Don't clear loading on success — keep spinner until the component unmounts on navigation
       navigate(AuthService.getDashboardPath(user));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed. Please try again.');
-    } finally {
       setLoading(false);
     }
   };
